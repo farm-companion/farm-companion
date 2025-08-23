@@ -67,7 +67,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
         const variants = await generateImageVariants(buffer)
 
         // Upload optimized image
-        const optimizedFile = new File([variants.optimized.buffer], file.name, {
+        const optimizedFile = new File([variants.optimized.buffer as BlobPart], file.name, {
           type: `image/${variants.optimized.format}`,
         })
 
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<ApiRespon
       return NextResponse.json({
         success: false,
         error: 'Invalid request data',
-        details: error.errors,
+        details: error.issues,
         timestamp: new Date().toISOString(),
       }, { status: 400 })
     }
