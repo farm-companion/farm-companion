@@ -3,7 +3,17 @@ import { z } from 'zod'
 import { ProduceImage, ProduceMetadata, ProduceStats } from '@/types/produce'
 
 // Redis client
-const redisUrl = process.env.REDIS_URL?.replace(/^["']|["']$/g, '') || 'redis://localhost:6379'
+let redisUrl = 'redis://localhost:6379'
+
+try {
+  const envRedisUrl = process.env.REDIS_URL?.replace(/^["']|["']$/g, '')
+  if (envRedisUrl && envRedisUrl.startsWith('redis://')) {
+    redisUrl = envRedisUrl
+  }
+} catch (error) {
+  console.warn('Invalid Redis URL, using localhost fallback:', error)
+}
+
 const redis = createClient({
   url: redisUrl
 })
