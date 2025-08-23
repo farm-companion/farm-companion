@@ -128,9 +128,9 @@ export async function getProduceImages(
   }
 }
 
-export async function getMonthImages(month: number): Promise<ProduceImage[]> {
+export async function getMonthImages(_month: number): Promise<ProduceImage[]> {
   try {
-    const monthImagesKey = `month:${month}:images`
+          const monthImagesKey = `month:${_month}:images`
     const imageIds = await redis.lRange(monthImagesKey, 0, -1)
     
     const images: ProduceImage[] = []

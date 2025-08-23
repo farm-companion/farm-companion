@@ -45,7 +45,7 @@ export class FarmFrontendIntegration {
       }
 
       // Filter images for the specified month
-      const monthImages = produce.images.filter((_, index) => {
+      const monthImages = produce.images.filter(() => {
         // This is a simplified logic - in practice, you'd need to determine
         // which images belong to which month based on your data structure
         return true // For now, sync all images

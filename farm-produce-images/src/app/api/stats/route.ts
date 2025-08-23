@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getProduceStats } from '@/lib/database'
 import { ApiResponse, StatsResponse } from '@/types/api'
 
-export async function GET(request: NextRequest): Promise<NextResponse<ApiResponse<StatsResponse>>> {
+export async function GET(): Promise<NextResponse<ApiResponse<StatsResponse>>> {
   try {
     const stats = await getProduceStats()
 

@@ -41,7 +41,7 @@ export class ProduceImagesClient {
     month: number,
     alt: string,
     isPrimary: boolean = false,
-    metadata?: any
+    metadata?: Record<string, unknown>
   ): Promise<UploadResponse> {
     const formData = new FormData()
     
@@ -169,7 +169,7 @@ export class ProduceImagesClient {
       month: number
       alt: string
       isPrimary?: boolean
-      metadata?: any
+      metadata?: Record<string, unknown>
     }>
   ): Promise<UploadResponse[]> {
     const results = []

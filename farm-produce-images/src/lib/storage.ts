@@ -1,4 +1,4 @@
-import { put, del, list } from '@vercel/blob'
+import { put, list } from '@vercel/blob'
 import { z } from 'zod'
 import { ProduceImage } from '@/types/produce'
 
@@ -57,7 +57,7 @@ export async function uploadProduceImage(
   }
 }
 
-export async function deleteProduceImage(imageId: string): Promise<void> {
+export async function deleteProduceImage(_imageId: string): Promise<void> {
   try {
     // Get image metadata from database first
     // This would be implemented in database.ts
@@ -69,7 +69,7 @@ export async function deleteProduceImage(imageId: string): Promise<void> {
     // Delete metadata from database
     // await deleteImageMetadata(imageId)
     
-    console.log(`Image ${imageId} deleted successfully`)
+    console.log(`Image ${_imageId} deleted successfully`)
   } catch (error) {
     console.error('Error deleting produce image:', error)
     throw new Error(`Failed to delete image: ${error instanceof Error ? error.message : 'Unknown error'}`)
