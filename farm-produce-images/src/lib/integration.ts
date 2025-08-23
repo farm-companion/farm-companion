@@ -1,4 +1,4 @@
-import { FarmFrontendProduce, IntegrationConfig, SyncResult, ImageSyncRequest, ProduceSyncStatus } from '@/types/integration'
+import { FarmFrontendProduce, IntegrationConfig, SyncResult, ImageSyncRequest, ImageSyncResponse, ProduceSyncStatus } from '@/types/integration'
 import { getProduceStats } from '@/lib/database'
 
 export class FarmFrontendIntegration {
