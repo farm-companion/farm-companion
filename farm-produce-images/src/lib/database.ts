@@ -3,8 +3,9 @@ import { z } from 'zod'
 import { ProduceImage, ProduceMetadata, ProduceStats } from '@/types/produce'
 
 // Redis client
+const redisUrl = process.env.REDIS_URL?.replace(/^["']|["']$/g, '') || 'redis://localhost:6379'
 const redis = createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
+  url: redisUrl
 })
 
 // Connect to Redis
