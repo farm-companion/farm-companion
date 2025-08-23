@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { getProduceStats } from '@/lib/database'
 import { ApiResponse, StatsResponse } from '@/types/api'
 

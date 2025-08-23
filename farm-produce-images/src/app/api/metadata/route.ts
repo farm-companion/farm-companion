@@ -70,7 +70,7 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
       return NextResponse.json({
         success: false,
         error: 'Invalid query parameters',
-        details: error.errors,
+        details: error.issues,
         timestamp: new Date().toISOString(),
       }, { status: 400 })
     }
@@ -105,7 +105,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse<ApiRespons
       return NextResponse.json({
         success: false,
         error: 'Invalid request data',
-        details: error.errors,
+        details: error.issues,
         timestamp: new Date().toISOString(),
       }, { status: 400 })
     }
