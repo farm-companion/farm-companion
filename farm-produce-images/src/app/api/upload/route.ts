@@ -1,159 +1,124 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { uploadProduceImage } from '@/lib/storage'
 import { saveImageMetadata } from '@/lib/database'
-import { validateImage, generateImageVariants } from '@/lib/image-processing'
-import { ApiResponse, UploadResponse } from '@/types/api'
+import { uploadSchema } from '@/lib/validation'
 
-const UploadRequestSchema = z.object({
-  produceSlug: z.string().min(1),
-  month: z.number().min(1).max(12),
-  alt: z.string().min(1),
-  isPrimary: z.boolean().default(false),
-  metadata: z.object({
-    description: z.string().optional(),
-    tags: z.array(z.string()).optional(),
-    location: z.string().optional(),
-    photographer: z.string().optional(),
-  }).optional(),
-})
-
-export async function POST(request: NextRequest): Promise<NextResponse<ApiResponse<UploadResponse>>> {
+export async function POST(request: NextRequest) {
   try {
-    // Parse form data
+    console.log('🚀 Starting upload to:', request.url)
+    
     const formData = await request.formData()
-    const files = formData.getAll('images') as File[]
-    const produceSlug = formData.get('produceSlug') as string
-    const month = parseInt(formData.get('month') as string)
-    const alt = formData.get('alt') as string
-    const isPrimary = formData.get('isPrimary') === 'true'
-    const metadata = formData.get('metadata') ? JSON.parse(formData.get('metadata') as string) : undefined
+    console.log('📦 Upload data:', Object.fromEntries(formData.entries()))
 
-    // Validate request
-    const validatedRequest = UploadRequestSchema.parse({
-      produceSlug,
-      month,
-      alt,
-      isPrimary,
-      metadata,
+    // Parse and validate the form data
+    const validatedOptions = uploadSchema.parse({
+      produceSlug: formData.get('produceSlug'),
+      month: parseInt(formData.get('month') as string, 10),
+      imagesCount: parseInt(formData.get('imagesCount') as string, 10)
     })
 
-    if (!files || files.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'No images provided',
-        timestamp: new Date().toISOString(),
-      }, { status: 400 })
-    }
+    console.log('✅ Validated options:', validatedOptions)
 
     const uploadedImages = []
-    let totalSize = 0
+    const errors = []
 
-    // Process each image
-    for (const file of files) {
+    // Process each uploaded file
+    for (let i = 0; i < validatedOptions.imagesCount; i++) {
+      const file = formData.get(`image${i}`) as File
+      
+      if (!file) {
+        console.log(`⚠️ No file found for index ${i}`)
+        continue
+      }
+
+      console.log(`📁 Processing file ${i}:`, {
+        name: file.name,
+        size: file.size,
+        type: file.type
+      })
+
       try {
-        // Convert File to Buffer
-        const arrayBuffer = await file.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
+        // Upload to blob storage
+        const uploadResult = await uploadProduceImage(file, {
+          produceSlug: validatedOptions.produceSlug,
+          month: validatedOptions.month,
+          alt: `${validatedOptions.produceSlug} - ${file.name}`,
+          isPrimary: false
+        })
+        console.log(`✅ Blob upload successful for ${i}:`, uploadResult)
 
-        // Validate image
-        const validation = await validateImage(buffer)
-        if (!validation.isValid) {
-          console.error(`Image validation failed: ${validation.error}`)
-          continue
+        // Create metadata with default values for dimensions
+        const metadata = {
+          id: uploadResult.id,
+          url: uploadResult.url,
+          alt: `${validatedOptions.produceSlug} - ${file.name}`,
+          width: 800, // Default width
+          height: 600, // Default height
+          size: file.size,
+          format: uploadResult.format as 'jpeg' | 'png' | 'webp',
+          uploadedAt: new Date().toISOString(),
+          isPrimary: false,
+          produceSlug: validatedOptions.produceSlug,
+          month: validatedOptions.month
         }
 
-        // Generate image variants
-        const variants = await generateImageVariants(buffer)
-
-        // Upload optimized image
-        const optimizedFile = new File([variants.optimized.buffer as BlobPart], file.name, {
-          type: `image/${variants.optimized.format}`,
-        })
-
-        const image = await uploadProduceImage(optimizedFile, {
-          ...validatedRequest,
-          alt: `${validatedRequest.alt} - ${file.name}`,
-        })
-
-        // Update with actual dimensions
-        image.width = variants.optimized.width
-        image.height = variants.optimized.height
-        image.size = variants.optimized.size
-
-        // Save metadata to database
-        await saveImageMetadata(image)
+        // Save metadata to Redis
+        await saveImageMetadata(metadata)
+        console.log(`✅ Metadata saved for ${i}:`, metadata.id)
 
         uploadedImages.push({
-          id: image.id,
-          url: image.url,
-          alt: image.alt,
-          width: image.width,
-          height: image.height,
-          size: image.size,
-          format: image.format,
+          id: uploadResult.id,
+          url: uploadResult.url,
+          alt: metadata.alt
         })
 
-        totalSize += image.size
       } catch (error) {
-        console.error(`Error processing image ${file.name}:`, error)
-        // Continue with other images
+        console.error(`❌ Error processing file ${i}:`, error)
+        errors.push(`Failed to upload ${file.name}: ${error instanceof Error ? error.message : 'Unknown error'}`)
       }
     }
 
     if (uploadedImages.length === 0) {
-      return NextResponse.json({
-        success: false,
-        error: 'No images were successfully uploaded',
-        timestamp: new Date().toISOString(),
-      }, { status: 400 })
+      console.log('❌ No images were successfully uploaded')
+      return NextResponse.json(
+        { error: 'No images were successfully uploaded', details: errors },
+        { status: 400 }
+      )
     }
 
-    const response: UploadResponse = {
-      uploadedImages,
-      totalUploaded: uploadedImages.length,
-      totalSize,
-      metadata: {
-        produceSlug: validatedRequest.produceSlug,
-        month: validatedRequest.month,
-        uploadedAt: new Date().toISOString(),
-      },
-    }
-
+    console.log(`✅ Upload completed: ${uploadedImages.length} images uploaded`)
+    
     return NextResponse.json({
       success: true,
-      data: response,
       message: `Successfully uploaded ${uploadedImages.length} images`,
-      timestamp: new Date().toISOString(),
+      images: uploadedImages,
+      errors: errors.length > 0 ? errors : undefined
     })
 
   } catch (error) {
-    console.error('Upload API error:', error)
+    console.error('💥 Error uploading produce images:', error)
     
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({
-        success: false,
-        error: 'Invalid request data',
-        details: error.issues,
-        timestamp: new Date().toISOString(),
-      }, { status: 400 })
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: 400 }
+      )
     }
-
-    return NextResponse.json({
-      success: false,
-      error: 'Internal server error',
-      timestamp: new Date().toISOString(),
-    }, { status: 500 })
+    
+    return NextResponse.json(
+      { error: 'Upload failed' },
+      { status: 500 }
+    )
   }
 }
 
-export async function OPTIONS() {
+export async function OPTIONS(request: NextRequest) {
   return new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     },
   })
 }

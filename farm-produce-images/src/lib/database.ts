@@ -14,7 +14,7 @@ try {
   console.warn('Invalid Redis URL, using localhost fallback:', error)
 }
 
-const redis = createClient({
+export const redis = createClient({
   url: redisUrl
 })
 
@@ -27,7 +27,7 @@ if (!redis.isOpen) {
   redis.connect().catch(console.error)
 }
 
-const ImageMetadataSchema = z.object({
+export const ImageMetadataSchema = z.object({
   id: z.string(),
   url: z.string().url(),
   alt: z.string(),
