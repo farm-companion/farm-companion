@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 
 type ContactForm = {
   name: string
@@ -56,21 +57,61 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-background-canvas">
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-          {/* Header */}
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold text-text-heading mb-4">
-              Share your feedback
+      {/* Professional Header with Background Image */}
+      <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/feedback.jpg"
+            alt="Group discussion and feedback session with diverse perspectives"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="100vw"
+          />
+          {/* Professional Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
+          {/* Subtle texture overlay for depth */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
+        </div>
+        
+        {/* Content Overlay */}
+        <div className="relative h-full flex items-center justify-center">
+          <div className="text-center max-w-4xl mx-auto px-6">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+              Share Your
+              <span className="block text-serum drop-shadow-lg">Feedback</span>
             </h1>
-            <p className="text-xl text-text-body">
+            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Have a question, suggestion, or need help? We&apos;d love to hear from you.
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="#contact-form"
+                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
+              >
+                Send Message
+              </a>
+              <a
+                href="#contact-info"
+                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+              >
+                Contact Info
+              </a>
+            </div>
           </div>
+        </div>
+      </section>
+
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+
 
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Contact Form */}
-            <div className="bg-background-surface rounded-lg shadow-sm border border-border-default p-6">
+            <div id="contact-form" className="bg-background-surface rounded-lg shadow-sm border border-border-default p-6">
               <h2 className="text-2xl font-semibold text-text-heading mb-6">
                 Send us a message
               </h2>
@@ -192,7 +233,7 @@ export default function ContactPage() {
             </div>
 
             {/* Contact Information */}
-            <div className="space-y-6">
+            <div id="contact-info" className="space-y-6">
               <div className="bg-background-surface rounded-lg shadow-sm border border-border-default p-6">
                 <h2 className="text-2xl font-semibold text-text-heading mb-6">
                   Other ways to reach us
