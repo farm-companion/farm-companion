@@ -213,6 +213,51 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {/* Find Fresh Seasonal Produce Section with Parallax */}
+      <section className="relative bg-background-surface border-t border-border-default overflow-hidden">
+        {/* Parallax Background */}
+        <div className="absolute inset-0 transform scale-110 transition-transform duration-1000 ease-out" style={{
+          backgroundImage: 'url(/produce-secondary-image.jpg)',
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center 30%',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat'
+        }} />
+        
+        {/* Gradient Overlays for Text Readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+        
+        {/* Subtle animated texture overlay */}
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: `
+            radial-gradient(circle at 30% 20%, rgba(0, 194, 178, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 70% 80%, rgba(212, 255, 79, 0.2) 0%, transparent 50%)
+          `,
+          backgroundSize: '300px 300px, 200px 200px',
+          backgroundPosition: '0 0, 100px 100px'
+        }} />
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 text-center">
+          <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <h2 className="text-4xl md:text-5xl font-heading font-bold text-white mb-6 drop-shadow-lg">
+              Find Fresh Seasonal Produce
+            </h2>
+            <p className="text-xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
+              Visit local farm shops to get the freshest seasonal produce at its peak flavor.
+            </p>
+            <a
+              className="group bg-white/95 backdrop-blur-sm text-black px-10 py-5 rounded-xl font-semibold hover:bg-white transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-white/25 hover:scale-105 border border-white/20"
+              href="/map"
+            >
+              <MapPin className="w-6 h-6 group-hover:animate-gentle-bounce" />
+              Find Farm Shops Near You
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Newsletter Section */}
       <section className="py-16">
         <div className="max-w-4xl mx-auto px-6">
