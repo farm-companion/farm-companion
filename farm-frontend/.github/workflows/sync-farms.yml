@@ -1,0 +1,63 @@
+name: Sync farms dataset
+
+on:
+  # Nightly refresh (03:20 UTC)
+  schedule:
+    - cron: '20 3 * * *'
+  # Manual trigger
+  workflow_dispatch: {}
+  # Push trigger from pipeline after it builds
+  repository_dispatch:
+    types: [farms-updated]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch datasets from farm-pipeline:data
+        run: |
+          set -euo pipefail
+          mkdir -p public/data
+          curl -fsSL https://raw.githubusercontent.com/farm-companion/farm-pipeline/data/farms.uk.json  -o public/data/farms.uk.json.new
+          curl -fsSL https://raw.githubusercontent.com/farm-companion/farm-pipeline/data/farms.geo.json -o public/data/farms.geo.json.new
+          # Validate JSON shape (jq available by default)
+          jq -e type public/data/farms.uk.json.new  >/dev/null
+          jq -e type public/data/farms.geo.json.new >/dev/null
+
+      - name: Detect changes
+        id: diff
+        run: |
+          set -euo pipefail
+          changed=false
+          if [ ! -f public/data/farms.uk.json ] || ! cmp -s public/data/farms.uk.json.new public/data/farms.uk.json; then
+            changed=true
+          fi
+          if [ ! -f public/data/farms.geo.json ] || ! cmp -s public/data/farms.geo.json.new public/data/farms.geo.json; then
+            changed=true
+          fi
+          echo "changed=${changed}" >> "$GITHUB_OUTPUT"
+
+      - name: Update files
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          mv public/data/farms.uk.json.new  public/data/farms.uk.json
+          mv public/data/farms.geo.json.new public/data/farms.geo.json
+
+      - name: Commit & push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/farms.uk.json public/data/farms.geo.json
+          git commit -m "data: sync farms dataset from pipeline (uk + geo)"
+          git push
+
+      - name: Clean temp (no changes)
+        if: steps.diff.outputs.changed != 'true'
+        run: rm -f public/data/farms.uk.json.new public/data/farms.geo.json.new

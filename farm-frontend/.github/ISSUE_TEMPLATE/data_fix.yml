@@ -1,0 +1,58 @@
+name: "Data fix for farm listing"
+description: "Suggest a correction to a farm shop listing"
+title: "Data fix: <shop-name> (<slug>)"
+labels: ["data", "report"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve the directory! Please fill in what you can.
+  - type: input
+    id: page_url
+    attributes:
+      label: Listing URL
+      description: The page you were viewing
+      placeholder: https://www.farmcompanion.co.uk/shop/your-shop
+    validations:
+      required: true
+  - type: input
+    id: shop_slug
+    attributes:
+      label: Shop slug
+      description: The part after /shop/ in the URL (e.g. tregonna-farm-shop)
+      placeholder: tregonna-farm-shop
+    validations:
+      required: true
+  - type: checkboxes
+    id: what_needs_fixing
+    attributes:
+      label: What needs fixing?
+      options:
+        - label: Name
+        - label: Address/Postcode
+        - label: Opening hours
+        - label: Phone/Email/Website
+        - label: Map location (pin)
+        - label: Other
+    validations:
+      required: true
+  - type: textarea
+    id: correct_details
+    attributes:
+      label: Correct details
+      description: Paste the right information (address, postcode, hours, etc.)
+      placeholder: |
+        Name:
+        Address:
+        Postcode:
+        Phone:
+        Email:
+        Website:
+        Hours:
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Links, photos, or notes that help us verify the change.

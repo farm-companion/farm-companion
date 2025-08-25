@@ -1,0 +1,58 @@
+name: Sync seasonal data
+
+on:
+  # Run nightly at 03:15 UTC
+  schedule:
+    - cron: '15 3 * * *'
+  # Allow manual runs
+  workflow_dispatch: {}
+  # Allow farm-pipeline to push a signal when new data is ready
+  repository_dispatch:
+    types: [seasons-updated]
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch latest seasons JSON from pipeline
+        run: |
+          set -euo pipefail
+          mkdir -p public/data
+          curl -fsSL \
+            https://raw.githubusercontent.com/farm-companion/farm-pipeline/main/dist/seasons.uk.json \
+            -o public/data/seasons.uk.json.new
+          # Validate JSON structure (jq is available on Ubuntu runners)
+          jq -e type public/data/seasons.uk.json.new >/dev/null
+
+      - name: Detect changes
+        id: diff
+        run: |
+          if [ -f public/data/seasons.uk.json ] && cmp -s public/data/seasons.uk.json.new public/data/seasons.uk.json; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update file
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          mv public/data/seasons.uk.json.new public/data/seasons.uk.json
+
+      - name: Commit & push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/data/seasons.uk.json
+          git commit -m "data: sync seasons.uk.json from farm-pipeline"
+          git push
+
+      - name: Clean temp
+        if: steps.diff.outputs.changed != 'true'
+        run: rm -f public/data/seasons.uk.json.new

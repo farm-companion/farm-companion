@@ -1,0 +1,288 @@
+name: PuredgeOS 3.0 Compliance
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  puredgeos-gate:
+    name: PuredgeOS Quality Gate
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build application
+        run: npm run build
+        env:
+          NEXT_PUBLIC_SITE_URL: https://farm-companion.vercel.app
+
+      - name: Start application
+        run: npm start &
+        env:
+          PORT: 3000
+
+      - name: Wait for application
+        run: npx wait-on http://localhost:3000
+
+      - name: Performance Gate (Lighthouse)
+        run: |
+          npx lighthouse http://localhost:3000 \
+            --output=json \
+            --output-path=./lighthouse-performance.json \
+            --only-categories=performance \
+            --chrome-flags="--headless --no-sandbox --disable-gpu"
+        
+      - name: Accessibility Gate (Lighthouse)
+        run: |
+          npx lighthouse http://localhost:3000 \
+            --output=json \
+            --output-path=./lighthouse-accessibility.json \
+            --only-categories=accessibility \
+            --chrome-flags="--headless --no-sandbox --disable-gpu"
+
+      - name: Best Practices Gate (Lighthouse)
+        run: |
+          npx lighthouse http://localhost:3000 \
+            --output=json \
+            --output-path=./lighthouse-best-practices.json \
+            --only-categories=best-practices \
+            --chrome-flags="--headless --no-sandbox --disable-gpu"
+
+      - name: SEO Gate (Lighthouse)
+        run: |
+          npx lighthouse http://localhost:3000 \
+            --output=json \
+            --output-path=./lighthouse-seo.json \
+            --only-categories=seo \
+            --chrome-flags="--headless --no-sandbox --disable-gpu"
+
+      - name: Check Performance Budgets
+        run: |
+          node -e "
+            const perf = JSON.parse(require('fs').readFileSync('./lighthouse-performance.json', 'utf8'));
+            const audits = perf.audits;
+            
+            // PuredgeOS Performance Budgets
+            const budgets = {
+              'largest-contentful-paint': 1800, // 1.8s
+              'cumulative-layout-shift': 0.1,
+              'interaction-to-next-paint': 200, // 200ms
+              'first-contentful-paint': 1000, // 1s
+              'speed-index': 2000, // 2s
+            };
+            
+            let failed = false;
+            
+            Object.entries(budgets).forEach(([metric, budget]) => {
+              const audit = audits[metric];
+              if (audit && audit.numericValue > budget) {
+                console.error(`❌ ${metric}: ${audit.numericValue}ms (budget: ${budget}ms)`);
+                failed = true;
+              } else if (audit) {
+                console.log(`✅ ${metric}: ${audit.numericValue}ms (budget: ${budget}ms)`);
+              }
+            });
+            
+            if (failed) {
+              process.exit(1);
+            }
+          "
+
+      - name: Check Accessibility Compliance
+        run: |
+          node -e "
+            const a11y = JSON.parse(require('fs').readFileSync('./lighthouse-accessibility.json', 'utf8'));
+            const score = a11y.categories.accessibility.score * 100;
+            
+            if (score < 100) {
+              console.error(`❌ Accessibility score: ${score}% (required: 100%)`);
+              console.log('Issues found:');
+              a11y.audits && Object.entries(a11y.audits).forEach(([key, audit]) => {
+                if (audit.score !== null && audit.score < 1) {
+                  console.log(`- ${audit.title}: ${audit.description}`);
+                }
+              });
+              process.exit(1);
+            } else {
+              console.log(`✅ Accessibility score: ${score}%`);
+            }
+          "
+
+      - name: Check Best Practices
+        run: |
+          node -e "
+            const bp = JSON.parse(require('fs').readFileSync('./lighthouse-best-practices.json', 'utf8'));
+            const score = bp.categories['best-practices'].score * 100;
+            
+            if (score < 90) {
+              console.error(`❌ Best Practices score: ${score}% (required: 90%)`);
+              process.exit(1);
+            } else {
+              console.log(`✅ Best Practices score: ${score}%`);
+            }
+          "
+
+      - name: Check SEO
+        run: |
+          node -e "
+            const seo = JSON.parse(require('fs').readFileSync('./lighthouse-seo.json', 'utf8'));
+            const score = seo.categories.seo.score * 100;
+            
+            if (score < 90) {
+              console.error(`❌ SEO score: ${score}% (required: 90%)`);
+              process.exit(1);
+            } else {
+              console.log(`✅ SEO score: ${score}%`);
+            }
+          "
+
+      - name: Bundle Size Check
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            
+            const buildDir = './.next/static/chunks';
+            let totalSize = 0;
+            
+            if (fs.existsSync(buildDir)) {
+              const files = fs.readdirSync(buildDir);
+              files.forEach(file => {
+                if (file.endsWith('.js')) {
+                  const stats = fs.statSync(path.join(buildDir, file));
+                  totalSize += stats.size;
+                }
+              });
+            }
+            
+            const sizeKB = Math.round(totalSize / 1024);
+            console.log(`Bundle size: ${sizeKB}KB`);
+            
+            if (sizeKB > 180) {
+              console.error(`❌ Bundle size ${sizeKB}KB exceeds budget of 180KB`);
+              process.exit(1);
+            } else {
+              console.log(`✅ Bundle size ${sizeKB}KB within budget`);
+            }
+          "
+
+      - name: Design Token Compliance
+        run: |
+          node -e "
+            const fs = require('fs');
+            const path = require('path');
+            
+            // Check if design tokens file exists
+            const tokensPath = './src/config/design-tokens.json';
+            if (!fs.existsSync(tokensPath)) {
+              console.error('❌ Design tokens file not found');
+              process.exit(1);
+            }
+            
+            // Validate design tokens structure
+            try {
+              const tokens = JSON.parse(fs.readFileSync(tokensPath, 'utf8'));
+              const requiredSections = ['color', 'font', 'spacing', 'motion', 'a11y'];
+              
+              requiredSections.forEach(section => {
+                if (!tokens[section]) {
+                  console.error(`❌ Missing required design token section: ${section}`);
+                  process.exit(1);
+                }
+              });
+              
+              console.log('✅ Design tokens structure is valid');
+            } catch (error) {
+              console.error('❌ Invalid design tokens JSON:', error.message);
+              process.exit(1);
+            }
+          "
+
+      - name: Accessibility Linting
+        run: |
+          npm install -g @axe-core/cli
+          npx axe http://localhost:3000 --exit
+
+      - name: Upload Lighthouse Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: lighthouse-reports
+          path: |
+            lighthouse-performance.json
+            lighthouse-accessibility.json
+            lighthouse-best-practices.json
+            lighthouse-seo.json
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run security audit
+        run: npm audit --audit-level=high
+
+  type-check:
+    name: TypeScript Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+  lint:
+    name: Lint Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run linter
+        run: npm run lint

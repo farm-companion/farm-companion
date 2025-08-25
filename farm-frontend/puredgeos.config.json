@@ -1,0 +1,143 @@
+{
+  "version": "3.0.0",
+  "name": "Farm Companion PuredgeOS",
+  "description": "PuredgeOS 3.0 configuration for Farm Companion",
+  
+  "budgets": {
+    "performance": {
+      "lcp_ms": 1800,
+      "fid_ms": 100,
+      "inp_ms": 200,
+      "cls": 0.1,
+      "fcp_ms": 1000,
+      "speed_index_ms": 2000
+    },
+    "bundle": {
+      "max_kb": 180,
+      "max_css_kb": 50,
+      "max_js_kb": 130
+    },
+    "accessibility": {
+      "min_contrast": 4.5,
+      "target_size_px": 48,
+      "focus_ring_width": 3
+    }
+  },
+  
+  "metrics": {
+    "clarity": {
+      "time_to_first_action_ms": 5000,
+      "task_success_rate": 0.95,
+      "error_rate": 0.02,
+      "bounce_rate": 0.30,
+      "comprehension_rate": 0.90
+    },
+    "immersion": {
+      "wow_moment_rate": 0.60,
+      "session_duration_minutes": 2,
+      "return_rate": 0.40,
+      "social_sharing_rate": 0.10,
+      "positive_sentiment": 0.70
+    }
+  },
+  
+  "accessibility": {
+    "wcag_level": "AA",
+    "target_level": "AAA",
+    "required_aria": true,
+    "keyboard_navigation": true,
+    "screen_reader_support": true,
+    "high_contrast_support": true,
+    "reduced_motion_support": true
+  },
+  
+  "performance": {
+    "core_web_vitals": true,
+    "lighthouse_threshold": 90,
+    "mobile_first": true,
+    "progressive_enhancement": true,
+    "critical_rendering_path": true
+  },
+  
+  "design_tokens": {
+    "enforce_usage": true,
+    "no_hardcoded_values": true,
+    "semantic_naming": true,
+    "theme_support": true
+  },
+  
+  "components": {
+    "library_required": true,
+    "accessibility_builtin": true,
+    "design_token_compliance": true,
+    "performance_optimized": true
+  },
+  
+  "privacy": {
+    "gdpr_compliant": true,
+    "consent_required": true,
+    "data_minimization": true,
+    "privacy_by_design": true,
+    "transparency": true
+  },
+  
+  "testing": {
+    "automated_accessibility": true,
+    "performance_monitoring": true,
+    "visual_regression": true,
+    "cross_browser": true,
+    "mobile_testing": true
+  },
+  
+  "ci_cd": {
+    "quality_gates": true,
+    "performance_budgets": true,
+    "accessibility_checks": true,
+    "security_audits": true,
+    "design_token_validation": true
+  },
+  
+  "telemetry": {
+    "enabled": true,
+    "privacy_respecting": true,
+    "performance_metrics": true,
+    "user_experience_metrics": true,
+    "error_tracking": true
+  },
+  
+  "brand": {
+    "colors": {
+      "primary": "#00C2B2",
+      "accent": "#D4FF4F",
+      "obsidian": "#1E1F23",
+      "sandstone": "#E4E2DD",
+      "midnight": "#121D2B"
+    },
+    "fonts": {
+      "heading": "Satoshi",
+      "body": "Inter"
+    },
+    "motion": {
+      "duration_fast": 150,
+      "duration_base": 250,
+      "duration_slow": 400,
+      "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)"
+    }
+  },
+  
+  "compliance": {
+    "wcag_2_2": true,
+    "section_508": true,
+    "gdpr": true,
+    "ccpa": true,
+    "cookie_law": true
+  },
+  
+  "quality_gates": {
+    "performance_score": 90,
+    "accessibility_score": 100,
+    "best_practices_score": 90,
+    "seo_score": 90,
+    "pwa_score": 90
+  }
+}
