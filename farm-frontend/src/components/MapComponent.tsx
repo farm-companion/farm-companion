@@ -248,6 +248,11 @@ export default function MapComponent({
               }
             })
             console.log('✅ unclustered layer added successfully')
+            
+            // Debug layer visibility
+            const layer = map.getLayer(unclusteredLayerId)
+            console.log('🗺️ Map: Layer visibility:', layer ? 'Layer exists' : 'Layer not found')
+            console.log('🗺️ Map: Layer paint properties:', map.getPaintProperty(unclusteredLayerId, 'circle-color'))
           } catch (error) {
             console.error('❌ Failed to add unclustered layer:', error)
           }
@@ -453,6 +458,8 @@ export default function MapComponent({
     
     console.log('🗺️ Map: Processing farms:', filteredFarms?.length || 0, 'farms')
     console.log('🗺️ Map: First few farms:', filteredFarms?.slice(0, 3))
+    console.log('🗺️ Map: Source exists:', !!src)
+    console.log('🗺️ Map: Source type:', src.type)
     
     // Apply the same validation to filtered farms
     const validFilteredFarms = (filteredFarms || []).filter((f) => {
@@ -524,8 +531,14 @@ export default function MapComponent({
     console.log('First feature sample:', newFeatures[0])
     
     try {
+      console.log('🗺️ Map: About to set data with', newFeatures.length, 'features')
+      console.log('🗺️ Map: First feature coordinates:', newFeatures[0]?.geometry?.coordinates)
       src.setData(geoJsonData)
       console.log('✅ Map data updated successfully')
+      
+      // Verify the data was set
+      const currentData = src.serialize()
+      console.log('🗺️ Map: Current source data has', currentData.data?.features?.length || 0, 'features')
     } catch (error) {
       console.error('❌ Failed to update map data:', error)
     }
