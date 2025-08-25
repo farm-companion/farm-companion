@@ -992,9 +992,9 @@ export default function GoogleMapComponent({
               <ol className="list-decimal list-inside space-y-1 text-left">
                 <li>Open Safari Preferences</li>
                 <li>Go to Advanced tab</li>
-                <li>Check "Show Develop menu in menu bar"</li>
+                <li>Check &quot;Show Develop menu in menu bar&quot;</li>
                 <li>Go to Develop → Experimental Features</li>
-                <li>Enable "WebGL 2.0" and "WebGL via Metal"</li>
+                <li>Enable &quot;WebGL 2.0&quot; and &quot;WebGL via Metal&quot;</li>
               </ol>
             </div>
           </div>
@@ -1075,7 +1075,7 @@ export default function GoogleMapComponent({
               {isSafari() && (
                 <div className="text-sm text-text-muted dark:text-gray-400 mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
                   <p className="font-medium mb-2">Safari Users:</p>
-                  <p>Try refreshing the page or check Safari's privacy settings for location and content blocking.</p>
+                  <p>Try refreshing the page or check Safari&apos;s privacy settings for location and content blocking.</p>
                 </div>
               )}
             </div>
