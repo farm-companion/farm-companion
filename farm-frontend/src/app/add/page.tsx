@@ -6,6 +6,7 @@ import { Leaf, Clock, Phone, FileText, CheckCircle, AlertCircle, Loader2, Downlo
 import { Button } from '@/components/ui/Button'
 import PhotoSubmissionForm from '@/components/PhotoSubmissionForm'
 import FarmImageUpload from '@/components/FarmImageUpload'
+import Image from 'next/image'
 
 type Hours = { day: 'Mon'|'Tue'|'Wed'|'Thu'|'Fri'|'Sat'|'Sun'; open?: string; close?: string }
 type FarmForm = {
@@ -262,20 +263,60 @@ export default function AddFarmPage() {
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-12 bg-background-canvas">
-      {/* Hero Section */}
-      <header className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-serum/10 rounded-full mb-6">
-          <Leaf className="w-8 h-8 text-serum" />
+    <main className="bg-background-canvas">
+      {/* Professional Header with Background Image */}
+      <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/Addashop.jpg"
+            alt="Beautiful farm stand with fresh produce in a misty rural landscape"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="100vw"
+          />
+          {/* Professional Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
+          {/* Subtle texture overlay for depth */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
         </div>
-        <h1 className="text-4xl font-bold text-text-heading font-heading mb-4">
-          Add a Farm Shop
-        </h1>
-        <p className="text-lg text-text-body max-w-2xl mx-auto">
-          Help us grow our directory of real food, real people, and real places. 
-          Fill in the essentials and we&apos;ll review and add your farm shop to our map.
-        </p>
-      </header>
+        
+        {/* Content Overlay */}
+        <div className="relative h-full flex items-center justify-center">
+          <div className="text-center max-w-4xl mx-auto px-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
+              <Leaf className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+              Add a
+              <span className="block text-serum drop-shadow-lg">Farm Shop</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+              Help us grow our directory of real food, real people, and real places. 
+              Fill in the essentials and we&apos;ll review and add your farm shop to our map.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <a
+                href="#basic-info"
+                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-[#00B0A0] hover:text-white transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
+              >
+                Get Started
+              </a>
+              <a
+                href="#preview"
+                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/30 hover:border-white/40 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+              >
+                View Preview
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-4xl px-6 py-12">
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Success/Error Messages */}
@@ -319,7 +360,7 @@ export default function AddFarmPage() {
           </div>
 
           {/* Basic Information */}
-          <section className="bg-background-surface rounded-xl p-6 border border-border-default">
+          <section id="basic-info" className="bg-background-surface rounded-xl p-6 border border-border-default">
             <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
               <Leaf className="w-5 h-5 text-serum" />
               <span>Basic Information</span>
@@ -617,7 +658,7 @@ export default function AddFarmPage() {
         </div>
 
         {/* Sidebar - Preview */}
-        <div className="lg:col-span-1">
+        <div id="preview" className="lg:col-span-1">
           <div className="sticky top-4">
             <div className="bg-background-surface rounded-xl p-6 border border-border-default">
               <h3 className="text-lg font-semibold text-text-heading mb-4 flex items-center space-x-2">
@@ -692,6 +733,7 @@ export default function AddFarmPage() {
           By submitting, you confirm the details are accurate and you have permission to share them.
         </p>
       </footer>
+      </div>
     </main>
   )
 }
