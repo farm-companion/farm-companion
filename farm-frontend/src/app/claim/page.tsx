@@ -127,12 +127,12 @@ function FixedAlphabeticalNav({ counties }: { counties: string[] }) {
   const letters = Object.keys(countiesByLetter).sort()
 
   return (
-    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-50 bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-lg p-4 max-h-[80vh] overflow-y-auto hidden lg:block">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="p-1.5 bg-serum/10 rounded-lg">
-          <Hash className="w-4 h-4 text-serum" />
+    <div className="fixed left-6 top-24 z-50 bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-xl p-4 max-h-[70vh] overflow-y-auto hidden lg:block backdrop-blur-sm">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="p-1 bg-serum/10 rounded-lg">
+          <Hash className="w-3 h-3 text-serum" />
         </div>
-        <h3 className="text-sm font-semibold text-text-heading dark:text-white">
+        <h3 className="text-xs font-semibold text-text-heading dark:text-white uppercase tracking-wide">
           Counties
         </h3>
       </div>
@@ -296,7 +296,7 @@ async function ClaimPageContent() {
           <FixedAlphabeticalNav counties={sortedCounties} />
           
           {/* Farms by county */}
-          <div className="space-y-8 lg:ml-64">
+          <div className="space-y-8">
             {sortedCounties.map((county) => (
               <CountySection 
                 key={county} 
