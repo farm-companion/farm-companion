@@ -6,6 +6,7 @@ import { MapPin, Shield, CheckCircle, Plus, ArrowRight } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { getFarmDataServer, getFarmStatsServer } from '@/lib/farm-data-server'
 import FarmSearchBar from '@/components/FarmSearchBar'
+import BackToTopButton from '@/components/BackToTopButton'
 
 // Generate metadata dynamically for better SEO
 export async function generateMetadata(): Promise<Metadata> {
@@ -63,23 +64,23 @@ function ClaimPageLoading() {
   )
 }
 
-// Enhanced farm card component
+// Enhanced farm card component with glowing text effects
 function FarmCard({ farm }: { farm: FarmShop }) {
   return (
     <div id={`farm-${farm.slug}`} className="group bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden scroll-mt-20">
       <div className="p-6">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-text-heading dark:text-white mb-2 group-hover:text-serum transition-colors">
+            <h3 className="font-semibold text-lg text-text-heading dark:text-white mb-2 group-hover:text-serum transition-all duration-300 group-hover:drop-shadow-[0_0_8px_rgba(0,194,178,0.6)] group-hover:shadow-[0_0_20px_rgba(0,194,178,0.3)]">
               {farm.name}
             </h3>
             <div className="flex items-center gap-2 text-sm text-text-muted dark:text-gray-400 mb-3">
-              <MapPin className="w-4 h-4 flex-shrink-0" />
-              <span className="truncate">{farm.location.address}</span>
+              <MapPin className="w-4 h-4 flex-shrink-0 group-hover:text-serum transition-colors duration-300 group-hover:drop-shadow-[0_0_6px_rgba(0,194,178,0.5)]" />
+              <span className="truncate group-hover:text-text-heading dark:group-hover:text-white transition-colors duration-300 group-hover:drop-shadow-[0_0_4px_rgba(0,194,178,0.4)]">{farm.location.address}</span>
               {farm.location.postcode && (
                 <>
-                  <span className="text-gray-300">•</span>
-                  <span>{farm.location.postcode}</span>
+                  <span className="text-gray-300 group-hover:text-serum transition-colors duration-300">•</span>
+                  <span className="group-hover:text-text-heading dark:group-hover:text-white transition-colors duration-300 group-hover:drop-shadow-[0_0_4px_rgba(0,194,178,0.4)]">{farm.location.postcode}</span>
                 </>
               )}
             </div>
@@ -87,9 +88,9 @@ function FarmCard({ farm }: { farm: FarmShop }) {
           
           {/* Verified badge */}
           {farm.verified && (
-            <div className="flex items-center gap-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200 px-2 py-1 rounded-full">
-              <CheckCircle className="w-3 h-3" />
-              <span>Verified</span>
+            <div className="flex items-center gap-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200 px-2 py-1 rounded-full group-hover:shadow-[0_0_8px_rgba(34,197,94,0.4)] transition-all duration-300">
+              <CheckCircle className="w-3 h-3 group-hover:drop-shadow-[0_0_4px_rgba(34,197,94,0.6)] transition-all duration-300" />
+              <span className="group-hover:drop-shadow-[0_0_4px_rgba(34,197,94,0.6)] transition-all duration-300">Verified</span>
             </div>
           )}
         </div>
@@ -97,16 +98,16 @@ function FarmCard({ farm }: { farm: FarmShop }) {
         <div className="flex items-center justify-between">
           <Link
             href={`/shop/${farm.slug}`}
-            className="text-sm text-text-muted dark:text-gray-400 hover:text-serum transition-colors"
+            className="text-sm text-text-muted dark:text-gray-400 hover:text-serum transition-all duration-300 hover:drop-shadow-[0_0_6px_rgba(0,194,178,0.5)]"
           >
             View Details
           </Link>
           <Link
             href={`/claim/${farm.slug}`}
-            className="inline-flex items-center gap-1 text-sm text-serum hover:text-serum/80 font-medium transition-colors group-hover:gap-2"
+            className="inline-flex items-center gap-1 text-sm text-serum hover:text-serum/80 font-medium transition-all duration-300 group-hover:gap-2 group-hover:drop-shadow-[0_0_8px_rgba(0,194,178,0.6)] group-hover:shadow-[0_0_12px_rgba(0,194,178,0.3)]"
           >
             Claim This Shop
-            <ArrowRight className="w-3 h-3 transition-transform group-hover:translate-x-1" />
+            <ArrowRight className="w-3 h-3 transition-all duration-300 group-hover:translate-x-1 group-hover:drop-shadow-[0_0_4px_rgba(0,194,178,0.6)]" />
           </Link>
         </div>
       </div>
@@ -317,6 +318,9 @@ async function ClaimPageContent() {
           </div>
         </div>
       </section>
+      
+      {/* Back to Top Button */}
+      <BackToTopButton />
     </main>
   )
 }
