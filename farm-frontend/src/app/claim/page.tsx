@@ -207,10 +207,37 @@ async function ClaimPageContent() {
     <main className="min-h-screen bg-background-canvas dark:bg-gray-900">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-background-surface dark:bg-gray-800">
-        <div className="absolute inset-0 bg-gradient-to-br from-serum/5 via-transparent to-solar/5" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.03),transparent_50%)]" />
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <div 
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 dark:opacity-5"
+            style={{
+              backgroundImage: 'url("/claim.jpg")',
+              backgroundPosition: 'center 30%'
+            }}
+          />
+        </div>
         
-        <div className="relative max-w-7xl mx-auto px-6 py-16 text-center">
+        {/* Gradient Overlays */}
+        <div className="absolute inset-0 bg-gradient-to-br from-serum/10 via-background-surface/95 to-solar/10 dark:from-serum/5 dark:via-gray-800/95 dark:to-solar/5" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.05),transparent_50%)]" />
+        
+        <div className="relative max-w-7xl mx-auto px-6 py-20 text-center">
+          {/* Visual Element - Keyboard Key */}
+          <div className="flex justify-center mb-8">
+            <div className="relative">
+              <div className="w-24 h-24 md:w-32 md:h-32 bg-serum rounded-2xl shadow-2xl transform rotate-12 hover:rotate-0 transition-transform duration-500 flex items-center justify-center">
+                <div className="text-center transform -rotate-12">
+                  <div className="text-white font-bold text-lg md:text-xl mb-1">CLAIM</div>
+                  <div className="text-white/80 text-xs">✓ VERIFIED</div>
+                </div>
+              </div>
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-solar rounded-full flex items-center justify-center shadow-lg">
+                <div className="w-3 h-3 bg-black rounded-full"></div>
+              </div>
+            </div>
+          </div>
+          
           <h1 className="text-4xl md:text-5xl font-heading font-bold mb-6 text-text-heading dark:text-white">
             Claim Your Farm Shop Listing
           </h1>
