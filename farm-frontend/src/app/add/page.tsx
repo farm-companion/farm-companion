@@ -298,20 +298,6 @@ export default function AddFarmPage() {
               Help us grow our directory of real food, real people, and real places. 
               Fill in the essentials and we&apos;ll review and add your farm shop to our map.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="#basic-info"
-                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-[#00B0A0] hover:text-white transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
-              >
-                Get Started
-              </a>
-              <a
-                href="#preview"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/30 hover:border-white/40 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
-              >
-                View Preview
-              </a>
-            </div>
           </div>
         </div>
       </section>
@@ -360,7 +346,7 @@ export default function AddFarmPage() {
           </div>
 
           {/* Basic Information */}
-          <section id="basic-info" className="bg-background-surface rounded-xl p-6 border border-border-default">
+          <section className="bg-background-surface rounded-xl p-6 border border-border-default">
             <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
               <Leaf className="w-5 h-5 text-serum" />
               <span>Basic Information</span>
@@ -658,7 +644,7 @@ export default function AddFarmPage() {
         </div>
 
         {/* Sidebar - Preview */}
-        <div id="preview" className="lg:col-span-1">
+        <div className="lg:col-span-1">
           <div className="sticky top-4">
             <div className="bg-background-surface rounded-xl p-6 border border-border-default">
               <h3 className="text-lg font-semibold text-text-heading mb-4 flex items-center space-x-2">
