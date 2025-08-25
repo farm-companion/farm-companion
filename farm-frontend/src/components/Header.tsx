@@ -166,7 +166,7 @@ export default function Header() {
         }
       })
       
-      setIsDarkMode(isOverDarkSection && scrollY < 100)
+      setIsDarkMode(isOverDarkSection)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
