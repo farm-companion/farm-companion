@@ -112,6 +112,48 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+  position: relative;
+}
+
+/* PuredgeOS Watermark - Subtle Brand Presence */
+body::before {
+  content: '';
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-15deg);
+  width: 400px;
+  height: 400px;
+  background-image: url('/android-chrome-512x512.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: -1;
+  filter: grayscale(100%);
+  transition: opacity var(--motion-duration-slow) var(--motion-easing-gentle-spring);
+}
+
+/* Dark mode watermark adjustment */
+.dark body::before {
+  opacity: 0.02;
+  filter: grayscale(100%) invert(1);
+}
+
+/* Responsive watermark sizing */
+@media (max-width: 768px) {
+  body::before {
+    width: 300px;
+    height: 300px;
+  }
+}
+
+@media (max-width: 480px) {
+  body::before {
+    width: 200px;
+    height: 200px;
+  }
 }
 
 /* Typography - God-tier quality */
