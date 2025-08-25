@@ -175,8 +175,8 @@ function CountySection({ county, farms }: { county: string; farms: FarmShop[] })
         </span>
       </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {farms.map((farm) => (
-          <FarmCard key={farm.id} farm={farm} />
+        {farms.map((farm, index) => (
+          <FarmCard key={`${farm.id}-${county}-${index}`} farm={farm} />
         ))}
       </div>
     </section>
