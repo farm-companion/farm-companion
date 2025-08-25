@@ -3,10 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 const allowedOrigins = [
   'https://www.farmcompanion.co.uk',
   'https://farmcompanion.co.uk',
-  'https://farm-frontend-eas82g2gv-abdur-rahman-morris-projects.vercel.app',
-  'https://farm-frontend-ihl9j5kbq-abdur-rahman-morris-projects.vercel.app',
-  'https://farm-frontend-p4a7w2pkt-abdur-rahman-morris-projects.vercel.app',
-  'https://farm-frontend-info-10016922-abdur-rahman-morris-projects.vercel.app',
   'http://localhost:3000',
   'http://localhost:3001'
 ]
