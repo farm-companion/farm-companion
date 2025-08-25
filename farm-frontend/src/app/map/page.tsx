@@ -24,7 +24,10 @@ export default function MapPage() {
       setIsLoading(true)
       setError(null)
       
+      console.log('🔄 Loading farm data...')
       const farmData = await fetchFarmDataClient()
+      console.log('✅ Farm data loaded:', farmData.length, 'farms')
+      
       setFarms(farmData)
       setFilteredFarms(farmData)
       
@@ -41,8 +44,10 @@ export default function MapPage() {
         invalid: farmData.length - valid
       })
       
+      console.log('📊 Data quality:', { total: farmData.length, valid, invalid: farmData.length - valid })
+      
     } catch (err) {
-      console.error('Failed to load farm data:', err)
+      console.error('❌ Failed to load farm data:', err)
       setError('Failed to load farm data. Please try again.')
     } finally {
       setIsLoading(false)
@@ -51,9 +56,15 @@ export default function MapPage() {
 
   // Filter farms based on search query
   useEffect(() => {
-    if (!farms) return
+    if (!farms) {
+      console.log('🔍 Search: No farms data available')
+      return
+    }
+    
+    console.log('🔍 Search: Processing query:', searchQuery, 'with', farms.length, 'farms')
     
     if (!searchQuery.trim()) {
+      console.log('🔍 Search: Empty query, showing all farms')
       setFilteredFarms(farms)
       return
     }
@@ -65,6 +76,8 @@ export default function MapPage() {
       farm.location?.postcode?.toLowerCase().includes(query) ||
       farm.location?.address?.toLowerCase().includes(query)
     )
+    
+    console.log('🔍 Search: Found', filtered.length, 'matching farms')
     setFilteredFarms(filtered)
   }, [searchQuery, farms])
 
@@ -130,6 +143,12 @@ export default function MapPage() {
             className="w-full bg-background-canvas/90 backdrop-blur-sm border border-border-default/30 rounded-full px-10 py-2.5 text-sm text-text-body placeholder:text-text-muted focus:outline-none focus:ring-1 focus:ring-brand-primary focus:border-brand-primary shadow-md"
             autoComplete="off"
           />
+          {/* Search Results Counter */}
+          {farms && (
+            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-text-muted bg-background-canvas/80 px-2 py-1 rounded-full">
+              {filteredFarms.length} of {farms.length}
+            </div>
+          )}
         </div>
       </div>
 
