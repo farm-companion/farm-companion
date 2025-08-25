@@ -14,8 +14,17 @@ export const metadata: Metadata = {
     default: 'Farm Companion',
     template: '%s · Farm Companion',
   },
-  description: 'Discover 1,300+ authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information. Find farm shops near you with our interactive map.',
-  keywords: ['farm shops', 'UK farm shops', 'local produce', 'fresh food', 'farm directory', 'farm shop near me', 'local farms', 'seasonal produce', 'farm fresh', 'UK farms', 'farm shop directory', 'local food', 'farm to table'],
+  description: 'Discover 1,300+ authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information. Find farm shops near you, farmshopsnearme, farm shop near you with our interactive map and location-based search.',
+  keywords: [
+    'farm shops', 'UK farm shops', 'local produce', 'fresh food', 'farm directory', 
+    'farm shop near me', 'farmshopsnearme', 'farm shop near you', 'farms near me', 
+    'local farms', 'seasonal produce', 'farm fresh', 'UK farms', 'farm shop directory', 
+    'local food', 'farm to table', 'farm shops near me', 'farm shops near you',
+    'farm shop directory near me', 'farm shops UK', 'local farm shops', 'farm shop finder',
+    'farm shops map', 'farm shop locations', 'farm shop search', 'farm shop locator',
+    'farm shops in my area', 'farm shops nearby', 'farm shops close to me',
+    'farm shop directory UK', 'farm shop finder near me', 'farm shop search near me'
+  ],
   authors: [{ name: 'Farm Companion' }],
   creator: 'Farm Companion',
   publisher: 'Farm Companion',
@@ -36,7 +45,7 @@ export const metadata: Metadata = {
     url: siteUrl,
     siteName: 'Farm Companion',
     title: 'Farm Companion — UK farm shops directory',
-    description: 'Find trusted farm shops near you with verified information and the freshest local produce.',
+    description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
     images: [
       { 
         url: '/og.jpg', 
@@ -51,7 +60,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Farm Companion — UK farm shops directory',
-    description: 'Find trusted farm shops near you with verified information and the freshest local produce.',
+    description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
     images: ['/og.jpg'],
     creator: '@farmcompanion',
   },

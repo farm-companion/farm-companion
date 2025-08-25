@@ -27,6 +27,24 @@ import {
 } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import TransitionIndicator from './TransitionIndicator'
+import ResponsiveInfoWindow from './ResponsiveInfoWindow'
+
+// Custom hook for mobile detection
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+  
+  return isMobile
+}
 
 interface GoogleMapComponentProps {
   farms: FarmShop[] | null
@@ -343,7 +361,10 @@ function FarmMap({
   selectedFarm, 
   setSelectedFarm, 
   zoomToUserLocation,
-  userLoc
+  userLoc,
+  isMobile,
+  setMarkerPosition,
+  markerPosition
 }: {
   farms: FarmShop[] | null
   filteredFarms: FarmShop[] | null
@@ -351,6 +372,9 @@ function FarmMap({
   setSelectedFarm: (farm: FarmShop | null) => void
   zoomToUserLocation: () => void
   userLoc: { lat: number; lng: number } | null
+  isMobile: boolean
+  setMarkerPosition: (position: { x: number; y: number } | null) => void
+  markerPosition: { x: number; y: number } | null
 }) {
   const map = useMap()
   const [currentZoom, setCurrentZoom] = useState(6)
@@ -460,14 +484,41 @@ function FarmMap({
   }, [map])
 
   // Handle marker click with premium smooth zoom animation
-  const handleMarkerClick = useCallback((farm: FarmShop) => {
+  const handleMarkerClick = useCallback((farm: FarmShop, event?: any) => {
     setSelectedFarm(farm)
     
-    // Premium smooth zoom to marker location with anti-flicker measures
+    // Calculate marker screen position for precise pointer positioning
     if (map && farm.location?.lat && farm.location?.lng) {
       const targetPosition = { lat: farm.location.lat, lng: farm.location.lng }
       
-      // Use the premium transition with proper cleanup
+      // Convert lat/lng to pixel coordinates
+      const projection = map.getProjection()
+      if (projection) {
+        const point = projection.fromLatLngToPoint(new google.maps.LatLng(targetPosition.lat, targetPosition.lng))
+        const scale = Math.pow(2, map.getZoom() || 6)
+        const worldPoint = new google.maps.Point(point.x * scale, point.y * scale)
+        
+        // Get map bounds and calculate screen position
+        const bounds = map.getBounds()
+        if (bounds) {
+          const ne = bounds.getNorthEast()
+          const sw = bounds.getSouthWest()
+          const nePoint = projection.fromLatLngToPoint(ne)
+          const swPoint = projection.fromLatLngToPoint(sw)
+          const neWorldPoint = new google.maps.Point(nePoint.x * scale, nePoint.y * scale)
+          const swWorldPoint = new google.maps.Point(swPoint.x * scale, swPoint.y * scale)
+          
+          // Calculate screen coordinates
+          const mapDiv = map.getDiv()
+          const mapRect = mapDiv.getBoundingClientRect()
+          const x = ((worldPoint.x - swWorldPoint.x) / (neWorldPoint.x - swWorldPoint.x)) * mapRect.width
+          const y = ((worldPoint.y - swWorldPoint.y) / (neWorldPoint.y - swWorldPoint.y)) * mapRect.height
+          
+          setMarkerPosition({ x, y })
+        }
+      }
+      
+      // Premium smooth zoom to marker location with anti-flicker measures
       const cleanup = smoothTransition.panAndZoomTo(map, targetPosition, 14, 1200)
       
       // Store cleanup function for potential cancellation
@@ -489,9 +540,27 @@ function FarmMap({
 
   return (
     <>
-      {/* Render markers for visible farms */}
+      {/* Render distance-aware markers for visible farms */}
       {visibleFarms.map((farm: FarmShop, index: number) => {
         if (!farm.location?.lat || !farm.location?.lng) return null
+        
+        // Calculate distance from user
+        const distance = userLoc ? calculateDistance(
+          userLoc.lat, userLoc.lng,
+          farm.location.lat, farm.location.lng
+        ) : null
+        
+        // Get marker color based on distance
+        const getMarkerColor = (dist: number | null) => {
+          if (!dist) return '#15803D' // Default green
+          if (dist <= 5) return '#22C55E' // Very close - bright green
+          if (dist <= 15) return '#EAB308' // Close - yellow
+          if (dist <= 50) return '#F97316' // Medium - orange
+          return '#EF4444' // Far - red
+        }
+        
+        const markerColor = getMarkerColor(distance)
+        const markerSize = distance && distance <= 5 ? 'w-8 h-8' : 'w-7 h-7'
         
         return (
           <AdvancedMarker
@@ -501,18 +570,25 @@ function FarmMap({
               lng: farm.location.lng 
             }}
             onClick={() => handleMarkerClick(farm)}
-            title={farm.name}
+            title={`${farm.name}${distance ? ` (${distance.toFixed(1)}km away)` : ''}`}
           >
-            <div className="w-7 h-7 relative transform transition-all duration-200 hover:scale-110 hover:rotate-3 cursor-pointer">
-              <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div className={`${markerSize} relative transform transition-all duration-200 hover:scale-110 hover:rotate-3 cursor-pointer`}>
+              <svg width={distance && distance <= 5 ? "32" : "28"} height={distance && distance <= 5 ? "32" : "28"} viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <circle cx="14" cy="14" r="13" fill="rgba(0,0,0,0.2)" transform="translate(1,1)"/>
-                <circle cx="14" cy="14" r="13" fill="#15803D" stroke="white" strokeWidth="2"/>
+                <circle cx="14" cy="14" r="13" fill={markerColor} stroke="white" strokeWidth="2"/>
                 <path d="M10 12h8v6h-8z" fill="white"/>
                 <path d="M9 12l5-4 5 4" fill="white"/>
-                <rect x="12" y="14" width="4" height="2" fill="#15803D"/>
+                <rect x="12" y="14" width="4" height="2" fill={markerColor}/>
                 <path d="M18 10c0-1.5-1-2.5-2.5-2.5s-2.5 1-2.5 2.5c0 1.5 2.5 3.5 2.5 3.5s2.5-2 2.5-3.5z" fill="#22C55E"/>
                 <circle cx="14" cy="14" r="2" fill="white"/>
               </svg>
+              
+              {/* Distance badge for very close farms */}
+              {distance && distance <= 5 && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                  {distance < 1 ? Math.round(distance * 1000) : distance.toFixed(1)}
+                </div>
+              )}
             </div>
           </AdvancedMarker>
         )
@@ -607,8 +683,8 @@ function FarmMap({
         </div>
       )}
 
-      {/* Sophisticated info window for selected farm */}
-      {selectedFarm && selectedFarm.location?.lat && selectedFarm.location?.lng && (
+      {/* Desktop: Traditional InfoWindow - only show on desktop */}
+      {selectedFarm && selectedFarm.location?.lat && selectedFarm.location?.lng && !isMobile && (
         <InfoWindow
           position={{ 
             lat: selectedFarm.location.lat, 
@@ -618,7 +694,7 @@ function FarmMap({
           pixelOffset={[0, -40]}
           maxWidth={320}
         >
-                    <div className="p-0 max-w-sm overflow-hidden rounded-xl animate-in fade-in-0 zoom-in-95 duration-300">
+          <div className="p-0 max-w-sm overflow-hidden rounded-xl animate-in fade-in-0 zoom-in-95 duration-300">
             {/* Header */}
             <div className="relative bg-gradient-to-r from-serum to-serum/80 p-4">
               <div className="flex items-start justify-between">
@@ -735,6 +811,17 @@ function FarmMap({
           </div>
         </InfoWindow>
       )}
+
+      {/* Mobile: Responsive bottom sheet */}
+      {selectedFarm && selectedFarm.location?.lat && selectedFarm.location?.lng && (
+        <ResponsiveInfoWindow
+          selectedFarm={selectedFarm}
+          userLoc={userLoc}
+          onClose={handleInfoWindowClose}
+          calculateDistance={calculateDistance}
+          markerPosition={markerPosition}
+        />
+      )}
     </>
   )
 }
@@ -755,12 +842,14 @@ export default function GoogleMapComponent({
   isRetrying,
   dataQuality
 }: GoogleMapComponentProps) {
+  const isMobile = useIsMobile()
   const [mapCenter, setMapCenter] = useState(UK_CENTER)
   const [mapZoom, setMapZoom] = useState(DEFAULT_ZOOM)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [showControls, setShowControls] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
+  const [markerPosition, setMarkerPosition] = useState<{ x: number; y: number } | null>(null)
 
 
   // Get user location on mount
@@ -861,6 +950,9 @@ export default function GoogleMapComponent({
             setSelectedFarm={setSelectedFarm}
             zoomToUserLocation={zoomToUserLocation}
             userLoc={userLoc}
+            isMobile={isMobile}
+            setMarkerPosition={setMarkerPosition}
+            markerPosition={markerPosition}
           />
         </Map>
       </APIProvider>
@@ -880,6 +972,8 @@ export default function GoogleMapComponent({
         onZoomToUser={zoomToUserLocation}
         onResetToUK={resetToUKOverview}
       />
+
+
 
       {/* Reusable transition indicator */}
       <TransitionIndicator 

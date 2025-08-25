@@ -20,9 +20,28 @@ export function processFarmDescription(description: string): ProcessedFarmData {
 
   // Extract keywords from *(Keywords: ...)* pattern
   const keywordMatch = description.match(/\*\(Keywords:([^)]*)\)\*/)
-  const keywords = keywordMatch 
+  const baseKeywords = keywordMatch 
     ? keywordMatch[1].split(',').map(k => k.trim()).filter(Boolean)
     : []
+
+  // Add location-based keywords for better SEO
+  const locationKeywords = [
+    'farm shop near me',
+    'farmshopsnearme',
+    'farm shop near you',
+    'farms near me',
+    'farm shops near me',
+    'farm shops near you',
+    'farm shop directory near me',
+    'farm shop finder',
+    'farm shop search',
+    'farm shop locator',
+    'farm shops in my area',
+    'farm shops nearby',
+    'farm shops close to me'
+  ]
+
+  const keywords = [...baseKeywords, ...locationKeywords]
 
   // Clean description by removing keyword annotations
   const cleanDescription = description

@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { Search, MapPin } from 'lucide-react'
 import GoogleMapComponent from '@/components/GoogleMapComponent'
+import LoadingOverlay from '@/components/LoadingOverlay'
+import AnticipatoryLoader from '@/components/AnticipatoryLoader'
 import type { FarmShop } from '@/types/farm'
 import { fetchFarmDataClient } from '@/lib/farm-data-client'
 
@@ -13,6 +15,8 @@ export default function MapPage() {
   const [bounds, setBounds] = useState<{ west: number; south: number; east: number; north: number } | null>(null)
   const [selectedFarm, setSelectedFarm] = useState<FarmShop | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [loadingStage, setLoadingStage] = useState<'initializing' | 'loading-data' | 'preparing-map' | 'ready'>('initializing')
+  const [loadingProgress, setLoadingProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [retryCount, setRetryCount] = useState(0)
   const [isRetrying, setIsRetrying] = useState(false)
@@ -23,16 +27,30 @@ export default function MapPage() {
     try {
       setIsLoading(true)
       setError(null)
+      setLoadingStage('initializing')
+      setLoadingProgress(0)
+      
+      // Stage 1: Initializing (0-20%)
+      await new Promise(resolve => setTimeout(resolve, 800))
+      setLoadingStage('loading-data')
+      setLoadingProgress(20)
       
       console.log('🔄 Loading farm data...')
       const farmData = await fetchFarmDataClient()
       console.log('✅ Farm data loaded:', farmData.length, 'farms')
       
+      setLoadingProgress(60)
+      
+      // Stage 2: Preparing map (60-90%)
+      setLoadingStage('preparing-map')
+      await new Promise(resolve => setTimeout(resolve, 600))
+      setLoadingProgress(90)
+      
       setFarms(farmData)
       setFilteredFarms(farmData)
       
       // Calculate data quality
-      const valid = farmData.filter(farm => 
+      const valid = farmData.filter((farm: FarmShop) => 
         farm.location?.lat && farm.location?.lng &&
         farm.location.lat >= 49.9 && farm.location.lat <= 60.9 &&
         farm.location.lng >= -8.6 && farm.location.lng <= 1.8
@@ -45,6 +63,11 @@ export default function MapPage() {
       })
       
       console.log('📊 Data quality:', { total: farmData.length, valid, invalid: farmData.length - valid })
+      
+      // Stage 3: Ready (90-100%)
+      setLoadingProgress(100)
+      setLoadingStage('ready')
+      await new Promise(resolve => setTimeout(resolve, 400))
       
     } catch (err) {
       console.error('❌ Failed to load farm data:', err)
@@ -155,8 +178,15 @@ export default function MapPage() {
 
   return (
     <div className="h-screen bg-background-canvas relative">
-      {/* Sophisticated Search Bar */}
-      <div className="absolute top-20 right-6 z-40">
+      {/* Loading Overlay */}
+      <LoadingOverlay
+        isLoading={isLoading}
+        stage={loadingStage}
+        progress={loadingProgress}
+      />
+      
+      {/* Responsive Search Bar */}
+      <div className="absolute top-20 right-6 z-40 md:right-6 right-4">
         <div className="relative">
           <div className="flex items-center gap-3">
             <div className="relative">
@@ -165,7 +195,7 @@ export default function MapPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search farms..."
-                className="w-80 bg-background-surface/95 backdrop-blur-md border border-border-default/30 rounded-2xl px-12 py-3 text-sm text-text-body placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum shadow-premium transition-all duration-200"
+                className="w-80 md:w-80 w-64 bg-background-surface/95 backdrop-blur-md border border-border-default/30 rounded-2xl px-12 py-3 text-sm text-text-body placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum shadow-premium transition-all duration-200"
                 autoComplete="off"
               />
               {/* Search Results Counter */}
@@ -249,6 +279,15 @@ export default function MapPage() {
         retryCount={retryCount}
         isRetrying={isRetrying}
         dataQuality={dataQuality}
+      />
+
+      {/* Anticipatory Loader - invisible component that preloads data */}
+      <AnticipatoryLoader
+        farms={farms}
+        userLoc={userLoc}
+        onPreloadData={(data) => {
+          console.log('🚀 Anticipatory data preloaded:', data)
+        }}
       />
     </div>
   )
