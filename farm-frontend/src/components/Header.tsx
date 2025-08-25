@@ -123,16 +123,13 @@ function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
             
             {/* Mobile CTA */}
             <div className="pt-4 border-t border-border-default">
-              <Button
-                asChild
-                variant="primary"
-                size="md"
-                className="w-full"
+              <Link 
+                href="/add" 
+                onClick={onClose}
+                className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-300 touch-target px-4 py-2 h-10 bg-serum text-black hover:bg-serum/90 shadow-md hover:shadow-lg"
               >
-                <Link href="/add" onClick={onClose}>
-                  Add a Farm Shop
-                </Link>
-              </Button>
+                Add a Farm Shop
+              </Link>
             </div>
             
             {/* Theme Toggle in Mobile */}
@@ -254,15 +251,16 @@ export default function Header() {
               </Link>
             </li>
             <li role="none">
-              <Button
-                asChild
-                variant="primary"
-                size="md"
+              <Link 
+                href="/add"
+                className={`inline-flex items-center justify-center rounded-md text-sm font-medium transition-all duration-300 touch-target px-4 py-2 h-10 ${
+                  isDarkMode 
+                    ? 'bg-white text-black hover:bg-white/90 shadow-lg hover:shadow-xl' 
+                    : 'bg-serum text-black hover:bg-serum/90 shadow-md hover:shadow-lg'
+                }`}
               >
-                <Link href="/add">
-                  Add a Farm Shop
-                </Link>
-              </Button>
+                Add a Farm Shop
+              </Link>
             </li>
             <li role="none">
               <ThemeToggle />
