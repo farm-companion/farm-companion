@@ -303,11 +303,9 @@ export default function AddFarmPage() {
       </section>
 
       <div className="mx-auto max-w-4xl px-6 py-12">
-
-      <div className="grid lg:grid-cols-3 gap-8">
         {/* Success/Error Messages */}
         {submitStatus === 'success' && (
-          <div className="lg:col-span-2 mb-8 p-6 bg-green-50 border border-green-200 rounded-xl">
+          <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-xl">
             <div className="flex items-center space-x-3">
               <CheckCircle className="w-6 h-6 text-green-600" />
               <div>
@@ -319,7 +317,7 @@ export default function AddFarmPage() {
         )}
 
         {submitStatus === 'error' && (
-          <div className="lg:col-span-2 mb-8 p-6 bg-red-50 border border-red-200 rounded-xl">
+          <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-xl">
             <div className="flex items-center space-x-3">
               <AlertCircle className="w-6 h-6 text-red-600" />
               <div>
@@ -329,6 +327,8 @@ export default function AddFarmPage() {
             </div>
           </div>
         )}
+
+      <div className="grid lg:grid-cols-3 gap-8">
         {/* Main Form */}
         <div className="lg:col-span-2 space-y-8">
           {/* Honeypot (hidden from real users & assistive tech) */}
@@ -645,7 +645,7 @@ export default function AddFarmPage() {
 
         {/* Sidebar - Preview */}
         <div className="lg:col-span-1">
-          <div className="sticky top-4">
+          <div className="sticky top-8">
             <div className="bg-background-surface rounded-xl p-6 border border-border-default">
               <h3 className="text-lg font-semibold text-text-heading mb-4 flex items-center space-x-2">
                 <Eye className="w-5 h-5 text-serum" />
