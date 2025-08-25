@@ -544,6 +544,27 @@ export default function MapComponent({
     }
   }, [filteredFarms])
 
+  // Fit map to bounds when they change (e.g., from search results)
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !map.isStyleLoaded() || !_bounds) {
+      return
+    }
+    
+    console.log('🗺️ Map: Fitting to bounds:', _bounds)
+    try {
+      map.fitBounds([
+        [_bounds.west, _bounds.south],
+        [_bounds.east, _bounds.north]
+      ], {
+        padding: 50,
+        maxZoom: 14
+      })
+    } catch (error) {
+      console.error('❌ Failed to fit bounds:', error)
+    }
+  }, [_bounds])
+
   return (
     <div 
       ref={mapContainer} 

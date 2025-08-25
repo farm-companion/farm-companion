@@ -78,6 +78,29 @@ export default function MapPage() {
     )
     
     console.log('🔍 Search: Found', filtered.length, 'matching farms')
+    if (filtered.length > 0) {
+      console.log('🔍 Search: First matching farm:', filtered[0])
+      console.log('🔍 Search: Farm coordinates:', filtered[0].location?.lat, filtered[0].location?.lng)
+      
+      // If we have search results, update bounds to show them
+      const validFarms = filtered.filter(farm => 
+        farm.location?.lat && farm.location?.lng && 
+        typeof farm.location.lat === 'number' && typeof farm.location.lng === 'number'
+      )
+      
+      if (validFarms.length > 0) {
+        const lats = validFarms.map(f => f.location!.lat)
+        const lngs = validFarms.map(f => f.location!.lng)
+        const newBounds = {
+          north: Math.max(...lats),
+          south: Math.min(...lats),
+          east: Math.max(...lngs),
+          west: Math.min(...lngs)
+        }
+        console.log('🔍 Search: Updating bounds to show results:', newBounds)
+        setBounds(newBounds)
+      }
+    }
     setFilteredFarms(filtered)
   }, [searchQuery, farms])
 
