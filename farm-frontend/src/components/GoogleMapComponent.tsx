@@ -495,26 +495,30 @@ function FarmMap({
       const projection = map.getProjection()
       if (projection) {
         const point = projection.fromLatLngToPoint(new google.maps.LatLng(targetPosition.lat, targetPosition.lng))
-        const scale = Math.pow(2, map.getZoom() || 6)
-        const worldPoint = new google.maps.Point(point.x * scale, point.y * scale)
-        
-        // Get map bounds and calculate screen position
-        const bounds = map.getBounds()
-        if (bounds) {
-          const ne = bounds.getNorthEast()
-          const sw = bounds.getSouthWest()
-          const nePoint = projection.fromLatLngToPoint(ne)
-          const swPoint = projection.fromLatLngToPoint(sw)
-          const neWorldPoint = new google.maps.Point(nePoint.x * scale, nePoint.y * scale)
-          const swWorldPoint = new google.maps.Point(swPoint.x * scale, swPoint.y * scale)
+        if (point) {
+          const scale = Math.pow(2, map.getZoom() || 6)
+          const worldPoint = new google.maps.Point(point.x * scale, point.y * scale)
           
-          // Calculate screen coordinates
-          const mapDiv = map.getDiv()
-          const mapRect = mapDiv.getBoundingClientRect()
-          const x = ((worldPoint.x - swWorldPoint.x) / (neWorldPoint.x - swWorldPoint.x)) * mapRect.width
-          const y = ((worldPoint.y - swWorldPoint.y) / (neWorldPoint.y - swWorldPoint.y)) * mapRect.height
-          
-          setMarkerPosition({ x, y })
+          // Get map bounds and calculate screen position
+          const bounds = map.getBounds()
+          if (bounds) {
+            const ne = bounds.getNorthEast()
+            const sw = bounds.getSouthWest()
+            const nePoint = projection.fromLatLngToPoint(ne)
+            const swPoint = projection.fromLatLngToPoint(sw)
+            if (nePoint && swPoint) {
+              const neWorldPoint = new google.maps.Point(nePoint.x * scale, nePoint.y * scale)
+              const swWorldPoint = new google.maps.Point(swPoint.x * scale, swPoint.y * scale)
+              
+              // Calculate screen coordinates
+              const mapDiv = map.getDiv()
+              const mapRect = mapDiv.getBoundingClientRect()
+              const x = ((worldPoint.x - swWorldPoint.x) / (neWorldPoint.x - swWorldPoint.x)) * mapRect.width
+              const y = ((worldPoint.y - swWorldPoint.y) / (neWorldPoint.y - swWorldPoint.y)) * mapRect.height
+              
+              setMarkerPosition({ x, y })
+            }
+          }
         }
       }
       
