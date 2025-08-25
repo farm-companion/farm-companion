@@ -19,7 +19,7 @@ const CSP = [
   // External styles (map styles) + inline styles (Tailwind preflight/runtime)
   "style-src 'self' 'unsafe-inline' https:;",
       // Google Maps API + Analytics + data URLs for image uploads + API domains
-"connect-src 'self' data: https://*.google.com https://*.gstatic.com https://*.vercel.app https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://*.google-analytics.com;",
+"connect-src 'self' data: https://*.google.com https://*.gstatic.com https://*.vercel.app https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://*.google-analytics.com https://maps.googleapis.com https://maps.gstatic.com;",
   // Google Maps workers
   "worker-src 'self' blob:;",
   "child-src blob:;",
@@ -37,7 +37,7 @@ const headersCommon = [
   { key: "X-XSS-Protection", value: "1; mode=block" },
   { key: "X-DNS-Prefetch-Control", value: "off" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()" },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  { key: "Cross-Origin-Opener-Policy", value: "unsafe-none" },
   { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
   { key: "Cross-Origin-Embedder-Policy", value: "unsafe-none" },
 ]
