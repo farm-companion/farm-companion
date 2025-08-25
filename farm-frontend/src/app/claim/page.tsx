@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { MapPin, Shield, CheckCircle, Plus, ArrowRight } from 'lucide-react'
+import { MapPin, Shield, CheckCircle, Plus, ArrowRight, Hash } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { getFarmDataServer, getFarmStatsServer } from '@/lib/farm-data-server'
 
@@ -112,10 +112,60 @@ function FarmCard({ farm }: { farm: FarmShop }) {
   )
 }
 
+// Fixed alphabetical navigation component
+function FixedAlphabeticalNav({ counties }: { counties: string[] }) {
+  // Group counties by first letter
+  const countiesByLetter = counties.reduce((acc, county) => {
+    const firstLetter = county.charAt(0).toUpperCase()
+    if (!acc[firstLetter]) {
+      acc[firstLetter] = []
+    }
+    acc[firstLetter].push(county)
+    return acc
+  }, {} as Record<string, string[]>)
+
+  const letters = Object.keys(countiesByLetter).sort()
+
+  return (
+    <div className="fixed left-4 top-1/2 transform -translate-y-1/2 z-50 bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-lg p-4 max-h-[80vh] overflow-y-auto hidden lg:block">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="p-1.5 bg-serum/10 rounded-lg">
+          <Hash className="w-4 h-4 text-serum" />
+        </div>
+        <h3 className="text-sm font-semibold text-text-heading dark:text-white">
+          Counties
+        </h3>
+      </div>
+      
+      <div className="space-y-4">
+        {letters.map((letter) => (
+          <div key={letter} className="space-y-2">
+            <h4 className="text-xs font-semibold text-text-heading dark:text-white border-b border-border-default pb-1">
+              {letter}
+            </h4>
+            <div className="space-y-1">
+              {countiesByLetter[letter].map((county) => (
+                <a
+                  key={county}
+                  href={`#county-${county.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="block text-xs text-text-muted dark:text-gray-400 hover:text-serum dark:hover:text-serum transition-colors py-0.5 truncate max-w-[200px]"
+                  title={county}
+                >
+                  {county}
+                </a>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // County section component
 function CountySection({ county, farms }: { county: string; farms: FarmShop[] }) {
   return (
-    <section className="border-t border-border-default pt-8">
+    <section id={`county-${county.toLowerCase().replace(/\s+/g, '-')}`} className="border-t border-border-default pt-8 scroll-mt-20">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-heading font-semibold text-text-heading dark:text-white">
           {county}
@@ -242,8 +292,11 @@ async function ClaimPageContent() {
             </ol>
           </div>
 
+          {/* Fixed alphabetical navigation */}
+          <FixedAlphabeticalNav counties={sortedCounties} />
+          
           {/* Farms by county */}
-          <div className="space-y-8">
+          <div className="space-y-8 lg:ml-64">
             {sortedCounties.map((county) => (
               <CountySection 
                 key={county} 
