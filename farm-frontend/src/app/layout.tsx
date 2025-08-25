@@ -91,6 +91,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Preload critical header images */}
+        <link rel="preload" href="/overlay-banner.jpg" as="image" type="image/jpeg" />
+        <link rel="preload" href="/seasonal-header.jpg" as="image" type="image/jpeg" />
+        <link rel="preload" href="/about-header.jpg" as="image" type="image/jpeg" />
+        <link rel="preload" href="/counties.jpg" as="image" type="image/jpeg" />
+        
         {/* Google Analytics */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-FQ0B9L8MFE"></script>
         <script
