@@ -220,46 +220,101 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* SEO Content Section */}
-      <section className="bg-background-canvas border-t border-border-default">
-        <div className="max-w-4xl mx-auto px-6 py-16">
+      {/* SEO Content Section with Subtle Geometric Pattern */}
+      <section className="relative bg-background-canvas border-t border-border-default overflow-hidden">
+        {/* Subtle Geometric Pattern Background */}
+        <div className="absolute inset-0 opacity-[0.03]">
+          <div className="absolute inset-0" style={{
+            backgroundImage: `
+              radial-gradient(circle at 20% 30%, rgba(0, 194, 178, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 70%, rgba(212, 255, 79, 0.08) 0%, transparent 50%),
+              linear-gradient(45deg, transparent 40%, rgba(0, 194, 178, 0.02) 50%, transparent 60%),
+              linear-gradient(-45deg, transparent 40%, rgba(212, 255, 79, 0.02) 50%, transparent 60%)
+            `,
+            backgroundSize: '400px 400px, 300px 300px, 200px 200px, 150px 150px',
+            backgroundPosition: '0 0, 100px 100px, 50px 50px, 25px 25px'
+          }} />
+        </div>
+        
+        {/* Subtle embossed texture overlay */}
+        <div className="absolute inset-0 opacity-[0.02]" style={{
+          backgroundImage: `
+            repeating-linear-gradient(
+              45deg,
+              transparent,
+              transparent 2px,
+              rgba(0, 194, 178, 0.01) 2px,
+              rgba(0, 194, 178, 0.01) 4px
+            )
+          `,
+          backgroundSize: '8px 8px'
+        }} />
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-4xl mx-auto px-6 py-20">
           <div className="prose prose-lg max-w-none">
-            <h2 className="text-3xl font-bold text-text-heading mb-6">
-              UK Farm Shops Directory
-            </h2>
-            <p className="text-text-muted mb-6">
-              Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated 
-              a directory of over {farmCount} authentic farm shops across {countyCount} counties, 
-              helping you discover the freshest local produce and connect with real farmers.
-            </p>
+            {/* Enhanced main heading with subtle animation */}
+            <div className="text-center mb-12">
+              <h2 className="text-4xl md:text-5xl font-heading font-bold text-text-heading mb-4 animate-fade-in">
+                UK Farm Shops Directory
+              </h2>
+              <div className="w-24 h-1 bg-gradient-to-r from-serum to-solar mx-auto rounded-full opacity-60"></div>
+            </div>
             
-            <h3 className="text-2xl font-semibold text-text-heading mb-4">
-              Find Farm Shops Near You
-            </h3>
-            <p className="text-text-muted mb-6">
-              Whether you&apos;re looking for fresh vegetables, organic meat, artisanal cheese, or 
-              homemade preserves, our interactive map makes it easy to find farm shops in your area. 
-              Each listing includes verified contact information, opening hours, and details about 
-              what each farm offers.
-            </p>
+            {/* Enhanced intro paragraph with stats */}
+            <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <p className="text-xl text-text-muted mb-6 leading-relaxed">
+                Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated 
+                a directory of over <span className="font-semibold text-serum">{farmCount}</span> authentic farm shops across <span className="font-semibold text-serum">{countyCount}</span> counties, 
+                helping you discover the freshest local produce and connect with real farmers.
+              </p>
+            </div>
+            
+            {/* Enhanced content sections with subtle styling */}
+            <div className="space-y-12">
+              <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                <h3 className="text-2xl font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center">
+                    <MapPin className="w-4 h-4 text-serum" />
+                  </div>
+                  Find Farm Shops Near You
+                </h3>
+                <p className="text-text-muted leading-relaxed">
+                  Whether you&apos;re looking for fresh vegetables, organic meat, artisanal cheese, or 
+                  homemade preserves, our interactive map makes it easy to find farm shops in your area. 
+                  Each listing includes verified contact information, opening hours, and details about 
+                  what each farm offers.
+                </p>
+              </div>
 
-            <h3 className="text-2xl font-semibold text-text-heading mb-4">
-              Seasonal Produce Guides
-            </h3>
-            <p className="text-text-muted mb-6">
-              Eating seasonally means enjoying produce at its peak flavour and nutritional value. 
-              Our seasonal guides help you understand what&apos;s in season throughout the year, 
-              with tips on selection, storage, and preparation for the freshest ingredients.
-            </p>
+              <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
+                <h3 className="text-2xl font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-serum" />
+                  </div>
+                  Seasonal Produce Guides
+                </h3>
+                <p className="text-text-muted leading-relaxed">
+                  Eating seasonally means enjoying produce at its peak flavour and nutritional value. 
+                  Our seasonal guides help you understand what&apos;s in season throughout the year, 
+                  with tips on selection, storage, and preparation for the freshest ingredients.
+                </p>
+              </div>
 
-            <h3 className="text-2xl font-semibold text-text-heading mb-4">
-              Support Local Farmers
-            </h3>
-            <p className="text-text-muted">
-              By choosing to shop at local farm shops, you&apos;re supporting British farmers and 
-              contributing to sustainable, local food systems. You&apos;ll enjoy fresher produce, 
-              reduce food miles, and help maintain the UK&apos;s rich agricultural heritage.
-            </p>
+              <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
+                <h3 className="text-2xl font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
+                  <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center">
+                    <Heart className="w-4 h-4 text-serum" />
+                  </div>
+                  Support Local Farmers
+                </h3>
+                <p className="text-text-muted leading-relaxed">
+                  By choosing to shop at local farm shops, you&apos;re supporting British farmers and 
+                  contributing to sustainable, local food systems. You&apos;ll enjoy fresher produce, 
+                  reduce food miles, and help maintain the UK&apos;s rich agricultural heritage.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
