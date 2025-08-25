@@ -970,6 +970,42 @@ export default function GoogleMapComponent({
     setTimeout(() => setIsTransitioning(false), 1500)
   }, [])
 
+  // Check for Google Maps API key
+  const googleMapsApiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  
+  // API key missing error
+  if (!googleMapsApiKey) {
+    return (
+      <div className="w-full h-full flex items-center justify-center bg-background-canvas dark:bg-gray-900">
+        <div className="max-w-md mx-auto p-8 text-center">
+          <div className="mb-6">
+            <div className="w-16 h-16 bg-red-100 dark:bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-semibold text-text-heading dark:text-white mb-2">
+              Google Maps API Key Missing
+            </h3>
+            <p className="text-text-muted dark:text-gray-400 mb-6">
+              The Google Maps API key is not configured. Please check your environment variables.
+            </p>
+            <div className="text-sm text-text-muted dark:text-gray-400 mb-4 p-3 bg-gray-100 dark:bg-gray-800 rounded-lg">
+              <p className="font-medium mb-2">For Developers:</p>
+              <p>Add NEXT_PUBLIC_GOOGLE_MAPS_API_KEY to your environment variables.</p>
+            </div>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="bg-serum text-black px-6 py-3 rounded-lg font-semibold hover:bg-serum/90 transition-colors"
+          >
+            Reload Page
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   // Safari error fallback
   if (safariError) {
     return (
@@ -1014,7 +1050,7 @@ export default function GoogleMapComponent({
       isFullscreen ? 'fixed inset-0 z-50' : ''
     }`}>
       <APIProvider 
-        apiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || ''}
+        apiKey={googleMapsApiKey}
         onLoad={() => setMapLoadError(null)}
         onError={(error) => {
           console.error('Google Maps API Error:', error)
@@ -1032,14 +1068,6 @@ export default function GoogleMapComponent({
           }}
           onZoomChanged={(e) => {
             setMapZoom(e.detail.zoom)
-          }}
-          onLoad={() => {
-            console.log('Map loaded successfully')
-            setMapLoadError(null)
-          }}
-          onError={(error) => {
-            console.error('Map Error:', error)
-            setMapLoadError('Map failed to load. Please refresh the page.')
           }}
         >
           <FarmMap
