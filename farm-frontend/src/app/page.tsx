@@ -157,18 +157,24 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="bg-serum text-black py-16">
-        <div className="max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl font-heading font-bold mb-4">
+      {/* CTA Section with Parallax */}
+      <section className="parallax-section py-24">
+        {/* Parallax Background */}
+        <div className="parallax-bg" style={{ backgroundImage: 'url(/counties.jpg)' }}></div>
+        {/* Overlay for better text readability */}
+        <div className="absolute inset-0 bg-black/40" />
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-white drop-shadow-lg">
             Ready to Explore?
           </h2>
-          <p className="text-lg mb-8 opacity-90">
+          <p className="text-lg md:text-xl mb-10 text-white/90 drop-shadow-md max-w-2xl mx-auto">
             Start your journey to discover amazing local farm shops today.
           </p>
           <Link
             href="/map"
-            className="bg-black text-white px-8 py-4 rounded-lg font-semibold hover:bg-black/90 transition-all duration-200 inline-flex items-center justify-center gap-2"
+            className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
           >
             Find Farms Near You
             <ArrowRight className="w-5 h-5" />
