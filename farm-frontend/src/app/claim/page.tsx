@@ -64,7 +64,7 @@ function ClaimPageLoading() {
 // Enhanced farm card component
 function FarmCard({ farm }: { farm: FarmShop }) {
   return (
-    <div className="group bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
+    <div id={`farm-${farm.slug}`} className="group bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden scroll-mt-20">
       <div className="p-6">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex-1">
@@ -113,18 +113,18 @@ function FarmCard({ farm }: { farm: FarmShop }) {
 }
 
 // Fixed alphabetical navigation component
-function FixedAlphabeticalNav({ counties }: { counties: string[] }) {
-  // Group counties by first letter
-  const countiesByLetter = counties.reduce((acc, county) => {
-    const firstLetter = county.charAt(0).toUpperCase()
+function FixedAlphabeticalNav({ farms }: { farms: FarmShop[] }) {
+  // Group farms by first letter of name
+  const farmsByLetter = farms.reduce((acc, farm) => {
+    const firstLetter = farm.name.charAt(0).toUpperCase()
     if (!acc[firstLetter]) {
       acc[firstLetter] = []
     }
-    acc[firstLetter].push(county)
+    acc[firstLetter].push(farm)
     return acc
-  }, {} as Record<string, string[]>)
+  }, {} as Record<string, FarmShop[]>)
 
-  const letters = Object.keys(countiesByLetter).sort()
+  const letters = Object.keys(farmsByLetter).sort()
 
   return (
     <div className="fixed left-6 top-24 z-50 bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-xl p-4 max-h-[70vh] overflow-y-auto hidden lg:block backdrop-blur-sm">
@@ -133,7 +133,7 @@ function FixedAlphabeticalNav({ counties }: { counties: string[] }) {
           <Hash className="w-3 h-3 text-serum" />
         </div>
         <h3 className="text-xs font-semibold text-text-heading dark:text-white uppercase tracking-wide">
-          Counties
+          Farms A-Z
         </h3>
       </div>
       
@@ -144,14 +144,14 @@ function FixedAlphabeticalNav({ counties }: { counties: string[] }) {
               {letter}
             </h4>
             <div className="space-y-1">
-              {countiesByLetter[letter].map((county) => (
+              {farmsByLetter[letter].map((farm) => (
                 <a
-                  key={county}
-                  href={`#county-${county.toLowerCase().replace(/\s+/g, '-')}`}
+                  key={farm.id}
+                  href={`#farm-${farm.slug}`}
                   className="block text-xs text-text-muted dark:text-gray-400 hover:text-serum dark:hover:text-serum transition-colors py-0.5 truncate max-w-[200px]"
-                  title={county}
+                  title={`${farm.name} - ${farm.location.county}`}
                 >
-                  {county}
+                  {farm.name}
                 </a>
               ))}
             </div>
@@ -293,9 +293,9 @@ async function ClaimPageContent() {
           </div>
 
           {/* Fixed alphabetical navigation */}
-          <FixedAlphabeticalNav counties={sortedCounties} />
+          <FixedAlphabeticalNav farms={farms} />
           
-          {/* Farms by county */}
+          {/* Farms by name */}
           <div className="space-y-8">
             {sortedCounties.map((county) => (
               <CountySection 
