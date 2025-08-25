@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Suspense } from 'react'
 import { MapPin, Shield, CheckCircle, Plus, ArrowRight } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
@@ -158,59 +159,66 @@ async function ClaimPageContent() {
 
   return (
     <main className="min-h-screen bg-background-canvas dark:bg-gray-900">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-background-surface dark:bg-gray-800">
-        {/* Background Image */}
+      {/* Professional Hero Section with Claim Page Image */}
+      <section className="relative h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
+        {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
-          <div 
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-10 dark:opacity-5"
-            style={{
-              backgroundImage: 'url("/claim.jpg")',
-              backgroundPosition: 'center 30%'
-            }}
+          <Image
+            src="/claim.jpg"
+            alt="Green keyboard key with 'Claim' text and document icons"
+            fill
+            className="object-cover object-center"
+            priority
+            sizes="100vw"
           />
+          {/* Professional Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+          {/* Subtle texture overlay for depth */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
         </div>
         
-        {/* Gradient Overlays */}
-        <div className="absolute inset-0 bg-gradient-to-br from-serum/10 via-background-surface/95 to-solar/10 dark:from-serum/5 dark:via-gray-800/95 dark:to-solar/5" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.05),transparent_50%)]" />
-        
-        <div className="relative max-w-7xl mx-auto px-6 py-20 text-center">
-          {/* Visual Element - Keyboard Key */}
-          <div className="flex justify-center mb-8">
-            <div className="relative">
-              <div className="w-24 h-24 md:w-32 md:h-32 bg-serum rounded-2xl shadow-2xl transform rotate-12 hover:rotate-0 transition-transform duration-500 flex items-center justify-center">
-                <div className="text-center transform -rotate-12">
-                  <div className="text-white font-bold text-lg md:text-xl mb-1">CLAIM</div>
-                  <div className="text-white/80 text-xs">✓ VERIFIED</div>
+        {/* Content Overlay */}
+        <div className="relative h-full flex items-center justify-center">
+          <div className="text-center max-w-4xl mx-auto px-6">
+            {/* Visual Element - Keyboard Key */}
+            <div className="flex justify-center mb-8">
+              <div className="relative">
+                <div className="w-20 h-20 md:w-24 md:h-24 bg-serum rounded-2xl shadow-2xl transform rotate-12 hover:rotate-0 transition-transform duration-500 flex items-center justify-center backdrop-blur-sm border border-white/20">
+                  <div className="text-center transform -rotate-12">
+                    <div className="text-white font-bold text-lg md:text-xl mb-1">CLAIM</div>
+                    <div className="text-white/80 text-xs">✓ VERIFIED</div>
+                  </div>
+                </div>
+                <div className="absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 bg-solar rounded-full flex items-center justify-center shadow-lg">
+                  <div className="w-2.5 h-2.5 md:w-3 md:h-3 bg-black rounded-full"></div>
                 </div>
               </div>
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-solar rounded-full flex items-center justify-center shadow-lg">
-                <div className="w-3 h-3 bg-black rounded-full"></div>
+            </div>
+            
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+              Claim Your Farm
+              <span className="block text-serum drop-shadow-lg">Shop Listing</span>
+            </h1>
+            <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+              Find your farm shop below and claim ownership to update information, add photos, and manage your listing.
+            </p>
+            
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-8">
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">{stats.farmCount}+</div>
+                <div className="text-white/80 text-sm md:text-base">Farm Shops</div>
               </div>
-            </div>
-          </div>
-          
-          <h1 className="text-4xl md:text-5xl font-heading font-bold mb-6 text-text-heading dark:text-white">
-            Claim Your Farm Shop Listing
-          </h1>
-          <p className="text-xl md:text-2xl text-text-muted dark:text-gray-300 max-w-3xl mx-auto mb-8">
-            Find your farm shop below and claim ownership to update information, add photos, and manage your listing.
-          </p>
-          
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl font-heading font-bold text-serum mb-2">{stats.farmCount}+</div>
-              <div className="text-text-muted dark:text-gray-400">Farm Shops</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-heading font-bold text-serum mb-2">{stats.countyCount}</div>
-              <div className="text-text-muted dark:text-gray-400">Counties</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-heading font-bold text-serum mb-2">100%</div>
-              <div className="text-text-muted dark:text-gray-400">Free to Claim</div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">{stats.countyCount}</div>
+                <div className="text-white/80 text-sm md:text-base">Counties</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">100%</div>
+                <div className="text-white/80 text-sm md:text-base">Free to Claim</div>
+              </div>
             </div>
           </div>
         </div>
