@@ -451,8 +451,8 @@ export default function MapComponent({
       return
     }
     
-    console.log('Processing farms:', filteredFarms?.length || 0, 'farms')
-    console.log('Filtered farms data:', filteredFarms)
+    console.log('🗺️ Map: Processing farms:', filteredFarms?.length || 0, 'farms')
+    console.log('🗺️ Map: First few farms:', filteredFarms?.slice(0, 3))
     
     // Apply the same validation to filtered farms
     const validFilteredFarms = (filteredFarms || []).filter((f) => {
@@ -481,6 +481,14 @@ export default function MapComponent({
       if (lat === 0 && lng === 0) {
         console.warn('Farm has zero coordinates:', f.id, f.name)
         return false
+      }
+      
+      // UK bounds validation (relaxed for testing)
+      const isInUKBounds = lat >= 49.9 && lat <= 60.9 && lng >= -8.6 && lng <= 1.8
+      if (!isInUKBounds) {
+        console.warn('Farm outside UK bounds:', f.id, f.name, { lat, lng })
+        // For now, let's include all farms regardless of UK bounds for testing
+        // return false
       }
       
       return true
