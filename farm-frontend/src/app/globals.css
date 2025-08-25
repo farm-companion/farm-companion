@@ -128,7 +128,7 @@ body::before {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  opacity: 0.03;
+  opacity: 0.08;
   pointer-events: none;
   z-index: -1;
   filter: grayscale(100%);
@@ -137,7 +137,7 @@ body::before {
 
 /* Dark mode watermark adjustment */
 .dark body::before {
-  opacity: 0.02;
+  opacity: 0.05;
   filter: grayscale(100%) invert(1);
 }
 
