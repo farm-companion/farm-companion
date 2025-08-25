@@ -144,9 +144,9 @@ function FixedAlphabeticalNav({ farms }: { farms: FarmShop[] }) {
               {letter}
             </h4>
             <div className="space-y-1">
-              {farmsByLetter[letter].map((farm) => (
+              {farmsByLetter[letter].map((farm, index) => (
                 <a
-                  key={farm.id}
+                  key={`${farm.id}-${letter}-${index}`}
                   href={`#farm-${farm.slug}`}
                   className="block text-xs text-text-muted dark:text-gray-400 hover:text-serum dark:hover:text-serum transition-colors py-0.5 truncate max-w-[200px]"
                   title={`${farm.name} - ${farm.location.county}`}

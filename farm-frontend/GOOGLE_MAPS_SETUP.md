@@ -1,65 +1,81 @@
 # Google Maps Setup Guide
 
-## 🗺️ Getting Your Google Maps API Key
+## Map ID Configuration
 
-### 1. Create a Google Cloud Project
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project or select an existing one
-3. Enable billing (required for Maps API)
+The application uses Google Maps Advanced Markers which require a valid Map ID. 
 
-### 2. Enable Required APIs
-Enable these APIs in your Google Cloud Console:
-- **Maps JavaScript API** (required for the map)
-- **Places API** (optional, for enhanced features)
+### Required Setup
 
-### 3. Create API Key
-1. Go to **APIs & Services** > **Credentials**
-2. Click **Create Credentials** > **API Key**
-3. Copy your API key
+1. **Create Map ID in Google Cloud Console**:
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Navigate to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "Map ID"
+   - Name: `farm-companion-map` (or use existing: `f907b7cb594ed2caa752543d`)
+   - Map Type: `Vector`
+   - Click "Create"
 
-### 4. Set Up Environment Variable
-Create a `.env.local` file in the `farm-frontend` directory:
+2. **Configure Map Styling**:
+   Since we're using a Map ID, map styles must be configured through the Google Cloud Console:
+   - Go to [Google Cloud Console Maps](https://console.cloud.google.com/google/maps-apis)
+   - Select your project
+   - Go to "Map Management" > "Map Styles"
+   - Create a new style or modify existing
+   - Apply these settings:
+     ```json
+     {
+       "featureType": "poi",
+       "elementType": "labels",
+       "stylers": [{ "visibility": "off" }]
+     },
+     {
+       "featureType": "transit",
+       "elementType": "labels", 
+       "stylers": [{ "visibility": "off" }]
+     },
+     {
+       "featureType": "landscape",
+       "elementType": "geometry",
+       "stylers": [{ "color": "#f5f5f2" }]
+     },
+     {
+       "featureType": "water",
+       "elementType": "geometry",
+       "stylers": [{ "color": "#c9d2e0" }]
+     }
+     ```
 
-```bash
-# Google Maps API Key
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_actual_api_key_here
+3. **Environment Variables**:
+   ```bash
+   NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_api_key_here
+   ```
 
-# Site URL
-NEXT_PUBLIC_SITE_URL=http://localhost:3001
+### Alternative: Inline Styling (Not Recommended)
+
+If you prefer inline styling, you can remove the `mapId` and use inline styles, but this will prevent Advanced Markers from working:
+
+```tsx
+<Map
+  center={mapCenter}
+  zoom={mapZoom}
+  // Remove mapId="farm-companion-map"
+  styles={[
+    // Your custom styles here
+  ]}
+>
 ```
 
-### 5. Secure Your API Key (Recommended)
-1. Go to **APIs & Services** > **Credentials**
-2. Click on your API key
-3. Under **Application restrictions**, select **HTTP referrers**
-4. Add your domain(s):
-   - `http://localhost:3001/*` (for development)
-   - `https://yourdomain.com/*` (for production)
+### Benefits of Map ID + Advanced Markers
 
-### 6. Cost Information
-- **Maps JavaScript API**: $7 per 1,000 map loads
-- **Places API**: $17 per 1,000 requests
-- **Free tier**: $200 credit per month
+- ✅ **Better Performance**: Advanced Markers are more efficient
+- ✅ **Future-proof**: Uses latest Google Maps API
+- ✅ **Enhanced Features**: Better accessibility and interactions
+- ✅ **Cloud-based Styling**: Centralized style management
+- ✅ **No Deprecation Warnings**: Clean console output
 
-For a farm directory site, this typically costs **$5-20/month** depending on usage.
+### Current Configuration
 
-## 🚀 Quick Start
-
-1. Get your API key from Google Cloud Console
-2. Create `.env.local` with your API key
-3. Restart your development server
-4. The map should work immediately!
-
-## 🔧 Troubleshooting
-
-### "Google Maps API error: RefererNotAllowedMapError"
-- Check your API key restrictions
-- Make sure your domain is in the allowed referrers
-
-### "Google Maps API error: ApiNotActivatedMapError"
-- Enable the Maps JavaScript API in Google Cloud Console
-
-### Map not loading
-- Verify your API key is correct
-- Check browser console for errors
-- Ensure billing is enabled on your Google Cloud project
+The application is configured to use:
+ - **Map ID**: `f907b7cb594ed2caa752543d`
+- **Advanced Markers**: For farm locations and user location
+- **Custom Styling**: Applied through Google Cloud Console
+- **High Contrast Markers**: Dark green with white borders for visibility

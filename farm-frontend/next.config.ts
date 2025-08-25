@@ -13,7 +13,7 @@ const CSP = [
   "object-src 'none';",
   "frame-ancestors 'none';",
   "font-src 'self' data: https:;",
-  "img-src 'self' data: blob: https: https://lh3.googleusercontent.com https://images.unsplash.com https://cdn.farmcompanion.co.uk https://*.s3.amazonaws.com;",
+  "img-src 'self' data: blob: https: https://lh3.googleusercontent.com https://lh3.ggpht.com https://images.unsplash.com https://cdn.farmcompanion.co.uk https://*.s3.amazonaws.com;",
   // Analytics script (+ allow inline/eval for Next.js in dev)
 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com;",
   // External styles (map styles) + inline styles (Tailwind preflight/runtime)
@@ -38,8 +38,8 @@ const headersCommon = [
   { key: "X-DNS-Prefetch-Control", value: "off" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
+  { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
+  { key: "Cross-Origin-Embedder-Policy", value: "unsafe-none" },
 ]
 
 const nextConfig: NextConfig = {

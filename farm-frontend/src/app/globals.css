@@ -76,6 +76,13 @@ html.theme-ready {
   --elevation-modal: 0 8px 16px rgba(0,0,0,0.2);
 }
 
+/* Timing circle animation for transitions */
+@keyframes dash {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
 /* Dark Mode - Only apply when user explicitly prefers dark mode */
 @media (prefers-color-scheme: dark) {
   :root:not(.dark) {

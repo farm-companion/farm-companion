@@ -70,7 +70,7 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
 
   const { name, location, contact, offerings, verified, hours } = shop
   const { cleanDescription, keywords } = processFarmDescription(shop.description || '')
-  const directionsUrl = `https://www.openstreetmap.org/directions?engine=fossgis_osrm_car&route=${location.lat},${location.lng}`
+  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
   const ghOwner = process.env.NEXT_PUBLIC_GH_OWNER || 'farm-companion'
   const ghRepo  = process.env.NEXT_PUBLIC_GH_REPO  || 'farm-frontend'

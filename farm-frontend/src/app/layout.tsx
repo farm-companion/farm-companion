@@ -3,8 +3,8 @@ import './globals.css'
 import type { Metadata } from 'next'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
-import Footer from '@/components/Footer'
 import Header from '@/components/Header'
+import FooterWrapper from '@/components/FooterWrapper'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
 
@@ -163,8 +163,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Consent */}
         <ConsentBanner />
 
-        {/* Footer */}
-        <Footer />
+        {/* Footer - conditionally hidden on map page */}
+        <FooterWrapper />
 
         {/* Vercel Analytics */}
         {/* <Analytics /> */}
