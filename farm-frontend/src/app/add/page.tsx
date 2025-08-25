@@ -330,7 +330,7 @@ export default function AddFarmPage() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         {/* Main Form */}
-        <div className="lg:col-span-2 space-y-8">
+        <div className="lg:col-span-2">
           {/* Honeypot (hidden from real users & assistive tech) */}
           <div aria-hidden="true" className="absolute -left-[10000px] top-auto h-px w-px overflow-hidden">
             <label>
@@ -439,7 +439,7 @@ export default function AddFarmPage() {
           </section>
 
           {/* Contact Information */}
-          <section className="bg-background-surface rounded-xl p-6 border border-border-default">
+          <section className="bg-background-surface rounded-xl p-6 border border-border-default mt-8">
             <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
               <Phone className="w-5 h-5 text-serum" />
               <span>Contact Information</span>
@@ -558,7 +558,7 @@ export default function AddFarmPage() {
           </section>
 
           {/* Opening Hours */}
-          <section className="bg-background-surface rounded-xl p-6 border border-border-default">
+          <section className="bg-background-surface rounded-xl p-6 border border-border-default mt-8">
             <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
               <Clock className="w-5 h-5 text-serum" />
               <span>Opening Hours (24h format, optional)</span>
@@ -587,7 +587,7 @@ export default function AddFarmPage() {
           </section>
 
           {/* Farm Images */}
-          <section className="bg-background-surface rounded-xl p-6 border border-border-default">
+          <section className="bg-background-surface rounded-xl p-6 border border-border-default mt-8">
             <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
               <Camera className="w-5 h-5 text-serum" />
               <span>Farm Images (Optional)</span>
@@ -602,7 +602,7 @@ export default function AddFarmPage() {
           </section>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || !valid}
