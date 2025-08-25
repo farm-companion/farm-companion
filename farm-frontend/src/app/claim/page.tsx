@@ -1,9 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { MapPin, Shield, CheckCircle, Plus, ArrowRight, Hash } from 'lucide-react'
+import { MapPin, Shield, CheckCircle, Plus, ArrowRight } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { getFarmDataServer, getFarmStatsServer } from '@/lib/farm-data-server'
+import FarmSearchBar from '@/components/FarmSearchBar'
 
 // Generate metadata dynamically for better SEO
 export async function generateMetadata(): Promise<Metadata> {
@@ -112,55 +113,7 @@ function FarmCard({ farm }: { farm: FarmShop }) {
   )
 }
 
-// Fixed alphabetical navigation component
-function FixedAlphabeticalNav({ farms }: { farms: FarmShop[] }) {
-  // Group farms by first letter of name
-  const farmsByLetter = farms.reduce((acc, farm) => {
-    const firstLetter = farm.name.charAt(0).toUpperCase()
-    if (!acc[firstLetter]) {
-      acc[firstLetter] = []
-    }
-    acc[firstLetter].push(farm)
-    return acc
-  }, {} as Record<string, FarmShop[]>)
 
-  const letters = Object.keys(farmsByLetter).sort()
-
-  return (
-    <div className="fixed left-6 top-24 z-50 bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-xl p-4 max-h-[70vh] overflow-y-auto hidden lg:block backdrop-blur-sm">
-      <div className="flex items-center gap-2 mb-3">
-        <div className="p-1 bg-serum/10 rounded-lg">
-          <Hash className="w-3 h-3 text-serum" />
-        </div>
-        <h3 className="text-xs font-semibold text-text-heading dark:text-white uppercase tracking-wide">
-          Farms A-Z
-        </h3>
-      </div>
-      
-      <div className="space-y-4">
-        {letters.map((letter) => (
-          <div key={letter} className="space-y-2">
-            <h4 className="text-xs font-semibold text-text-heading dark:text-white border-b border-border-default pb-1">
-              {letter}
-            </h4>
-            <div className="space-y-1">
-              {farmsByLetter[letter].map((farm, index) => (
-                <a
-                  key={`${farm.id}-${letter}-${index}`}
-                  href={`#farm-${farm.slug}`}
-                  className="block text-xs text-text-muted dark:text-gray-400 hover:text-serum dark:hover:text-serum transition-colors py-0.5 truncate max-w-[200px]"
-                  title={`${farm.name} - ${farm.location.county}`}
-                >
-                  {farm.name}
-                </a>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 // County section component
 function CountySection({ county, farms }: { county: string; farms: FarmShop[] }) {
@@ -319,10 +272,10 @@ async function ClaimPageContent() {
             </ol>
           </div>
 
-          {/* Fixed alphabetical navigation */}
-          <FixedAlphabeticalNav farms={farms} />
+          {/* Responsive Search Bar */}
+          <FarmSearchBar farms={farms} />
           
-          {/* Farms by name */}
+          {/* Farms by county */}
           <div className="space-y-8">
             {sortedCounties.map((county) => (
               <CountySection 
