@@ -170,22 +170,48 @@ export default async function SeasonalPage() {
         </Suspense>
       </div>
 
-      {/* Call to Action */}
-      <section className="bg-background-surface border-t border-border-default">
-        <div className="max-w-7xl mx-auto px-6 py-16 text-center">
-          <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading mb-4">
-            Find Fresh Seasonal Produce
-          </h2>
-          <p className="text-lg text-text-muted mb-8 max-w-2xl mx-auto">
-            Visit local farm shops to get the freshest seasonal produce at its peak flavor.
-          </p>
-          <Link
-            href="/map"
-            className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2"
-          >
-            <MapPin className="w-5 h-5" />
-            Find Farm Shops Near You
-          </Link>
+      {/* Find Fresh Seasonal Produce Section with Parallax */}
+      <section className="relative bg-background-surface border-t border-border-default overflow-hidden">
+        {/* Parallax Background */}
+        <div className="absolute inset-0 transform scale-110 transition-transform duration-1000 ease-out" style={{
+          backgroundImage: 'url(/produce-secondary-image.jpg)',
+          backgroundAttachment: 'fixed',
+          backgroundPosition: 'center 30%',
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat'
+        }} />
+        
+        {/* Gradient Overlays for Text Readability */}
+        <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/50" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
+        
+        {/* Subtle animated texture overlay */}
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: `
+            radial-gradient(circle at 30% 20%, rgba(0, 194, 178, 0.3) 0%, transparent 50%),
+            radial-gradient(circle at 70% 80%, rgba(212, 255, 79, 0.2) 0%, transparent 50%)
+          `,
+          backgroundSize: '300px 300px, 200px 200px',
+          backgroundPosition: '0 0, 100px 100px'
+        }} />
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-6 py-24 text-center">
+          <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <h2 className="text-4xl md:text-5xl font-heading font-bold text-white mb-6 drop-shadow-lg">
+              Find Fresh Seasonal Produce
+            </h2>
+            <p className="text-xl text-white/90 mb-10 max-w-3xl mx-auto leading-relaxed drop-shadow-md">
+              Visit local farm shops to get the freshest seasonal produce at its peak flavor.
+            </p>
+            <Link
+              href="/map"
+              className="group bg-white/95 backdrop-blur-sm text-black px-10 py-5 rounded-xl font-semibold hover:bg-white transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-white/25 hover:scale-105 border border-white/20"
+            >
+              <MapPin className="w-6 h-6 group-hover:animate-gentle-bounce" />
+              Find Farm Shops Near You
+            </Link>
+          </div>
         </div>
       </section>
 
