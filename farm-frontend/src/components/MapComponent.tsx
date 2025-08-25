@@ -503,25 +503,46 @@ export default function MapComponent({
     
     // Create new features from filtered farms
     console.log('Creating features for farms:', validFilteredFarms.length)
-    const newFeatures = validFilteredFarms.map((f) => {
-      const feature = {
-        type: 'Feature' as const,
-        geometry: { 
-          type: 'Point' as const, 
-          coordinates: [f.location.lng, f.location.lat] 
-        },
-        properties: {
-          id: f.id,
-          name: f.name,
-          slug: f.slug,
-          county: f.location.county || '',
-          postcode: f.location.postcode || '',
-          address: f.location.address || ''
-        }
+    
+    // Add a test marker in London for debugging
+    const testFeature = {
+      type: 'Feature' as const,
+      geometry: { 
+        type: 'Point' as const, 
+        coordinates: [-0.1276, 51.5074] // London coordinates
+      },
+      properties: {
+        id: 'test-marker',
+        name: 'Test Marker (London)',
+        slug: 'test-marker',
+        county: 'Test',
+        postcode: 'TEST',
+        address: 'Test Address'
       }
-      console.log('Created feature for farm:', f.name, 'at coordinates:', [f.location.lng, f.location.lat])
-      return feature
-    })
+    }
+    
+    const newFeatures = [
+      testFeature, // Add test marker first
+      ...validFilteredFarms.map((f) => {
+        const feature = {
+          type: 'Feature' as const,
+          geometry: { 
+            type: 'Point' as const, 
+            coordinates: [f.location.lng, f.location.lat] 
+          },
+          properties: {
+            id: f.id,
+            name: f.name,
+            slug: f.slug,
+            county: f.location.county || '',
+            postcode: f.location.postcode || '',
+            address: f.location.address || ''
+          }
+        }
+        console.log('Created feature for farm:', f.name, 'at coordinates:', [f.location.lng, f.location.lat])
+        return feature
+      })
+    ]
     
     // Always update the data - MapLibre will handle optimization internally
     console.log(`Map update: ${validFilteredFarms.length} valid farms out of ${filteredFarms?.length || 0} total`)
