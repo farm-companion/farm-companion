@@ -142,6 +142,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     document.documentElement.classList.remove('dark');
                   }
                   
+                  // Listen for system theme changes
+                  var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                  mediaQuery.addEventListener('change', function(e) {
+                    // Only auto-switch if no manual theme is set
+                    if (!localStorage.getItem('theme')) {
+                      if (e.matches) {
+                        document.documentElement.classList.add('dark');
+                      } else {
+                        document.documentElement.classList.remove('dark');
+                      }
+                      // Dispatch event for components to update
+                      window.dispatchEvent(new Event('theme-changed'));
+                    }
+                  });
+                  
                   // Mark theme as ready and show content
                   document.documentElement.classList.add('theme-ready');
                 } catch (e) {

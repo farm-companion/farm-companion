@@ -6,6 +6,7 @@ import { Sun, Moon } from 'lucide-react'
 export default function ThemeToggle() {
   const [isDark, setIsDark] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isAuto, setIsAuto] = useState(true)
 
   useEffect(() => {
     setMounted(true)
@@ -14,8 +15,16 @@ export default function ThemeToggle() {
     const updateThemeState = () => {
       const savedTheme = localStorage.getItem('theme')
       const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      const isCurrentlyDark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark)
-      setIsDark(isCurrentlyDark)
+      
+      // Check if user has manually set a theme
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        setIsAuto(false)
+        setIsDark(savedTheme === 'dark')
+      } else {
+        // Auto mode - follow system preference
+        setIsAuto(true)
+        setIsDark(systemPrefersDark)
+      }
     }
     
     // Initial state
@@ -24,21 +33,57 @@ export default function ThemeToggle() {
     // Listen for theme changes
     window.addEventListener('theme-changed', updateThemeState)
     
+    // Listen for system theme changes
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    const handleSystemThemeChange = () => {
+      if (isAuto) {
+        const systemPrefersDark = mediaQuery.matches
+        setIsDark(systemPrefersDark)
+        if (systemPrefersDark) {
+          document.documentElement.classList.add('dark')
+        } else {
+          document.documentElement.classList.remove('dark')
+        }
+      }
+    }
+    
+    mediaQuery.addEventListener('change', handleSystemThemeChange)
+    
     // Cleanup
     return () => {
       window.removeEventListener('theme-changed', updateThemeState)
+      mediaQuery.removeEventListener('change', handleSystemThemeChange)
     }
-  }, [])
+  }, [isAuto])
 
   const toggleTheme = () => {
-    const newTheme = !isDark
-    setIsDark(newTheme)
-    
-    if (newTheme) {
+    if (isAuto) {
+      // Switch from auto to manual light mode
+      setIsAuto(false)
+      setIsDark(false)
+      localStorage.setItem('theme', 'light')
+      document.documentElement.classList.remove('dark')
+    } else if (isDark) {
+      // Switch from dark to light
+      setIsDark(false)
+      localStorage.setItem('theme', 'light')
+      document.documentElement.classList.remove('dark')
+    } else {
+      // Switch from light to dark
+      setIsDark(true)
       localStorage.setItem('theme', 'dark')
       document.documentElement.classList.add('dark')
+    }
+  }
+
+  const resetToAuto = () => {
+    setIsAuto(true)
+    localStorage.removeItem('theme')
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+    setIsDark(systemPrefersDark)
+    if (systemPrefersDark) {
+      document.documentElement.classList.add('dark')
     } else {
-      localStorage.setItem('theme', 'light')
       document.documentElement.classList.remove('dark')
     }
   }
@@ -56,16 +101,39 @@ export default function ThemeToggle() {
   }
 
   return (
-    <button
-      onClick={toggleTheme}
-      className="p-2 rounded-full bg-background-surface border border-border-default hover:bg-background-canvas transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary"
-      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-    >
-      {isDark ? (
-        <Sun className="w-5 h-5 text-text-body" />
-      ) : (
-        <Moon className="w-5 h-5 text-text-body" />
+    <div className="relative group">
+      <button
+        onClick={toggleTheme}
+        className="p-2 rounded-full bg-background-surface border border-border-default hover:bg-background-canvas transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary"
+        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {isDark ? (
+          <Sun className="w-5 h-5 text-text-body" />
+        ) : (
+          <Moon className="w-5 h-5 text-text-body" />
+        )}
+      </button>
+      
+      {/* Auto indicator */}
+      {isAuto && (
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-serum rounded-full border-2 border-white dark:border-gray-800" />
       )}
-    </button>
+      
+      {/* Tooltip */}
+      <div className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+        {isAuto ? 'Auto (follows system)' : isDark ? 'Dark mode' : 'Light mode'}
+        {!isAuto && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              resetToAuto()
+            }}
+            className="block w-full mt-1 text-serum hover:text-serum/80"
+          >
+            Reset to auto
+          </button>
+        )}
+      </div>
+    </div>
   )
 }
