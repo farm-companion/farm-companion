@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { Search } from 'lucide-react'
-import MapComponent from '@/components/MapComponent'
+import GoogleMapComponent from '@/components/GoogleMapComponent'
 import type { FarmShop } from '@/types/farm'
 import { fetchFarmDataClient } from '@/lib/farm-data-client'
 
@@ -175,7 +175,7 @@ export default function MapPage() {
         </div>
       </div>
 
-      <MapComponent
+      <GoogleMapComponent
         farms={farms}
         filteredFarms={filteredFarms}
         userLoc={userLoc}

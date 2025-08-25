@@ -88,9 +88,8 @@ const nextConfig: NextConfig = {
         headers: [
           ...headersCommon,
           // Run CSP as Report-Only in dev to avoid breaking while you iterate
-          isProd
-            ? { key: "Content-Security-Policy", value: CSP }
-            : { key: "Content-Security-Policy-Report-Only", value: CSP },
+          // Comment out CSP in development to eliminate warnings
+          ...(isProd ? [{ key: "Content-Security-Policy", value: CSP }] : []),
           // HSTS only in prod on HTTPS
           ...(isProd
             ? [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" }]
