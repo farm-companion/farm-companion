@@ -356,30 +356,7 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
               </div>
             )}
 
-            {/* Quick Actions */}
-            <div className="bg-background-surface rounded-2xl p-6 shadow-premium border border-border-default/30">
-              <h3 className="text-lg font-heading font-semibold text-text-heading mb-4">
-                Quick Actions
-              </h3>
-              <div className="space-y-3">
-                <a
-                  href={directionsUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full bg-serum text-black px-4 py-3 rounded-xl font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2"
-                >
-                  <Navigation className="w-4 h-4" />
-                  Get Directions
-                </a>
-                <Link
-                  href={`/claim/${shop.slug}`}
-                  className="w-full border-2 border-serum text-serum px-4 py-3 rounded-xl font-semibold hover:bg-serum hover:text-black transition-all duration-200 inline-flex items-center justify-center gap-2"
-                >
-                  <Heart className="w-4 h-4" />
-                  Claim This Shop
-                </Link>
-              </div>
-            </div>
+
           </div>
         </div>
       </div>
