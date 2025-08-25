@@ -645,7 +645,7 @@ export default function AddFarmPage() {
 
         {/* Sidebar - Preview */}
         <div className="lg:col-span-1">
-          <div className="sticky top-8">
+          <div className="sticky top-32">
             <div className="bg-background-surface rounded-xl p-6 border border-border-default">
               <h3 className="text-lg font-semibold text-text-heading mb-4 flex items-center space-x-2">
                 <Eye className="w-5 h-5 text-serum" />
