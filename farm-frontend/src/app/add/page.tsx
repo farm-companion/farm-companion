@@ -277,32 +277,31 @@ export default function AddFarmPage() {
         </p>
       </header>
 
-      {/* Success/Error Messages */}
-      {submitStatus === 'success' && (
-        <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-xl">
-          <div className="flex items-center space-x-3">
-            <CheckCircle className="w-6 h-6 text-green-600" />
-            <div>
-              <h3 className="font-semibold text-green-800">Submission Successful!</h3>
-              <p className="text-green-700">{submitMessage}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {submitStatus === 'error' && (
-        <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-xl">
-          <div className="flex items-center space-x-3">
-            <AlertCircle className="w-6 h-6 text-red-600" />
-            <div>
-              <h3 className="font-semibold text-red-800">Submission Failed</h3>
-              <p className="text-red-700">{submitMessage}</p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="grid lg:grid-cols-3 gap-8">
+        {/* Success/Error Messages */}
+        {submitStatus === 'success' && (
+          <div className="lg:col-span-2 mb-8 p-6 bg-green-50 border border-green-200 rounded-xl">
+            <div className="flex items-center space-x-3">
+              <CheckCircle className="w-6 h-6 text-green-600" />
+              <div>
+                <h3 className="font-semibold text-green-800">Submission Successful!</h3>
+                <p className="text-green-700">{submitMessage}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {submitStatus === 'error' && (
+          <div className="lg:col-span-2 mb-8 p-6 bg-red-50 border border-red-200 rounded-xl">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="w-6 h-6 text-red-600" />
+              <div>
+                <h3 className="font-semibold text-red-800">Submission Failed</h3>
+                <p className="text-red-700">{submitMessage}</p>
+              </div>
+            </div>
+          </div>
+        )}
         {/* Main Form */}
         <div className="lg:col-span-2 space-y-8">
           {/* Honeypot (hidden from real users & assistive tech) */}
@@ -619,7 +618,7 @@ export default function AddFarmPage() {
 
         {/* Sidebar - Preview */}
         <div className="lg:col-span-1">
-          <div className="sticky top-8">
+          <div className="sticky top-4">
             <div className="bg-background-surface rounded-xl p-6 border border-border-default">
               <h3 className="text-lg font-semibold text-text-heading mb-4 flex items-center space-x-2">
                 <Eye className="w-5 h-5 text-serum" />
