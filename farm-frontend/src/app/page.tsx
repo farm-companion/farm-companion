@@ -157,28 +157,59 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* CTA Section with Parallax */}
-      <section className="parallax-section py-24">
-        {/* Parallax Background */}
-        <div className="parallax-bg" style={{ backgroundImage: 'url(/counties.jpg)' }}></div>
-        {/* Overlay for better text readability */}
-        <div className="absolute inset-0 bg-black/40" />
+      {/* CTA Section with Stylish Parallax */}
+      <section className="relative py-32 overflow-hidden">
+        {/* Multi-layer Parallax Background */}
+        <div className="absolute inset-0">
+          {/* Primary background with parallax */}
+          <div 
+            className="absolute inset-0 bg-cover bg-center transform scale-110 transition-transform duration-1000 ease-out" 
+            style={{ 
+              backgroundImage: 'url(/counties.jpg)',
+              backgroundAttachment: 'fixed',
+              backgroundPosition: 'center 20%'
+            }}
+          />
+          
+          {/* Animated overlay gradients */}
+          <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/40" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+          
+          {/* Subtle animated texture */}
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.1),transparent_50%)] animate-pulse" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.05),transparent_50%)] animate-pulse" style={{ animationDelay: '1s' }} />
+          </div>
+        </div>
         
-        {/* Content */}
+        {/* Content with enhanced styling */}
         <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-white drop-shadow-lg">
-            Ready to Explore?
+          {/* Animated icon */}
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur-sm rounded-full mb-8 border border-white/20 animate-bounce" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }}>
+            <MapPin className="w-12 h-12 text-white" />
+          </div>
+          
+          {/* Enhanced typography with staggered animation */}
+          <h2 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-8 leading-tight text-white drop-shadow-2xl animate-fade-in">
+            Ready to
+            <span className="block text-serum drop-shadow-2xl animate-slide-up" style={{ animationDelay: '0.2s' }}>Explore?</span>
           </h2>
-          <p className="text-lg md:text-xl mb-10 text-white/90 drop-shadow-md max-w-2xl mx-auto">
+          
+          <p className="text-xl md:text-2xl mb-12 text-white/95 drop-shadow-lg max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.4s' }}>
             Start your journey to discover amazing local farm shops today.
           </p>
-          <Link
-            href="/map"
-            className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
-          >
-            Find Farms Near You
-            <ArrowRight className="w-5 h-5" />
-          </Link>
+          
+          {/* Enhanced CTA button with hover effects */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <Link
+              href="/map"
+              className="group bg-serum text-black px-10 py-5 rounded-xl font-semibold hover:bg-serum/90 transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-serum/25 hover:scale-105 backdrop-blur-sm border border-white/20"
+            >
+              <MapPin className="w-6 h-6 transition-transform group-hover:scale-110" />
+              Find Farms Near You
+              <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
+            </Link>
+          </div>
         </div>
       </section>
 
