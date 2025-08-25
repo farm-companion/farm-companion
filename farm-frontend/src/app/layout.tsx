@@ -1,5 +1,5 @@
 import './globals.css'
-import 'maplibre-gl/dist/maplibre-gl.css'
+
 import type { Metadata } from 'next'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'

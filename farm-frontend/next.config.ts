@@ -3,7 +3,7 @@ import type { NextConfig } from "next"
 const isProd = process.env.NODE_ENV === "production"
 
 // Content Security Policy that supports:
-// - MapLibre (tiles, workers via blob:)
+// - Google Maps API
 // - Analytics (scripts after consent)
 // - Our assets and images
 // - Enhanced security with strict controls
@@ -14,13 +14,13 @@ const CSP = [
   "frame-ancestors 'none';",
   "font-src 'self' data: https:;",
   "img-src 'self' data: blob: https: https://lh3.googleusercontent.com https://images.unsplash.com https://cdn.farmcompanion.co.uk https://*.s3.amazonaws.com;",
-  // Analytics script (+ allow inline/eval for Next/MapLibre in dev)
+  // Analytics script (+ allow inline/eval for Next.js in dev)
 "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com;",
   // External styles (map styles) + inline styles (Tailwind preflight/runtime)
   "style-src 'self' 'unsafe-inline' https:;",
-      // Tile/vector servers + Analytics + data URLs for image uploads + API domains
-"connect-src 'self' data: https://tiles.openfreemap.org https://demotiles.maplibre.org https://tile.openstreetmap.org https://a.tile.openstreetmap.org https://b.tile.openstreetmap.org https://c.tile.openstreetmap.org https://*.google.com https://*.gstatic.com https://*.vercel.app https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://*.google-analytics.com;",
-  // MapLibre workers
+      // Google Maps API + Analytics + data URLs for image uploads + API domains
+"connect-src 'self' data: https://*.google.com https://*.gstatic.com https://*.vercel.app https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://*.google-analytics.com;",
+  // Google Maps workers
   "worker-src 'self' blob:;",
   "child-src blob:;",
   // Helpful on HTTPS in prod
