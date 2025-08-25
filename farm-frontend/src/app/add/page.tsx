@@ -645,8 +645,8 @@ export default function AddFarmPage() {
 
         {/* Sidebar - Preview */}
         <div className="lg:col-span-1">
-          <div className="sticky top-24">
-            <div className="bg-background-surface rounded-xl p-6 border border-border-default">
+          <div className="sticky top-6 lg:top-24 max-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-6rem)] overflow-y-auto">
+            <div className="bg-background-surface rounded-xl p-6 border border-border-default shadow-sm">
               <h3 className="text-lg font-semibold text-text-heading mb-4 flex items-center space-x-2">
                 <Eye className="w-5 h-5 text-serum" />
                 <span>Preview</span>
@@ -679,7 +679,7 @@ export default function AddFarmPage() {
                 )}
 
                 <details className="rounded-lg border border-border-default overflow-hidden">
-                  <summary className="cursor-pointer p-4 bg-background-canvas font-medium text-text-heading">
+                  <summary className="cursor-pointer p-4 bg-background-canvas font-medium text-text-heading hover:bg-background-surface transition-colors">
                     JSON Preview
                   </summary>
                   <pre className="p-4 text-xs leading-relaxed overflow-auto max-h-64 bg-background-surface">
