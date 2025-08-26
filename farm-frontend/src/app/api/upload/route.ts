@@ -2,8 +2,15 @@ export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
-import sharp from 'sharp'
 import { rateLimiters, getClientIP } from '@/lib/rate-limit'
+
+// Conditional Sharp import for image processing
+let sharp: any = null
+try {
+  sharp = require('sharp')
+} catch (error) {
+  console.warn('Sharp not available for image processing')
+}
 import { checkCsrf, validateHoneypot, validateSubmissionTime, verifyTurnstile, trackIPReputation, isIPBlocked } from '@/lib/security'
 import { ImageUploadSchema } from '@/lib/validation'
 
@@ -88,52 +95,61 @@ export async function POST(req: Request) {
     // Convert file to buffer
     const buf = Buffer.from(await data.file.arrayBuffer())
 
-    // Verify it's an image and get metadata
-    let img: sharp.Sharp
-    try {
-      img = sharp(buf, { failOn: 'warning' })
-      const meta = await img.metadata()
-      
-      if (!meta.format) {
+    let processedImage: Buffer
+    let contentType = 'image/webp'
+    let filename: string
+
+    if (sharp) {
+      // Use Sharp for image processing if available
+      try {
+        const img = sharp(buf, { failOn: 'warning' })
+        const meta = await img.metadata()
+        
+        if (!meta.format) {
+          await trackIPReputation(ip, 'failure')
+          return NextResponse.json({ error: 'Invalid image file' }, { status: 400 })
+        }
+
+        // Check dimensions (max 4000x4000)
+        if (meta.width && meta.width > 4000) {
+          await trackIPReputation(ip, 'failure')
+          return NextResponse.json({ error: 'Image too wide (max 4000px)' }, { status: 400 })
+        }
+        
+        if (meta.height && meta.height > 4000) {
+          await trackIPReputation(ip, 'failure')
+          return NextResponse.json({ error: 'Image too tall (max 4000px)' }, { status: 400 })
+        }
+
+        // Process image: resize, convert to WebP, strip EXIF
+        processedImage = await img
+          .rotate() // Auto-rotate based on EXIF
+          .resize(1800, null, { 
+            withoutEnlargement: true,
+            fit: 'inside'
+          })
+          .webp({ 
+            quality: 82,
+            effort: 4
+          })
+          .toBuffer()
+        
+        filename = `uploads/${crypto.randomUUID()}.webp`
+      } catch (error) {
         await trackIPReputation(ip, 'failure')
         return NextResponse.json({ error: 'Invalid image file' }, { status: 400 })
       }
-
-      // Check dimensions (max 4000x4000)
-      if (meta.width && meta.width > 4000) {
-        await trackIPReputation(ip, 'failure')
-        return NextResponse.json({ error: 'Image too wide (max 4000px)' }, { status: 400 })
-      }
-      
-      if (meta.height && meta.height > 4000) {
-        await trackIPReputation(ip, 'failure')
-        return NextResponse.json({ error: 'Image too tall (max 4000px)' }, { status: 400 })
-      }
-    } catch (error) {
-      await trackIPReputation(ip, 'failure')
-      return NextResponse.json({ error: 'Invalid image file' }, { status: 400 })
+    } else {
+      // Fallback: use original file without processing
+      processedImage = buf
+      contentType = data.file.type
+      filename = `uploads/${crypto.randomUUID()}.${data.file.type.split('/')[1]}`
     }
-
-    // Process image: resize, convert to WebP, strip EXIF
-    const processedImage = await img
-      .rotate() // Auto-rotate based on EXIF
-      .resize(1800, null, { 
-        withoutEnlargement: true,
-        fit: 'inside'
-      })
-      .webp({ 
-        quality: 82,
-        effort: 4
-      })
-      .toBuffer()
-
-    // Generate unique filename
-    const filename = `uploads/${crypto.randomUUID()}.webp`
 
     // Upload to Vercel Blob
     const blob = await put(filename, processedImage, {
       access: 'public',
-      contentType: 'image/webp',
+      contentType: contentType,
       addRandomSuffix: false,
     })
 
