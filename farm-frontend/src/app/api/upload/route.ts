@@ -7,6 +7,7 @@ import { rateLimiters, getClientIP } from '@/lib/rate-limit'
 // Conditional Sharp import for image processing
 let sharp: any = null
 try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   sharp = require('sharp')
 } catch (error) {
   console.warn('Sharp not available for image processing')
