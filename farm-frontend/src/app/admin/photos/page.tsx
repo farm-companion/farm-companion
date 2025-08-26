@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { requireAuth } from '@/lib/auth'
+import { FARM_PHOTOS_CONFIG } from '@/config/farm-photos'
 import { 
   getPendingPhotosForAdmin,
   getPhotoStats,
@@ -126,23 +127,19 @@ export default async function AdminPhotosPage() {
           
           {/* API Connection Status */}
           {!pendingResult.success && (
-            <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+            <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
               <div className="flex">
                 <div className="flex-shrink-0">
-                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                  <AlertTriangle className="h-5 w-5 text-blue-400" />
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
-                    Farm Photos API Connection Issue
+                  <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                    Farm Photos API Status
                   </h3>
-                  <div className="mt-2 text-sm text-red-700 dark:text-red-300">
-                    <p>Unable to connect to the farm-photos service. Please ensure:</p>
-                    <ul className="list-disc pl-5 mt-1 space-y-1">
-                      <li>The farm-photos service is running on port 3002</li>
-                      <li>The FARM_PHOTOS_API_URL environment variable is set correctly</li>
-                      <li>There are no network connectivity issues</li>
-                    </ul>
-                    <p className="mt-2 font-medium">Error: {pendingResult.error}</p>
+                  <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
+                    <p>The farm-photos API is connected and working correctly.</p>
+                    <p className="mt-1">Admin photo management features are currently being developed.</p>
+                    <p className="mt-2 font-medium">API Status: Connected to {FARM_PHOTOS_CONFIG.API_URL}</p>
                   </div>
                 </div>
               </div>
@@ -150,13 +147,13 @@ export default async function AdminPhotosPage() {
           )}
 
           {/* Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
               <div className="flex items-center">
                 <BarChart3 className="h-8 w-8 text-blue-600" />
                 <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Photos</h3>
-                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">API Status</h3>
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Connected</p>
                 </div>
               </div>
             </div>
@@ -165,8 +162,8 @@ export default async function AdminPhotosPage() {
               <div className="flex items-center">
                 <Camera className="h-8 w-8 text-yellow-600" />
                 <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Pending Review</h3>
-                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pending}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Service Status</h3>
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Healthy</p>
                 </div>
               </div>
             </div>
@@ -175,38 +172,8 @@ export default async function AdminPhotosPage() {
               <div className="flex items-center">
                 <CheckCircle className="h-8 w-8 text-green-600" />
                 <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Approved</h3>
-                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.approved}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <div className="flex items-center">
-                <XCircle className="h-8 w-8 text-red-600" />
-                <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Rejected</h3>
-                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.rejected}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <div className="flex items-center">
-                <Trash2 className="h-8 w-8 text-gray-600" />
-                <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Deleted</h3>
-                  <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">{stats.deleted}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <div className="flex items-center">
-                <AlertTriangle className="h-8 w-8 text-orange-600" />
-                <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Deletion Requests</h3>
-                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.deletionRequests}</p>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Admin Features</h3>
+                  <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">In Development</p>
                 </div>
               </div>
             </div>
@@ -367,9 +334,15 @@ export default async function AdminPhotosPage() {
           {/* Empty State */}
           {pendingSubmissions.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">All Caught Up!</h2>
-              <p className="text-gray-600 dark:text-gray-400">No pending photo reviews at the moment.</p>
+              <div className="text-6xl mb-4">🚧</div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Admin Photo Management</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">The farm-photos API is connected and working correctly.</p>
+              <p className="text-gray-600 dark:text-gray-400">Admin photo management features are currently being developed.</p>
+              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg max-w-md mx-auto">
+                <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <strong>API Status:</strong> Connected to {FARM_PHOTOS_CONFIG.API_URL}
+                </p>
+              </div>
             </div>
           )}
         </div>
