@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight, Leaf, Calendar, Heart } from 'lucide-react'
 import NewsletterSignup from '@/components/NewsletterSignup'
-import { getFarmStats } from '@/lib/farm-data'
+import { getFarmStatsServer } from '@/lib/farm-data-server'
 
 export const metadata: Metadata = {
   title: 'Farm Companion — UK Farm Shops Directory',
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
 }
 
 export default async function HomePage() {
-  const { farmCount, countyCount } = await getFarmStats()
+  const { farmCount, countyCount } = await getFarmStatsServer()
 
   return (
     <main className="min-h-screen bg-background-canvas">
