@@ -56,11 +56,11 @@ export default async function HomePage() {
         <div className="absolute inset-0">
           <Image
             src="/overlay-banner.jpg"
-            alt="Fresh local produce and flowers from UK farm shops"
+            alt="Colorful display of fresh vegetables, fruits, and flowers arranged in baskets at a UK farm shop, showcasing the variety of local produce available"
             fill
             className="object-cover object-center"
             priority
-            sizes="100vw"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
             quality={85}
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
@@ -81,8 +81,8 @@ export default async function HomePage() {
               <span className="block text-serum drop-shadow-lg">Farm Shops</span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Discover {farmCount}+ authentic UK farm shops with the freshest local produce, 
-              seasonal delights, and farm-fresh goodness near you.
+              Find farm shops near you with fresh local produce, seasonal UK fruit and vegetables, 
+              and authentic farm experiences across {countyCount} counties.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
@@ -294,10 +294,9 @@ export default async function HomePage() {
                   Find Farm Shops Near You
                 </h3>
                 <p className="text-text-muted leading-relaxed">
-                  Whether you&apos;re looking for fresh vegetables, organic meat, artisanal cheese, or 
-                  homemade preserves, our interactive map makes it easy to find farm shops in your area. 
-                  Each listing includes verified contact information, opening hours, and details about 
-                  what each farm offers.
+                  Search for farm shops near you to buy fresh vegetables, organic meat, artisanal cheese, 
+                  and homemade preserves. Our interactive map shows verified contact details, opening hours, 
+                  and what each farm sells locally.
                 </p>
               </div>
 
@@ -309,9 +308,9 @@ export default async function HomePage() {
                   Seasonal Produce Guides
                 </h3>
                 <p className="text-text-muted leading-relaxed">
-                  Eating seasonally means enjoying produce at its peak flavour and nutritional value. 
-                  Our seasonal guides help you understand what&apos;s in season throughout the year, 
-                  with tips on selection, storage, and preparation for the freshest ingredients.
+                  Buy seasonal UK fruit and vegetables at their peak flavour and nutritional value. 
+                  Our guides show what&apos;s in season each month, with tips on choosing, storing, 
+                  and cooking the freshest local produce.
                 </p>
               </div>
 

@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import { PRODUCE } from '@/data/produce'
 import Link from 'next/link'
-import { MapPin, Clock, ExternalLink, Sprout } from 'lucide-react'
+import { MapPin, Clock, ExternalLink, Sprout, ArrowRight } from 'lucide-react'
 import ProduceAnalytics from '@/components/ProduceAnalytics'
 import ClientProduceImages, { ClientProduceImage } from '@/components/ClientProduceImages'
 
@@ -44,29 +44,55 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
   const heroImage = p.images?.[0]
   const galleryImages = p.images?.slice(1) ?? []
 
-  // JSON-LD (Product/Food with nutrition + season)
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'Product',              // or "Food"
-    name: p.name,
-    image: p.images?.map(i => i.src) ?? [],
-    description: `Seasonal guide for ${p.name}.`,
-    additionalProperty: [{
-      '@type': 'PropertyValue',
-      name: 'Seasonality',
-      value: `In season: ${p.monthsInSeason?.map(n => monthNames[n-1]).join(', ') ?? 'Unknown'}`
-    }],
-    nutrition: p.nutritionPer100g ? {
-      '@type': 'NutritionInformation',
-      servingSize: '100 g',
-      calories: `${p.nutritionPer100g.kcal} kcal`,
-      proteinContent: `${p.nutritionPer100g.protein} g`,
-      carbohydrateContent: `${p.nutritionPer100g.carbs} g`,
-      sugarContent: p.nutritionPer100g.sugars ? `${p.nutritionPer100g.sugars} g` : undefined,
-      fiberContent: p.nutritionPer100g.fiber ? `${p.nutritionPer100g.fiber} g` : undefined,
-      fatContent: p.nutritionPer100g.fat ? `${p.nutritionPer100g.fat} g` : undefined,
-    } : undefined
-  }
+  // JSON-LD (Product/Food with nutrition + season + BreadcrumbList)
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Product',              // or "Food"
+      name: p.name,
+      image: p.images?.map(i => i.src) ?? [],
+      description: `Seasonal guide for ${p.name}.`,
+      additionalProperty: [{
+        '@type': 'PropertyValue',
+        name: 'Seasonality',
+        value: `In season: ${p.monthsInSeason?.map(n => monthNames[n-1]).join(', ') ?? 'Unknown'}`
+      }],
+      nutrition: p.nutritionPer100g ? {
+        '@type': 'NutritionInformation',
+        servingSize: '100 g',
+        calories: `${p.nutritionPer100g.kcal} kcal`,
+        proteinContent: `${p.nutritionPer100g.protein} g`,
+        carbohydrateContent: `${p.nutritionPer100g.carbs} g`,
+        sugarContent: p.nutritionPer100g.sugars ? `${p.nutritionPer100g.sugars} g` : undefined,
+        fiberContent: p.nutritionPer100g.fiber ? `${p.nutritionPer100g.fiber} g` : undefined,
+        fatContent: p.nutritionPer100g.fat ? `${p.nutritionPer100g.fat} g` : undefined,
+      } : undefined
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: 'https://www.farmcompanion.co.uk'
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Seasonal Produce',
+          item: 'https://www.farmcompanion.co.uk/seasonal'
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: p.name,
+          item: `https://www.farmcompanion.co.uk/seasonal/${p.slug}`
+        }
+      ]
+    }
+  ]
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-8">
@@ -261,6 +287,60 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
           </div>
         </section>
       )}
+
+      {/* Related Produce */}
+      <section className="mt-10">
+        <h2 className="text-xl font-semibold mb-4 text-text-heading">Related Produce</h2>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            href="/seasonal"
+            className="block rounded-xl border border-border-default bg-background-canvas p-4 shadow-sm hover:shadow-md transition motion-reduce:transition-none group"
+          >
+                          <h3 className="font-semibold text-text-heading group-hover:text-brand-primary transition-colors mb-2">
+                Seasonal Guide
+              </h3>
+              <p className="text-sm text-text-muted mb-3">
+                Discover what&apos;s in season now and find the freshest local produce.
+              </p>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-text-muted">View all produce</span>
+              <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" />
+            </div>
+          </Link>
+          
+          <Link
+            href="/map"
+            className="block rounded-xl border border-border-default bg-background-canvas p-4 shadow-sm hover:shadow-md transition motion-reduce:transition-none group"
+          >
+            <h3 className="font-semibold text-text-heading group-hover:text-brand-primary transition-colors mb-2">
+              Farm Shop Map
+            </h3>
+            <p className="text-sm text-text-muted mb-3">
+              Find farm shops near you with fresh local produce and seasonal offerings.
+            </p>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-text-muted">Explore map</span>
+              <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" />
+            </div>
+          </Link>
+          
+          <Link
+            href="/shop"
+            className="block rounded-xl border border-border-default bg-background-canvas p-4 shadow-sm hover:shadow-md transition motion-reduce:transition-none group"
+          >
+            <h3 className="font-semibold text-text-heading group-hover:text-brand-primary transition-colors mb-2">
+              Farm Directory
+            </h3>
+            <p className="text-sm text-text-muted mb-3">
+              Browse our comprehensive directory of UK farm shops and local producers.
+            </p>
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-text-muted">View directory</span>
+              <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" />
+            </div>
+          </Link>
+        </div>
+      </section>
 
       {/* CTA */}
       <section className="mt-10">

@@ -1,514 +1,379 @@
 import type { Metadata } from 'next'
-import Image from 'next/image'
 import Link from 'next/link'
+import Image from 'next/image'
 import { requireAuth } from '@/lib/auth'
-import { Trash2, RotateCcw, Camera } from 'lucide-react'
-
-import { getFarmPhotosApiUrl } from '@/config/farm-photos'
+import { 
+  getPendingPhotosForAdmin,
+  getPhotoStats,
+  approvePhoto,
+  rejectPhoto,
+  safeApiCall
+} from '@/lib/farm-photos-api'
+import { 
+  Camera, 
+  Trash2, 
+  RotateCcw, 
+  CheckCircle, 
+  XCircle,
+  AlertTriangle,
+  BarChart3
+} from 'lucide-react'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
 
-// Metadata for SEO and clarity
 export const metadata: Metadata = {
-  title: 'Photo Management - Farm Companion Admin',
-  description: 'Review and manage photo submissions for Farm Companion',
-  keywords: 'admin, photo management, farm companion, moderation',
+  title: 'Photo Management - Admin Dashboard',
+  description: 'Manage farm photo submissions and reviews',
+  keywords: 'admin, photo management, farm companion',
 }
 
-interface PhotoSubmission {
-  id: string
-  farmSlug: string
-  farmName: string
-  submitterName: string
-  submitterEmail: string
-  photoUrl: string
-  thumbnailUrl: string
-  description: string
-  status: 'pending' | 'approved' | 'rejected' | 'deleted' | 'deletion_requested'
-  qualityScore: number
-  submittedAt: string
-  reviewedAt?: string
-  reviewedBy?: string
-  rejectionReason?: string
-  aiAnalysis?: {
-    qualityScore: number
-    isAppropriate: boolean
-    tags: string[]
-  }
-  fileSize: number
-  contentType: string
-  dimensions: {
-    width: number
-    height: number
-  }
-  // Deletion tracking
-  deletionRequestedAt?: string
-  deletionRequestedBy?: string
-  deletionReason?: string
-  deletedAt?: string
-  deletedBy?: string
-  canRecoverUntil?: string
-}
-
-interface DeletionRequest {
-  photoId: string
-  requestedBy: string
-  requesterEmail: string
-  requesterRole: 'admin' | 'shop_owner' | 'submitter'
-  reason: string
-  requestedAt: string
-  status: 'pending' | 'approved' | 'rejected'
-  reviewedAt?: string
-  reviewedBy?: string
-  rejectionReason?: string
-}
-
-// Load photo submissions from farm-photos system
-async function loadPhotoSubmissions(): Promise<PhotoSubmission[]> {
-  try {
-    const response = await fetch(getFarmPhotosApiUrl('api/photos?status=pending'), {
-      cache: 'no-store'
-    })
-    
-    if (response.ok) {
-      const result = await response.json()
-      return result.photos || []
+// Server Actions
+async function updatePhotoStatus(photoId: string, status: 'approved' | 'rejected', reason?: string) {
+  'use server'
+  
+  const user = await requireAuth()
+  
+  if (status === 'approved') {
+    const success = await approvePhoto(photoId, user.email)
+    if (!success) {
+      throw new Error('Failed to approve photo')
     }
-    
-    return []
-  } catch (error) {
-    console.error('Error loading photo submissions:', error)
-    return []
-  }
-}
-
-// Load deletion requests
-async function loadDeletionRequests(): Promise<DeletionRequest[]> {
-  try {
-    const response = await fetch('/api/photos/deletion-requests', {
-      cache: 'no-store'
-    })
-    
-    if (response.ok) {
-      const result = await response.json()
-      return result.requests || []
+  } else {
+    const success = await rejectPhoto(photoId, reason || 'No reason provided', user.email)
+    if (!success) {
+      throw new Error('Failed to reject photo')
     }
-    
-    return []
-  } catch (error) {
-    console.error('Error loading deletion requests:', error)
-    return []
   }
 }
 
-// Load recoverable photos
-async function loadRecoverablePhotos(): Promise<PhotoSubmission[]> {
-  try {
-    const response = await fetch('/api/photos/deletion-requests?type=recoverable', {
-      cache: 'no-store'
-    })
-    
-    if (response.ok) {
-      const result = await response.json()
-      return result.photos || []
-    }
-    
-    return []
-  } catch (error) {
-    console.error('Error loading recoverable photos:', error)
-    return []
-  }
+async function reviewDeletionRequest(requestId: string, status: 'approved' | 'rejected', reason?: string) {
+  'use server'
+  
+  await requireAuth()
+  
+  // This would need to be implemented in the farm-photos API
+  // For now, we'll throw an error to indicate it's not implemented
+  throw new Error('Deletion request review not yet implemented in farm-photos API')
 }
 
-// Approve or reject a photo submission
-async function updatePhotoStatus(photoId: string, status: 'approved' | 'rejected', rejectionReason?: string) {
-  try {
-    const response = await fetch(getFarmPhotosApiUrl(`api/photos/${photoId}`), {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        status,
-        rejectionReason,
-        reviewedAt: new Date().toISOString(),
-        reviewedBy: 'admin'
-      })
-    })
-    
-    return response.ok
-  } catch (error) {
-    console.error('Error updating photo status:', error)
-    return false
-  }
-}
-
-// Review deletion request
-async function reviewDeletionRequest(requestId: string, status: 'approved' | 'rejected', rejectionReason?: string) {
-  try {
-    const response = await fetch(`/api/photos/${requestId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'review_deletion',
-        requestId,
-        status,
-        reviewedBy: 'admin',
-        rejectionReason
-      })
-    })
-    
-    return response.ok
-  } catch (error) {
-    console.error('Error reviewing deletion request:', error)
-    return false
-  }
-}
-
-// Recover deleted photo
 async function recoverDeletedPhoto(photoId: string) {
-  try {
-    const response = await fetch(`/api/photos/${photoId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        action: 'recover',
-        recoveredBy: 'admin'
-      })
-    })
-    
-    return response.ok
-  } catch (error) {
-    console.error('Error recovering deleted photo:', error)
-    return false
-  }
+  'use server'
+  
+  await requireAuth()
+  
+  // This would need to be implemented in the farm-photos API
+  // For now, we'll throw an error to indicate it's not implemented
+  throw new Error('Photo recovery not yet implemented in farm-photos API')
 }
 
 export default async function AdminPhotosPage() {
   // Require authentication
-  await requireAuth()
+  const user = await requireAuth()
   
-  const [submissions, deletionRequests, recoverablePhotos] = await Promise.all([
-    loadPhotoSubmissions(),
-    loadDeletionRequests(),
-    loadRecoverablePhotos()
+  // Get data from farm-photos API
+  const [pendingResult, statsResult] = await Promise.all([
+    safeApiCall(() => getPendingPhotosForAdmin()),
+    safeApiCall(() => getPhotoStats())
   ])
-
-  const pendingSubmissions = submissions.filter(s => s.status === 'pending')
+  
+  const pendingSubmissions = pendingResult.success ? pendingResult.data || [] : []
+  const stats = statsResult.success ? statsResult.data || {
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    deleted: 0,
+    deletionRequests: 0
+  } : {
+    total: 0,
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+    deleted: 0,
+    deletionRequests: 0
+  }
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold text-text-heading mb-2">Photo Management</h1>
-        <p className="text-text-muted">Review and manage photo submissions and deletion requests</p>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Admin Header */}
+      <header className="bg-white dark:bg-gray-800 shadow">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center py-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Photo Management
+              </h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Manage farm photo submissions and reviews
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <Link
+                href="/admin"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Back to Admin
+              </Link>
+            </div>
+          </div>
+        </div>
       </header>
 
-      {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-text-heading">Pending Reviews</h3>
-          <p className="text-2xl font-bold text-brand-primary">{pendingSubmissions.length}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-text-heading">Deletion Requests</h3>
-          <p className="text-2xl font-bold text-orange-600">{deletionRequests.length}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-text-heading">Recoverable Photos</h3>
-          <p className="text-2xl font-bold text-red-600">{recoverablePhotos.length}</p>
-        </div>
-        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <h3 className="text-lg font-semibold text-text-heading">Total Submissions</h3>
-          <p className="text-2xl font-bold text-text-heading">{submissions.length}</p>
-        </div>
-      </div>
-
-      {/* Deletion Requests Section */}
-      {deletionRequests.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold text-text-heading mb-4 flex items-center gap-2">
-            <Trash2 className="w-6 h-6 text-red-600" />
-            Deletion Requests
-          </h2>
-          <div className="space-y-4">
-            {deletionRequests.map((request) => (
-              <div key={request.photoId} className="bg-white dark:bg-gray-800 rounded-lg shadow p-6 border-l-4 border-orange-500">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-text-heading mb-2">Deletion Request</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <span className="font-medium">Requested by:</span>
-                        <span className="ml-2">{request.requestedBy} ({request.requesterRole})</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Email:</span>
-                        <span className="ml-2">{request.requesterEmail}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Reason:</span>
-                        <span className="ml-2">{request.reason}</span>
-                      </div>
-                      <div>
-                        <span className="font-medium">Requested:</span>
-                        <span className="ml-2">{new Date(request.requestedAt).toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2 ml-4">
-                    <form action={async () => {
-                      'use server'
-                      await reviewDeletionRequest(request.photoId, 'approved')
-                    }}>
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm"
-                      >
-                        Approve Deletion
-                      </button>
-                    </form>
-                    
-                    <form action={async (formData: FormData) => {
-                      'use server'
-                      const reason = formData.get('reason') as string
-                      await reviewDeletionRequest(request.photoId, 'rejected', reason)
-                    }}>
-                      <input
-                        type="text"
-                        name="reason"
-                        placeholder="Rejection reason"
-                        className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mr-2 text-sm"
-                      />
-                      <button
-                        type="submit"
-                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
-                      >
-                        Reject
-                      </button>
-                    </form>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <div className="px-4 py-6 sm:px-0">
+          
+          {/* API Connection Status */}
+          {!pendingResult.success && (
+            <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <AlertTriangle className="h-5 w-5 text-red-400" />
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                    Farm Photos API Connection Issue
+                  </h3>
+                  <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                    <p>Unable to connect to the farm-photos service. Please ensure:</p>
+                    <ul className="list-disc pl-5 mt-1 space-y-1">
+                      <li>The farm-photos service is running on port 3002</li>
+                      <li>The FARM_PHOTOS_API_URL environment variable is set correctly</li>
+                      <li>There are no network connectivity issues</li>
+                    </ul>
+                    <p className="mt-2 font-medium">Error: {pendingResult.error}</p>
                   </div>
                 </div>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            </div>
+          )}
 
-      {/* Recoverable Photos Section */}
-      {recoverablePhotos.length > 0 && (
-        <section className="mb-8">
-          <h2 className="text-2xl font-bold text-text-heading mb-4 flex items-center gap-2">
-            <RotateCcw className="w-6 h-6 text-blue-600" />
-            Recoverable Photos
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {recoverablePhotos.map((photo) => (
-              <div key={photo.id} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-                <div className="relative h-48">
-                  <Image
-                    src={photo.thumbnailUrl}
-                    alt={photo.description}
-                    fill
-                    className="object-cover"
-                  />
-                  <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded text-xs">
-                    Deleted
-                  </div>
-                </div>
-                
-                <div className="p-4">
-                  <h3 className="font-semibold text-text-heading mb-2">{photo.farmName}</h3>
-                  <p className="text-sm text-text-muted mb-2">{photo.description}</p>
-                  <p className="text-xs text-text-muted mb-3">
-                    Deleted: {new Date(photo.deletedAt!).toLocaleString()}
-                    <br />
-                    Can recover until: {new Date(photo.canRecoverUntil!).toLocaleString()}
-                  </p>
-                  
-                  <form action={async () => {
-                    'use server'
-                    await recoverDeletedPhoto(photo.id)
-                  }}>
-                    <button
-                      type="submit"
-                      className="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm"
-                    >
-                      Recover Photo
-                    </button>
-                  </form>
+          {/* Statistics */}
+          <div className="grid grid-cols-1 md:grid-cols-6 gap-4 mb-8">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <BarChart3 className="h-8 w-8 text-blue-600" />
+                <div className="ml-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Photos</h3>
+                  <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.total}</p>
                 </div>
               </div>
-            ))}
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <Camera className="h-8 w-8 text-yellow-600" />
+                <div className="ml-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Pending Review</h3>
+                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pending}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <CheckCircle className="h-8 w-8 text-green-600" />
+                <div className="ml-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Approved</h3>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.approved}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <XCircle className="h-8 w-8 text-red-600" />
+                <div className="ml-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Rejected</h3>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{stats.rejected}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <Trash2 className="h-8 w-8 text-gray-600" />
+                <div className="ml-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Deleted</h3>
+                  <p className="text-2xl font-bold text-gray-600 dark:text-gray-400">{stats.deleted}</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+              <div className="flex items-center">
+                <AlertTriangle className="h-8 w-8 text-orange-600" />
+                <div className="ml-3">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Deletion Requests</h3>
+                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{stats.deletionRequests}</p>
+                </div>
+              </div>
+            </div>
           </div>
-        </section>
-      )}
 
-      {/* Pending Photo Submissions */}
-      {pendingSubmissions.length > 0 && (
-        <section>
-          <h2 className="text-2xl font-bold text-text-heading mb-4 flex items-center gap-2">
-            <Camera className="w-6 h-6 text-green-600" />
-            Pending Photo Submissions
-          </h2>
-          <div className="space-y-6">
-            {pendingSubmissions.map((submission) => (
-              <div key={submission.id} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-                <div className="md:flex">
-                  {/* Photo */}
-                  <div className="md:w-1/3">
-                    <div className="relative h-64 md:h-full">
-                      <Image
-                        src={submission.thumbnailUrl}
-                        alt={submission.description}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  </div>
-                  
-                  {/* Details */}
-                  <div className="md:w-2/3 p-6">
-                    <div className="flex items-start justify-between mb-4">
-                      <div>
-                        <h3 className="text-xl font-semibold text-text-heading mb-2">{submission.farmName}</h3>
-                        <p className="text-text-muted">{submission.description}</p>
-                      </div>
-                      
-                      <div className="text-right">
-                        <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                          Pending Review
+          {/* Pending Photo Submissions */}
+          {pendingSubmissions.length > 0 && (
+            <section>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                <Camera className="w-6 h-6 text-yellow-600" />
+                Pending Photo Submissions ({pendingSubmissions.length})
+              </h2>
+              <div className="space-y-6">
+                {pendingSubmissions.map((submission) => (
+                  <div key={submission.id} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+                    <div className="md:flex">
+                      {/* Photo */}
+                      <div className="md:w-1/3">
+                        <div className="relative h-64 md:h-full">
+                          <Image
+                            src={submission.thumbnailUrl}
+                            alt={submission.description}
+                            fill
+                            className="object-cover"
+                          />
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* AI Analysis */}
-                    {submission.aiAnalysis && (
-                      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <h4 className="font-medium text-text-heading mb-2">AI Analysis</h4>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
+                      
+                      {/* Details */}
+                      <div className="md:w-2/3 p-6">
+                        <div className="flex items-start justify-between mb-4">
                           <div>
-                            <span className="font-medium">Quality Score:</span>
-                            <span className="ml-2">{submission.aiAnalysis.qualityScore}/100</span>
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{submission.farmName}</h3>
+                            <p className="text-gray-600 dark:text-gray-400">{submission.description}</p>
                           </div>
+                          
+                          <div className="text-right">
+                            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
+                              Pending Review
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* AI Analysis */}
+                        {submission.aiAnalysis && (
+                          <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">AI Analysis</h4>
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                              <div>
+                                <span className="font-medium">Quality Score:</span>
+                                <span className="ml-2">{submission.aiAnalysis.qualityScore}/100</span>
+                              </div>
+                              <div>
+                                <span className="font-medium">Appropriate:</span>
+                                <span className={`ml-2 ${submission.aiAnalysis.isAppropriate ? 'text-green-600' : 'text-red-600'}`}>
+                                  {submission.aiAnalysis.isAppropriate ? 'Yes' : 'No'}
+                                </span>
+                              </div>
+                                                             {submission.aiAnalysis.tags.length > 0 && (
+                                 <div className="col-span-2">
+                                   <span className="font-medium">Tags:</span>
+                                   <div className="flex flex-wrap gap-1 mt-1">
+                                     {submission.aiAnalysis.tags.map((tag: string, index: number) => (
+                                       <span key={index} className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">
+                                         {tag}
+                                       </span>
+                                     ))}
+                                   </div>
+                                 </div>
+                               )}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Submission Details */}
+                        <div className="space-y-4">
                           <div>
-                            <span className="font-medium">Appropriate:</span>
-                            <span className={`ml-2 ${submission.aiAnalysis.isAppropriate ? 'text-green-600' : 'text-red-600'}`}>
-                              {submission.aiAnalysis.isAppropriate ? 'Yes' : 'No'}
-                            </span>
-                          </div>
-                          {submission.aiAnalysis.tags.length > 0 && (
-                            <div className="col-span-2">
-                              <span className="font-medium">Tags:</span>
-                              <div className="flex flex-wrap gap-1 mt-1">
-                                {submission.aiAnalysis.tags.map((tag, index) => (
-                                  <span key={index} className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">
-                                    {tag}
-                                  </span>
-                                ))}
+                            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Submission Details</h3>
+                            <div className="space-y-2 text-sm">
+                              <div>
+                                <span className="font-medium">Farm:</span>
+                                <Link href={`/shop/${submission.farmSlug}`} className="ml-2 text-blue-600 hover:underline">
+                                  {submission.farmName}
+                                </Link>
+                              </div>
+                              <div>
+                                <span className="font-medium">Submitted by:</span>
+                                <span className="ml-2">{submission.submitterName}</span>
+                              </div>
+                              <div>
+                                <span className="font-medium">Email:</span>
+                                <span className="ml-2">{submission.submitterEmail}</span>
+                              </div>
+                              <div>
+                                <span className="font-medium">Submitted:</span>
+                                <span className="ml-2">{new Date(submission.submittedAt).toLocaleDateString()}</span>
+                              </div>
+                              <div>
+                                <span className="font-medium">File size:</span>
+                                <span className="ml-2">{(submission.fileSize / 1024 / 1024).toFixed(2)} MB</span>
+                              </div>
+                              <div>
+                                <span className="font-medium">Dimensions:</span>
+                                <span className="ml-2">{submission.dimensions.width} × {submission.dimensions.height}</span>
                               </div>
                             </div>
-                          )}
+                          </div>
+                          
+                          <div>
+                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Description</h4>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                              {submission.description}
+                            </p>
+                          </div>
+                          
+                          {/* Action Buttons */}
+                          <div className="flex gap-3">
+                            <form action={async () => {
+                              'use server'
+                              await updatePhotoStatus(submission.id, 'approved')
+                            }}>
+                              <button
+                                type="submit"
+                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                              >
+                                Approve
+                              </button>
+                            </form>
+                            
+                            <form action={async (formData: FormData) => {
+                              'use server'
+                              const reason = formData.get('reason') as string
+                              await updatePhotoStatus(submission.id, 'rejected', reason)
+                            }}>
+                              <input
+                                type="text"
+                                name="reason"
+                                placeholder="Rejection reason (optional)"
+                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mr-2 text-sm"
+                              />
+                              <button
+                                type="submit"
+                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                              >
+                                Reject
+                              </button>
+                            </form>
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    
-                    {/* Submission Details */}
-                    <div className="space-y-4">
-                      <div>
-                        <h3 className="font-semibold text-text-heading mb-2">Submission Details</h3>
-                        <div className="space-y-2 text-sm">
-                          <div>
-                            <span className="font-medium">Farm:</span>
-                            <Link href={`/shop/${submission.farmSlug}`} className="ml-2 text-brand-primary hover:underline">
-                              {submission.farmName}
-                            </Link>
-                          </div>
-                          <div>
-                            <span className="font-medium">Submitted by:</span>
-                            <span className="ml-2">{submission.submitterName}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">Email:</span>
-                            <span className="ml-2">{submission.submitterEmail}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">Submitted:</span>
-                            <span className="ml-2">{new Date(submission.submittedAt).toLocaleDateString()}</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">File size:</span>
-                            <span className="ml-2">{(submission.fileSize / 1024 / 1024).toFixed(2)} MB</span>
-                          </div>
-                          <div>
-                            <span className="font-medium">Dimensions:</span>
-                            <span className="ml-2">{submission.dimensions.width} × {submission.dimensions.height}</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div>
-                        <h4 className="font-medium text-text-heading mb-2">Description</h4>
-                        <p className="text-sm text-text-muted bg-background-surface p-3 rounded">
-                          {submission.description}
-                        </p>
-                      </div>
-                      
-                      {/* Action Buttons */}
-                      <div className="flex gap-3">
-                        <form action={async () => {
-                          'use server'
-                          await updatePhotoStatus(submission.id, 'approved')
-                        }}>
-                          <button
-                            type="submit"
-                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-                          >
-                            Approve
-                          </button>
-                        </form>
-                        
-                        <form action={async (formData: FormData) => {
-                          'use server'
-                          const reason = formData.get('reason') as string
-                          await updatePhotoStatus(submission.id, 'rejected', reason)
-                        }}>
-                          <input
-                            type="text"
-                            name="reason"
-                            placeholder="Rejection reason (optional)"
-                            className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mr-2 text-sm"
-                          />
-                          <button
-                            type="submit"
-                            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                          >
-                            Reject
-                          </button>
-                        </form>
                       </div>
                     </div>
                   </div>
-                </div>
+                ))}
               </div>
-            ))}
-          </div>
-        </section>
-      )}
+            </section>
+          )}
 
-      {/* Empty State */}
-      {pendingSubmissions.length === 0 && deletionRequests.length === 0 && recoverablePhotos.length === 0 && (
-        <div className="text-center py-12">
-          <div className="text-6xl mb-4">🎉</div>
-          <h2 className="text-2xl font-bold text-text-heading mb-2">All Caught Up!</h2>
-          <p className="text-text-muted">No pending reviews or deletion requests at the moment.</p>
+          {/* Empty State */}
+          {pendingSubmissions.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-6xl mb-4">🎉</div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">All Caught Up!</h2>
+              <p className="text-gray-600 dark:text-gray-400">No pending photo reviews at the moment.</p>
+            </div>
+          )}
         </div>
-      )}
-    </main>
+      </main>
+    </div>
   )
 }

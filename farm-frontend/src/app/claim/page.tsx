@@ -1,86 +1,31 @@
-import type { Metadata } from 'next'
+'use client'
+
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Suspense } from 'react'
 import { MapPin, Shield, CheckCircle, Plus, ArrowRight } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
-import { getFarmDataServer, getFarmStatsServer } from '@/lib/farm-data-server'
 import FarmSearchBar from '@/components/FarmSearchBar'
 import BackToTopButton from '@/components/BackToTopButton'
 
-// Generate metadata dynamically for better SEO
-export async function generateMetadata(): Promise<Metadata> {
-  const stats = await getFarmStatsServer()
-  
-  return {
-    title: `Claim Your Farm Shop Listing - ${stats.farmCount}+ UK Farm Shops`,
-    description: `Claim ownership of your farm shop listing to update information, add photos, and manage your presence on Farm Companion. Browse ${stats.farmCount}+ farm shops by county.`,
-    keywords: 'claim farm shop, farm shop ownership, farm shop management, UK farm shops, farm shop directory',
-    openGraph: {
-      title: `Claim Your Farm Shop Listing — Farm Companion`,
-      description: `Claim ownership of your farm shop listing to update information, add photos, and manage your presence on Farm Companion.`,
-      type: 'website',
-      url: 'https://www.farmcompanion.co.uk/claim',
-      siteName: 'Farm Companion',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: 'Claim Your Farm Shop Listing',
-      description: 'Claim ownership of your farm shop listing to update information and manage your presence.',
-    },
-    alternates: {
-      canonical: 'https://www.farmcompanion.co.uk/claim'
-    },
-    robots: {
-      index: true,
-      follow: true,
-      googleBot: {
-        index: true,
-        follow: true,
-        'max-video-preview': -1,
-        'max-image-preview': 'large',
-        'max-snippet': -1,
-      },
-    }
-  }
-}
-
-// Loading component for Suspense
-function ClaimPageLoading() {
-  return (
-    <div className="min-h-screen bg-background-canvas">
-      <div className="animate-pulse">
-        <div className="max-w-7xl mx-auto px-6 py-16">
-          <div className="h-12 bg-gray-200 rounded-lg mb-4 max-w-2xl"></div>
-          <div className="h-6 bg-gray-200 rounded mb-8 max-w-3xl"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded-lg"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Enhanced farm card component with glowing text effects
+// Enhanced farm card component with PuredgeOS styling
 function FarmCard({ farm }: { farm: FarmShop }) {
   return (
-    <div id={`farm-${farm.slug}`} className="group bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden scroll-mt-20">
+    <article className="group bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-sm hover:shadow-lg transition-all duration-300 hover:-translate-y-1 overflow-hidden">
       <div className="p-6">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div className="flex-1">
-            <h3 className="font-semibold text-lg text-text-heading dark:text-white mb-2 group-hover:text-serum transition-all duration-300 group-hover:drop-shadow-[0_0_8px_rgba(0,194,178,0.6)] group-hover:shadow-[0_0_20px_rgba(0,194,178,0.3)]">
+            <h3 className="text-xl font-semibold text-text-heading dark:text-white mb-2 group-hover:text-serum transition-colors">
               {farm.name}
             </h3>
+            
             <div className="flex items-center gap-2 text-sm text-text-muted dark:text-gray-400 mb-3">
-              <MapPin className="w-4 h-4 flex-shrink-0 group-hover:text-serum transition-colors duration-300 group-hover:drop-shadow-[0_0_6px_rgba(0,194,178,0.5)]" />
-              <span className="truncate group-hover:text-text-heading dark:group-hover:text-white transition-colors duration-300 group-hover:drop-shadow-[0_0_4px_rgba(0,194,178,0.4)]">{farm.location.address}</span>
-              {farm.location.postcode && (
+              <MapPin className="w-4 h-4 flex-shrink-0" />
+              <span className="truncate">{farm.location.address}</span>
+              {farm.location.county && (
                 <>
-                  <span className="text-gray-300 group-hover:text-serum transition-colors duration-300">•</span>
-                  <span className="group-hover:text-text-heading dark:group-hover:text-white transition-colors duration-300 group-hover:drop-shadow-[0_0_4px_rgba(0,194,178,0.4)]">{farm.location.postcode}</span>
+                  <span className="text-gray-300">•</span>
+                  <span className="font-medium text-serum">{farm.location.county}</span>
                 </>
               )}
             </div>
@@ -88,75 +33,115 @@ function FarmCard({ farm }: { farm: FarmShop }) {
           
           {/* Verified badge */}
           {farm.verified && (
-            <div className="flex items-center gap-1 text-xs bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200 px-2 py-1 rounded-full group-hover:shadow-[0_0_8px_rgba(34,197,94,0.4)] transition-all duration-300">
-              <CheckCircle className="w-3 h-3 group-hover:drop-shadow-[0_0_4px_rgba(34,197,94,0.6)] transition-all duration-300" />
-              <span className="group-hover:drop-shadow-[0_0_4px_rgba(34,197,94,0.6)] transition-all duration-300">Verified</span>
+            <div className="flex items-center gap-1 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+              <CheckCircle className="w-3 h-3 fill-current" />
+              <span>Verified</span>
             </div>
           )}
         </div>
 
         <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4 text-sm text-text-muted dark:text-gray-400">
+            {farm.contact?.phone && (
+              <div className="flex items-center gap-1">
+                <span className="hidden sm:inline">{farm.contact.phone}</span>
+              </div>
+            )}
+            {farm.hours && farm.hours.length > 0 && (
+              <div className="flex items-center gap-1">
+                <span className="hidden sm:inline">Open</span>
+              </div>
+            )}
+          </div>
+          
           <Link
             href={`/shop/${farm.slug}`}
-            className="text-sm text-text-muted dark:text-gray-400 hover:text-serum transition-all duration-300 hover:drop-shadow-[0_0_6px_rgba(0,194,178,0.5)]"
+            className="text-serum hover:text-serum/80 font-medium text-sm transition-colors flex items-center gap-1 group-hover:gap-2"
           >
             View Details
-          </Link>
-          <Link
-            href={`/claim/${farm.slug}`}
-            className="inline-flex items-center gap-1 text-sm text-serum hover:text-serum/80 font-medium transition-all duration-300 group-hover:gap-2 group-hover:drop-shadow-[0_0_8px_rgba(0,194,178,0.6)] group-hover:shadow-[0_0_12px_rgba(0,194,178,0.3)]"
-          >
-            Claim This Shop
-            <ArrowRight className="w-3 h-3 transition-all duration-300 group-hover:translate-x-1 group-hover:drop-shadow-[0_0_4px_rgba(0,194,178,0.6)]" />
+            <span className="transition-transform group-hover:translate-x-1">→</span>
           </Link>
         </div>
+      </div>
+    </article>
+  )
+}
+
+// County section component
+function CountySection({ county, farms }: { county: string; farms: FarmShop[] }) {
+  return (
+    <div className="border-b border-border-default pb-8 last:border-b-0">
+      <div className="flex items-center justify-between mb-6">
+        <h3 className="text-2xl font-heading font-semibold text-text-heading dark:text-white">
+          {county}
+        </h3>
+        <span className="text-sm text-text-muted dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+          {farms.length} farm{farms.length !== 1 ? 's' : ''}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {farms.map((farm, index) => (
+          <FarmCard key={`${farm.id}-${county}-${index}`} farm={farm} />
+        ))}
       </div>
     </div>
   )
 }
 
-
-
-// County section component
-function CountySection({ county, farms }: { county: string; farms: FarmShop[] }) {
-  return (
-    <section id={`county-${county.toLowerCase().replace(/\s+/g, '-')}`} className="border-t border-border-default pt-8 scroll-mt-20">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-heading font-semibold text-text-heading dark:text-white">
-          {county}
-        </h2>
-        <span className="text-sm text-text-muted dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-          {farms.length} farm{farms.length !== 1 ? 's' : ''}
-        </span>
-      </div>
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {farms.map((farm, index) => (
-          <FarmCard key={`${farm.id}-${county}-${index}`} farm={farm} />
-        ))}
-      </div>
-    </section>
-  )
-}
-
 // Main claim page component
-async function ClaimPageContent() {
-  const [farms, stats] = await Promise.all([
-    getFarmDataServer(),
-    getFarmStatsServer()
-  ])
-  
-  // Group farms by county for better organization
-  const farmsByCounty = farms.reduce((acc, farm) => {
-    const county = farm.location.county || 'Other'
-    if (!acc[county]) {
-      acc[county] = []
-    }
-    acc[county].push(farm)
-    return acc
-  }, {} as Record<string, FarmShop[]>)
+function ClaimPageContent() {
+  const [farms, setFarms] = useState<FarmShop[]>([])
+  const [filteredFarms, setFilteredFarms] = useState<FarmShop[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [stats, setStats] = useState({ farmCount: 0, countyCount: 0 })
 
-  // Sort counties alphabetically
+  // Fetch farm data on client side
+  useEffect(() => {
+    async function fetchFarms() {
+      try {
+        const response = await fetch('/api/farms')
+        const data = await response.json()
+        setFarms(data.farms || [])
+        setFilteredFarms(data.farms || [])
+        setStats({ farmCount: data.farms?.length || 0, countyCount: new Set(data.farms?.map((f: FarmShop) => f.location.county)).size || 0 })
+      } catch (error) {
+        console.error('Error fetching farms:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchFarms()
+  }, [])
+
+  // Group farms by county for better organization
+  const farmsByCounty = useMemo(() => {
+    return filteredFarms.reduce((acc: Record<string, FarmShop[]>, farm: FarmShop) => {
+      const county = farm.location.county || 'Other'
+      if (!acc[county]) {
+        acc[county] = []
+      }
+      acc[county].push(farm)
+      return acc
+    }, {})
+  }, [filteredFarms])
+
   const sortedCounties = Object.keys(farmsByCounty).sort()
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background-canvas dark:bg-gray-900">
+        <div className="animate-pulse">
+          <div className="bg-background-surface py-16">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="h-12 bg-gray-200 rounded-lg mb-4 max-w-2xl mx-auto"></div>
+              <div className="h-6 bg-gray-200 rounded mb-8 max-w-3xl mx-auto"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <main className="min-h-screen bg-background-canvas dark:bg-gray-900">
@@ -282,7 +267,10 @@ async function ClaimPageContent() {
           </div>
 
           {/* Responsive Search Bar */}
-          <FarmSearchBar farms={farms} />
+          <FarmSearchBar 
+            farms={farms} 
+            onSearchResults={setFilteredFarms}
+          />
           
           {/* Farms by county */}
           <div className="space-y-8">
@@ -326,9 +314,5 @@ async function ClaimPageContent() {
 }
 
 export default function ClaimPage() {
-  return (
-    <Suspense fallback={<ClaimPageLoading />}>
-      <ClaimPageContent />
-    </Suspense>
-  )
+  return <ClaimPageContent />
 }

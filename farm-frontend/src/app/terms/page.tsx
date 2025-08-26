@@ -1,3 +1,40 @@
+import type { Metadata } from 'next'
+import { SITE_URL } from '@/lib/site'
+
+export const metadata: Metadata = {
+  title: 'Terms of Service | Farm Companion',
+  description: 'Terms of service for Farm Companion. Learn about the terms and conditions for using our UK farm shops directory and seasonal produce guide.',
+  alternates: {
+    canonical: `${SITE_URL}/terms`,
+  },
+  openGraph: {
+    title: 'Terms of Service | Farm Companion',
+    description: 'Terms of service for Farm Companion. Learn about the terms and conditions for using our UK farm shops directory.',
+    url: `${SITE_URL}/terms`,
+    siteName: 'Farm Companion',
+    images: [
+      {
+        url: `${SITE_URL}/og.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'Terms of Service - Farm Companion',
+      },
+    ],
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Terms of Service | Farm Companion',
+    description: 'Terms of service for Farm Companion. Learn about the terms and conditions for using our UK farm shops directory.',
+    images: [`${SITE_URL}/og.jpg`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
+
 export default function TermsPage() {
   return (
     <main className="mx-auto max-w-4xl px-6 py-12">

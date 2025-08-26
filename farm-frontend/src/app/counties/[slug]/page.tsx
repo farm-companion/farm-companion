@@ -3,7 +3,10 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import fs from 'node:fs/promises'
 import path from 'node:path'
-export const dynamic = 'force-dynamic' // Make this dynamic to avoid build-time data fetching
+import { SITE_URL } from '@/lib/site'
+
+// Revalidate every 6 hours for fresh farm data
+export const revalidate = 21600
 
 export default async function CountyPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
@@ -14,8 +17,72 @@ export default async function CountyPage({ params }: { params: Promise<{ slug: s
     .filter(f => f.location?.county && slugify(f.location.county) === slug)
     .sort((a, b) => a.name.localeCompare(b.name))
 
+  // CollectionPage + ItemList + BreadcrumbList JSON-LD
+  const countyJsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'CollectionPage',
+      '@id': `${SITE_URL}/counties/${slug}#collection`,
+      url: `${SITE_URL}/counties/${slug}`,
+      name: `Farm Shops in ${countyName}`,
+      description: `Directory of farm shops in ${countyName}, UK. Find local produce and fresh food.`,
+      isPartOf: { '@id': `${SITE_URL}#website` },
+      mainEntity: {
+        '@type': 'ItemList',
+        name: `Farm Shops in ${countyName}`,
+        numberOfItems: list.length,
+        itemListOrder: 'http://schema.org/ItemListOrderAscending',
+        itemListElement: list.map((farm, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          item: {
+            '@type': 'LocalBusiness',
+            name: farm.name,
+            url: `${SITE_URL}/shop/${farm.slug}`,
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: farm.location.address,
+              addressLocality: farm.location.county,
+              postalCode: farm.location.postcode,
+              addressCountry: 'GB'
+            }
+          }
+        }))
+      }
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: SITE_URL
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Counties',
+          item: `${SITE_URL}/counties`
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: countyName,
+          item: `${SITE_URL}/counties/${slug}`
+        }
+      ]
+    }
+  ]
+
   return (
     <main className="mx-auto max-w-4xl px-6 py-10">
+      {/* SEO: CollectionPage + Breadcrumbs JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(countyJsonLd) }}
+      />
       <Link href="/counties" className="text-sm underline hover:no-underline">← All counties</Link>
       <h1 className="mt-2 text-3xl font-semibold">{countyName}</h1>
       <p className="mt-2 text-gray-700 dark:text-[#E4E2DD]/80">

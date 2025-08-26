@@ -1,16 +1,9 @@
 import type { MetadataRoute } from 'next'
+import { SITE_URL, IS_PROD } from '@/lib/site'
 
 export default function robots(): MetadataRoute.Robots {
-  const base = (process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001').replace(/\/+$/, '')
-
   return {
-    rules: [
-      {
-        userAgent: '*',
-        allow: '/',
-        disallow: ['/api/', '/_next/', '/private/'],
-      },
-    ],
-    sitemap: `${base}/sitemap.xml`,
+    rules: IS_PROD ? [{ userAgent: '*', allow: '/' }] : [{ userAgent: '*', disallow: '/' }],
+    sitemap: `${SITE_URL}/sitemap.xml`,
   }
 }

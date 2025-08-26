@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
+import { ContactSchema, sanitizeText, validateAndSanitizeUrl } from '@/lib/validation'
+import { rateLimiters, getClientIP } from '@/lib/rate-limit'
+import { checkCsrf, validateHoneypot, validateSubmissionTime, verifyTurnstile, validateContent, trackIPReputation, isIPBlocked } from '@/lib/security'
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -30,25 +33,90 @@ async function sendEmail(to: string, subject: string, html: string, text: string
 }
 
 export async function POST(request: NextRequest) {
+  const ip = getClientIP(request)
+  
   try {
-    const body = await request.json()
-    const { name, email, subject, message } = body
-
-    // Basic validation
-    if (!name || !email || !subject || !message) {
+    // Check if IP is blocked
+    if (await isIPBlocked(ip)) {
+      await trackIPReputation(ip, 'failure')
       return NextResponse.json(
-        { error: 'All fields are required' },
+        { error: 'Access denied' },
+        { status: 403 }
+      )
+    }
+
+    // Apply rate limiting
+    const rateLimit = await rateLimiters.contact.consume(ip)
+    if (!rateLimit) {
+      await trackIPReputation(ip, 'failure')
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
+    // CSRF protection
+    if (!checkCsrf(request)) {
+      await trackIPReputation(ip, 'failure')
+      return NextResponse.json(
+        { error: 'Invalid request origin' },
+        { status: 403 }
+      )
+    }
+
+    const body = await request.json().catch(() => ({}))
+    
+    // Validate input with Zod
+    const parse = ContactSchema.safeParse(body)
+    if (!parse.success) {
+      await trackIPReputation(ip, 'failure')
+      return NextResponse.json(
+        { error: 'Invalid data provided' },
+        { status: 400 }
+      )
+    }
+    
+    const data = parse.data
+
+    // Spam checks
+    if (!validateHoneypot(data.hp)) {
+      await trackIPReputation(ip, 'spam')
+      return NextResponse.json({ ok: true }) // Silent discard
+    }
+
+    if (!validateSubmissionTime(data.t)) {
+      await trackIPReputation(ip, 'spam')
+      return NextResponse.json({ ok: true }) // Silent discard
+    }
+
+    // Content validation
+    const contentValidation = validateContent(data.message)
+    if (!contentValidation.valid) {
+      await trackIPReputation(ip, 'spam')
+      return NextResponse.json(
+        { error: 'Invalid content detected' },
         { status: 400 }
       )
     }
 
-    // Email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      )
+    // Optional: verify Cloudflare Turnstile
+    if (data.token) {
+      const turnstileValid = await verifyTurnstile(data.token, ip)
+      if (!turnstileValid) {
+        await trackIPReputation(ip, 'spam')
+        return NextResponse.json(
+          { error: 'Bot check failed' },
+          { status: 400 }
+        )
+      }
+    }
+
+    // Sanitize inputs
+    const sanitizedData = {
+      name: sanitizeText(data.name),
+      email: data.email.toLowerCase().trim(),
+      subject: sanitizeText(data.subject),
+      message: sanitizeText(data.message),
     }
 
     const timestamp = new Date().toISOString()
@@ -95,11 +163,11 @@ export async function POST(request: NextRequest) {
             <div class="message-card">
               <div class="message-item">
                 <div class="message-label">Subject</div>
-                <div class="message-value">${subject}</div>
+                <div class="message-value">${sanitizedData.subject}</div>
               </div>
               <div class="message-item">
                 <div class="message-label">Message</div>
-                <div class="message-content">${message}</div>
+                <div class="message-content">${sanitizedData.message}</div>
               </div>
             </div>
             
@@ -136,8 +204,8 @@ Thank you for reaching out to us!
 
 MESSAGE DETAILS:
 ================
-Subject: ${subject}
-Message: ${message}
+Subject: ${sanitizedData.subject}
+Message: ${sanitizedData.message}
 
 RESPONSE TIME:
 ==============
@@ -156,7 +224,7 @@ The UK's premium guide to real food, real people, and real places.
     `
 
     await sendEmail(
-      email,
+      sanitizedData.email,
       'Message Received - Farm Companion',
       userEmailHtml,
       userEmailText
@@ -209,15 +277,15 @@ The UK's premium guide to real food, real people, and real places.
             <div class="message-card">
               <div class="message-item">
                 <div class="message-label">From</div>
-                <div class="message-value">${name} (${email})</div>
+                <div class="message-value">${sanitizedData.name} (${sanitizedData.email})</div>
               </div>
               <div class="message-item">
                 <div class="message-label">Subject</div>
-                <div class="message-value">${subject}</div>
+                <div class="message-value">${sanitizedData.subject}</div>
               </div>
               <div class="message-item">
                 <div class="message-label">Message</div>
-                <div class="message-content">${message}</div>
+                <div class="message-content">${sanitizedData.message}</div>
               </div>
               <div class="message-item">
                 <div class="message-label">Submitted</div>
@@ -233,7 +301,7 @@ The UK's premium guide to real food, real people, and real places.
             </div>
             
             <div class="action-section">
-              <a href="mailto:${email}?subject=Re: ${subject}&body=Hi ${name},%0D%0A%0D%0AThank you for your message regarding: ${subject}%0D%0A%0D%0A[Your response here]%0D%0A%0D%0ABest regards,%0D%0AThe Farm Companion Team" class="reply-button">
+              <a href="mailto:${sanitizedData.email}?subject=Re: ${sanitizedData.subject}&body=Hi ${sanitizedData.name},%0D%0A%0D%0AThank you for your message regarding: ${sanitizedData.subject}%0D%0A%0D%0A[Your response here]%0D%0A%0D%0ABest regards,%0D%0AThe Farm Companion Team" class="reply-button">
                 📧 Reply to User
               </a>
             </div>
@@ -271,9 +339,9 @@ Farm Companion - Contact Message Notification
 
 MESSAGE DETAILS:
 ================
-From: ${name} (${email})
-Subject: ${subject}
-Message: ${message}
+From: ${sanitizedData.name} (${sanitizedData.email})
+Subject: ${sanitizedData.subject}
+Message: ${sanitizedData.message}
 Submitted: ${new Date(timestamp).toLocaleString('en-GB', { 
   year: 'numeric', 
   month: 'long', 
@@ -289,14 +357,14 @@ Please respond to this message within 24-48 hours to maintain our high service s
 
 REPLY TO USER:
 ==============
-Email: ${email}
-Subject: Re: ${subject}
+Email: ${sanitizedData.email}
+Subject: Re: ${sanitizedData.subject}
 
 QUICK REPLY TEMPLATE:
 ====================
-Hi ${name},
+Hi ${sanitizedData.name},
 
-Thank you for your message regarding: ${subject}
+Thank you for your message regarding: ${sanitizedData.subject}
 
 [Your response here]
 
@@ -309,10 +377,13 @@ The UK's premium guide to real food, real people, and real places.
 
     await sendEmail(
       'hello@farmcompanion.co.uk',
-      `New Contact Message - ${subject}`,
+      `New Contact Message - ${sanitizedData.subject}`,
       adminEmailHtml,
       adminEmailText
     )
+
+    // Track successful submission
+    await trackIPReputation(ip, 'success')
 
     return NextResponse.json(
       { message: 'Message sent successfully' },
@@ -320,6 +391,7 @@ The UK's premium guide to real food, real people, and real places.
     )
   } catch (error) {
     console.error('Contact form error:', error)
+    await trackIPReputation(ip, 'failure')
     return NextResponse.json(
       { error: 'Internal server error. Please try again later.' },
       { status: 500 }

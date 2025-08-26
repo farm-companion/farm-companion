@@ -2,6 +2,7 @@ import type { MetadataRoute } from 'next'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { PRODUCE } from '@/data/produce'
+import { SITE_URL } from '@/lib/site'
 
 type FarmShop = {
   slug: string
@@ -10,7 +11,7 @@ type FarmShop = {
 }
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const base = 'https://www.farmcompanion.co.uk'
+  const base = SITE_URL
   const entries: MetadataRoute.Sitemap = [
     // Core pages - High priority
     { url: `${base}/`,                changeFrequency: 'weekly', priority: 1.0 },

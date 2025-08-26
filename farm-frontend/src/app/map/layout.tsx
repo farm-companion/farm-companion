@@ -30,7 +30,7 @@ export const metadata: Metadata = {
       'Interactive map of 1,300+ UK farm shops. Find farm shops near you with fresh local produce and verified farm information.',
     images: [
       {
-        url: `${siteUrl}/og/farm-map.jpg`, // swap for your actual OG image path
+        url: `${siteUrl}/og?title=UK Farm Shop Map&subtitle=Find Farm Shops Near You&type=map`,
         width: 1200,
         height: 630,
         alt: 'Interactive UK farm shop map',
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     title: 'Farm Shop Map - Find Local Farms Near You',
     description:
       'Interactive map of 1,300+ UK farm shops. Find farm shops near you with fresh local produce and verified farm information.',
-    images: [`${siteUrl}/og/farm-map.jpg`],
+    images: [`${siteUrl}/og?title=UK Farm Shop Map&subtitle=Find Farm Shops Near You&type=map`],
     // site: '@yourhandle', // optional
   },
   robots: {

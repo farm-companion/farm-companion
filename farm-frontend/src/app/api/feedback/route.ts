@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { Resend } from 'resend'
+import createRateLimiter from '@/lib/rate-limit'
+import { checkCsrf } from '@/lib/csrf'
 
-// Validation schema
+// Enhanced validation schema with anti-spam measures
 const feedbackSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(50, 'Name must be less than 50 characters'),
+  name: z.string().min(2, 'Name must be at least 2 characters').max(80, 'Name must be less than 80 characters'),
   email: z.string().email('Invalid email address'),
   subject: z.string().min(5, 'Subject must be at least 5 characters').max(100, 'Subject must be less than 100 characters'),
-  message: z.string().min(10, 'Message must be at least 10 characters').max(1000, 'Message must be less than 1000 characters')
+  message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message must be less than 2000 characters'),
+  hp: z.string().optional(), // honeypot field
+  t: z.number() // submission timestamp
 })
 
 // Rate limiting (simple in-memory store - in production use Redis)
@@ -68,7 +72,23 @@ function generateFeedbackId(): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    // CSRF protection
+    if (!checkCsrf(request)) {
+      return NextResponse.json({ error: 'CSRF protection failed' }, { status: 400 })
+    }
+
+    // Rate limiting
+    const rl = createRateLimiter({ keyPrefix: 'feedback', limit: 10, windowSec: 3600 })
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
+    if (!await rl.consume(ip)) {
+      return NextResponse.json({ error: 'Too many submissions. Please wait before submitting again.' }, { status: 429 })
+    }
+
+    // Parse and validate JSON
+    const body = await request.json().catch(() => null)
+    if (!body) {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    }
     
     // Validate input
     const validationResult = feedbackSchema.safeParse(body)
@@ -79,15 +99,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { name, email, subject, message } = validationResult.data
+    const { name, email, subject, message, hp, t } = validationResult.data
 
-    // Check rate limiting
-    if (!checkRateLimit(email)) {
-      return NextResponse.json(
-        { error: 'Too many submissions. Please wait before submitting again.' },
-        { status: 429 }
-      )
+    // Anti-spam checks
+    if (hp) {
+      return NextResponse.json({ ok: true }) // honeypot triggered
     }
+    
+    if (Date.now() - t < 1500) {
+      return NextResponse.json({ ok: true }) // too fast submission
+    }
+
+
 
     // Generate feedback ID
     const feedbackId = generateFeedbackId()

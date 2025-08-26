@@ -4,6 +4,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { z } from 'zod'
+import createRateLimiter from '@/lib/rate-limit'
+import { checkCsrf } from '@/lib/csrf'
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -11,14 +13,15 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 // Rate limiting store (in production, use Redis)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
 
-// Validation schema
+// Enhanced validation schema with anti-spam measures
 const subscribeSchema = z.object({
   email: z.string().email('Invalid email address'),
   name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
   recaptchaToken: z.string().optional(), // Optional for progressive enhancement
-  honeypot: z.string().max(0, 'Bot detected'), // Hidden field to catch bots
+  hp: z.string().optional(), // honeypot field
   source: z.string().optional(),
-  consent: z.boolean().refine(val => val === true, 'Consent is required')
+  consent: z.boolean().refine(val => val === true, 'Consent is required'),
+  t: z.number() // submission timestamp
 })
 
 // Rate limiting function
@@ -160,7 +163,26 @@ async function storeSubscription(email: string, name: string, source?: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    // CSRF protection
+    if (!checkCsrf(request)) {
+      return NextResponse.json({ error: 'CSRF protection failed' }, { status: 400 })
+    }
+
+    // Rate limiting
+    const rl = createRateLimiter({ keyPrefix: 'newsletter', limit: 5, windowSec: 3600 })
+    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
+    if (!await rl.consume(ip)) {
+      return NextResponse.json(
+        { error: 'Too many subscription attempts. Please try again later.' },
+        { status: 429 }
+      )
+    }
+
+    // Parse and validate JSON
+    const body = await request.json().catch(() => null)
+    if (!body) {
+      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+    }
     
     // Validate input
     const validation = subscribeSchema.safeParse(body)
@@ -171,17 +193,15 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    const { email, name, recaptchaToken, source } = validation.data
+    const { email, name, recaptchaToken, source, hp, t } = validation.data
+
+    // Anti-spam checks
+    if (hp) {
+      return NextResponse.json({ ok: true }) // honeypot triggered
+    }
     
-    // Rate limiting
-    const clientIP = request.headers.get('x-forwarded-for') || 
-                    request.headers.get('x-real-ip') || 
-                    'unknown'
-    if (!checkRateLimit(clientIP)) {
-      return NextResponse.json(
-        { error: 'Too many subscription attempts. Please try again later.' },
-        { status: 429 }
-      )
+    if (Date.now() - t < 1500) {
+      return NextResponse.json({ ok: true }) // too fast submission
     }
     
     // reCAPTCHA verification (if token provided)

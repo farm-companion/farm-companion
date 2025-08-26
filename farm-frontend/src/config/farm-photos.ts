@@ -3,11 +3,10 @@
 
 export const FARM_PHOTOS_CONFIG = {
   // API URL for the farm-photos system
-  // For now, we'll use the same domain as the frontend
-  // This avoids cross-origin issues and simplifies deployment
+  // The farm-photos service runs on its own port
   API_URL: process.env.NODE_ENV === 'production' 
-    ? 'https://farmcompanion.co.uk' // Use the same domain
-    : (process.env.FARM_PHOTOS_API_URL || 'http://localhost:3002'),
+    ? (process.env.FARM_PHOTOS_API_URL || 'https://farm-photos-knru4qgcb-abdur-rahman-morris-projects.vercel.app') // Production URL
+    : (process.env.FARM_PHOTOS_API_URL || 'http://localhost:3002'), // Development URL
   
   // Photo submission settings
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
@@ -27,11 +26,26 @@ export const FARM_PHOTOS_CONFIG = {
   SEND_ADMIN_NOTIFICATIONS: true,
   
   // Storage settings
-  STORAGE_PROVIDER: 'local', // 'local', 's3', 'cloudinary'
+  STORAGE_PROVIDER: 'vercel-blob', // Using Vercel Blob for storage
   
   // Rate limiting
   MAX_SUBMISSIONS_PER_HOUR: 10,
   MAX_SUBMISSIONS_PER_DAY: 50,
+  
+  // API endpoints
+  ENDPOINTS: {
+    SUBMIT: '/api/photos',
+    GET_FARM_PHOTOS: '/api/photos',
+    GET_PHOTO: '/api/photos',
+    UPDATE_STATUS: '/api/photos',
+    DELETE_PHOTO: '/api/photos',
+    GET_PENDING: '/api/photos?status=pending',
+    GET_DELETION_REQUESTS: '/api/photos/deletion-requests',
+    REVIEW_DELETION: '/api/photos/deletion-requests',
+    GET_RECOVERABLE: '/api/photos/recoverable',
+    RECOVER_PHOTO: '/api/photos/recover',
+    GET_STATS: '/api/photos/stats',
+  } as const,
 } as const
 
 // Helper function to get the full API URL
@@ -60,4 +74,17 @@ export function validatePhotoFile(file: File): { isValid: boolean; error?: strin
   }
   
   return { isValid: true }
+}
+
+// Helper function to convert file to base64
+export function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => {
+      const result = reader.result as string
+      resolve(result)
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
 }

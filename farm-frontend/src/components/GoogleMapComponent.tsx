@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useMap } from '@vis.gl/react-google-maps'
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
 import { 
@@ -29,6 +29,11 @@ import type { FarmShop } from '@/types/farm'
 import TransitionIndicator from './TransitionIndicator'
 import ResponsiveInfoWindow from './ResponsiveInfoWindow'
 
+// Performance constants
+const MAX_MARKERS_IN_VIEW = 500
+const SEARCH_DEBOUNCE_MS = 300
+const CLUSTER_RADIUS = 50 // meters
+
 // Custom hook for mobile detection
 const useIsMobile = () => {
   const [isMobile, setIsMobile] = useState(false)
@@ -44,6 +49,20 @@ const useIsMobile = () => {
   }, [])
   
   return isMobile
+}
+
+// Debounced search hook
+const useDebouncedSearch = (callback: (query: string) => void, delay: number) => {
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
+  
+  const debouncedCallback = useCallback((query: string) => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+    }
+    timeoutRef.current = setTimeout(() => callback(query), delay)
+  }, [callback, delay])
+  
+  return debouncedCallback
 }
 
 // Safari detection utility
@@ -274,6 +293,8 @@ function MapControls({
       <button
         onClick={() => setShowControls(!showControls)}
         className="p-3 bg-background-surface/95 backdrop-blur-md rounded-xl shadow-premium border border-border-default/30 hover:bg-background-canvas transition-all duration-200"
+        aria-label={showControls ? 'Hide map controls' : 'Show map controls'}
+        aria-expanded={showControls}
       >
         <Settings className="w-5 h-5 text-text-heading" />
       </button>
@@ -290,6 +311,7 @@ function MapControls({
             <button
               onClick={onToggleFullscreen}
               className="p-1 rounded-lg bg-background-canvas hover:bg-background-surface transition-colors duration-200"
+              aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </button>
@@ -450,7 +472,7 @@ function FarmMap({
     return R * c
   }
 
-  // Smart marker limiting based on zoom level
+  // Performance-optimized marker limiting and clustering
   const visibleFarms = useMemo(() => {
     if (!filteredFarms) return []
     
@@ -459,18 +481,32 @@ function FarmMap({
       typeof farm.location.lat === 'number' && typeof farm.location.lng === 'number'
     )
     
-    // Limit markers based on zoom level to prevent clutter
-    if (currentZoom <= 7) {
-      // Show only a sample of farms when zoomed out
-      return validFarms.slice(0, Math.min(50, validFarms.length))
-    } else if (currentZoom <= 9) {
-      // Show more farms at medium zoom
-      return validFarms.slice(0, Math.min(200, validFarms.length))
-    } else {
-      // Show all farms when zoomed in
-      return validFarms
+    // Hard limit to prevent performance issues
+    if (validFarms.length > MAX_MARKERS_IN_VIEW) {
+      // Simple clustering: take every nth farm to reduce density
+      const step = Math.ceil(validFarms.length / MAX_MARKERS_IN_VIEW)
+      return validFarms.filter((_, index) => index % step === 0)
     }
-  }, [filteredFarms, currentZoom])
+    
+    return validFarms
+  }, [filteredFarms])
+
+  // Memoized distance calculations to prevent recalculation
+  const farmDistances = useMemo(() => {
+    if (!userLoc || !visibleFarms.length) return {}
+    
+    const distances: Record<string, number> = {}
+    visibleFarms.forEach(farm => {
+      if (farm.location?.lat && farm.location?.lng) {
+        const distance = calculateDistance(
+          userLoc.lat, userLoc.lng,
+          farm.location.lat, farm.location.lng
+        )
+        distances[farm.id] = distance
+      }
+    })
+    return distances
+  }, [userLoc, visibleFarms])
 
   // Fit map to bounds when they change with smooth animation
   React.useEffect(() => {

@@ -1,4 +1,5 @@
 import type { FarmShop } from '@/types/farm'
+import { dedupeFarms } from './schemas'
 
 // Server-side only farm data loading (won't be bundled in client)
 export async function getFarmDataServer(): Promise<FarmShop[]> {
@@ -12,22 +13,12 @@ export async function getFarmDataServer(): Promise<FarmShop[]> {
     const farmsData = await fs.readFile(farmsPath, 'utf-8')
     const farms = JSON.parse(farmsData)
     
-    // Filter and validate farms
-    const validFarms = farms.filter((farm: FarmShop) => {
-      if (!farm.name || !farm.location?.address) return false
-      
-      // Validate coordinates if present
-      if (farm.location.lat && farm.location.lng) {
-        const { lat, lng } = farm.location
-        if (typeof lat !== 'number' || typeof lng !== 'number') return false
-        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return false
-        if (lat === 0 && lng === 0) return false
-      }
-      
-      return true
-    })
+    // Apply comprehensive validation and deduplication
+    const { farms: validFarms, stats } = dedupeFarms(farms)
     
-    console.log(`📊 Loaded ${validFarms.length} valid farms from JSON file`)
+    console.log(`📊 Farm data processing:`, stats)
+    console.log(`✅ Loaded ${validFarms.length} valid, deduplicated farms from JSON file`)
+    
     return validFarms
   } catch (error) {
     console.error('Error loading farm data from JSON file:', error)

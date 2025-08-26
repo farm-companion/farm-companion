@@ -5,11 +5,11 @@ import type { Metadata } from 'next'
 import ConsentBanner from '@/components/ConsentBanner'
 import Header from '@/components/Header'
 import FooterWrapper from '@/components/FooterWrapper'
-
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
+import AnalyticsLoader from '@/components/AnalyticsLoader'
+import { SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
+  metadataBase: new URL(SITE_URL),
   title: {
     default: 'Farm Companion',
     template: '%s · Farm Companion',
@@ -42,17 +42,17 @@ export const metadata: Metadata = {
   },
   openGraph: {
     type: 'website',
-    url: siteUrl,
+    url: SITE_URL,
     siteName: 'Farm Companion',
     title: 'Farm Companion — UK farm shops directory',
     description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
     images: [
       { 
-        url: '/og.jpg', 
+        url: `${SITE_URL}/og?title=Farm Companion&subtitle=UK Farm Shops Directory&type=default`, 
         width: 1200, 
         height: 630, 
         alt: 'Farm Companion - UK farm shops directory',
-        type: 'image/jpeg',
+        type: 'image/png',
       },
     ],
     locale: 'en_GB',
@@ -61,7 +61,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Farm Companion — UK farm shops directory',
     description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
-    images: ['/og.jpg'],
+    images: [`${SITE_URL}/og?title=Farm Companion&subtitle=UK Farm Shops Directory&type=default`],
     creator: '@farmcompanion',
   },
   alternates: {
@@ -88,27 +88,37 @@ export const metadata: Metadata = {
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Site-wide WebSite + SearchAction JSON-LD
+  const siteJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${SITE_URL}#website`,
+    url: SITE_URL,
+    name: 'Farm Companion',
+    description: 'Discover 1,300+ authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information.',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: `${SITE_URL}/map?query={search_term_string}`,
+      'query-input': 'required name=search_term_string',
+    },
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        {/* Site-wide structured data */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+        />
+        
         {/* Preload critical header images */}
         <link rel="preload" href="/overlay-banner.jpg" as="image" type="image/jpeg" />
         <link rel="preload" href="/seasonal-header.jpg" as="image" type="image/jpeg" />
         <link rel="preload" href="/about-header.jpg" as="image" type="image/jpeg" />
         <link rel="preload" href="/counties.jpg" as="image" type="image/jpeg" />
         
-        {/* Google Analytics */}
-        <script async src="https://www.googletagmanager.com/gtag/js?id=G-FQ0B9L8MFE"></script>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-FQ0B9L8MFE');
-            `,
-          }}
-        />
+        {/* Google Analytics - now handled by AnalyticsLoader component */}
         
         {/* Font declarations */}
         <link
@@ -130,6 +140,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* DNS prefetch for external resources */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />
         <link rel="dns-prefetch" href="//fonts.gstatic.com" />
+        
+        {/* Preconnect to map tiles and CDN domains for performance */}
+        <link rel="preconnect" href="https://maps.googleapis.com" />
+        <link rel="preconnect" href="https://maps.gstatic.com" />
+        <link rel="preconnect" href="https://www.google-analytics.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        
+        {/* Bing Webmaster Tools Verification */}
+        <meta name="msvalidate.01" content="D5F792E19E823EAE982BA6AB25F2B588" />
         
         {/* Theme detection script - prevents hydration mismatch */}
         <script
@@ -198,6 +217,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Vercel Analytics */}
         {/* <Analytics /> */}
+
+        {/* Consent-gated Analytics */}
+        <AnalyticsLoader />
 
       </body>
     </html>

@@ -2,33 +2,10 @@ import type { NextConfig } from "next"
 
 const isProd = process.env.NODE_ENV === "production"
 
-// Content Security Policy that supports:
-// - Google Maps API
-// - Analytics (scripts after consent)
-// - Our assets and images
-// - Enhanced security with strict controls
-const CSP = [
-  "default-src 'self';",
-  "base-uri 'self';",
-  "object-src 'none';",
-  "frame-ancestors 'none';",
-  "font-src 'self' data: https:;",
-  "img-src 'self' data: blob: https: https://lh3.googleusercontent.com https://lh3.ggpht.com https://images.unsplash.com https://cdn.farmcompanion.co.uk https://*.s3.amazonaws.com;",
-  // Analytics script (+ allow inline/eval for Next.js in dev)
-"script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com;",
-  // External styles (map styles) + inline styles (Tailwind preflight/runtime)
-  "style-src 'self' 'unsafe-inline' https:;",
-      // Google Maps API + Analytics + data URLs for image uploads + API domains
-"connect-src 'self' data: https://*.google.com https://*.gstatic.com https://*.vercel.app https://www.googletagmanager.com https://www.google-analytics.com https://analytics.google.com https://*.google-analytics.com https://maps.googleapis.com https://maps.gstatic.com;",
-  // Google Maps workers
-  "worker-src 'self' blob:;",
-  "child-src blob:;",
-  // Helpful on HTTPS in prod
-  "upgrade-insecure-requests;",
-  // Additional security
-  "form-action 'self';",
-  "manifest-src 'self';",
-].join(" ")
+// Bundle analyzer configuration
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+})
 
 const headersCommon = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
@@ -36,13 +13,17 @@ const headersCommon = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-XSS-Protection", value: "1; mode=block" },
   { key: "X-DNS-Prefetch-Control", value: "off" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=(self), payment=(), usb=(), magnetometer=(), gyroscope=(), accelerometer=()" },
-  { key: "Cross-Origin-Opener-Policy", value: "unsafe-none" },
-  { key: "Cross-Origin-Resource-Policy", value: "cross-origin" },
-  { key: "Cross-Origin-Embedder-Policy", value: "unsafe-none" },
+  { key: "Permissions-Policy", value: "geolocation=(self), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  // CSP is now set in middleware (consent-aware)
 ]
 
 const nextConfig: NextConfig = {
+  // Performance optimizations
+  experimental: {
+    optimizePackageImports: ['lucide-react'],
+  },
   // Configure image domains for external images
   images: {
     remotePatterns: [
@@ -77,9 +58,15 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
+    // Enable modern image formats
+    formats: ['image/webp', 'image/avif'],
+    // Optimize image loading
+    minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days
   },
   // Configure API routes for larger file uploads
   serverExternalPackages: [],
+  // Enable compression
+  compress: true,
   // Add strong headers for every route
   async headers() {
     const base = [
@@ -87,12 +74,9 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           ...headersCommon,
-          // Run CSP as Report-Only in dev to avoid breaking while you iterate
-          // Comment out CSP in development to eliminate warnings
-          ...(isProd ? [{ key: "Content-Security-Policy", value: CSP }] : []),
           // HSTS only in prod on HTTPS
           ...(isProd
-            ? [{ key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" }]
+            ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
             : []),
         ],
       },
@@ -101,4 +85,4 @@ const nextConfig: NextConfig = {
   },
 }
 
-export default nextConfig
+export default withBundleAnalyzer(nextConfig)

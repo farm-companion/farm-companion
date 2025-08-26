@@ -29,6 +29,48 @@ jobs:
         env:
           NEXT_PUBLIC_SITE_URL: https://farm-companion.vercel.app
 
+      - name: Bundle Analysis
+        run: |
+          # Generate bundle analysis
+          ANALYZE=true npm run build
+          
+          # Check bundle sizes from build output
+          echo "📊 Bundle Size Analysis:"
+          
+          # Extract sizes from build output (First Load JS column)
+          npm run build 2>&1 | grep -E "^├.*[0-9]+ kB.*[0-9]+ kB" | while read line; do
+            # Extract page path and size
+            page=$(echo "$line" | sed -E 's/^├.*\/([^ ]+).*/\1/')
+            size=$(echo "$line" | sed -E 's/.* ([0-9]+) kB.*/\1/')
+            
+            if [ ! -z "$page" ] && [ ! -z "$size" ]; then
+              # Define budgets
+              case "$page" in
+                "map") budget=350 ;;
+                "add") budget=250 ;;
+                "shop") budget=200 ;;
+                "seasonal") budget=180 ;;
+                *) budget=200 ;; # default
+              esac
+              
+              if [ "$size" -gt "$budget" ]; then
+                echo "❌ $page: ${size}KB (budget: ${budget}KB)"
+                exit 1
+              else
+                echo "✅ $page: ${size}KB (budget: ${budget}KB)"
+              fi
+            fi
+          done
+          
+          # Also check total bundle size
+          total_size=$(npm run build 2>&1 | grep "First Load JS shared by all" | sed -E 's/.* ([0-9]+)\.?[0-9]* kB.*/\1/')
+          if [ ! -z "$total_size" ] && [ "$total_size" -gt 150 ]; then
+            echo "❌ Total shared JS: ${total_size}KB (budget: 150KB)"
+            exit 1
+          else
+            echo "✅ Total shared JS: ${total_size}KB (budget: 150KB)"
+          fi
+
       - name: Start application
         run: npm start &
         env:

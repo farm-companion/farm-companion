@@ -4,23 +4,45 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
 import { FarmShop } from '@/types/farm'
+import { SITE_URL } from '@/lib/site'
 
 import type { Metadata } from 'next'
 
+// Revalidate every 6 hours for fresh farm data
+export const revalidate = 21600
+
 // Metadata for SEO and clarity
 export const metadata: Metadata = {
-  title: 'Farm Shops by County - Browse UK Farm Shops by Location',
+  title: 'Farm Shops by County | Farm Companion',
   description: 'Browse 1,300+ farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
-  keywords: ['farm shops by county', 'UK farm shops', 'local farm shops', 'farm directory by county', 'farm shops near me', 'local food', 'UK farms', 'farm shop finder'],
+  alternates: {
+    canonical: `${SITE_URL}/counties`,
+  },
   openGraph: {
-    title: 'Farm Shops by County - Browse UK Farm Shops by Location',
+    title: 'Farm Shops by County | Farm Companion',
     description: 'Browse 1,300+ farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
+    url: `${SITE_URL}/counties`,
+    siteName: 'Farm Companion',
+    images: [
+      {
+        url: `${SITE_URL}/counties.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'Farm shops by county - UK farm directory',
+      },
+    ],
+    locale: 'en_GB',
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Farm Shops by County - Browse UK Farm Shops by Location',
+    title: 'Farm Shops by County | Farm Companion',
     description: 'Browse 1,300+ farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
+    images: [`${SITE_URL}/counties.jpg`],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 }
 

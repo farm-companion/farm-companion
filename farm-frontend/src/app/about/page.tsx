@@ -1,6 +1,42 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight, MapPin, Calendar, Users, Shield, Leaf, Star, Mail, ChevronDown, Check, Search, Clock } from 'lucide-react'
+import { SITE_URL } from '@/lib/site'
+
+export const metadata: Metadata = {
+  title: 'About Farm Companion | UK Farm Shops Directory',
+  description: 'Learn about Farm Companion, the UK\'s premium guide to real food, real people, and real places. Discover how we help you find trusted farm shops near you.',
+  alternates: {
+    canonical: `${SITE_URL}/about`,
+  },
+  openGraph: {
+    title: 'About Farm Companion | UK Farm Shops Directory',
+    description: 'Learn about Farm Companion, the UK\'s premium guide to real food, real people, and real places.',
+    url: `${SITE_URL}/about`,
+    siteName: 'Farm Companion',
+    images: [
+      {
+        url: `${SITE_URL}/about-header.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'About Farm Companion - UK farm shops directory',
+      },
+    ],
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'About Farm Companion | UK Farm Shops Directory',
+    description: 'Learn about Farm Companion, the UK\'s premium guide to real food, real people, and real places.',
+    images: [`${SITE_URL}/about-header.jpg`],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+}
 
 export default function AboutPage() {
   return (
@@ -11,7 +47,7 @@ export default function AboutPage() {
         <div className="absolute inset-0">
           <Image
             src="/about-header.jpg"
-            alt="Fresh, colorful fruits and vegetables arranged in a bountiful display"
+            alt="Abundant display of fresh, colorful fruits and vegetables including red tomatoes, orange carrots, green leafy vegetables, and purple berries, arranged in wooden crates and baskets at a farm shop"
             fill
             className="object-cover object-center"
             priority
@@ -309,6 +345,28 @@ export default function AboutPage() {
               <p className="text-text-body">
                 We review listings regularly and rely on owners and customers to flag changes. Look for the
                 &ldquo;Updated&rdquo; date on each profile.
+              </p>
+            </div>
+          </details>
+          <details className="group bg-background-surface rounded-xl border border-border-default overflow-hidden">
+            <summary className="cursor-pointer p-6 font-semibold text-text-heading flex items-center justify-between hover:bg-background-canvas transition-colors duration-200">
+              How do I find farm shops near me?
+              <ChevronDown className="w-5 h-5 text-text-muted transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="px-6 pb-6">
+              <p className="text-text-body">
+                Use our interactive map to search by location, or browse by county. You can also search for specific produce like &ldquo;strawberries&rdquo; or &ldquo;organic meat&rdquo; to find farms that sell what you need.
+              </p>
+            </div>
+          </details>
+          <details className="group bg-background-surface rounded-xl border border-border-default overflow-hidden">
+            <summary className="cursor-pointer p-6 font-semibold text-text-heading flex items-center justify-between hover:bg-background-canvas transition-colors duration-200">
+              What&apos;s the best time to buy seasonal produce?
+              <ChevronDown className="w-5 h-5 text-text-muted transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="px-6 pb-6">
+              <p className="text-text-body">
+                Check our seasonal guide to see what&apos;s in season each month. UK produce is typically at its peak during its natural growing season, offering better flavour and value.
               </p>
             </div>
           </details>

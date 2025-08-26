@@ -7,13 +7,44 @@ import ClientMonthSelector from '@/components/ClientMonthSelector'
 import ProduceCard from '@/components/ProduceCard'
 import { getProduceInSeason, getProduceAtPeak } from '@/lib/produce-integration'
 import { MapPin } from 'lucide-react'
+import { SITE_URL } from '@/lib/site'
+import JsonLd from '@/components/JsonLd'
+
+// Revalidate every 12 hours for seasonal data
+export const revalidate = 43200
 
 export const metadata: Metadata = {
-  title: 'Seasonal Produce Guide',
-  description: 'Discover what\'s in season now with our comprehensive UK seasonal produce guide. Find the freshest local fruits and vegetables.',
+  title: 'Seasonal Produce Guide | Farm Companion',
+  description: 'Discover what\'s in season now with our comprehensive UK seasonal produce guide. Find the freshest local fruits and vegetables at farm shops near you.',
+  alternates: {
+    canonical: `${SITE_URL}/seasonal`,
+  },
   openGraph: {
-    title: 'Seasonal Produce Guide — Farm Companion',
+    title: 'Seasonal Produce Guide | Farm Companion',
     description: 'What\'s in season now? Find the freshest local produce with our comprehensive UK seasonal guide.',
+    url: `${SITE_URL}/seasonal`,
+    siteName: 'Farm Companion',
+          images: [
+        {
+          url: `${SITE_URL}/og?title=Seasonal Produce Guide&subtitle=What's in Season Now&type=seasonal`,
+          width: 1200,
+          height: 630,
+          alt: 'Seasonal produce guide - UK farm shops',
+          type: 'image/png',
+        },
+      ],
+    locale: 'en_GB',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Seasonal Produce Guide | Farm Companion',
+    description: 'What\'s in season now? Find the freshest local produce with our comprehensive UK seasonal guide.',
+    images: [`${SITE_URL}/seasonal-header.jpg`],
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 }
 
@@ -87,16 +118,47 @@ function SeasonalContent({ month, inSeasonProduce, atPeakProduce, monthName }: {
 
 export default async function SeasonalPage() {
   const { month, inSeasonProduce, atPeakProduce, monthName } = await getSeasonalData()
+  
+  // Combine and deduplicate for structured data
+  const allInSeason = [...new Set([...inSeasonProduce, ...atPeakProduce])]
+  
+  // CollectionPage + ItemList JSON-LD
+  const seasonalJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    '@id': `${SITE_URL}/seasonal#collection`,
+    url: `${SITE_URL}/seasonal`,
+    name: 'Seasonal Produce Guide',
+    description: 'Comprehensive guide to seasonal produce available at UK farm shops',
+    isPartOf: { '@id': `${SITE_URL}#website` },
+    mainEntity: {
+      '@type': 'ItemList',
+      name: 'Seasonal Produce',
+      numberOfItems: allInSeason.length,
+      itemListOrder: 'http://schema.org/ItemListOrderAscending',
+      itemListElement: allInSeason.map((produce, index) => ({
+        '@type': 'ListItem',
+        position: index + 1,
+        item: {
+          '@type': 'Product',
+          name: produce.name,
+          url: `${SITE_URL}/seasonal/${produce.slug}`,
+          description: `Seasonal guide for ${produce.name}`,
+        }
+      }))
+    }
+  }
 
   return (
     <main className="min-h-screen bg-background-canvas">
+      <JsonLd data={seasonalJsonLd} />
       {/* Professional Hero Section with Seasonal Produce Image */}
       <section className="relative h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
             src="/seasonal-header.jpg"
-            alt="Fresh seasonal produce arranged in a vibrant rainbow gradient"
+            alt="Assorted seasonal fruits and vegetables arranged in a colorful gradient pattern, including tomatoes, carrots, apples, and leafy greens, representing the variety of UK seasonal produce"
             fill
             className="object-cover object-center"
             priority
@@ -118,8 +180,8 @@ export default async function SeasonalPage() {
               <span className="block text-serum drop-shadow-lg">Guide</span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Discover what&apos;s fresh and in season right now. 
-              Find the best local produce at farm shops near you.
+              What&apos;s in season {monthName}? Find fresh UK fruit and vegetables at their peak, 
+              plus tips on buying local produce from farm shops near you.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link

@@ -14,15 +14,21 @@ import {
   Navigation, 
   ExternalLink,
   ArrowLeft,
+  ArrowRight,
   CheckCircle,
   Heart,
-  Share2
+  Share2,
+  Map,
+  Calendar
 } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { ObfuscatedEmail, ObfuscatedPhone } from '@/components/ObfuscatedContact'
 import PhotoSubmissionForm from '@/components/PhotoSubmissionForm'
 import { processFarmDescription } from '@/lib/seo-utils'
 import FarmAnalytics from '@/components/FarmAnalytics'
+
+// Revalidate every 6 hours for fresh farm data
+export const revalidate = 21600
 
 async function readFarms(): Promise<FarmShop[]> {
   const file = path.join(process.cwd(), 'public', 'data', 'farms.uk.json')
@@ -52,12 +58,21 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       url: `${base}${url}`,
       title: shop.name,
       description: description,
-      // If you later add images per shop, list them here
+      images: [
+        {
+          url: `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county)}&type=farm`,
+          width: 1200,
+          height: 630,
+          alt: `${shop.name} - Farm shop in ${shop.location.county}`,
+          type: 'image/png',
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title: shop.name,
       description: description,
+      images: [`${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county)}&type=farm`],
     },
   }
 }
@@ -83,53 +98,98 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
     `&labels=${encodeURIComponent('data,report')}` +
     `&template=data_fix.yml`
 
-  // JSON-LD (LocalBusiness/GroceryStore)
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'GroceryStore',
-    '@id': `${base}/shop/${encodeURIComponent(shop.slug)}#store`,
-    name: shop.name,
-    url: `${base}/shop/${encodeURIComponent(shop.slug)}`,
-    image: Array.isArray(shop.images) && shop.images.length > 0 ? shop.images : undefined,
-    address: {
-      '@type': 'PostalAddress',
-      streetAddress: shop.location?.address || undefined,
-      addressLocality: shop.location?.county || undefined,
-      postalCode: shop.location?.postcode || undefined,
-      addressCountry: 'GB'
+  // Enhanced JSON-LD (GroceryStore + BreadcrumbList)
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'GroceryStore',
+      '@id': `${base}/shop/${encodeURIComponent(shop.slug)}#store`,
+      name: shop.name,
+      url: `${base}/shop/${encodeURIComponent(shop.slug)}`,
+      description: cleanDescription || `${shop.name} - Farm shop in ${shop.location.county}`,
+      image: Array.isArray(shop.images) && shop.images.length > 0 ? shop.images.slice(0, 3) : undefined,
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: shop.location?.address || '',
+        addressLocality: shop.location?.county || '',
+        addressRegion: shop.location?.county || '',
+        postalCode: shop.location?.postcode || '',
+        addressCountry: 'GB'
+      },
+      geo: shop.location.lat && shop.location.lng ? {
+        '@type': 'GeoCoordinates',
+        latitude: shop.location.lat,
+        longitude: shop.location.lng
+      } : undefined,
+      telephone: contact?.phone || undefined,
+      email: contact?.email || undefined,
+      sameAs: contact?.website ? [contact.website] : undefined,
+      // Opening hours, if provided
+      openingHoursSpecification:
+        Array.isArray(shop.hours) && shop.hours.length
+          ? shop.hours
+              .filter(h => h.open && h.close && h.day)
+              .map(h => ({
+                '@type': 'OpeningHoursSpecification',
+                dayOfWeek: dayToSchema(h.day),
+                opens: h.open,
+                closes: h.close
+              }))
+          : undefined,
+      // What they offer (keywords help discovery)
+      keywords: Array.isArray(offerings) && offerings.length ? offerings.join(', ') : undefined,
+      // Additional keywords from description
+      ...(keywords.length > 0 && { additionalKeywords: keywords.join(', ') }),
+      // Business type and verification
+      ...(verified && { 
+        hasCredential: {
+          '@type': 'EducationalOccupationalCredential',
+          credentialCategory: 'Verification',
+          name: 'Verified Farm Shop'
+        }
+      }),
+      // Serves cuisine type
+      servesCuisine: 'British',
+      // Price range
+      priceRange: '££',
+      // Payment accepted
+      paymentAccepted: 'Cash, Credit Card, Debit Card',
+      // Currencies accepted
+      currenciesAccepted: 'GBP'
     },
-    geo: {
-      '@type': 'GeoCoordinates',
-      latitude: shop.location.lat,
-      longitude: shop.location.lng
-    },
-    telephone: contact?.phone || undefined,
-    email: contact?.email || undefined,
-    sameAs: contact?.website ? [contact.website] : undefined,
-    // Opening hours, if provided
-    openingHoursSpecification:
-      Array.isArray(shop.hours) && shop.hours.length
-        ? shop.hours
-            .filter(h => h.open && h.close && h.day)
-            .map(h => ({
-              '@type': 'OpeningHoursSpecification',
-              dayOfWeek: dayToSchema(h.day),
-              opens: h.open,
-              closes: h.close
-            }))
-        : undefined,
-    // What they offer (keywords help discovery)
-    keywords: Array.isArray(offerings) && offerings.length ? offerings.join(', ') : undefined,
-    // Additional keywords from description
-    ...(keywords.length > 0 && { additionalKeywords: keywords.join(', ') })
-  }
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      '@id': `${base}/shop/${encodeURIComponent(shop.slug)}#breadcrumb`,
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'Home',
+          item: base
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: 'Farm Shops',
+          item: `${base}/shop`
+        },
+        {
+          '@type': 'ListItem',
+          position: 3,
+          name: shop.name,
+          item: `${base}/shop/${encodeURIComponent(shop.slug)}`
+        }
+      ]
+    }
+  ]
 
   return (
     <main className="min-h-screen bg-background-canvas">
-      {/* SEO: LocalBusiness JSON-LD */}
+      {/* SEO: LocalBusiness JSON-LD + Breadcrumbs */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(JSON.parse(JSON.stringify(jsonLd))) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <FarmAnalytics slug={shop.slug} name={shop.name} />
 
@@ -356,6 +416,57 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
               </div>
             )}
 
+            {/* Navigation Links */}
+            <div className="bg-background-surface rounded-2xl p-6 shadow-premium border border-border-default/30">
+              <h3 className="text-lg font-heading font-semibold text-text-heading mb-4 flex items-center gap-2">
+                <Navigation className="w-5 h-5 text-serum" />
+                Explore More
+              </h3>
+              <div className="space-y-3">
+                {location.county && (
+                  <Link
+                    href={`/counties/${location.county.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-colors group"
+                  >
+                    <MapPin className="w-5 h-5 text-serum" />
+                    <span className="text-sm font-medium text-text-body group-hover:text-serum transition-colors">
+                      More in {location.county}
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-text-muted ml-auto" />
+                  </Link>
+                )}
+                <Link
+                  href={`/map?q=${encodeURIComponent(name)}`}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-colors group"
+                >
+                  <Map className="w-5 h-5 text-serum" />
+                  <span className="text-sm font-medium text-text-body group-hover:text-serum transition-colors">
+                    View on Map
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-text-muted ml-auto" />
+                </Link>
+                <Link
+                  href={`/map?lat=${location.lat}&lng=${location.lng}&radius=10`}
+                  className="flex items-center gap-3 p-3 rounded-xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-colors group"
+                >
+                  <MapPin className="w-5 h-5 text-serum" />
+                  <span className="text-sm font-medium text-text-body group-hover:text-serum transition-colors">
+                    Nearby Farms
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-text-muted ml-auto" />
+                </Link>
+                <Link
+                  href="/seasonal"
+                  className="flex items-center gap-3 p-3 rounded-xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-colors group"
+                >
+                  <Calendar className="w-5 h-5 text-serum" />
+                  <span className="text-sm font-medium text-text-body group-hover:text-serum transition-colors">
+                    What&apos;s in Season
+                  </span>
+                  <ArrowRight className="w-4 h-4 text-text-muted ml-auto" />
+                </Link>
+              </div>
+            </div>
 
           </div>
         </div>

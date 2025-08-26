@@ -13,16 +13,22 @@
     "lighthouse": "lighthouse http://localhost:3000 --output=json --output-path=./lighthouse-report.json",
     "test:a11y": "playwright test --config=tests/a11y.config.ts",
     "test:performance": "lighthouse http://localhost:3000 --only-categories=performance --output=json",
-    "test:accessibility": "lighthouse http://localhost:3000 --only-categories=accessibility --output=json"
+    "test:accessibility": "lighthouse http://localhost:3000 --only-categories=accessibility --output=json",
+    "analyze": "ANALYZE=true npm run build",
+    "analyze:server": "ANALYZE=true npm run build && npm run start"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.6.2",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
+    "@tanstack/react-virtual": "^3.13.12",
     "@vercel/analytics": "^1.5.0",
+    "@vercel/blob": "^0.25.0",
+    "@vercel/kv": "^1.0.0",
     "@vis.gl/react-google-maps": "^1.5.5",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
+    "isomorphic-dompurify": "^2.12.0",
     "lucide-react": "^0.540.0",
     "next": "15.4.6",
     "node-fetch": "^3.3.2",
@@ -36,6 +42,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@next/bundle-analyzer": "^15.5.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
