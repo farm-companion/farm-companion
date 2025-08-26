@@ -7,7 +7,7 @@ import { getFarmStats } from '@/lib/farm-data'
 
 export const metadata: Metadata = {
   title: 'Farm Companion — UK Farm Shops Directory',
-  description: 'Discover 1,300+ authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information. Find farm shops near you, farmshopsnearme, farm shop near you with our interactive map and location-based search.',
+  description: 'Discover authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information. Find farm shops near you, farmshopsnearme, farm shop near you with our interactive map and location-based search.',
   keywords: [
     'farm shops', 'UK farm shops', 'local produce', 'fresh food', 'farm directory', 
     'farm shop near me', 'farmshopsnearme', 'farm shop near you', 'farms near me', 

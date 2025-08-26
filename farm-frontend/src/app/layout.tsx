@@ -95,7 +95,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     '@id': `${SITE_URL}#website`,
     url: SITE_URL,
     name: 'Farm Companion',
-    description: 'Discover 1,300+ authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information.',
+    description: 'Discover authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information.',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${SITE_URL}/map?query={search_term_string}`,

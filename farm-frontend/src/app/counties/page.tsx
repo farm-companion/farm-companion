@@ -16,13 +16,13 @@ export const revalidate = 21600
 // Metadata for SEO and clarity
 export const metadata: Metadata = {
   title: 'Farm Shops by County | Farm Companion',
-  description: 'Browse 1,300+ farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
+  description: 'Browse farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
   alternates: {
     canonical: `${SITE_URL}/counties`,
   },
   openGraph: {
     title: 'Farm Shops by County | Farm Companion',
-    description: 'Browse 1,300+ farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
+    description: 'Browse farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
     url: `${SITE_URL}/counties`,
     siteName: 'Farm Companion',
     images: [
@@ -39,7 +39,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Farm Shops by County | Farm Companion',
-    description: 'Browse 1,300+ farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
+    description: 'Browse farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
     images: [`${SITE_URL}/counties.jpg`],
   },
   robots: {

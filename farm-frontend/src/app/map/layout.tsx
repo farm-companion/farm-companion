@@ -1,14 +1,17 @@
 import type { Metadata } from 'next'
+import { getFarmStats } from '@/lib/farm-data'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://farmcompanion.co.uk'
 const mapUrl = `${siteUrl}/map`
-const itemCount = 1300 // consider deriving from your dataset at build time
 
-export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: 'Farm Shop Map - Find Local Farms Near You',
-  description:
-    'Interactive map of 1,300+ UK farm shops. Find farm shops near you with fresh local produce, seasonal guides, and verified farm information. Search by location, county, or postcode.',
+export async function generateMetadata(): Promise<Metadata> {
+  const { farmCount } = await getFarmStats()
+  
+  return {
+    metadataBase: new URL(siteUrl),
+    title: 'Farm Shop Map - Find Local Farms Near You',
+    description:
+      `Interactive map of ${farmCount}+ UK farm shops. Find farm shops near you with fresh local produce, seasonal guides, and verified farm information. Search by location, county, or postcode.`,
   keywords: [
     'farm shop map',
     'farm shops near me',
@@ -27,7 +30,7 @@ export const metadata: Metadata = {
     siteName: 'Farm Companion',
     title: 'Farm Shop Map - Find Local Farms Near You',
     description:
-      'Interactive map of 1,300+ UK farm shops. Find farm shops near you with fresh local produce and verified farm information.',
+      `Interactive map of ${farmCount}+ UK farm shops. Find farm shops near you with fresh local produce and verified farm information.`,
     images: [
       {
         url: `${siteUrl}/og?title=UK Farm Shop Map&subtitle=Find Farm Shops Near You&type=map`,
@@ -42,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Farm Shop Map - Find Local Farms Near You',
     description:
-      'Interactive map of 1,300+ UK farm shops. Find farm shops near you with fresh local produce and verified farm information.',
+      `Interactive map of ${farmCount}+ UK farm shops. Find farm shops near you with fresh local produce and verified farm information.`,
     images: [`${siteUrl}/og?title=UK Farm Shop Map&subtitle=Find Farm Shops Near You&type=map`],
     // site: '@yourhandle', // optional
   },
@@ -58,13 +61,16 @@ export const metadata: Metadata = {
       'max-video-preview': -1,
     },
   },
+  }
 }
 
-export default function MapLayout({
+export default async function MapLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const { farmCount } = await getFarmStats()
+  
   // JSON-LD: WebSite (with SearchAction) + CollectionPage with ItemList
   const jsonLd = [
     {
@@ -92,7 +98,7 @@ export default function MapLayout({
       mainEntity: {
         '@type': 'ItemList',
         name: 'UK Farm Shops',
-        numberOfItems: itemCount,
+        numberOfItems: farmCount,
         itemListOrder: 'http://schema.org/ItemListOrderAscending',
         itemListElement: [
           {
