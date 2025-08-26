@@ -5,6 +5,8 @@ import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
 import { FarmShop } from '@/types/farm'
 import { SITE_URL } from '@/lib/site'
+import CountiesSearch from '@/components/CountiesSearch'
+import BackToTop from '@/components/BackToTop'
 
 import type { Metadata } from 'next'
 
@@ -143,6 +145,11 @@ export default async function CountiesPage() {
       {/* Main Content */}
       <div id="counties-content" className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
 
+        {/* Search Bar */}
+        <div className="mb-8">
+          <CountiesSearch counties={Object.keys(farmsByCounty)} />
+        </div>
+
         {/* Counties Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {Object.entries(farmsByCounty).map(([county, countyFarms]) => (
@@ -196,6 +203,9 @@ export default async function CountiesPage() {
           </p>
         </div>
       </div>
+
+      {/* Back to Top Button */}
+      <BackToTop />
     </main>
   )
 }
