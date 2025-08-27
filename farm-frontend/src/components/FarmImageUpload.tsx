@@ -1,7 +1,12 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
-import { Upload, X, Image as ImageIcon, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
+import { Upload } from 'lucide-react'
+import { X } from 'lucide-react'
+import { Image as ImageIcon } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 interface FarmImageUploadProps {

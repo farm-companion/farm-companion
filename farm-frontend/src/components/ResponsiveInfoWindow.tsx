@@ -1,7 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { MapPin, Phone, Globe, Navigation, X } from 'lucide-react'
+import { MapPin } from 'lucide-react'
+import { Phone } from 'lucide-react'
+import { Globe } from 'lucide-react'
+import { Navigation } from 'lucide-react'
+import { X } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 
 interface ResponsiveInfoWindowProps {

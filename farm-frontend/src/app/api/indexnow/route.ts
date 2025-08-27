@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { SITE_URL } from '@/lib/site'
 
+// Use edge runtime for lightweight IndexNow operations
+export const runtime = 'edge'
+
 export async function POST(req: Request) {
   try {
     const { urls } = await req.json() // string[]
@@ -21,19 +24,25 @@ export async function POST(req: Request) {
       urlList: urls 
     }
     
-    const response = await fetch('https://api.indexnow.org/indexnow', { 
+    const apiResponse = await fetch('https://api.indexnow.org/indexnow', { 
       method: 'POST', 
       headers: { 'content-type': 'application/json' }, 
       body: JSON.stringify(body) 
     })
     
-    if (!response.ok) {
-      console.error('IndexNow API error:', response.status, response.statusText)
-      return NextResponse.json({ error: 'IndexNow API request failed' }, { status: response.status })
+    if (!apiResponse.ok) {
+      console.error('IndexNow API error:', apiResponse.status, apiResponse.statusText)
+      return NextResponse.json({ error: 'IndexNow API request failed' }, { status: apiResponse.status })
     }
     
     console.log(`IndexNow: Successfully pinged ${urls.length} URLs`)
-    return NextResponse.json({ ok: true, urlsSubmitted: urls.length })
+    
+    const response = NextResponse.json({ ok: true, urlsSubmitted: urls.length })
+    
+    // Add cache control headers for better performance
+    response.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=600')
+    
+    return response
     
   } catch (error) {
     console.error('IndexNow error:', error)

@@ -2,6 +2,8 @@
 
 import { useState, useRef } from 'react'
 import Image from 'next/image'
+import { Loader2 } from 'lucide-react'
+// Removed direct API call import - will use proxy instead
 
 interface PhotoSubmissionFormProps {
   farmSlug: string
@@ -33,8 +35,10 @@ export default function PhotoSubmissionForm({
   })
   
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submissionStep, setSubmissionStep] = useState<string>('')
   const [errors, setErrors] = useState<string[]>([])
   const [success, setSuccess] = useState(false)
+  const [isPhotoLimitError, setIsPhotoLimitError] = useState(false)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -132,6 +136,7 @@ export default function PhotoSubmissionForm({
     }
     
     setIsSubmitting(true)
+    setSubmissionStep('Preparing photo...')
     
     try {
       // Convert file to base64
@@ -142,10 +147,13 @@ export default function PhotoSubmissionForm({
         farmName,
         submitterName: formData.submitterName.trim(),
         submitterEmail: formData.submitterEmail.trim(),
-        photoDescription: formData.photoDescription.trim(),
+        description: formData.photoDescription.trim(),
         photoData: base64Data
       }
       
+      setSubmissionStep('Uploading to server...')
+      
+      // Submit via proxy to avoid CORS issues
       const response = await fetch('/api/photos', {
         method: 'POST',
         headers: {
@@ -154,37 +162,23 @@ export default function PhotoSubmissionForm({
         body: JSON.stringify(submissionData),
       })
       
-      // Check for specific HTTP status codes before parsing JSON
-      if (response.status === 413) {
-        setErrors(['File too large. Please select a smaller image (under 5MB).'])
-        return
-      }
-      
-      if (response.status === 429) {
-        setErrors(['Too many requests. Please wait a moment and try again.'])
-        return
-      }
-      
-      if (!response.ok) {
-        setErrors([`Server error (${response.status}). Please try again.`])
-        return
-      }
+      setSubmissionStep('Processing with AI...')
       
       const result = await response.json()
       
-      if (result.success) {
+      if (response.ok) {
         setSuccess(true)
         if (onSuccess) {
           onSuccess()
         }
       } else {
         // Handle specific error cases
-        if (result.error === 'Validation failed' && result.details) {
-          setErrors(result.details)
-        } else if (result.error) {
-          setErrors([result.error])
+        if (response.status === 409 && result.error === 'Photo limit reached') {
+          setErrors([result.message || 'This farm has reached the maximum number of photos. Please contact support if you\'d like to replace an existing photo.'])
+          setIsPhotoLimitError(true)
         } else {
-          setErrors(['Submission failed. Please try again.'])
+          setErrors([result.message || 'Submission failed. Please try again.'])
+          setIsPhotoLimitError(false)
         }
       }
     } catch (error) {
@@ -209,6 +203,7 @@ export default function PhotoSubmissionForm({
       }
     } finally {
       setIsSubmitting(false)
+      setSubmissionStep('')
     }
   }
 
@@ -219,6 +214,7 @@ export default function PhotoSubmissionForm({
     // Clear errors when user starts typing
     if (errors.length > 0) {
       setErrors([])
+      setIsPhotoLimitError(false)
     }
   }
 
@@ -247,7 +243,18 @@ export default function PhotoSubmissionForm({
   }
 
   return (
-    <div className="card">
+    <div className="card relative">
+      {/* Loading Overlay */}
+      {isSubmitting && (
+        <div className="absolute inset-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm rounded-lg flex items-center justify-center z-10">
+          <div className="text-center">
+            <Loader2 className="w-8 h-8 animate-spin text-serum mx-auto mb-3" />
+            <p className="text-text-heading font-medium">{submissionStep}</p>
+            <p className="text-text-muted text-sm mt-1">Please wait while we process your submission</p>
+          </div>
+        </div>
+      )}
+      
       <h2 className="text-2xl font-bold text-text-heading mb-6">
         Submit a Photo for {farmName}
       </h2>
@@ -388,6 +395,22 @@ export default function PhotoSubmissionForm({
                 <li key={index}>{error}</li>
               ))}
             </ul>
+            {isPhotoLimitError && (
+              <div className="mt-3 pt-3 border-t border-red-200">
+                <p className="text-sm text-red-700 mb-2">
+                  Need help? Contact our support team:
+                </p>
+                <a 
+                  href="mailto:hello@farmcompanion.co.uk?subject=Photo%20Replacement%20Request" 
+                  className="inline-flex items-center gap-2 text-sm text-red-800 hover:text-red-900 font-medium"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  hello@farmcompanion.co.uk
+                </a>
+              </div>
+            )}
           </div>
         )}
 
@@ -396,10 +419,17 @@ export default function PhotoSubmissionForm({
           <button
             type="submit"
             disabled={isSubmitting}
-            className="btn-primary flex-1"
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
             aria-describedby="submit-help"
           >
-            {isSubmitting ? 'Submitting...' : 'Submit Photo'}
+            {isSubmitting ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Submitting Photo...</span>
+              </>
+            ) : (
+              'Submit Photo'
+            )}
           </button>
           
           {onCancel && (

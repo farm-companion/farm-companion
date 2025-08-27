@@ -3,6 +3,9 @@ import { z } from 'zod'
 import { rateLimiters, getClientIP } from '@/lib/rate-limit'
 import { checkCsrf, trackIPReputation, isIPBlocked } from '@/lib/security'
 
+// Use edge runtime for lightweight consent operations
+export const runtime = 'edge'
+
 const ConsentSchema = z.object({
   ads: z.boolean(),
   analytics: z.boolean(),
@@ -88,23 +91,38 @@ export async function GET(req: NextRequest) {
     const consentCookie = req.cookies.get('fc_consent')?.value
     
     if (!consentCookie) {
-      return NextResponse.json({ 
+      const response = NextResponse.json({ 
         consent: { ads: false, analytics: false },
         hasConsent: false 
       })
+      
+      // Add cache control headers for better performance
+      response.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=600')
+      
+      return response
     }
 
     try {
       const consent = JSON.parse(consentCookie)
-      return NextResponse.json({ 
+      const response = NextResponse.json({ 
         consent,
         hasConsent: true 
       })
+      
+      // Add cache control headers for better performance
+      response.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=600')
+      
+      return response
     } catch {
-      return NextResponse.json({ 
+      const response = NextResponse.json({ 
         consent: { ads: false, analytics: false },
         hasConsent: false 
       })
+      
+      // Add cache control headers for better performance
+      response.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=600')
+      
+      return response
     }
 
   } catch (error) {

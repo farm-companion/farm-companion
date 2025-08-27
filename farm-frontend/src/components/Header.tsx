@@ -91,7 +91,7 @@ function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
           </div>
           
           {/* Mobile Navigation */}
-          <nav className="space-y-4">
+          <nav aria-label="Mobile navigation" className="space-y-4">
             <Link 
               href="/map" 
               className="block text-text-body hover:text-text-heading transition-colors touch-target px-4 py-3 rounded-lg hover:bg-background-canvas"
@@ -148,25 +148,33 @@ export default function Header() {
   const [isDarkMode, setIsDarkMode] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
 
-  // Smart scroll detection
+  // Smart scroll detection with requestAnimationFrame to prevent layout thrashing
   useEffect(() => {
+    let ticking = false
+    
     const handleScroll = () => {
-      const scrollY = window.scrollY
-      setIsScrolled(scrollY > 50)
-      
-      // Detect if we're over a dark header section
-      const headerSections = document.querySelectorAll('section[class*="h-[60vh]"], section[class*="h-screen"]')
-      let isOverDarkSection = false
-      
-      headerSections.forEach(section => {
-        const rect = section.getBoundingClientRect()
-        if (rect.top <= 0 && rect.bottom > 0) {
-          // We're over a header section
-          isOverDarkSection = true
-        }
-      })
-      
-      setIsDarkMode(isOverDarkSection)
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollY = window.scrollY
+          setIsScrolled(scrollY > 50)
+          
+          // Detect if we're over a dark header section
+          const headerSections = document.querySelectorAll('section[class*="h-[60vh]"], section[class*="h-screen"]')
+          let isOverDarkSection = false
+          
+          headerSections.forEach(section => {
+            const rect = section.getBoundingClientRect()
+            if (rect.top <= 0 && rect.bottom > 0) {
+              // We're over a header section
+              isOverDarkSection = true
+            }
+          })
+          
+          setIsDarkMode(isOverDarkSection)
+          ticking = false
+        })
+        ticking = true
+      }
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
@@ -185,7 +193,7 @@ export default function Header() {
 
   return (
     <>
-      <header className={`sticky top-0 z-40 transition-all duration-300 ${
+      <header className={`sticky top-0 z-40 transition-all duration-300 transform-gpu ${
         isDarkMode 
           ? 'bg-black/20 backdrop-blur-md border-white/10' 
           : isScrolled 

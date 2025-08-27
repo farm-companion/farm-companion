@@ -65,7 +65,7 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
   return (
     <Link
       href={`/seasonal/${produce.slug}`}
-      className={`group block bg-background-canvas rounded-xl border border-border-default p-6 hover:shadow-premium transition-all duration-200 hover-lift ${className}`}
+      className={`group block bg-background-canvas rounded-xl border border-border-default p-6 hover:shadow-premium animate-transform hover-lift ${className}`}
     >
       <div className="aspect-square bg-background-surface rounded-lg mb-4 overflow-hidden relative">
         {isLoading ? (
@@ -76,8 +76,10 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
               src={imageUrl}
               alt={imageAlt}
               fill
-              className="object-cover transition-transform duration-200 group-hover:scale-105"
+              className="object-cover animate-transform group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+              quality={80}
+              loading="lazy"
             />
             {/* API Image Indicator */}
             {hasApiImages && useApiImage && (

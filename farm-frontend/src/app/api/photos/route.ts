@@ -1,12 +1,12 @@
-// Farm Photos API - Local Storage Implementation
+// Farm Photos API - Farm Photos Service Integration
 // PuredgeOS 3.0 Compliant Photo Management
 
 import { NextRequest, NextResponse } from 'next/server'
 import { 
-  savePhotoSubmission, 
   getFarmPhotos,
-  getPendingPhotos
-} from '@/lib/photo-storage'
+  getPendingPhotosForAdmin
+} from '@/lib/farm-photos-api'
+import { FARM_PHOTOS_CONFIG, getFarmPhotosApiUrl } from '@/config/farm-photos'
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -20,46 +20,36 @@ export async function OPTIONS() {
   return new NextResponse(null, { headers: corsHeaders })
 }
 
-// POST - Submit New Photo
+// POST - Submit New Photo (Proxy to farm-photos service)
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
     
-    // Validate required fields
-    if (!body.farmSlug || !body.farmName || !body.submitterName || 
-        !body.submitterEmail || !body.photoData || (!body.description && !body.photoDescription)) {
-      return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400, headers: corsHeaders }
-      )
-    }
+    // Forward the request to the farm-photos service
+    const farmPhotosUrl = getFarmPhotosApiUrl(FARM_PHOTOS_CONFIG.ENDPOINTS.SUBMIT)
     
-    // Normalize field names
-    const submissionData = {
-      ...body,
-      description: body.description || body.photoDescription
-    }
+    const response = await fetch(farmPhotosUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    })
     
-    // Save photo submission
-    const result = await savePhotoSubmission(submissionData)
+    const result = await response.json()
     
-    if (result.success) {
-      return NextResponse.json({
-        success: true,
-        submissionId: result.submissionId,
-        message: 'Photo submitted successfully! It will be reviewed by our team.'
-      }, { headers: corsHeaders })
-    } else {
-      return NextResponse.json({
-        success: false,
-        error: result.error
-      }, { status: 400, headers: corsHeaders })
-    }
+    return NextResponse.json(result, { 
+      status: response.status,
+      headers: corsHeaders 
+    })
     
   } catch (error) {
-    console.error('Photo submission error:', error)
+    console.error('Error proxying photo submission:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { 
+        error: 'Internal server error',
+        message: 'Failed to process photo submission. Please try again.'
+      },
       { status: 500, headers: corsHeaders }
     )
   }
@@ -74,10 +64,25 @@ export async function GET(request: NextRequest) {
     
     // If no farm slug but status is pending, get all pending photos for admin
     if (!farmSlug && status === 'pending') {
-      const pendingPhotos = await getPendingPhotos()
+      // Forward to farm-photos admin endpoint
+      const farmPhotosUrl = getFarmPhotosApiUrl(FARM_PHOTOS_CONFIG.ENDPOINTS.GET_PENDING)
+      
+      console.log('Frontend proxy: Connecting to farm-photos at:', farmPhotosUrl)
+      console.log('Frontend proxy: API_URL config:', FARM_PHOTOS_CONFIG.API_URL)
+      console.log('Frontend proxy: Environment FARM_PHOTOS_API_URL:', process.env.FARM_PHOTOS_API_URL)
+      
+      const response = await fetch(farmPhotosUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+      
+      const result = await response.json()
+      
       return NextResponse.json({
-        photos: pendingPhotos,
-        total: pendingPhotos.length,
+        photos: result.photos || [],
+        total: result.totalCount || 0,
         status: 'pending'
       }, { headers: corsHeaders })
     }
@@ -90,12 +95,12 @@ export async function GET(request: NextRequest) {
       )
     }
     
-    // Get photos for the farm
+    // Get photos for the farm from farm-photos service
     const photos = await getFarmPhotos(farmSlug, status)
     
     return NextResponse.json({
-      photos,
-      total: photos.length,
+      photos: photos || [],
+      total: photos?.length || 0,
       farmSlug,
       status: status || 'all'
     }, { headers: corsHeaders })

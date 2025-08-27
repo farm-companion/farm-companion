@@ -101,6 +101,8 @@ export default function ShopImageGallery({ images, shopName, shopSlug }: ShopIma
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
               priority={selectedImage === 0}
+              quality={85}
+              loading={selectedImage === 0 ? "eager" : "lazy"}
               onClick={() => setIsModalOpen(true)}
               className="cursor-pointer object-cover transition-transform hover:scale-105"
             />
@@ -133,6 +135,8 @@ export default function ShopImageGallery({ images, shopName, shopSlug }: ShopIma
                     alt={`${shopName} thumbnail ${index + 1}`}
                     fill
                     sizes="(max-width: 768px) 20vw, 15vw"
+                    quality={75}
+                    loading="lazy"
                     className="object-cover"
                   />
                 </button>
@@ -174,6 +178,8 @@ export default function ShopImageGallery({ images, shopName, shopSlug }: ShopIma
                 height={800}
                 className="max-h-[90vh] max-w-[90vw] object-contain"
                 priority
+                quality={90}
+                sizes="90vw"
               />
             </div>
 

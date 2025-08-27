@@ -1,7 +1,12 @@
 'use client'
 
 import React from 'react'
-import { MapPin, Search, WifiOff, Clock, AlertCircle, Info } from 'lucide-react'
+import { MapPin } from 'lucide-react'
+import { Search } from 'lucide-react'
+import { WifiOff } from 'lucide-react'
+import { Clock } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import { Info } from 'lucide-react'
 
 interface EmptyStateProps {
   title: string

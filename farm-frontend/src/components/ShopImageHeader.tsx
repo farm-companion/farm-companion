@@ -122,8 +122,10 @@ export default function ShopImageHeader({ images, shopName, shopSlug }: ShopImag
           alt={`${shopName} - Photo ${currentImageIndex + 1}`}
           fill
           className="object-cover transition-opacity duration-500"
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={currentImageIndex === 0}
+          quality={85}
+          loading={currentImageIndex === 0 ? "eager" : "lazy"}
         />
         
         {/* Gradient overlay for better text readability */}

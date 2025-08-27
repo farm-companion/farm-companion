@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
+import Redis from 'ioredis'
 import { getCurrentUser } from '@/lib/auth'
+
+const redis = new Redis(process.env.REDIS_URL!)
 
 interface ReviewAction {
   action: 'approve' | 'reject' | 'request_changes'
@@ -31,20 +32,17 @@ export async function POST(
       )
     }
 
-    // Read the farm submission
-    const farmsDir = path.join(process.cwd(), 'data', 'farms')
-    const farmFile = path.join(farmsDir, `${farmId}.json`)
+    // Get the farm submission from Redis
+    const farmStr = await redis.hget('farm_submissions', farmId)
     
-    let farm
-    try {
-      const content = await fs.readFile(farmFile, 'utf-8')
-      farm = JSON.parse(content)
-    } catch (error) {
+    if (!farmStr) {
       return NextResponse.json(
         { error: 'Farm submission not found' },
         { status: 404 }
       )
     }
+
+    const farm = JSON.parse(farmStr)
 
     // Update farm status
     const now = new Date().toISOString()
@@ -60,8 +58,8 @@ export async function POST(
       })
     }
 
-    // Save updated farm
-    await fs.writeFile(farmFile, JSON.stringify(updatedFarm, null, 2))
+    // Save updated farm back to Redis
+    await redis.hset('farm_submissions', farmId, JSON.stringify(updatedFarm))
 
     // Send appropriate email notifications
     await sendReviewNotification(updatedFarm, action, notes)

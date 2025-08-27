@@ -194,6 +194,66 @@ export async function POST(request: NextRequest) {
   }
 }
 
+export async function GET(request: NextRequest) {
+  try {
+    const farms: any[] = []
+    
+    // Read from live farms directory (approved farms)
+    const liveFarmsDir = path.join(process.cwd(), 'data', 'live-farms')
+    
+    try {
+      const files = await fs.readdir(liveFarmsDir)
+      const jsonFiles = files.filter(file => file.endsWith('.json'))
+      
+      for (const file of jsonFiles) {
+        try {
+          const filePath = path.join(liveFarmsDir, file)
+          const content = await fs.readFile(filePath, 'utf-8')
+          const farm = JSON.parse(content)
+          farms.push(farm)
+        } catch (error) {
+          console.error(`Error reading farm file ${file}:`, error)
+        }
+      }
+    } catch (error) {
+      // Live farms directory doesn't exist yet, which is fine
+      console.log('No live farms directory found')
+    }
+    
+    // If no live farms, try to read from the main farms data file
+    if (farms.length === 0) {
+      try {
+        const farmsDataPath = path.join(process.cwd(), 'data', 'farms.json')
+        const content = await fs.readFile(farmsDataPath, 'utf-8')
+        const farmsData = JSON.parse(content)
+        farms.push(...farmsData)
+      } catch (error) {
+        console.log('No farms.json file found')
+      }
+    }
+    
+    // Sort farms by name
+    farms.sort((a, b) => a.name.localeCompare(b.name))
+    
+    const response = NextResponse.json({ 
+      farms,
+      total: farms.length
+    })
+    
+    // Add cache control headers for better performance
+    response.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=600')
+    
+    return response
+    
+  } catch (error) {
+    console.error('Error fetching farms:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 async function sendAdminNotification(farm: any) {
   // This would integrate with your email service (SendGrid, AWS SES, etc.)
   console.log('📧 FARM SUBMISSION NOTIFICATION:', {

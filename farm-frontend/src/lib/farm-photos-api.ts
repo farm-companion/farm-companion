@@ -103,6 +103,14 @@ class FarmPhotosAPI {
     })
   }
 
+  // Delete a photo permanently
+  async deletePhoto(photoId: string, reason?: string): Promise<{ success: boolean; message: string }> {
+    return this.request<{ success: boolean; message: string }>(`${FARM_PHOTOS_CONFIG.ENDPOINTS.DELETE_PHOTO}/${photoId}`, {
+      method: 'DELETE',
+      body: JSON.stringify({ reason }),
+    })
+  }
+
   // Get photo statistics
   async getPhotoStats(): Promise<{
     total: number
@@ -154,6 +162,16 @@ export async function rejectPhoto(photoId: string, reason: string, reviewerId?: 
     return result.success
   } catch (error) {
     console.error('Error rejecting photo:', error)
+    return false
+  }
+}
+
+export async function deletePhoto(photoId: string, reason?: string): Promise<boolean> {
+  try {
+    const result = await farmPhotosAPI.deletePhoto(photoId, reason)
+    return result.success
+  } catch (error) {
+    console.error('Error deleting photo:', error)
     return false
   }
 }

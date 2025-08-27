@@ -1,7 +1,10 @@
 'use client'
 
 import React, { Component, ReactNode } from 'react'
-import { MapPin, RefreshCw, AlertTriangle, WifiOff } from 'lucide-react'
+import { MapPin } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
+import { AlertTriangle } from 'lucide-react'
+import { WifiOff } from 'lucide-react'
 
 interface Props {
   children: ReactNode

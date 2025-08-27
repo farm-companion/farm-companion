@@ -66,11 +66,6 @@ export default function NotFound() {
 
   return (
     <div className="min-h-screen bg-background-canvas">
-      {/* Skip Link for Accessibility */}
-      <a href="#main" className="skip-link">
-        Skip to main content
-      </a>
-
       <main id="main" className="container mx-auto px-4 py-8">
         {/* Hero Section */}
         <section className="text-center py-16 max-w-4xl mx-auto">

@@ -5,51 +5,56 @@ import { MapPin, ArrowRight, Leaf, Calendar, Heart } from 'lucide-react'
 import NewsletterSignup from '@/components/NewsletterSignup'
 import { getFarmStatsServer } from '@/lib/farm-data-server'
 
-export const metadata: Metadata = {
-  title: 'Farm Companion — UK Farm Shops Directory',
-  description: 'Discover authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information. Find farm shops near you, farmshopsnearme, farm shop near you with our interactive map and location-based search.',
-  keywords: [
-    'farm shops', 'UK farm shops', 'local produce', 'fresh food', 'farm directory', 
-    'farm shop near me', 'farmshopsnearme', 'farm shop near you', 'farms near me', 
-    'local farms', 'seasonal produce', 'farm fresh', 'UK farms', 'farm shop directory', 
-    'local food', 'farm to table', 'farm shops near me', 'farm shops near you',
-    'farm shop directory near me', 'farm shops UK', 'local farm shops', 'farm shop finder',
-    'farm shops map', 'farm shop locations', 'farm shop search', 'farm shop locator',
-    'farm shops in my area', 'farm shops nearby', 'farm shops close to me',
-    'farm shop directory UK', 'farm shop finder near me', 'farm shop search near me'
-  ],
-  openGraph: {
+export async function generateMetadata(): Promise<Metadata> {
+  return {
     title: 'Farm Companion — UK Farm Shops Directory',
-    description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
-    url: 'https://farmcompanion.co.uk',
-    siteName: 'Farm Companion',
-    images: [
-      {
-        url: '/og.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Farm Companion - UK farm shops directory',
-      },
+    description: 'Discover authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information. Find farm shops near you, farmshopsnearme, farm shop near you with our interactive map and location-based search.',
+    keywords: [
+      'farm shops', 'UK farm shops', 'local produce', 'fresh food', 'farm directory', 
+      'farm shop near me', 'farmshopsnearme', 'farm shop near you', 'farms near me', 
+      'local farms', 'seasonal produce', 'farm fresh', 'UK farms', 'farm shop directory', 
+      'local food', 'farm to table', 'farm shops near me', 'farm shops near you',
+      'farm shop directory near me', 'farm shops UK', 'local farm shops', 'farm shop finder',
+      'farm shops map', 'farm shop locations', 'farm shop search', 'farm shop locator',
+      'farm shops in my area', 'farm shops nearby', 'farm shops close to me',
+      'farm shop directory UK', 'farm shop finder near me', 'farm shop search near me'
     ],
-    locale: 'en_GB',
-    type: 'website',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Farm Companion — UK Farm Shops Directory',
-    description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
-    images: ['/og.jpg'],
-  },
-  alternates: {
-    canonical: '/',
-  },
+    openGraph: {
+      title: 'Farm Companion — UK Farm Shops Directory',
+      description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
+      url: 'https://farmcompanion.co.uk',
+      siteName: 'Farm Companion',
+      images: [
+        {
+          url: '/og.jpg',
+          width: 1200,
+          height: 630,
+          alt: 'Farm Companion - UK farm shops directory',
+        },
+      ],
+      locale: 'en_GB',
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Farm Companion — UK Farm Shops Directory',
+      description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
+      images: ['/og.jpg'],
+    },
+    alternates: {
+      canonical: '/',
+    },
+  }
 }
+
+// Enable ISR for better TTFB performance
+export const revalidate = 3600 // Revalidate every hour
 
 export default async function HomePage() {
   const { farmCount, countyCount } = await getFarmStatsServer()
 
   return (
-    <main className="min-h-screen bg-background-canvas">
+    <div className="min-h-screen bg-background-canvas">
       {/* Professional Hero Section with Image Overlay */}
       <section className="relative h-screen min-h-[600px] max-h-[800px] overflow-hidden">
         {/* Background Image with Professional Handling */}
@@ -60,7 +65,8 @@ export default async function HomePage() {
             fill
             className="object-cover object-center"
             priority
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 100vw"
+            fetchPriority="high"
+            sizes="100vw"
             quality={85}
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
@@ -76,10 +82,11 @@ export default async function HomePage() {
         {/* Content Overlay */}
         <div className="relative h-full flex items-center justify-center">
           <div className="text-center max-w-4xl mx-auto px-6">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+            <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
+            <h2 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Find Fresh Local
               <span className="block text-serum drop-shadow-lg">Farm Shops</span>
-            </h1>
+            </h2>
             <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Find farm shops near you with fresh local produce, seasonal UK fruit and vegetables, 
               and authentic farm experiences across {countyCount} counties.
@@ -114,8 +121,9 @@ export default async function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-background-canvas border-b border-border-default">
+      <section aria-labelledby="site-stats" className="bg-background-canvas border-b border-border-default">
         <div className="max-w-7xl mx-auto px-6 py-12">
+          <h2 id="site-stats" className="sr-only">Site Statistics</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-center">
             <div>
               <div className="text-4xl font-heading font-bold text-serum mb-2">{farmCount}+</div>
@@ -174,13 +182,16 @@ export default async function HomePage() {
         {/* Multi-layer Parallax Background */}
         <div className="absolute inset-0">
           {/* Primary background with parallax */}
-          <div 
-            className="absolute inset-0 bg-cover bg-center transform scale-110 transition-transform duration-1000 ease-out" 
-            style={{ 
-              backgroundImage: 'url(/counties.jpg)',
-              backgroundAttachment: 'fixed',
-              backgroundPosition: 'center 20%'
-            }}
+          <Image
+            src="/counties.jpg"
+            alt="UK countryside landscape with rolling hills and farmland"
+            fill
+            className="object-cover object-center transform scale-110 transition-transform duration-1000 ease-out"
+            sizes="100vw"
+            quality={80}
+            priority
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
           
           {/* Animated overlay gradients */}
@@ -228,14 +239,14 @@ export default async function HomePage() {
 
 
       {/* Newsletter Section */}
-      <section className="py-16">
+      <section className="py-16 section-lazy">
         <div className="max-w-4xl mx-auto px-6">
           <NewsletterSignup />
         </div>
       </section>
 
       {/* SEO Content Section with Subtle Geometric Pattern */}
-      <section className="relative bg-background-canvas border-t border-border-default overflow-hidden">
+      <section className="relative bg-background-canvas border-t border-border-default overflow-hidden section-lazy">
         {/* Subtle Geometric Pattern Background */}
         <div className="absolute inset-0 opacity-[0.03]">
           <div className="absolute inset-0" style={{
@@ -331,6 +342,6 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   )
 }

@@ -1,7 +1,18 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight, MapPin, Calendar, Users, Shield, Leaf, Star, Mail, ChevronDown, Check, Search, Clock } from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
+import { MapPin } from 'lucide-react'
+import { Calendar } from 'lucide-react'
+import { Users } from 'lucide-react'
+import { Shield } from 'lucide-react'
+import { Leaf } from 'lucide-react'
+import { Star } from 'lucide-react'
+import { Mail } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
+import { Check } from 'lucide-react'
+import { Search } from 'lucide-react'
+import { Clock } from 'lucide-react'
 import { SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
@@ -51,7 +62,11 @@ export default function AboutPage() {
             fill
             className="object-cover object-center"
             priority
+            fetchPriority="high"
             sizes="100vw"
+            quality={85}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
           {/* Professional Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />

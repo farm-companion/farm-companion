@@ -5,8 +5,8 @@ export const FARM_PHOTOS_CONFIG = {
   // API URL for the farm-photos system
   // The farm-photos service runs on its own port
   API_URL: process.env.NODE_ENV === 'production' 
-    ? (process.env.FARM_PHOTOS_API_URL || 'https://farm-photos-1da81wvr0-abdur-rahman-morris-projects.vercel.app') // Production URL
-    : (process.env.FARM_PHOTOS_API_URL || 'https://farm-photos-1da81wvr0-abdur-rahman-morris-projects.vercel.app'), // Development URL - use production since auth disabled
+    ? (process.env.FARM_PHOTOS_API_URL || 'https://farm-photos-dlci9fl2o-abdur-rahman-morris-projects.vercel.app') // Production URL
+    : (process.env.FARM_PHOTOS_API_URL || 'http://localhost:3000'), // Development URL - use local farm-photos service
   
   // Photo submission settings
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB
@@ -39,7 +39,7 @@ export const FARM_PHOTOS_CONFIG = {
     GET_PHOTO: '/api/photos',
     UPDATE_STATUS: '/api/photos',
     DELETE_PHOTO: '/api/photos',
-    GET_PENDING: '/api/photos?status=pending',
+    GET_PENDING: '/api/admin/pending-photos',
     GET_DELETION_REQUESTS: '/api/photos/deletion-requests',
     REVIEW_DELETION: '/api/photos/deletion-requests',
     GET_RECOVERABLE: '/api/photos/recoverable',

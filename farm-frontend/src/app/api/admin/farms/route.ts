@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
+import Redis from 'ioredis'
 import { getCurrentUser } from '@/lib/auth'
+
+const redis = new Redis(process.env.REDIS_URL!)
 
 export async function GET(request: NextRequest) {
   try {
@@ -11,38 +12,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    // Ensure farms directory exists
-    const farmsDir = path.join(process.cwd(), 'data', 'farms')
+    // Get all farm submissions from Redis
+    const submissions = await redis.hgetall('farm_submissions') || {}
     
-    try {
-      await fs.access(farmsDir)
-    } catch {
-      // Directory doesn't exist, return empty array
-      return NextResponse.json({ submissions: [] })
-    }
-
-    // Read all farm submission files
-    const files = await fs.readdir(farmsDir)
-    const jsonFiles = files.filter(file => file.endsWith('.json'))
-    
-    const submissions = []
-    
-    for (const file of jsonFiles) {
-      try {
-        const filePath = path.join(farmsDir, file)
-        const content = await fs.readFile(filePath, 'utf-8')
-        const submission = JSON.parse(content)
-        submissions.push(submission)
-      } catch (error) {
-        console.error(`Error reading farm submission file ${file}:`, error)
-        // Continue with other files
+    // Convert to array and sort by submission date (newest first)
+    const submissionsArray = Object.entries(submissions).map(([id, submissionStr]) => {
+      const submission = JSON.parse(submissionStr as string)
+      return {
+        ...submission,
+        id,
+        submittedAt: submission.submittedAt || new Date().toISOString()
       }
-    }
+    })
+    
+    submissionsArray.sort((a: any, b: any) => 
+      new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+    )
 
-    // Sort by submission date (newest first)
-    submissions.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
-
-    return NextResponse.json({ submissions })
+    return NextResponse.json({ submissions: submissionsArray })
 
   } catch (error) {
     console.error('Error fetching farm submissions:', error)

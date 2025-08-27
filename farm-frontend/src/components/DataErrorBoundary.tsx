@@ -1,7 +1,10 @@
 'use client'
 
 import React, { Component, ReactNode } from 'react'
-import { Database, RefreshCw, WifiOff, Search } from 'lucide-react'
+import { Database } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
+import { WifiOff } from 'lucide-react'
+import { Search } from 'lucide-react'
 
 interface Props {
   children: ReactNode

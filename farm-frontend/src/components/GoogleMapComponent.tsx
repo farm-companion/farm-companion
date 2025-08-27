@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useMap } from '@vis.gl/react-google-maps'
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
 import { 
@@ -10,20 +10,8 @@ import {
   Navigation, 
   X, 
   Settings, 
-  Search, 
-  Mail, 
-  Heart, 
-  Clock, 
-  Star, 
-  Users, 
-  TrendingUp, 
-  Filter, 
-  Layers, 
   Maximize2, 
-  Minimize2, 
-  Eye, 
-  EyeOff, 
-  Info 
+  Minimize2
 } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import TransitionIndicator from './TransitionIndicator'
@@ -31,8 +19,6 @@ import ResponsiveInfoWindow from './ResponsiveInfoWindow'
 
 // Performance constants
 const MAX_MARKERS_IN_VIEW = 500
-const SEARCH_DEBOUNCE_MS = 300
-const CLUSTER_RADIUS = 50 // meters
 
 // Custom hook for mobile detection
 const useIsMobile = () => {
@@ -51,19 +37,7 @@ const useIsMobile = () => {
   return isMobile
 }
 
-// Debounced search hook
-const useDebouncedSearch = (callback: (query: string) => void, delay: number) => {
-  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
-  
-  const debouncedCallback = useCallback((query: string) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current)
-    }
-    timeoutRef.current = setTimeout(() => callback(query), delay)
-  }, [callback, delay])
-  
-  return debouncedCallback
-}
+
 
 // Safari detection utility
 const isSafari = () => {
@@ -565,13 +539,15 @@ function FarmMap({
               const neWorldPoint = new google.maps.Point(nePoint.x * scale, nePoint.y * scale)
               const swWorldPoint = new google.maps.Point(swPoint.x * scale, swPoint.y * scale)
               
-              // Calculate screen coordinates
-              const mapDiv = map.getDiv()
-              const mapRect = mapDiv.getBoundingClientRect()
-              const x = ((worldPoint.x - swWorldPoint.x) / (neWorldPoint.x - swWorldPoint.x)) * mapRect.width
-              const y = ((worldPoint.y - swWorldPoint.y) / (neWorldPoint.y - swWorldPoint.y)) * mapRect.height
-              
-              setMarkerPosition({ x, y })
+              // Calculate screen coordinates with requestAnimationFrame to prevent layout thrashing
+              requestAnimationFrame(() => {
+                const mapDiv = map.getDiv()
+                const mapRect = mapDiv.getBoundingClientRect()
+                const x = ((worldPoint.x - swWorldPoint.x) / (neWorldPoint.x - swWorldPoint.x)) * mapRect.width
+                const y = ((worldPoint.y - swWorldPoint.y) / (neWorldPoint.y - swWorldPoint.y)) * mapRect.height
+                
+                setMarkerPosition({ x, y })
+              })
             }
           }
         }

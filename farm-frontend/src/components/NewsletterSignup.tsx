@@ -2,7 +2,10 @@
 
 import React, { useState } from 'react'
 import { Button } from '@/components/ui'
-import { Mail, CheckCircle, AlertCircle, Loader2 } from 'lucide-react'
+import { Mail } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 
 interface NewsletterSignupProps {
   className?: string

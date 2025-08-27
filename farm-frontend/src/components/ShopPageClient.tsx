@@ -2,7 +2,12 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
-import { MapPin, Phone, Clock, Star, Map, Calendar } from 'lucide-react'
+import { MapPin } from 'lucide-react'
+import { Phone } from 'lucide-react'
+import { Clock } from 'lucide-react'
+import { Star } from 'lucide-react'
+import { Map } from 'lucide-react'
+import { Calendar } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { cleanDescription } from '@/lib/seo-utils'
 import FarmSearchBar from './FarmSearchBar'

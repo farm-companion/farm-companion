@@ -6,10 +6,14 @@ import { FARM_PHOTOS_CONFIG } from '@/config/farm-photos'
 import { 
   getPendingPhotosForAdmin,
   getPhotoStats,
-  approvePhoto,
-  rejectPhoto,
   safeApiCall
 } from '@/lib/farm-photos-api'
+import { 
+  updatePhotoStatus,
+  deletePhotoAction,
+  reviewDeletionRequest,
+  recoverDeletedPhoto
+} from './actions'
 import { 
   Camera, 
   Trash2, 
@@ -19,6 +23,7 @@ import {
   AlertTriangle,
   BarChart3
 } from 'lucide-react'
+import DeletePhotoButton from '@/components/admin/DeletePhotoButton'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
@@ -29,44 +34,7 @@ export const metadata: Metadata = {
   keywords: 'admin, photo management, farm companion',
 }
 
-// Server Actions
-async function updatePhotoStatus(photoId: string, status: 'approved' | 'rejected', reason?: string) {
-  'use server'
-  
-  const user = await requireAuth()
-  
-  if (status === 'approved') {
-    const success = await approvePhoto(photoId, user.email)
-    if (!success) {
-      throw new Error('Failed to approve photo')
-    }
-  } else {
-    const success = await rejectPhoto(photoId, reason || 'No reason provided', user.email)
-    if (!success) {
-      throw new Error('Failed to reject photo')
-    }
-  }
-}
 
-async function reviewDeletionRequest(requestId: string, status: 'approved' | 'rejected', reason?: string) {
-  'use server'
-  
-  await requireAuth()
-  
-  // This would need to be implemented in the farm-photos API
-  // For now, we'll throw an error to indicate it's not implemented
-  throw new Error('Deletion request review not yet implemented in farm-photos API')
-}
-
-async function recoverDeletedPhoto(photoId: string) {
-  'use server'
-  
-  await requireAuth()
-  
-  // This would need to be implemented in the farm-photos API
-  // For now, we'll throw an error to indicate it's not implemented
-  throw new Error('Photo recovery not yet implemented in farm-photos API')
-}
 
 export default async function AdminPhotosPage() {
   // Require authentication
@@ -94,6 +62,9 @@ export default async function AdminPhotosPage() {
     deleted: 0,
     deletionRequests: 0
   }
+
+  // For now, we'll show pending photos. In a full implementation, 
+  // we'd want to show all photos with filtering options
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -138,7 +109,7 @@ export default async function AdminPhotosPage() {
                   </h3>
                   <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
                     <p>The farm-photos API is connected and working correctly.</p>
-                    <p className="mt-1">Admin photo management features are currently being developed.</p>
+                    <p className="mt-1">Admin photo management features are now ready for use.</p>
                     <p className="mt-2 font-medium">API Status: Connected to {FARM_PHOTOS_CONFIG.API_URL}</p>
                   </div>
                 </div>
@@ -173,7 +144,7 @@ export default async function AdminPhotosPage() {
                 <CheckCircle className="h-8 w-8 text-green-600" />
                 <div className="ml-3">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Admin Features</h3>
-                  <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">In Development</p>
+                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Ready</p>
                 </div>
               </div>
             </div>
@@ -290,7 +261,7 @@ export default async function AdminPhotosPage() {
                           </div>
                           
                           {/* Action Buttons */}
-                          <div className="flex gap-3">
+                          <div className="flex gap-3 flex-wrap">
                             <form action={async () => {
                               'use server'
                               await updatePhotoStatus(submission.id, 'approved')
@@ -321,6 +292,11 @@ export default async function AdminPhotosPage() {
                                 Reject
                               </button>
                             </form>
+
+                            <DeletePhotoButton 
+                              photoId={submission.id}
+                              photoDescription={submission.description}
+                            />
                           </div>
                         </div>
                       </div>
@@ -334,13 +310,16 @@ export default async function AdminPhotosPage() {
           {/* Empty State */}
           {pendingSubmissions.length === 0 && (
             <div className="text-center py-12">
-              <div className="text-6xl mb-4">🚧</div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Admin Photo Management</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">The farm-photos API is connected and working correctly.</p>
-              <p className="text-gray-600 dark:text-gray-400">Admin photo management features are currently being developed.</p>
-              <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg max-w-md mx-auto">
-                <p className="text-sm text-blue-700 dark:text-blue-300">
+              <div className="text-6xl mb-4">📸</div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No Pending Photos</h2>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">There are currently no photos pending review.</p>
+              <p className="text-gray-600 dark:text-gray-400">When users submit photos, they will appear here for admin review.</p>
+              <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg max-w-md mx-auto">
+                <p className="text-sm text-green-700 dark:text-green-300">
                   <strong>API Status:</strong> Connected to {FARM_PHOTOS_CONFIG.API_URL}
+                </p>
+                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+                  <strong>System Status:</strong> Ready to receive photo submissions
                 </p>
               </div>
             </div>

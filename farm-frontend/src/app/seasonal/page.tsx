@@ -98,7 +98,7 @@ function SeasonalContent({ month, inSeasonProduce, atPeakProduce, monthName }: {
       </section>
 
       {/* Produce Gallery */}
-      <section>
+      <section className="section-lazy">
         <h2 className="text-2xl font-heading font-semibold text-text-heading mb-6">
           Fresh & In Season
         </h2>
@@ -162,7 +162,11 @@ export default async function SeasonalPage() {
             fill
             className="object-cover object-center"
             priority
+            fetchPriority="high"
             sizes="100vw"
+            quality={85}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
           {/* Professional Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/40" />
@@ -235,13 +239,17 @@ export default async function SeasonalPage() {
       {/* Find Fresh Seasonal Produce Section with Parallax */}
       <section className="relative bg-background-surface border-t border-border-default overflow-hidden">
         {/* Parallax Background */}
-        <div className="absolute inset-0 transform scale-110 transition-transform duration-1000 ease-out" style={{
-          backgroundImage: 'url(/produce-secondary-image.jpg)',
-          backgroundAttachment: 'fixed',
-          backgroundPosition: 'center 30%',
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat'
-        }} />
+        <Image
+          src="/produce-secondary-image.jpg"
+          alt="Fresh seasonal produce including colorful vegetables and fruits"
+          fill
+          className="object-cover object-center transform scale-110 transition-transform duration-1000 ease-out"
+          sizes="100vw"
+          quality={80}
+          loading="lazy"
+          placeholder="blur"
+          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+        />
         
         {/* Gradient Overlays for Text Readability */}
         <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-black/20 to-black/50" />

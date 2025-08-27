@@ -2,7 +2,16 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react'
 import type { ChangeEvent } from 'react'
-import { Leaf, Clock, Phone, FileText, CheckCircle, AlertCircle, Loader2, Download, Eye, Camera } from 'lucide-react'
+import { Leaf } from 'lucide-react'
+import { Clock } from 'lucide-react'
+import { Phone } from 'lucide-react'
+import { FileText } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
+import { AlertCircle } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
+import { Download } from 'lucide-react'
+import { Eye } from 'lucide-react'
+import { Camera } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import PhotoSubmissionForm from '@/components/PhotoSubmissionForm'
 import FarmImageUpload from '@/components/FarmImageUpload'
@@ -274,7 +283,11 @@ export default function AddFarmPage() {
             fill
             className="object-cover object-center"
             priority
+            fetchPriority="high"
             sizes="100vw"
+            quality={85}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
           {/* Professional Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/40" />

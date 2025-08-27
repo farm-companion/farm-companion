@@ -1,4 +1,11 @@
-import { CheckCircle, Download, Clock, Mail, Phone, MapPin, FileText, Image as ImageIcon } from 'lucide-react'
+import { CheckCircle } from 'lucide-react'
+import { Download } from 'lucide-react'
+import { Clock } from 'lucide-react'
+import { Mail } from 'lucide-react'
+import { Phone } from 'lucide-react'
+import { MapPin } from 'lucide-react'
+import { FileText } from 'lucide-react'
+import { Image as ImageIcon } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 
