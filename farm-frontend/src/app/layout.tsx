@@ -1,12 +1,24 @@
 import './globals.css'
 
 import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import Script from 'next/script'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
 import Header from '@/components/Header'
 import FooterWrapper from '@/components/FooterWrapper'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
 import { SITE_URL } from '@/lib/site'
+
+// Optimize font loading with next/font - preload primary weights
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+  preload: true,
+  fallback: ['system-ui', 'arial'],
+  weight: ['400', '500', '600', '700'],
+})
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -104,27 +116,51 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <head>
-        {/* Site-wide structured data */}
-        <script
+        {/* Site-wide structured data - optimized with next/script */}
+        <Script
+          id="site-jsonld"
           type="application/ld+json"
+          strategy="afterInteractive"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
         />
         
-        {/* Preload critical header images */}
-        <link rel="preload" href="/overlay-banner.jpg" as="image" type="image/jpeg" />
-        <link rel="preload" href="/seasonal-header.jpg" as="image" type="image/jpeg" />
-        <link rel="preload" href="/about-header.jpg" as="image" type="image/jpeg" />
-        <link rel="preload" href="/counties.jpg" as="image" type="image/jpeg" />
+        {/* Critical CSS - inlined to prevent render-blocking */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            .skip-link {
+              position: absolute;
+              top: -40px;
+              left: 6px;
+              background: #00C2B2;
+              color: white;
+              padding: 8px;
+              text-decoration: none;
+              border-radius: 4px;
+              z-index: 1000;
+              transition: top 0.2s ease;
+            }
+            .skip-link:focus {
+              top: 6px;
+            }
+            .theme-ready {
+              visibility: visible;
+            }
+            html:not(.theme-ready) {
+              visibility: hidden;
+            }
+            /* Fallback: ensure content is visible after 2 seconds */
+            html.theme-ready {
+              visibility: visible !important;
+            }
+          `
+        }} />
+        
+        {/* Preload critical LCP resources */}
+        <link rel="preload" href="/overlay-banner.jpg" as="image" type="image/jpeg" fetchPriority="high" />
         
         {/* Google Analytics - now handled by AnalyticsLoader component */}
-        
-        {/* Font declarations */}
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
-        />
         
         {/* PWA manifest */}
         <link rel="manifest" href="/manifest.json" />
@@ -137,21 +173,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
         
-        {/* DNS prefetch for external resources */}
-        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        <link rel="dns-prefetch" href="//fonts.gstatic.com" />
-        
-        {/* Preconnect to map tiles and CDN domains for performance */}
+        {/* Preconnect to critical domains for performance - optimized network tree */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://maps.googleapis.com" />
         <link rel="preconnect" href="https://maps.gstatic.com" />
-        <link rel="preconnect" href="https://www.google-analytics.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         
         {/* Bing Webmaster Tools Verification */}
         <meta name="msvalidate.01" content="D5F792E19E823EAE982BA6AB25F2B588" />
         
-        {/* Theme detection script - prevents hydration mismatch */}
-        <script
+        {/* Theme detection script - optimized with next/script */}
+        <Script
+          id="theme-detection"
+          strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
               (function() {
@@ -182,13 +217,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     }
                   });
                   
-                  // Mark theme as ready and show content
+                  // Mark theme as ready and show content immediately
                   document.documentElement.classList.add('theme-ready');
+                  
+                  // Also ensure content is visible after DOM is ready
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                      document.documentElement.classList.add('theme-ready');
+                    });
+                  } else {
+                    document.documentElement.classList.add('theme-ready');
+                  }
+                  
                 } catch (e) {
                   console.warn('Theme detection failed:', e);
                   // Fallback: show content even if theme detection fails
                   document.documentElement.classList.add('theme-ready');
                 }
+                
+                // Ensure content is always visible after a short delay as final fallback
+                setTimeout(function() {
+                  document.documentElement.classList.add('theme-ready');
+                }, 50);
               })();
             `,
           }}
