@@ -38,18 +38,27 @@ export default function FarmImageUpload({
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dropZoneRef = useRef<HTMLDivElement>(null)
 
-  const validateFile = (file: File): string | null => {
-    // Check file type
-    if (!file.type.startsWith('image/')) {
-      return 'Please select a valid image file (JPEG, PNG, or WebP)'
-    }
-    
-    // Check file size (5MB limit)
-    if (file.size > 5 * 1024 * 1024) {
-      return 'Image must be smaller than 5MB'
-    }
-    
-    return null
+  // Client guardrails for file validation
+  const ALLOWED = new Set(['image/jpeg','image/png','image/webp']);
+  const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+  const MIN_W = 800, MIN_H = 600;
+
+  function validateBasic(file: File): string | null {
+    if (!ALLOWED.has(file.type)) return 'Please upload a JPG, PNG, or WebP.';
+    if (file.size > MAX_BYTES)    return 'Please keep images under 5 MB.';
+    return null;
+  }
+
+  async function validateDims(file: File): Promise<string | null> {
+    const url = URL.createObjectURL(file);
+    const ok = await new Promise<boolean>((res) => {
+      const img = new Image();
+      img.onload = () => res(img.naturalWidth >= MIN_W && img.naturalHeight >= MIN_H);
+      img.onerror = () => res(false);
+      img.src = url;
+    });
+    URL.revokeObjectURL(url);
+    return ok ? null : `Minimum size is ${MIN_W}×${MIN_H}px.`;
   }
 
   const createImagePreview = (file: File): Promise<ImagePreview> => {
@@ -73,14 +82,23 @@ export default function FarmImageUpload({
     const validFiles: File[] = []
     const newErrors: string[] = []
 
-    // Validate files
+    // Validate files with enhanced guardrails
     for (const file of fileArray) {
-      const error = validateFile(file)
-      if (error) {
-        newErrors.push(`${file.name}: ${error}`)
-      } else {
-        validFiles.push(file)
+      // Basic validation (type and size)
+      const basicError = validateBasic(file)
+      if (basicError) {
+        newErrors.push(`${file.name}: ${basicError}`)
+        continue
       }
+      
+      // Dimension validation
+      const dimError = await validateDims(file)
+      if (dimError) {
+        newErrors.push(`${file.name}: ${dimError}`)
+        continue
+      }
+      
+      validFiles.push(file)
     }
 
     if (newErrors.length > 0) {
@@ -187,7 +205,7 @@ export default function FarmImageUpload({
               Drag and drop up to {maxImages} images here, or click to browse
             </p>
             <p className="text-sm text-text-muted">
-              Supported formats: JPEG, PNG, WebP (max 5MB each)
+              Supported formats: JPEG, PNG, WebP (max 5MB each, min {MIN_W}×{MIN_H}px)
             </p>
           </div>
         </div>
@@ -326,7 +344,7 @@ export default function FarmImageUpload({
               <li>• Upload up to {maxImages} high-quality images of your farm</li>
               <li>• Show your produce, farm shop, or farm activities</li>
               <li>• Images will be reviewed before being added to your listing</li>
-              <li>• Supported formats: JPEG, PNG, WebP (max 5MB each)</li>
+              <li>• Supported formats: JPEG, PNG, WebP (max 5MB each, min {MIN_W}×{MIN_H}px)</li>
             </ul>
           </div>
         </div>

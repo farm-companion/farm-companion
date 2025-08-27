@@ -4,9 +4,7 @@
 export const FARM_PHOTOS_CONFIG = {
   // API URL for the farm-photos system
   // The farm-photos service runs on its own port
-  API_URL: process.env.NODE_ENV === 'production' 
-    ? (process.env.FARM_PHOTOS_API_URL || 'https://farm-photos-dlci9fl2o-abdur-rahman-morris-projects.vercel.app') // Production URL
-    : (process.env.FARM_PHOTOS_API_URL || 'http://localhost:3000'), // Development URL - use local farm-photos service
+  API_URL: process.env.PHOTOS_API_BASE || process.env.FARM_PHOTOS_API_URL || 'https://farm-photos-oeh1q91n4-abdur-rahman-morris-projects.vercel.app',
   
   // Photo submission settings
   MAX_FILE_SIZE: 5 * 1024 * 1024, // 5MB

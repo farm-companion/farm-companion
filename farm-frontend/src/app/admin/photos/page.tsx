@@ -97,23 +97,17 @@ export default async function AdminPhotosPage() {
         <div className="px-4 py-6 sm:px-0">
           
           {/* API Connection Status */}
-          {!pendingResult.success && (
-            <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-              <div className="flex">
-                <div className="flex-shrink-0">
-                  <AlertTriangle className="h-5 w-5 text-blue-400" />
-                </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                    Farm Photos API Status
-                  </h3>
-                  <div className="mt-2 text-sm text-blue-700 dark:text-blue-300">
-                    <p>The farm-photos API is connected and working correctly.</p>
-                    <p className="mt-1">Admin photo management features are now ready for use.</p>
-                    <p className="mt-2 font-medium">API Status: Connected to {FARM_PHOTOS_CONFIG.API_URL}</p>
-                  </div>
-                </div>
-              </div>
+          {pendingResult.success ? (
+            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <p className="font-medium">API Connected</p>
+              <p className="text-sm text-blue-800">Base: {process.env.PHOTOS_API_BASE}</p>
+            </div>
+          ) : (
+            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
+              <p className="font-medium text-red-900">Photos API unreachable</p>
+              <p className="text-sm text-red-800">
+                {pendingResult.error ?? 'Unknown error'} · Check PHOTOS_API_BASE
+              </p>
             </div>
           )}
 
@@ -121,30 +115,36 @@ export default async function AdminPhotosPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
               <div className="flex items-center">
-                <BarChart3 className="h-8 w-8 text-blue-600" />
+                <BarChart3 className={`h-8 w-8 ${pendingResult.success ? 'text-blue-600' : 'text-red-600'}`} />
                 <div className="ml-3">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">API Status</h3>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Connected</p>
+                  <p className={`text-sm font-medium ${pendingResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {pendingResult.success ? 'Connected' : 'Disconnected'}
+                  </p>
                 </div>
               </div>
             </div>
             
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
               <div className="flex items-center">
-                <Camera className="h-8 w-8 text-yellow-600" />
+                <Camera className={`h-8 w-8 ${pendingResult.success ? 'text-yellow-600' : 'text-red-600'}`} />
                 <div className="ml-3">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Service Status</h3>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Healthy</p>
+                  <p className={`text-sm font-medium ${pendingResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {pendingResult.success ? 'Healthy' : 'Unhealthy'}
+                  </p>
                 </div>
               </div>
             </div>
             
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
               <div className="flex items-center">
-                <CheckCircle className="h-8 w-8 text-green-600" />
+                <CheckCircle className={`h-8 w-8 ${pendingResult.success ? 'text-green-600' : 'text-red-600'}`} />
                 <div className="ml-3">
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Admin Features</h3>
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">Ready</p>
+                  <p className={`text-sm font-medium ${pendingResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                    {pendingResult.success ? 'Ready' : 'Unavailable'}
+                  </p>
                 </div>
               </div>
             </div>
@@ -314,13 +314,18 @@ export default async function AdminPhotosPage() {
               <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No Pending Photos</h2>
               <p className="text-gray-600 dark:text-gray-400 mb-4">There are currently no photos pending review.</p>
               <p className="text-gray-600 dark:text-gray-400">When users submit photos, they will appear here for admin review.</p>
-              <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg max-w-md mx-auto">
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  <strong>API Status:</strong> Connected to {FARM_PHOTOS_CONFIG.API_URL}
+              <div className={`mt-6 p-4 rounded-lg max-w-md mx-auto ${pendingResult.success ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                <p className={`text-sm ${pendingResult.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                  <strong>API Status:</strong> {pendingResult.success ? 'Connected' : 'Disconnected'} to {process.env.PHOTOS_API_BASE}
                 </p>
-                <p className="text-sm text-green-700 dark:text-green-300 mt-1">
-                  <strong>System Status:</strong> Ready to receive photo submissions
+                <p className={`text-sm mt-1 ${pendingResult.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
+                  <strong>System Status:</strong> {pendingResult.success ? 'Ready to receive photo submissions' : 'Unable to connect to photos service'}
                 </p>
+                {!pendingResult.success && (
+                  <p className="text-sm text-red-700 dark:text-red-300 mt-1">
+                    <strong>Error:</strong> {pendingResult.error ?? 'Unknown error'}
+                  </p>
+                )}
               </div>
             </div>
           )}

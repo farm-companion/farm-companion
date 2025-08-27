@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multipart Upload Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Multipart Upload Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Upload Real Image File</h2>
+        <input type="file" id="imageFile" accept="image/*">
+        <button onclick="testRealFileUpload()">Test Real File Upload</button>
+        <div id="realFileResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test 2: Create Test Image and Upload</h2>
+        <button onclick="testGeneratedImageUpload()">Test Generated Image Upload</button>
+        <div id="generatedImageResult"></div>
+    </div>
+
+    <script>
+        async function testRealFileUpload() {
+            const fileInput = document.getElementById('imageFile');
+            const resultDiv = document.getElementById('realFileResult');
+            
+            if (!fileInput.files[0]) {
+                resultDiv.innerHTML = '<div class="error">Please select a file first</div>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            console.log('Selected file:', file.name, 'Size:', file.size, 'Type:', file.type);
+            
+            try {
+                const formData = new FormData();
+                formData.append('farmSlug', 'test-farm');
+                formData.append('farmName', 'Test Farm');
+                formData.append('submitterName', 'Test User');
+                formData.append('submitterEmail', 'test@example.com');
+                formData.append('description', 'Test photo submission from browser');
+                formData.append('file', file);
+                
+                console.log('FormData created, sending request...');
+                
+                const response = await fetch('/api/photos', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                console.log('Response:', response.status, result);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="success">
+                        <strong>✅ Success!</strong><br>
+                        Status: ${response.status}<br>
+                        Result: ${JSON.stringify(result, null, 2)}
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">
+                        <strong>❌ Error!</strong><br>
+                        Status: ${response.status}<br>
+                        Error: ${JSON.stringify(result, null, 2)}
+                    </div>`;
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                resultDiv.innerHTML = `<div class="error">
+                    <strong>❌ Network Error!</strong><br>
+                    ${error.message}
+                </div>`;
+            }
+        }
+        
+        async function testGeneratedImageUpload() {
+            const resultDiv = document.getElementById('generatedImageResult');
+            
+            try {
+                // Create a simple test image using Canvas
+                const canvas = document.createElement('canvas');
+                canvas.width = 100;
+                canvas.height = 100;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw a simple pattern
+                ctx.fillStyle = '#ff0000';
+                ctx.fillRect(0, 0, 50, 50);
+                ctx.fillStyle = '#00ff00';
+                ctx.fillRect(50, 0, 50, 50);
+                ctx.fillStyle = '#0000ff';
+                ctx.fillRect(0, 50, 50, 50);
+                ctx.fillStyle = '#ffff00';
+                ctx.fillRect(50, 50, 50, 50);
+                
+                // Convert to blob
+                const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                const file = new File([blob], 'test-image.png', { type: 'image/png' });
+                
+                console.log('Generated file:', file.name, 'Size:', file.size, 'Type:', file.type);
+                
+                const formData = new FormData();
+                formData.append('farmSlug', 'test-farm');
+                formData.append('farmName', 'Test Farm');
+                formData.append('submitterName', 'Test User');
+                formData.append('submitterEmail', 'test@example.com');
+                formData.append('description', 'Test photo submission with generated image');
+                formData.append('file', file);
+                
+                console.log('FormData created, sending request...');
+                
+                const response = await fetch('/api/photos', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                console.log('Response:', response.status, result);
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `<div class="success">
+                        <strong>✅ Success!</strong><br>
+                        Status: ${response.status}<br>
+                        Result: ${JSON.stringify(result, null, 2)}
+                    </div>`;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">
+                        <strong>❌ Error!</strong><br>
+                        Status: ${response.status}<br>
+                        Error: ${JSON.stringify(result, null, 2)}
+                    </div>`;
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                resultDiv.innerHTML = `<div class="error">
+                    <strong>❌ Network Error!</strong><br>
+                    ${error.message}
+                </div>`;
+            }
+        }
+    </script>
+</body>
+</html>

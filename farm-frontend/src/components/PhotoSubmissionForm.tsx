@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import { Loader2 } from 'lucide-react'
 // Removed direct API call import - will use proxy instead
@@ -39,8 +39,53 @@ export default function PhotoSubmissionForm({
   const [errors, setErrors] = useState<string[]>([])
   const [success, setSuccess] = useState(false)
   const [isPhotoLimitError, setIsPhotoLimitError] = useState(false)
+  const [replaceMode, setReplaceMode] = useState(false)
+  const [isCheckingQuota, setIsCheckingQuota] = useState(true)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Pre-submit quota check
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch(`/api/photos?farmSlug=${encodeURIComponent(farmSlug)}`);
+        if (!res.ok) return;
+        const { farmPhotoCount, maxPhotosAllowed } = await res.json();
+        
+        if (farmPhotoCount >= maxPhotosAllowed) {
+          setErrors([`This farm already has ${farmPhotoCount}/${maxPhotosAllowed} photos.`]);
+          setReplaceMode(true);
+        }
+      } catch (error) {
+        console.error('Error checking photo quota:', error);
+      } finally {
+        setIsCheckingQuota(false);
+      }
+    })();
+  }, [farmSlug]);
+
+  // Client guardrails for file validation
+  const ALLOWED = new Set(['image/jpeg','image/png','image/webp']);
+  const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
+  const MIN_W = 800, MIN_H = 600;
+
+  function validateBasic(file: File): string | null {
+    if (!ALLOWED.has(file.type)) return 'Please upload a JPG, PNG, or WebP.';
+    if (file.size > MAX_BYTES)    return 'Please keep images under 5 MB.';
+    return null;
+  }
+
+  async function validateDims(file: File): Promise<string | null> {
+    const url = URL.createObjectURL(file);
+    const ok = await new Promise<boolean>((res) => {
+      const img = new Image();
+      img.onload = () => res(img.naturalWidth >= MIN_W && img.naturalHeight >= MIN_H);
+      img.onerror = () => res(false);
+      img.src = url;
+    });
+    URL.revokeObjectURL(url);
+    return ok ? null : `Minimum size is ${MIN_W}×${MIN_H}px.`;
+  }
 
   // Validation following PuredgeOS clarity standards
   const validateForm = (): string[] => {
@@ -68,27 +113,23 @@ export default function PhotoSubmissionForm({
     if (!formData.photoFile) {
       newErrors.push('Please select a photo to upload')
     } else {
-      // Check file type
-      if (!formData.photoFile.type.startsWith('image/')) {
-        newErrors.push('Please select a valid image file')
-      }
-      
-      // Check file size (5MB limit)
-      if (formData.photoFile.size > 5 * 1024 * 1024) {
-        newErrors.push('Photo must be smaller than 5MB')
+      // Enhanced file validation
+      const basicError = validateBasic(formData.photoFile)
+      if (basicError) {
+        newErrors.push(basicError)
       }
     }
     
     return newErrors
   }
 
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      // Check file size before processing (5MB limit)
-      const maxSize = 5 * 1024 * 1024 // 5MB
-      if (file.size > maxSize) {
-        setErrors(['File too large. Please select an image smaller than 5MB.'])
+      // Enhanced validation with client guardrails
+      const basicError = validateBasic(file)
+      if (basicError) {
+        setErrors([basicError])
         // Clear the file input
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
@@ -96,9 +137,11 @@ export default function PhotoSubmissionForm({
         return
       }
       
-      // Check file type
-      if (!file.type.startsWith('image/')) {
-        setErrors(['Please select a valid image file (JPEG, PNG, or WebP).'])
+      // Dimension validation
+      const dimError = await validateDims(file)
+      if (dimError) {
+        setErrors([dimError])
+        // Clear the file input
         if (fileInputRef.current) {
           fileInputRef.current.value = ''
         }
@@ -108,9 +151,10 @@ export default function PhotoSubmissionForm({
       // Clear any previous errors
       setErrors([])
       
+      // Keep the original File as source of truth
       setFormData(prev => ({ ...prev, photoFile: file }))
       
-      // Create preview
+      // Create preview for display only
       const reader = new FileReader()
       reader.onload = (e) => {
         setFormData(prev => ({ 
@@ -139,27 +183,24 @@ export default function PhotoSubmissionForm({
     setSubmissionStep('Preparing photo...')
     
     try {
-      // Convert file to base64
-      const base64Data = formData.photoPreview!
-      
-      const submissionData = {
-        farmSlug,
-        farmName,
-        submitterName: formData.submitterName.trim(),
-        submitterEmail: formData.submitterEmail.trim(),
-        description: formData.photoDescription.trim(),
-        photoData: base64Data
+      if (!formData.photoFile) {
+        setErrors(['Please choose a photo'])
+        return
       }
+      
+      const fd = new FormData()
+      fd.append('farmSlug', farmSlug)
+      fd.append('farmName', farmName)
+      fd.append('submitterName', formData.submitterName.trim())
+      fd.append('submitterEmail', formData.submitterEmail.trim())
+      fd.append('description', formData.photoDescription.trim())
+      fd.append('file', formData.photoFile) // ✅ stream the original File
       
       setSubmissionStep('Uploading to server...')
       
-      // Submit via proxy to avoid CORS issues
-      const response = await fetch('/api/photos', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submissionData),
+      const response = await fetch('/api/photos', { 
+        method: 'POST', 
+        body: fd 
       })
       
       setSubmissionStep('Processing with AI...')
@@ -171,15 +212,16 @@ export default function PhotoSubmissionForm({
         if (onSuccess) {
           onSuccess()
         }
+      } else if (response.status === 409) {
+        // "5 photos max" UI
+        const rid = response.headers.get('x-request-id') ?? crypto.randomUUID()
+        setErrors([`${result.message || 'This farm has reached the maximum number of photos'} (ref: ${rid}). Please contact support if you'd like to replace an existing photo.`])
+        setIsPhotoLimitError(true)
       } else {
-        // Handle specific error cases
-        if (response.status === 409 && result.error === 'Photo limit reached') {
-          setErrors([result.message || 'This farm has reached the maximum number of photos. Please contact support if you\'d like to replace an existing photo.'])
-          setIsPhotoLimitError(true)
-        } else {
-          setErrors([result.message || 'Submission failed. Please try again.'])
-          setIsPhotoLimitError(false)
-        }
+        // generic error UI
+        const rid = response.headers.get('x-request-id') ?? crypto.randomUUID()
+        setErrors([`Upload failed (ref: ${rid}). ${result.message || 'Please try again.'}`])
+        setIsPhotoLimitError(false)
       }
     } catch (error) {
       console.error('Photo submission error:', error)
@@ -194,12 +236,13 @@ export default function PhotoSubmissionForm({
       })
       
       // Check if it's a network error
+      const rid = crypto.randomUUID()
       if (error instanceof TypeError && errorMessage.includes('fetch')) {
-        setErrors(['Network error. Please check your internet connection and try again.'])
+        setErrors([`Network error (ref: ${rid}). Please check your internet connection and try again.`])
       } else if (error instanceof TypeError && errorMessage.includes('Failed to fetch')) {
-        setErrors(['Unable to connect to server. Please try again.'])
+        setErrors([`Unable to connect to server (ref: ${rid}). Please try again.`])
       } else {
-        setErrors([`An unexpected error occurred: ${errorMessage}`])
+        setErrors([`An unexpected error occurred (ref: ${rid}): ${errorMessage}`])
       }
     } finally {
       setIsSubmitting(false)
@@ -314,6 +357,7 @@ export default function PhotoSubmissionForm({
               onChange={handleFileChange}
               className="hidden"
               required
+              disabled={replaceMode}
               aria-describedby="photo-help"
             />
             
@@ -332,6 +376,7 @@ export default function PhotoSubmissionForm({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="btn-secondary"
+                  disabled={replaceMode}
                 >
                   Choose Different Photo
                 </button>
@@ -345,11 +390,12 @@ export default function PhotoSubmissionForm({
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
                   className="btn-primary"
+                  disabled={replaceMode}
                 >
                   Choose Photo
                 </button>
                 <p className="mt-2 text-sm text-text-muted">
-                  JPG, PNG, or GIF up to 5MB
+                  JPG, PNG, or WebP up to 5MB, min {MIN_W}×{MIN_H}px
                 </p>
               </div>
             )}
@@ -388,14 +434,38 @@ export default function PhotoSubmissionForm({
         {errors.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <h3 className="text-sm font-medium text-red-800 mb-2">
-              Please fix the following errors:
+              {replaceMode ? 'Photo Limit Reached' : 'Please fix the following errors:'}
             </h3>
             <ul className="list-disc list-inside text-sm text-red-700 space-y-1">
               {errors.map((error, index) => (
                 <li key={index}>{error}</li>
               ))}
             </ul>
-            {isPhotoLimitError && (
+            {replaceMode && (
+              <div className="mt-3 pt-3 border-t border-red-200">
+                <p className="text-sm text-red-700 mb-2">
+                  This farm has reached the maximum number of photos. To add a new photo, you'll need to:
+                </p>
+                <ul className="text-sm text-red-700 space-y-1 mb-3">
+                  <li>• Contact us to request removal of an existing photo</li>
+                  <li>• Wait for an existing photo to be rejected</li>
+                  <li>• Replace an existing photo with a better one</li>
+                </ul>
+                <p className="text-sm text-red-700 mb-2">
+                  Need help? Contact our support team:
+                </p>
+                <a 
+                  href="mailto:hello@farmcompanion.co.uk?subject=Photo%20Replacement%20Request" 
+                  className="inline-flex items-center gap-2 text-sm text-red-800 hover:text-red-900 font-medium"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  hello@farmcompanion.co.uk
+                </a>
+              </div>
+            )}
+            {isPhotoLimitError && !replaceMode && (
               <div className="mt-3 pt-3 border-t border-red-200">
                 <p className="text-sm text-red-700 mb-2">
                   Need help? Contact our support team:
@@ -418,15 +488,24 @@ export default function PhotoSubmissionForm({
         <div className="flex flex-col sm:flex-row gap-4">
           <button
             type="submit"
-            disabled={isSubmitting}
-            className="btn-primary flex-1 flex items-center justify-center gap-2"
+            disabled={isSubmitting || isCheckingQuota || replaceMode}
+            className={`btn-primary flex-1 flex items-center justify-center gap-2 ${
+              replaceMode ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
             aria-describedby="submit-help"
           >
-            {isSubmitting ? (
+            {isCheckingQuota ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Checking Photo Limit...</span>
+              </>
+            ) : isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Submitting Photo...</span>
               </>
+            ) : replaceMode ? (
+              'Photo Limit Reached'
             ) : (
               'Submit Photo'
             )}
