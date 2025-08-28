@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, X, AlertCircle, CheckCircle, Loader2 } from 'lucide-react'
+import { Upload, X, AlertCircle, CheckCircle, Loader2, Camera } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 interface PhotoSubmissionFormProps {
@@ -33,7 +33,6 @@ export default function PhotoSubmissionForm({
 }: PhotoSubmissionFormProps) {
   const [uploadState, setUploadState] = useState<UploadState | null>(null)
   const [caption, setCaption] = useState('')
-  const [authorName, setAuthorName] = useState('')
   const [authorEmail, setAuthorEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -115,7 +114,7 @@ export default function PhotoSubmissionForm({
 
   async function submitPhoto(
     file: File,
-    form: { farmSlug: string; caption: string; authorName: string; authorEmail: string },
+    form: { farmSlug: string; caption: string; authorEmail: string },
     replacePhotoId?: string
   ) {
     // 1) Reserve
@@ -184,7 +183,7 @@ export default function PhotoSubmissionForm({
         leaseId: reserve.leaseId,
         objectKey: reserve.objectKey,
         caption: form.caption,
-        authorName: form.authorName,
+        authorName: '', // Empty since we're not collecting names
         authorEmail: form.authorEmail
       })
     })
@@ -230,7 +229,6 @@ export default function PhotoSubmissionForm({
       const result = await submitPhoto(uploadState.file, {
         farmSlug,
         caption: caption.trim(),
-        authorName: authorName.trim(),
         authorEmail: authorEmail.trim()
       }, photoId)
 
@@ -238,7 +236,6 @@ export default function PhotoSubmissionForm({
       setUploadState(prev => prev ? { ...prev, uploaded: true, uploading: false } : null)
       setSubmitSuccess(true)
       setCaption('')
-      setAuthorName('')
       setAuthorEmail('')
       onSuccess?.()
 
@@ -266,7 +263,6 @@ export default function PhotoSubmissionForm({
       const result = await submitPhoto(uploadState.file, {
         farmSlug,
         caption: caption.trim(),
-        authorName: authorName.trim(),
         authorEmail: authorEmail.trim()
       })
 
@@ -274,7 +270,6 @@ export default function PhotoSubmissionForm({
       setUploadState(prev => prev ? { ...prev, uploaded: true, uploading: false } : null)
       setSubmitSuccess(true)
       setCaption('')
-      setAuthorName('')
       setAuthorEmail('')
       onSuccess?.()
 
@@ -288,7 +283,20 @@ export default function PhotoSubmissionForm({
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-xl mx-auto space-y-6">
+      {/* Header */}
+      <div className="text-center space-y-2">
+        <div className="inline-flex items-center justify-center w-12 h-12 bg-serum/10 rounded-full">
+          <Camera className="w-6 h-6 text-serum" />
+        </div>
+        <h2 className="text-xl font-semibold text-text-heading">
+          Share a Photo
+        </h2>
+        <p className="text-text-body">
+          Help showcase {farmName} with your photos
+        </p>
+      </div>
+
       {/* File Upload */}
       <div className="space-y-4">
         <div
@@ -303,20 +311,17 @@ export default function PhotoSubmissionForm({
             className="hidden"
           />
           
-          <div className="space-y-4">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-serum/10 rounded-full">
-              <Upload className="w-8 h-8 text-serum" />
+          <div className="space-y-3">
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-serum/10 rounded-full">
+              <Upload className="w-6 h-6 text-serum" />
             </div>
             
             <div>
-              <h3 className="text-lg font-semibold text-text-heading mb-2">
-                Upload Photo for {farmName}
-              </h3>
-              <p className="text-text-body mb-4">
-                Click to select an image or drag and drop
+              <p className="text-text-body font-medium">
+                Click to select or drag and drop
               </p>
-              <p className="text-sm text-text-muted">
-                Supported formats: JPEG, PNG, WebP (max 5MB, min {MIN_W}×{MIN_H}px)
+              <p className="text-sm text-text-muted mt-1">
+                JPEG, PNG, WebP • Max 5MB • Min {MIN_W}×{MIN_H}px
               </p>
             </div>
           </div>
@@ -394,34 +399,21 @@ export default function PhotoSubmissionForm({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-text-heading mb-2">
-                Your Name (optional)
-              </label>
-              <input
-                type="text"
-                value={authorName}
-                onChange={(e) => setAuthorName(e.target.value)}
-                placeholder="Your name"
-                className="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-serum/20 focus:border-serum transition-colors"
-                maxLength={120}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-text-heading mb-2">
-                Your Email (optional)
-              </label>
-              <input
-                type="email"
-                value={authorEmail}
-                onChange={(e) => setAuthorEmail(e.target.value)}
-                placeholder="your@email.com"
-                className="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-serum/20 focus:border-serum transition-colors"
-                maxLength={200}
-              />
-            </div>
+          <div>
+            <label className="block text-sm font-medium text-text-heading mb-2">
+              Your Email (optional)
+            </label>
+            <input
+              type="email"
+              value={authorEmail}
+              onChange={(e) => setAuthorEmail(e.target.value)}
+              placeholder="your@email.com"
+              className="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-serum/20 focus:border-serum transition-colors"
+              maxLength={200}
+            />
+            <p className="text-xs text-text-muted mt-1">
+              We'll notify you when your photo is approved
+            </p>
           </div>
         </div>
       )}
@@ -445,9 +437,9 @@ export default function PhotoSubmissionForm({
           <div className="flex items-start space-x-3">
             <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
             <div>
-              <h4 className="font-medium text-green-800 mb-1">Photo Submitted Successfully!</h4>
+              <h4 className="font-medium text-green-800 mb-1">Photo Submitted!</h4>
               <p className="text-sm text-green-700">
-                Your photo has been uploaded and will be reviewed before being added to the farm shop page.
+                Your photo will be reviewed and added to the farm shop page soon.
               </p>
             </div>
           </div>
