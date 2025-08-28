@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Redis from 'ioredis'
+import redis from '@/lib/redis'
 import { getCurrentUser } from '@/lib/auth'
 import fs from 'fs/promises'
 import path from 'path'
-
-const redis = new Redis(process.env.REDIS_URL!)
 
 export async function POST(request: NextRequest) {
   try {

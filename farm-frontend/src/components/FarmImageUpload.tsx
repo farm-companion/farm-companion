@@ -11,9 +11,9 @@ import { Button } from '@/components/ui/Button'
 
 interface FarmImageUploadProps {
   farmSlug: string
-  farmName: string
   onImagesChange: (images: File[]) => void
   maxImages?: number
+  onUploadSuccess?: (uploadedImages: string[]) => void
 }
 
 interface ImagePreview {
@@ -27,9 +27,9 @@ interface ImagePreview {
 
 export default function FarmImageUpload({ 
   farmSlug, 
-  farmName, 
   onImagesChange,
-  maxImages = 4 
+  maxImages = 4,
+  onUploadSuccess
 }: FarmImageUploadProps) {
   const [images, setImages] = useState<ImagePreview[]>([])
   const [isDragOver, setIsDragOver] = useState(false)
@@ -128,6 +128,133 @@ export default function FarmImageUpload({
     const updatedImages = images.filter(img => img.id !== id)
     setImages(updatedImages)
     onImagesChange(updatedImages.map(img => img.file))
+  }
+
+  const uploadFile = async (file: File): Promise<{ leaseId: string; uploadUrl: string; objectKey: string }> => {
+    const response = await fetch('/api/photos/upload-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        farmSlug,
+        fileName: file.name,
+        contentType: file.type,
+        fileSize: file.size,
+        mode: 'new'
+      })
+    })
+
+    if (!response.ok) {
+      let errorMessage = 'Failed to get upload URL'
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.error || errorMessage
+      } catch (e) {
+        // If response is not JSON, get the text
+        const text = await response.text()
+        errorMessage = text || errorMessage
+      }
+      throw new Error(errorMessage)
+    }
+
+    try {
+      return await response.json()
+    } catch (e) {
+      console.error('Failed to parse response as JSON:', e)
+      const text = await response.text()
+      console.error('Response text:', text)
+      throw new Error('Invalid response from server')
+    }
+  }
+
+  const uploadToBlob = async (uploadUrl: string, file: File): Promise<{ url: string }> => {
+    const formData = new FormData()
+    formData.append('file', file)
+
+    const response = await fetch(uploadUrl, {
+      method: 'POST',
+      body: formData
+    })
+
+    if (!response.ok) {
+      const error = await response.text()
+      throw new Error(`Failed to upload file to blob storage: ${error}`)
+    }
+
+    const result = await response.json()
+    return { url: result.url }
+  }
+
+  const finalizeUpload = async (leaseId: string, objectKey: string): Promise<void> => {
+    const response = await fetch('/api/photos/finalize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        leaseId,
+        objectKey,
+        caption: '',
+        authorName: '',
+        authorEmail: ''
+      })
+    })
+
+    if (!response.ok) {
+      let errorMessage = 'Failed to finalize upload'
+      try {
+        const errorData = await response.json()
+        errorMessage = errorData.error || errorMessage
+      } catch (e) {
+        // If response is not JSON, get the text
+        const text = await response.text()
+        errorMessage = text || errorMessage
+      }
+      throw new Error(errorMessage)
+    }
+  }
+
+  const uploadImages = async () => {
+    const imagesToUpload = images.filter(img => !img.uploaded && !img.uploading)
+    if (imagesToUpload.length === 0) return
+
+    const uploadedUrls: string[] = []
+
+    for (const image of imagesToUpload) {
+      try {
+        // Mark as uploading
+        setImages(prev => prev.map(img => 
+          img.id === image.id ? { ...img, uploading: true, error: undefined } : img
+        ))
+
+        // Step 1: Get upload URL
+        const { leaseId, uploadUrl, objectKey } = await uploadFile(image.file)
+
+        // Step 2: Upload to blob storage
+        const uploadResult = await uploadToBlob(uploadUrl, image.file)
+
+        // Step 3: Finalize upload
+        await finalizeUpload(leaseId, objectKey)
+
+        // Mark as uploaded
+        setImages(prev => prev.map(img => 
+          img.id === image.id ? { ...img, uploading: false, uploaded: true } : img
+        ))
+
+        uploadedUrls.push(uploadResult.url)
+
+      } catch (error) {
+        console.error('Upload error for', image.file.name, ':', error)
+        setImages(prev => prev.map(img => 
+          img.id === image.id ? { 
+            ...img, 
+            uploading: false, 
+            error: error instanceof Error ? error.message : 'Upload failed' 
+          } : img
+        ))
+      }
+    }
+
+    if (uploadedUrls.length > 0) {
+      onUploadSuccess?.(uploadedUrls)
+    }
   }
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -329,6 +456,26 @@ export default function FarmImageUpload({
                   </p>
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* Upload Button */}
+          {images.length > 0 && images.some(img => !img.uploaded && !img.uploading) && (
+            <div className="flex justify-center">
+              <Button
+                onClick={uploadImages}
+                disabled={images.some(img => img.uploading)}
+                className="px-8 py-3"
+              >
+                {images.some(img => img.uploading) ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  'Upload Images'
+                )}
+              </Button>
             </div>
           )}
         </div>

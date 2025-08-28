@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Redis from 'ioredis'
+import redis from '@/lib/redis'
 import { getCurrentUser } from '@/lib/auth'
-
-const redis = new Redis(process.env.REDIS_URL!)
 
 interface ReviewAction {
   action: 'approve' | 'reject' | 'request_changes'
@@ -42,7 +40,7 @@ export async function POST(
       )
     }
 
-    const farm = JSON.parse(farmStr)
+    const farm = JSON.parse(String(farmStr))
 
     // Update farm status
     const now = new Date().toISOString()

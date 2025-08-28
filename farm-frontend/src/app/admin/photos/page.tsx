@@ -1,70 +1,33 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import { requireAuth } from '@/lib/auth'
-import { FARM_PHOTOS_CONFIG } from '@/config/farm-photos'
-import { 
-  getPendingPhotosForAdmin,
-  getPhotoStats,
-  safeApiCall
-} from '@/lib/farm-photos-api'
-import { 
-  updatePhotoStatus,
-  deletePhotoAction,
-  reviewDeletionRequest,
-  recoverDeletedPhoto
-} from './actions'
-import { 
-  Camera, 
-  Trash2, 
-  RotateCcw, 
-  CheckCircle, 
-  XCircle,
-  AlertTriangle,
-  BarChart3
-} from 'lucide-react'
-import DeletePhotoButton from '@/components/admin/DeletePhotoButton'
+import redis from '@/lib/redis'
 
 // Force dynamic rendering for admin pages
 export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
-  title: 'Photo Management - Admin Dashboard',
-  description: 'Manage farm photo submissions and reviews',
-  keywords: 'admin, photo management, farm companion',
+  title: 'Photo Management - Farm Companion',
+  description: 'Review and manage photo submissions',
 }
-
-
 
 export default async function AdminPhotosPage() {
   // Require authentication
   const user = await requireAuth()
-  
-  // Get data from farm-photos API
-  const [pendingResult, statsResult] = await Promise.all([
-    safeApiCall(() => getPendingPhotosForAdmin()),
-    safeApiCall(() => getPhotoStats())
-  ])
-  
-  const pendingSubmissions = pendingResult.success ? pendingResult.data || [] : []
-  const stats = statsResult.success ? statsResult.data || {
-    total: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    deleted: 0,
-    deletionRequests: 0
-  } : {
-    total: 0,
-    pending: 0,
-    approved: 0,
-    rejected: 0,
-    deleted: 0,
-    deletionRequests: 0
-  }
 
-  // For now, we'll show pending photos. In a full implementation, 
-  // we'd want to show all photos with filtering options
+  // Get pending photos from Redis
+  const pendingIds = await redis.lRange('moderation:queue', 0, -1)
+  const pending = await Promise.all(pendingIds.map(async (id) => {
+    const photoData = await redis.hGetAll(`photo:${id}`)
+    if (!photoData || Object.keys(photoData).length === 0) return null
+    
+    // Convert Redis hash to object
+    const photo: Record<string, string> = {}
+    for (const [key, value] of Object.entries(photoData)) {
+      photo[key] = String(value)
+    }
+    return photo
+  }))
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -77,16 +40,24 @@ export default async function AdminPhotosPage() {
                 Photo Management
               </h1>
               <p className="text-sm text-gray-600 dark:text-gray-400">
-                Manage farm photo submissions and reviews
+                Review and manage photo submissions
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               <Link
                 href="/admin"
                 className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
               >
-                Back to Admin
+                Back to Dashboard
               </Link>
+              <form action="/api/admin/logout" method="POST">
+                <button
+                  type="submit"
+                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
+                  Sign Out
+                </button>
+              </form>
             </div>
           </div>
         </div>
@@ -95,238 +66,71 @@ export default async function AdminPhotosPage() {
       {/* Main Content */}
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="px-4 py-6 sm:px-0">
-          
-          {/* API Connection Status */}
-          {pendingResult.success ? (
-            <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
-              <p className="font-medium">API Connected</p>
-              <p className="text-sm text-blue-800">Base: {process.env.PHOTOS_API_BASE}</p>
+          {!pending.length ? (
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+              <div className="text-center">
+                <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">No pending photos</h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  All photos have been reviewed.
+                </p>
+              </div>
             </div>
           ) : (
-            <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4">
-              <p className="font-medium text-red-900">Photos API unreachable</p>
-              <p className="text-sm text-red-800">
-                {pendingResult.error ?? 'Unknown error'} · Check PHOTOS_API_BASE
-              </p>
-            </div>
-          )}
-
-          {/* Statistics */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <div className="flex items-center">
-                <BarChart3 className={`h-8 w-8 ${pendingResult.success ? 'text-blue-600' : 'text-red-600'}`} />
-                <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">API Status</h3>
-                  <p className={`text-sm font-medium ${pendingResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {pendingResult.success ? 'Connected' : 'Disconnected'}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <div className="flex items-center">
-                <Camera className={`h-8 w-8 ${pendingResult.success ? 'text-yellow-600' : 'text-red-600'}`} />
-                <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Service Status</h3>
-                  <p className={`text-sm font-medium ${pendingResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {pendingResult.success ? 'Healthy' : 'Unhealthy'}
-                  </p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <div className="flex items-center">
-                <CheckCircle className={`h-8 w-8 ${pendingResult.success ? 'text-green-600' : 'text-red-600'}`} />
-                <div className="ml-3">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Admin Features</h3>
-                  <p className={`text-sm font-medium ${pendingResult.success ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                    {pendingResult.success ? 'Ready' : 'Unavailable'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Pending Photo Submissions */}
-          {pendingSubmissions.length > 0 && (
-            <section>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                <Camera className="w-6 h-6 text-yellow-600" />
-                Pending Photo Submissions ({pendingSubmissions.length})
-              </h2>
-              <div className="space-y-6">
-                {pendingSubmissions.map((submission) => (
-                  <div key={submission.id} className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
-                    <div className="md:flex">
-                      {/* Photo */}
-                      <div className="md:w-1/3">
-                        <div className="relative h-64 md:h-full">
-                          <Image
-                            src={submission.thumbnailUrl}
-                            alt={submission.description}
-                            fill
-                            className="object-cover"
-                          />
-                        </div>
-                      </div>
-                      
-                      {/* Details */}
-                      <div className="md:w-2/3 p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div>
-                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">{submission.farmName}</h3>
-                            <p className="text-gray-600 dark:text-gray-400">{submission.description}</p>
-                          </div>
-                          
-                          <div className="text-right">
-                            <div className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                              Pending Review
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* AI Analysis */}
-                        {submission.aiAnalysis && (
-                          <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">AI Analysis</h4>
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="font-medium">Quality Score:</span>
-                                <span className="ml-2">{submission.aiAnalysis.qualityScore}/100</span>
-                              </div>
-                              <div>
-                                <span className="font-medium">Appropriate:</span>
-                                <span className={`ml-2 ${submission.aiAnalysis.isAppropriate ? 'text-green-600' : 'text-red-600'}`}>
-                                  {submission.aiAnalysis.isAppropriate ? 'Yes' : 'No'}
-                                </span>
-                              </div>
-                                                             {submission.aiAnalysis.tags.length > 0 && (
-                                 <div className="col-span-2">
-                                   <span className="font-medium">Tags:</span>
-                                   <div className="flex flex-wrap gap-1 mt-1">
-                                     {submission.aiAnalysis.tags.map((tag: string, index: number) => (
-                                       <span key={index} className="px-2 py-1 bg-gray-200 dark:bg-gray-700 rounded text-xs">
-                                         {tag}
-                                       </span>
-                                     ))}
-                                   </div>
-                                 </div>
-                               )}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Submission Details */}
-                        <div className="space-y-4">
-                          <div>
-                            <h3 className="font-semibold text-gray-900 dark:text-white mb-2">Submission Details</h3>
-                            <div className="space-y-2 text-sm">
-                              <div>
-                                <span className="font-medium">Farm:</span>
-                                <Link href={`/shop/${submission.farmSlug}`} className="ml-2 text-blue-600 hover:underline">
-                                  {submission.farmName}
-                                </Link>
-                              </div>
-                              <div>
-                                <span className="font-medium">Submitted by:</span>
-                                <span className="ml-2">{submission.submitterName}</span>
-                              </div>
-                              <div>
-                                <span className="font-medium">Email:</span>
-                                <span className="ml-2">{submission.submitterEmail}</span>
-                              </div>
-                              <div>
-                                <span className="font-medium">Submitted:</span>
-                                <span className="ml-2">{new Date(submission.submittedAt).toLocaleDateString()}</span>
-                              </div>
-                              <div>
-                                <span className="font-medium">File size:</span>
-                                <span className="ml-2">{(submission.fileSize / 1024 / 1024).toFixed(2)} MB</span>
-                              </div>
-                              <div>
-                                <span className="font-medium">Dimensions:</span>
-                                <span className="ml-2">{submission.dimensions.width} × {submission.dimensions.height}</span>
-                              </div>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <h4 className="font-medium text-gray-900 dark:text-white mb-2">Description</h4>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                              {submission.description}
-                            </p>
-                          </div>
-                          
-                          {/* Action Buttons */}
-                          <div className="flex gap-3 flex-wrap">
-                            <form action={async () => {
-                              'use server'
-                              await updatePhotoStatus(submission.id, 'approved')
-                            }}>
-                              <button
-                                type="submit"
-                                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                              >
-                                Approve
-                              </button>
-                            </form>
-                            
-                            <form action={async (formData: FormData) => {
-                              'use server'
-                              const reason = formData.get('reason') as string
-                              await updatePhotoStatus(submission.id, 'rejected', reason)
-                            }}>
-                              <input
-                                type="text"
-                                name="reason"
-                                placeholder="Rejection reason (optional)"
-                                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg mr-2 text-sm"
-                              />
-                              <button
-                                type="submit"
-                                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                              >
-                                Reject
-                              </button>
-                            </form>
-
-                            <DeletePhotoButton 
-                              photoId={submission.id}
-                              photoDescription={submission.description}
+            <div className="bg-white dark:bg-gray-800 shadow overflow-hidden sm:rounded-md">
+              <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+                {pending.map((p) => p && (
+                  <li key={p.id} className="px-6 py-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex-shrink-0">
+                            <img 
+                              className="h-16 w-16 object-cover rounded-lg" 
+                              src={p.url} 
+                              alt={p.caption || 'Farm photo'}
                             />
                           </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                              {p.farmSlug}
+                            </p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
+                              {p.caption || 'No caption'}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              By: {p.authorName || 'Anonymous'} • {p.authorEmail || 'No email'}
+                            </p>
+                            <p className="text-xs text-gray-400 dark:text-gray-500">
+                              Submitted: {new Date(Number(p.createdAt)).toLocaleDateString()}
+                            </p>
+                          </div>
                         </div>
                       </div>
+                      <div className="flex gap-2">
+                        <form action={`/admin/photos/approve?id=${p.id}`} method="post">
+                          <button 
+                            type="submit"
+                            className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                          >
+                            Approve
+                          </button>
+                        </form>
+                        <form action={`/admin/photos/reject?id=${p.id}`} method="post">
+                          <button 
+                            type="submit"
+                            className="inline-flex items-center px-3 py-1 border border-transparent text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                          >
+                            Reject
+                          </button>
+                        </form>
+                      </div>
                     </div>
-                  </div>
+                  </li>
                 ))}
-              </div>
-            </section>
-          )}
-
-          {/* Empty State */}
-          {pendingSubmissions.length === 0 && (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">📸</div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">No Pending Photos</h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">There are currently no photos pending review.</p>
-              <p className="text-gray-600 dark:text-gray-400">When users submit photos, they will appear here for admin review.</p>
-              <div className={`mt-6 p-4 rounded-lg max-w-md mx-auto ${pendingResult.success ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
-                <p className={`text-sm ${pendingResult.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-                  <strong>API Status:</strong> {pendingResult.success ? 'Connected' : 'Disconnected'} to {process.env.PHOTOS_API_BASE}
-                </p>
-                <p className={`text-sm mt-1 ${pendingResult.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'}`}>
-                  <strong>System Status:</strong> {pendingResult.success ? 'Ready to receive photo submissions' : 'Unable to connect to photos service'}
-                </p>
-                {!pendingResult.success && (
-                  <p className="text-sm text-red-700 dark:text-red-300 mt-1">
-                    <strong>Error:</strong> {pendingResult.error ?? 'Unknown error'}
-                  </p>
-                )}
-              </div>
+              </ul>
             </div>
           )}
         </div>

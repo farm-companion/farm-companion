@@ -608,7 +608,6 @@ export default function AddFarmPage() {
             
             <FarmImageUpload
               farmSlug={slug}
-              farmName={form.name}
               onImagesChange={setFarmImages}
               maxImages={4}
             />

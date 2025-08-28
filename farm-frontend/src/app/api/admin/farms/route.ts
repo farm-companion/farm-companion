@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Redis from 'ioredis'
+import redis from '@/lib/redis'
 import { getCurrentUser } from '@/lib/auth'
-
-const redis = new Redis(process.env.REDIS_URL!)
 
 export async function GET(request: NextRequest) {
   try {

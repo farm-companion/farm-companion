@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import PhotoDeletionRequest from './PhotoDeletionRequest'
 
 interface Photo {
   id: string
@@ -301,13 +300,9 @@ export default function PhotoViewer({
               {/* Deletion Request Modal */}
               {showDeletionRequest && selectedPhoto && (
                 <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <PhotoDeletionRequest
-                    photoId={selectedPhoto.id}
-                    onRequestSubmitted={() => {
-                      setShowDeletionRequest(false)
-                      closeModal()
-                    }}
-                  />
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Photo deletion requests are not available in the current version.
+                  </p>
                 </div>
               )}
             </div>
