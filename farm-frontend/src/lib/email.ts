@@ -3,6 +3,8 @@
 
 import { Resend } from 'resend'
 import PhotoSubmissionReceiptEmail from '@/emails/PhotoSubmissionReceipt'
+import PhotoApprovedEmail from '@/emails/PhotoApproved'
+import PhotoRejectedEmail from '@/emails/PhotoRejected'
 
 const resend = new Resend(process.env.RESEND_API_KEY!)
 
@@ -79,6 +81,130 @@ export async function sendPhotoSubmissionReceipt(input: ReceiptInput) {
     })
     
     // Return error details for monitoring
+    return { 
+      error: true, 
+      message: error instanceof Error ? error.message : 'Unknown error',
+      details: error
+    }
+  }
+}
+
+// Photo approval email sender
+export async function sendPhotoApprovedEmail(opts: {
+  to: string
+  farmName: string
+  farmSlug: string
+  photoUrl?: string
+  caption?: string
+}) {
+  const from = process.env.RESEND_FROM!
+  const siteUrl = process.env.SITE_URL || 'https://www.farmcompanion.co.uk'
+  const logoPath = `${siteUrl}/brand/farm-companion-logo.svg`
+
+  if (!from || !opts.to) {
+    console.warn('Approval email skipped: missing required fields', {
+      hasTo: !!opts.to,
+      hasFrom: !!from,
+      farmSlug: opts.farmSlug
+    })
+    return { skipped: true, reason: 'missing_required_fields' }
+  }
+
+  try {
+    const react = PhotoApprovedEmail({ 
+      siteUrl, 
+      logoPath, 
+      farmName: opts.farmName, 
+      farmSlug: opts.farmSlug, 
+      photoUrl: opts.photoUrl, 
+      caption: opts.caption 
+    })
+    
+    const result = await resend.emails.send({ 
+      from, 
+      to: opts.to, 
+      subject: `Your photo is live on ${opts.farmName} 🎉`, 
+      react,
+      replyTo: 'support@farmcompanion.co.uk'
+    })
+
+    console.log('Approval email sent successfully', {
+      to: opts.to,
+      farmSlug: opts.farmSlug,
+      messageId: result.data?.id
+    })
+
+    return result
+  } catch (error) {
+    console.error('Approval email send failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      to: opts.to,
+      farmSlug: opts.farmSlug
+    })
+    
+    return { 
+      error: true, 
+      message: error instanceof Error ? error.message : 'Unknown error',
+      details: error
+    }
+  }
+}
+
+// Photo rejection email sender
+export async function sendPhotoRejectedEmail(opts: {
+  to: string
+  farmName: string
+  farmSlug: string
+  caption?: string
+  reason?: string
+  guidelinesUrl: string
+}) {
+  const from = process.env.RESEND_FROM!
+  const siteUrl = process.env.SITE_URL || 'https://www.farmcompanion.co.uk'
+  const logoPath = `${siteUrl}/brand/farm-companion-logo.svg`
+
+  if (!from || !opts.to) {
+    console.warn('Rejection email skipped: missing required fields', {
+      hasTo: !!opts.to,
+      hasFrom: !!from,
+      farmSlug: opts.farmSlug
+    })
+    return { skipped: true, reason: 'missing_required_fields' }
+  }
+
+  try {
+    const react = PhotoRejectedEmail({ 
+      siteUrl, 
+      logoPath, 
+      farmName: opts.farmName, 
+      farmSlug: opts.farmSlug, 
+      caption: opts.caption, 
+      reason: opts.reason, 
+      guidelinesUrl: opts.guidelinesUrl 
+    })
+    
+    const result = await resend.emails.send({ 
+      from, 
+      to: opts.to, 
+      subject: `About your photo on ${opts.farmName}`, 
+      react,
+      replyTo: 'support@farmcompanion.co.uk'
+    })
+
+    console.log('Rejection email sent successfully', {
+      to: opts.to,
+      farmSlug: opts.farmSlug,
+      messageId: result.data?.id
+    })
+
+    return result
+  } catch (error) {
+    console.error('Rejection email send failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      to: opts.to,
+      farmSlug: opts.farmSlug
+    })
+    
     return { 
       error: true, 
       message: error instanceof Error ? error.message : 'Unknown error',

@@ -26,6 +26,18 @@ import { ObfuscatedEmail, ObfuscatedPhone } from '@/components/ObfuscatedContact
 import PhotoSubmissionForm from '@/components/PhotoSubmissionForm'
 import { processFarmDescription } from '@/lib/seo-utils'
 import FarmAnalytics from '@/components/FarmAnalytics'
+import { getApprovedPhotosBySlug } from '@/lib/photos'
+import dynamic from 'next/dynamic'
+
+// Dynamically import the photo gallery to avoid SSR issues
+const FarmPhotoGallery = dynamic(() => import('@/components/FarmPhotoGallery'), { 
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-64 bg-gray-100 rounded-xl animate-pulse flex items-center justify-center">
+      <span className="text-gray-500">Loading photos...</span>
+    </div>
+  )
+})
 
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
@@ -82,6 +94,9 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   const farms = await readFarms()
   const shop = farms.find((f) => f.slug === slug)
   if (!shop) notFound()
+
+  // Fetch approved photos for this farm
+  const approvedPhotos = await getApprovedPhotosBySlug(slug)
 
   const { name, location, contact, offerings, verified, hours } = shop
   const { cleanDescription, keywords } = processFarmDescription(shop.description || '')
@@ -313,6 +328,20 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
                     </p>
                   </div>
                 </div>
+              </section>
+            )}
+
+            {/* Community Photos Section */}
+            {approvedPhotos.length > 0 && (
+              <section className="bg-background-surface rounded-2xl p-8 shadow-premium border border-border-default/30">
+                <div id="photos" className="scroll-mt-24" />
+                <h2 className="text-2xl font-heading font-bold text-text-heading mb-6">
+                  Community Photos
+                </h2>
+                <p className="text-text-muted mb-6">
+                  Photos shared by visitors to this farm shop.
+                </p>
+                <FarmPhotoGallery photos={approvedPhotos} aspect="16/9" autoPlayMs={5000} />
               </section>
             )}
 
