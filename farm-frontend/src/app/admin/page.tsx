@@ -189,45 +189,52 @@ export default async function AdminDashboardPage() {
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Quick Actions */}
-          <div className="mt-8">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
-              Quick Actions
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Link
-                href="/add"
-                className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="text-sm font-medium text-gray-900 dark:text-white">Add Farm Shop</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Add new farm to directory</div>
-              </Link>
-              
-              <Link
-                href="/map"
-                className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="text-sm font-medium text-gray-900 dark:text-white">View Map</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Check farm locations</div>
-              </Link>
-              
-              <Link
-                href="/contact"
-                className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="text-sm font-medium text-gray-900 dark:text-white">Contact Form</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">View user messages</div>
-              </Link>
-              
-              <Link
-                href="/"
-                className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow hover:shadow-md transition-shadow"
-              >
-                <div className="text-sm font-medium text-gray-900 dark:text-white">View Site</div>
-                <div className="text-xs text-gray-500 dark:text-gray-400">Go to homepage</div>
-              </Link>
+            {/* Quick Actions */}
+            <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+              <div className="p-6">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    </svg>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                      Quick Actions
+                    </h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      Common administrative tasks
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-6 space-y-2">
+                  <Link
+                    href="/add"
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  >
+                    Add Farm Shop
+                  </Link>
+                  <Link
+                    href="/map"
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  >
+                    View Map
+                  </Link>
+                  <Link
+                    href="/contact"
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  >
+                    Contact Form
+                  </Link>
+                  <Link
+                    href="/"
+                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                  >
+                    View Site
+                  </Link>
+                </div>
+              </div>
             </div>
           </div>
         </div>

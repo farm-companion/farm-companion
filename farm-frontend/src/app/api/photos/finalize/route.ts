@@ -1,75 +1,93 @@
-// app/api/photos/finalize/route.ts
 import { NextRequest, NextResponse } from 'next/server'
-import redis from '../../../../lib/redis'
-import { headBlob } from '../../../../lib/blob'
-import { sendPhotoSubmissionReceipt } from '../../../../lib/email'
+import redis, { ensureConnection } from '@/lib/redis'
+import { headBlob, getBlobInfo } from '@/lib/blob'
+import { sendPhotoSubmissionReceipt } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json().catch(() => ({}))
     const { leaseId, objectKey, caption, authorName, authorEmail } = body
 
-    const leaseData = await redis.get(`lease:${leaseId}`)
+    if (!leaseId || !objectKey) {
+      return NextResponse.json({
+        error: 'missing-required-fields',
+        message: 'Missing required fields: leaseId, objectKey'
+      }, { status: 400 })
+    }
+
+    const client = await ensureConnection()
+
+    // Get and validate lease
+    const leaseData = await client.get(`lease:${leaseId}`)
     if (!leaseData) {
-      return NextResponse.json({ error: 'invalid-lease' }, { status: 400 })
+      return NextResponse.json({
+        error: 'lease-not-found',
+        message: 'Upload lease not found or expired'
+      }, { status: 404 })
     }
-    
+
     const lease = JSON.parse(String(leaseData))
-    if (lease.status !== 'reserved' || lease.objectKey !== objectKey) {
-      return NextResponse.json({ error: 'invalid-lease' }, { status: 400 })
+    if (lease.objectKey !== objectKey) {
+      return NextResponse.json({
+        error: 'lease-mismatch',
+        message: 'Lease object key mismatch'
+      }, { status: 400 })
     }
 
-    const exists = await headBlob(objectKey)
-    if (!exists) return NextResponse.json({ error: 'missing-blob' }, { status: 400 })
+    // Verify blob exists and get the correct URL
+    const blobInfo = await getBlobInfo(objectKey)
+    if (!blobInfo) {
+      return NextResponse.json({
+        error: 'blob-not-found',
+        message: 'Uploaded file not found'
+      }, { status: 404 })
+    }
 
+    // Create photo object with the correct blob URL
     const photo = {
-      id: lease.photoId,
+      id: lease.id,
       farmSlug: lease.farmSlug,
-      objectKey: lease.objectKey,
-      url: `https://blob.vercel-storage.com/${lease.objectKey}`, // Blob public path
-      caption: (caption || '').slice(0, 500),
-      authorName: (authorName || '').slice(0, 120),
-      authorEmail: (authorEmail || '').slice(0, 200),
-      status: 'pending', // change to 'approved' if you want instant publish
+      url: blobInfo.url, // Use the actual blob URL instead of hardcoded domain
+      caption: caption || '',
+      authorName: authorName || '',
+      authorEmail: authorEmail || '',
       createdAt: Date.now(),
-      replaceOf: lease.replacePhotoId || ''
+      status: 'pending'
     }
 
-    // Use Redis pipeline for atomic operations
-    const pipeline = redis.multi()
+    // Store photo and update indexes in a transaction
+    const pipeline = client.multi()
     
-    // Store photo metadata
-    pipeline.hSet(`photo:${photo.id}`, photo as any)
+    // Store photo metadata as individual hash fields
+    pipeline.hSet(`photo:${photo.id}`, {
+      id: photo.id,
+      farmSlug: photo.farmSlug,
+      url: photo.url,
+      caption: photo.caption,
+      authorName: photo.authorName,
+      authorEmail: photo.authorEmail,
+      createdAt: photo.createdAt.toString(),
+      status: photo.status
+    })
     
-    // Add to farm's photo list
-    pipeline.lPush(`farm:${photo.farmSlug}:photos`, photo.id)
+    // Add to farm's pending photos
+    pipeline.sAdd(`farm:${photo.farmSlug}:photos:pending`, photo.id)
     
-    // Handle approval status
-    if (photo.status === 'approved') {
-      pipeline.sAdd(`farm:${photo.farmSlug}:photos:approved`, photo.id)
-    } else {
-      pipeline.lPush('moderation:queue', photo.id)
-    }
+    // Add to moderation queue
+    pipeline.lPush('moderation:queue', photo.id)
     
-    // Handle photo replacement
-    if (lease.replacePhotoId) {
-      pipeline.hSet(`photo:${lease.replacePhotoId}`, { status: 'archived', archivedAt: Date.now() } as any)
-      pipeline.sRem(`farm:${photo.farmSlug}:photos:approved`, lease.replacePhotoId)
-    }
-    
-    // Update lease status
-    pipeline.setEx(`lease:${leaseId}`, 60 * 60, JSON.stringify({ ...lease, status: 'finalized' }))
-    
+    // Remove lease
+    pipeline.del(`lease:${leaseId}`)
+
     await pipeline.exec()
 
     // 🔔 Fire-and-forget email (don't fail the API if email fails)
     ;(async () => {
       try {
         if (photo.authorEmail) {
-          // Get farm name from Redis if available, otherwise use slug
           let farmName = photo.farmSlug
           try {
-            const farmData = await redis.get(`farm:${photo.farmSlug}`)
+            const farmData = await client.get(`farm:${photo.farmSlug}`)
             if (farmData) {
               const farm = JSON.parse(String(farmData))
               farmName = farm.name || farm.title || photo.farmSlug
@@ -98,10 +116,16 @@ export async function POST(req: NextRequest) {
       }
     })()
 
-    return NextResponse.json({ ok: true, status: photo.status, photoId: photo.id, previewUrl: photo.url })
+    return NextResponse.json({ 
+      ok: true, 
+      status: photo.status, 
+      photoId: photo.id, 
+      previewUrl: photo.url 
+    })
+
   } catch (error) {
     console.error('Error in finalize route:', error)
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: 'internal-server-error',
       message: 'An unexpected error occurred'
     }, { status: 500 })

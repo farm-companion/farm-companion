@@ -20,12 +20,30 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
   const [apiImages, setApiImages] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [useApiImage, setUseApiImage] = useState(true)
+  const [effectiveMonth, setEffectiveMonth] = useState(month)
 
   useEffect(() => {
     async function fetchImages() {
       try {
         setIsLoading(true)
-        const images = await getProduceImages(produce.slug, month)
+        
+        // First try the current month
+        let images = await getProduceImages(produce.slug, month)
+        
+        // If no images for current month, try other months (1-12)
+        if (images.length === 0) {
+          for (let testMonth = 1; testMonth <= 12; testMonth++) {
+            if (testMonth === month) continue // Skip current month as we already checked it
+            
+            const testImages = await getProduceImages(produce.slug, testMonth)
+            if (testImages.length > 0) {
+              console.log(`Found ${testImages.length} images for ${produce.slug} in month ${testMonth}, using those instead of month ${month}`)
+              images = testImages
+              setEffectiveMonth(testMonth)
+              break
+            }
+          }
+        }
         
         // Filter for hero images (image1 only)
         const heroImages = images.filter(image => {
@@ -65,37 +83,60 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
   return (
     <Link
       href={`/seasonal/${produce.slug}`}
-      className={`group block bg-background-canvas rounded-xl border border-border-default p-6 hover:shadow-premium animate-transform hover-lift ${className}`}
+      className={`group block bg-background-surface border border-border-default/30 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-300 ${className}`}
     >
-      <div className="aspect-square bg-background-surface rounded-lg mb-4 overflow-hidden relative">
-        {isLoading ? (
-          <div className="w-full h-full bg-background-canvas animate-pulse" />
-        ) : (
-          <>
-            <Image
-              src={imageUrl}
-              alt={imageAlt}
-              fill
-              className="object-cover animate-transform group-hover:scale-105"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              quality={80}
-              loading="lazy"
-            />
-            {/* API Image Indicator */}
-            {hasApiImages && useApiImage && (
-              <div className="absolute top-2 right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
-                Live
-              </div>
-            )}
-          </>
+      {/* Image Container */}
+      <div className="relative aspect-[4/3] overflow-hidden">
+        {isLoading && (
+          <div className="absolute inset-0 bg-background-canvas flex items-center justify-center">
+            <div className="w-6 h-6 border-2 border-serum border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        
+        {imageUrl && (
+          <Image
+            src={imageUrl}
+            alt={imageAlt}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority={false}
+          />
+        )}
+        
+        {/* Month indicator if using fallback month */}
+        {effectiveMonth !== month && hasApiImages && (
+          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+            Month {effectiveMonth}
+          </div>
         )}
       </div>
-      <h3 className="font-heading font-semibold text-text-heading mb-2 group-hover:text-serum transition-colors">
-        {produce.name}
-      </h3>
-      <p className="text-sm text-text-muted">
-        {produce.monthsInSeason?.includes(month) ? 'Peak season' : 'In season'}
-      </p>
+
+      {/* Content */}
+      <div className="p-4">
+        <h3 className="font-semibold text-text-heading group-hover:text-serum transition-colors">
+          {produce.name}
+        </h3>
+        
+        {/* Season indicator */}
+        {produce.monthsInSeason && (
+          <p className="text-sm text-text-muted mt-1">
+            {produce.monthsInSeason.length === 1 
+              ? `In season: ${getMonthName(produce.monthsInSeason[0])}`
+              : `In season: ${produce.monthsInSeason.map(getMonthName).join(', ')}`
+            }
+          </p>
+        )}
+      </div>
     </Link>
   )
+}
+
+// Helper function to get month name
+function getMonthName(month: number): string {
+  const monthNames = [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ]
+  return monthNames[month - 1] || 'Unknown'
 }

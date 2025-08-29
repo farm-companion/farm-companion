@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import { ChevronLeft, ChevronRight, Pause, Play } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Pause, Play, Heart, Share2 } from 'lucide-react'
 import { ApprovedPhoto } from '@/lib/photos'
 
 interface FarmPhotoGalleryProps {
@@ -19,6 +19,7 @@ export default function FarmPhotoGallery({
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isPlaying, setIsPlaying] = useState(true)
   const [isHovered, setIsHovered] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Auto-play functionality
   useEffect(() => {
@@ -74,90 +75,117 @@ export default function FarmPhotoGallery({
 
   return (
     <div 
-      className="relative w-full bg-gray-50 rounded-xl overflow-hidden shadow-lg"
+      className="relative w-full bg-gradient-to-br from-background-canvas to-background-surface rounded-3xl overflow-hidden shadow-2xl border border-border-default/30"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       role="region"
       aria-label="Farm photo gallery"
     >
-      {/* Main Image */}
+      {/* Enhanced Main Image Container */}
       <div 
         className="relative w-full"
         style={{ aspectRatio: aspect }}
       >
+        {/* Loading State */}
+        {isLoading && (
+          <div className="absolute inset-0 bg-gradient-to-br from-background-canvas to-background-surface flex items-center justify-center z-10">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6 border-2 border-serum border-t-transparent rounded-full animate-spin" />
+              <span className="text-text-muted font-medium">Loading photo...</span>
+            </div>
+          </div>
+        )}
+
         <Image
           src={currentPhoto.url}
           alt={currentPhoto.caption || `Farm photo by ${currentPhoto.authorName || 'visitor'}`}
           fill
-          className="object-cover"
+          className="object-cover transition-transform duration-700 hover:scale-105"
           priority={currentIndex === 0}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+          onLoad={() => setIsLoading(false)}
+          onError={() => setIsLoading(false)}
         />
         
-        {/* Overlay with caption and author */}
+        {/* Enhanced Overlay with caption and author */}
         {(currentPhoto.caption || currentPhoto.authorName) && (
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-            {currentPhoto.caption && (
-              <p className="text-white text-sm font-medium mb-1">
-                {currentPhoto.caption}
-              </p>
-            )}
-            {currentPhoto.authorName && (
-              <p className="text-white/80 text-xs">
-                — {currentPhoto.authorName}
-              </p>
-            )}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                {currentPhoto.caption && (
+                  <p className="text-white text-lg font-semibold mb-2 leading-tight">
+                    {currentPhoto.caption}
+                  </p>
+                )}
+                {currentPhoto.authorName && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-serum rounded-full" />
+                    <p className="text-white/90 text-sm font-medium">
+                      Shared by {currentPhoto.authorName}
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-300 backdrop-blur-sm">
+                  <Heart className="w-4 h-4 text-white" />
+                </button>
+                <button className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-300 backdrop-blur-sm">
+                  <Share2 className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Enhanced Navigation Arrows */}
       {photos.length > 1 && (
         <>
           <button
             onClick={goToPrevious}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="absolute left-4 top-1/2 -translate-y-1/2 bg-background-surface/90 hover:bg-background-surface text-text-heading p-3 rounded-full shadow-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-serum focus:ring-offset-2 backdrop-blur-sm border border-border-default/30 hover:border-serum/50 transform hover:scale-110"
             aria-label="Previous photo"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-6 h-6" />
           </button>
           
           <button
             onClick={goToNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="absolute right-4 top-1/2 -translate-y-1/2 bg-background-surface/90 hover:bg-background-surface text-text-heading p-3 rounded-full shadow-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-serum focus:ring-offset-2 backdrop-blur-sm border border-border-default/30 hover:border-serum/50 transform hover:scale-110"
             aria-label="Next photo"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-6 h-6" />
           </button>
         </>
       )}
 
-      {/* Play/Pause Button */}
+      {/* Enhanced Play/Pause Button */}
       {photos.length > 1 && (
         <button
           onClick={togglePlay}
-          className="absolute top-4 right-4 bg-white/90 hover:bg-white text-gray-800 p-2 rounded-full shadow-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          className="absolute top-6 right-6 bg-background-surface/90 hover:bg-background-surface text-text-heading p-3 rounded-full shadow-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-serum focus:ring-offset-2 backdrop-blur-sm border border-border-default/30 hover:border-serum/50 transform hover:scale-110"
           aria-label={isPlaying ? 'Pause slideshow' : 'Play slideshow'}
         >
           {isPlaying ? (
-            <Pause className="w-4 h-4" />
+            <Pause className="w-5 h-5" />
           ) : (
-            <Play className="w-4 h-4" />
+            <Play className="w-5 h-5" />
           )}
         </button>
       )}
 
-      {/* Dots Indicator */}
+      {/* Enhanced Dots Indicator */}
       {photos.length > 1 && (
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex space-x-2">
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-3">
           {photos.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 ${
+              className={`w-3 h-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 transform hover:scale-125 ${
                 index === currentIndex 
-                  ? 'bg-white shadow-lg' 
-                  : 'bg-white/50 hover:bg-white/75'
+                  ? 'bg-serum shadow-lg scale-125' 
+                  : 'bg-white/60 hover:bg-white/80'
               }`}
               aria-label={`Go to photo ${index + 1}`}
               aria-current={index === currentIndex ? 'true' : 'false'}
@@ -166,10 +194,22 @@ export default function FarmPhotoGallery({
         </div>
       )}
 
-      {/* Photo Counter */}
+      {/* Enhanced Photo Counter */}
       {photos.length > 1 && (
-        <div className="absolute top-4 left-4 bg-black/50 text-white px-2 py-1 rounded text-xs">
-          {currentIndex + 1} / {photos.length}
+        <div className="absolute top-6 left-6 bg-background-surface/90 backdrop-blur-sm text-text-heading px-4 py-2 rounded-full text-sm font-semibold border border-border-default/30">
+          {currentIndex + 1} of {photos.length}
+        </div>
+      )}
+
+      {/* Progress Bar */}
+      {photos.length > 1 && isPlaying && (
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-black/20">
+          <div 
+            className="h-full bg-gradient-to-r from-serum to-teal-500 transition-all duration-300 ease-linear"
+            style={{ 
+              width: `${((currentIndex + 1) / photos.length) * 100}%` 
+            }}
+          />
         </div>
       )}
     </div>

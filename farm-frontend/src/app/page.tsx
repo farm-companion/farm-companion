@@ -247,8 +247,27 @@ export default async function HomePage() {
 
       {/* SEO Content Section with Subtle Geometric Pattern */}
       <section className="relative bg-background-canvas border-t border-border-default overflow-hidden section-lazy">
-        {/* Subtle Geometric Pattern Background */}
-        <div className="absolute inset-0 opacity-[0.03]">
+        {/* Orange Grove Background Image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/AdobeStock_1487189999.jpeg"
+            alt="Vibrant orange grove with wooden table and fresh oranges, representing the natural beauty of farm produce"
+            fill
+            className="object-cover object-center blur-sm"
+            sizes="100vw"
+            quality={80}
+            priority={false}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+          />
+          {/* Subtle overlay to ensure text readability */}
+          <div className="absolute inset-0 bg-background-canvas/85" />
+          {/* Additional subtle texture overlay */}
+          <div className="absolute inset-0 bg-gradient-to-br from-background-canvas/20 via-transparent to-background-canvas/30" />
+        </div>
+        
+        {/* Subtle Geometric Pattern Background (kept for depth) */}
+        <div className="absolute inset-0 opacity-[0.02]">
           <div className="absolute inset-0" style={{
             backgroundImage: `
               radial-gradient(circle at 20% 30%, rgba(0, 194, 178, 0.1) 0%, transparent 50%),
@@ -262,7 +281,7 @@ export default async function HomePage() {
         </div>
         
         {/* Subtle embossed texture overlay */}
-        <div className="absolute inset-0 opacity-[0.02]" style={{
+        <div className="absolute inset-0 opacity-[0.01]" style={{
           backgroundImage: `
             repeating-linear-gradient(
               45deg,
@@ -275,68 +294,79 @@ export default async function HomePage() {
           backgroundSize: '8px 8px'
         }} />
         
-        {/* Content */}
+        {/* Content Container with Enhanced Background */}
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-20">
-          <div className="prose prose-lg max-w-none">
-            {/* Enhanced main heading with subtle animation */}
-            <div className="text-center mb-12">
-              <h2 className="text-4xl md:text-5xl font-heading font-bold text-text-heading mb-4 animate-fade-in">
-                UK Farm Shops Directory
-              </h2>
-              <div className="w-24 h-1 bg-gradient-to-r from-serum to-solar mx-auto rounded-full opacity-60"></div>
-            </div>
+          {/* Special Background Card for Content */}
+          <div className="relative">
+            {/* Solid white glass effect with window-like border */}
+            <div className="absolute inset-0 bg-white/60 backdrop-blur-md rounded-2xl border-4 border-white/70 shadow-2xl" style={{
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
+            }}></div>
             
-            {/* Enhanced intro paragraph with stats */}
-            <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-              <p className="text-xl text-text-muted mb-6 leading-relaxed">
-                Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated 
-                a directory of over <span className="font-semibold text-serum">{farmCount}</span> authentic farm shops across <span className="font-semibold text-serum">{countyCount}</span> counties, 
-                helping you discover the freshest local produce and connect with real farmers.
-              </p>
-            </div>
-            
-            {/* Enhanced content sections with subtle styling */}
-            <div className="space-y-12">
-              <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                <h3 className="text-2xl font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center">
-                    <MapPin className="w-4 h-4 text-serum" />
+            {/* Content with proper spacing */}
+            <div className="relative z-10 p-8 md:p-12">
+              <div className="prose prose-lg max-w-none">
+                {/* Enhanced main heading with maximum contrast */}
+                <div className="text-center mb-12">
+                  <h2 className="text-4xl md:text-5xl font-heading font-bold text-black mb-4 animate-fade-in drop-shadow-xl" style={{textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.6)'}}>
+                    UK Farm Shops Directory
+                  </h2>
+                  <div className="w-24 h-1 bg-gradient-to-r from-serum to-solar mx-auto rounded-full opacity-60 drop-shadow-sm"></div>
+                </div>
+                
+                {/* Enhanced intro paragraph with maximum contrast */}
+                <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+                  <p className="text-xl text-black mb-6 leading-relaxed drop-shadow-lg font-semibold" style={{textShadow: '0 0 8px rgba(255,255,255,0.7), 0 0 16px rgba(255,255,255,0.5)'}}>
+                    Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated 
+                    a directory of over <span className="font-bold text-serum drop-shadow-lg">{farmCount}</span> authentic farm shops across <span className="font-bold text-serum drop-shadow-lg">{countyCount}</span> counties, 
+                    helping you discover the freshest local produce and connect with real farmers.
+                  </p>
+                </div>
+                
+                {/* Enhanced content sections with maximum contrast */}
+                <div className="space-y-12">
+                  <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+                    <h3 className="text-2xl font-heading font-semibold text-black mb-4 flex items-center gap-3 drop-shadow-xl" style={{textShadow: '0 0 8px rgba(255,255,255,0.7), 0 0 16px rgba(255,255,255,0.5)'}}>
+                      <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
+                        <MapPin className="w-4 h-4 text-serum drop-shadow-lg" />
+                      </div>
+                      Find Farm Shops Near You
+                    </h3>
+                    <p className="text-black leading-relaxed drop-shadow-lg font-semibold" style={{textShadow: '0 0 6px rgba(255,255,255,0.6), 0 0 12px rgba(255,255,255,0.4)'}}>
+                      Search for farm shops near you to buy fresh vegetables, organic meat, artisanal cheese, 
+                      and homemade preserves. Our interactive map shows verified contact details, opening hours, 
+                      and what each farm sells locally.
+                    </p>
                   </div>
-                  Find Farm Shops Near You
-                </h3>
-                <p className="text-text-muted leading-relaxed">
-                  Search for farm shops near you to buy fresh vegetables, organic meat, artisanal cheese, 
-                  and homemade preserves. Our interactive map shows verified contact details, opening hours, 
-                  and what each farm sells locally.
-                </p>
-              </div>
 
-              <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-                <h3 className="text-2xl font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-serum" />
+                  <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
+                    <h3 className="text-2xl font-heading font-semibold text-black mb-4 flex items-center gap-3 drop-shadow-xl" style={{textShadow: '0 0 8px rgba(255,255,255,0.7), 0 0 16px rgba(255,255,255,0.5)'}}>
+                      <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
+                        <Calendar className="w-4 h-4 text-serum drop-shadow-lg" />
+                      </div>
+                      Seasonal Produce Guides
+                    </h3>
+                    <p className="text-black leading-relaxed drop-shadow-lg font-semibold" style={{textShadow: '0 0 6px rgba(255,255,255,0.6), 0 0 12px rgba(255,255,255,0.4)'}}>
+                      Buy seasonal UK fruit and vegetables at their peak flavour and nutritional value. 
+                      Our guides show what&apos;s in season each month, with tips on choosing, storing, 
+                      and cooking the freshest local produce.
+                    </p>
                   </div>
-                  Seasonal Produce Guides
-                </h3>
-                <p className="text-text-muted leading-relaxed">
-                  Buy seasonal UK fruit and vegetables at their peak flavour and nutritional value. 
-                  Our guides show what&apos;s in season each month, with tips on choosing, storing, 
-                  and cooking the freshest local produce.
-                </p>
-              </div>
 
-              <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                <h3 className="text-2xl font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
-                  <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center">
-                    <Heart className="w-4 h-4 text-serum" />
+                  <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
+                    <h3 className="text-2xl font-heading font-semibold text-black mb-4 flex items-center gap-3 drop-shadow-xl" style={{textShadow: '0 0 8px rgba(255,255,255,0.7), 0 0 16px rgba(255,255,255,0.5)'}}>
+                      <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
+                        <Heart className="w-4 h-4 text-serum drop-shadow-lg" />
+                      </div>
+                      Support Local Farmers
+                    </h3>
+                    <p className="text-black leading-relaxed drop-shadow-lg font-semibold" style={{textShadow: '0 0 6px rgba(255,255,255,0.6), 0 0 12px rgba(255,255,255,0.4)'}}>
+                      By choosing to shop at local farm shops, you&apos;re supporting British farmers and 
+                      contributing to sustainable, local food systems. You&apos;ll enjoy fresher produce, 
+                      reduce food miles, and help maintain the UK&apos;s rich agricultural heritage.
+                    </p>
                   </div>
-                  Support Local Farmers
-                </h3>
-                <p className="text-text-muted leading-relaxed">
-                  By choosing to shop at local farm shops, you&apos;re supporting British farmers and 
-                  contributing to sustainable, local food systems. You&apos;ll enjoy fresher produce, 
-                  reduce food miles, and help maintain the UK&apos;s rich agricultural heritage.
-                </p>
+                </div>
               </div>
             </div>
           </div>

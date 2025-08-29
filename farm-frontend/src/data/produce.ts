@@ -317,10 +317,10 @@ export const PRODUCE: Produce[] = [
     slug: 'apples',
     name: 'Apples',
     images: [
-      { src: 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=800&h=600&fit=crop', alt: 'Fresh red apples on a tree' },
-      { src: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&h=600&fit=crop', alt: 'Assorted apples in a basket' },
-      { src: 'https://images.unsplash.com/photo-1498557850523-fd3d118b962e?w=800&h=600&fit=crop', alt: 'Apple orchard in autumn' },
-      { src: 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=800&h=600&fit=crop', alt: 'Fresh apples arranged on rustic wooden surface' },
+      { src: '/images/produce/apples1.jpg', alt: 'Fresh red apples on a tree in autumn' },
+      { src: '/images/produce/apples2.jpg', alt: 'Assorted apples in a rustic basket' },
+      { src: '/images/produce/apples3.jpg', alt: 'Apple orchard in autumn with golden leaves' },
+      { src: '/images/produce/apples4.jpg', alt: 'Fresh apples arranged on rustic wooden surface' },
     ],
     monthsInSeason: [9, 10, 11, 12],     // Sep–Dec
     peakMonths: [10, 11],
@@ -394,19 +394,19 @@ export const PRODUCE: Produce[] = [
     ],
     recipeChips: [
       {
-        title: 'Pumpkin Soup',
-        url: 'https://www.bbcgoodfood.com/recipes/pumpkin-soup',
-        description: 'Warming autumn soup'
+        title: 'Halloween Pumpkin Cake',
+        url: 'https://www.bbcgoodfood.com/recipes/halloween-pumpkin-cake',
+        description: 'Ghoulishly good Halloween pumpkin cake with orange frosting'
       },
       {
-        title: 'Roasted Pumpkin Salad',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/roasted-pumpkin-salad/',
-        description: 'Healthy seasonal salad'
+        title: 'Pumpkin Curry Recipe',
+        url: 'https://www.indianhealthyrecipes.com/pumpkin-curry-recipe/',
+        description: 'Indian-style pumpkin curry with aromatic spices'
       },
       {
-        title: 'Pumpkin Risotto',
-        url: 'https://www.deliciousmagazine.co.uk/recipes/pumpkin-risotto/',
-        description: 'Creamy Italian-style dish'
+        title: 'Creamy Pumpkin Soup',
+        url: 'https://www.olivemagazine.com/recipes/family/creamy-pumpkin-soup-with-blue-cheese-and-sage-toasties/',
+        description: 'Creamy pumpkin soup with blue cheese and sage toasties'
       }
     ],
     aliases: ['pumpkin', 'squash', 'winter squash'],

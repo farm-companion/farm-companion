@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronUp, Heart } from 'lucide-react'
 
 interface FooterSection {
   title: string
@@ -173,7 +173,9 @@ export default function Footer() {
               © {currentYear} Farm Companion. All rights reserved.
             </div>
             <div className="flex flex-col items-center space-y-2 md:flex-row md:space-x-6 md:space-y-0">
-              <span>Made with ❤️ for local food</span>
+              <span className="flex items-center gap-1">
+                Made with <Heart className="h-4 w-4 text-text-muted" /> for local food
+              </span>
               <span className="hidden md:inline">•</span>
               <span>Open source</span>
             </div>

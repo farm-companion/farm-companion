@@ -1,26 +1,42 @@
 // src/lib/blob.ts
 import { head, put } from '@vercel/blob'
 
-/**
- * We generate a deterministic object key:
- *   farm-photos/{farmSlug}/{photoId}/main
- * Vercel Blob will add the correct extension based on content-type.
- */
-export function buildObjectKey(farmSlug: string, photoId: string) {
-  return `farm-photos/${encodeURIComponent(farmSlug)}/${photoId}/main`
+export function buildObjectKey(farmSlug: string, photoId: string, contentType?: string) {
+  // Determine file extension from content type
+  let extension = 'webp' // default to webp
+  if (contentType) {
+    if (contentType.includes('jpeg') || contentType.includes('jpg')) {
+      extension = 'jpg'
+    } else if (contentType.includes('png')) {
+      extension = 'png'
+    } else if (contentType.includes('webp')) {
+      extension = 'webp'
+    } else if (contentType.includes('heic')) {
+      extension = 'heic'
+    }
+  }
+  
+  return `farm-photos/${encodeURIComponent(farmSlug)}/${photoId}/main.${extension}`
 }
 
-/**
- * Upload file directly to Vercel Blob using the SDK
- * This replaces the manual upload URL creation
- */
+export function fixPhotoUrl(url: string): string {
+  // If the URL doesn't have a file extension, try to add one
+  if (url && !url.includes('.') && url.includes('/main')) {
+    // Try common extensions
+    const extensions = ['webp', 'jpg', 'png', 'jpeg']
+    for (const ext of extensions) {
+      const fixedUrl = url.replace('/main', `/main.${ext}`)
+      console.log(`Trying fixed URL: ${fixedUrl}`)
+      // Note: We can't actually test the URL here, but we can return the most likely one
+      if (ext === 'webp') return fixedUrl // Default to webp
+    }
+  }
+  return url
+}
+
 export async function uploadToBlob(file: File, pathname: string): Promise<{ url: string }> {
   try {
-    const blob = await put(pathname, file, {
-      access: 'public',
-      addRandomSuffix: false
-    })
-    
+    const blob = await put(pathname, file, { access: 'public', addRandomSuffix: false })
     return { url: blob.url }
   } catch (error) {
     console.error('Blob upload error:', error)
@@ -28,30 +44,36 @@ export async function uploadToBlob(file: File, pathname: string): Promise<{ url:
   }
 }
 
-/**
- * Create a pre-signed upload URL for client-side uploads
- * This uses the proper Vercel Blob SDK approach
- */
 export async function createUploadUrl(opts: {
   pathname: string
   contentType: string
   contentLength: number
 }): Promise<{ uploadUrl: string }> {
-  // For now, we'll use a server-side upload approach since the direct API isn't working
-  // This is a workaround that uploads the file server-side and returns the URL
-  
-  // Return a URL that points to our server-side upload endpoint
-  return { 
-    uploadUrl: `/api/photos/upload-blob?pathname=${encodeURIComponent(opts.pathname)}&contentType=${encodeURIComponent(opts.contentType)}` 
+  try {
+    // Return the upload endpoint URL - the data will be sent in the form body
+    return { 
+      uploadUrl: `/api/photos/upload-blob`
+    }
+  } catch (error) {
+    console.error('Error creating upload URL:', error)
+    throw new Error('Failed to create upload URL')
   }
 }
 
-/** HEAD check to confirm the blob exists after client upload */
 export async function headBlob(pathname: string): Promise<boolean> {
   try {
-    const meta = await head(pathname) // throws if not found
-    return !!meta && typeof meta?.size === 'number'
+    const blobInfo = await head(pathname)
+    return !!blobInfo
   } catch {
     return false
+  }
+}
+
+// Wrapper function to get blob info with URL
+export async function getBlobInfo(pathname: string) {
+  try {
+    return await head(pathname)
+  } catch {
+    return null
   }
 }

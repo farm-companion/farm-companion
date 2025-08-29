@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import ProduceImage, { ProduceGallery } from '@/components/ProduceImage'
 import ApiProduceImage, { ApiProduceGallery } from '@/components/ApiProduceImage'
 import { Button } from '@/components/ui/Button'
 import { Camera, Image as ImageIcon } from 'lucide-react'
+import { getProduceImages } from '@/lib/produce-integration'
 
 interface ClientProduceImagesProps {
   produceSlug: string
@@ -14,6 +15,7 @@ interface ClientProduceImagesProps {
   showToggle?: boolean
   className?: string
   maxImages?: number
+  fallbackToAnyMonth?: boolean // New prop to allow fallback to any month
 }
 
 export default function ClientProduceImages({
@@ -23,9 +25,48 @@ export default function ClientProduceImages({
   month,
   showToggle = false, // Changed default to false
   className = '',
-  maxImages = 6
+  maxImages = 6,
+  fallbackToAnyMonth = true // Default to true for better UX
 }: ClientProduceImagesProps) {
   const [useApiImages, setUseApiImages] = useState(true)
+  const [effectiveMonth, setEffectiveMonth] = useState(month)
+
+  // Check if we have images for the current month, if not, try other months
+  useEffect(() => {
+    if (fallbackToAnyMonth && month) {
+      checkAndSetEffectiveMonth()
+    }
+  }, [month, fallbackToAnyMonth])
+
+  const checkAndSetEffectiveMonth = async () => {
+    try {
+      // First try the current month
+      const currentMonthImages = await getProduceImages(produceSlug, month)
+      
+      if (currentMonthImages.length > 0) {
+        setEffectiveMonth(month)
+        return
+      }
+      
+      // If no images for current month, try other months (1-12)
+      for (let testMonth = 1; testMonth <= 12; testMonth++) {
+        if (testMonth === month) continue // Skip current month as we already checked it
+        
+        const testImages = await getProduceImages(produceSlug, testMonth)
+        if (testImages.length > 0) {
+          console.log(`Found ${testImages.length} images for ${produceSlug} in month ${testMonth}, using those instead of month ${month}`)
+          setEffectiveMonth(testMonth)
+          return
+        }
+      }
+      
+      // If no images found in any month, use the original month
+      setEffectiveMonth(month)
+    } catch (error) {
+      console.error('Error checking for fallback images:', error)
+      setEffectiveMonth(month)
+    }
+  }
 
   // Always show API images by default, only show toggle if explicitly requested
   const displayApiImages = showToggle ? useApiImages : true
@@ -61,7 +102,7 @@ export default function ClientProduceImages({
         <ApiProduceGallery
           produceSlug={produceSlug}
           produceName={produceName}
-          month={month}
+          month={effectiveMonth}
           maxImages={maxImages}
         />
       ) : (
@@ -88,6 +129,7 @@ interface ClientProduceImageProps {
   width?: number
   height?: number
   alt?: string
+  fallbackToAnyMonth?: boolean
 }
 
 export function ClientProduceImage({
@@ -102,9 +144,48 @@ export function ClientProduceImage({
   fill = false,
   width,
   height,
-  alt
+  alt,
+  fallbackToAnyMonth = true
 }: ClientProduceImageProps) {
   const [useApiImage, setUseApiImage] = useState(true)
+  const [effectiveMonth, setEffectiveMonth] = useState(month)
+
+  // Check if we have images for the current month, if not, try other months
+  useEffect(() => {
+    if (fallbackToAnyMonth && month) {
+      checkAndSetEffectiveMonth()
+    }
+  }, [month, fallbackToAnyMonth])
+
+  const checkAndSetEffectiveMonth = async () => {
+    try {
+      // First try the current month
+      const currentMonthImages = await getProduceImages(produceSlug, month)
+      
+      if (currentMonthImages.length > 0) {
+        setEffectiveMonth(month)
+        return
+      }
+      
+      // If no images for current month, try other months (1-12)
+      for (let testMonth = 1; testMonth <= 12; testMonth++) {
+        if (testMonth === month) continue // Skip current month as we already checked it
+        
+        const testImages = await getProduceImages(produceSlug, testMonth)
+        if (testImages.length > 0) {
+          console.log(`Found ${testImages.length} images for ${produceSlug} in month ${testMonth}, using those instead of month ${month}`)
+          setEffectiveMonth(testMonth)
+          return
+        }
+      }
+      
+      // If no images found in any month, use the original month
+      setEffectiveMonth(month)
+    } catch (error) {
+      console.error('Error checking for fallback images:', error)
+      setEffectiveMonth(month)
+    }
+  }
 
   // Always show API image by default, only show toggle if explicitly requested
   const displayApiImage = showToggle ? useApiImage : true
@@ -140,7 +221,7 @@ export function ClientProduceImage({
         <ApiProduceImage
           produceSlug={produceSlug}
           produceName={produceName}
-          month={month}
+          month={effectiveMonth}
           sizes={sizes}
           priority={priority}
           fill={fill}

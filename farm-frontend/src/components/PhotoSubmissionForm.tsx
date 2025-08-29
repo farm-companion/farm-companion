@@ -164,6 +164,8 @@ export default function PhotoSubmissionForm({
     // 2) Direct upload to Blob
     const formData = new FormData()
     formData.append('file', file)
+    formData.append('pathname', reserve.objectKey)
+    formData.append('contentType', file.type)
     
     const uploadResponse = await fetch(reserve.uploadUrl, {
       method: 'POST',
