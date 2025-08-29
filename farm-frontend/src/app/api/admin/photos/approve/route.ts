@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
       
       // Get all approved photos for this farm with their creation dates
       const approvedPhotos = await Promise.all(
-        approvedPhotoIds.map(async (id) => {
+        approvedPhotoIds.map(async (id: string) => {
           try {
             const data = await client.hGetAll(`photo:${id}`)
             if (data && Object.keys(data).length > 0) {

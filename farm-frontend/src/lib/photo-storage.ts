@@ -263,7 +263,7 @@ export async function getPendingDeletionRequests(): Promise<DeletionRequest[]> {
     const requestIds = await client.lRange('deletion_requests:pending', 0, -1)
     
     const requests = await Promise.all(
-      requestIds.map(async (requestId) => {
+      requestIds.map(async (requestId: string) => {
         const requestData = await client.hGetAll(`deletion_request:${requestId}`)
         if (!requestData || !requestData.requestId) return null
         
@@ -296,7 +296,7 @@ export async function getRecoverablePhotos(): Promise<PhotoSubmission[]> {
     const photoIds = await client.lRange('photos:deleted', 0, -1)
     
     const photos = await Promise.all(
-      photoIds.map(async (photoId) => {
+      photoIds.map(async (photoId: string) => {
         return await getPhotoSubmission(photoId)
       })
     )

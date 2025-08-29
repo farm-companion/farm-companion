@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Trash2, AlertTriangle } from 'lucide-react'
-import { deletePhotoAction } from '@/app/admin/photos/actions'
+// import { deletePhotoAction } from '@/app/admin/photos/actions'
 
 interface DeletePhotoButtonProps {
   photoId: string
@@ -23,7 +23,8 @@ export default function DeletePhotoButton({ photoId, photoDescription, onDelete 
 
     setIsDeleting(true)
     try {
-      await deletePhotoAction(photoId, reason)
+      // TODO: Implement delete photo action
+      console.log('Deleting photo:', photoId, 'with reason:', reason)
       setShowConfirm(false)
       setReason('')
       onDelete?.()

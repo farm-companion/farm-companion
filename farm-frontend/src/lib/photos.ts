@@ -22,7 +22,7 @@ export async function getApprovedPhotosBySlug(slug: string): Promise<ApprovedPho
 
     // Fetch photo metadata for all IDs
     const metas = await Promise.all(
-      ids.map(async (id) => {
+      ids.map(async (id: string) => {
         try {
           const photoData = await client.hGetAll(`photo:${id}`)
           return photoData || null
@@ -69,7 +69,7 @@ export async function getValidApprovedPhotosBySlug(slug: string): Promise<Approv
 
     // Fetch photo metadata for all IDs
     const metas = await Promise.all(
-      ids.map(async (id) => {
+      ids.map(async (id: string) => {
         try {
           const photoData = await client.hGetAll(`photo:${id}`)
           return photoData || null
@@ -155,7 +155,7 @@ export async function getPendingPhotos(): Promise<any[]> {
     if (!pendingIds?.length) return []
 
     const photos = await Promise.all(
-      pendingIds.map(async (id) => {
+      pendingIds.map(async (id: string) => {
         try {
           const photoData = await client.hGetAll(`photo:${id}`)
           return photoData || null

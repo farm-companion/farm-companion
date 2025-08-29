@@ -47,7 +47,7 @@ export default async function AdminPhotosPage() {
   
   console.log('Debug: Pending photo IDs:', pendingIds)
   
-  const pending = await Promise.all(pendingIds.map(async (id) => {
+  const pending = await Promise.all(pendingIds.map(async (id: string) => {
     try {
       const photoData = await client.hGetAll(`photo:${id}`)
       console.log(`Debug: Photo ${id} data:`, photoData)

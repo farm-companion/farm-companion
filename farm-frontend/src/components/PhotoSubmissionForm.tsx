@@ -414,7 +414,7 @@ export default function PhotoSubmissionForm({
               maxLength={200}
             />
             <p className="text-xs text-text-muted mt-1">
-              We'll notify you when your photo is approved
+              We&apos;ll notify you when your photo is approved
             </p>
           </div>
         </div>

@@ -122,7 +122,7 @@ export default function PhotoSubmissionReceiptEmail({
               lineHeight: '1.6'
             }}>
               Thanks for sending a photo to <strong style={{ color: brand.primary }}>{farmName}</strong>. 
-              We've received it and queued it for review. Most photos are reviewed within 24–72 hours.
+              We&apos;ve received it and queued it for review. Most photos are reviewed within 24–72 hours.
             </Text>
 
             {/* Photo Preview with Caption */}
@@ -148,7 +148,7 @@ export default function PhotoSubmissionReceiptEmail({
                     fontSize: '14px',
                     textAlign: 'center'
                   }}>
-                    "{caption}"
+                    &quot;{caption}&quot;
                   </Text>
                 )}
               </Section>
@@ -183,10 +183,10 @@ export default function PhotoSubmissionReceiptEmail({
                 <strong style={{ color: brand.text }}>Quality Check:</strong> We review image quality and suitability
               </li>
               <li style={{ marginBottom: '8px' }}>
-                <strong style={{ color: brand.text }}>Approval:</strong> On approval, your photo appears on the farm's page
+                <strong style={{ color: brand.text }}>Approval:</strong> On approval, your photo appears on the farm&apos;s page
               </li>
               <li style={{ marginBottom: '8px' }}>
-                <strong style={{ color: brand.text }}>Updates:</strong> If needed, we'll reach out for improvements
+                <strong style={{ color: brand.text }}>Updates:</strong> If needed, we&apos;ll reach out for improvements
               </li>
             </ul>
 
@@ -223,7 +223,7 @@ export default function PhotoSubmissionReceiptEmail({
               lineHeight: '1.5',
               marginBottom: '12px'
             }}>
-              You're receiving this email because you submitted a photo on Farm Companion.
+              You&apos;re receiving this email because you submitted a photo on Farm Companion.
               {authorEmail && ` (${authorEmail})`}
             </Text>
             <Text style={{ 
@@ -231,7 +231,7 @@ export default function PhotoSubmissionReceiptEmail({
               fontSize: '13px',
               marginBottom: '8px'
             }}>
-              If this wasn't you, please reply to let us know.
+              If this wasn&apos;t you, please reply to let us know.
             </Text>
             <Text style={{ 
               color: brand.textMuted, 

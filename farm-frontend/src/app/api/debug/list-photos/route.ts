@@ -8,7 +8,7 @@ export async function GET(req: NextRequest) {
     // Get all pending photos
     const pendingIds = await client.lRange('moderation:queue', 0, -1)
     
-    const photos = await Promise.all(pendingIds.map(async (id) => {
+    const photos = await Promise.all(pendingIds.map(async (id: string) => {
       try {
         const photoData = await client.hGetAll(`photo:${id}`)
         if (!photoData || Object.keys(photoData).length === 0) return null

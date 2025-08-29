@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     const approvedIds = await client.sMembers(`farm:${farmSlug}:photos:approved`)
     
     // Get photo data for each ID
-    const photos = await Promise.all(approvedIds.map(async (id) => {
+    const photos = await Promise.all(approvedIds.map(async (id: string) => {
       try {
         const photoData = await client.hGetAll(`photo:${id}`)
         return {

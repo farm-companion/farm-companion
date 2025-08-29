@@ -99,9 +99,9 @@ export async function PATCH(
       // Review deletion request (admin only)
       const result = await reviewDeletionRequest({
         requestId: body.requestId,
-        status: body.status,
+        action: body.status === 'approved' ? 'approve' : 'reject',
         reviewedBy: body.reviewedBy || 'admin',
-        rejectionReason: body.rejectionReason
+        reviewNotes: body.rejectionReason
       })
       
       if (!result.success) {
@@ -153,8 +153,10 @@ export async function PATCH(
       const success = await updatePhotoStatus(
         photoId,
         body.status,
-        body.reviewedBy,
-        body.rejectionReason
+        {
+          reviewedBy: body.reviewedBy,
+          rejectionReason: body.rejectionReason
+        }
       )
       
       if (!success) {
@@ -224,7 +226,7 @@ export async function DELETE(
     // Immediately approve the deletion request
     const approvalResult = await reviewDeletionRequest({
       requestId: result.requestId!,
-      status: 'approved',
+      action: 'approve',
       reviewedBy: 'admin'
     })
     
