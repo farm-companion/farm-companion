@@ -1,14 +1,11 @@
 {
   "buildCommand": "npm run vercel-build",
   "functions": {
-
     "src/app/api/photos/[id]/route.ts": {
       "maxDuration": 30
-    },
-
+    }
   },
   "headers": [
-
     {
       "source": "/api/photos/(.*)",
       "headers": [
@@ -25,7 +22,6 @@
           "value": "Content-Type, Authorization"
         }
       ]
-    },
-
+    }
   ]
 }
