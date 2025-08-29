@@ -20,6 +20,10 @@ const headersCommon = [
 ]
 
 const nextConfig: NextConfig = {
+  // Environment variables
+  env: { 
+    NEXT_PUBLIC_ADD_FORM_ENABLED: process.env.ADD_FORM_ENABLED 
+  },
   // Performance optimizations
   experimental: {
     optimizePackageImports: ['lucide-react'],

@@ -35,6 +35,30 @@ type FarmForm = {
 const DAYS: Hours['day'][] = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun']
 
 export default function AddFarmPage() {
+  // Kill-switch check
+  const isFormEnabled = process.env.NEXT_PUBLIC_ADD_FORM_ENABLED === 'true'
+  
+  if (!isFormEnabled) {
+    return (
+      <main className="bg-background-canvas min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+            <AlertCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-text-heading mb-4">
+            Form Temporarily Unavailable
+          </h1>
+          <p className="text-text-body mb-6">
+            The farm submission form is currently being updated. Please check back later or contact us directly.
+          </p>
+          <Button href="/" variant="primary">
+            Return Home
+          </Button>
+        </div>
+      </main>
+    )
+  }
+
   const [form, setForm] = useState<FarmForm>({ name: '', address: '', county: '', postcode: '' })
   const [hours, setHours] = useState<Hours[]>(DAYS.map(d => ({ day: d })))
   const [touched, setTouched] = useState(false)
@@ -135,9 +159,19 @@ export default function AddFarmPage() {
     setSubmitStatus('idle')
     setSubmitMessage('')
 
-    // Validation checks
+    // Client-side validation with auto-focus
     if (!valid) {
       setSubmitMessage('Please complete all required fields marked *')
+      // Auto-focus first invalid field
+      if (!form.name) {
+        document.getElementById('farm-name')?.focus()
+      } else if (!form.address) {
+        document.getElementById('farm-address')?.focus()
+      } else if (!form.county) {
+        document.getElementById('farm-county')?.focus()
+      } else if (!form.postcode) {
+        document.getElementById('farm-postcode')?.focus()
+      }
       return
     }
 
@@ -159,7 +193,7 @@ export default function AddFarmPage() {
 
     const now = typeof performance !== 'undefined' ? performance.now() : 0
     const elapsed = startedAtRef.current ? now - startedAtRef.current : 0
-    if (elapsed < 5000) {
+    if (elapsed < 2000) {
       setSubmitMessage('Please take a few seconds to fill in the form before submitting.')
       return
     }
@@ -167,47 +201,30 @@ export default function AddFarmPage() {
     setIsSubmitting(true)
 
     try {
-      // Upload images first if any are selected
-      const uploadedImageUrls: string[] = []
-      
-      if (farmImages.length > 0) {
-        for (const image of farmImages) {
-          try {
-            const formData = new FormData()
-            formData.append('file', image)
-            formData.append('produceSlug', slug)
-            formData.append('month', '1') // Default month for farm images
-            formData.append('imagesCount', '1')
-            
-            const uploadResponse = await fetch('/api/upload', {
-              method: 'POST',
-              body: formData,
-            })
-            
-            if (uploadResponse.ok) {
-              const uploadResult = await uploadResponse.json()
-              uploadedImageUrls.push(uploadResult.url)
-            }
-          } catch (uploadError) {
-            console.error('Image upload failed:', uploadError)
-            // Continue with submission even if image upload fails
-          }
-        }
-      }
-      
-      // Update JSON with uploaded image URLs
+      // Prepare submission data for new API
       const submissionData = {
-        ...json,
-        images: uploadedImageUrls.map((url, index) => ({
-          id: `farm-image-${index}`,
-          name: farmImages[index]?.name || `image-${index}`,
-          size: farmImages[index]?.size || 0,
-          type: farmImages[index]?.type || 'image/jpeg',
-          url
-        }))
+        name: form.name.trim(),
+        address: form.address.trim(),
+        city: '', // Add city field to form if needed
+        county: form.county.trim(),
+        postcode: form.postcode.trim(),
+        contactEmail: form.email?.trim() || '',
+        website: form.website?.trim() || '',
+        phone: form.phone?.trim() || '',
+        lat: form.lat?.trim() || '',
+        lng: form.lng?.trim() || '',
+        offerings: form.offerings?.trim() || '',
+        story: form.story?.trim() || '',
+        hours: hours.filter(h => h.open && h.close).map(h => ({
+          day: h.day,
+          open: h.open!,
+          close: h.close!
+        })),
+        _hp: hp, // honeypot
+        ttf: Math.round(elapsed) // time to fill
       }
       
-      const response = await fetch('/api/farms', {
+      const response = await fetch('/api/farms/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -218,22 +235,25 @@ export default function AddFarmPage() {
       const result = await response.json()
 
       if (response.ok) {
-        // Redirect to success page with submission details
-        const successUrl = new URL('/submission-success', window.location.origin)
-        successUrl.searchParams.set('farmId', result.farmId)
-        successUrl.searchParams.set('farmName', form.name)
-        successUrl.searchParams.set('farmAddress', form.address)
-        successUrl.searchParams.set('farmCounty', form.county)
-        successUrl.searchParams.set('imagesCount', farmImages.length.toString())
-        if (form.email) successUrl.searchParams.set('contactEmail', form.email)
-        if (form.phone) successUrl.searchParams.set('contactPhone', form.phone)
+        setSubmitStatus('success')
+        setSubmitMessage(result.message || 'Farm shop submitted successfully!')
         
-        window.location.href = successUrl.toString()
+        // Show success message instead of redirecting
+        setTimeout(() => {
+          // Optionally redirect to success page or reset form
+          window.location.href = '/submission-success'
+        }, 3000)
       } else {
         setSubmitStatus('error')
-        setSubmitMessage(result.error || 'Submission failed. Please try again.')
+        if (response.status === 429) {
+          setSubmitMessage('Too many submissions. Please wait before submitting again.')
+        } else if (response.status === 422) {
+          setSubmitMessage('Please check your form data and try again.')
+        } else {
+          setSubmitMessage(result.error || 'Submission failed. Please try again.')
+        }
       }
-    } catch {
+    } catch (error) {
       setSubmitStatus('error')
       setSubmitMessage('Network error. Please check your connection and try again.')
     } finally {
@@ -324,6 +344,27 @@ export default function AddFarmPage() {
               <div>
                 <h3 className="font-semibold text-green-800">Submission Successful!</h3>
                 <p className="text-green-700">{submitMessage}</p>
+                <p className="text-green-600 text-sm mt-2">
+                  We&apos;ll review your submission and email you if you provided an email address.
+                </p>
+                <div className="mt-4 flex gap-3">
+                  <Button href="/map" variant="primary" size="sm">
+                    View Map
+                  </Button>
+                  <Button 
+                    onClick={() => {
+                      setSubmitStatus('idle')
+                      setForm({ name: '', address: '', county: '', postcode: '' })
+                      setHours(DAYS.map(d => ({ day: d })))
+                      setTouched(false)
+                      setFarmImages([])
+                    }} 
+                    variant="secondary" 
+                    size="sm"
+                  >
+                    Submit Another
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
@@ -367,17 +408,23 @@ export default function AddFarmPage() {
             
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-text-heading mb-2">
+                <label htmlFor="farm-name" className="block text-sm font-medium text-text-heading mb-2">
                   Farm shop name *
                 </label>
                 <input 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                  id="farm-name"
+                  name="name"
+                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
+                    touched && !form.name ? 'border-red-500' : 'border-border-default'
+                  }`}
                   value={form.name} 
                   onChange={onChange('name')}
                   placeholder="e.g. Green Valley Farm Shop"
+                  aria-invalid={touched && !form.name}
+                  aria-describedby={touched && !form.name ? 'name-error' : undefined}
                 />
                 {touched && !form.name && (
-                  <p className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                  <p id="name-error" className="text-sm text-red-600 mt-1 flex items-center space-x-1">
                     <AlertCircle className="w-4 h-4" />
                     <span>Name is required</span>
                   </p>
@@ -385,17 +432,23 @@ export default function AddFarmPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-text-heading mb-2">
+                <label htmlFor="farm-address" className="block text-sm font-medium text-text-heading mb-2">
                   Address *
                 </label>
                 <input 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                  id="farm-address"
+                  name="address"
+                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
+                    touched && !form.address ? 'border-red-500' : 'border-border-default'
+                  }`}
                   value={form.address} 
                   onChange={onChange('address')}
                   placeholder="e.g. 123 Farm Lane"
+                  aria-invalid={touched && !form.address}
+                  aria-describedby={touched && !form.address ? 'address-error' : undefined}
                 />
                 {touched && !form.address && (
-                  <p className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                  <p id="address-error" className="text-sm text-red-600 mt-1 flex items-center space-x-1">
                     <AlertCircle className="w-4 h-4" />
                     <span>Address is required</span>
                   </p>
@@ -404,34 +457,46 @@ export default function AddFarmPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-text-heading mb-2">
+                  <label htmlFor="farm-county" className="block text-sm font-medium text-text-heading mb-2">
                     County *
                   </label>
                   <input 
-                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                    id="farm-county"
+                    name="county"
+                    className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
+                      touched && !form.county ? 'border-red-500' : 'border-border-default'
+                    }`}
                     value={form.county} 
                     onChange={onChange('county')}
                     placeholder="e.g. Devon"
+                    aria-invalid={touched && !form.county}
+                    aria-describedby={touched && !form.county ? 'county-error' : undefined}
                   />
                   {touched && !form.county && (
-                    <p className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                    <p id="county-error" className="text-sm text-red-600 mt-1 flex items-center space-x-1">
                       <AlertCircle className="w-4 h-4" />
                       <span>County is required</span>
                     </p>
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-text-heading mb-2">
+                  <label htmlFor="farm-postcode" className="block text-sm font-medium text-text-heading mb-2">
                     Postcode *
                   </label>
                   <input 
-                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                    id="farm-postcode"
+                    name="postcode"
+                    className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
+                      touched && !form.postcode ? 'border-red-500' : 'border-border-default'
+                    }`}
                     value={form.postcode} 
                     onChange={onChange('postcode')}
                     placeholder="e.g. EX1 1AA"
+                    aria-invalid={touched && !form.postcode}
+                    aria-describedby={touched && !form.postcode ? 'postcode-error' : undefined}
                   />
                   {touched && !form.postcode && (
-                    <p className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                    <p id="postcode-error" className="text-sm text-red-600 mt-1 flex items-center space-x-1">
                       <AlertCircle className="w-4 h-4" />
                       <span>Postcode is required</span>
                     </p>
