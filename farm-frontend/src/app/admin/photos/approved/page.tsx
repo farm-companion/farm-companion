@@ -112,7 +112,7 @@ export default async function ApprovedPhotosPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {validPhotos.map((photo) => (
+            {validPhotos.map((photo) => photo && (
               <div key={photo.id} className="bg-background-surface rounded-2xl border border-border-default/30 overflow-hidden hover:shadow-lg transition-shadow">
                 {/* Photo */}
                 <div className="relative aspect-video">
