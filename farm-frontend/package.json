@@ -22,7 +22,7 @@
     "test:accessibility": "lighthouse http://localhost:3000 --only-categories=accessibility --output=json",
     "analyze": "ANALYZE=true npm run build",
     "analyze:server": "ANALYZE=true npm run build && npm run start",
-    "vercel-build": "npm install --include=optional && next build --no-lint"
+    "vercel-build": "pnpm install && next build --no-lint"
   },
   "dependencies": {
     "@googlemaps/markerclusterer": "^2.6.2",
