@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
         from: FROM,
         to: TO,
         subject: `Contact: ${v.topic} — ${v.name}`,
-        reply_to: v.email,
+        replyTo: v.email,
         text: [
           `Name: ${v.name}`,
           `Email: ${v.email}`,

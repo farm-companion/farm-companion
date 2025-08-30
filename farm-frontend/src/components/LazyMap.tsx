@@ -21,8 +21,9 @@ interface LazyMapProps {
   setUserLoc: (loc: { lat: number; lng: number } | null) => void
   bounds: { west: number; south: number; east: number; north: number } | null
   setBounds: (bounds: { west: number; south: number; east: number; north: number } | null) => void
-  selectedFarm: FarmShop | null
-  setSelectedFarm: (farm: FarmShop | null) => void
+  selectedFarmId: string | null
+  onSelectFarmId: (farmId: string | null) => void
+  onCameraMovingChange?: (isMoving: boolean) => void
   loadFarmData: () => void
   isLoading: boolean
   error: string | null

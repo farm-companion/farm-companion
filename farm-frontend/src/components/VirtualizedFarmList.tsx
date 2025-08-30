@@ -9,9 +9,18 @@ import type { FarmShop } from '@/types/farm'
 interface VirtualizedFarmListProps {
   farms: FarmShop[]
   className?: string
+  onSelectFarmId?: (farmId: string) => void
+  selectedFarmId?: string | null
+  isCameraMoving?: boolean
 }
 
-export default function VirtualizedFarmList({ farms, className = '' }: VirtualizedFarmListProps) {
+export default function VirtualizedFarmList({ 
+  farms, 
+  className = '', 
+  onSelectFarmId,
+  selectedFarmId,
+  isCameraMoving = false
+}: VirtualizedFarmListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
 
   // Virtualization setup
@@ -24,33 +33,80 @@ export default function VirtualizedFarmList({ farms, className = '' }: Virtualiz
 
   // Memoized farm cards to prevent unnecessary re-renders
   const farmCards = useMemo(() => {
-    return farms.map((farm) => (
-      <Link
-        key={farm.id}
-        href={`/shop/${farm.slug}`}
-        className="group bg-background-canvas rounded-xl p-4 border border-border-default/30 hover:border-serum/50 transition-all duration-200 hover:shadow-lg block"
-      >
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 bg-serum/10 rounded-lg flex items-center justify-center flex-shrink-0">
-            <MapPin className="w-4 h-4 text-serum" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-text-heading group-hover:text-serum transition-colors truncate">
-              {farm.name}
-            </h3>
-            <p className="text-sm text-text-muted truncate">
-              {farm.location?.county || 'UK'}
-            </p>
-            {farm.location?.postcode && (
-              <p className="text-xs text-text-muted">
-                {farm.location.postcode}
-              </p>
-            )}
-          </div>
-        </div>
-      </Link>
-    ))
-  }, [farms])
+    return farms.map((farm) => {
+      const isSelected = selectedFarmId === farm.id
+      
+      if (onSelectFarmId) {
+        // Selection mode - click to select farm on map
+        return (
+          <button
+            key={farm.id}
+            onClick={() => {
+              if (!isCameraMoving) {
+                onSelectFarmId(farm.id)
+              }
+            }}
+            className={`group bg-background-canvas rounded-xl p-4 border transition-all duration-200 hover:shadow-lg block w-full text-left ${
+              isSelected 
+                ? 'border-serum bg-serum/5 shadow-serum/20' 
+                : 'border-border-default/30 hover:border-serum/50'
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${
+                isSelected ? 'bg-serum' : 'bg-serum/10'
+              }`}>
+                <MapPin className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-serum'}`} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className={`font-semibold transition-colors truncate ${
+                  isSelected ? 'text-serum' : 'text-text-heading group-hover:text-serum'
+                }`}>
+                  {farm.name}
+                </h3>
+                <p className="text-sm text-text-muted truncate">
+                  {farm.location?.county || 'UK'}
+                </p>
+                {farm.location?.postcode && (
+                  <p className="text-xs text-text-muted">
+                    {farm.location.postcode}
+                  </p>
+                )}
+              </div>
+            </div>
+          </button>
+        )
+      } else {
+        // Navigation mode - click to navigate to farm page
+        return (
+          <Link
+            key={farm.id}
+            href={`/shop/${farm.slug}`}
+            className="group bg-background-canvas rounded-xl p-4 border border-border-default/30 hover:border-serum/50 transition-all duration-200 hover:shadow-lg block"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-serum/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                <MapPin className="w-4 h-4 text-serum" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-semibold text-text-heading group-hover:text-serum transition-colors truncate">
+                  {farm.name}
+                </h3>
+                <p className="text-sm text-text-muted truncate">
+                  {farm.location?.county || 'UK'}
+                </p>
+                {farm.location?.postcode && (
+                  <p className="text-xs text-text-muted">
+                    {farm.location.postcode}
+                  </p>
+                )}
+              </div>
+            </div>
+          </Link>
+        )
+      }
+    })
+  }, [farms, onSelectFarmId, selectedFarmId, isCameraMoving])
 
   return (
     <div className={className}>

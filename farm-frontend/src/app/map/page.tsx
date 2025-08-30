@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Link from 'next/link'
 import { Search, MapPin, ArrowRight } from 'lucide-react'
 import LazyMap from '@/components/LazyMap'
@@ -18,7 +18,18 @@ export default function MapPage() {
   const [filteredFarms, setFilteredFarms] = useState<FarmShop[]>([])
   const [userLoc, setUserLoc] = useState<{ lat: number; lng: number } | null>(null)
   const [bounds, setBounds] = useState<{ west: number; south: number; east: number; north: number } | null>(null)
-  const [selectedFarm, setSelectedFarm] = useState<FarmShop | null>(null)
+  const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null)
+  // Derive selectedFarm from ID for components that need the full object
+  const selectedFarm = useMemo(
+    () => (selectedFarmId && farms) ? farms.find(f => f.id === selectedFarmId) ?? null : null,
+    [selectedFarmId, farms]
+  )
+  
+  // Keyboard navigation state
+  const [focusedIndex, setFocusedIndex] = useState<number>(-1)
+  const [isCameraMoving, setIsCameraMoving] = useState<boolean>(false)
+
+
   const [isLoading, setIsLoading] = useState(true)
   const [loadingStage, setLoadingStage] = useState<'initializing' | 'loading-data' | 'preparing-map' | 'ready'>('initializing')
   const [loadingProgress, setLoadingProgress] = useState(0)
@@ -28,6 +39,45 @@ export default function MapPage() {
   const [dataQuality, setDataQuality] = useState<{ total: number; valid: number; invalid: number } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
+
+  // Keyboard navigation handlers
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!searchQuery || !filteredFarms || filteredFarms.length === 0) return
+    
+    const maxIndex = Math.min(filteredFarms.length - 1, 7) // Max 8 items shown
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setFocusedIndex(prev => prev < maxIndex ? prev + 1 : 0)
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setFocusedIndex(prev => prev > 0 ? prev - 1 : maxIndex)
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (focusedIndex >= 0 && focusedIndex <= maxIndex) {
+          const farm = filteredFarms[focusedIndex]
+          if (farm && !isCameraMoving) {
+            setSelectedFarmId(farm.id)
+            setSearchQuery('')
+            setFocusedIndex(-1)
+          }
+        }
+        break
+      case 'Escape':
+        e.preventDefault()
+        setSearchQuery('')
+        setFocusedIndex(-1)
+        break
+    }
+  }, [searchQuery, filteredFarms, focusedIndex, isCameraMoving])
+  
+  // Reset focus when search query changes
+  useEffect(() => {
+    setFocusedIndex(-1)
+  }, [searchQuery])
 
   // Debounced search effect
   useEffect(() => {
@@ -209,10 +259,24 @@ export default function MapPage() {
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setFocusedIndex(-1)}
                 placeholder="Search farms..."
                 className="w-80 md:w-80 w-64 bg-background-surface/95 backdrop-blur-md border border-border-default/30 rounded-2xl px-12 py-3 text-sm text-text-body placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum shadow-premium transition-all duration-200"
                 autoComplete="off"
+                aria-label="Search farms by name, county, or postcode"
+                role="combobox"
+                aria-expanded={Boolean(searchQuery && filteredFarms && filteredFarms.length > 0)}
+                aria-haspopup="listbox"
+                aria-controls="search-results"
               />
+              {/* Moving indicator */}
+              {isCameraMoving && (
+                <div className="absolute left-4 top-1/2 transform -translate-y-1/2 flex items-center gap-2 text-xs text-text-muted">
+                  <div className="w-3 h-3 border-2 border-text-muted/30 border-t-text-muted rounded-full animate-spin"></div>
+                  <span>Moving...</span>
+                </div>
+              )}
               {/* Search Results Counter */}
               {farms && (
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2 text-xs font-medium text-text-muted bg-background-canvas/90 px-2 py-1 rounded-full backdrop-blur-sm">
@@ -224,7 +288,12 @@ export default function MapPage() {
           
           {/* Search Results Dropdown */}
           {searchQuery && filteredFarms && filteredFarms.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-background-surface/95 backdrop-blur-md rounded-2xl shadow-premium border border-border-default/30 max-h-64 overflow-hidden z-50">
+            <div 
+              id="search-results"
+              className="absolute top-full left-0 right-0 mt-2 bg-background-surface/95 backdrop-blur-md rounded-2xl shadow-premium border border-border-default/30 max-h-64 overflow-hidden z-50"
+              role="listbox"
+              aria-label="Search results"
+            >
               <div className="p-2">
                 <div className="text-xs text-text-muted mb-2 px-2">
                   Found {filteredFarms.length} farm{filteredFarms.length !== 1 ? 's' : ''}
@@ -232,11 +301,22 @@ export default function MapPage() {
                 {filteredFarms.slice(0, 8).map((farm: FarmShop, index: number) => (
                   <div
                     key={`${farm.id}-${index}`}
-                    className="flex items-center gap-3 p-2 rounded-xl hover:bg-background-canvas transition-colors duration-200 cursor-pointer"
+                    className={`flex items-center gap-3 p-2 rounded-xl transition-colors duration-200 cursor-pointer ${
+                      focusedIndex === index 
+                        ? 'bg-serum/10 border border-serum/30 focus:outline-none focus:ring-2 focus:ring-serum focus:ring-offset-2 focus:ring-offset-background-surface' 
+                        : 'hover:bg-background-canvas'
+                    }`}
                     onClick={() => {
-                      setSelectedFarm(farm)
-                      setSearchQuery('')
+                      if (!isCameraMoving) {
+                        setSelectedFarmId(farm.id)
+                        setSearchQuery('')
+                      }
                     }}
+                    onMouseEnter={() => setFocusedIndex(index)}
+                    tabIndex={0}
+                    role="option"
+                    aria-selected={focusedIndex === index}
+                    aria-label={`Select ${farm.name}`}
                   >
                     <div className="w-8 h-8 bg-serum/10 rounded-lg flex items-center justify-center flex-shrink-0">
                       <MapPin className="w-4 h-4 text-serum" />
@@ -287,8 +367,9 @@ export default function MapPage() {
           setUserLoc={setUserLoc}
           bounds={bounds}
           setBounds={setBounds}
-          selectedFarm={selectedFarm}
-          setSelectedFarm={setSelectedFarm}
+          selectedFarmId={selectedFarmId}
+          onSelectFarmId={setSelectedFarmId}
+          onCameraMovingChange={setIsCameraMoving}
           loadFarmData={loadFarmData}
           isLoading={isLoading}
           error={error}
@@ -303,7 +384,12 @@ export default function MapPage() {
         <div className="bg-background-surface border-t border-border-default/30">
           <div className="max-w-7xl mx-auto px-6 py-8">
             <DataErrorBoundary dataType="farms">
-              <VirtualizedFarmList farms={filteredFarms} />
+              <VirtualizedFarmList 
+                farms={filteredFarms} 
+                onSelectFarmId={setSelectedFarmId}
+                selectedFarmId={selectedFarmId}
+                isCameraMoving={isCameraMoving}
+              />
             </DataErrorBoundary>
           </div>
         </div>

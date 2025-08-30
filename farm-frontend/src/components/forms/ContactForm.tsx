@@ -39,8 +39,9 @@ export default function ContactForm() {
     const parsed = Schema.safeParse(payload)
     if (!parsed.success) {
       const zerr: Record<string,string> = {}
-      for (const k in parsed.error.flatten().fieldErrors) {
-        const msg = parsed.error.flatten().fieldErrors[k]?.[0]
+      const fieldErrors = parsed.error.flatten().fieldErrors
+      for (const k in fieldErrors) {
+        const msg = fieldErrors[k as keyof typeof fieldErrors]?.[0]
         if (msg) zerr[k] = msg
       }
       setErrors(zerr)

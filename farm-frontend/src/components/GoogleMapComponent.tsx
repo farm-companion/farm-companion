@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useMap } from '@vis.gl/react-google-maps'
 import { APIProvider, Map, AdvancedMarker, InfoWindow } from '@vis.gl/react-google-maps'
 import { 
@@ -65,8 +65,9 @@ interface GoogleMapComponentProps {
   setUserLoc: (loc: { lat: number; lng: number } | null) => void
   bounds: { west: number; south: number; east: number; north: number } | null
   setBounds: (bounds: { west: number; south: number; east: number; north: number } | null) => void
-  selectedFarm: FarmShop | null
-  setSelectedFarm: (farm: FarmShop | null) => void
+  selectedFarmId: string | null
+  onSelectFarmId: (farmId: string | null) => void
+  onCameraMovingChange?: (isMoving: boolean) => void
   loadFarmData: () => void
   isLoading: boolean
   error: string | null
@@ -373,8 +374,8 @@ function MapControls({
 function FarmMap({ 
   farms, 
   filteredFarms, 
-  selectedFarm, 
-  setSelectedFarm, 
+  selectedFarmId, 
+  onSelectFarmId, 
   zoomToUserLocation,
   userLoc,
   isMobile,
@@ -383,17 +384,42 @@ function FarmMap({
 }: {
   farms: FarmShop[] | null
   filteredFarms: FarmShop[] | null
-  selectedFarm: FarmShop | null
-  setSelectedFarm: (farm: FarmShop | null) => void
+  selectedFarmId: string | null
+  onSelectFarmId: (farmId: string | null) => void
   zoomToUserLocation: () => void
   userLoc: { lat: number; lng: number } | null
   isMobile: boolean
   setMarkerPosition: (position: { x: number; y: number } | null) => void
   markerPosition: { x: number; y: number } | null
 }) {
+  // Derive selectedFarm from ID for backward compatibility
+  const selectedFarm = useMemo(
+    () => (selectedFarmId && farms) ? farms.find(f => f.id === selectedFarmId) ?? null : null,
+    [selectedFarmId, farms]
+  )
   const map = useMap()
   const [currentZoom, setCurrentZoom] = useState(6)
   const [nearbyFarms, setNearbyFarms] = useState<FarmShop[]>([])
+  
+  // Camera control ownership refs
+  const isAnimatingRef = useRef(false)
+  const lastTargetRef = useRef<string | null>(null)
+  
+  // Highlight marker ref for robust highlighting
+  const highlightMarkerRef = useRef<google.maps.Marker | null>(null)
+  
+
+  
+
+  
+  // Optimization: Track farm IDs to prevent unnecessary re-renders
+  const lastFarmIdsRef = useRef<string>('')
+  const lastVisibleFarmsRef = useRef<FarmShop[]>([])
+  
+  // Helper function to get sorted farm IDs string
+  const getFarmIdsString = useCallback((farms: FarmShop[]) => {
+    return farms.map(f => f.id).sort().join(',')
+  }, [])
   
   // Calculate bounds for filtered farms
   const bounds = useMemo(() => {
@@ -446,9 +472,32 @@ function FarmMap({
     return R * c
   }
 
-  // Performance-optimized marker limiting and clustering
+  // Haversine distance calculation for camera control
+  const haversineKm = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
+    const R = 6371 // Earth's radius in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180
+    const dLng = (lng2 - lng1) * Math.PI / 180
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLng/2) * Math.sin(dLng/2)
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    return R * c
+  }
+
+  // Performance-optimized marker limiting and clustering with ID change detection
   const visibleFarms = useMemo(() => {
     if (!filteredFarms) return []
+    
+    // Check if farm IDs have actually changed to prevent unnecessary re-renders
+    const currentIds = getFarmIdsString(filteredFarms)
+    if (currentIds === lastFarmIdsRef.current && lastFarmIdsRef.current !== '') {
+      // IDs haven't changed, return previous result to prevent flicker
+      return lastVisibleFarmsRef.current
+    }
+    
+    // Update the last IDs reference
+    lastFarmIdsRef.current = currentIds
     
     const validFarms = filteredFarms.filter((farm: FarmShop) => 
       farm.location?.lat && farm.location?.lng &&
@@ -459,11 +508,15 @@ function FarmMap({
     if (validFarms.length > MAX_MARKERS_IN_VIEW) {
       // Simple clustering: take every nth farm to reduce density
       const step = Math.ceil(validFarms.length / MAX_MARKERS_IN_VIEW)
-      return validFarms.filter((_, index) => index % step === 0)
+      const result = validFarms.filter((_, index) => index % step === 0)
+      lastVisibleFarmsRef.current = result
+      return result
     }
     
-    return validFarms
-  }, [filteredFarms])
+    const result = validFarms
+    lastVisibleFarmsRef.current = result
+    return result
+  }, [filteredFarms, getFarmIdsString])
 
   // Memoized distance calculations to prevent recalculation
   const farmDistances = useMemo(() => {
@@ -512,64 +565,166 @@ function FarmMap({
     }
   }, [map])
 
-  // Handle marker click with premium smooth zoom animation
+  // Handle marker click - just drive selection, camera control is handled by effect
   const handleMarkerClick = useCallback((farm: FarmShop, event?: any) => {
-    setSelectedFarm(farm)
-    
-    // Calculate marker screen position for precise pointer positioning
-    if (map && farm.location?.lat && farm.location?.lng) {
-      const targetPosition = { lat: farm.location.lat, lng: farm.location.lng }
-      
-      // Convert lat/lng to pixel coordinates
-      const projection = map.getProjection()
-      if (projection) {
-        const point = projection.fromLatLngToPoint(new google.maps.LatLng(targetPosition.lat, targetPosition.lng))
-        if (point) {
-          const scale = Math.pow(2, map.getZoom() || 6)
-          const worldPoint = new google.maps.Point(point.x * scale, point.y * scale)
-          
-          // Get map bounds and calculate screen position
-          const bounds = map.getBounds()
-          if (bounds) {
-            const ne = bounds.getNorthEast()
-            const sw = bounds.getSouthWest()
-            const nePoint = projection.fromLatLngToPoint(ne)
-            const swPoint = projection.fromLatLngToPoint(sw)
-            if (nePoint && swPoint) {
-              const neWorldPoint = new google.maps.Point(nePoint.x * scale, nePoint.y * scale)
-              const swWorldPoint = new google.maps.Point(swPoint.x * scale, swPoint.y * scale)
-              
-              // Calculate screen coordinates with requestAnimationFrame to prevent layout thrashing
-              requestAnimationFrame(() => {
-                const mapDiv = map.getDiv()
-                const mapRect = mapDiv.getBoundingClientRect()
-                const x = ((worldPoint.x - swWorldPoint.x) / (neWorldPoint.x - swWorldPoint.x)) * mapRect.width
-                const y = ((worldPoint.y - swWorldPoint.y) / (neWorldPoint.y - swWorldPoint.y)) * mapRect.height
-                
-                setMarkerPosition({ x, y })
-              })
-            }
-          }
-        }
-      }
-      
-      // Premium smooth zoom to marker location with anti-flicker measures
-      const cleanup = smoothTransition.panAndZoomTo(map, targetPosition, 14, 1200)
-      
-      // Store cleanup function for potential cancellation
-      if (cleanup) {
-        // Store cleanup in a ref or state if needed for cancellation
-        setTimeout(() => {
-          cleanup()
-        }, 1200)
-      }
+    onSelectFarmId(farm.id)
+  }, [onSelectFarmId])
+
+  // Handle cluster click - expand cluster before selection
+  const handleClusterClick = useCallback((cluster: any, event?: any) => {
+    // For Google Maps, we need to handle cluster expansion
+    // This is a simplified implementation - in a real app you'd use MarkerClusterer
+    console.log('Cluster clicked:', cluster)
+    // For now, just prevent default and let the map handle it
+    if (event) {
+      event.stop()
     }
-  }, [setSelectedFarm, map])
+  }, [])
 
   // Handle info window close
   const handleInfoWindowClose = useCallback(() => {
-    setSelectedFarm(null)
-  }, [setSelectedFarm])
+    onSelectFarmId(null)
+  }, [onSelectFarmId])
+
+  // Camera control ownership: React to selectedFarmId changes and perform camera movements
+  useEffect(() => {
+    if (!map || !selectedFarmId || !farms?.length) return
+    
+    // Prevent unnecessary re-animation when selecting the same item
+    if (lastTargetRef.current === selectedFarmId) return
+    
+    // Prevent animation if already animating to the same target
+    if (isAnimatingRef.current && lastTargetRef.current === selectedFarmId) return
+
+    const farm = farms.find(f => f.id === selectedFarmId)
+    if (!farm?.location) return
+
+    // Cancel any in-flight animation to prevent rubber-banding
+    // For Google Maps, we can't directly stop animations, but we can prevent new ones
+    // by checking if we're already animating to the same target
+    isAnimatingRef.current = true
+    lastTargetRef.current = selectedFarmId
+    
+    // Camera movement notification would go here
+    // TODO: Implement camera movement callback
+
+    // Calculate marker screen position for precise pointer positioning
+    const targetPosition = { lat: farm.location.lat, lng: farm.location.lng }
+    
+    // Convert lat/lng to pixel coordinates
+    const projection = map.getProjection()
+    if (projection) {
+      const point = projection.fromLatLngToPoint(new google.maps.LatLng(targetPosition.lat, targetPosition.lng))
+      if (point) {
+        const scale = Math.pow(2, map.getZoom() || 6)
+        const worldPoint = new google.maps.Point(point.x * scale, point.y * scale)
+        
+        // Get map bounds and calculate screen position
+        const bounds = map.getBounds()
+        if (bounds) {
+          const ne = bounds.getNorthEast()
+          const sw = bounds.getSouthWest()
+          const nePoint = projection.fromLatLngToPoint(ne)
+          const swPoint = projection.fromLatLngToPoint(sw)
+          if (nePoint && swPoint) {
+            const neWorldPoint = new google.maps.Point(nePoint.x * scale, nePoint.y * scale)
+            const swWorldPoint = new google.maps.Point(swPoint.x * scale, swPoint.y * scale)
+            
+            // Calculate screen coordinates with requestAnimationFrame to prevent layout thrashing
+            requestAnimationFrame(() => {
+              const mapDiv = map.getDiv()
+              const mapRect = mapDiv.getBoundingClientRect()
+              const x = ((worldPoint.x - swWorldPoint.x) / (neWorldPoint.x - swWorldPoint.x)) * mapRect.width
+              const y = ((worldPoint.y - swWorldPoint.y) / (neWorldPoint.y - swWorldPoint.y)) * mapRect.height
+              
+              setMarkerPosition({ x, y })
+            })
+          }
+        }
+      }
+    }
+
+    // Use smooth pan and zoom instead of fitBounds for better control
+    const from = map.getCenter()
+    const to = { lat: farm.location.lat, lng: farm.location.lng }
+    
+    if (from) {
+      const dist = haversineKm(from.lat(), from.lng(), to.lat, to.lng)
+      // Dynamic duration feels more natural
+      const duration = Math.min(1200, Math.max(400, dist * 60)) // ~60ms per km, clamped
+
+      // Pan to the target location with smooth animation
+      map.panTo(to)
+      
+      // Zoom to appropriate level based on distance
+      const targetZoom = dist < 5 ? 16 : dist < 15 ? 14 : dist < 50 ? 12 : 10
+      map.setZoom(targetZoom)
+    } else {
+      // Fallback if we can't get current center
+      map.panTo(to)
+      map.setZoom(14)
+    }
+
+    // Listen for animation completion
+    const listener = google.maps.event.addListenerOnce(map, 'idle', () => {
+      isAnimatingRef.current = false
+      // Camera movement stopped notification would go here
+      // TODO: Implement camera movement callback
+      // Optional: set feature-state highlight here
+    })
+
+    return () => {
+      google.maps.event.removeListener(listener)
+    }
+  }, [selectedFarmId, farms, map, haversineKm])
+
+  // Robust highlight system: Create and manage highlight marker
+  useEffect(() => {
+    if (!map) return
+
+    // Create highlight marker if it doesn't exist
+    if (!highlightMarkerRef.current) {
+      const highlightMarker = new google.maps.Marker({
+        position: { lat: 0, lng: 0 },
+        map: null, // Start hidden
+        icon: {
+          path: google.maps.SymbolPath.CIRCLE,
+          scale: 12,
+          fillColor: '#00C2B2',
+          fillOpacity: 1,
+          strokeColor: '#FFFFFF',
+          strokeWeight: 3
+        },
+        zIndex: 1000 // Ensure it's above other markers
+      })
+      highlightMarkerRef.current = highlightMarker
+    }
+
+    const highlightMarker = highlightMarkerRef.current
+    const farm = farms?.find(f => f.id === selectedFarmId)
+
+    if (farm?.location) {
+      // Show and position highlight marker
+      highlightMarker.setPosition({ lat: farm.location.lat, lng: farm.location.lng })
+      highlightMarker.setMap(map)
+      
+      // Optional micro-animation: pop effect
+      const icon = highlightMarker.getIcon() as google.maps.Symbol
+      if (icon) {
+        // Pop effect
+        icon.scale = 16
+        highlightMarker.setIcon(icon)
+        
+        setTimeout(() => {
+          icon.scale = 12
+          highlightMarker.setIcon(icon)
+        }, 120)
+      }
+    } else {
+      // Hide highlight marker
+      highlightMarker.setMap(null)
+    }
+  }, [selectedFarmId, farms, map])
 
   if (!farms) return null
 
@@ -868,8 +1023,9 @@ export default function GoogleMapComponent({
   setUserLoc,
   bounds: _bounds,
   setBounds: _setBounds,
-  selectedFarm,
-  setSelectedFarm,
+  selectedFarmId,
+  onSelectFarmId,
+  onCameraMovingChange,
   loadFarmData,
   isLoading,
   error,
@@ -1085,8 +1241,8 @@ export default function GoogleMapComponent({
           <FarmMap
             farms={farms}
             filteredFarms={filteredFarms}
-            selectedFarm={selectedFarm}
-            setSelectedFarm={setSelectedFarm}
+            selectedFarmId={selectedFarmId}
+            onSelectFarmId={onSelectFarmId}
             zoomToUserLocation={zoomToUserLocation}
             userLoc={userLoc}
             isMobile={isMobile}

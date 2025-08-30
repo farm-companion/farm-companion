@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/Button'
 import PhotoSubmissionForm from '@/components/PhotoSubmissionForm'
 import FarmImageUpload from '@/components/FarmImageUpload'
 import Image from 'next/image'
+import Link from 'next/link'
 
 type Hours = { day: 'Mon'|'Tue'|'Wed'|'Thu'|'Fri'|'Sat'|'Sun'; open?: string; close?: string }
 type FarmForm = {
@@ -53,52 +54,6 @@ export default function AddFarmPage() {
   // Anti-spam
   const [hp, setHp] = useState('')                  // honeypot input (should stay empty)
   const startedAtRef = useRef<number | null>(null)  // when the user opened the page
-
-  // Early return for disabled form - must be after all hooks
-  if (!isFormEnabled) {
-    return (
-      <main className="bg-background-canvas min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
-            <AlertCircle className="w-8 h-8 text-red-600" />
-          </div>
-          <h1 className="text-2xl font-bold text-text-heading mb-4">
-            Form Temporarily Unavailable
-          </h1>
-          <p className="text-text-body mb-6">
-            The farm submission form is currently being updated. Please check back later or contact us directly.
-          </p>
-          <Button href="/" variant="primary">
-            Return Home
-          </Button>
-        </div>
-      </main>
-    )
-  }
-  const [hours, setHours] = useState<Hours[]>(DAYS.map(d => ({ day: d })))
-  const [touched, setTouched] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
-  const [submitMessage, setSubmitMessage] = useState('')
-  const [farmImages, setFarmImages] = useState<File[]>([])
-  
-  // Hydration-safe flags/values
-  const [draftId, setDraftId] = useState<string | null>(null)
-  const [updatedAtClient, setUpdatedAtClient] = useState<string | null>(null)
-  
-  // Anti-spam
-  const [hp, setHp] = useState('')                  // honeypot input (should stay empty)
-  const startedAtRef = useRef<number | null>(null)  // when the user opened the page
-
-  function onChange<K extends keyof FarmForm>(key: K) {
-    return (e: ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) =>
-      setForm(prev => ({ ...prev, [key]: e.target.value }))
-  }
-
-  function onHoursChange(day: Hours['day'], key: 'open'|'close') {
-    return (e: ChangeEvent<HTMLInputElement>) =>
-      setHours(prev => prev.map(h => h.day === day ? { ...h, [key]: e.target.value } : h))
-  }
 
   const slug = useMemo(() => slugify(form.name), [form.name])
 
@@ -154,7 +109,7 @@ export default function AddFarmPage() {
 
     // Remove undefineds for cleanliness
     return JSON.parse(JSON.stringify(obj))
-  }, [form, hours, slug, draftId, updatedAtClient])
+  }, [form, hours, slug, draftId, updatedAtClient, farmImages])
 
   const valid = useMemo(() => {
     // simple requireds; full validation will happen server-side
@@ -168,6 +123,40 @@ export default function AddFarmPage() {
   const hasValidWebsite = useMemo(() => {
     return !form.website || /^https?:\/\/.+/.test(form.website)
   }, [form.website])
+
+  // Early return for disabled form - must be after all hooks
+  if (!isFormEnabled) {
+    return (
+      <main className="bg-background-canvas min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
+            <AlertCircle className="w-8 h-8 text-red-600" />
+          </div>
+          <h1 className="text-2xl font-bold text-text-heading mb-4">
+            Form Temporarily Unavailable
+          </h1>
+          <p className="text-text-body mb-6">
+            The farm submission form is currently being updated. Please check back later or contact us directly.
+          </p>
+          <Link href="/">
+            <Button variant="primary">
+              Return Home
+            </Button>
+          </Link>
+        </div>
+      </main>
+    )
+  }
+
+  function onChange<K extends keyof FarmForm>(key: K) {
+    return (e: ChangeEvent<HTMLInputElement|HTMLTextAreaElement>) =>
+      setForm(prev => ({ ...prev, [key]: e.target.value }))
+  }
+
+  function onHoursChange(day: Hours['day'], key: 'open'|'close') {
+    return (e: ChangeEvent<HTMLInputElement>) =>
+      setHours(prev => prev.map(h => h.day === day ? { ...h, [key]: e.target.value } : h))
+  }
 
   async function handleSubmit() {
     setTouched(true)
@@ -363,9 +352,11 @@ export default function AddFarmPage() {
                   We&apos;ll review your submission and email you if you provided an email address.
                 </p>
                 <div className="mt-4 flex gap-3">
-                  <Button href="/map" variant="primary" size="sm">
-                    View Map
-                  </Button>
+                  <Link href="/map">
+                    <Button variant="primary" size="sm">
+                      View Map
+                    </Button>
+                  </Link>
                   <Button 
                     onClick={() => {
                       setSubmitStatus('idle')
