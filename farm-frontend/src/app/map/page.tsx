@@ -79,6 +79,15 @@ export default function MapPage() {
     setFocusedIndex(-1)
   }, [searchQuery])
 
+  // Handle directions to farm
+  const handleDirections = useCallback((farm: FarmShop) => {
+    if (farm.location) {
+      // Open directions in Google Maps
+      const url = `https://www.google.com/maps/dir/?api=1&destination=${farm.location.lat},${farm.location.lng}`
+      window.open(url, '_blank')
+    }
+  }, [])
+
   // Debounced search effect
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -389,6 +398,7 @@ export default function MapPage() {
                 onSelectFarmId={setSelectedFarmId}
                 selectedFarmId={selectedFarmId}
                 isCameraMoving={isCameraMoving}
+                onDirections={handleDirections}
               />
             </DataErrorBoundary>
           </div>
