@@ -3,16 +3,92 @@
 
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import crypto from 'crypto'
 
-// Admin credentials (in production, use environment variables)
+// Extend global type for auth attempts tracking
+declare global {
+  var authAttempts: Record<string, number> | undefined
+  var authAttemptsTime: Record<string, number> | undefined
+}
+
+// Admin credentials - MUST be set via environment variables
 const ADMIN_CREDENTIALS = {
-  email: (process.env.ADMIN_EMAIL || 'admin@farmcompanion.co.uk').trim(),
-  password: (process.env.ADMIN_PASSWORD || 'admin123').trim() // Change this in production!
+  email: process.env.ADMIN_EMAIL?.trim() || '',
+  password: process.env.ADMIN_PASSWORD?.trim() || ''
+}
+
+// Validate admin credentials are configured
+function validateAdminCredentials(): void {
+  if (!ADMIN_CREDENTIALS.email || !ADMIN_CREDENTIALS.password) {
+    throw new Error('Admin credentials not configured. Set ADMIN_EMAIL and ADMIN_PASSWORD environment variables.')
+  }
+  
+  // Ensure password meets minimum security requirements
+  if (ADMIN_CREDENTIALS.password.length < 12) {
+    throw new Error('Admin password must be at least 12 characters long.')
+  }
+  
+  // Log security warning if using default email
+  if (ADMIN_CREDENTIALS.email === 'admin@farmcompanion.co.uk') {
+    console.warn('⚠️  SECURITY: Using default admin email. Consider changing ADMIN_EMAIL.')
+  }
 }
 
 // Session management
 const SESSION_COOKIE = 'admin_session'
 const SESSION_DURATION = 24 * 60 * 60 * 1000 // 24 hours
+
+// Rate limiting for authentication attempts
+const AUTH_ATTEMPTS_KEY = 'auth_attempts'
+const AUTH_ATTEMPTS_WINDOW = 15 * 60 * 1000 // 15 minutes
+
+// Get authentication attempts for an email
+async function getAuthAttempts(email: string): Promise<number> {
+  try {
+    // For now, use a simple in-memory approach
+    // In production, this should use Redis or similar
+    const attempts = global.authAttempts?.[email] || 0
+    const lastAttempt = global.authAttemptsTime?.[email] || 0
+    
+    // Reset if window has passed
+    if (Date.now() - lastAttempt > AUTH_ATTEMPTS_WINDOW) {
+      return 0
+    }
+    
+    return attempts
+  } catch (error) {
+    console.error('Failed to get auth attempts:', error)
+    return 0
+  }
+}
+
+// Increment authentication attempts for an email
+async function incrementAuthAttempts(email: string): Promise<void> {
+  try {
+    // Initialize global storage if not exists
+    if (!global.authAttempts) global.authAttempts = {}
+    if (!global.authAttemptsTime) global.authAttemptsTime = {}
+    
+    global.authAttempts[email] = (global.authAttempts[email] || 0) + 1
+    global.authAttemptsTime[email] = Date.now()
+  } catch (error) {
+    console.error('Failed to increment auth attempts:', error)
+  }
+}
+
+// Clear authentication attempts for an email (on successful login)
+async function clearAuthAttempts(email: string): Promise<void> {
+  try {
+    if (global.authAttempts) {
+      delete global.authAttempts[email]
+    }
+    if (global.authAttemptsTime) {
+      delete global.authAttemptsTime[email]
+    }
+  } catch (error) {
+    console.error('Failed to clear auth attempts:', error)
+  }
+}
 
 export interface AdminUser {
   email: string
@@ -80,51 +156,72 @@ export async function getCurrentUser(): Promise<AdminUser | null> {
 // Authenticate admin user
 export async function authenticateAdmin(email: string, password: string): Promise<{ success: boolean; error?: string }> {
   try {
-    console.log('=== AUTHENTICATION DEBUG ===')
-    console.log('Attempting authentication for:', email)
-    console.log('Expected email:', ADMIN_CREDENTIALS.email)
-    console.log('Email match:', email === ADMIN_CREDENTIALS.email)
-    console.log('Password length received:', password.length)
-    console.log('Expected password length:', ADMIN_CREDENTIALS.password.length)
-    console.log('Password match:', password === ADMIN_CREDENTIALS.password)
-    console.log('Environment variables:')
-    console.log('- ADMIN_EMAIL:', process.env.ADMIN_EMAIL)
-    console.log('- ADMIN_PASSWORD:', process.env.ADMIN_PASSWORD ? '[SET]' : '[NOT SET]')
-    console.log('============================')
+    // Validate admin credentials are configured
+    validateAdminCredentials()
     
-    // Validate credentials (trim both submitted and expected values)
+    // Security logging (without exposing sensitive data)
+    console.log('🔐 AUTH: Authentication attempt for:', email)
+    console.log('🔐 AUTH: Credentials configured:', !!ADMIN_CREDENTIALS.email && !!ADMIN_CREDENTIALS.password)
+    
+    // Validate input
     const trimmedEmail = email.trim()
     const trimmedPassword = password.trim()
     
+    if (!trimmedEmail || !trimmedPassword) {
+      console.log('🔐 AUTH: Failed - Empty credentials')
+      return {
+        success: false,
+        error: 'Email and password are required'
+      }
+    }
+    
+    // Rate limiting check (basic implementation)
+    const authAttempts = await getAuthAttempts(trimmedEmail)
+    if (authAttempts > 5) {
+      console.log('🔐 AUTH: Failed - Too many attempts for:', trimmedEmail)
+      return {
+        success: false,
+        error: 'Too many login attempts. Please try again later.'
+      }
+    }
+    
+    // Validate credentials
     if (trimmedEmail !== ADMIN_CREDENTIALS.email || trimmedPassword !== ADMIN_CREDENTIALS.password) {
-      console.log('Authentication failed: Invalid credentials')
-      console.log('Email comparison:', `"${trimmedEmail}" === "${ADMIN_CREDENTIALS.email}"`)
-      console.log('Password comparison:', `"${trimmedPassword}" === "${ADMIN_CREDENTIALS.password}"`)
+      await incrementAuthAttempts(trimmedEmail)
+      console.log('🔐 AUTH: Failed - Invalid credentials for:', trimmedEmail)
       return {
         success: false,
         error: 'Invalid email or password'
       }
     }
     
-    // Create session data
+    // Clear failed attempts on successful authentication
+    await clearAuthAttempts(trimmedEmail)
+    
+    // Create secure session data with unique ID
+    const sessionId = crypto.randomUUID()
     const sessionData = {
+      id: sessionId,
       email: ADMIN_CREDENTIALS.email,
       name: 'Farm Companion Admin',
+      createdAt: Date.now(),
+      lastActivity: Date.now(),
       expiresAt: Date.now() + SESSION_DURATION
     }
     
-    console.log('Creating session for:', sessionData.email)
+    console.log('🔐 AUTH: Success - Creating session for:', sessionData.email)
     
-    // Set session cookie
+    // Set secure session cookie
     const cookieStore = await cookies()
     cookieStore.set(SESSION_COOKIE, JSON.stringify(sessionData), {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: SESSION_DURATION / 1000
+      secure: true, // Always use secure in production
+      sameSite: 'strict', // Prevent CSRF
+      maxAge: SESSION_DURATION / 1000,
+      path: '/admin' // Restrict to admin paths
     })
     
-    console.log('Session created successfully')
+    console.log('🔐 AUTH: Session created successfully')
     return { success: true }
   } catch (error) {
     console.error('Authentication failed:', error)
