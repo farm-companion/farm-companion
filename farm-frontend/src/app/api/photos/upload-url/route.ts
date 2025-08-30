@@ -2,41 +2,33 @@ import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
 import redis, { ensureConnection } from '@/lib/redis'
 import { buildObjectKey, createUploadUrl } from '@/lib/blob'
+import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 
 export async function POST(req: NextRequest) {
   try {
     console.log('upload-url route called')
     
-    const body = await req.json().catch(() => ({}))
-    const { farmSlug, fileName, contentType, fileSize, mode, replacePhotoId } = body
+    // Parse and validate request body
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
+      return NextResponse.json({
+        error: 'invalid-json',
+        message: 'Invalid JSON in request body'
+      }, { status: 400 })
+    }
+
+    // Validate and sanitize input
+    const validatedData = await validateAndSanitize(
+      ValidationSchemas.photoUpload,
+      body,
+      { sanitize: true, strict: true }
+    )
+
+    const { farmSlug, fileName, contentType, fileSize, mode, replacePhotoId } = validatedData
 
     console.log('Request body:', { farmSlug, fileName, contentType, fileSize, mode, replacePhotoId })
-
-    // Validate required fields
-    if (!farmSlug || !fileName || !contentType || !fileSize) {
-      return NextResponse.json({
-        error: 'missing-required-fields',
-        message: 'Missing required fields: farmSlug, fileName, contentType, fileSize'
-      }, { status: 400 })
-    }
-
-    // Validate file size (5MB max)
-    const MAX_SIZE = 5 * 1024 * 1024 // 5MB
-    if (fileSize > MAX_SIZE) {
-      return NextResponse.json({
-        error: 'file-too-large',
-        message: 'File size exceeds 5MB limit'
-      }, { status: 400 })
-    }
-
-    // Validate content type
-    const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic']
-    if (!ALLOWED_TYPES.includes(contentType)) {
-      return NextResponse.json({
-        error: 'invalid-content-type',
-        message: 'Invalid content type. Allowed: JPEG, PNG, WebP, HEIC'
-      }, { status: 400 })
-    }
 
     console.log('Starting Redis operations...')
     
@@ -114,6 +106,16 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error in upload-url route:', error)
+    
+    // Handle validation errors
+    if (error instanceof ValidationError) {
+      return NextResponse.json({
+        error: 'validation-error',
+        message: error.message,
+        field: error.field
+      }, { status: 400 })
+    }
+    
     return NextResponse.json({
       error: 'internal-server-error',
       message: error instanceof Error ? error.message : 'An unexpected error occurred'

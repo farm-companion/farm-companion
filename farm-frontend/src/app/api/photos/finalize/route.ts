@@ -2,19 +2,30 @@ import { NextRequest, NextResponse } from 'next/server'
 import redis, { ensureConnection } from '@/lib/redis'
 import { headBlob, getBlobInfo } from '@/lib/blob'
 import { sendPhotoSubmissionReceipt } from '@/lib/email'
-import { createRecord, ValidationError, ConstraintViolationError } from '@/lib/database-constraints'
+import { createRecord, ValidationError as DBValidationError, ConstraintViolationError } from '@/lib/database-constraints'
+import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json().catch(() => ({}))
-    const { leaseId, objectKey, caption, authorName, authorEmail } = body
-
-    if (!leaseId || !objectKey) {
+    // Parse and validate request body
+    let body: unknown
+    try {
+      body = await req.json()
+    } catch {
       return NextResponse.json({
-        error: 'missing-required-fields',
-        message: 'Missing required fields: leaseId, objectKey'
+        error: 'invalid-json',
+        message: 'Invalid JSON in request body'
       }, { status: 400 })
     }
+
+    // Validate and sanitize input
+    const validatedData = await validateAndSanitize(
+      ValidationSchemas.photoFinalization,
+      body,
+      { sanitize: true, strict: true }
+    )
+
+    const { leaseId, objectKey, caption, authorName, authorEmail } = validatedData
 
     const client = await ensureConnection()
 
@@ -122,10 +133,18 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Error in finalize route:', error)
     
-    // Handle specific validation errors
+    // Handle input validation errors
     if (error instanceof ValidationError) {
       return NextResponse.json(
-        { error: `Validation error: ${error.message}`, field: error.field },
+        { error: `Input validation error: ${error.message}`, field: error.field },
+        { status: 400 }
+      )
+    }
+    
+    // Handle database validation errors
+    if (error instanceof DBValidationError) {
+      return NextResponse.json(
+        { error: `Database validation error: ${error.message}`, field: error.field },
         { status: 400 }
       )
     }
