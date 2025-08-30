@@ -23,11 +23,11 @@ export default function VirtualizedFarmList({
 }: VirtualizedFarmListProps) {
   const parentRef = useRef<HTMLDivElement>(null)
 
-  // Virtualization setup
+  // Virtualization setup with fixed row height
   const rowVirtualizer = useVirtualizer({
     count: farms.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 72, // Estimated height of each farm card
+    estimateSize: () => 88, // Fixed height: 72px min-height + 16px padding (8px top + 8px bottom)
     overscan: 5, // Number of items to render outside viewport
   })
 
@@ -46,10 +46,10 @@ export default function VirtualizedFarmList({
                 onSelectFarmId(farm.id)
               }
             }}
-            className={`group bg-background-canvas rounded-xl p-4 border transition-all duration-200 hover:shadow-lg block w-full text-left ${
+            className={`group bg-background-canvas rounded-xl p-4 min-h-[72px] border border-border-default/30 transition-all duration-200 hover:shadow-lg block w-full text-left ${
               isSelected 
-                ? 'border-serum bg-serum/5 shadow-serum/20' 
-                : 'border-border-default/30 hover:border-serum/50'
+                ? 'ring-2 ring-serum ring-offset-0 bg-serum/5 shadow-serum/20' 
+                : 'hover:border-serum/50'
             }`}
           >
             <div className="flex items-start gap-3">
@@ -82,7 +82,7 @@ export default function VirtualizedFarmList({
           <Link
             key={farm.id}
             href={`/shop/${farm.slug}`}
-            className="group bg-background-canvas rounded-xl p-4 border border-border-default/30 hover:border-serum/50 transition-all duration-200 hover:shadow-lg block"
+            className="group bg-background-canvas rounded-xl p-4 min-h-[72px] border border-border-default/30 hover:border-serum/50 transition-all duration-200 hover:shadow-lg block"
           >
             <div className="flex items-start gap-3">
               <div className="w-8 h-8 bg-serum/10 rounded-lg flex items-center justify-center flex-shrink-0">
