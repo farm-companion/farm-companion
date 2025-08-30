@@ -89,7 +89,12 @@ export async function GET(request: NextRequest) {
                 🌾
               </span>
             </div>
-            <div>
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
               <div
                 style={{
                   fontSize: '32px',
@@ -123,7 +128,13 @@ export async function GET(request: NextRequest) {
             }}
           >
             {farmName ? (
-              <>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
                 {/* Farm name */}
                 <h1
                   style={{
@@ -165,9 +176,15 @@ export async function GET(request: NextRequest) {
                 >
                   Farm Shop
                 </p>
-              </>
+              </div>
             ) : (
-              <>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                }}
+              >
                 <h1
                   style={{
                     fontSize: '64px',
@@ -194,7 +211,7 @@ export async function GET(request: NextRequest) {
                     {subtitle}
                   </p>
                 )}
-              </>
+              </div>
             )}
           </div>
 
@@ -212,9 +229,9 @@ export async function GET(request: NextRequest) {
               fontSize: '18px',
             }}
           >
-            <span>🌱</span>
-            <span>Fresh Local Produce</span>
-            <span>🌱</span>
+            <span style={{ display: 'inline' }}>🌱</span>
+            <span style={{ display: 'inline' }}>Fresh Local Produce</span>
+            <span style={{ display: 'inline' }}>🌱</span>
           </div>
         </div>
       ),
