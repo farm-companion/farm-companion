@@ -227,6 +227,73 @@ export async function sendPhotoRejectedEmail(opts: {
 }
 */
 
+// Farm submission acknowledgment email sender
+export async function sendSubmissionAckEmail(opts: {
+  to: string
+  farmName: string
+}) {
+  const from = process.env.RESEND_FROM!
+  const bcc = process.env.RESEND_BCC_ADMIN
+  const siteUrl = process.env.SITE_URL || 'https://www.farmcompanion.co.uk'
+  const logoPath = `${siteUrl}/brand/farm-companion-logo.svg`
+
+  if (!opts.to || !from) {
+    console.warn('Farm submission ack email skipped: missing required fields')
+    return { skipped: true, reason: 'missing_required_fields' }
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!emailRegex.test(opts.to)) {
+    console.warn('Farm submission ack email skipped: invalid email format', { email: opts.to })
+    return { skipped: true, reason: 'invalid_email_format' }
+  }
+
+  const subject = `Farm Shop Submission Confirmed: ${opts.farmName}`
+
+  try {
+    // Simple HTML email since we don't have a React template for this yet
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2>Thank you for your farm shop submission!</h2>
+        <p>We've received your submission for <strong>${opts.farmName}</strong> and will review it within 2-3 business days.</p>
+        <p>You'll receive another email once your farm shop has been approved and added to our directory.</p>
+        <p>If you have any questions, please reply to this email.</p>
+        <br>
+        <p>Best regards,<br>The Farm Companion Team</p>
+      </div>
+    `
+
+    const result = await resend.emails.send({
+      from,
+      to: opts.to,
+      ...(bcc ? { bcc } : {}),
+      subject,
+      html,
+      replyTo: 'support@farmcompanion.co.uk',
+    })
+
+    console.log('Farm submission ack email sent successfully', {
+      to: opts.to,
+      farmName: opts.farmName,
+      messageId: result.data?.id
+    })
+
+    return result
+  } catch (error) {
+    console.error('Farm submission ack email send failed', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      to: opts.to,
+      farmName: opts.farmName,
+    })
+    
+    return { 
+      error: true, 
+      message: error instanceof Error ? error.message : 'Unknown error',
+      details: error
+    }
+  }
+}
+
 // Utility function to validate email configuration
 export function validateEmailConfig() {
   const required = ['RESEND_API_KEY', 'RESEND_FROM', 'SITE_URL']
