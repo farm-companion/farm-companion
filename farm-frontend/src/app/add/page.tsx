@@ -38,6 +38,23 @@ export default function AddFarmPage() {
   // Kill-switch check
   const isFormEnabled = process.env.NEXT_PUBLIC_ADD_FORM_ENABLED === 'true'
   
+  const [form, setForm] = useState<FarmForm>({ name: '', address: '', county: '', postcode: '' })
+  const [hours, setHours] = useState<Hours[]>(DAYS.map(d => ({ day: d })))
+  const [touched, setTouched] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [submitMessage, setSubmitMessage] = useState('')
+  const [farmImages, setFarmImages] = useState<File[]>([])
+  
+  // Hydration-safe flags/values
+  const [draftId, setDraftId] = useState<string | null>(null)
+  const [updatedAtClient, setUpdatedAtClient] = useState<string | null>(null)
+  
+  // Anti-spam
+  const [hp, setHp] = useState('')                  // honeypot input (should stay empty)
+  const startedAtRef = useRef<number | null>(null)  // when the user opened the page
+
+  // Early return for disabled form - must be after all hooks
   if (!isFormEnabled) {
     return (
       <main className="bg-background-canvas min-h-screen flex items-center justify-center">
@@ -58,8 +75,6 @@ export default function AddFarmPage() {
       </main>
     )
   }
-
-  const [form, setForm] = useState<FarmForm>({ name: '', address: '', county: '', postcode: '' })
   const [hours, setHours] = useState<Hours[]>(DAYS.map(d => ({ day: d })))
   const [touched, setTouched] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)

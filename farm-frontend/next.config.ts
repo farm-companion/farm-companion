@@ -22,7 +22,8 @@ const headersCommon = [
 const nextConfig: NextConfig = {
   // Environment variables
   env: { 
-    NEXT_PUBLIC_ADD_FORM_ENABLED: process.env.ADD_FORM_ENABLED 
+    NEXT_PUBLIC_ADD_FORM_ENABLED: process.env.ADD_FORM_ENABLED,
+    NEXT_PUBLIC_CONTACT_FORM_ENABLED: process.env.CONTACT_FORM_ENABLED
   },
   // Performance optimizations
   experimental: {
