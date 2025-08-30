@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { kv } from '@vercel/kv'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
+import { createRecord, ValidationError, ConstraintViolationError } from '@/lib/database-constraints'
 
 // Input validation schema
 const FarmInput = z.object({
@@ -118,8 +119,10 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Store in Redis with new key pattern to avoid conflicts
-    await kv.hset(`farm-submission:${id}`, farmData)
+    // Use database constraints system for atomic operation
+    await createRecord('submissions', farmData, id)
+    
+    // Add to pending queue
     await kv.lpush('farm-submissions:pending', id)
 
     // Send confirmation email if contact email provided (fire-and-forget)
@@ -152,6 +155,22 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error storing farm submission:', error)
+    
+    // Handle specific validation errors
+    if (error instanceof ValidationError) {
+      return NextResponse.json(
+        { error: `Validation error: ${error.message}`, field: error.field }, 
+        { status: 400 }
+      )
+    }
+    
+    if (error instanceof ConstraintViolationError) {
+      return NextResponse.json(
+        { error: `Constraint violation: ${error.message}`, field: error.constraint }, 
+        { status: 409 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Failed to store submission' }, 
       { status: 500 }

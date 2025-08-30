@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import redis, { ensureConnection } from '@/lib/redis'
 import { headBlob, getBlobInfo } from '@/lib/blob'
 import { sendPhotoSubmissionReceipt } from '@/lib/email'
+import { createRecord, ValidationError, ConstraintViolationError } from '@/lib/database-constraints'
 
 export async function POST(req: NextRequest) {
   try {
@@ -55,11 +56,8 @@ export async function POST(req: NextRequest) {
       status: 'pending'
     }
 
-    // Store photo and update indexes in a transaction
-    const pipeline = client.multi()
-    
-    // Store photo metadata as individual hash fields
-    pipeline.hSet(`photo:${photo.id}`, {
+    // Use database constraints system for atomic operation
+    await createRecord('photos', {
       id: photo.id,
       farmSlug: photo.farmSlug,
       url: photo.url,
@@ -68,18 +66,16 @@ export async function POST(req: NextRequest) {
       authorEmail: photo.authorEmail,
       createdAt: photo.createdAt.toString(),
       status: photo.status
-    })
+    }, photo.id)
     
     // Add to farm's pending photos
-    pipeline.sAdd(`farm:${photo.farmSlug}:photos:pending`, photo.id)
+    await client.sAdd(`farm:${photo.farmSlug}:photos:pending`, photo.id)
     
     // Add to moderation queue
-    pipeline.lPush('moderation:queue', photo.id)
+    await client.lPush('moderation:queue', photo.id)
     
     // Remove lease
-    pipeline.del(`lease:${leaseId}`)
-
-    await pipeline.exec()
+    await client.del(`lease:${leaseId}`)
 
     // 🔔 Fire-and-forget email (don't fail the API if email fails)
     ;(async () => {
@@ -125,6 +121,22 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error in finalize route:', error)
+    
+    // Handle specific validation errors
+    if (error instanceof ValidationError) {
+      return NextResponse.json(
+        { error: `Validation error: ${error.message}`, field: error.field },
+        { status: 400 }
+      )
+    }
+    
+    if (error instanceof ConstraintViolationError) {
+      return NextResponse.json(
+        { error: `Constraint violation: ${error.message}`, field: error.constraint },
+        { status: 409 }
+      )
+    }
+    
     return NextResponse.json({
       error: 'internal-server-error',
       message: 'An unexpected error occurred'
