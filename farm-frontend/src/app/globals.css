@@ -34,6 +34,8 @@
   --serum: #00C2B2;
   --solar: #D4FF4F;
   --obsidian: #1a1a1a;
+  --header-h: 64px;   /* tweak to your real header */
+  --search-h: 96px;   /* tweak to your real search block */
 }
 
 /* Dark theme support */
@@ -145,4 +147,26 @@ html.theme-ready {
 
 html {
   animation: ensure-visibility 0s 3s forwards;
+}
+
+/* map wrapper uses dynamic viewport */
+.map-shell {
+  position: relative;
+  height: calc(100dvh - var(--header-h) - var(--search-h));
+}
+@supports not (height: 100dvh) {
+  .map-shell { 
+    height: calc(100vh - var(--header-h) - var(--search-h)); 
+  }
+}
+
+/* inner map canvas fills shell */
+.map-canvas { 
+  position: absolute; 
+  inset: 0; 
+}
+
+/* optional: account for iOS bottom safe-area */
+.safe-bottom { 
+  padding-bottom: env(safe-area-inset-bottom); 
 }

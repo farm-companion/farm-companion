@@ -52,66 +52,6 @@ export default function Map({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Initialize Google Maps
-  useEffect(() => {
-    if (!mapRef.current || typeof window === 'undefined') return
-
-    const initMap = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-
-        const loader = new Loader({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-          version: 'weekly',
-          libraries: ['places', 'marker']
-        })
-
-        const google = await loader.load()
-        
-        if (!mapRef.current) return
-
-        const map = new google.maps.Map(mapRef.current, {
-          center,
-          zoom,
-          mapId: 'f907b7cb594ed2caa752543d',
-          mapTypeId: 'roadmap',
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-          zoomControl: true,
-          gestureHandling: 'cooperative',
-          styles: [
-            {
-              featureType: 'poi',
-              elementType: 'labels',
-              stylers: [{ visibility: 'off' }]
-            }
-          ]
-        })
-
-        mapInstanceRef.current = map
-        onMapLoad?.(map)
-
-        // Set up bounds change listener
-        map.addListener('bounds_changed', () => {
-          const bounds = map.getBounds()
-          if (bounds && onBoundsChange) {
-            onBoundsChange(bounds)
-          }
-        })
-
-        setIsLoading(false)
-      } catch (err) {
-        console.error('Failed to load Google Maps:', err)
-        setError('Failed to load map')
-        setIsLoading(false)
-      }
-    }
-
-    initMap()
-  }, [center, zoom, onMapLoad, onBoundsChange])
-
   // Create markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
     if (!map || !farmData.length || typeof window === 'undefined') return
@@ -128,13 +68,11 @@ export default function Map({
       const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
       
       // Create custom marker icon
-      const isSelected = selectedFarmId === farm.id
-      const markerIcon = {
-        url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-          <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="16" cy="16" r="14" fill="#00C2B2" stroke="white" stroke-width="2"/>
-            <path fill="white" d="M16 8c-2.2 0-4 1.8-4 4s1.8 4 4 4 4-1.8 4-4-1.8-4-4-4zm0 6c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2z"/>
-            ${isSelected ? '<circle cx="24" cy="8" r="6" fill="#D4FF4F" stroke="white" stroke-width="2"/>' : ''}
+      const icon = {
+        url: `data:image/svg+xml;utf8,${encodeURIComponent(`
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="12" cy="12" r="10" fill="#00C2B2" stroke="#FFFFFF" stroke-width="2"/>
+            <circle cx="12" cy="12" r="4" fill="#FFFFFF"/>
           </svg>
         `)}`,
         scaledSize: new google.maps.Size(32, 32),
@@ -144,23 +82,132 @@ export default function Map({
       const marker = new google.maps.Marker({
         position,
         map,
-        icon: markerIcon,
-        title: farm.name
+        icon,
+        title: farm.name,
+        optimized: true,
       })
 
       // Add click listener
       marker.addListener('click', () => {
         onFarmSelect?.(farm.id)
-        
-        // Pan to marker with smooth animation
-        map.panTo(position)
-        map.setZoom(Math.max(map.getZoom() || 10, 12))
       })
 
-      markers.push(marker)
+      // Store marker reference
       markersRef.current[farm.id] = marker
+      markers.push(marker)
     })
+
+    // Fit bounds to show all markers if no farm is selected
+    if (markers.length > 0 && !selectedFarmId) {
+      const bounds = new google.maps.LatLngBounds()
+      markers.forEach(marker => {
+        const position = marker.getPosition()
+        if (position) bounds.extend(position)
+      })
+      map.fitBounds(bounds)
+    }
   }, [selectedFarmId, onFarmSelect])
+
+  // Initialize Google Maps
+  useEffect(() => {
+    if (!mapRef.current || typeof window === 'undefined') return
+
+    const loader = new Loader({
+      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
+      version: 'weekly',
+      libraries: ['places', 'marker']
+    })
+
+    loader.load().then(() => {
+      if (!mapRef.current) return
+
+      const map = new google.maps.Map(mapRef.current, {
+        center,
+        zoom,
+        mapId: 'DEMO_MAP_ID',
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        zoomControl: true,
+        gestureHandling: 'cooperative'
+      })
+
+      mapInstanceRef.current = map
+
+      // Apply responsive padding using fitBounds with padding
+      const applyResponsivePadding = () => {
+        const isDesktop = window.matchMedia('(min-width: 768px)').matches
+        const basePadding = { top: 8, left: 8, bottom: 200, right: 8 }
+        const padding = isDesktop ? { ...basePadding, right: 384 } : basePadding
+        
+        // Store padding for later use
+        map.set('customPadding', padding)
+        
+        // Trigger resize to apply padding
+        google.maps.event.trigger(map, 'resize')
+      }
+
+      applyResponsivePadding()
+      window.addEventListener('resize', applyResponsivePadding)
+
+      // Listen for bottom sheet height changes
+      const handleBottomPaddingChange = (e: CustomEvent) => {
+        const currentPadding = map.get('customPadding') || { top: 8, left: 8, right: 8, bottom: 200 }
+        const newPadding = { ...currentPadding, bottom: e.detail }
+        map.set('customPadding', newPadding)
+        google.maps.event.trigger(map, 'resize')
+      }
+
+      window.addEventListener('map:setBottomPadding', handleBottomPaddingChange as EventListener)
+
+      // Create markers
+      createMarkers(map, farms)
+
+      // Call onMapLoad callback
+      if (onMapLoad) {
+        onMapLoad(map)
+      }
+
+      // Set up bounds change listener
+      if (onBoundsChange) {
+        map.addListener('bounds_changed', () => {
+          const bounds = map.getBounds()
+          if (bounds) {
+            onBoundsChange(bounds)
+          }
+        })
+      }
+
+      setIsLoading(false)
+
+      // Cleanup function
+      return () => {
+        window.removeEventListener('resize', applyResponsivePadding)
+        window.removeEventListener('map:setBottomPadding', handleBottomPaddingChange as EventListener)
+      }
+    }).catch((err) => {
+      console.error('Failed to load Google Maps:', err)
+      setError('Failed to load map')
+    })
+  }, [center, zoom, farms, onMapLoad, onBoundsChange, createMarkers])
+
+  // Resize observer for map container changes
+  useEffect(() => {
+    if (!mapRef.current || !mapInstanceRef.current) return
+
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapInstanceRef.current) {
+        google.maps.event.trigger(mapInstanceRef.current, 'resize')
+      }
+    })
+
+    resizeObserver.observe(mapRef.current)
+    if (mapRef.current.parentElement) {
+      resizeObserver.observe(mapRef.current.parentElement)
+    }
+
+    return () => resizeObserver.disconnect()
+  }, [])
 
   // Update user location marker
   useEffect(() => {

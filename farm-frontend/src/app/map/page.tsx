@@ -389,9 +389,9 @@ export default function MapPage() {
         </div>
 
         {/* Map and List Container */}
-        <div className="relative h-[calc(100vh-200px)] md:h-[calc(100vh-240px)]">
+        <div className="relative map-shell safe-bottom">
           {/* Map */}
-          <div className="absolute inset-0">
+          <div className="map-canvas">
             {isGoogleMapsLoaded ? (
               <MapWithNoSSR
                 farms={filteredFarms}
@@ -418,6 +418,9 @@ export default function MapPage() {
               isOpen={true}
               snapPoints={[200, 400, 600]}
               defaultSnap={1}
+              onHeightChange={(height) => {
+                window.dispatchEvent(new CustomEvent('map:setBottomPadding', { detail: height }))
+              }}
             >
               <FarmList
                 farms={filteredFarms}
