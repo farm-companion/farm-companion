@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, MapPin, Filter, X, Navigation, Loader2, Globe } from 'lucide-react'
+import { Search, MapPin, Filter, X, Navigation, Loader2, Globe, Clock } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 
 interface FilterState {
   county?: string
   category?: string
+  openNow?: boolean
 }
 
 interface MapSearchProps {
@@ -140,7 +141,7 @@ export default function MapSearch({
     onNearMe()
   }, [onNearMe])
 
-  const handleFilterChange = useCallback((key: keyof FilterState, value: string | undefined) => {
+  const handleFilterChange = useCallback((key: keyof FilterState, value: string | boolean | undefined) => {
     const newFilters = { ...filters, [key]: value }
     setFilters(newFilters)
     onFilterChange(newFilters)
@@ -151,7 +152,7 @@ export default function MapSearch({
     onFilterChange({})
   }, [onFilterChange])
 
-  const hasActiveFilters = filters.county || filters.category
+  const hasActiveFilters = filters.county || filters.category || filters.openNow
 
   return (
     <div className={`bg-white shadow-lg rounded-lg p-4 ${className}`}>
@@ -265,8 +266,23 @@ export default function MapSearch({
         </div>
       )}
 
-      {/* Filter Toggle */}
-      <div className="flex items-center justify-between mb-4">
+      {/* Quick Filters */}
+      <div className="flex items-center gap-2 mb-4">
+        {/* Open Now Filter */}
+        <button
+          onClick={() => handleFilterChange('openNow', !filters.openNow)}
+          className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
+            filters.openNow 
+              ? 'bg-green-50 text-green-600 border border-green-200' 
+              : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+          }`}
+          aria-label="Show only open farms"
+        >
+          <Clock className="w-4 h-4" />
+          <span className="hidden sm:inline">Open Now</span>
+        </button>
+
+        {/* Filter Toggle */}
         <button
           onClick={() => setShowFilters(!showFilters)}
           className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
@@ -274,7 +290,7 @@ export default function MapSearch({
           aria-controls="filter-panel"
         >
           <Filter className="w-4 h-4" />
-          <span className="hidden sm:inline">Filters</span>
+          <span className="hidden sm:inline">More Filters</span>
           {hasActiveFilters && (
             <span className="w-2 h-2 bg-serum rounded-full" />
           )}
@@ -334,6 +350,19 @@ export default function MapSearch({
       {/* Active Filters Display */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 mt-4">
+          {filters.openNow && (
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-600 rounded-full text-sm">
+              <Clock className="w-3 h-3" />
+              Open now
+              <button
+                onClick={() => handleFilterChange('openNow', undefined)}
+                className="hover:bg-green-200 rounded-full p-0.5"
+                aria-label="Remove open now filter"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
           {filters.county && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
               {filters.county}
