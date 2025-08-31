@@ -126,36 +126,33 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
         />
         
-        {/* Critical CSS - inlined to prevent render-blocking */}
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            .skip-link {
-              position: absolute;
-              top: -40px;
-              left: 6px;
-              background: #00C2B2;
-              color: white;
-              padding: 8px;
-              text-decoration: none;
-              border-radius: 4px;
-              z-index: 1000;
-              transition: top 0.2s ease;
-            }
-            .skip-link:focus {
-              top: 6px;
-            }
-            .theme-ready {
-              visibility: visible;
-            }
-            html:not(.theme-ready) {
-              visibility: hidden;
-            }
-            /* Fallback: ensure content is visible after 2 seconds */
-            html.theme-ready {
-              visibility: visible !important;
-            }
-          `
-        }} />
+                 {/* Critical CSS - inlined to prevent render-blocking */}
+         <style dangerouslySetInnerHTML={{
+           __html: `
+             .skip-link {
+               position: absolute;
+               top: -40px;
+               left: 6px;
+               background: #00C2B2;
+               color: white;
+               padding: 8px;
+               text-decoration: none;
+               border-radius: 4px;
+               z-index: 1000;
+               transition: top 0.2s ease;
+             }
+             .skip-link:focus {
+               top: 6px;
+             }
+             /* Ensure content is always visible */
+             html, body {
+               visibility: visible !important;
+             }
+             .theme-ready {
+               visibility: visible !important;
+             }
+           `
+         }} />
         
         {/* Preload critical LCP resources */}
         <link rel="preload" href="/overlay-banner.jpg" as="image" type="image/jpeg" fetchPriority="high" />
@@ -271,8 +268,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Consent-gated Analytics */}
         <AnalyticsLoader />
 
+        {/* Force deployment to fix CSS loading issues */}
+
       </body>
     </html>
   )
 }
-// Force deployment - Sun Aug 31 17:40:37 BST 2025
