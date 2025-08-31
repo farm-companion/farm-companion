@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import Link from 'next/link'
-import { Search, MapPin, ArrowRight } from 'lucide-react'
-import LazyMap from '@/components/LazyMap'
+import { Search, MapPin } from 'lucide-react'
+import SmartMapComponent from '@/components/SmartMapComponent'
 import LoadingOverlay from '@/components/LoadingOverlay'
 import AnticipatoryLoader from '@/components/AnticipatoryLoader'
 import VirtualizedFarmList from '@/components/VirtualizedFarmList'
@@ -39,6 +39,7 @@ export default function MapPage() {
   const [dataQuality, setDataQuality] = useState<{ total: number; valid: number; invalid: number } | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
+
 
   // Keyboard navigation handlers
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -369,7 +370,7 @@ export default function MapPage() {
       </div>
 
       <MapErrorBoundary>
-        <LazyMap
+        <SmartMapComponent
           farms={farms}
           filteredFarms={filteredFarms}
           userLoc={userLoc}
@@ -390,7 +391,7 @@ export default function MapPage() {
 
       {/* Farm List Section - Virtualized for Performance */}
       {farms && filteredFarms.length > 0 && (
-        <div className="bg-background-surface border-t border-border-default/30">
+        <div className="bg-background-surface border-t border-border-default/30 dark:bg-background-surface dark:border-border-default/50">
           <div className="max-w-7xl mx-auto px-6 py-8">
             <DataErrorBoundary dataType="farms">
               <VirtualizedFarmList 
@@ -407,7 +408,7 @@ export default function MapPage() {
 
       {/* Empty State for No Results */}
       {farms && filteredFarms.length === 0 && !isLoading && (
-        <div className="bg-background-surface border-t border-border-default/30">
+        <div className="bg-background-surface border-t border-border-default/30 dark:bg-background-surface dark:border-border-default/50">
           <div className="max-w-7xl mx-auto px-6 py-8">
             <NoResults 
               searchTerm={searchQuery || undefined}
