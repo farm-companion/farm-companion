@@ -5,6 +5,7 @@ import { MapPin, Phone, Globe, Clock, Star, Navigation, Circle } from 'lucide-re
 import { Virtuoso } from 'react-virtuoso'
 import type { FarmShop } from '@/types/farm'
 import { formatOpeningStatus } from '@/lib/opening-hours'
+import QuickActions from './QuickActions'
 
 interface FarmListProps {
   farms: FarmShop[]
@@ -188,6 +189,11 @@ export default function FarmList({
             <span>{formatDistance(farm.distance!)} away</span>
           </div>
         )}
+
+        {/* Quick Actions */}
+        <div className="mt-3 pt-3 border-t border-gray-100">
+          <QuickActions farm={farm} variant="compact" />
+        </div>
       </div>
     )
   }, [selectedFarmId, expandedFarmId, handleFarmClick, formatDistance])
