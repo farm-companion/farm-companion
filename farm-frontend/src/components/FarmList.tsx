@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useCallback, useMemo } from 'react'
-import { MapPin, Phone, Globe, Clock, Star, Navigation } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import { MapPin, Phone, Globe, Clock, Star, Navigation, Circle } from 'lucide-react'
 import { Virtuoso } from 'react-virtuoso'
 import type { FarmShop } from '@/types/farm'
+import { formatOpeningStatus } from '@/lib/opening-hours'
 
 interface FarmListProps {
   farms: FarmShop[]
@@ -40,6 +41,7 @@ export default function FarmList({
     const hasContact = farm.contact?.phone || farm.contact?.website
     const hasHours = farm.hours && farm.hours.length > 0
     const hasDistance = farm.distance !== undefined && formatDistance
+    const openingStatus = hasHours ? formatOpeningStatus(farm.hours!) : null
 
     return (
       <div
@@ -70,6 +72,20 @@ export default function FarmList({
           </div>
           
           <div className="flex flex-col items-end gap-1">
+            {/* Opening Status */}
+            {openingStatus && (
+              <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+                openingStatus.isOpen 
+                  ? 'bg-green-50 text-green-600' 
+                  : 'bg-gray-50 text-gray-600'
+              }`}>
+                <Circle className={`w-2 h-2 ${openingStatus.isOpen ? 'fill-current' : ''}`} />
+                <span className="hidden sm:inline">
+                  {openingStatus.isOpen ? 'Open' : 'Closed'}
+                </span>
+              </div>
+            )}
+            
             {/* Verified Badge */}
             {farm.verified && (
               <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
@@ -138,6 +154,11 @@ export default function FarmList({
             <div className="flex items-start gap-1 text-sm text-gray-600">
               <Clock className="w-3 h-3 mt-0.5 flex-shrink-0" />
               <div className="min-w-0">
+                {openingStatus && !openingStatus.isOpen && openingStatus.nextOpening && (
+                  <div className="text-orange-600 font-medium mb-1">
+                    {openingStatus.nextOpening}
+                  </div>
+                )}
                 {farm.hours.slice(0, 2).map((hour, idx) => (
                   <div key={idx} className="truncate">
                     {hour.day}: {hour.open} - {hour.close}
@@ -178,13 +199,6 @@ export default function FarmList({
       <p className="text-gray-600 max-w-sm">
         Try adjusting your search or filters to find farm shops in your area.
       </p>
-    </div>
-  ), [])
-
-  const LoadingState = useCallback(() => (
-    <div className="flex flex-col items-center justify-center py-12">
-      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mb-4"></div>
-      <p className="text-gray-600">Loading farms...</p>
     </div>
   ), [])
 

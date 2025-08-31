@@ -32,6 +32,7 @@ interface UserLocation {
 interface FilterState {
   county?: string
   category?: string
+  openNow?: boolean
 }
 
 // Haversine formula for calculating distance between two points
@@ -215,11 +216,52 @@ export default function MapPage() {
       )
     }
 
+    // Apply "Open Now" filter
+    if (filters.openNow) {
+      result = result.filter(farm => {
+        if (!farm.hours || farm.hours.length === 0) return false
+        
+        const now = new Date()
+        const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+        const currentTime = now.toLocaleTimeString('en-US', { 
+          hour12: false, 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })
+
+        const todayHours = farm.hours.find(h => h.day.toLowerCase() === currentDay)
+        if (!todayHours) return false
+
+        // Handle special cases
+        if (todayHours.open.toLowerCase() === 'closed' || todayHours.close.toLowerCase() === 'closed') {
+          return false
+        }
+
+        if (todayHours.open.toLowerCase() === '24 hours' || todayHours.close.toLowerCase() === '24 hours') {
+          return true
+        }
+
+        // Normal time comparison
+        const openTime = todayHours.open
+        const closeTime = todayHours.close
+
+        // Handle overnight hours (e.g., 22:00 - 06:00)
+        if (closeTime < openTime) {
+          return currentTime >= openTime || currentTime <= closeTime
+        }
+
+        return currentTime >= openTime && currentTime <= closeTime
+      })
+    }
+
     // Filter by map bounds if available
     if (mapBounds) {
       result = result.filter(farm => {
-        const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
-        return mapBounds.contains(position)
+        if (typeof window !== 'undefined' && window.google) {
+          const position = new window.google.maps.LatLng(farm.location.lat, farm.location.lng)
+          return mapBounds.contains(position)
+        }
+        return true // If Google Maps not loaded, don't filter by bounds
       })
     }
 
