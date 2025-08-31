@@ -179,7 +179,7 @@ export default function BottomSheet({
       {/* Bottom Sheet */}
       <div
         ref={sheetRef}
-        className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl pointer-events-auto transition-transform duration-300 ease-out ${className}`}
+        className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl pointer-events-auto transition-transform duration-300 ease-out safe-bottom ${className}`}
         style={{
           height: `${currentHeight}px`,
           transform: `translateY(${isDragging ? 0 : 0}px)`

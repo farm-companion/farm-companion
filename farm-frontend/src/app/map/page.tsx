@@ -415,7 +415,7 @@ export default function MapPage() {
         </div>
 
         {/* Map and List Container */}
-        <div className="relative map-shell safe-bottom">
+        <div className="relative map-shell">
           {/* Map */}
           <div className="map-canvas">
             {isGoogleMapsLoaded ? (
