@@ -155,7 +155,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
          }} />
         
         {/* Preload critical LCP resources */}
-        <link rel="preload" href="/overlay-banner.jpg" as="image" type="image/jpeg" fetchPriority="high" />
+        <link rel="preload" href="/overlay-banner.jpg" as="image" />
         
         {/* Google Analytics - now handled by AnalyticsLoader component */}
         

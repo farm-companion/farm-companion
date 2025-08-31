@@ -1,7 +1,13 @@
 // Determine the correct site URL based on environment
 const getSiteUrl = () => {
-  // Always use production URL for now
-  return 'https://www.farmcompanion.co.uk'
+  if (process.env.NEXT_PUBLIC_USE_LIVE_URL === 'true') {
+    return 'https://www.farmcompanion.co.uk'
+  }
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000'
+  }
+  // default for prod
+  return process.env.NEXT_PUBLIC_SITE_URL || 'https://www.farmcompanion.co.uk'
 }
 
 export const SITE_URL = getSiteUrl()

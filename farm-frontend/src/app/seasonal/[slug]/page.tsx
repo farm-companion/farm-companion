@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { MapPin, Clock, ExternalLink, Sprout, ArrowRight } from 'lucide-react'
 import ProduceAnalytics from '@/components/ProduceAnalytics'
 import ClientProduceImages, { ClientProduceImage } from '@/components/ClientProduceImages'
+import { SITE_URL } from '@/lib/site'
 
 // Revalidate daily
 export const revalidate = 86400
@@ -76,19 +77,19 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
           '@type': 'ListItem',
           position: 1,
           name: 'Home',
-          item: 'https://www.farmcompanion.co.uk'
+          item: SITE_URL
         },
         {
           '@type': 'ListItem',
           position: 2,
           name: 'Seasonal Produce',
-          item: 'https://www.farmcompanion.co.uk/seasonal'
+          item: `${SITE_URL}/seasonal`
         },
         {
           '@type': 'ListItem',
           position: 3,
           name: p.name,
-          item: `https://www.farmcompanion.co.uk/seasonal/${p.slug}`
+          item: `${SITE_URL}/seasonal/${p.slug}`
         }
       ]
     }
