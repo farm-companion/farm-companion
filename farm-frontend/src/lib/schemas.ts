@@ -33,29 +33,43 @@ export type FarmShop = z.infer<typeof FarmShopSchema>
 
 // Deduplication utilities
 export function dedupeFarmsBySlug(farms: FarmShop[]): FarmShop[] {
-  const seen = new Set<string>()
+  const seen = new Map<string, string>() // slug -> county
   const deduped: FarmShop[] = []
   
   for (const farm of farms) {
-    if (!seen.has(farm.slug)) {
-      seen.add(farm.slug)
+    const existingCounty = seen.get(farm.slug)
+    if (!existingCounty) {
+      // First farm with this slug
+      seen.set(farm.slug, farm.location.county)
+      deduped.push(farm)
+    } else if (existingCounty !== farm.location.county) {
+      // Same slug but different county - likely different farms
       deduped.push(farm)
     }
+    // Same slug and county - skip (duplicate)
   }
   
   return deduped
 }
 
 export function dedupeFarmsByPostcode(farms: FarmShop[]): FarmShop[] {
-  const seen = new Set<string>()
+  const seen = new Map<string, string>() // postcode -> farm name
   const deduped: FarmShop[] = []
   
   for (const farm of farms) {
     const postcode = farm.location.postcode?.toLowerCase().replace(/\s+/g, '')
-    if (postcode && !seen.has(postcode)) {
-      seen.add(postcode)
-      deduped.push(farm)
-    } else if (!postcode) {
+    if (postcode) {
+      const existingName = seen.get(postcode)
+      if (!existingName) {
+        // First farm with this postcode
+        seen.set(postcode, farm.name)
+        deduped.push(farm)
+      } else if (existingName !== farm.name) {
+        // Different farm name with same postcode - keep it
+        deduped.push(farm)
+      }
+      // Same postcode and name - skip (duplicate)
+    } else {
       // Keep farms without postcodes
       deduped.push(farm)
     }
@@ -64,7 +78,7 @@ export function dedupeFarmsByPostcode(farms: FarmShop[]): FarmShop[] {
   return deduped
 }
 
-export function dedupeFarmsByProximity(farms: FarmShop[], maxDistanceMeters: number = 50): FarmShop[] {
+export function dedupeFarmsByProximity(farms: FarmShop[], maxDistanceMeters: number = 10): FarmShop[] {
   const deduped: FarmShop[] = []
   
   for (const farm of farms) {
