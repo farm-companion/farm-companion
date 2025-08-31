@@ -1228,7 +1228,6 @@ export default function GoogleMapComponent({
         <Map
           center={mapCenter}
           zoom={mapZoom}
-          mapId="f907b7cb594ed2caa752543d"
           className="w-full h-full"
           mapTypeId="roadmap"
           mapTypeControl={false}
@@ -1236,6 +1235,7 @@ export default function GoogleMapComponent({
           fullscreenControl={false}
           zoomControl={false}
           gestureHandling="cooperative"
+          disableDefaultUI={true}
           onCenterChanged={(e) => {
             const center = e.detail.center
             setMapCenter({ lat: center.lat, lng: center.lng })
