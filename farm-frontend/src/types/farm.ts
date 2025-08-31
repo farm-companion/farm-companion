@@ -24,6 +24,6 @@ export type FarmShop = {
   description?: string
   images?: string[]
   verified: boolean
-
   updatedAt?: string
+  distance?: number // Distance in kilometers from user location
 }
