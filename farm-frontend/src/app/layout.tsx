@@ -268,7 +268,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Consent-gated Analytics */}
         <AnalyticsLoader />
 
-        {/* Force deployment to fix CSS loading issues */}
+        {/* Force deployment to remove all content protection - right-click should work */}
 
       </body>
     </html>
