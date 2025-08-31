@@ -1,12 +1,7 @@
 // Determine the correct site URL based on environment
 const getSiteUrl = () => {
-  // In development, use localhost
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000'
-  }
-  
-  // In production, use the configured URL or fallback
-  return process.env.NEXT_PUBLIC_SITE_URL || 'https://www.farmcompanion.co.uk'
+  // Always use production URL for now
+  return 'https://www.farmcompanion.co.uk'
 }
 
 export const SITE_URL = getSiteUrl()
