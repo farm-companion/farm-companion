@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
+import type { FarmShop } from '@/types/farm'
 
 interface FarmShopData {
   name: string
@@ -22,7 +23,7 @@ interface FarmShopData {
     open: string
     close: string
   }>
-  offerings: string[]
+  offerings?: string[]
   story?: string
   images: Array<{
     id: string
@@ -37,6 +38,84 @@ interface FarmShopData {
   }
   seasonal: string[]
   updatedAt: string
+}
+
+// Enhanced GET endpoint with filtering
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    
+    // Parse query parameters
+    const query = searchParams.get('q')?.toLowerCase()
+    const county = searchParams.get('county')
+    const category = searchParams.get('category')
+    const bbox = searchParams.get('bbox') // "west,south,east,north"
+    const limit = parseInt(searchParams.get('limit') || '100')
+    const offset = parseInt(searchParams.get('offset') || '0')
+    
+    // Load farm data
+    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
+    const farmsData = await fs.readFile(farmsPath, 'utf-8')
+    const allFarms: FarmShop[] = JSON.parse(farmsData)
+    
+    // Apply filters
+    const filteredFarms = allFarms.filter((farm: FarmShop) => {
+      // Text search
+      if (query) {
+        const searchText = `${farm.name} ${farm.location.address} ${farm.location.county} ${farm.location.postcode}`.toLowerCase()
+        if (!searchText.includes(query)) return false
+      }
+      
+      // County filter
+      if (county && farm.location.county !== county) return false
+      
+      // Category filter (offerings)
+      if (category && farm.offerings && !farm.offerings.includes(category)) return false
+      
+      // Bounding box filter
+      if (bbox) {
+        const [west, south, east, north] = bbox.split(',').map(Number)
+        const { lat, lng } = farm.location
+        if (lat < south || lat > north || lng < west || lng > east) return false
+      }
+      
+      // Validate coordinates
+      if (!farm.location.lat || !farm.location.lng) return false
+      if (farm.location.lat === 0 && farm.location.lng === 0) return false
+      
+      return true
+    })
+    
+    // Apply pagination
+    const paginatedFarms = filteredFarms.slice(offset, offset + limit)
+    
+    // Get unique counties and categories for faceted search
+    const counties = [...new Set(allFarms.map(f => f.location.county).filter(Boolean))].sort()
+    const categories = [...new Set(allFarms.flatMap(f => f.offerings || []).filter(Boolean))].sort()
+    
+    return NextResponse.json({
+      farms: paginatedFarms,
+      total: filteredFarms.length,
+      offset,
+      limit,
+      facets: {
+        counties,
+        categories
+      },
+      timestamp: new Date().toISOString()
+    }, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
+        'Content-Type': 'application/json'
+      }
+    })
+  } catch (error) {
+    console.error('Error serving farm data:', error)
+    return NextResponse.json(
+      { error: 'Failed to load farm data' },
+      { status: 500 }
+    )
+  }
 }
 
 export async function POST(request: NextRequest) {
@@ -98,189 +177,105 @@ export async function POST(request: NextRequest) {
       const submissionFiles = await fs.readdir(farmsDir)
       for (const file of submissionFiles) {
         if (file.endsWith('.json')) {
-          const content = await fs.readFile(path.join(farmsDir, file), 'utf-8')
-          const existingFarm = JSON.parse(content)
+          const filePath = path.join(farmsDir, file)
+          const fileContent = await fs.readFile(filePath, 'utf-8')
+          const existingFarm = JSON.parse(fileContent)
           
           // Check for exact name match
           if (existingFarm.name.toLowerCase() === farmData.name.toLowerCase()) {
             return NextResponse.json(
-              { error: 'A farm with this name has already been submitted' },
-              { status: 400 }
+              { error: 'A farm with this name already exists' },
+              { status: 409 }
             )
           }
           
           // Check for exact address match
-          if (existingFarm.location.address.toLowerCase() === farmData.location.address.toLowerCase() &&
-              existingFarm.location.postcode.toLowerCase() === farmData.location.postcode.toLowerCase()) {
+          if (existingFarm.location?.address?.toLowerCase() === farmData.location.address.toLowerCase() &&
+              existingFarm.location?.postcode?.toLowerCase() === farmData.location.postcode.toLowerCase()) {
             return NextResponse.json(
-              { error: 'A farm at this address has already been submitted' },
-              { status: 400 }
+              { error: 'A farm at this address already exists' },
+              { status: 409 }
             )
           }
         }
       }
       
       // Check live farms directory
-      try {
-        const liveFiles = await fs.readdir(liveFarmsDir)
-        for (const file of liveFiles) {
-          if (file.endsWith('.json')) {
-            const content = await fs.readFile(path.join(liveFarmsDir, file), 'utf-8')
-            const existingFarm = JSON.parse(content)
-            
-            if (existingFarm.name.toLowerCase() === farmData.name.toLowerCase()) {
-              return NextResponse.json(
-                { error: 'A farm with this name already exists in our directory' },
-                { status: 400 }
-              )
-            }
-            
-            if (existingFarm.location.address.toLowerCase() === farmData.location.address.toLowerCase() &&
-                existingFarm.location.postcode.toLowerCase() === farmData.location.postcode.toLowerCase()) {
-              return NextResponse.json(
-                { error: 'A farm at this address already exists in our directory' },
-                { status: 400 }
-              )
-            }
+      const liveFiles = await fs.readdir(liveFarmsDir)
+      for (const file of liveFiles) {
+        if (file.endsWith('.json')) {
+          const filePath = path.join(liveFarmsDir, file)
+          const fileContent = await fs.readFile(filePath, 'utf-8')
+          const existingFarm = JSON.parse(fileContent)
+          
+          // Check for exact name match
+          if (existingFarm.name.toLowerCase() === farmData.name.toLowerCase()) {
+            return NextResponse.json(
+              { error: 'A farm with this name already exists' },
+              { status: 409 }
+            )
+          }
+          
+          // Check for exact address match
+          if (existingFarm.location?.address?.toLowerCase() === farmData.location.address.toLowerCase() &&
+              existingFarm.location?.postcode?.toLowerCase() === farmData.location.postcode.toLowerCase()) {
+            return NextResponse.json(
+              { error: 'A farm at this address already exists' },
+              { status: 409 }
+            )
           }
         }
-      } catch (error) {
-        // Live farms directory doesn't exist yet, which is fine
       }
     } catch (error) {
-      // Farms directory doesn't exist yet, which is fine for first submission
+      // Directory doesn't exist or other error, continue with submission
+      console.log('Directory check failed, continuing with submission:', error)
     }
 
-    // Add metadata
-    const farm = {
-      ...farmData,
-      id: `farm_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      submittedAt: new Date().toISOString(),
-      status: 'pending' as const,
-      reviewedAt: null,
-      reviewedBy: null,
-      reviewNotes: null,
-      approvedAt: null,
-      approvedBy: null
+    // Generate unique ID and slug
+    const id = `farm_${farmData.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`
+    const slug = farmData.name.toLowerCase().replace(/[^a-z0-9]/g, '-')
+    
+    // Create farm object
+    const newFarm = {
+      id,
+      slug,
+      name: farmData.name,
+      location: {
+        lat: farmData.location.lat || null,
+        lng: farmData.location.lng || null,
+        address: farmData.location.address,
+        city: '',
+        county: farmData.location.county,
+        postcode: farmData.location.postcode
+      },
+      contact: {
+        phone: farmData.contact.phone || null,
+        email: farmData.contact.email || null,
+        website: farmData.contact.website || null
+      },
+      hours: farmData.hours || [],
+      offerings: farmData.offerings || [],
+      description: farmData.story || '',
+      images: farmData.images || [],
+      verified: false,
+      updatedAt: new Date().toISOString()
     }
 
-    // Ensure farms directory exists
-    await fs.mkdir(farmsDir, { recursive: true })
+    // Save to submissions directory
+    const submissionPath = path.join(farmsDir, `${id}.json`)
+    await fs.writeFile(submissionPath, JSON.stringify(newFarm, null, 2))
 
-    // Save farm to file
-    const farmFile = path.join(farmsDir, `${farm.id}.json`)
-    await fs.writeFile(farmFile, JSON.stringify(farm, null, 2))
-
-    // Send notification email to admin
-    await sendAdminNotification(farm)
-
-    // Send confirmation email to farm contact if email provided
-    if (farm.contact.email) {
-      await sendFarmConfirmation(farm)
-    }
-
-    return NextResponse.json({ 
-      success: true, 
-      farmId: farm.id,
-      message: 'Farm shop submitted successfully. We\'ll review and add it to our directory within 2-3 business days.' 
-    })
+    return NextResponse.json({
+      success: true,
+      message: 'Farm submission received successfully',
+      farm: newFarm
+    }, { status: 201 })
 
   } catch (error) {
     console.error('Error processing farm submission:', error)
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to process farm submission' },
       { status: 500 }
     )
   }
-}
-
-export async function GET(request: NextRequest) {
-  try {
-    const farms: any[] = []
-    
-    // Read from live farms directory (approved farms)
-    const liveFarmsDir = path.join(process.cwd(), 'data', 'live-farms')
-    
-    try {
-      const files = await fs.readdir(liveFarmsDir)
-      const jsonFiles = files.filter(file => file.endsWith('.json'))
-      
-      for (const file of jsonFiles) {
-        try {
-          const filePath = path.join(liveFarmsDir, file)
-          const content = await fs.readFile(filePath, 'utf-8')
-          const farm = JSON.parse(content)
-          farms.push(farm)
-        } catch (error) {
-          console.error(`Error reading farm file ${file}:`, error)
-        }
-      }
-    } catch (error) {
-      // Live farms directory doesn't exist yet, which is fine
-      console.log('No live farms directory found')
-    }
-    
-    // If no live farms, try to read from the main farms data file
-    if (farms.length === 0) {
-      try {
-        const farmsDataPath = path.join(process.cwd(), 'data', 'farms.json')
-        const content = await fs.readFile(farmsDataPath, 'utf-8')
-        const farmsData = JSON.parse(content)
-        farms.push(...farmsData)
-      } catch (error) {
-        console.log('No farms.json file found')
-      }
-    }
-    
-    // Sort farms by name
-    farms.sort((a, b) => a.name.localeCompare(b.name))
-    
-    const response = NextResponse.json({ 
-      farms,
-      total: farms.length
-    })
-    
-    // Add cache control headers for better performance
-    response.headers.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=600')
-    
-    return response
-    
-  } catch (error) {
-    console.error('Error fetching farms:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
-  }
-}
-
-async function sendAdminNotification(farm: any) {
-  // This would integrate with your email service (SendGrid, AWS SES, etc.)
-  console.log('📧 FARM SUBMISSION NOTIFICATION:', {
-    to: 'hello@farmcompanion.co.uk',
-    subject: `New Farm Shop Submission: ${farm.name}`,
-    farmId: farm.id,
-    farmName: farm.name,
-    farmAddress: farm.location.address,
-    farmCounty: farm.location.county,
-    contactEmail: farm.contact.email,
-    contactPhone: farm.contact.phone,
-    offerings: farm.offerings.join(', '),
-    hasStory: !!farm.story,
-    hasImages: farm.images.length > 0
-  })
-}
-
-async function sendFarmConfirmation(farm: any) {
-  // This would send a confirmation email to the farm contact
-  const submissionUrl = `https://www.farmcompanion.co.uk/submission-success?farmId=${farm.id}&farmName=${encodeURIComponent(farm.name)}&farmAddress=${encodeURIComponent(farm.location.address)}&farmCounty=${encodeURIComponent(farm.location.county)}&imagesCount=${farm.images.length}&contactEmail=${encodeURIComponent(farm.contact.email || '')}&contactPhone=${encodeURIComponent(farm.contact.phone || '')}`
-  
-  console.log('📧 FARM CONFIRMATION:', {
-    to: farm.contact.email,
-    from: 'hello@farmcompanion.co.uk',
-    subject: `Farm Shop Submission Confirmed: ${farm.name}`,
-    farmId: farm.id,
-    submissionUrl,
-    message: `Thank you for submitting ${farm.name} to Farm Companion. We'll review your listing and add it to our directory within 2-3 business days. You can track your submission at: ${submissionUrl}`
-  })
 }
