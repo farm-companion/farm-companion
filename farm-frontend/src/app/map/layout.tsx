@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getFarmStats } from '@/lib/farm-data'
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://farmcompanion.co.uk'
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.farmcompanion.co.uk'
 const mapUrl = `${siteUrl}/map`
 
 export async function generateMetadata(): Promise<Metadata> {
