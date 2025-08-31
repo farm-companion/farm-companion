@@ -10,7 +10,7 @@ import { Map } from 'lucide-react'
 import { Calendar } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { cleanDescription } from '@/lib/seo-utils'
-import FarmSearchBar from './FarmSearchBar'
+
 import BackToTop from './BackToTop'
 
 interface ShopPageClientProps {
@@ -195,16 +195,7 @@ export default function ShopPageClient({ farms, stats }: ShopPageClientProps) {
           </div>
         </section>
 
-        {/* Search Section */}
-        <section className="bg-background-surface dark:bg-gray-800 border-b border-border-default">
-          <div className="max-w-7xl mx-auto px-6 py-8">
-            <FarmSearchBar 
-              farms={farms} 
-              onSearchResults={setFilteredFarms}
-              className="mb-6"
-            />
-          </div>
-        </section>
+
 
         {/* Farm Directory */}
         <section className="py-16">
