@@ -20,6 +20,29 @@ const headersCommon = [
 ]
 
 const nextConfig: NextConfig = {
+  // Domain redirects - canonical domain is www.farmcompanion.co.uk
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'farmcompanion.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.farmcompanion.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'farmcompanion.co.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
+    ]
+  },
   // Environment variables
   env: { 
     NEXT_PUBLIC_ADD_FORM_ENABLED: process.env.ADD_FORM_ENABLED,
