@@ -63,23 +63,6 @@ export default function MapShell({
   const userLocationMarkerRef = useRef<google.maps.Marker | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [safeAreaInsets, setSafeAreaInsets] = useState({
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0
-  })
-
-  // Calculate safe area insets
-  const calculateSafeAreaInsets = useCallback(() => {
-    const style = getComputedStyle(document.documentElement)
-    const top = parseInt(style.getPropertyValue('env(safe-area-inset-top)')) || 0
-    const bottom = parseInt(style.getPropertyValue('env(safe-area-inset-bottom)')) || 0
-    const left = parseInt(style.getPropertyValue('env(safe-area-inset-left)')) || 0
-    const right = parseInt(style.getPropertyValue('env(safe-area-inset-right)')) || 0
-
-    setSafeAreaInsets({ top, bottom, left, right })
-  }, [])
 
   // Create markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
@@ -137,7 +120,7 @@ export default function MapShell({
     }
   }, [selectedFarmId, onFarmSelect])
 
-  // Apply responsive padding with safe area considerations
+  // Apply responsive padding
   const applyResponsivePadding = useCallback(() => {
     if (!mapInstanceRef.current) return
 
@@ -145,15 +128,15 @@ export default function MapShell({
     
     // Base padding
     const basePadding = {
-      top: 8 + safeAreaInsets.top,
-      left: 8 + safeAreaInsets.left,
-      bottom: bottomSheetHeight + safeAreaInsets.bottom,
-      right: 8 + safeAreaInsets.right
+      top: 8,
+      left: 8,
+      bottom: bottomSheetHeight,
+      right: 8
     }
 
     // Desktop adjustments
     const padding = isDesktop 
-      ? { ...basePadding, right: 384 + safeAreaInsets.right } 
+      ? { ...basePadding, right: 384 } 
       : basePadding
 
     // Store padding for later use
@@ -161,7 +144,7 @@ export default function MapShell({
     
     // Trigger resize to apply padding
     google.maps.event.trigger(map, 'resize')
-  }, [safeAreaInsets, bottomSheetHeight, isDesktop])
+  }, [bottomSheetHeight, isDesktop])
 
   // Initialize Google Maps
   useEffect(() => {
@@ -294,33 +277,6 @@ export default function MapShell({
       }
     }
   }, [selectedFarmId])
-
-  // Calculate safe area insets on mount and resize
-  useEffect(() => {
-    calculateSafeAreaInsets()
-
-    const handleResize = () => {
-      calculateSafeAreaInsets()
-    }
-
-    const handleOrientationChange = () => {
-      // Delay to allow safe area recalculation
-      setTimeout(() => {
-        calculateSafeAreaInsets()
-        if (mapInstanceRef.current) {
-          google.maps.event.trigger(mapInstanceRef.current, 'resize')
-        }
-      }, 100)
-    }
-
-    window.addEventListener('resize', handleResize)
-    window.addEventListener('orientationchange', handleOrientationChange)
-
-    return () => {
-      window.removeEventListener('resize', handleResize)
-      window.removeEventListener('orientationchange', handleOrientationChange)
-    }
-  }, [calculateSafeAreaInsets])
 
   // Resize observer for map container changes
   useEffect(() => {

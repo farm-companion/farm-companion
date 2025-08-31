@@ -149,6 +149,25 @@ html {
   animation: ensure-visibility 0s 3s forwards;
 }
 
+/* Dynamic viewport height utility */
+.full-height {
+  height: 100dvh;
+}
+@supports not (height: 100dvh) {
+  .full-height {
+    height: 100vh;
+  }
+}
+
+/* Safe area utilities - only for edge-pinned components */
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
 /* map wrapper uses dynamic viewport */
 .map-shell {
   position: relative;
@@ -164,9 +183,4 @@ html {
 .map-canvas { 
   position: absolute; 
   inset: 0; 
-}
-
-/* optional: account for iOS bottom safe-area */
-.safe-bottom { 
-  padding-bottom: env(safe-area-inset-bottom); 
 }
