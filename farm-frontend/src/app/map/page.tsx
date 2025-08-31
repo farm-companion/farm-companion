@@ -66,7 +66,7 @@ export default function MapPage() {
   const [filters, setFilters] = useState<FilterState>({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [mapBounds, setMapBounds] = useState<any>(null)
+  const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false)
 
   // Load Google Maps API
@@ -257,11 +257,8 @@ export default function MapPage() {
     // Filter by map bounds if available
     if (mapBounds) {
       result = result.filter(farm => {
-        if (typeof window !== 'undefined' && window.google) {
-          const position = new window.google.maps.LatLng(farm.location.lat, farm.location.lng)
-          return mapBounds.contains(position)
-        }
-        return true // If Google Maps not loaded, don't filter by bounds
+        const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
+        return mapBounds.contains(position)
       })
     }
 
@@ -306,7 +303,7 @@ export default function MapPage() {
   }, [])
 
   // Handle map bounds change
-  const handleBoundsChange = useCallback((bounds: any) => {
+  const handleBoundsChange = useCallback((bounds: google.maps.LatLngBounds) => {
     setMapBounds(bounds)
   }, [])
 
