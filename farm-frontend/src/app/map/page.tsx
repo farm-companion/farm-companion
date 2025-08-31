@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { Loader } from '@googlemaps/js-api-loader'
 import Map from '@/components/Map'
@@ -8,6 +8,7 @@ import MapSearch from '@/components/MapSearch'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
 import type { FarmShop } from '@/types/farm'
+import LocationTracker from '@/components/LocationTracker'
 
 // Dynamic imports for performance
 const MapWithNoSSR = dynamic(() => import('@/components/Map'), {
@@ -375,6 +376,16 @@ export default function MapPage() {
             isLocationLoading={isLocationLoading}
             hasLocation={userLocation !== null}
           />
+          
+          {/* Enhanced Location Tracker */}
+          <div className="mt-4">
+            <LocationTracker
+              farms={farms}
+              onLocationUpdate={setUserLocation}
+              onFarmsUpdate={setFarms}
+              className="max-w-md"
+            />
+          </div>
         </div>
 
         {/* Map and List Container */}
