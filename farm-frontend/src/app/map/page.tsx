@@ -75,7 +75,7 @@ export default function MapPage() {
     const fetchFarms = async () => {
       try {
         setIsLoading(true)
-        const response = await fetch('/api/farms')
+        const response = await fetch('/api/farms?limit=2000')
         if (!response.ok) {
           throw new Error('Failed to fetch farms')
         }
