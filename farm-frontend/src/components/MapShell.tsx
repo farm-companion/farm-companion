@@ -4,6 +4,40 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Loader } from '@googlemaps/js-api-loader'
 import type { FarmShop } from '@/types/farm'
 
+// Memory management utility
+const checkMemoryAvailability = () => {
+  try {
+    // Check device memory if available
+    if ('deviceMemory' in navigator) {
+      const deviceMemory = (navigator as any).deviceMemory
+      if (deviceMemory < 2) {
+        console.warn(`Low device memory detected: ${deviceMemory}GB`)
+        return false
+      }
+    }
+
+    // Check available memory if possible
+    if ('memory' in performance) {
+      const memory = (performance as any).memory
+      const usedMB = memory.usedJSHeapSize / 1024 / 1024
+      const totalMB = memory.totalJSHeapSize / 1024 / 1024
+      const limitMB = memory.jsHeapSizeLimit / 1024 / 1024
+      
+      console.log(`Memory usage: ${usedMB.toFixed(1)}MB / ${totalMB.toFixed(1)}MB (limit: ${limitMB.toFixed(1)}MB)`)
+      
+      if (usedMB / limitMB > 0.8) {
+        console.warn('High memory usage detected')
+        return false
+      }
+    }
+
+    return true
+  } catch (err) {
+    console.warn('Could not check memory availability:', err)
+    return true // Assume OK if we can't check
+  }
+}
+
 interface UserLocation {
   latitude: number
   longitude: number
@@ -154,48 +188,125 @@ export default function MapShell({
       libraries: ['places', 'marker']
     })
 
-    loader.load().then(() => {
-      if (!mapRef.current) return
+    // Add memory management and error handling
+    let mapInstance: google.maps.Map | null = null
+    let isDisposed = false
 
-      const map = new google.maps.Map(mapRef.current, {
-        center,
-        zoom,
-        mapId: 'f907b7cb594ed2caa752543d',
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        zoomControl: true,
-        gestureHandling: 'cooperative'
-      })
+    const cleanup = () => {
+      if (mapInstance && !isDisposed) {
+        try {
+          // Clear all markers
+          Object.values(markersRef.current).forEach(marker => {
+            if (marker && marker.setMap) {
+              marker.setMap(null)
+            }
+          })
+          markersRef.current = {}
 
-      mapInstanceRef.current = map
-
-      // Apply initial padding
-      applyResponsivePadding()
-
-      // Create markers
-      createMarkers(map, farms)
-
-      // Call onMapLoad callback
-      if (onMapLoad) {
-        onMapLoad(map)
-      }
-
-      // Set up bounds change listener
-      if (onBoundsChange) {
-        map.addListener('bounds_changed', () => {
-          const bounds = map.getBounds()
-          if (bounds) {
-            onBoundsChange(bounds)
+          // Clear user location marker
+          if (userLocationMarkerRef.current) {
+            userLocationMarkerRef.current.setMap(null)
+            userLocationMarkerRef.current = null
           }
-        })
-      }
 
-      setIsLoading(false)
+          // Dispose map instance
+          google.maps.event.clearInstanceListeners(mapInstance)
+          mapInstance = null
+          isDisposed = true
+        } catch (err) {
+          console.warn('Error during map cleanup:', err)
+        }
+      }
+    }
+
+    loader.load().then(() => {
+      if (!mapRef.current || isDisposed) return
+
+      try {
+        // Check for memory availability before creating map
+        if (!checkMemoryAvailability()) {
+          console.warn('Low device memory detected, using simplified map')
+        }
+
+        mapInstance = new google.maps.Map(mapRef.current, {
+          center,
+          zoom,
+          mapId: 'f907b7cb594ed2caa752543d',
+          mapTypeControl: false,
+          streetViewControl: false,
+          fullscreenControl: false,
+          zoomControl: true,
+          gestureHandling: 'cooperative',
+          // Memory optimization settings
+          maxZoom: 18,
+          minZoom: 4,
+          // Reduce memory usage
+          disableDefaultUI: false
+        })
+
+        mapInstanceRef.current = mapInstance
+
+        // Apply initial padding
+        applyResponsivePadding()
+
+        // Create markers with error handling
+        try {
+          createMarkers(mapInstance, farms)
+        } catch (markerError) {
+          console.warn('Error creating markers:', markerError)
+          setError('Some map features may not display correctly')
+        }
+
+        // Call onMapLoad callback
+        if (onMapLoad) {
+          onMapLoad(mapInstance)
+        }
+
+        // Set up bounds change listener
+        if (onBoundsChange) {
+          mapInstance.addListener('bounds_changed', () => {
+            try {
+              const bounds = mapInstance!.getBounds()
+              if (bounds) {
+                onBoundsChange(bounds)
+              }
+            } catch (boundsError) {
+              console.warn('Error in bounds change handler:', boundsError)
+            }
+          })
+        }
+
+        setIsLoading(false)
+      } catch (mapError: any) {
+        console.error('Error creating map:', mapError)
+        
+        // Handle specific error types
+        if (mapError.message?.includes('OverQuotaMapError')) {
+          setError('Map service temporarily unavailable. Please try again later.')
+        } else if (mapError.message?.includes('Out of memory') || mapError.message?.includes('WebAssembly')) {
+          setError('Map requires more memory than available. Please close other tabs and try again.')
+        } else {
+          setError('Failed to load map. Please refresh the page.')
+        }
+      }
     }).catch((err) => {
       console.error('Failed to load Google Maps:', err)
-      setError('Failed to load map')
+      
+      // Handle specific error types
+      if (err.message?.includes('OverQuotaMapError')) {
+        setError('Map service temporarily unavailable. Please try again later.')
+      } else if (err.message?.includes('Out of memory') || err.message?.includes('WebAssembly')) {
+        setError('Map requires more memory than available. Please close other tabs and try again.')
+      } else {
+        setError('Failed to load map')
+      }
     })
+
+    // Cleanup on unmount
+    return () => {
+      isDisposed = true
+      cleanup()
+    }
   }, [center, zoom, farms, onMapLoad, onBoundsChange, createMarkers, applyResponsivePadding])
 
   // Update padding when props change
@@ -282,16 +393,30 @@ export default function MapShell({
 
     const resizeObserver = new ResizeObserver(() => {
       if (mapInstanceRef.current) {
-        google.maps.event.trigger(mapInstanceRef.current, 'resize')
+        try {
+          google.maps.event.trigger(mapInstanceRef.current, 'resize')
+        } catch (err) {
+          console.warn('Error triggering map resize:', err)
+        }
       }
     })
 
-    resizeObserver.observe(mapRef.current)
-    if (mapRef.current.parentElement) {
+    // Only observe if element exists and is valid
+    if (mapRef.current && mapRef.current instanceof Element) {
+      resizeObserver.observe(mapRef.current)
+    }
+    
+    if (mapRef.current?.parentElement && mapRef.current.parentElement instanceof Element) {
       resizeObserver.observe(mapRef.current.parentElement)
     }
 
-    return () => resizeObserver.disconnect()
+    return () => {
+      try {
+        resizeObserver.disconnect()
+      } catch (err) {
+        console.warn('Error disconnecting resize observer:', err)
+      }
+    }
   }, [])
 
   // Orientation change handler for iOS
@@ -309,13 +434,47 @@ export default function MapShell({
   if (error) {
     return (
       <div className={`${className} flex items-center justify-center bg-gray-100`}>
-        <div className="text-center">
-          <div className="text-red-500 mb-2">
-            <svg className="w-8 h-8 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="text-center p-6">
+          <div className="text-red-500 mb-4">
+            <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <p className="text-sm text-gray-600">{error}</p>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Map Unavailable</h3>
+          <p className="text-sm text-gray-600 mb-4">{error}</p>
+          
+          {/* Fallback: Show farm list instead */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 max-w-md mx-auto">
+            <h4 className="font-medium text-gray-900 mb-3">Available Farms ({farms.length})</h4>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {farms.slice(0, 10).map((farm) => (
+                <div key={farm.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                  <div>
+                    <div className="font-medium text-sm text-gray-900">{farm.name}</div>
+                    <div className="text-xs text-gray-600">{farm.location.city}, {farm.location.county}</div>
+                  </div>
+                  <button
+                    onClick={() => onFarmSelect?.(farm.id)}
+                    className="text-xs bg-serum text-black px-2 py-1 rounded hover:bg-serum/90 transition-colors"
+                  >
+                    View
+                  </button>
+                </div>
+              ))}
+              {farms.length > 10 && (
+                <div className="text-xs text-gray-500 text-center pt-2">
+                  +{farms.length - 10} more farms available
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 bg-serum text-black px-4 py-2 rounded-lg font-medium hover:bg-serum/90 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     )

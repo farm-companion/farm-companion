@@ -23,12 +23,25 @@ export default function AdminDocumentationPage() {
       })
     }, observerOptions)
 
-    // Observe all sections
+    // Observe all sections - with proper null checking
     const sections = document.querySelectorAll('section[id]')
-    sections.forEach((section) => observer.observe(section))
+    if (sections.length > 0) {
+      sections.forEach((section) => {
+        if (section && section instanceof Element) {
+          observer.observe(section)
+        }
+      })
+    }
 
     return () => {
-      sections.forEach((section) => observer.unobserve(section))
+      if (sections.length > 0) {
+        sections.forEach((section) => {
+          if (section && section instanceof Element) {
+            observer.unobserve(section)
+          }
+        })
+      }
+      observer.disconnect()
     }
   }, [])
 
