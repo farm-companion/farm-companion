@@ -65,7 +65,7 @@ export default function MapPage() {
   const [filters, setFilters] = useState<FilterState>({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
+  const [mapBounds, setMapBounds] = useState<any>(null)
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false)
 
   // Load Google Maps API
