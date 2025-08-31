@@ -9,74 +9,41 @@ import Header from '@/components/Header'
 import FooterWrapper from '@/components/FooterWrapper'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
 import { SITE_URL } from '@/lib/site'
-import { SecureJsonLd, SecureStyle, SecureScript } from '@/components/SecureScripts'
-import { logEnvironmentStatus } from '@/lib/secrets-management'
-import { AccessibilityProvider, ComprehensiveSkipLinks } from '@/components/accessibility'
-import { contentProtection } from '@/lib/content-protection'
-import Watermark from '@/components/Watermark'
 
-// Optimize font loading with next/font - preload primary font
+// Optimize font loading with next/font - preload primary weights
 const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
+  variable: '--font-inter',
   preload: true,
   fallback: ['system-ui', 'arial'],
-  variable: '--font-inter',
-  adjustFontFallback: true
+  weight: ['400', '500', '600', '700'],
 })
 
-// Enhanced metadata for better SEO and social sharing
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Farm Companion - Your Local Farm Directory',
-    template: '%s | Farm Companion'
+    default: 'Farm Companion',
+    template: '%s · Farm Companion',
   },
-  description: 'Discover local farms, fresh produce, and authentic farm experiences. Connect with farmers, find seasonal produce, and explore the best of local agriculture.',
-  keywords: ['farm', 'local produce', 'farmers market', 'organic', 'fresh food', 'agriculture', 'farm directory', 'local farms'],
-  authors: [{ name: 'Farm Companion Team' }],
+  description: 'Discover 1,300+ authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information. Find farm shops near you, farmshopsnearme, farm shop near you with our interactive map and location-based search.',
+  keywords: [
+    'farm shops', 'UK farm shops', 'local produce', 'fresh food', 'farm directory', 
+    'farm shop near me', 'farmshopsnearme', 'farm shop near you', 'farms near me', 
+    'local farms', 'seasonal produce', 'farm fresh', 'UK farms', 'farm shop directory', 
+    'local food', 'farm to table', 'farm shops near me', 'farm shops near you',
+    'farm shop directory near me', 'farm shops UK', 'local farm shops', 'farm shop finder',
+    'farm shops map', 'farm shop locations', 'farm shop search', 'farm shop locator',
+    'farm shops in my area', 'farm shops nearby', 'farm shops close to me',
+    'farm shop directory UK', 'farm shop finder near me', 'farm shop search near me'
+  ],
+  authors: [{ name: 'Farm Companion' }],
   creator: 'Farm Companion',
   publisher: 'Farm Companion',
-  formatDetection: {
-    email: false,
-    address: false,
-    telephone: false,
-  },
-  metadataBase: new URL(SITE_URL),
-  alternates: {
-    canonical: 'https://www.farmcompanion.co.uk',
-    // Content type alternatives for feeds and APIs
-    types: {
-      'application/rss+xml': '/rss.xml',
-      'application/atom+xml': '/atom.xml',
-      'application/json': '/api/farms',
-    },
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_GB',
-    url: SITE_URL,
-    siteName: 'Farm Companion',
-    title: 'Farm Companion - Your Local Farm Directory',
-    description: 'Discover local farms, fresh produce, and authentic farm experiences.',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Farm Companion - Local Farm Directory',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Farm Companion - Your Local Farm Directory',
-    description: 'Discover local farms, fresh produce, and authentic farm experiences.',
-    images: ['/og-image.jpg'],
-    creator: '@farmcompanion',
-  },
   robots: {
     index: true,
     follow: true,
+    nocache: false,
     googleBot: {
       index: true,
       follow: true,
@@ -85,261 +52,225 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
-  verification: {
-    google: 'jQ0ZccBtvUb6xYe-dr35lDNWNTulA0tdsoKgaKTraVQ',
-    yandex: '5d47005981767b7d',
-    yahoo: 'your-yahoo-verification-code',
-    other: {
-      'msvalidate.01': 'D5F792E19E823EAE982BA6AB25F2B588',
-    },
+  openGraph: {
+    type: 'website',
+    url: SITE_URL,
+    siteName: 'Farm Companion',
+    title: 'Farm Companion — UK farm shops directory',
+    description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
+    images: [
+      { 
+        url: `${SITE_URL}/og?title=Farm Companion&subtitle=UK Farm Shops Directory&type=default`, 
+        width: 1200, 
+        height: 630, 
+        alt: 'Farm Companion - UK farm shops directory',
+        type: 'image/png',
+      },
+    ],
+    locale: 'en_GB',
   },
-  category: 'agriculture',
-  classification: 'farm directory',
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Farm Companion — UK farm shops directory',
+    description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
+    images: [`${SITE_URL}/og?title=Farm Companion&subtitle=UK Farm Shops Directory&type=default`],
+    creator: '@farmcompanion',
+  },
+  alternates: {
+    canonical: '/',
+  },
   other: {
-    'apple-mobile-web-app-capable': 'yes',
-    'apple-mobile-web-app-status-bar-style': 'default',
-    'apple-mobile-web-app-title': 'Farm Companion',
-    'application-name': 'Farm Companion',
-    'msapplication-TileColor': '#00C2B2',
-    'msapplication-config': '/browserconfig.xml',
     'theme-color': '#00C2B2',
+    'color-scheme': 'light dark',
+  },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { url: '/android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
+    ],
   },
 }
 
-// Enhanced viewport configuration
-export const viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 5,
-  userScalable: true,
-  viewportFit: 'cover',
-  themeColor: '#00C2B2',
-}
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
-  // Log environment status for debugging (only in development)
-  if (process.env.NODE_ENV === 'development') {
-    logEnvironmentStatus();
-  }
-
-  return (
-    <html lang="en" className={inter.variable}>
-      <head>
-        {/* Preload critical resources */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href="//fonts.googleapis.com" />
-        
-        {/* Security headers and CSP */}
-        <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
-        <meta httpEquiv="X-Frame-Options" content="DENY" />
-        <meta httpEquiv="X-XSS-Protection" content="1; mode=block" />
-        <meta httpEquiv="Referrer-Policy" content="strict-origin-when-cross-origin" />
-        
-        {/* Enhanced security for content protection */}
-        <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
-        <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex" />
-        
-        {/* Disable browser features for content protection */}
-        <meta name="format-detection" content="telephone=no, date=no, address=no, email=no" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        
-        {/* Prevent caching of sensitive content */}
-        <meta httpEquiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-        <meta httpEquiv="Pragma" content="no-cache" />
-        <meta httpEquiv="Expires" content="0" />
-        
-        {/* Multi-domain hreflang tags for SEO - all pointing to www.farmcompanion.co.uk */}
-        <link rel="alternate" hrefLang="en-GB" href="https://www.farmcompanion.co.uk" />
-        <link rel="alternate" hrefLang="en-GB" href="https://farmcompanion.co.uk" />
-        <link rel="alternate" hrefLang="en-GB" href="https://farmcompanion.uk" />
-        <link rel="alternate" hrefLang="en-GB" href="https://farmshopfinder.co.uk" />
-        <link rel="alternate" hrefLang="en-GB" href="https://localfarmshops.co.uk" />
-        <link rel="alternate" hrefLang="en-GB" href="https://www.localfarmshops.co.uk" />
-        <link rel="alternate" hrefLang="x-default" href="https://www.farmcompanion.co.uk" />
-      </head>
-      <body className="min-h-screen text-gray-900 antialiased">
-        {/* Minimal Content Protection - Disabled for now */}
-        <Script
-          id="content-protection"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Content protection temporarily disabled for site functionality
-              if (typeof window !== 'undefined') {
-                console.log('🛡️ Content protection disabled - site functionality restored');
-              }
-            `
-          }}
-        />
-        
-        {/* Enhanced Watermark Component */}
-        <Watermark 
-          enabled={true}
-          opacity={0.06}
-          text={[
-            'Farm Companion',
-            'farmcompanion.co.uk',
-            '© 2024 Farm Companion',
-            'Protected Content',
-            'Do Not Copy',
-            'Confidential',
-            'Private Property',
-            'All Rights Reserved'
-          ]}
-          animationSpeed={25}
-        />
-        
-        {/* Accessibility Provider */}
-        <AccessibilityProvider>
-          {/* Skip Links for Accessibility */}
-          <ComprehensiveSkipLinks />
-          
-          {/* Main Content */}
-          <div className="flex min-h-screen flex-col">
-            {/* Header */}
-            <Header />
-            
-            {/* Main Content Area */}
-            <main className="flex-1" id="main-content">
-              {children}
-            </main>
-            
-            {/* Footer */}
-            <FooterWrapper />
-          </div>
-          
-          {/* Consent Banner */}
-          <ConsentBanner />
-          
-          {/* Analytics Loader */}
-          <AnalyticsLoader />
-        </AccessibilityProvider>
-        
-        {/* Secure Scripts */}
-        <SecureJsonLd data={{
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Site-wide WebSite + SearchAction JSON-LD
+  const siteJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
     '@id': `${SITE_URL}#website`,
     url: SITE_URL,
     name: 'Farm Companion',
-          description: 'Discover local farms, fresh produce, and authentic farm experiences.',
+    description: 'Discover authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information.',
     potentialAction: {
       '@type': 'SearchAction',
       target: `${SITE_URL}/map?query={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
-        }} />
-        <SecureStyle content={`
-          /* Enhanced skip link styles */
-          .skip-link {
-            position: absolute;
-            top: -40px;
-            left: 6px;
-            background: #00C2B2;
-            color: white;
-            padding: 8px 16px;
-            text-decoration: none;
-            border-radius: 4px;
-            z-index: 1000;
-            transition: top 0.2s ease;
-            font-weight: 500;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-          }
-          .skip-link:focus {
-            top: 6px;
-            outline: 2px solid #fff;
-            outline-offset: 2px;
-          }
-          .skip-link--visible {
-            top: 6px;
-          }
-          
-          /* Accessibility focus styles */
-          .focus-visible {
-            outline: 2px solid #00C2B2;
-            outline-offset: 2px;
-          }
-          
-          /* Reduced motion support */
-          .motion-reduce * {
-            animation-duration: 0.01ms !important;
-            animation-iteration-count: 1 !important;
-            transition-duration: 0.01ms !important;
-          }
-          
-          /* High contrast mode */
-          .high-contrast {
-            --text-heading: #000000;
-            --text-body: #000000;
-            --background-canvas: #ffffff;
-            --primary-500: #000000;
-            --primary-600: #000000;
-          }
-          
-          /* Keyboard-only mode */
-          .keyboard-only *:focus {
-            outline: 2px solid #00C2B2 !important;
-            outline-offset: 2px !important;
-          }
-          
-          /* Minimum touch targets */
-          .touch-target {
-            min-height: 44px;
-            min-width: 44px;
-          }
-          
-          .theme-ready {
-            visibility: visible;
-          }
-          html:not(.theme-ready) {
-            visibility: hidden;
-          }
-          /* Fallback: ensure content is visible after 2 seconds */
-          html.theme-ready {
-            visibility: visible;
-          }
-        `} />
-        <SecureScript content={`
-          // Content protection temporarily disabled for site functionality
-          (function() {
-            console.log('🛡️ SecureScript content protection disabled - site functionality restored');
-          })();
-        `} />
-        
-        {/* Theme Ready Script - Fixes blank screen issue */}
+  }
+
+  return (
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
+      <head>
+        {/* Site-wide structured data - optimized with next/script */}
         <Script
-          id="theme-ready"
+          id="site-jsonld"
+          type="application/ld+json"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+        />
+        
+        {/* Critical CSS - inlined to prevent render-blocking */}
+        <style dangerouslySetInnerHTML={{
+          __html: `
+            .skip-link {
+              position: absolute;
+              top: -40px;
+              left: 6px;
+              background: #00C2B2;
+              color: white;
+              padding: 8px;
+              text-decoration: none;
+              border-radius: 4px;
+              z-index: 1000;
+              transition: top 0.2s ease;
+            }
+            .skip-link:focus {
+              top: 6px;
+            }
+            .theme-ready {
+              visibility: visible;
+            }
+            html:not(.theme-ready) {
+              visibility: hidden;
+            }
+            /* Fallback: ensure content is visible after 2 seconds */
+            html.theme-ready {
+              visibility: visible !important;
+            }
+          `
+        }} />
+        
+        {/* Preload critical LCP resources */}
+        <link rel="preload" href="/overlay-banner.jpg" as="image" type="image/jpeg" fetchPriority="high" />
+        
+        {/* Google Analytics - now handled by AnalyticsLoader component */}
+        
+        {/* PWA manifest */}
+        <link rel="manifest" href="/manifest.json" />
+        
+        {/* Comprehensive Favicon Setup */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+        <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+        
+        {/* Preconnect to critical domains for performance - optimized network tree */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://maps.googleapis.com" />
+        <link rel="preconnect" href="https://maps.gstatic.com" />
+        <link rel="preconnect" href="https://www.googletagmanager.com" />
+        
+        {/* Bing Webmaster Tools Verification */}
+        <meta name="msvalidate.01" content="D5F792E19E823EAE982BA6AB25F2B588" />
+        
+        {/* Theme detection script - optimized with next/script */}
+        <Script
+          id="theme-detection"
           strategy="beforeInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              // Fix for blank screen - ensure content is visible
-              if (typeof document !== 'undefined') {
-                document.documentElement.classList.add('theme-ready');
-                console.log('✅ Theme ready class added - content should be visible');
-              }
-            `
+              (function() {
+                try {
+                  // Get theme preference
+                  var theme = localStorage.getItem('theme');
+                  var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+                  
+                  // Apply theme immediately
+                  if (theme === 'dark' || (!theme && systemPrefersDark)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                  
+                  // Listen for system theme changes
+                  var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+                  mediaQuery.addEventListener('change', function(e) {
+                    // Only auto-switch if no manual theme is set
+                    if (!localStorage.getItem('theme')) {
+                      if (e.matches) {
+                        document.documentElement.classList.add('dark');
+                      } else {
+                        document.documentElement.classList.remove('dark');
+                      }
+                      // Dispatch event for components to update
+                      window.dispatchEvent(new Event('theme-changed'));
+                    }
+                  });
+                  
+                  // Mark theme as ready and show content immediately
+                  document.documentElement.classList.add('theme-ready');
+                  
+                  // Also ensure content is visible after DOM is ready
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                      document.documentElement.classList.add('theme-ready');
+                    });
+                  } else {
+                    document.documentElement.classList.add('theme-ready');
+                  }
+                  
+                } catch (e) {
+                  console.warn('Theme detection failed:', e);
+                  // Fallback: show content even if theme detection fails
+                  document.documentElement.classList.add('theme-ready');
+                }
+                
+                // Ensure content is always visible after a short delay as final fallback
+                setTimeout(function() {
+                  document.documentElement.classList.add('theme-ready');
+                }, 50);
+              })();
+            `,
           }}
         />
-        
-        {/* Developer Tools Detection - Disabled for now */}
-        <Script
-          id="content-protection-init"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              // Developer tools detection temporarily disabled for site functionality
-              if (typeof window !== 'undefined') {
-                console.log('🛡️ Developer tools detection disabled - site functionality restored');
-              }
-            `
-          }}
-        />
+      </head>
+      <body className="min-h-screen bg-background-canvas text-text-body antialiased">
+        {/* Skip link for keyboard users */}
+        <a
+          href="#main"
+          className="skip-link"
+        >
+          Skip to main content
+        </a>
+
+        {/* Header */}
+        <Header />
+
+        {/* Page content */}
+        <main id="main" className="flex-1">{children}</main>
+
+        {/* Consent */}
+        <ConsentBanner />
+
+        {/* Footer - conditionally hidden on map page */}
+        <FooterWrapper />
+
+        {/* Vercel Analytics */}
+        {/* <Analytics /> */}
+
+        {/* Consent-gated Analytics */}
+        <AnalyticsLoader />
+
       </body>
     </html>
   )
