@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { getFarmDataServer, getFarmStatsServer } from '@/lib/farm-data-server'
 import ShopPageClient from '@/components/ShopPageClient'
+import { SITE_URL } from '@/lib/site'
 
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
@@ -18,11 +19,11 @@ export async function generateMetadata(): Promise<Metadata> {
       title: `UK Farm Shops Directory — ${stats.farmCount}+ Farm Shops`,
       description: `Find trusted farm shops near you with the freshest local produce. Browse our comprehensive directory of ${stats.farmCount}+ UK farm shops across ${stats.countyCount} counties.`,
       type: 'website',
-      url: 'https://www.farmcompanion.co.uk/shop',
+      url: `${SITE_URL}/shop`,
       siteName: 'Farm Companion',
       images: [
         {
-          url: 'https://www.farmcompanion.co.uk/og?title=UK Farm Shops Directory&subtitle=Find Farm Shops Near You&type=shop',
+          url: `${SITE_URL}/og?title=UK Farm Shops Directory&subtitle=Find Farm Shops Near You&type=shop`,
           width: 1200,
           height: 630,
           alt: 'UK Farm Shops Directory',
@@ -34,10 +35,10 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: `UK Farm Shops Directory - ${stats.farmCount}+ Farm Shops`,
       description: `Find trusted farm shops near you with the freshest local produce. Browse our comprehensive directory.`,
-      images: ['https://www.farmcompanion.co.uk/og-farm-shops.jpg']
+      images: [`${SITE_URL}/og-farm-shops.jpg`]
     },
     alternates: {
-      canonical: 'https://www.farmcompanion.co.uk/shop'
+      canonical: `${SITE_URL}/shop`
     },
     robots: {
       index: true,
@@ -75,7 +76,7 @@ function generateStructuredData(farms: any[], stats: any) {
           "postalCode": farm.location.postcode,
           "addressCountry": "GB"
         },
-        "url": `https://www.farmcompanion.co.uk/shop/${farm.slug}`,
+        "url": `${SITE_URL}/shop/${farm.slug}`,
         "telephone": farm.contact?.phone,
         "email": farm.contact?.email,
         "geo": farm.location.lat && farm.location.lng ? {

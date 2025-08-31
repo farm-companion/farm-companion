@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { MapPin, ArrowRight, Leaf, Calendar, Heart } from 'lucide-react'
 import NewsletterSignup from '@/components/NewsletterSignup'
 import { getFarmStatsServer } from '@/lib/farm-data-server'
+import { SITE_URL } from '@/lib/site'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -22,7 +23,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: 'Farm Companion — UK Farm Shops Directory',
       description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
-      url: 'https://farmcompanion.co.uk',
+      url: SITE_URL,
       siteName: 'Farm Companion',
       images: [
         {

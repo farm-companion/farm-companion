@@ -59,8 +59,8 @@ export default function MapShell({
 }: MapShellProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
-  const markersRef = useRef<Record<string, google.maps.Marker>>({})
-  const userLocationMarkerRef = useRef<google.maps.Marker | null>(null)
+  const markersRef = useRef<Record<string, google.maps.marker.AdvancedMarkerElement>>({})
+  const userLocationMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -77,34 +77,31 @@ export default function MapShell({
     if (!map || !farmData.length || typeof window === 'undefined') return
 
     // Clear existing markers
-    Object.values(markersRef.current).forEach(marker => marker.setMap(null))
+    Object.values(markersRef.current).forEach(marker => marker.map = null)
     markersRef.current = {}
 
-    const markers: google.maps.Marker[] = []
+    const markers: google.maps.marker.AdvancedMarkerElement[] = []
 
     farmData.forEach(farm => {
       if (!farm.location?.lat || !farm.location?.lng) return
 
       const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
 
-      // Create custom marker icon
-      const icon = {
-        url: `data:image/svg+xml;utf8,${encodeURIComponent(`
-          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="12" cy="12" r="10" fill="#00C2B2" stroke="#FFFFFF" stroke-width="2"/>
-            <circle cx="12" cy="12" r="4" fill="#FFFFFF"/>
-          </svg>
-        `)}`,
-        scaledSize: new google.maps.Size(32, 32),
-        anchor: new google.maps.Point(16, 16)
-      }
+      // Create custom marker element
+      const markerElement = document.createElement('div')
+      markerElement.innerHTML = `
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="10" fill="#00C2B2" stroke="#FFFFFF" stroke-width="2"/>
+          <circle cx="12" cy="12" r="4" fill="#FFFFFF"/>
+        </svg>
+      `
+      markerElement.style.cursor = 'pointer'
 
-      const marker = new google.maps.Marker({
+      const marker = new google.maps.marker.AdvancedMarkerElement({
         position,
         map,
-        icon,
+        content: markerElement,
         title: farm.name,
-        optimized: true,
       })
 
       // Add click listener
@@ -121,7 +118,7 @@ export default function MapShell({
     if (markers.length > 0 && !selectedFarmId && !hasFitted.current) {
       const bounds = new google.maps.LatLngBounds()
       Object.values(markersRef.current).forEach(m => {
-        const pos = m.getPosition()
+        const pos = m.position
         if (pos) bounds.extend(pos)
       })
       programmaticMove.current = true
@@ -241,27 +238,23 @@ export default function MapShell({
 
     // Remove existing user location marker
     if (userLocationMarkerRef.current) {
-      userLocationMarkerRef.current.setMap(null)
+      userLocationMarkerRef.current.map = null
     }
 
-    // Create user location marker
-    const userLocationIcon = {
-      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
-        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="8" fill="#3B82F6" stroke="white" stroke-width="2"/>
-          <circle cx="12" cy="12" r="3" fill="white"/>
-        </svg>
-      `)}`,
-      scaledSize: new google.maps.Size(24, 24),
-      anchor: new google.maps.Point(12, 12)
-    }
+    // Create user location marker element
+    const userLocationElement = document.createElement('div')
+    userLocationElement.innerHTML = `
+      <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="8" fill="#3B82F6" stroke="white" stroke-width="2"/>
+        <circle cx="12" cy="12" r="3" fill="white"/>
+      </svg>
+    `
 
-    userLocationMarkerRef.current = new google.maps.Marker({
+    userLocationMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
       position,
       map,
-      icon: userLocationIcon,
+      content: userLocationElement,
       title: 'Your Location',
-      zIndex: 1000
     })
 
     // Add accuracy circle
@@ -278,7 +271,7 @@ export default function MapShell({
 
     return () => {
       if (userLocationMarkerRef.current) {
-        userLocationMarkerRef.current.setMap(null)
+        userLocationMarkerRef.current.map = null
       }
       accuracyCircle.setMap(null)
     }
@@ -290,7 +283,7 @@ export default function MapShell({
 
     const marker = markersRef.current[selectedFarmId]
     if (marker) {
-      const position = marker.getPosition()
+      const position = marker.position
       if (position) {
         safePanTo(position)
         mapInstanceRef.current.setZoom(Math.max(mapInstanceRef.current.getZoom() || 10, 14))
@@ -347,9 +340,9 @@ export default function MapShell({
     return () => {
       const map = mapInstanceRef.current
       if (map) google.maps.event.clearInstanceListeners(map)
-      Object.values(markersRef.current).forEach(m => m.setMap(null))
+      Object.values(markersRef.current).forEach(m => m.map = null)
       markersRef.current = {}
-      userLocationMarkerRef.current?.setMap(null)
+      userLocationMarkerRef.current && (userLocationMarkerRef.current.map = null)
       userLocationMarkerRef.current = null
       mapInstanceRef.current = null
       if (mapRef.current) mapRef.current.innerHTML = ''
