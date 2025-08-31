@@ -1,42 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Loader } from '@googlemaps/js-api-loader'
+import { loadGoogle } from '@/lib/googleMaps'
 import type { FarmShop } from '@/types/farm'
-
-// Memory management utility
-const checkMemoryAvailability = () => {
-  try {
-    // Check device memory if available
-    if ('deviceMemory' in navigator) {
-      const deviceMemory = (navigator as any).deviceMemory
-      if (deviceMemory < 2) {
-        console.warn(`Low device memory detected: ${deviceMemory}GB`)
-        return false
-      }
-    }
-
-    // Check available memory if possible
-    if ('memory' in performance) {
-      const memory = (performance as any).memory
-      const usedMB = memory.usedJSHeapSize / 1024 / 1024
-      const totalMB = memory.totalJSHeapSize / 1024 / 1024
-      const limitMB = memory.jsHeapSizeLimit / 1024 / 1024
-      
-      console.log(`Memory usage: ${usedMB.toFixed(1)}MB / ${totalMB.toFixed(1)}MB (limit: ${limitMB.toFixed(1)}MB)`)
-      
-      if (usedMB / limitMB > 0.8) {
-        console.warn('High memory usage detected')
-        return false
-      }
-    }
-
-    return true
-  } catch (err) {
-    console.warn('Could not check memory availability:', err)
-    return true // Assume OK if we can't check
-  }
-}
 
 interface UserLocation {
   latitude: number
@@ -98,6 +64,14 @@ export default function MapShell({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Flicker prevention refs
+  const hasInit = useRef(false)
+  const hasFitted = useRef(false)
+  const lastIds = useRef<string>('')
+  const lastPadding = useRef<string>('')
+  const programmaticMove = useRef(false)
+  const boundsTimer = useRef<number | null>(null)
+
   // Create markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
     if (!map || !farmData.length || typeof window === 'undefined') return
@@ -112,7 +86,7 @@ export default function MapShell({
       if (!farm.location?.lat || !farm.location?.lng) return
 
       const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
-      
+
       // Create custom marker icon
       const icon = {
         url: `data:image/svg+xml;utf8,${encodeURIComponent(`
@@ -143,153 +117,93 @@ export default function MapShell({
       markers.push(marker)
     })
 
-    // Fit bounds to show all markers if no farm is selected
-    if (markers.length > 0 && !selectedFarmId) {
+    // Fit bounds only once
+    if (markers.length > 0 && !selectedFarmId && !hasFitted.current) {
       const bounds = new google.maps.LatLngBounds()
-      markers.forEach(marker => {
-        const position = marker.getPosition()
-        if (position) bounds.extend(position)
+      Object.values(markersRef.current).forEach(m => {
+        const pos = m.getPosition()
+        if (pos) bounds.extend(pos)
       })
+      programmaticMove.current = true
       map.fitBounds(bounds)
+      setTimeout(() => (programmaticMove.current = false), 200)
+      hasFitted.current = true
     }
   }, [selectedFarmId, onFarmSelect])
 
-  // Apply responsive padding
-  const applyResponsivePadding = useCallback(() => {
-    if (!mapInstanceRef.current) return
-
+  // Debounced bounds listener
+  const attachBoundsListener = useCallback(() => {
     const map = mapInstanceRef.current
+    if (!map || !onBoundsChange) return
+
+    map.addListener('bounds_changed', () => {
+      if (programmaticMove.current) return
+      if (boundsTimer.current) window.clearTimeout(boundsTimer.current)
+      boundsTimer.current = window.setTimeout(() => {
+        const b = map.getBounds()
+        if (b) onBoundsChange(b)
+      }, 150)
+    })
+  }, [onBoundsChange])
+
+  // Safe pan function
+  const safePanTo = useCallback((pos: google.maps.LatLng | google.maps.LatLngLiteral) => {
+    const m = mapInstanceRef.current
+    if (!m) return
+    programmaticMove.current = true
+    m.panTo(pos)
+    window.setTimeout(() => { programmaticMove.current = false }, 200)
+  }, [])
+
+  // Debounced padding updates
+  const applyResponsivePadding = useCallback(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
     
-    // Base padding
-    const basePadding = {
+    const pad = {
       top: 8,
       left: 8,
-      bottom: bottomSheetHeight,
-      right: 8
+      right: isDesktop ? 384 : 8,
+      bottom: bottomSheetHeight
     }
-
-    // Desktop adjustments
-    const padding = isDesktop 
-      ? { ...basePadding, right: 384 } 
-      : basePadding
-
+    
+    const key = `${pad.top}|${pad.right}|${pad.bottom}|${pad.left}`
+    if (key === lastPadding.current) return
+    
+    lastPadding.current = key
     // Store padding for later use and trigger resize
-    map.set('customPadding', padding)
+    map.set('customPadding', pad)
     google.maps.event.trigger(map, 'resize')
   }, [bottomSheetHeight, isDesktop])
 
-  // Initialize Google Maps
+  // Create map once (guard StrictMode)
   useEffect(() => {
-    if (!mapRef.current || typeof window === 'undefined') return
+    if (hasInit.current || !mapRef.current) return
+    hasInit.current = true
 
-    const loader = new Loader({
-      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-      version: 'weekly',
-      libraries: ['places', 'marker']
-    })
+    loadGoogle().then(() => {
+      if (!mapRef.current) return
+      if (mapInstanceRef.current) return // double-guard
 
-    // Add memory management and error handling
-    let mapInstance: google.maps.Map | null = null
-    let isDisposed = false
+      const map = new google.maps.Map(mapRef.current, {
+        center,
+        zoom,
+        mapId: 'f907b7cb594ed2caa752543d',
+        mapTypeControl: false,
+        streetViewControl: false,
+        fullscreenControl: false,
+        zoomControl: true,
+        gestureHandling: 'cooperative'
+      })
 
-    const cleanup = () => {
-      if (mapInstance && !isDisposed) {
-        try {
-          // Clear all markers
-          Object.values(markersRef.current).forEach(marker => {
-            if (marker && marker.setMap) {
-              marker.setMap(null)
-            }
-          })
-          markersRef.current = {}
-
-          // Clear user location marker
-          if (userLocationMarkerRef.current) {
-            userLocationMarkerRef.current.setMap(null)
-            userLocationMarkerRef.current = null
-          }
-
-          // Dispose map instance
-          google.maps.event.clearInstanceListeners(mapInstance)
-          mapInstance = null
-          isDisposed = true
-        } catch (err) {
-          console.warn('Error during map cleanup:', err)
-        }
-      }
-    }
-
-    loader.load().then(() => {
-      if (!mapRef.current || isDisposed) return
-
-      try {
-        // Check for memory availability before creating map
-        if (!checkMemoryAvailability()) {
-          console.warn('Low device memory detected, using simplified map')
-        }
-
-        mapInstance = new google.maps.Map(mapRef.current, {
-          center,
-          zoom,
-          mapId: 'f907b7cb594ed2caa752543d',
-          mapTypeControl: false,
-          streetViewControl: false,
-          fullscreenControl: false,
-          zoomControl: true,
-          gestureHandling: 'cooperative',
-          // Memory optimization settings
-          maxZoom: 18,
-          minZoom: 4,
-          // Reduce memory usage
-          disableDefaultUI: false
-        })
-
-        mapInstanceRef.current = mapInstance
-
-        // Apply initial padding
-        applyResponsivePadding()
-
-        // Create markers with error handling
-        try {
-          createMarkers(mapInstance, farms)
-        } catch (markerError) {
-          console.warn('Error creating markers:', markerError)
-          setError('Some map features may not display correctly')
-        }
-
-        // Call onMapLoad callback
-        if (onMapLoad) {
-          onMapLoad(mapInstance)
-        }
-
-        // Set up bounds change listener
-        if (onBoundsChange) {
-          mapInstance.addListener('bounds_changed', () => {
-            try {
-              const bounds = mapInstance!.getBounds()
-              if (bounds) {
-                onBoundsChange(bounds)
-              }
-            } catch (boundsError) {
-              console.warn('Error in bounds change handler:', boundsError)
-            }
-          })
-        }
-
-        setIsLoading(false)
-      } catch (mapError: any) {
-        console.error('Error creating map:', mapError)
-        
-        // Handle specific error types
-        if (mapError.message?.includes('OverQuotaMapError')) {
-          setError('Map service temporarily unavailable. Please try again later.')
-        } else if (mapError.message?.includes('Out of memory') || mapError.message?.includes('WebAssembly')) {
-          setError('Map requires more memory than available. Please close other tabs and try again.')
-        } else {
-          setError('Failed to load map. Please refresh the page.')
-        }
-      }
-    }).catch((err) => {
+      mapInstanceRef.current = map
+      setIsLoading(false)
+      onMapLoad?.(map)
+      applyResponsivePadding() // set initial padding
+      
+      // attach listeners AFTER init
+      attachBoundsListener()
+    }).catch((err: any) => {
       console.error('Failed to load Google Maps:', err)
       
       // Handle specific error types
@@ -301,25 +215,22 @@ export default function MapShell({
         setError('Failed to load map')
       }
     })
+  }, []) // ← no deps
 
-    // Cleanup on unmount
-    return () => {
-      isDisposed = true
-      cleanup()
-    }
-  }, [center, zoom, farms, onMapLoad, onBoundsChange, createMarkers, applyResponsivePadding])
-
-  // Update padding when props change
+  // Debounced padding updates
   useEffect(() => {
-    applyResponsivePadding()
+    const t = setTimeout(applyResponsivePadding, 50)
+    return () => clearTimeout(t)
   }, [applyResponsivePadding])
 
-  // Update markers when farms or selection changes
+  // Stop re-creating all markers on every change
   useEffect(() => {
-    if (!mapInstanceRef.current || !farms.length) return
-    
+    const ids = farms.map(f => f.id).join(',')
+    if (!mapInstanceRef.current) return
+    if (ids === lastIds.current) return
+    lastIds.current = ids
     createMarkers(mapInstanceRef.current, farms)
-  }, [farms, selectedFarmId, createMarkers])
+  }, [farms, createMarkers])
 
   // Update user location marker
   useEffect(() => {
@@ -381,11 +292,11 @@ export default function MapShell({
     if (marker) {
       const position = marker.getPosition()
       if (position) {
-        mapInstanceRef.current.panTo(position)
+        safePanTo(position)
         mapInstanceRef.current.setZoom(Math.max(mapInstanceRef.current.getZoom() || 10, 14))
       }
     }
-  }, [selectedFarmId])
+  }, [selectedFarmId, safePanTo])
 
   // Resize observer for map container changes
   useEffect(() => {
@@ -429,6 +340,20 @@ export default function MapShell({
 
     window.addEventListener('orientationchange', handleOrientationChange)
     return () => window.removeEventListener('orientationchange', handleOrientationChange)
+  }, [])
+
+  // Clean teardown (prevents memory churn → flicker)
+  useEffect(() => {
+    return () => {
+      const map = mapInstanceRef.current
+      if (map) google.maps.event.clearInstanceListeners(map)
+      Object.values(markersRef.current).forEach(m => m.setMap(null))
+      markersRef.current = {}
+      userLocationMarkerRef.current?.setMap(null)
+      userLocationMarkerRef.current = null
+      mapInstanceRef.current = null
+      if (mapRef.current) mapRef.current.innerHTML = ''
+    }
   }, [])
 
   if (error) {
