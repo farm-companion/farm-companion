@@ -17,6 +17,11 @@ export async function GET() {
     const response = await fetch(testUrl)
     const data = await response.json()
 
+    // Also test the Maps JavaScript API loading
+    const mapsJsUrl = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`
+    const mapsResponse = await fetch(mapsJsUrl)
+    const mapsData = await mapsResponse.text()
+
     return NextResponse.json({
       success: true,
       environment: process.env.NODE_ENV,
@@ -24,7 +29,11 @@ export async function GET() {
       apiKeyLength: apiKey.length,
       apiKeyPrefix: apiKey.substring(0, 10) + '...',
       geocodingTest: data.status,
-      geocodingResults: data.results?.length || 0
+      geocodingResults: data.results?.length || 0,
+      mapsJsTest: mapsResponse.status,
+      mapsJsContentLength: mapsData.length,
+      mapsJsContainsError: mapsData.includes('error') || mapsData.includes('Error'),
+      mapsJsContainsAuthFailure: mapsData.includes('AuthFailure') || mapsData.includes('auth_failure')
     })
   } catch (error) {
     return NextResponse.json({

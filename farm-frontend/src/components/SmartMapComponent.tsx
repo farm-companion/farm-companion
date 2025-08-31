@@ -135,6 +135,30 @@ export default function SmartMapComponent({
   const [map, setMap] = useState<google.maps.Map | null>(null)
   const [showAllFarms, setShowAllFarms] = useState(false)
   const [filterConfig, setFilterConfig] = useState<SmartFilterConfig>(DEFAULT_FILTER_CONFIG)
+  const [apiKeyStatus, setApiKeyStatus] = useState<string>('checking')
+  const [mapError, setMapError] = useState<string | null>(null)
+
+  // Check API key status on mount
+  useEffect(() => {
+    const checkApiKey = async () => {
+      try {
+        const response = await fetch('/api/test-maps')
+        const data = await response.json()
+        
+        if (data.success) {
+          setApiKeyStatus('valid')
+        } else {
+          setApiKeyStatus('invalid')
+          setMapError(`API Key Error: ${data.error}`)
+        }
+      } catch (error) {
+        setApiKeyStatus('error')
+        setMapError('Failed to verify API key')
+      }
+    }
+    
+    checkApiKey()
+  }, [])
 
   // Smart filtered farms with distance calculations
   const smartFarms = useMemo(() => {
@@ -219,15 +243,30 @@ export default function SmartMapComponent({
     )
   }, [map, setUserLoc])
 
+  // Show loading while checking API key
+  if (apiKeyStatus === 'checking') {
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-6 text-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+        <h3 className="text-lg font-semibold mb-2">Checking API Configuration...</h3>
+        <p className="text-gray-600">Verifying Google Maps API key</p>
+      </div>
+    )
+  }
+
   // Enhanced error handling
-  if (error) {
+  if (error || mapError) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 text-center">
         <div className="text-red-500 mb-4">
           <X className="w-12 h-12 mx-auto" />
         </div>
         <h3 className="text-lg font-semibold mb-2">Map Loading Error</h3>
-        <p className="text-gray-600 mb-4">{error}</p>
+        <p className="text-gray-600 mb-4">{mapError || error}</p>
+        <div className="text-sm text-gray-500 mb-4">
+          <p>API Key Status: {apiKeyStatus}</p>
+          <p>Environment: {process.env.NODE_ENV}</p>
+        </div>
         <button
           onClick={loadFarmData}
           disabled={isRetrying}
