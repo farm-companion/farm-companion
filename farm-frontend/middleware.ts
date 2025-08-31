@@ -13,8 +13,6 @@ function cspFor(req: NextRequest) {
     "'self'",
     'data:',
     'blob:',
-    'https://demotiles.maplibre.org',
-    'https://*.tile.openstreetmap.org',
     'https://images.farmcompanion.co.uk', // your CDN if any
     'https://lh3.googleusercontent.com',
     'https://lh3.ggpht.com',
@@ -26,8 +24,6 @@ function cspFor(req: NextRequest) {
   ]
   const connect = [
     "'self'",
-    'https://demotiles.maplibre.org',
-    'https://*.tile.openstreetmap.org',
     'https://*.google.com',
     'https://*.gstatic.com',
     'https://*.vercel.app',
