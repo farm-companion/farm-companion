@@ -388,6 +388,17 @@ export default function SmartMapComponent({
             <div className="text-sm text-gray-500">
               <p>Current environment: {process.env.NODE_ENV}</p>
               <p>API Key present: {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? 'Yes' : 'No'}</p>
+              <p>API Key length: {process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY?.length || 0}</p>
+              <p>Current domain: {typeof window !== 'undefined' ? window.location.hostname : 'Server-side'}</p>
+            </div>
+            <div className="mt-4">
+              <a 
+                href="/api/test-maps" 
+                target="_blank" 
+                className="text-blue-600 hover:text-blue-800 underline"
+              >
+                Test API Key
+              </a>
             </div>
           </div>
         </div>
