@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { MapPin, Shield, CheckCircle, Plus, ArrowRight } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { dedupeFarms } from '@/lib/schemas'
-import FarmSearchBar from '@/components/FarmSearchBar'
+
 import BackToTopButton from '@/components/BackToTopButton'
 
 // Enhanced farm card component with PuredgeOS styling
@@ -328,11 +328,7 @@ function ClaimPageContent() {
             </ol>
           </div>
 
-          {/* Responsive Search Bar */}
-          <FarmSearchBar 
-            farms={farms} 
-            onSearchResults={setFilteredFarms}
-          />
+
           
           {/* Farms by county */}
           <div className="space-y-8">
