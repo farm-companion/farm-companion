@@ -1,13 +1,13 @@
 'use client'
 
-import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { useEffect, useRef, useState, useCallback } from 'react'
 import { Loader } from '@googlemaps/js-api-loader'
 import type { FarmShop } from '@/types/farm'
 
 // Google Maps types
 declare global {
   interface Window {
-    google: typeof google
+    google: any
   }
 }
 
