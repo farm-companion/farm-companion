@@ -10,6 +10,7 @@ interface BottomSheetProps {
   className?: string
   snapPoints?: number[] // Heights in pixels
   defaultSnap?: number // Index of default snap point
+  onHeightChange?: (height: number) => void
 }
 
 export default function BottomSheet({
@@ -18,7 +19,8 @@ export default function BottomSheet({
   onClose,
   className = '',
   snapPoints = [200, 400, 600],
-  defaultSnap = 1
+  defaultSnap = 1,
+  onHeightChange
 }: BottomSheetProps) {
   const [currentSnap, setCurrentSnap] = useState(defaultSnap)
   const [isDragging, setIsDragging] = useState(false)
@@ -28,6 +30,11 @@ export default function BottomSheet({
   const dragRef = useRef<HTMLDivElement>(null)
 
   const currentHeight = snapPoints[currentSnap]
+
+  // Notify parent of height changes
+  useEffect(() => {
+    onHeightChange?.(currentHeight)
+  }, [currentHeight, onHeightChange])
 
   // Handle touch/mouse events for dragging
   const handleStart = useCallback((clientY: number) => {
