@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
-import { Loader } from '@googlemaps/js-api-loader'
-import MapShell from '@/components/MapShell'
 import MapSearch from '@/components/MapSearch'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
@@ -68,31 +66,9 @@ export default function MapPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
-  const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false)
   const [bottomSheetHeight, setBottomSheetHeight] = useState(200)
   const [isDesktop, setIsDesktop] = useState(false)
   const locationWatchIdRef = useRef<number | null>(null)
-
-  // Load Google Maps API
-  useEffect(() => {
-    const loadGoogleMaps = async () => {
-      try {
-        const loader = new Loader({
-          apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-          version: 'weekly',
-          libraries: ['places', 'marker']
-        })
-        
-        await loader.load()
-        setIsGoogleMapsLoaded(true)
-      } catch (err) {
-        console.error('Failed to load Google Maps:', err)
-        setError('Failed to load map')
-      }
-    }
-
-    loadGoogleMaps()
-  }, [])
 
   // Fetch farm data
   useEffect(() => {
@@ -413,26 +389,17 @@ export default function MapPage() {
         <div className="relative map-shell">
           {/* Map */}
           <div className="map-canvas">
-            {isGoogleMapsLoaded ? (
-              <MapShellWithNoSSR
-                farms={filteredFarms}
-                selectedFarmId={selectedFarmId}
-                onFarmSelect={handleFarmSelect}
-                onMapLoad={handleMapLoad}
-                onBoundsChange={handleBoundsChange}
-                userLocation={userLocation}
-                bottomSheetHeight={bottomSheetHeight}
-                isDesktop={isDesktop}
-                className="w-full h-full"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center bg-gray-100">
-                <div className="text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-2"></div>
-                  <p className="text-sm text-gray-600">Loading map...</p>
-                </div>
-              </div>
-            )}
+            <MapShellWithNoSSR
+              farms={filteredFarms}
+              selectedFarmId={selectedFarmId}
+              onFarmSelect={handleFarmSelect}
+              onMapLoad={handleMapLoad}
+              onBoundsChange={handleBoundsChange}
+              userLocation={userLocation}
+              bottomSheetHeight={bottomSheetHeight}
+              isDesktop={isDesktop}
+              className="w-full h-full"
+            />
           </div>
 
           {/* Mobile: Bottom Sheet with Farm List */}
