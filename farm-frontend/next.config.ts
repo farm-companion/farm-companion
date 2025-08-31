@@ -118,6 +118,23 @@ const nextConfig: NextConfig = {
             : []),
         ],
       },
+      // Cross-origin headers for fonts
+      {
+        source: '/:all*(woff2)',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Cross-origin headers for images
+      {
+        source: '/:all*(png|jpg|jpeg|webp|avif|svg|ico)',
+        headers: [
+          { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
     ]
     return base
   },
