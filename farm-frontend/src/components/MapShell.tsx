@@ -29,6 +29,7 @@ interface MapShellProps {
   userLocation?: UserLocation | null
   bottomSheetHeight?: number
   isDesktop?: boolean
+  onMapReady?: (map: google.maps.Map) => void
 }
 
 // UK bounds for fallback
@@ -55,7 +56,8 @@ export default function MapShell({
   className = 'w-full h-full',
   userLocation,
   bottomSheetHeight = 200,
-  isDesktop = false
+  isDesktop = false,
+  onMapReady
 }: MapShellProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
@@ -196,6 +198,7 @@ export default function MapShell({
       mapInstanceRef.current = map
       setIsLoading(false)
       onMapLoad?.(map)
+      onMapReady?.(map)
       applyResponsivePadding() // set initial padding
       
       // attach listeners AFTER init
