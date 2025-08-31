@@ -1214,8 +1214,8 @@ export default function GoogleMapComponent({
   }
 
   return (
-    <div className={`w-full h-full relative transition-all duration-500 ease-out ${
-      isFullscreen ? 'fixed inset-0 z-50' : ''
+    <div className={`w-full relative transition-all duration-500 ease-out ${
+      isFullscreen ? 'fixed inset-0 z-50' : 'min-h-[600px]'
     }`}>
       <APIProvider 
         apiKey={googleMapsApiKey}
@@ -1228,13 +1228,13 @@ export default function GoogleMapComponent({
         <Map
           center={mapCenter}
           zoom={mapZoom}
-          className="w-full h-full"
+          className="w-full h-[600px]"
           mapTypeId="roadmap"
           mapTypeControl={false}
           streetViewControl={false}
           fullscreenControl={false}
           zoomControl={false}
-          gestureHandling="cooperative"
+          gestureHandling="greedy"
           disableDefaultUI={true}
           onCenterChanged={(e) => {
             const center = e.detail.center
