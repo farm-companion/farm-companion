@@ -6,6 +6,9 @@ import MapSearch from '@/components/MapSearch'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
 import LocationTracker from '@/components/LocationTracker'
+import PullToRefresh from '@/components/PullToRefresh'
+import FloatingActionButton, { createMapFAB } from '@/components/FloatingActionButton'
+import { useHaptic } from '@/components/HapticFeedback'
 import type { FarmShop } from '@/types/farm'
 
 // Dynamic imports for performance
@@ -68,7 +71,11 @@ export default function MapPage() {
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
   const [bottomSheetHeight, setBottomSheetHeight] = useState(200)
   const [isDesktop, setIsDesktop] = useState(false)
+  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
   const locationWatchIdRef = useRef<number | null>(null)
+  
+  // Mobile-first features
+  const { trigger: triggerHaptic } = useHaptic()
 
   // Fetch farm data
   useEffect(() => {
@@ -150,6 +157,22 @@ export default function MapPage() {
       setIsLocationLoading(false)
     }
   }, [farms])
+
+  // Zoom to user location
+  const zoomToLocation = useCallback(() => {
+    if (!mapInstance || !userLocation) {
+      // If no map or location, get location first
+      getCurrentLocation()
+      return
+    }
+
+    const position = new google.maps.LatLng(userLocation.latitude, userLocation.longitude)
+    mapInstance.panTo(position)
+    mapInstance.setZoom(15) // Zoom to street level
+    
+    // Trigger haptic feedback
+    triggerHaptic('light')
+  }, [mapInstance, userLocation, getCurrentLocation, triggerHaptic])
 
   // Handle what3words coordinates
   const handleW3WCoordinates = useCallback((coordinates: { lat: number; lng: number }) => {
@@ -380,6 +403,7 @@ export default function MapPage() {
               farms={farms}
               onLocationUpdate={setUserLocation}
               onFarmsUpdate={setFarms}
+              onZoomToLocation={zoomToLocation}
               className="max-w-md"
             />
           </div>
@@ -398,6 +422,7 @@ export default function MapPage() {
               userLocation={userLocation}
               bottomSheetHeight={bottomSheetHeight}
               isDesktop={isDesktop}
+              onMapReady={setMapInstance}
               className="w-full h-full"
             />
           </div>

@@ -21,6 +21,7 @@ interface LocationTrackerProps {
   farms: FarmShop[]
   onLocationUpdate: (location: UserLocation) => void
   onFarmsUpdate: (farms: FarmShop[]) => void
+  onZoomToLocation?: () => void
   className?: string
 }
 
@@ -49,6 +50,7 @@ export default function LocationTracker({
   farms, 
   onLocationUpdate, 
   onFarmsUpdate, 
+  onZoomToLocation,
   className = '' 
 }: LocationTrackerProps) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
@@ -276,12 +278,12 @@ export default function LocationTracker({
       {/* Location Controls */}
       <div className="flex gap-2">
         <button
-          onClick={getCurrentLocation}
+          onClick={onZoomToLocation || getCurrentLocation}
           disabled={isLoading || permission === 'denied'}
           className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
         >
           <MapPin className="w-4 h-4" />
-          {isLoading ? 'Getting Location...' : 'Get Location'}
+          {isLoading ? 'Getting Location...' : userLocation ? 'Zoom to Location' : 'Get Location'}
         </button>
 
         {!isTracking ? (
