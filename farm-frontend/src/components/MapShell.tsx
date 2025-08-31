@@ -139,10 +139,8 @@ export default function MapShell({
       ? { ...basePadding, right: 384 } 
       : basePadding
 
-    // Store padding for later use
+    // Store padding for later use and trigger resize
     map.set('customPadding', padding)
-    
-    // Trigger resize to apply padding
     google.maps.event.trigger(map, 'resize')
   }, [bottomSheetHeight, isDesktop])
 
@@ -162,7 +160,7 @@ export default function MapShell({
       const map = new google.maps.Map(mapRef.current, {
         center,
         zoom,
-        mapId: 'DEMO_MAP_ID',
+        mapId: 'f907b7cb594ed2caa752543d',
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
@@ -296,6 +294,18 @@ export default function MapShell({
     return () => resizeObserver.disconnect()
   }, [])
 
+  // Orientation change handler for iOS
+  useEffect(() => {
+    const handleOrientationChange = () => {
+      if (mapInstanceRef.current) {
+        google.maps.event.trigger(mapInstanceRef.current, 'resize')
+      }
+    }
+
+    window.addEventListener('orientationchange', handleOrientationChange)
+    return () => window.removeEventListener('orientationchange', handleOrientationChange)
+  }, [])
+
   if (error) {
     return (
       <div className={`${className} flex items-center justify-center bg-gray-100`}>
@@ -321,7 +331,7 @@ export default function MapShell({
           </div>
         </div>
       )}
-      <div ref={mapRef} className="w-full h-full" />
+      <div ref={mapRef} className="absolute inset-0" />
     </div>
   )
 }
