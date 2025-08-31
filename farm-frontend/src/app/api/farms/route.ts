@@ -53,10 +53,17 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
     
-    // Load farm data
-    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
+    // Load farm data with deduplication
+    const farmsPath = path.join(process.cwd(), 'public', 'data', 'farms.uk.json')
     const farmsData = await fs.readFile(farmsPath, 'utf-8')
-    const allFarms: FarmShop[] = JSON.parse(farmsData)
+    const rawFarms: FarmShop[] = JSON.parse(farmsData)
+    
+    // Apply deduplication
+    const { dedupeFarms } = await import('@/lib/schemas')
+    const { farms: allFarms, stats } = dedupeFarms(rawFarms)
+    
+    console.log('📊 Farm data processing:', stats)
+    console.log(`✅ Loaded ${allFarms.length} valid, deduplicated farms from JSON file`)
     
     // Apply filters
     const filteredFarms = allFarms.filter((farm: FarmShop) => {
