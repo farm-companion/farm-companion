@@ -328,16 +328,11 @@ export default function MapPage() {
 
   // Detect desktop vs mobile
   useEffect(() => {
-    const checkIsDesktop = () => {
-      setIsDesktop(window.innerWidth >= 768)
-    }
-
-    checkIsDesktop()
-    window.addEventListener('resize', checkIsDesktop)
-
-    return () => {
-      window.removeEventListener('resize', checkIsDesktop)
-    }
+    const mq = window.matchMedia('(min-width: 768px)')
+    const update = () => setIsDesktop(mq.matches)
+    update()
+    mq.addEventListener('change', update)
+    return () => mq.removeEventListener('change', update)
   }, [])
 
   if (error) {

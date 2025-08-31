@@ -172,6 +172,7 @@ html {
 .map-shell {
   position: relative;
   height: calc(100dvh - var(--header-h) - var(--search-h));
+  padding-bottom: env(safe-area-inset-bottom); /* iOS home bar */
 }
 @supports not (height: 100dvh) {
   .map-shell { 
