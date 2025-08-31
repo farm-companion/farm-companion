@@ -1230,6 +1230,12 @@ export default function GoogleMapComponent({
           zoom={mapZoom}
           mapId="f907b7cb594ed2caa752543d"
           className="w-full h-full"
+          mapTypeId="roadmap"
+          mapTypeControl={false}
+          streetViewControl={false}
+          fullscreenControl={false}
+          zoomControl={false}
+          gestureHandling="cooperative"
           onCenterChanged={(e) => {
             const center = e.detail.center
             setMapCenter({ lat: center.lat, lng: center.lng })
