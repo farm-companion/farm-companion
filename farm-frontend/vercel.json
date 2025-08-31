@@ -5,6 +5,38 @@
       "maxDuration": 30
     }
   },
+  "redirects": [
+    {
+      "source": "https://farmcompanion.uk/:path*",
+      "destination": "https://www.farmcompanion.co.uk/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://www.farmcompanion.uk/:path*",
+      "destination": "https://www.farmcompanion.co.uk/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://farmshopfinder.co.uk/:path*",
+      "destination": "https://www.farmcompanion.co.uk/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://www.farmshopfinder.co.uk/:path*",
+      "destination": "https://www.farmcompanion.co.uk/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://localfarmshops.co.uk/:path*",
+      "destination": "https://www.farmcompanion.co.uk/:path*",
+      "permanent": true
+    },
+    {
+      "source": "https://www.localfarmshops.co.uk/:path*",
+      "destination": "https://www.farmcompanion.co.uk/:path*",
+      "permanent": true
+    }
+  ],
   "headers": [
     {
       "source": "/api/photos/(.*)",
