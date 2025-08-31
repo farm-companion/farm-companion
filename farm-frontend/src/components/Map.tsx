@@ -4,19 +4,12 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { Loader } from '@googlemaps/js-api-loader'
 import type { FarmShop } from '@/types/farm'
 
-// Google Maps types
-declare global {
-  interface Window {
-    google: any
-  }
-}
-
 interface MapProps {
   farms: FarmShop[]
   selectedFarmId?: string | null
   onFarmSelect?: (farmId: string) => void
-  onMapLoad?: (map: any) => void
-  onBoundsChange?: (bounds: any) => void
+  onMapLoad?: (map: google.maps.Map) => void
+  onBoundsChange?: (bounds: google.maps.LatLngBounds) => void
   center?: { lat: number; lng: number }
   zoom?: number
   className?: string
@@ -53,9 +46,9 @@ export default function Map({
   userLocation
 }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<any>(null)
-  const markersRef = useRef<Record<string, any>>({})
-  const userLocationMarkerRef = useRef<any>(null)
+  const mapInstanceRef = useRef<google.maps.Map | null>(null)
+  const markersRef = useRef<Record<string, google.maps.Marker>>({})
+  const userLocationMarkerRef = useRef<google.maps.Marker | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -120,19 +113,19 @@ export default function Map({
   }, [center, zoom, onMapLoad, onBoundsChange])
 
   // Create markers for farms
-  const createMarkers = useCallback((map: any, farmData: FarmShop[]) => {
-    if (!map || !farmData.length || !window.google) return
+  const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
+    if (!map || !farmData.length || typeof window === 'undefined') return
 
     // Clear existing markers
     Object.values(markersRef.current).forEach(marker => marker.setMap(null))
     markersRef.current = {}
 
-    const markers: any[] = []
+    const markers: google.maps.Marker[] = []
 
     farmData.forEach(farm => {
       if (!farm.location?.lat || !farm.location?.lng) return
 
-      const position = new window.google.maps.LatLng(farm.location.lat, farm.location.lng)
+      const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
       
       // Create custom marker icon
       const isSelected = selectedFarmId === farm.id
@@ -144,11 +137,11 @@ export default function Map({
             ${isSelected ? '<circle cx="24" cy="8" r="6" fill="#D4FF4F" stroke="white" stroke-width="2"/>' : ''}
           </svg>
         `)}`,
-        scaledSize: new window.google.maps.Size(32, 32),
-        anchor: new window.google.maps.Point(16, 16)
+        scaledSize: new google.maps.Size(32, 32),
+        anchor: new google.maps.Point(16, 16)
       }
 
-      const marker = new window.google.maps.Marker({
+      const marker = new google.maps.Marker({
         position,
         map,
         icon: markerIcon,
@@ -171,10 +164,10 @@ export default function Map({
 
   // Update user location marker
   useEffect(() => {
-    if (!mapInstanceRef.current || !userLocation || !window.google) return
+    if (!mapInstanceRef.current || !userLocation || typeof window === 'undefined') return
 
     const map = mapInstanceRef.current
-    const position = new window.google.maps.LatLng(userLocation.latitude, userLocation.longitude)
+    const position = new google.maps.LatLng(userLocation.latitude, userLocation.longitude)
 
     // Remove existing user location marker
     if (userLocationMarkerRef.current) {
@@ -189,11 +182,11 @@ export default function Map({
           <circle cx="12" cy="12" r="3" fill="white"/>
         </svg>
       `)}`,
-      scaledSize: new window.google.maps.Size(24, 24),
-      anchor: new window.google.maps.Point(12, 12)
+      scaledSize: new google.maps.Size(24, 24),
+      anchor: new google.maps.Point(12, 12)
     }
 
-    userLocationMarkerRef.current = new window.google.maps.Marker({
+    userLocationMarkerRef.current = new google.maps.Marker({
       position,
       map,
       icon: userLocationIcon,
@@ -202,7 +195,7 @@ export default function Map({
     })
 
     // Add accuracy circle
-    const accuracyCircle = new window.google.maps.Circle({
+    const accuracyCircle = new google.maps.Circle({
       strokeColor: '#3B82F6',
       strokeOpacity: 0.3,
       strokeWeight: 1,
