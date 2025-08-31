@@ -306,7 +306,7 @@ export default function MapPage() {
   }, [])
 
   // Handle map bounds change
-  const handleBoundsChange = useCallback((bounds: google.maps.LatLngBounds) => {
+  const handleBoundsChange = useCallback((bounds: any) => {
     setMapBounds(bounds)
   }, [])
 
