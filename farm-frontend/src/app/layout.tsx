@@ -312,6 +312,21 @@ export default function RootLayout({
           })();
         `} />
         
+        {/* Theme Ready Script - Fixes blank screen issue */}
+        <Script
+          id="theme-ready"
+          strategy="beforeInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Fix for blank screen - ensure content is visible
+              if (typeof document !== 'undefined') {
+                document.documentElement.classList.add('theme-ready');
+                console.log('✅ Theme ready class added - content should be visible');
+              }
+            `
+          }}
+        />
+        
         {/* Developer Tools Detection - Disabled for now */}
         <Script
           id="content-protection-init"

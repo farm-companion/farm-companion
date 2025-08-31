@@ -271,3 +271,14 @@ html:not(.theme-ready) {
 html.theme-ready {
   visibility: visible;
 }
+
+/* Emergency fallback: ensure content is always visible after 3 seconds */
+@keyframes ensure-visibility {
+  to {
+    visibility: visible !important;
+  }
+}
+
+html {
+  animation: ensure-visibility 0s 3s forwards;
+}
