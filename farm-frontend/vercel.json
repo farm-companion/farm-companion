@@ -7,32 +7,68 @@
   },
   "redirects": [
     {
-      "source": "https://farmcompanion.uk/:path*",
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "farmcompanion.uk"
+        }
+      ],
       "destination": "https://www.farmcompanion.co.uk/:path*",
       "permanent": true
     },
     {
-      "source": "https://www.farmcompanion.uk/:path*",
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.farmcompanion.uk"
+        }
+      ],
       "destination": "https://www.farmcompanion.co.uk/:path*",
       "permanent": true
     },
     {
-      "source": "https://farmshopfinder.co.uk/:path*",
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "farmshopfinder.co.uk"
+        }
+      ],
       "destination": "https://www.farmcompanion.co.uk/:path*",
       "permanent": true
     },
     {
-      "source": "https://www.farmshopfinder.co.uk/:path*",
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.farmshopfinder.co.uk"
+        }
+      ],
       "destination": "https://www.farmcompanion.co.uk/:path*",
       "permanent": true
     },
     {
-      "source": "https://localfarmshops.co.uk/:path*",
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "localfarmshops.co.uk"
+        }
+      ],
       "destination": "https://www.farmcompanion.co.uk/:path*",
       "permanent": true
     },
     {
-      "source": "https://www.localfarmshops.co.uk/:path*",
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.localfarmshops.co.uk"
+        }
+      ],
       "destination": "https://www.farmcompanion.co.uk/:path*",
       "permanent": true
     }
