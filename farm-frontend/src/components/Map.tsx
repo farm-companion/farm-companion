@@ -4,15 +4,28 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Loader } from '@googlemaps/js-api-loader'
 import type { FarmShop } from '@/types/farm'
 
+// Google Maps types
+declare global {
+  interface Window {
+    google: typeof google
+  }
+}
+
 interface MapProps {
   farms: FarmShop[]
   selectedFarmId?: string | null
   onFarmSelect?: (farmId: string) => void
-  onMapLoad?: (map: google.maps.Map) => void
-  onBoundsChange?: (bounds: google.maps.LatLngBounds) => void
+  onMapLoad?: (map: any) => void
+  onBoundsChange?: (bounds: any) => void
   center?: { lat: number; lng: number }
   zoom?: number
   className?: string
+  userLocation?: {
+    latitude: number
+    longitude: number
+    accuracy: number
+    timestamp: number
+  } | null
 }
 
 // UK bounds for fallback
@@ -36,18 +49,19 @@ export default function Map({
   onBoundsChange,
   center = UK_CENTER,
   zoom = 6,
-  className = 'w-full h-full'
+  className = 'w-full h-full',
+  userLocation
 }: MapProps) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const mapInstanceRef = useRef<google.maps.Map | null>(null)
-  const markersRef = useRef<Record<string, google.maps.Marker>>({})
-
+  const mapInstanceRef = useRef<any>(null)
+  const markersRef = useRef<Record<string, any>>({})
+  const userLocationMarkerRef = useRef<any>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Initialize Google Maps
   useEffect(() => {
-    if (!mapRef.current) return
+    if (!mapRef.current || typeof window === 'undefined') return
 
     const initMap = async () => {
       try {
@@ -67,7 +81,7 @@ export default function Map({
         const map = new google.maps.Map(mapRef.current, {
           center,
           zoom,
-          mapId: 'f907b7cb594ed2caa752543d', // Your custom map style
+          mapId: 'f907b7cb594ed2caa752543d',
           mapTypeId: 'roadmap',
           mapTypeControl: false,
           streetViewControl: false,
@@ -106,21 +120,19 @@ export default function Map({
   }, [center, zoom, onMapLoad, onBoundsChange])
 
   // Create markers for farms
-  const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
-    if (!map || !farmData.length) return
+  const createMarkers = useCallback((map: any, farmData: FarmShop[]) => {
+    if (!map || !farmData.length || !window.google) return
 
     // Clear existing markers
     Object.values(markersRef.current).forEach(marker => marker.setMap(null))
     markersRef.current = {}
-    
 
-
-    const markers: google.maps.Marker[] = []
+    const markers: any[] = []
 
     farmData.forEach(farm => {
       if (!farm.location?.lat || !farm.location?.lng) return
 
-      const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
+      const position = new window.google.maps.LatLng(farm.location.lat, farm.location.lng)
       
       // Create custom marker icon
       const isSelected = selectedFarmId === farm.id
@@ -132,11 +144,11 @@ export default function Map({
             ${isSelected ? '<circle cx="24" cy="8" r="6" fill="#D4FF4F" stroke="white" stroke-width="2"/>' : ''}
           </svg>
         `)}`,
-        scaledSize: new google.maps.Size(32, 32),
-        anchor: new google.maps.Point(16, 16)
+        scaledSize: new window.google.maps.Size(32, 32),
+        anchor: new window.google.maps.Point(16, 16)
       }
 
-      const marker = new google.maps.Marker({
+      const marker = new window.google.maps.Marker({
         position,
         map,
         icon: markerIcon,
@@ -155,9 +167,59 @@ export default function Map({
       markers.push(marker)
       markersRef.current[farm.id] = marker
     })
-
-
   }, [selectedFarmId, onFarmSelect])
+
+  // Update user location marker
+  useEffect(() => {
+    if (!mapInstanceRef.current || !userLocation || !window.google) return
+
+    const map = mapInstanceRef.current
+    const position = new window.google.maps.LatLng(userLocation.latitude, userLocation.longitude)
+
+    // Remove existing user location marker
+    if (userLocationMarkerRef.current) {
+      userLocationMarkerRef.current.setMap(null)
+    }
+
+    // Create user location marker
+    const userLocationIcon = {
+      url: `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(`
+        <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="12" cy="12" r="8" fill="#3B82F6" stroke="white" stroke-width="2"/>
+          <circle cx="12" cy="12" r="3" fill="white"/>
+        </svg>
+      `)}`,
+      scaledSize: new window.google.maps.Size(24, 24),
+      anchor: new window.google.maps.Point(12, 12)
+    }
+
+    userLocationMarkerRef.current = new window.google.maps.Marker({
+      position,
+      map,
+      icon: userLocationIcon,
+      title: 'Your Location',
+      zIndex: 1000
+    })
+
+    // Add accuracy circle
+    const accuracyCircle = new window.google.maps.Circle({
+      strokeColor: '#3B82F6',
+      strokeOpacity: 0.3,
+      strokeWeight: 1,
+      fillColor: '#3B82F6',
+      fillOpacity: 0.1,
+      map,
+      center: position,
+      radius: userLocation.accuracy
+    })
+
+    return () => {
+      if (userLocationMarkerRef.current) {
+        userLocationMarkerRef.current.setMap(null)
+      }
+      accuracyCircle.setMap(null)
+    }
+  }, [userLocation])
 
   // Update markers when farms or selection changes
   useEffect(() => {

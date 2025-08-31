@@ -1,52 +1,71 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, MapPin, Filter, X, Navigation } from 'lucide-react'
+import { Search, MapPin, Filter, X, Navigation, Loader2, Globe } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
-
-interface MapSearchProps {
-  onSearch: (query: string) => void
-  onNearMe: () => void
-  onFilterChange: (filters: FilterState) => void
-  counties: string[]
-  categories: string[]
-  className?: string
-}
 
 interface FilterState {
   county?: string
   category?: string
 }
 
+interface MapSearchProps {
+  onSearch: (query: string) => void
+  onNearMe: () => void
+  onFilterChange: (filters: FilterState) => void
+  onW3WCoordinates?: (coordinates: { lat: number; lng: number }) => void
+  counties: string[]
+  categories: string[]
+  className?: string
+  isLocationLoading?: boolean
+  hasLocation?: boolean
+}
+
+interface W3WResponse {
+  coordinates: {
+    lat: number
+    lng: number
+  }
+  words: string
+  language: string
+  map: string
+}
+
 export default function MapSearch({
   onSearch,
   onNearMe,
   onFilterChange,
+  onW3WCoordinates,
   counties,
   categories,
-  className = ''
+  className = '',
+  isLocationLoading = false,
+  hasLocation = false
 }: MapSearchProps) {
   const [query, setQuery] = useState('')
   const [filters, setFilters] = useState<FilterState>({})
   const [showFilters, setShowFilters] = useState(false)
-  const [isNearMeLoading, setIsNearMeLoading] = useState(false)
+  const [isW3WLoading, setIsW3WLoading] = useState(false)
+  const [searchType, setSearchType] = useState<'text' | 'w3w'>('text')
   const searchRef = useRef<HTMLInputElement>(null)
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null)
+  const autocompleteRef = useRef<any>(null)
 
   // Debounced search
   useEffect(() => {
     const timer = setTimeout(() => {
-      onSearch(query)
+      if (query && searchType === 'text') {
+        onSearch(query)
+      }
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [query, onSearch])
+  }, [query, searchType, onSearch])
 
   // Initialize Google Places Autocomplete
   useEffect(() => {
     if (!searchRef.current || !window.google?.maps?.places) return
 
-    autocompleteRef.current = new google.maps.places.Autocomplete(searchRef.current, {
+    autocompleteRef.current = new window.google.maps.places.Autocomplete(searchRef.current, {
       types: ['postal_code'],
       componentRestrictions: { country: 'uk' },
       fields: ['geometry', 'formatted_address']
@@ -57,43 +76,68 @@ export default function MapSearch({
       if (place?.geometry?.location) {
         const { lat, lng } = place.geometry.location
         setQuery(place.formatted_address || '')
-        // You can emit the coordinates here if needed
         console.log('Selected location:', { lat: lat(), lng: lng() })
       }
     })
 
     return () => {
       if (autocompleteRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current)
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
       }
     }
   }, [])
 
-  const handleNearMe = useCallback(async () => {
-    setIsNearMeLoading(true)
+  // Handle what3words search
+  const handleW3WSearch = useCallback(async () => {
+    if (!query || searchType !== 'w3w') return
+
+    setIsW3WLoading(true)
     try {
-      if (!navigator.geolocation) {
-        alert('Geolocation is not supported by your browser')
-        return
+      const response = await fetch(`/api/w3w/convert?words=${encodeURIComponent(query)}`)
+      if (!response.ok) {
+        throw new Error('Failed to convert what3words')
       }
-
-      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 60000
-        })
-      })
-
-      const { latitude, longitude } = position.coords
-      console.log('User location:', { lat: latitude, lng: longitude })
-      onNearMe()
+      
+      const data: W3WResponse = await response.json()
+      console.log('what3words coordinates:', data.coordinates)
+      
+      // Emit coordinates to parent component
+      if (onW3WCoordinates) {
+        onW3WCoordinates(data.coordinates)
+      }
+      
     } catch (error) {
-      console.error('Geolocation error:', error)
-      alert('Unable to get your location. Please check your browser permissions.')
+      console.error('what3words error:', error)
+      alert('Invalid what3words address. Please check the format (e.g., "filled.count.soap")')
     } finally {
-      setIsNearMeLoading(false)
+      setIsW3WLoading(false)
     }
+  }, [query, searchType, onW3WCoordinates])
+
+  // Handle search type change
+  const handleSearchTypeChange = useCallback((type: 'text' | 'w3w') => {
+    setSearchType(type)
+    setQuery('')
+    if (type === 'w3w') {
+      // Disable Google Places autocomplete for w3w
+      if (autocompleteRef.current) {
+        window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
+        autocompleteRef.current = null
+      }
+    } else {
+      // Re-enable Google Places autocomplete
+      if (searchRef.current && window.google?.maps?.places) {
+        autocompleteRef.current = new window.google.maps.places.Autocomplete(searchRef.current, {
+          types: ['postal_code'],
+          componentRestrictions: { country: 'uk' },
+          fields: ['geometry', 'formatted_address']
+        })
+      }
+    }
+  }, [])
+
+  const handleNearMe = useCallback(() => {
+    onNearMe()
   }, [onNearMe])
 
   const handleFilterChange = useCallback((key: keyof FilterState, value: string | undefined) => {
@@ -111,6 +155,32 @@ export default function MapSearch({
 
   return (
     <div className={`bg-white shadow-lg rounded-lg p-4 ${className}`}>
+      {/* Search Type Toggle */}
+      <div className="flex mb-4 bg-gray-100 rounded-lg p-1">
+        <button
+          onClick={() => handleSearchTypeChange('text')}
+          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+            searchType === 'text' 
+              ? 'bg-white text-gray-900 shadow-sm' 
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Search className="w-4 h-4 inline mr-2" />
+          Search
+        </button>
+        <button
+          onClick={() => handleSearchTypeChange('w3w')}
+          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+            searchType === 'w3w' 
+              ? 'bg-white text-gray-900 shadow-sm' 
+              : 'text-gray-600 hover:text-gray-900'
+          }`}
+        >
+          <Globe className="w-4 h-4 inline mr-2" />
+          what3words
+        </button>
+      </div>
+
       {/* Search Bar */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
@@ -118,11 +188,21 @@ export default function MapSearch({
           <input
             ref={searchRef}
             type="text"
-            placeholder="Search by name, postcode, or address..."
+            placeholder={
+              searchType === 'w3w' 
+                ? "Enter what3words address (e.g., filled.count.soap)" 
+                : "Search by name, postcode, or address..."
+            }
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchType === 'w3w') {
+                e.preventDefault()
+                handleW3WSearch()
+              }
+            }}
             className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none transition-all"
-            aria-label="Search farms"
+            aria-label={searchType === 'w3w' ? 'Enter what3words address' : 'Search farms'}
           />
           {query && (
             <button
@@ -135,16 +215,55 @@ export default function MapSearch({
           )}
         </div>
         
+        {searchType === 'w3w' && (
+          <button
+            onClick={handleW3WSearch}
+            disabled={isW3WLoading || !query}
+            className="px-4 py-3 rounded-lg transition-colors flex items-center gap-2 bg-serum text-white hover:bg-serum/90 disabled:opacity-50"
+            aria-label="Convert what3words address"
+          >
+            {isW3WLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Globe className="w-4 h-4" />
+            )}
+            <span className="hidden sm:inline">Convert</span>
+          </button>
+        )}
+        
         <button
           onClick={handleNearMe}
-          disabled={isNearMeLoading}
-          className="px-4 py-3 bg-serum text-white rounded-lg hover:bg-serum/90 disabled:opacity-50 transition-colors flex items-center gap-2"
+          disabled={isLocationLoading}
+          className={`px-4 py-3 rounded-lg transition-colors flex items-center gap-2 ${
+            hasLocation 
+              ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+              : 'bg-serum text-white hover:bg-serum/90'
+          } disabled:opacity-50`}
           aria-label="Find farms near me"
         >
-          <Navigation className="w-4 h-4" />
-          {isNearMeLoading ? '...' : 'Near Me'}
+          {isLocationLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <Navigation className="w-4 h-4" />
+          )}
+          <span className="hidden sm:inline">
+            {hasLocation ? 'Near Me' : 'Near Me'}
+          </span>
         </button>
       </div>
+
+      {/* what3words Info */}
+      {searchType === 'w3w' && (
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-start gap-2">
+            <Globe className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-blue-800">
+              <p className="font-medium mb-1">what3words Address</p>
+              <p>Enter a 3-word address like &ldquo;filled.count.soap&rdquo; to find the exact location.</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Filter Toggle */}
       <div className="flex items-center justify-between mb-4">
@@ -155,7 +274,7 @@ export default function MapSearch({
           aria-controls="filter-panel"
         >
           <Filter className="w-4 h-4" />
-          Filters
+          <span className="hidden sm:inline">Filters</span>
           {hasActiveFilters && (
             <span className="w-2 h-2 bg-serum rounded-full" />
           )}

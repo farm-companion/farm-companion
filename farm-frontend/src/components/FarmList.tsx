@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback, useMemo } from 'react'
-import { MapPin, Phone, Globe, Clock, Star } from 'lucide-react'
+import { MapPin, Phone, Globe, Clock, Star, Navigation } from 'lucide-react'
 import { Virtuoso } from 'react-virtuoso'
 import type { FarmShop } from '@/types/farm'
 
@@ -10,13 +10,22 @@ interface FarmListProps {
   selectedFarmId?: string | null
   onFarmSelect: (farmId: string) => void
   className?: string
+  userLocation?: {
+    latitude: number
+    longitude: number
+    accuracy: number
+    timestamp: number
+  } | null
+  formatDistance?: (distance: number) => string
 }
 
 export default function FarmList({
   farms,
   selectedFarmId,
   onFarmSelect,
-  className = ''
+  className = '',
+  userLocation,
+  formatDistance
 }: FarmListProps) {
   const [expandedFarmId, setExpandedFarmId] = useState<string | null>(null)
 
@@ -30,6 +39,7 @@ export default function FarmList({
     const isExpanded = expandedFarmId === farm.id
     const hasContact = farm.contact?.phone || farm.contact?.website
     const hasHours = farm.hours && farm.hours.length > 0
+    const hasDistance = farm.distance !== undefined && formatDistance
 
     return (
       <div
@@ -59,13 +69,23 @@ export default function FarmList({
             </div>
           </div>
           
-          {/* Verified Badge */}
-          {farm.verified && (
-            <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full ml-2">
-              <Star className="w-3 h-3" />
-              Verified
-            </div>
-          )}
+          <div className="flex flex-col items-end gap-1">
+            {/* Verified Badge */}
+            {farm.verified && (
+              <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+                <Star className="w-3 h-3" />
+                <span className="hidden sm:inline">Verified</span>
+              </div>
+            )}
+            
+            {/* Distance Badge */}
+            {hasDistance && (
+              <div className="flex items-center gap-1 text-xs text-serum bg-serum/10 px-2 py-1 rounded-full">
+                <Navigation className="w-3 h-3" />
+                <span>{formatDistance(farm.distance!)}</span>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Farm Details */}
@@ -141,17 +161,15 @@ export default function FarmList({
         </div>
 
         {/* Distance indicator (if available) */}
-        {farm.distance && (
-          <div className="mt-2 text-xs text-gray-500">
-            {farm.distance < 1 
-              ? `${Math.round(farm.distance * 1000)}m away`
-              : `${farm.distance.toFixed(1)}km away`
-            }
+        {hasDistance && (
+          <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+            <Navigation className="w-3 h-3" />
+            <span>{formatDistance(farm.distance!)} away</span>
           </div>
         )}
       </div>
     )
-  }, [selectedFarmId, expandedFarmId, handleFarmClick])
+  }, [selectedFarmId, expandedFarmId, handleFarmClick, formatDistance])
 
   const EmptyState = useCallback(() => (
     <div className="flex flex-col items-center justify-center py-12 text-center">
@@ -178,7 +196,7 @@ export default function FarmList({
           Farm Shops ({farms.length})
         </h2>
         <p className="text-sm text-gray-600">
-          Tap a farm to see details and location
+          {userLocation ? 'Sorted by distance from your location' : 'Tap a farm to see details and location'}
         </p>
       </div>
 
