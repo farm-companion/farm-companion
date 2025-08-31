@@ -3,15 +3,15 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { Loader } from '@googlemaps/js-api-loader'
-import Map from '@/components/Map'
+import MapShell from '@/components/MapShell'
 import MapSearch from '@/components/MapSearch'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
-import type { FarmShop } from '@/types/farm'
 import LocationTracker from '@/components/LocationTracker'
+import type { FarmShop } from '@/types/farm'
 
 // Dynamic imports for performance
-const MapWithNoSSR = dynamic(() => import('@/components/Map'), {
+const MapShellWithNoSSR = dynamic(() => import('@/components/MapShell'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-gray-100">
@@ -69,6 +69,9 @@ export default function MapPage() {
   const [error, setError] = useState<string | null>(null)
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
   const [isGoogleMapsLoaded, setIsGoogleMapsLoaded] = useState(false)
+  const [bottomSheetHeight, setBottomSheetHeight] = useState(200)
+  const [isDesktop, setIsDesktop] = useState(false)
+  const locationWatchIdRef = useRef<number | null>(null)
 
   // Load Google Maps API
   useEffect(() => {
@@ -314,6 +317,29 @@ export default function MapPage() {
     console.log('Map loaded successfully')
   }, [])
 
+  // Cleanup location tracking on unmount
+  useEffect(() => {
+    return () => {
+      if (locationWatchIdRef.current) {
+        navigator.geolocation.clearWatch(locationWatchIdRef.current)
+      }
+    }
+  }, [])
+
+  // Detect desktop vs mobile
+  useEffect(() => {
+    const checkIsDesktop = () => {
+      setIsDesktop(window.innerWidth >= 768)
+    }
+
+    checkIsDesktop()
+    window.addEventListener('resize', checkIsDesktop)
+
+    return () => {
+      window.removeEventListener('resize', checkIsDesktop)
+    }
+  }, [])
+
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -393,13 +419,15 @@ export default function MapPage() {
           {/* Map */}
           <div className="map-canvas">
             {isGoogleMapsLoaded ? (
-              <MapWithNoSSR
+              <MapShellWithNoSSR
                 farms={filteredFarms}
                 selectedFarmId={selectedFarmId}
                 onFarmSelect={handleFarmSelect}
                 onMapLoad={handleMapLoad}
                 onBoundsChange={handleBoundsChange}
                 userLocation={userLocation}
+                bottomSheetHeight={bottomSheetHeight}
+                isDesktop={isDesktop}
                 className="w-full h-full"
               />
             ) : (
@@ -419,6 +447,7 @@ export default function MapPage() {
               snapPoints={[200, 400, 600]}
               defaultSnap={1}
               onHeightChange={(height) => {
+                setBottomSheetHeight(height)
                 window.dispatchEvent(new CustomEvent('map:setBottomPadding', { detail: height }))
               }}
             >
