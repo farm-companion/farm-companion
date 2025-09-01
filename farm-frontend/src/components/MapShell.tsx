@@ -104,9 +104,15 @@ export default function MapShell({
   // Stable cluster renderer instance (avoid recreating per render)
   const clusterRenderer = useRef<any>(null)
 
+  // top-level refs
+  const farmsRef = useRef<FarmShop[]>([])
+  const rebuildTimer = useRef<number | null>(null)
+
   // Create clustered markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
     if (!map || !farmData.length || typeof window === 'undefined') return
+
+    console.log('creating markers', farmData.length)
 
     // Clear existing markers and clusterer
     Object.values(markersRef.current).forEach(marker => marker.setMap(null))
@@ -168,7 +174,8 @@ export default function MapShell({
             
             return new google.maps.Marker({
               position,
-              icon: { url: svgUrl, scaledSize: size, anchor }
+              icon: { url: svgUrl, scaledSize: size, anchor },
+              zIndex: google.maps.Marker.MAX_ZINDEX + 2   // cluster on top
             })
           }
         }
@@ -182,6 +189,8 @@ export default function MapShell({
     }
     
     clustererRef.current.addMarkers(markers)
+
+    console.log('clusterer markers', markers.length)
 
     // Add cluster click handler for zoom-to-cluster functionality
     clustererRef.current.addListener('clusterclick', ({ markers, latLng }: { markers: google.maps.Marker[]; latLng: google.maps.LatLng }) => {
@@ -208,6 +217,30 @@ export default function MapShell({
     }
   }, [selectedFarmId, onFarmSelect])
 
+  // one function to (debounced) rebuild markers with the latest farms
+  const scheduleMarkerRebuild = useCallback(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    // stable key to avoid unnecessary rebuilds
+    const nextKey = farmsRef.current.map(f => f.id).sort().join('|')
+    if (nextKey === idsKey.current) return
+    idsKey.current = nextKey
+
+    if (rebuildTimer.current) window.clearTimeout(rebuildTimer.current)
+    rebuildTimer.current = window.setTimeout(() => {
+      if ('requestIdleCallback' in window) {
+        ;(window as any).requestIdleCallback(
+          () => createMarkers(map, farmsRef.current),
+          { timeout: 120 }
+        )
+      } else {
+        // fallback
+        createMarkers(map, farmsRef.current)
+      }
+    }, 0)
+  }, [createMarkers])
+
   // Idle-based bounds listener (much calmer than bounds_changed)
   const attachBoundsListener = useCallback(() => {
     const map = mapInstanceRef.current
@@ -228,6 +261,14 @@ export default function MapShell({
     m.panTo(pos)
     window.setTimeout(() => { programmaticMove.current = false }, 200)
   }, [])
+
+  // keep farmsRef always fresh and schedule rebuilds when farms change
+  useEffect(() => {
+    console.log('farms length', farms.length)
+    farmsRef.current = farms
+    // also schedule a rebuild when farms actually change
+    scheduleMarkerRebuild()
+  }, [farms, scheduleMarkerRebuild])
 
   // Debounced padding updates
   const applyResponsivePadding = useCallback(() => {
@@ -305,21 +346,11 @@ export default function MapShell({
       attachBoundsListener()
       
       // Add idle listener for marker rebuilding (triggers when map stops moving)
-      const idleListener = map.addListener('idle', () => {
-        const key = farms.map(f => f.id).sort().join('|')
-        if (key === idsKey.current) return
-        idsKey.current = key
-        
-        // Defer marker creation to idle time with small timeout
-        if (typeof requestIdleCallback === 'function') {
-          requestIdleCallback(() => createMarkers(map, farms), { timeout: 100 })
-        } else {
-          setTimeout(() => createMarkers(map, farms), 0)
-        }
-      })
-      
-      // Store listener for cleanup
+      const idleListener = map.addListener('idle', scheduleMarkerRebuild)
       map.set('idleListener', idleListener)
+      
+      // kick an initial build too
+      scheduleMarkerRebuild()
       
       // iOS-specific touch handling removed - greedy gesture handling handles this better
     }).catch((err: any) => {
@@ -341,8 +372,6 @@ export default function MapShell({
     const t = setTimeout(applyResponsivePadding, 50)
     return () => clearTimeout(t)
   }, [applyResponsivePadding])
-
-  // Marker rebuilding now handled by idle listener for better performance
 
   // Update user location marker
   useEffect(() => {
@@ -501,15 +530,16 @@ export default function MapShell({
 
   // Orientation change handler for iOS
   useEffect(() => {
-    const handleOrientationChange = () => {
+    const onResize = () => {
       if (mapInstanceRef.current) {
         google.maps.event.trigger(mapInstanceRef.current, 'resize')
       }
+      scheduleMarkerRebuild()
     }
-
-    window.addEventListener('orientationchange', handleOrientationChange)
-    return () => window.removeEventListener('orientationchange', handleOrientationChange)
-  }, [])
+    
+    window.addEventListener('orientationchange', onResize)
+    return () => window.removeEventListener('orientationchange', onResize)
+  }, [scheduleMarkerRebuild])
 
   // Zoom change hook for parent state updates
   useEffect(() => {
@@ -573,6 +603,12 @@ export default function MapShell({
           userLocationMarkerRef.current.setMap(null)
         }
         userLocationMarkerRef.current = null
+      }
+      
+      // Clear rebuild timer
+      if (rebuildTimer.current) {
+        window.clearTimeout(rebuildTimer.current)
+        rebuildTimer.current = null
       }
       
       mapInstanceRef.current = null
