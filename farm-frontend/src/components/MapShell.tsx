@@ -338,6 +338,24 @@ export default function MapShell({
     return () => window.removeEventListener('orientationchange', handleOrientationChange)
   }, [])
 
+  // Map padding update handler (bottom sheet + desktop rail)
+  useEffect(() => {
+    const handler = (e: any) => {
+      const pad = { 
+        top: 8, 
+        left: 8, 
+        right: window.matchMedia('(min-width:768px)').matches ? 384 : 8, 
+        bottom: e.detail 
+      }
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.set('customPadding', pad)
+        google.maps.event.trigger(mapInstanceRef.current, 'resize')
+      }
+    }
+    window.addEventListener('map:setBottomPadding', handler)
+    return () => window.removeEventListener('map:setBottomPadding', handler)
+  }, [])
+
   // Clean teardown (prevents memory churn → flicker)
   useEffect(() => {
     return () => {
