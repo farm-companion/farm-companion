@@ -185,95 +185,56 @@ export default function MapPage() {
 
   // Filter and search farms
   const filteredAndSearchedFarms = useMemo(() => {
-    let result = farms
+    // 1) derive distance (no mutation)
+    let result = farms.map(f => {
+      const d = userLocation
+        ? calculateDistance(userLocation.latitude, userLocation.longitude, f.location.lat, f.location.lng)
+        : undefined
+      return { ...f, distance: d }
+    })
 
-    // Apply search query (using debounced value)
+    // 2) search
     if (debouncedQuery) {
-      const query = debouncedQuery.toLowerCase()
-      result = result.filter(farm => 
-        farm.name.toLowerCase().includes(query) ||
-        farm.location.address.toLowerCase().includes(query) ||
-        farm.location.postcode.toLowerCase().includes(query) ||
-        farm.location.county.toLowerCase().includes(query) ||
-        farm.offerings?.some(offering => offering.toLowerCase().includes(query))
+      const q = debouncedQuery.toLowerCase()
+      result = result.filter(f =>
+        f.name.toLowerCase().includes(q) ||
+        f.location.address.toLowerCase().includes(q) ||
+        f.location.postcode.toLowerCase().includes(q) ||
+        f.location.county.toLowerCase().includes(q) ||
+        f.offerings?.some(o => o.toLowerCase().includes(q))
       )
     }
 
-    // Apply filters
-    if (filters.county) {
-      result = result.filter(farm => farm.location.county === filters.county)
-    }
+    // 3) filters
+    if (filters.county) result = result.filter(f => f.location.county === filters.county)
+    if (filters.category) result = result.filter(f => f.offerings?.some(o => o === filters.category))
 
-    if (filters.category) {
-      result = result.filter(farm => 
-        farm.offerings?.some(offering => offering === filters.category)
-      )
-    }
-
-    // Apply "Open Now" filter
     if (filters.openNow) {
-      result = result.filter(farm => {
-        if (!farm.hours || farm.hours.length === 0) return false
-        
+      result = result.filter(f => {
+        if (!f.hours || !f.hours.length) return false
         const now = new Date()
-        const currentDay = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-        const currentTime = now.toLocaleTimeString('en-US', { 
-          hour12: false, 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })
-
-        const todayHours = farm.hours.find(h => h.day.toLowerCase() === currentDay)
-        if (!todayHours) return false
-
-        // Handle special cases
-        if (todayHours.open.toLowerCase() === 'closed' || todayHours.close.toLowerCase() === 'closed') {
-          return false
-        }
-
-        if (todayHours.open.toLowerCase() === '24 hours' || todayHours.close.toLowerCase() === '24 hours') {
-          return true
-        }
-
-        // Normal time comparison
-        const openTime = todayHours.open
-        const closeTime = todayHours.close
-
-        // Handle overnight hours (e.g., 22:00 - 06:00)
-        if (closeTime < openTime) {
-          return currentTime >= openTime || currentTime <= closeTime
-        }
-
-        return currentTime >= openTime && currentTime <= closeTime
+        const day = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+        const time = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })
+        const h = f.hours.find(x => x.day.toLowerCase() === day)
+        if (!h) return false
+        const open = h.open.toLowerCase(), close = h.close.toLowerCase()
+        if (open === 'closed' || close === 'closed') return false
+        if (open === '24 hours' || close === '24 hours') return true
+        // overnight
+        return close < open ? (time >= open || time <= close) : (time >= open && time <= close)
       })
     }
 
-    // Filter by map bounds if available (using debounced value)
+    // 4) map bounds (debounced)
     if (debouncedBounds) {
-      result = result.filter(farm => {
-        const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
-        return debouncedBounds.contains(position)
-      })
+      result = result.filter(f => debouncedBounds.contains(new google.maps.LatLng(f.location.lat, f.location.lng)))
     }
 
-    // Calculate distances and sort if user location is available
-    if (userLocation) {
-      result = result.map(farm => ({
-        ...farm,
-        distance: calculateDistance(
-          userLocation.latitude,
-          userLocation.longitude,
-          farm.location.lat,
-          farm.location.lng
-        )
-      }))
-
-      // Sort by distance
-      result.sort((a, b) => (a.distance || 0) - (b.distance || 0))
-    }
+    // 5) final sort by distance if we have one
+    if (userLocation) result = result.sort((a,b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
 
     return result
-  }, [farms, debouncedQuery, filters, debouncedBounds, userLocation])
+  }, [farms, userLocation, debouncedQuery, filters, debouncedBounds])
 
   // Update filtered farms when the computed result changes
   useEffect(() => {
