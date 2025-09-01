@@ -313,11 +313,11 @@ export default function MapShell({
         fullscreenControl: false,
         zoomControl: true,
         zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
-        gestureHandling: 'cooperative', // Better for iPhone Safari - allows both map and page gestures
+        gestureHandling: 'greedy', // Better for iOS - more responsive touch
         disableDoubleClickZoom: false, // Enable double-tap zoom for iOS
         clickableIcons: true, // Keep POI labels clickable
         draggable: true,
-        scrollwheel: false, // Disable scrollwheel on mobile
+        // Do NOT set scrollwheel: false — iOS ignores it and sometimes misbehaves
         keyboardShortcuts: false, // Disable keyboard shortcuts on mobile
         // Enhanced touch settings for iPhone
         isFractionalZoomEnabled: true,
@@ -335,13 +335,11 @@ export default function MapShell({
       })
       
       // Apply real padding that actually moves the camera
-      ;(map as any).setOptions({ 
-        padding: { 
-          top: 60, 
-          right: isDesktop ? 384 : 8, 
-          bottom: bottomSheetHeight, 
-          left: 8 
-        }
+      map.set('padding', { 
+        top: 60, 
+        right: isDesktop ? 384 : 8, 
+        bottom: bottomSheetHeight, 
+        left: 8 
       })
 
       mapInstanceRef.current = map
@@ -581,7 +579,7 @@ export default function MapShell({
         bottom: e.detail 
       }
       if (mapInstanceRef.current) {
-        ;(mapInstanceRef.current as any).setOptions({ padding: pad })
+        mapInstanceRef.current.set('padding', pad)
       }
     }
     window.addEventListener('map:setBottomPadding', handler)
@@ -690,7 +688,7 @@ export default function MapShell({
   return (
     <div className={`${className} relative safe-bottom`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 pointer-events-none">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-2"></div>
             <p className="text-sm text-gray-600">Loading map...</p>
