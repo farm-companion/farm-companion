@@ -34,26 +34,23 @@ interface MapShellProps {
   onMapReady?: (map: google.maps.Map) => void
 }
 
-// Pre-encoded cluster SVGs for performance (avoid innerHTML string building per render)
+// RAW SVG strings (not encoded) - will be encoded when building data: URLs
 const CLUSTER_SVGS = {
-  small: `data:image/svg+xml;utf8,${encodeURIComponent(`
+  small: `
     <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
       <circle cx="20" cy="20" r="18" fill="#00C2B2" stroke="white" stroke-width="2"/>
-      <text x="20" y="25" text-anchor="middle" fill="white" font-family="Inter" font-size="14" font-weight="600">%count%</text>
-    </svg>
-  `)}`,
-  medium: `data:image/svg+xml;utf8,${encodeURIComponent(`
+      <text x="20" y="25" text-anchor="middle" fill="white" font-family="Inter" font-size="14" font-weight="600">{COUNT}</text>
+    </svg>`,
+  medium: `
     <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
       <circle cx="24" cy="24" r="22" fill="#00C2B2" stroke="white" stroke-width="2"/>
-      <text x="24" y="30" text-anchor="middle" fill="white" font-family="Inter" font-size="16" font-weight="600">%count%</text>
-    </svg>
-  `)}`,
-  large: `data:image/svg+xml;utf8,${encodeURIComponent(`
+      <text x="24" y="30" text-anchor="middle" fill="white" font-family="Inter" font-size="16" font-weight="600">{COUNT}</text>
+    </svg>`,
+  large: `
     <svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
       <circle cx="28" cy="28" r="26" fill="#00C2B2" stroke="white" stroke-width="2"/>
-      <text x="28" y="35" text-anchor="middle" fill="white" font-family="Inter" font-size="18" font-weight="600">%count%</text>
-    </svg>
-  `)}`
+      <text x="28" y="35" text-anchor="middle" fill="white" font-family="Inter" font-size="18" font-weight="600">{COUNT}</text>
+    </svg>`
 }
 
 // UK bounds for fallback
@@ -156,23 +153,27 @@ export default function MapShell({
             console.log('Rendering cluster with count:', count)
             
             // Choose SVG size based on count for better visual hierarchy
-            let svgUrl: string
+            let raw: string
             let size: google.maps.Size
             let anchor: google.maps.Point
             
             if (count > 20) {
-              svgUrl = CLUSTER_SVGS.large.replace(/%count%/g, count.toString())
+              raw = CLUSTER_SVGS.large
               size = new google.maps.Size(56, 56)
               anchor = new google.maps.Point(28, 28)
             } else if (count > 5) {
-              svgUrl = CLUSTER_SVGS.medium.replace(/%count%/g, count.toString())
+              raw = CLUSTER_SVGS.medium
               size = new google.maps.Size(48, 48)
               anchor = new google.maps.Point(24, 24)
             } else {
-              svgUrl = CLUSTER_SVGS.small.replace(/%count%/g, count.toString())
+              raw = CLUSTER_SVGS.small
               size = new google.maps.Size(40, 40)
               anchor = new google.maps.Point(20, 20)
             }
+            
+            // Replace placeholder and encode once when building data: URL
+            const svg = raw.replace('{COUNT}', String(count))
+            const svgUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
             
             console.log('Cluster SVG URL:', svgUrl.substring(0, 100) + '...')
             
