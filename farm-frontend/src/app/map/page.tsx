@@ -7,6 +7,7 @@ import MapSearch from '@/components/MapSearch'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
 import LocationTracker from '@/components/LocationTracker'
+import LiveLocationTracker from '@/components/LiveLocationTracker'
 // Removed unused mobile-first components for cleaner imports
 import { useHaptic } from '@/components/HapticFeedback'
 import type { FarmShop } from '@/types/farm'
@@ -82,6 +83,8 @@ export default function MapPage() {
   const [bottomSheetHeight, setBottomSheetHeight] = useState(200)
   const [isDesktop, setIsDesktop] = useState(false)
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
+  const [isLiveTracking, setIsLiveTracking] = useState(false)
+  const [nearbyFarms, setNearbyFarms] = useState<FarmShop[]>([])
   const locationWatchIdRef = useRef<number | null>(null)
   
   // Mobile-first features
@@ -90,6 +93,25 @@ export default function MapPage() {
   // Debounced values to prevent excessive re-filtering
   const debouncedQuery = useDebounced(searchQuery, 150)
   const debouncedBounds = useDebounced(mapBounds, 150)
+
+  // Live location tracking callbacks
+  const handleLocationUpdate = useCallback((location: { latitude: number; longitude: number }) => {
+    setUserLocation(prev => prev ? { ...prev, ...location } : null)
+  }, [])
+
+  const handleFarmNearby = useCallback((farm: FarmShop, distance: number) => {
+    setNearbyFarms(prev => {
+      const exists = prev.find(f => f.id === farm.id)
+      if (!exists) {
+        return [...prev, farm].sort((a, b) => {
+          const distA = userLocation ? calculateDistance(userLocation.latitude, userLocation.longitude, a.location.lat, a.location.lng) : 0
+          const distB = userLocation ? calculateDistance(userLocation.latitude, userLocation.longitude, b.location.lat, b.location.lng) : 0
+          return distA - distB
+        })
+      }
+      return prev
+    })
+  }, [userLocation])
 
   // Fetch farm data
   useEffect(() => {
@@ -404,6 +426,14 @@ export default function MapPage() {
               className="w-full h-full"
             />
           </div>
+
+          {/* Live Location Tracker */}
+          <LiveLocationTracker
+            userLocation={userLocation}
+            farms={farms}
+            onLocationUpdate={handleLocationUpdate}
+            onFarmNearby={handleFarmNearby}
+          />
 
           {/* Mobile: Bottom Sheet with Farm List */}
           <div className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
