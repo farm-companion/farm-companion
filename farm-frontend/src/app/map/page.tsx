@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
+import Header from '@/components/Header'
 import MapSearch from '@/components/MapSearch'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
@@ -358,29 +359,30 @@ export default function MapPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      {/* Header with Mobile Menu */}
+      <Header />
+      
+      {/* Farm Count Display */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">Farm Shop Map</h1>
+              <h1 className="text-lg font-semibold text-gray-900">Farm Shop Map</h1>
               <p className="text-sm text-gray-600">
                 Discover local farm shops across the UK
               </p>
             </div>
             
-            {/* Desktop: Show farm count */}
-            <div className="hidden md:block">
-              <div className="text-right">
-                <div className="text-lg font-semibold text-gray-900">
-                  {filteredFarms.length}
-                </div>
-                <div className="text-sm text-gray-600">farms found</div>
+            {/* Farm Count */}
+            <div className="text-right">
+              <div className="text-lg font-semibold text-gray-900">
+                {filteredFarms.length}
               </div>
+              <div className="text-sm text-gray-600">farms found</div>
             </div>
           </div>
         </div>
-      </header>
+      </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto">
