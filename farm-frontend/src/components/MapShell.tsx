@@ -75,6 +75,7 @@ export default function MapShell({
   onFarmSelect,
   onMapLoad,
   onBoundsChange,
+  onZoomChange,
   center = UK_CENTER,
   zoom = 6,
   className = 'w-full h-full',
@@ -182,6 +183,18 @@ export default function MapShell({
     
     clustererRef.current.addMarkers(markers)
 
+    // Add cluster click handler for zoom-to-cluster functionality
+    clustererRef.current.addListener('clusterclick', ({ markers, latLng }: { markers: google.maps.Marker[]; latLng: google.maps.LatLng }) => {
+      const map = mapInstanceRef.current
+      if (!map) return
+      const b = new google.maps.LatLngBounds()
+      markers.forEach((m: google.maps.Marker) => m.getPosition() && b.extend(m.getPosition()!))
+      // Zoom gracefully into the cluster's extent
+      programmaticMove.current = true
+      map.fitBounds(b)
+      setTimeout(() => (programmaticMove.current = false), 200)
+    })
+
     // Fit bounds only once with calmer UK view (don't re-fit on every render)
     if (markers.length > 0 && !selectedFarmId && !hasFitted.current) {
       const bounds = new google.maps.LatLngBounds(
@@ -233,7 +246,7 @@ export default function MapShell({
     
     lastPadding.current = key
     // Apply real padding that actually moves the camera
-    map.set('padding', pad)
+    ;(map as any).setOptions({ padding: pad })
   }, [bottomSheetHeight, isDesktop])
 
   // Create map once (guard StrictMode)
@@ -253,12 +266,17 @@ export default function MapShell({
         streetViewControl: false,
         fullscreenControl: false,
         zoomControl: true,
+        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
         gestureHandling: 'greedy', // Better on iOS - more responsive touch
         disableDoubleClickZoom: false, // Enable double-tap zoom for iOS
         clickableIcons: true, // Keep POI labels clickable
         draggable: true,
         // Removed scrollwheel: false - mobile ignores it anyway
-        keyboardShortcuts: false // Disable keyboard shortcuts on mobile
+        keyboardShortcuts: false, // Disable keyboard shortcuts on mobile
+        styles: [
+          { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+          { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+        ]
       })
 
       // Set calmer initial camera & real padding
@@ -267,12 +285,14 @@ export default function MapShell({
         maxZoom: 18,
       })
       
-      // Apply real padding using map.set for Vector Maps support
-      map.set('padding', { 
-        top: 60, 
-        right: isDesktop ? 384 : 8, 
-        bottom: bottomSheetHeight, 
-        left: 8 
+      // Apply real padding that actually moves the camera
+      ;(map as any).setOptions({ 
+        padding: { 
+          top: 60, 
+          right: isDesktop ? 384 : 8, 
+          bottom: bottomSheetHeight, 
+          left: 8 
+        }
       })
 
       mapInstanceRef.current = map
@@ -301,21 +321,7 @@ export default function MapShell({
       // Store listener for cleanup
       map.set('idleListener', idleListener)
       
-      // iOS-specific touch handling
-      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
-        // Prevent iOS Safari from interfering with map gestures
-        ;(mapRef.current.style as any).webkitTouchCallout = 'none'
-        ;(mapRef.current.style as any).webkitUserSelect = 'none'
-        mapRef.current.style.userSelect = 'none'
-        
-        // Add touch event listeners for better iOS support
-        map.addListener('touchstart', (e: any) => {
-          // Prevent default touch behavior that might interfere
-          if (e.touches.length === 1) {
-            e.stopPropagation()
-          }
-        })
-      }
+      // iOS-specific touch handling removed - greedy gesture handling handles this better
     }).catch((err: any) => {
       console.error('Failed to load Google Maps:', err)
       
@@ -505,6 +511,14 @@ export default function MapShell({
     return () => window.removeEventListener('orientationchange', handleOrientationChange)
   }, [])
 
+  // Zoom change hook for parent state updates
+  useEffect(() => {
+    const map = mapInstanceRef.current
+    if (!map || !onZoomChange) return
+    const l = map.addListener('zoom_changed', () => onZoomChange(map.getZoom() ?? 0))
+    return () => google.maps.event.removeListener(l)
+  }, [onZoomChange])
+
   // Map padding update handler (bottom sheet + desktop rail)
   useEffect(() => {
     const handler = (e: any) => {
@@ -515,7 +529,7 @@ export default function MapShell({
         bottom: e.detail 
       }
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.set('padding', pad)
+        ;(mapInstanceRef.current as any).setOptions({ padding: pad })
       }
     }
     window.addEventListener('map:setBottomPadding', handler)
@@ -616,7 +630,7 @@ export default function MapShell({
   }
 
   return (
-    <div className={`${className} relative`}>
+    <div className={`${className} relative safe-bottom`}>
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10">
           <div className="text-center">

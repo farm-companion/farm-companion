@@ -204,3 +204,19 @@ html {
   position: absolute; 
   inset: 0; 
 }
+
+/* ============================================================================
+   MAP CONTAINER TOUCH BEHAVIOR & SAFE AREAS
+   ============================================================================ */
+
+/* Map container touch behavior (prevents iOS pull-to-refresh fighting the map) */
+.map-shell, .map-canvas, .map-shell > div, .map-canvas > div {
+  touch-action: pan-x pan-y;      /* let map handle touch */
+  overscroll-behavior: none;      /* stop pull-to-refresh edge drag */
+  -webkit-overflow-scrolling: auto;
+}
+
+/* Safe area utilities for edge-pinned components */
+.safe-bottom {
+  padding-bottom: calc(env(safe-area-inset-bottom));
+}
