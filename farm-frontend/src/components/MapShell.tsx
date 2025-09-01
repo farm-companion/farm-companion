@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { loadGoogle } from '@/lib/googleMaps'
+import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import type { FarmShop } from '@/types/farm'
 
 interface UserLocation {
@@ -61,7 +62,8 @@ export default function MapShell({
 }: MapShellProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
-  const markersRef = useRef<Record<string, google.maps.marker.AdvancedMarkerElement>>({})
+  const markersRef = useRef<Record<string, google.maps.Marker>>({})
+  const clustererRef = useRef<MarkerClusterer | null>(null)
   const userLocationMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -74,57 +76,80 @@ export default function MapShell({
   const programmaticMove = useRef(false)
   const boundsTimer = useRef<number | null>(null)
 
-  // Create markers for farms
+  // Create clustered markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
     if (!map || !farmData.length || typeof window === 'undefined') return
 
-    // Clear existing markers
-    Object.values(markersRef.current).forEach(marker => marker.map = null)
+    // Clear existing markers and clusterer
+    Object.values(markersRef.current).forEach(marker => marker.setMap(null))
     markersRef.current = {}
+    clustererRef.current?.clearMarkers()
 
-    const markers: google.maps.marker.AdvancedMarkerElement[] = []
-
+    // Build markers (but don't add to map one-by-one)
+    const markers: google.maps.Marker[] = []
+    
     farmData.forEach(farm => {
       if (!farm.location?.lat || !farm.location?.lng) return
 
-      const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
-
-      // Create custom marker element
-      const markerElement = document.createElement('div')
-      markerElement.innerHTML = `
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="12" cy="12" r="10" fill="#00C2B2" stroke="#FFFFFF" stroke-width="2"/>
-          <circle cx="12" cy="12" r="4" fill="#FFFFFF"/>
-        </svg>
-      `
-      markerElement.style.cursor = 'pointer'
-
-      const marker = new google.maps.marker.AdvancedMarkerElement({
-        position,
-        map,
-        content: markerElement,
+      const marker = new google.maps.Marker({
+        position: { lat: farm.location.lat, lng: farm.location.lng },
         title: farm.name,
+        icon: {
+          url: `data:image/svg+xml;utf8,${encodeURIComponent(
+            `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="16" cy="16" r="14" fill="#00C2B2" stroke="white" stroke-width="2"/>
+              <circle cx="16" cy="16" r="5" fill="white"/>
+            </svg>`
+          )}`,
+          scaledSize: new google.maps.Size(32, 32),
+          anchor: new google.maps.Point(16, 16),
+        },
+        optimized: true,
       })
 
-      // Add click listener
-      marker.addListener('click', () => {
-        onFarmSelect?.(farm.id)
-      })
-
-      // Store marker reference
+      marker.addListener('click', () => onFarmSelect?.(farm.id))
       markersRef.current[farm.id] = marker
       markers.push(marker)
     })
 
-    // Fit bounds only once
-    if (markers.length > 0 && !selectedFarmId && !hasFitted.current) {
-      const bounds = new google.maps.LatLngBounds()
-      Object.values(markersRef.current).forEach(m => {
-        const pos = m.position
-        if (pos) bounds.extend(pos)
+    // Create/update clusterer
+    if (!clustererRef.current) {
+      clustererRef.current = new MarkerClusterer({ 
+        map,
+        markers: [],
+        // Custom cluster style for better UX
+        renderer: {
+          render: ({ count, position }) => {
+            const color = count > 10 ? '#E11D48' : count > 5 ? '#F59E0B' : '#00C2B2'
+            const svg = `
+              <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="20" cy="20" r="18" fill="${color}" stroke="white" stroke-width="2"/>
+                <text x="20" y="25" text-anchor="middle" fill="white" font-size="12" font-weight="bold">${count}</text>
+              </svg>
+            `
+            return new google.maps.Marker({
+              position,
+              icon: {
+                url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
+                scaledSize: new google.maps.Size(40, 40),
+                anchor: new google.maps.Point(20, 20),
+              }
+            })
+          }
+        }
       })
+    }
+    
+    clustererRef.current.addMarkers(markers)
+
+    // Fit bounds only once with calmer UK view (don't re-fit on every render)
+    if (markers.length > 0 && !selectedFarmId && !hasFitted.current) {
+      const bounds = new google.maps.LatLngBounds(
+        { lat: 49.9, lng: -8.6 }, // southwest
+        { lat: 60.9, lng: 1.8 }   // northeast
+      )
       programmaticMove.current = true
-      map.fitBounds(bounds)
+      map.fitBounds(bounds, 0) // no extra zoom-in
       setTimeout(() => (programmaticMove.current = false), 200)
       hasFitted.current = true
     }
@@ -192,7 +217,21 @@ export default function MapShell({
         streetViewControl: false,
         fullscreenControl: false,
         zoomControl: true,
-        gestureHandling: 'cooperative'
+        gestureHandling: 'greedy'
+      })
+
+      // Set calmer initial camera & real padding
+      map.setOptions({
+        minZoom: 4,
+        maxZoom: 18,
+      })
+      
+      // Set custom padding (not available in MapOptions)
+      map.set('customPadding', { 
+        top: 100, 
+        right: isDesktop ? 384 : 8, 
+        bottom: bottomSheetHeight, 
+        left: 8 
       })
 
       mapInstanceRef.current = map
@@ -286,7 +325,7 @@ export default function MapShell({
 
     const marker = markersRef.current[selectedFarmId]
     if (marker) {
-      const position = marker.position
+      const position = marker.getPosition()
       if (position) {
         safePanTo(position)
         mapInstanceRef.current.setZoom(Math.max(mapInstanceRef.current.getZoom() || 10, 14))
@@ -361,10 +400,19 @@ export default function MapShell({
     return () => {
       const map = mapInstanceRef.current
       if (map) google.maps.event.clearInstanceListeners(map)
-      Object.values(markersRef.current).forEach(m => m.map = null)
+      
+      // Clear clusterer
+      clustererRef.current?.clearMarkers()
+      clustererRef.current = null
+      
+      // Clear regular markers
+      Object.values(markersRef.current).forEach(m => m.setMap(null))
       markersRef.current = {}
+      
+      // Clear user location marker
       userLocationMarkerRef.current && (userLocationMarkerRef.current.map = null)
       userLocationMarkerRef.current = null
+      
       mapInstanceRef.current = null
       if (mapRef.current) mapRef.current.innerHTML = ''
     }

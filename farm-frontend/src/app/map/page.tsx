@@ -378,9 +378,26 @@ export default function MapPage() {
 
                 {/* Map and List Container */}
         <div className="relative map-shell">
-          {/* Mobile: Top Action Bar */}
+                    {/* Mobile: Top Action Bar */}
           <div className="md:hidden absolute top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200">
             <div className="p-4">
+              {/* First-time user hint */}
+              {!userLocation && farms.length > 0 && !searchQuery && (
+                <div className="mb-4 bg-gradient-to-r from-blue-50 to-serum/10 border border-blue-200 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="w-2 h-2 bg-serum rounded-full mt-2 animate-pulse"></div>
+                    <div>
+                      <h4 className="font-semibold text-gray-900 text-sm mb-1">
+                        Find Local Farm Shops
+                      </h4>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        Tap &ldquo;Find My Location&rdquo; below to see farms near you, or search by postcode above. Swipe up from the bottom to browse all farms.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               {/* Main Search Bar */}
               <div className="mb-3">
                 <MapSearch
@@ -410,11 +427,11 @@ export default function MapPage() {
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <div className="bg-serum text-black px-3 py-1 rounded-full font-medium">
                     {filteredFarms.length} farms
-                </div>
+                  </div>
                 </div>
               </div>
-        </div>
-      </div>
+            </div>
+          </div>
 
           {/* Map */}
           <div className="map-canvas">

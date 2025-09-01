@@ -195,7 +195,7 @@ html {
 /* Mobile: account for top action bar */
 @media (max-width: 767px) {
   .map-canvas {
-    padding-top: 140px; /* Space for mobile action bar */
+    padding-top: 200px; /* Space for mobile action bar + onboarding hint */
   }
 }
 

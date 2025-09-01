@@ -210,16 +210,6 @@ export default function FarmList({
 
   return (
     <div className={`h-full flex flex-col ${className}`}>
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
-        <h2 className="font-semibold text-gray-900">
-          Farm Shops ({farms.length})
-        </h2>
-        <p className="text-sm text-gray-600">
-          {userLocation ? 'Sorted by distance from your location' : 'Tap a farm to see details and location'}
-        </p>
-      </div>
-
       {/* Farm List */}
       <div className="flex-1 overflow-hidden">
         {farms.length === 0 ? (

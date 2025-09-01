@@ -204,15 +204,15 @@ export default function MapSearch({
   }
 
   return (
-    <div className={`bg-white shadow-lg rounded-lg p-4 ${className}`}>
+    <div className={`bg-white shadow-xl rounded-xl border border-gray-100 p-6 ${className}`}>
       {/* Search Type Toggle */}
-      <div className="flex mb-4 bg-gray-100 rounded-lg p-1">
+      <div className="flex mb-6 bg-gray-50 rounded-xl p-1.5 shadow-inner">
         <button
           onClick={() => handleSearchTypeChange('text')}
-          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+          className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
             searchType === 'text' 
-              ? 'bg-white text-gray-900 shadow-sm' 
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-white text-gray-900 shadow-md border border-gray-200' 
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
           }`}
         >
           <Search className="w-4 h-4 inline mr-2" />
@@ -220,10 +220,10 @@ export default function MapSearch({
         </button>
         <button
           onClick={() => handleSearchTypeChange('w3w')}
-          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+          className={`flex-1 py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
             searchType === 'w3w' 
-              ? 'bg-white text-gray-900 shadow-sm' 
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-white text-gray-900 shadow-md border border-gray-200' 
+              : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
           }`}
         >
           <Globe className="w-4 h-4 inline mr-2" />
@@ -232,9 +232,9 @@ export default function MapSearch({
       </div>
 
       {/* Search Bar */}
-      <div className="flex gap-2 mb-4">
+      <div className="flex gap-3 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
           <input
             ref={searchRef}
             type="text"
@@ -251,13 +251,13 @@ export default function MapSearch({
                 handleW3WSearch()
               }
             }}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none transition-all"
+            className="w-full pl-12 pr-12 py-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-serum focus:border-serum outline-none text-base placeholder-gray-500 shadow-sm transition-all duration-200"
             aria-label={searchType === 'w3w' ? 'Enter what3words address' : 'Search farms'}
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-full hover:bg-gray-100"
               aria-label="Clear search"
             >
               <X className="w-4 h-4" />
@@ -269,7 +269,7 @@ export default function MapSearch({
           <button
             onClick={handleW3WSearch}
             disabled={isW3WLoading || !query}
-            className="px-4 py-3 rounded-lg transition-colors flex items-center gap-2 bg-serum text-white hover:bg-serum/90 disabled:opacity-50"
+            className="px-6 py-4 bg-gradient-to-r from-serum to-serum/90 text-white rounded-xl hover:from-serum/90 hover:to-serum transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-base font-semibold shadow-lg min-w-[100px] flex items-center gap-2"
             aria-label="Convert what3words address"
           >
             {isW3WLoading ? (
