@@ -72,10 +72,11 @@ export default function MapShell({
   // Flicker prevention refs
   const hasInit = useRef(false)
   const hasFitted = useRef(false)
-  const lastIds = useRef<string>('')
+
   const lastPadding = useRef<string>('')
   const programmaticMove = useRef(false)
-  const boundsTimer = useRef<number | null>(null)
+
+  const idsKey = useRef<string>('')
 
   // Create clustered markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
@@ -156,18 +157,15 @@ export default function MapShell({
     }
   }, [selectedFarmId, onFarmSelect])
 
-  // Debounced bounds listener
+  // Idle-based bounds listener (much calmer than bounds_changed)
   const attachBoundsListener = useCallback(() => {
     const map = mapInstanceRef.current
     if (!map || !onBoundsChange) return
 
-    map.addListener('bounds_changed', () => {
+    map.addListener('idle', () => {
       if (programmaticMove.current) return
-      if (boundsTimer.current) window.clearTimeout(boundsTimer.current)
-      boundsTimer.current = window.setTimeout(() => {
-        const b = map.getBounds()
-        if (b) onBoundsChange(b)
-      }, 150)
+      const b = map.getBounds()
+      if (b) onBoundsChange(b)
     })
   }, [onBoundsChange])
 
@@ -186,7 +184,7 @@ export default function MapShell({
     if (!map) return
     
     const pad = {
-      top: 8,
+      top: 60,
       left: 8,
       right: isDesktop ? 384 : 8,
       bottom: bottomSheetHeight
@@ -196,9 +194,8 @@ export default function MapShell({
     if (key === lastPadding.current) return
     
     lastPadding.current = key
-    // Store padding for later use and trigger resize
-    map.set('customPadding', pad)
-    google.maps.event.trigger(map, 'resize')
+    // Apply real padding that actually moves the camera
+    map.set('padding', pad)
   }, [bottomSheetHeight, isDesktop])
 
   // Create map once (guard StrictMode)
@@ -218,7 +215,12 @@ export default function MapShell({
         streetViewControl: false,
         fullscreenControl: false,
         zoomControl: true,
-        gestureHandling: 'greedy'
+        gestureHandling: 'cooperative', // Better for iOS
+        disableDoubleClickZoom: false, // Enable double-tap zoom for iOS
+        clickableIcons: true,
+        draggable: true,
+        scrollwheel: false, // Disable scroll wheel on mobile
+        keyboardShortcuts: false // Disable keyboard shortcuts on mobile
       })
 
       // Set calmer initial camera & real padding
@@ -227,9 +229,9 @@ export default function MapShell({
         maxZoom: 18,
       })
       
-      // Set custom padding (not available in MapOptions)
-      map.set('customPadding', { 
-        top: 100, 
+      // Apply real padding using map.set for Vector Maps support
+      map.set('padding', { 
+        top: 60, 
         right: isDesktop ? 384 : 8, 
         bottom: bottomSheetHeight, 
         left: 8 
@@ -243,6 +245,36 @@ export default function MapShell({
       
       // attach listeners AFTER init
       attachBoundsListener()
+      
+      // Add idle listener for marker rebuilding (triggers when map stops moving)
+      map.addListener('idle', () => {
+        const key = farms.map(f => f.id).sort().join('|')
+        if (key === idsKey.current) return
+        idsKey.current = key
+        
+        // Defer marker creation to idle time with small timeout
+        if (typeof requestIdleCallback === 'function') {
+          requestIdleCallback(() => createMarkers(map, farms), { timeout: 100 })
+        } else {
+          setTimeout(() => createMarkers(map, farms), 0)
+        }
+      })
+      
+      // iOS-specific touch handling
+      if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
+        // Prevent iOS Safari from interfering with map gestures
+        ;(mapRef.current.style as any).webkitTouchCallout = 'none'
+        ;(mapRef.current.style as any).webkitUserSelect = 'none'
+        mapRef.current.style.userSelect = 'none'
+        
+        // Add touch event listeners for better iOS support
+        map.addListener('touchstart', (e: any) => {
+          // Prevent default touch behavior that might interfere
+          if (e.touches.length === 1) {
+            e.stopPropagation()
+          }
+        })
+      }
     }).catch((err: any) => {
       console.error('Failed to load Google Maps:', err)
       
@@ -263,14 +295,7 @@ export default function MapShell({
     return () => clearTimeout(t)
   }, [applyResponsivePadding])
 
-  // Stop re-creating all markers on every change
-  useEffect(() => {
-    const ids = farms.map(f => f.id).join(',')
-    if (!mapInstanceRef.current) return
-    if (ids === lastIds.current) return
-    lastIds.current = ids
-    createMarkers(mapInstanceRef.current, farms)
-  }, [farms, createMarkers])
+  // Marker rebuilding now handled by idle listener for better performance
 
   // Update user location marker
   useEffect(() => {
@@ -382,14 +407,13 @@ export default function MapShell({
   useEffect(() => {
     const handler = (e: any) => {
       const pad = { 
-        top: 8, 
+        top: 60, 
         left: 8, 
         right: window.matchMedia('(min-width:768px)').matches ? 384 : 8, 
         bottom: e.detail 
       }
       if (mapInstanceRef.current) {
-        mapInstanceRef.current.set('customPadding', pad)
-        google.maps.event.trigger(mapInstanceRef.current, 'resize')
+        mapInstanceRef.current.set('padding', pad)
       }
     }
     window.addEventListener('map:setBottomPadding', handler)

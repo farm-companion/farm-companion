@@ -82,7 +82,6 @@ export default function MapPage() {
   const [bottomSheetHeight, setBottomSheetHeight] = useState(200)
   const [isDesktop, setIsDesktop] = useState(false)
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
-  const [mapZoom, setMapZoom] = useState(6)
   const locationWatchIdRef = useRef<number | null>(null)
   
   // Mobile-first features
@@ -285,8 +284,8 @@ export default function MapPage() {
   }, [])
 
   // Handle map zoom change
-  const handleZoomChange = useCallback((zoom: number) => {
-    setMapZoom(zoom)
+  const handleZoomChange = useCallback(() => {
+    // Zoom change handled by MapShell internally
   }, [])
 
 
@@ -359,47 +358,25 @@ export default function MapPage() {
               onZoomToLocation={zoomToLocation}
               className="max-w-md"
             />
-                      </div>
-                    </div>
+          </div>
+        </div>
 
-                {/* Map and List Container */}
+        {/* Map and List Container */}
         <div className="relative map-shell">
-                    {/* Mobile: Top Action Bar */}
+          {/* Mobile: Minimal Search Only */}
           <div className="md:hidden absolute top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-            <div className="p-4">
-              {/* Mobile: Instructional overlay removed for clarity */}
-              
-              {/* Mobile: Simplified search bar */}
-              <div className="mb-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <input
-                    type="text"
-                    placeholder="Search farms..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none"
-                    aria-label="Search farms"
-                  />
-                </div>
-              </div>
-              
-              {/* Location Action Button */}
-              <div className="flex items-center justify-between">
-                <LocationTracker
-                  farms={farms}
-                  onLocationUpdate={setUserLocation}
-                  onFarmsUpdate={setFarms}
-                  onZoomToLocation={zoomToLocation}
-                  compact={false}
+            <div className="p-3">
+              {/* Single search input only */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="Search farms..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none text-sm"
+                  aria-label="Search farms"
                 />
-                
-                {/* Farm Count Badge */}
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <div className="bg-serum text-black px-3 py-1 rounded-full font-medium">
-                    {filteredFarms.length} farms
-                  </div>
-                </div>
               </div>
             </div>
           </div>
@@ -419,15 +396,10 @@ export default function MapPage() {
               className="w-full h-full"
             />
 
-            {/* Zoom Helper Overlay */}
-            {(mapZoom < 7) && (
-              <div className="md:hidden absolute top-[calc(200px+8px)] right-4 bg-gray-900/80 text-white text-xs px-2 py-1 rounded z-10">
-                Pinch or tap clusters to zoom in
-              </div>
-            )}
+            {/* Zoom Helper Overlay - Removed for cleaner UX */}
           </div>
 
-                    {/* Mobile: Bottom Sheet with Farm List */}
+          {/* Mobile: Bottom Sheet with Farm List */}
           <div className="md:hidden">
             <BottomSheet
               isOpen={true}
@@ -438,9 +410,9 @@ export default function MapPage() {
                 window.dispatchEvent(new CustomEvent('map:setBottomPadding', { detail: height }))
               }}
             >
-              {/* Bottom Sheet Header - Minimal */}
-              <div className="px-4 py-2 border-b border-gray-200 bg-white">
-                <div className="flex items-center justify-between">
+              {/* Bottom Sheet Header - With Actions */}
+              <div className="px-4 py-3 border-b border-gray-200 bg-white">
+                <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-900">
                       {filteredFarms.length} farms
@@ -450,6 +422,17 @@ export default function MapPage() {
                     <div className="w-6 h-1 bg-gray-300 rounded-full mx-auto mb-1"></div>
                     <span className="text-xs text-gray-500">⌄</span>
                   </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <LocationTracker
+                    farms={farms}
+                    onLocationUpdate={setUserLocation}
+                    onFarmsUpdate={setFarms}
+                    onZoomToLocation={zoomToLocation}
+                    compact={true}
+                  />
                 </div>
               </div>
               
