@@ -124,13 +124,19 @@ export default function MapPage() {
     setIsLocationLoading(true)
     
     try {
-      // Check permission first
-      const permission = await navigator.permissions.query({ name: 'geolocation' })
-      
-      if (permission.state === 'denied') {
-        alert('Please enable location access in your browser settings to use this feature')
-        setIsLocationLoading(false)
-        return
+      // Check permission first (with Safari fallback)
+      const canQuery = typeof navigator.permissions?.query === 'function'
+      if (canQuery) {
+        try {
+          const perm = await navigator.permissions.query({ name: 'geolocation' as PermissionName })
+          if (perm.state === 'denied') {
+            alert('Please enable location access in your browser settings to use this feature')
+            setIsLocationLoading(false)
+            return
+          }
+        } catch {
+          /* ignore permission query errors */
+        }
       }
 
       const position = await new Promise<GeolocationPosition>((resolve, reject) => {
