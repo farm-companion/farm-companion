@@ -192,10 +192,10 @@ html {
   }
 }
 
-/* Mobile: account for minimal top action bar */
+/* Mobile: account for minimal search bar only */
 @media (max-width: 767px) {
   .map-canvas {
-    padding-top: 80px; /* Space for minimal search bar only */
+    padding-top: 60px; /* Space for minimal search bar only */
   }
 }
 
