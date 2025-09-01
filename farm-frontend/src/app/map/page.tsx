@@ -362,10 +362,10 @@ export default function MapPage() {
         </div>
 
         {/* Map and List Container */}
-        <div className="relative map-shell">
+        <div className="relative h-[100svh] overflow-hidden">
           {/* Mobile: Minimal Search Only */}
-          <div className="md:hidden absolute top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200">
-            <div className="p-3">
+          <div className="md:hidden absolute top-0 left-0 right-0 z-20 pointer-events-none">
+            <div className="p-3 pointer-events-auto bg-white/95 backdrop-blur-sm border-b border-gray-200">
               {/* Single search input only */}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -382,7 +382,7 @@ export default function MapPage() {
           </div>
 
           {/* Map */}
-          <div className="map-canvas">
+          <div className="absolute inset-0">
             <MapShellWithNoSSR
               farms={filteredFarms}
               selectedFarmId={selectedFarmId}
@@ -395,12 +395,10 @@ export default function MapPage() {
               onMapReady={setMapInstance}
               className="w-full h-full"
             />
-
-            {/* Zoom Helper Overlay - Removed for cleaner UX */}
           </div>
 
           {/* Mobile: Bottom Sheet with Farm List */}
-          <div className="md:hidden">
+          <div className="md:hidden absolute bottom-0 left-0 right-0 z-30">
             <BottomSheet
               isOpen={true}
               snapPoints={[40, 200, 400]}
