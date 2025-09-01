@@ -22,6 +22,7 @@ interface LocationTrackerProps {
   onLocationUpdate: (location: UserLocation) => void
   onFarmsUpdate: (farms: FarmShop[]) => void
   onZoomToLocation?: () => void
+  compact?: boolean
   className?: string
 }
 
@@ -51,6 +52,7 @@ export default function LocationTracker({
   onLocationUpdate, 
   onFarmsUpdate, 
   onZoomToLocation,
+  compact = false,
   className = '' 
 }: LocationTrackerProps) {
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
@@ -247,6 +249,45 @@ export default function LocationTracker({
     }
   }, [])
 
+  // Compact mobile version
+  if (compact) {
+    return (
+      <div className={`flex gap-2 ${className}`}>
+        <button
+          onClick={onZoomToLocation || getCurrentLocation}
+          disabled={isLoading || permission === 'denied'}
+          className="flex items-center justify-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+          title={isLoading ? 'Getting Location...' : userLocation ? 'Zoom to Location' : 'Get Location'}
+        >
+          <MapPin className="w-3 h-3" />
+          {isLoading ? '...' : userLocation ? 'Zoom' : 'Locate'}
+        </button>
+
+        {!isTracking ? (
+          <button
+            onClick={startTracking}
+            disabled={permission === 'denied'}
+            className="flex items-center justify-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+            title="Start tracking location"
+          >
+            <Wifi className="w-3 h-3" />
+            Track
+          </button>
+        ) : (
+          <button
+            onClick={stopTracking}
+            className="flex items-center justify-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors text-xs"
+            title="Stop tracking location"
+          >
+            <WifiOff className="w-3 h-3" />
+            Stop
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  // Full desktop version
   return (
     <div className={`flex flex-col gap-3 ${className}`}>
       {/* Location Status */}

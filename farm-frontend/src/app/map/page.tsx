@@ -384,8 +384,8 @@ export default function MapPage() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto">
-        {/* Search and Filters */}
-        <div className="p-4">
+        {/* Search and Filters - Desktop Only */}
+        <div className="hidden md:block p-4">
           <MapSearch
             onSearch={handleSearch}
             onNearMe={handleNearMe}
@@ -411,6 +411,36 @@ export default function MapPage() {
 
         {/* Map and List Container */}
         <div className="relative map-shell">
+          {/* Mobile Search Bar - Floating */}
+          <div className="md:hidden absolute top-4 left-4 right-4 z-10">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-3">
+              <MapSearch
+                onSearch={handleSearch}
+                onNearMe={handleNearMe}
+                onFilterChange={handleFilterChange}
+                onW3WCoordinates={handleW3WCoordinates}
+                counties={counties}
+                categories={categories}
+                isLocationLoading={isLocationLoading}
+                hasLocation={userLocation !== null}
+                compact={true}
+              />
+            </div>
+          </div>
+
+          {/* Mobile Location Controls - Floating */}
+          <div className="md:hidden absolute top-20 left-4 z-10">
+            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-2">
+              <LocationTracker
+                farms={farms}
+                onLocationUpdate={setUserLocation}
+                onFarmsUpdate={setFarms}
+                onZoomToLocation={zoomToLocation}
+                compact={true}
+              />
+            </div>
+          </div>
+
           {/* Map */}
           <div className="map-canvas">
             <MapShellWithNoSSR
@@ -431,8 +461,8 @@ export default function MapPage() {
           <div className="md:hidden">
             <BottomSheet
               isOpen={true}
-              snapPoints={[200, 400, 600]}
-              defaultSnap={1}
+              snapPoints={[120, 300, 500]}
+              defaultSnap={0}
               onHeightChange={(height) => {
                 setBottomSheetHeight(height)
                 window.dispatchEvent(new CustomEvent('map:setBottomPadding', { detail: height }))

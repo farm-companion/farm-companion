@@ -171,12 +171,24 @@ html {
 /* map wrapper uses dynamic viewport */
 .map-shell {
   position: relative;
-  height: calc(100dvh - var(--header-h) - var(--search-h));
+  height: calc(100dvh - var(--header-h));
   padding-bottom: env(safe-area-inset-bottom); /* iOS home bar */
 }
 @supports not (height: 100dvh) {
   .map-shell { 
-    height: calc(100vh - var(--header-h) - var(--search-h)); 
+    height: calc(100vh - var(--header-h)); 
+  }
+}
+
+/* Desktop: account for search bar */
+@media (min-width: 768px) {
+  .map-shell {
+    height: calc(100dvh - var(--header-h) - var(--search-h));
+  }
+  @supports not (height: 100dvh) {
+    .map-shell { 
+      height: calc(100vh - var(--header-h) - var(--search-h)); 
+    }
   }
 }
 

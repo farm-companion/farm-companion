@@ -20,6 +20,7 @@ interface MapSearchProps {
   className?: string
   isLocationLoading?: boolean
   hasLocation?: boolean
+  compact?: boolean
 }
 
 interface W3WResponse {
@@ -41,7 +42,8 @@ export default function MapSearch({
   categories,
   className = '',
   isLocationLoading = false,
-  hasLocation = false
+  hasLocation = false,
+  compact = false
 }: MapSearchProps) {
   const [query, setQuery] = useState('')
   const [filters, setFilters] = useState<FilterState>({})
@@ -153,6 +155,53 @@ export default function MapSearch({
   }, [onFilterChange])
 
   const hasActiveFilters = filters.county || filters.category || filters.openNow
+
+  // Compact mobile version
+  if (compact) {
+    return (
+      <div className={`flex gap-2 ${className}`}>
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+          <input
+            ref={searchRef}
+            type="text"
+            placeholder="Search farms..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-7 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-serum focus:border-transparent outline-none"
+            aria-label="Search farms"
+          />
+          {query && (
+            <button
+              onClick={() => setQuery('')}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label="Clear search"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+        
+        <button
+          onClick={handleNearMe}
+          disabled={isLocationLoading}
+          className={`px-3 py-2 rounded-md transition-colors flex items-center gap-1 text-xs ${
+            hasLocation 
+              ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+              : 'bg-serum text-white hover:bg-serum/90'
+          } disabled:opacity-50`}
+          title="Find farms near me"
+        >
+          {isLocationLoading ? (
+            <Loader2 className="w-3 h-3 animate-spin" />
+          ) : (
+            <Navigation className="w-3 h-3" />
+          )}
+          Near
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className={`bg-white shadow-lg rounded-lg p-4 ${className}`}>
