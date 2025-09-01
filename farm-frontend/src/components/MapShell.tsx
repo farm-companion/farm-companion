@@ -65,7 +65,7 @@ export default function MapShell({
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
   const markersRef = useRef<Record<string, google.maps.Marker>>({})
   const clustererRef = useRef<MarkerClusterer | null>(null)
-  const userLocationMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | null>(null)
+  const userLocationMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -307,7 +307,12 @@ export default function MapShell({
 
     // Remove existing user location marker
     if (userLocationMarkerRef.current) {
-      userLocationMarkerRef.current.map = null
+      // Handle both AdvancedMarkerElement and regular Marker
+      if ('map' in userLocationMarkerRef.current) {
+        userLocationMarkerRef.current.map = null
+      } else if ('setMap' in userLocationMarkerRef.current) {
+        userLocationMarkerRef.current.setMap(null)
+      }
     }
 
     // Create user location marker element
@@ -319,12 +324,52 @@ export default function MapShell({
       </svg>
     `
 
-    userLocationMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
-      position,
-      map,
-      content: userLocationElement,
-      title: 'Your Location',
-    })
+    // Use AdvancedMarkerElement if available, fallback to regular Marker
+    try {
+      if (google.maps.marker?.AdvancedMarkerElement) {
+        userLocationMarkerRef.current = new google.maps.marker.AdvancedMarkerElement({
+          position,
+          map,
+          content: userLocationElement,
+          title: 'Your Location',
+        })
+      } else {
+        // Fallback to regular marker if AdvancedMarkerElement not available
+        userLocationMarkerRef.current = new google.maps.Marker({
+          position,
+          map,
+          icon: {
+            url: `data:image/svg+xml;utf8,${encodeURIComponent(
+              `<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="8" fill="#3B82F6" stroke="white" stroke-width="2"/>
+                <circle cx="12" cy="12" r="3" fill="white"/>
+              </svg>`
+            )}`,
+            scaledSize: new google.maps.Size(24, 24),
+            anchor: new google.maps.Point(12, 12),
+          },
+          title: 'Your Location',
+        }) as any
+      }
+    } catch (error) {
+      console.warn('AdvancedMarkerElement not available, using fallback:', error)
+      // Fallback to regular marker
+      userLocationMarkerRef.current = new google.maps.Marker({
+        position,
+        map,
+        icon: {
+          url: `data:image/svg+xml;utf8,${encodeURIComponent(
+            `<svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="12" cy="12" r="8" fill="#3B82F6" stroke="white" stroke-width="2"/>
+              <circle cx="12" cy="12" r="3" fill="white"/>
+            </svg>`
+          )}`,
+          scaledSize: new google.maps.Size(24, 24),
+          anchor: new google.maps.Point(12, 12),
+        },
+        title: 'Your Location',
+      }) as any
+    }
 
     // Add accuracy circle
     const accuracyCircle = new google.maps.Circle({
@@ -340,7 +385,12 @@ export default function MapShell({
 
     return () => {
       if (userLocationMarkerRef.current) {
-        userLocationMarkerRef.current.map = null
+        // Handle both AdvancedMarkerElement and regular Marker
+        if ('map' in userLocationMarkerRef.current) {
+          userLocationMarkerRef.current.map = null
+        } else if ('setMap' in userLocationMarkerRef.current) {
+          userLocationMarkerRef.current.setMap(null)
+        }
       }
       accuracyCircle.setMap(null)
     }
@@ -438,17 +488,31 @@ export default function MapShell({
       const map = mapInstanceRef.current
       if (map) google.maps.event.clearInstanceListeners(map)
       
-      // Clear clusterer
-      clustererRef.current?.clearMarkers()
-      clustererRef.current = null
+      // Clear clusterer with belt-and-braces cleanup
+      if (clustererRef.current) {
+        google.maps.event.clearInstanceListeners(clustererRef.current)
+        clustererRef.current.clearMarkers()
+        clustererRef.current = null
+      }
       
-      // Clear regular markers
-      Object.values(markersRef.current).forEach(m => m.setMap(null))
+      // Clear regular markers with listener cleanup
+      Object.values(markersRef.current).forEach(marker => {
+        google.maps.event.clearInstanceListeners(marker)
+        marker.setMap(null)
+      })
       markersRef.current = {}
       
-      // Clear user location marker
-      userLocationMarkerRef.current && (userLocationMarkerRef.current.map = null)
-      userLocationMarkerRef.current = null
+      // Clear user location marker with listener cleanup
+      if (userLocationMarkerRef.current) {
+        google.maps.event.clearInstanceListeners(userLocationMarkerRef.current)
+        // Handle both AdvancedMarkerElement and regular Marker
+        if ('map' in userLocationMarkerRef.current) {
+          userLocationMarkerRef.current.map = null
+        } else if ('setMap' in userLocationMarkerRef.current) {
+          userLocationMarkerRef.current.setMap(null)
+        }
+        userLocationMarkerRef.current = null
+      }
       
       mapInstanceRef.current = null
       if (mapRef.current) mapRef.current.innerHTML = ''

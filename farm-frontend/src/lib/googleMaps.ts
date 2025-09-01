@@ -7,7 +7,10 @@ export function loadGoogle() {
     const loader = new Loader({
       apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
       version: 'weekly',
-      libraries: ['places', 'marker']
+      libraries: [
+        'places',    // For places API features
+        'marker'     // Required for AdvancedMarkerElement
+      ]
     })
     promise = loader.load()
   }
