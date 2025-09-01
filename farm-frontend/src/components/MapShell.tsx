@@ -24,6 +24,7 @@ interface MapShellProps {
   onFarmSelect?: (farmId: string) => void
   onMapLoad?: (map: google.maps.Map) => void
   onBoundsChange?: (bounds: google.maps.LatLngBounds) => void
+  onZoomChange?: (zoom: number) => void
   center?: { lat: number; lng: number }
   zoom?: number
   className?: string
