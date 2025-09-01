@@ -373,38 +373,46 @@ export default function MapPage() {
               onZoomToLocation={zoomToLocation}
               className="max-w-md"
             />
-          </div>
-        </div>
+                      </div>
+                    </div>
 
-        {/* Map and List Container */}
+                {/* Map and List Container */}
         <div className="relative map-shell">
-          {/* Mobile Search Bar - Floating */}
-          <div className="md:hidden absolute top-4 left-4 right-4 z-10">
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-3">
-              <MapSearch
-                onSearch={handleSearch}
-                onNearMe={handleNearMe}
-                onFilterChange={handleFilterChange}
-                onW3WCoordinates={handleW3WCoordinates}
-                counties={counties}
-                categories={categories}
-                isLocationLoading={isLocationLoading}
-                hasLocation={userLocation !== null}
-                compact={true}
-              />
-            </div>
-          </div>
-          
-          {/* Mobile Location Controls - Floating */}
-          <div className="md:hidden absolute top-20 left-4 z-10">
-            <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-2">
-              <LocationTracker
-                farms={farms}
-                onLocationUpdate={setUserLocation}
-                onFarmsUpdate={setFarms}
-                onZoomToLocation={zoomToLocation}
-                compact={true}
-              />
+          {/* Mobile: Top Action Bar */}
+          <div className="md:hidden absolute top-0 left-0 right-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200">
+            <div className="p-4">
+              {/* Main Search Bar */}
+              <div className="mb-3">
+                <MapSearch
+                  onSearch={handleSearch}
+                  onNearMe={handleNearMe}
+                  onFilterChange={handleFilterChange}
+                  onW3WCoordinates={handleW3WCoordinates}
+                  counties={counties}
+                  categories={categories}
+                  isLocationLoading={isLocationLoading}
+                  hasLocation={userLocation !== null}
+                  compact={false}
+                />
+              </div>
+              
+              {/* Location Action Button */}
+              <div className="flex items-center justify-between">
+                <LocationTracker
+                  farms={farms}
+                  onLocationUpdate={setUserLocation}
+                  onFarmsUpdate={setFarms}
+                  onZoomToLocation={zoomToLocation}
+                  compact={false}
+                />
+                
+                {/* Farm Count Badge */}
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="bg-serum text-black px-3 py-1 rounded-full font-medium">
+                    {filteredFarms.length} farms
+                </div>
+                </div>
+              </div>
         </div>
       </div>
 
@@ -423,25 +431,46 @@ export default function MapPage() {
             />
           </div>
 
-          {/* Mobile: Bottom Sheet with Farm List */}
+                    {/* Mobile: Bottom Sheet with Farm List */}
           <div className="md:hidden">
             <BottomSheet
               isOpen={true}
-              snapPoints={[120, 300, 500]}
+              snapPoints={[160, 350, 500]}
               defaultSnap={0}
               onHeightChange={(height) => {
                 setBottomSheetHeight(height)
                 window.dispatchEvent(new CustomEvent('map:setBottomPadding', { detail: height }))
               }}
             >
-              <FarmList
-                farms={filteredFarms} 
-                selectedFarmId={selectedFarmId}
-                onFarmSelect={handleFarmSelect}
-                userLocation={userLocation}
-                formatDistance={formatDistance}
-                className="h-full"
-              />
+              {/* Bottom Sheet Header */}
+              <div className="px-4 py-3 border-b border-gray-200 bg-white">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Farm Shops ({filteredFarms.length})
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      {userLocation ? 'Sorted by distance' : 'Tap a farm to see details'}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <div className="w-8 h-1 bg-gray-300 rounded-full mx-auto mb-2"></div>
+                    <p className="text-xs text-gray-500">Swipe up</p>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Farm List */}
+              <div className="flex-1 overflow-hidden">
+                <FarmList
+                  farms={filteredFarms}
+                  selectedFarmId={selectedFarmId}
+                  onFarmSelect={handleFarmSelect}
+                  userLocation={userLocation}
+                  formatDistance={formatDistance}
+                  className="h-full"
+                />
+              </div>
             </BottomSheet>
           </div>
 
