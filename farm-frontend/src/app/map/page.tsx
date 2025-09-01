@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
-import Header from '@/components/Header'
 import MapSearch from '@/components/MapSearch'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
@@ -169,7 +168,7 @@ export default function MapPage() {
       getCurrentLocation()
       return
     }
-
+    
     const position = new google.maps.LatLng(userLocation.latitude, userLocation.longitude)
     mapInstance.panTo(position)
     mapInstance.setZoom(15) // Zoom to street level
@@ -328,9 +327,6 @@ export default function MapPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with Mobile Menu */}
-      <Header />
-      
       {/* Farm Count Display */}
       <div className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-7xl mx-auto">
@@ -398,7 +394,7 @@ export default function MapPage() {
               />
             </div>
           </div>
-
+          
           {/* Mobile Location Controls - Floating */}
           <div className="md:hidden absolute top-20 left-4 z-10">
             <div className="bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-2">
@@ -409,14 +405,14 @@ export default function MapPage() {
                 onZoomToLocation={zoomToLocation}
                 compact={true}
               />
-            </div>
-          </div>
+        </div>
+      </div>
 
           {/* Map */}
           <div className="map-canvas">
             <MapShellWithNoSSR
               farms={filteredFarms}
-              selectedFarmId={selectedFarmId}
+          selectedFarmId={selectedFarmId}
               onFarmSelect={handleFarmSelect}
               onBoundsChange={handleBoundsChange}
               userLocation={userLocation}
@@ -439,7 +435,7 @@ export default function MapPage() {
               }}
             >
               <FarmList
-                farms={filteredFarms}
+                farms={filteredFarms} 
                 selectedFarmId={selectedFarmId}
                 onFarmSelect={handleFarmSelect}
                 userLocation={userLocation}
