@@ -153,24 +153,28 @@ export default function MapShell({
       if (!clusterRenderer.current) {
         clusterRenderer.current = {
           render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
+            console.log('Rendering cluster with count:', count)
+            
             // Choose SVG size based on count for better visual hierarchy
             let svgUrl: string
             let size: google.maps.Size
             let anchor: google.maps.Point
             
             if (count > 20) {
-              svgUrl = CLUSTER_SVGS.large.replace('%count%', count.toString())
+              svgUrl = CLUSTER_SVGS.large.replace(/%count%/g, count.toString())
               size = new google.maps.Size(56, 56)
               anchor = new google.maps.Point(28, 28)
             } else if (count > 5) {
-              svgUrl = CLUSTER_SVGS.medium.replace('%count%', count.toString())
+              svgUrl = CLUSTER_SVGS.medium.replace(/%count%/g, count.toString())
               size = new google.maps.Size(48, 48)
               anchor = new google.maps.Point(24, 24)
             } else {
-              svgUrl = CLUSTER_SVGS.small.replace('%count%', count.toString())
+              svgUrl = CLUSTER_SVGS.small.replace(/%count%/g, count.toString())
               size = new google.maps.Size(40, 40)
               anchor = new google.maps.Point(20, 20)
             }
+            
+            console.log('Cluster SVG URL:', svgUrl.substring(0, 100) + '...')
             
             return new google.maps.Marker({
               position,
@@ -308,12 +312,15 @@ export default function MapShell({
         fullscreenControl: false,
         zoomControl: true,
         zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
-        gestureHandling: 'greedy', // Better on iOS - more responsive touch
+        gestureHandling: 'cooperative', // Better for iPhone Safari - allows both map and page gestures
         disableDoubleClickZoom: false, // Enable double-tap zoom for iOS
         clickableIcons: true, // Keep POI labels clickable
         draggable: true,
-        // Removed scrollwheel: false - mobile ignores it anyway
+        scrollwheel: false, // Disable scrollwheel on mobile
         keyboardShortcuts: false, // Disable keyboard shortcuts on mobile
+        // Enhanced touch settings for iPhone
+        isFractionalZoomEnabled: true,
+        tilt: 0, // Disable 3D tilt for better performance
         styles: [
           { featureType: 'poi', stylers: [{ visibility: 'off' }] },
           { featureType: 'transit', stylers: [{ visibility: 'off' }] }
@@ -352,7 +359,21 @@ export default function MapShell({
       // kick an initial build too
       scheduleMarkerRebuild()
       
-      // iOS-specific touch handling removed - greedy gesture handling handles this better
+      // Enhanced touch handling for iPhone Safari
+      const mapElement = mapRef.current
+      if (mapElement) {
+        // Prevent default touch behaviors that might interfere with map gestures
+        mapElement.addEventListener('touchstart', (e) => {
+          // Allow map to handle touch events
+          e.stopPropagation()
+        }, { passive: false })
+        
+        mapElement.addEventListener('touchmove', (e) => {
+          // Allow map to handle touch events
+          e.stopPropagation()
+        }, { passive: false })
+      }
+      
     }).catch((err: any) => {
       console.error('Failed to load Google Maps:', err)
       
@@ -675,7 +696,15 @@ export default function MapShell({
           </div>
         </div>
       )}
-      <div ref={mapRef} className="absolute inset-0" />
+      <div 
+        ref={mapRef} 
+        className="absolute inset-0" 
+        style={{
+          touchAction: 'none', // Prevent browser from handling touch events
+          WebkitUserSelect: 'none', // Prevent text selection on iOS
+          userSelect: 'none'
+        }}
+      />
     </div>
   )
 }
