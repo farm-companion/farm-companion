@@ -278,11 +278,7 @@ export default function MapPage() {
     setMapBounds(bounds)
   }, [])
 
-  // Handle map load
-  const handleMapLoad = useCallback((map: google.maps.Map) => {
-    // Map is loaded and ready
-    console.log('Map loaded successfully')
-  }, [])
+
 
   // Cleanup location tracking on unmount
   useEffect(() => {
@@ -416,7 +412,6 @@ export default function MapPage() {
               farms={filteredFarms}
               selectedFarmId={selectedFarmId}
               onFarmSelect={handleFarmSelect}
-              onMapLoad={handleMapLoad}
               onBoundsChange={handleBoundsChange}
               userLocation={userLocation}
               bottomSheetHeight={bottomSheetHeight}
