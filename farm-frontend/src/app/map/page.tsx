@@ -395,16 +395,16 @@ export default function MapPage() {
         <div className="relative h-[100svh] overflow-hidden">
           {/* Mobile: Minimal Search Only */}
           <div className="md:hidden absolute top-0 left-0 right-0 z-20 pointer-events-none">
-            <div className="p-3 pointer-events-auto bg-white/95 backdrop-blur-sm border-b border-gray-200">
+            <div className="p-3 pointer-events-auto mobile-search-enhanced">
               {/* Single search input only */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-search-icon w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search farms..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none text-sm"
+                  className="w-full pl-10 pr-4 py-2.5 mobile-search-input rounded-xl text-sm shadow-sm"
                   aria-label="Search farms"
                 />
               </div>
