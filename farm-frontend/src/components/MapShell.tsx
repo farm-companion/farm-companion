@@ -107,6 +107,7 @@ export default function MapShell({
           anchor: new google.maps.Point(16, 16),
         },
         optimized: true,
+        zIndex: google.maps.Marker.MAX_ZINDEX, // Default z-index for all markers
       })
 
       marker.addListener('click', () => onFarmSelect?.(farm.id))
@@ -347,10 +348,21 @@ export default function MapShell({
 
   // Pan to selected farm
   useEffect(() => {
-    if (!mapInstanceRef.current || !selectedFarmId) return
+    if (!mapInstanceRef.current) return
+
+    // Reset z-index of all markers to default
+    Object.values(markersRef.current).forEach(marker => {
+      marker.setZIndex(google.maps.Marker.MAX_ZINDEX)
+    })
+
+    // If no farm is selected, just reset z-index and return
+    if (!selectedFarmId) return
 
     const marker = markersRef.current[selectedFarmId]
     if (marker) {
+      // Boost z-index so selected marker floats above clusters
+      marker.setZIndex(google.maps.Marker.MAX_ZINDEX + 1)
+      
       const position = marker.getPosition()
       if (position) {
         safePanTo(position)
