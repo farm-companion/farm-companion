@@ -6,7 +6,6 @@ export type HapticType = 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 
 
 interface HapticFeedbackProps {
   children: React.ReactNode
-  onHaptic?: (type: HapticType) => void
 }
 
 // Haptic feedback utility
@@ -51,16 +50,9 @@ export const useHaptic = () => {
 }
 
 // Haptic feedback provider component
-export default function HapticFeedback({ children, onHaptic }: HapticFeedbackProps) {
-  const { trigger } = useHaptic()
-
-  const handleHaptic = useCallback((type: HapticType) => {
-    trigger(type)
-    onHaptic?.(type)
-  }, [trigger, onHaptic])
-
+export default function HapticFeedback({ children }: HapticFeedbackProps) {
   return (
-    <div onHaptic={handleHaptic}>
+    <div>
       {children}
     </div>
   )
