@@ -34,6 +34,28 @@ interface MapShellProps {
   onMapReady?: (map: google.maps.Map) => void
 }
 
+// Pre-encoded cluster SVGs for performance (avoid innerHTML string building per render)
+const CLUSTER_SVGS = {
+  small: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="18" fill="#00C2B2" stroke="white" stroke-width="2"/>
+      <text x="20" y="25" text-anchor="middle" fill="white" font-family="Inter" font-size="14" font-weight="600">%count%</text>
+    </svg>
+  `)}`,
+  medium: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="24" cy="24" r="22" fill="#00C2B2" stroke="white" stroke-width="2"/>
+      <text x="24" y="30" text-anchor="middle" fill="white" font-family="Inter" font-size="16" font-weight="600">%count%</text>
+    </svg>
+  `)}`,
+  large: `data:image/svg+xml;utf8,${encodeURIComponent(`
+    <svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="28" cy="28" r="26" fill="#00C2B2" stroke="white" stroke-width="2"/>
+      <text x="28" y="35" text-anchor="middle" fill="white" font-family="Inter" font-size="18" font-weight="600">%count%</text>
+    </svg>
+  `)}`
+}
+
 // UK bounds for fallback
 const UK_BOUNDS = {
   north: 60.9,
@@ -78,6 +100,9 @@ export default function MapShell({
 
   const idsKey = useRef<string>('')
 
+  // Stable cluster renderer instance (avoid recreating per render)
+  const clusterRenderer = useRef<any>(null)
+
   // Create clustered markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
     if (!map || !farmData.length || typeof window === 'undefined') return
@@ -115,31 +140,43 @@ export default function MapShell({
       markers.push(marker)
     })
 
-    // Create/update clusterer
+    // Create/update clusterer with stable renderer
     if (!clustererRef.current) {
-      clustererRef.current = new MarkerClusterer({ 
-        map,
-        markers: [],
-        // Custom cluster style for better UX
-        renderer: {
-          render: ({ count, position }) => {
-            const color = count > 10 ? '#E11D48' : count > 5 ? '#F59E0B' : '#00C2B2'
-            const svg = `
-              <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="20" cy="20" r="18" fill="${color}" stroke="white" stroke-width="2"/>
-                <text x="20" y="25" text-anchor="middle" fill="white" font-size="12" font-weight="bold">${count}</text>
-              </svg>
-            `
+      // Create stable renderer instance once
+      if (!clusterRenderer.current) {
+        clusterRenderer.current = {
+          render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
+            // Choose SVG size based on count for better visual hierarchy
+            let svgUrl: string
+            let size: google.maps.Size
+            let anchor: google.maps.Point
+            
+            if (count > 20) {
+              svgUrl = CLUSTER_SVGS.large.replace('%count%', count.toString())
+              size = new google.maps.Size(56, 56)
+              anchor = new google.maps.Point(28, 28)
+            } else if (count > 5) {
+              svgUrl = CLUSTER_SVGS.medium.replace('%count%', count.toString())
+              size = new google.maps.Size(48, 48)
+              anchor = new google.maps.Point(24, 24)
+            } else {
+              svgUrl = CLUSTER_SVGS.small.replace('%count%', count.toString())
+              size = new google.maps.Size(40, 40)
+              anchor = new google.maps.Point(20, 20)
+            }
+            
             return new google.maps.Marker({
               position,
-              icon: {
-                url: `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`,
-                scaledSize: new google.maps.Size(40, 40),
-                anchor: new google.maps.Point(20, 20),
-              }
+              icon: { url: svgUrl, scaledSize: size, anchor }
             })
           }
         }
+      }
+      
+      clustererRef.current = new MarkerClusterer({ 
+        map,
+        markers: [],
+        renderer: clusterRenderer.current
       })
     }
     
@@ -216,11 +253,11 @@ export default function MapShell({
         streetViewControl: false,
         fullscreenControl: false,
         zoomControl: true,
-        gestureHandling: 'cooperative', // Better for iOS
+        gestureHandling: 'greedy', // Better on iOS - more responsive touch
         disableDoubleClickZoom: false, // Enable double-tap zoom for iOS
-        clickableIcons: true,
+        clickableIcons: true, // Keep POI labels clickable
         draggable: true,
-        scrollwheel: false, // Disable scroll wheel on mobile
+        // Removed scrollwheel: false - mobile ignores it anyway
         keyboardShortcuts: false // Disable keyboard shortcuts on mobile
       })
 
@@ -248,7 +285,7 @@ export default function MapShell({
       attachBoundsListener()
       
       // Add idle listener for marker rebuilding (triggers when map stops moving)
-      map.addListener('idle', () => {
+      const idleListener = map.addListener('idle', () => {
         const key = farms.map(f => f.id).sort().join('|')
         if (key === idsKey.current) return
         idsKey.current = key
@@ -260,6 +297,9 @@ export default function MapShell({
           setTimeout(() => createMarkers(map, farms), 0)
         }
       })
+      
+      // Store listener for cleanup
+      map.set('idleListener', idleListener)
       
       // iOS-specific touch handling
       if (/iPad|iPhone|iPod/.test(navigator.userAgent)) {
@@ -486,7 +526,14 @@ export default function MapShell({
   useEffect(() => {
     return () => {
       const map = mapInstanceRef.current
-      if (map) google.maps.event.clearInstanceListeners(map)
+      if (map) {
+        // Remove idle listener specifically
+        const idleListener = map.get('idleListener')
+        if (idleListener) {
+          google.maps.event.removeListener(idleListener)
+        }
+        google.maps.event.clearInstanceListeners(map)
+      }
       
       // Clear clusterer with belt-and-braces cleanup
       if (clustererRef.current) {
@@ -582,3 +629,4 @@ export default function MapShell({
     </div>
   )
 }
+
