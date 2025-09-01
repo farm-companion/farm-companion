@@ -139,7 +139,10 @@ export default function MapShell({
         zIndex: google.maps.Marker.MAX_ZINDEX, // Default z-index for all markers
       })
 
-      marker.addListener('click', () => onFarmSelect?.(farm.id))
+      marker.addListener('click', () => {
+        console.log('Marker clicked:', farm.name)
+        onFarmSelect?.(farm.id)
+      })
       markersRef.current[farm.id] = marker
       markers.push(marker)
     })
@@ -189,7 +192,20 @@ export default function MapShell({
       clustererRef.current = new MarkerClusterer({ 
         map,
         markers: [],
-        renderer: clusterRenderer.current
+        renderer: clusterRenderer.current,
+        onClusterClick: (event: any) => {
+          console.log('Cluster clicked:', event.cluster?.getMarkers?.()?.length || 'unknown', 'markers')
+          // Enable default cluster zoom behavior
+          event.markerClusterer.zoomOnClusterClick(event.cluster);
+          // Additional zoom for better mobile experience (2-3 levels)
+          const map = mapInstanceRef.current;
+          if (map) {
+            const currentZoom = map.getZoom() || 10;
+            const targetZoom = Math.min(currentZoom + 2, 18); // Zoom in 2 levels, max 18
+            console.log('Zooming from', currentZoom, 'to', targetZoom)
+            map.setZoom(targetZoom);
+          }
+        }
       })
     }
     
@@ -197,17 +213,8 @@ export default function MapShell({
 
     console.log('clusterer markers', markers.length)
 
-    // Add cluster click handler for zoom-to-cluster functionality
-    clustererRef.current.addListener('clusterclick', ({ markers, latLng }: { markers: google.maps.Marker[]; latLng: google.maps.LatLng }) => {
-      const map = mapInstanceRef.current
-      if (!map) return
-      const b = new google.maps.LatLngBounds()
-      markers.forEach((m: google.maps.Marker) => m.getPosition() && b.extend(m.getPosition()!))
-      // Zoom gracefully into the cluster's extent
-      programmaticMove.current = true
-      map.fitBounds(b)
-      setTimeout(() => (programmaticMove.current = false), 200)
-    })
+    // Cluster click handling is now done via onClusterClick option in MarkerClusterer
+    // This provides better zoom behavior and prevents duplicate handlers
 
     // Fit bounds only once with calmer UK view (don't re-fit on every render)
     if (markers.length > 0 && !selectedFarmId && !hasFitted.current) {
