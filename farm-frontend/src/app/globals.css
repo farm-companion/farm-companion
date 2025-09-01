@@ -1001,3 +1001,102 @@ html {
     color: #9aa0a6;
   }
 }
+
+/* ============================================================================
+   MOBILE SEARCH BAR - FIXED CONTRAST AND VISIBILITY
+   ============================================================================ */
+
+/* Mobile search bar container */
+.mobile-search-container {
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile search input styling */
+.mobile-search-input {
+  background: #ffffff;
+  border: 2px solid #d1d5db;
+  color: #111827;
+  font-weight: 500;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mobile-search-input::placeholder {
+  color: #6b7280;
+  font-weight: 400;
+}
+
+.mobile-search-input:focus {
+  border-color: #00c2b2;
+  box-shadow: 0 0 0 3px rgba(0, 194, 178, 0.1);
+  background: #ffffff;
+  color: #111827;
+}
+
+.mobile-search-input:hover {
+  border-color: #9ca3af;
+  background: #ffffff;
+}
+
+/* Mobile search icon */
+.mobile-search-icon {
+  color: #6b7280;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.05));
+}
+
+/* Enhanced mobile search with better contrast */
+.mobile-search-enhanced {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid #e5e7eb;
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* Search input focus states */
+.search-input-focus {
+  border-color: #00c2b2;
+  box-shadow: 
+    0 0 0 3px rgba(0, 194, 178, 0.1),
+    0 2px 8px rgba(0, 194, 178, 0.15);
+  background: #ffffff;
+  color: #111827;
+}
+
+/* Search input hover states */
+.search-input-hover {
+  border-color: #9ca3af;
+  background: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Enhanced placeholder styling */
+.search-placeholder-enhanced {
+  color: #6b7280;
+  font-weight: 400;
+  opacity: 0.8;
+}
+
+/* Search container shadow variations */
+.search-container-shadow-light {
+  box-shadow: 
+    0 2px 8px rgba(0, 0, 0, 0.04),
+    0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.search-container-shadow-medium {
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.08),
+    0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.search-container-shadow-heavy {
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.12),
+    0 4px 16px rgba(0, 0, 0, 0.08);
+}
