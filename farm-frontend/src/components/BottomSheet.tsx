@@ -11,6 +11,8 @@ interface BottomSheetProps {
   snapPoints?: number[] // Heights in pixels
   defaultSnap?: number // Index of default snap point
   onHeightChange?: (height: number) => void
+  /** NEW: do not capture touches outside visible sheet content */
+  nonBlocking?: boolean
 }
 
 export default function BottomSheet({
@@ -20,7 +22,8 @@ export default function BottomSheet({
   className = '',
   snapPoints = [200, 400, 600],
   defaultSnap = 1,
-  onHeightChange
+  onHeightChange,
+  nonBlocking = false // default safe
 }: BottomSheetProps) {
   const [currentSnap, setCurrentSnap] = useState(defaultSnap)
   const [isDragging, setIsDragging] = useState(false)
@@ -108,7 +111,7 @@ export default function BottomSheet({
         dragElement.removeEventListener('touchend', handleTouchEnd)
       }
     }
-  }, [handleStart, handleMove, handleEnd, isDragging])
+  }, [handleStart, handleMove, handleEnd])
 
   // Mouse events
   useEffect(() => {
@@ -168,18 +171,17 @@ export default function BottomSheet({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none">
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-black/20 pointer-events-auto"
-        onClick={onClose}
-        aria-hidden="true"
-      />
-      
-      {/* Bottom Sheet */}
+    <div 
+      className="fc-sheet-root" 
+      data-nonblocking={nonBlocking ? 'true' : 'false'}
+    >
+      {/* Backdrop / overlay */}
+      <div className="fc-sheet-backdrop" aria-hidden />
+
+      {/* Visible sheet container */}
       <div
         ref={sheetRef}
-        className={`absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl shadow-2xl pointer-events-auto transition-transform duration-300 ease-out safe-bottom ${className}`}
+        className={`fc-sheet-content ${className}`}
         style={{
           height: `${currentHeight}px`,
           transform: `translateY(${isDragging ? 0 : 0}px)`
@@ -191,7 +193,7 @@ export default function BottomSheet({
         {/* Drag Handle */}
         <div
           ref={dragRef}
-          className="flex justify-center py-3 cursor-grab active:cursor-grabbing touch-none"
+          className="fc-sheet-grip"
           role="button"
           tabIndex={0}
           aria-label="Drag to resize"
@@ -201,9 +203,7 @@ export default function BottomSheet({
               setCurrentSnap(currentSnap === 0 ? 1 : 0)
             }
           }}
-        >
-          <div className="w-12 h-1 bg-gray-300 rounded-full" />
-        </div>
+        />
 
         {/* Content */}
         <div className="flex-1 overflow-hidden">
