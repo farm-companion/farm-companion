@@ -706,7 +706,7 @@ export default function MapShell({
         ref={mapRef} 
         className="absolute inset-0" 
         style={{
-          touchAction: 'none', // Prevent browser from handling touch events
+          touchAction: 'pan-x pan-y pinch-zoom',  // ← instead of 'none'
           WebkitUserSelect: 'none', // Prevent text selection on iOS
           userSelect: 'none'
         }}

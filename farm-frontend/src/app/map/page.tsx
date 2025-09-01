@@ -398,7 +398,7 @@ export default function MapPage() {
           </div>
 
           {/* Mobile: Bottom Sheet with Farm List */}
-          <div className="md:hidden absolute bottom-0 left-0 right-0 z-30">
+          <div className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
             <BottomSheet
               isOpen={true}
               snapPoints={[40, 200, 400]}
@@ -407,6 +407,7 @@ export default function MapPage() {
                 setBottomSheetHeight(height)
                 window.dispatchEvent(new CustomEvent('map:setBottomPadding', { detail: height }))
               }}
+              nonBlocking   // ← NEW
             >
               {/* Bottom Sheet Header - With Actions */}
               <div className="px-4 py-3 border-b border-gray-200 bg-white">

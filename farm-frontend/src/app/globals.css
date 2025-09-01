@@ -220,3 +220,46 @@ html {
 .safe-bottom {
   padding-bottom: calc(env(safe-area-inset-bottom));
 }
+
+/* ============================================================================
+   BOTTOM SHEET COMPONENT - NON-BLOCKING TOUCH BEHAVIOR
+   ============================================================================ */
+
+/* Root takes full width — but should not block the map by default */
+.fc-sheet-root {
+  position: relative; /* parent is already absolute positioned by you */
+}
+
+/* The backdrop often defaults to full-screen. Make it non-interactive */
+.fc-sheet-root[data-nonblocking="true"] .fc-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: none !important; /* ← key line */
+  background: transparent; /* or your dim if you want, still non-interactive */
+}
+
+/* The visible sheet area should be interactive and draggable */
+.fc-sheet-content {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  pointer-events: auto;
+  touch-action: pan-y;              /* allow vertical drag of the sheet */
+  -webkit-overflow-scrolling: touch;
+  background: #fff;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease-out;
+}
+
+/* Drag handle area should NOT capture the whole screen */
+.fc-sheet-grip {
+  width: 36px;
+  height: 4px;
+  border-radius: 2px;
+  background: #d1d5db;
+  margin: 8px auto;
+  touch-action: pan-y;
+}
