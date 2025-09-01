@@ -276,6 +276,14 @@ export default function MapPage() {
   // Handle farm selection
   const handleFarmSelect = useCallback((farmId: string) => {
     setSelectedFarmId(farmId)
+    // Scroll to farm in list if on mobile
+    if (window.innerWidth < 768) {
+      // Mobile: scroll to farm in bottom sheet
+      const farmElement = document.querySelector(`[data-farm-id="${farmId}"]`)
+      if (farmElement) {
+        farmElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
   }, [])
 
   // Handle map bounds change

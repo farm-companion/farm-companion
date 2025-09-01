@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { loadGoogle } from '@/lib/googleMaps'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import type { FarmShop } from '@/types/farm'
+import MarkerActions from './MarkerActions'
 
 interface UserLocation {
   latitude: number
@@ -88,6 +89,8 @@ export default function MapShell({
   const userLocationMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedMarker, setSelectedMarker] = useState<FarmShop | null>(null)
+  const [showMarkerActions, setShowMarkerActions] = useState(false)
 
   // Add haptic feedback for native-like feel
   const triggerHaptic = useCallback((type: 'light' | 'medium' | 'heavy' = 'light') => {
@@ -131,16 +134,53 @@ export default function MapShell({
     }
   }, [triggerHaptic])
 
-  // Enhanced marker click with haptics
+  // Enhanced marker click with haptics and actions
   const handleMarkerClick = useCallback((farm: FarmShop) => {
     console.log('Marker clicked:', farm.name)
     
     // Trigger haptic feedback
     triggerHaptic('light')
     
-    // Call the original handler
+    // Show marker actions
+    setSelectedMarker(farm)
+    setShowMarkerActions(true)
+    
+    // Call the original handler for compatibility
     onFarmSelect?.(farm.id)
   }, [onFarmSelect, triggerHaptic])
+
+  // Marker action handlers
+  const handleNavigate = useCallback((farm: FarmShop) => {
+    // Open in default maps app
+    const url = `https://maps.google.com/maps?q=${farm.location.lat},${farm.location.lng}`
+    window.open(url, '_blank')
+    setShowMarkerActions(false)
+  }, [])
+
+  const handleFavorite = useCallback((farmId: string) => {
+    // TODO: Implement favorites system
+    console.log('Favorite farm:', farmId)
+    triggerHaptic('medium')
+  }, [triggerHaptic])
+
+  const handleShare = useCallback((farm: FarmShop) => {
+    if (navigator.share) {
+      navigator.share({
+        title: farm.name,
+        text: `Check out ${farm.name} at ${farm.location.address}`,
+        url: window.location.href
+      })
+    } else {
+      // Fallback: copy to clipboard
+      navigator.clipboard.writeText(`${farm.name} - ${farm.location.address}`)
+    }
+    setShowMarkerActions(false)
+  }, [])
+
+  const handleCloseMarkerActions = useCallback(() => {
+    setShowMarkerActions(false)
+    setSelectedMarker(null)
+  }, [])
 
   // Flicker prevention refs
   const hasInit = useRef(false)
@@ -747,6 +787,17 @@ export default function MapShell({
           WebkitUserSelect: 'none', // Prevent text selection on iOS
           userSelect: 'none'
         }}
+      />
+
+      {/* Marker Actions */}
+      <MarkerActions
+        farm={selectedMarker}
+        isVisible={showMarkerActions}
+        onClose={handleCloseMarkerActions}
+        onNavigate={handleNavigate}
+        onFavorite={handleFavorite}
+        onShare={handleShare}
+        userLocation={userLocation ? { latitude: userLocation.latitude, longitude: userLocation.longitude } : null}
       />
     </div>
   )
