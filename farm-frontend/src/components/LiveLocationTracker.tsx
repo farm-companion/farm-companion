@@ -264,27 +264,23 @@ export default function LiveLocationTracker({
   }, [])
 
   return (
-    <div className="fixed top-4 right-4 z-50 max-w-sm">
+    <div className="live-location-tracker">
       {/* Main Tracking Controls */}
-      <div className="bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+      <div className="live-location-panel">
         {/* Header */}
-        <div className="bg-gradient-to-r from-serum to-blue-500 p-4 text-white">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+        <div className="live-location-header">
+          <div className="live-location-header-content">
+            <div className="live-location-title">
               <Target className="w-5 h-5" />
-              <h3 className="font-semibold">Live Location</h3>
+              <h3>Live Location</h3>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="tracking-status">
               {isTracking && (
-                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                <div className="tracking-dot" />
               )}
               <button
                 onClick={isTracking ? stopTracking : startTracking}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-all ${
-                  isTracking 
-                    ? 'bg-red-500 hover:bg-red-600' 
-                    : 'bg-white/20 hover:bg-white/30'
-                }`}
+                className={`tracking-control-btn ${isTracking ? 'stop' : 'start'}`}
               >
                 {isTracking ? 'Stop' : 'Start'}
               </button>
@@ -294,48 +290,46 @@ export default function LiveLocationTracker({
 
         {/* Location Info */}
         {userLocation && (
-          <div className="p-4 space-y-3">
+          <div className="live-location-content">
             {/* Current Location */}
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl">
-              <MapPin className="w-5 h-5 text-serum" />
-              <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900">
-                  Current Location
-                </div>
-                <div className="text-xs text-gray-600">
-                  {userLocation.latitude.toFixed(6)}, {userLocation.longitude.toFixed(6)}
-                </div>
+            <div className="location-info-card">
+              <div className="location-info-header">
+                <MapPin className="w-5 h-5" />
+                <div className="location-info-title">Current Location</div>
+              </div>
+              <div className="location-coordinates">
+                {userLocation.latitude.toFixed(6)}, {userLocation.longitude.toFixed(6)}
               </div>
             </div>
 
             {/* Movement Info */}
             {lastLocation.current && (
-              <div className="grid grid-cols-2 gap-3">
-                <div className="p-3 bg-blue-50 rounded-xl text-center">
-                  <div className="text-2xl mb-1">
+              <div className="movement-info-grid">
+                <div className="movement-direction-card">
+                  <div className="movement-direction-emoji">
                     {getMovementDirection(lastLocation.current.heading)}
                   </div>
-                  <div className="text-xs text-gray-600">
+                  <div className="movement-description">
                     {getSpeedDescription(lastLocation.current.speed)}
                   </div>
                 </div>
-                <div className="p-3 bg-green-50 rounded-xl text-center">
-                  <div className="text-lg font-semibold text-gray-900 mb-1">
+                <div className="distance-tracking-card">
+                  <div className="distance-value">
                     {trackingStats.totalDistance.toFixed(1)}km
                   </div>
-                  <div className="text-xs text-gray-600">Total Distance</div>
+                  <div className="distance-label">Total Distance</div>
                 </div>
               </div>
             )}
 
             {/* Predictive Location */}
             {predictiveLocation && (
-              <div className="p-3 bg-purple-50 rounded-xl">
-                <div className="flex items-center gap-2 mb-2">
-                  <Compass className="w-4 h-4 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-900">Predictive Location</span>
+              <div className="predictive-location-card">
+                <div className="predictive-location-header">
+                  <Compass className="w-4 h-4" />
+                  <span className="predictive-location-title">Predictive Location</span>
                 </div>
-                <div className="text-xs text-purple-700">
+                <div className="predictive-location-coords">
                   In 5 minutes: {predictiveLocation.latitude.toFixed(6)}, {predictiveLocation.longitude.toFixed(6)}
                 </div>
               </div>
@@ -343,38 +337,35 @@ export default function LiveLocationTracker({
 
             {/* Nearby Farms */}
             {nearbyFarms.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2 text-sm font-medium text-gray-900">
-                  <Bell className="w-4 h-4 text-serum" />
-                  Nearby Farms ({nearbyFarms.length})
+              <div className="nearby-farms-section">
+                <div className="nearby-farms-header">
+                  <Bell className="w-4 h-4" />
+                  <span className="nearby-farms-title">Nearby Farms</span>
+                  <span className="nearby-farms-count">{nearbyFarms.length}</span>
                 </div>
-                <div className="max-h-32 overflow-y-auto space-y-2">
+                <div className="farms-list-container">
                   {nearbyFarms.map(({ farm, distance, eta, isNewlyDiscovered }) => (
                     <div 
                       key={farm.id}
-                      className={`p-2 rounded-lg border transition-all ${
-                        isNewlyDiscovered 
-                          ? 'border-serum bg-serum/5' 
-                          : 'border-gray-200 bg-gray-50'
-                      }`}
+                      className={`farm-item ${isNewlyDiscovered ? 'newly-discovered' : ''}`}
                     >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-gray-900 truncate">
+                      <div className="farm-item-content">
+                        <div className="farm-info">
+                          <div className="farm-name">
                             {farm.name}
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className="farm-distance">
                             {distance.toFixed(1)}km away
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="farm-meta">
                           {isNewlyDiscovered && (
-                            <span className="text-xs bg-serum text-white px-2 py-1 rounded-full">
+                            <span className="new-discovery-badge">
                               New!
                             </span>
                           )}
-                          <div className="text-right">
-                            <div className="text-xs text-gray-500">
+                          <div className="farm-eta">
+                            <div className="eta-value">
                               {eta} min
                             </div>
                           </div>
@@ -390,10 +381,10 @@ export default function LiveLocationTracker({
 
         {/* Notifications */}
         {notifications.length > 0 && (
-          <div className="border-t border-gray-200 p-3 space-y-2">
-            <div className="text-xs font-medium text-gray-700 mb-2">Live Updates</div>
+          <div className="notifications-section">
+            <div className="notifications-header">Live Updates</div>
             {notifications.map((notification, index) => (
-              <div key={index} className="text-xs text-gray-600 bg-gray-50 p-2 rounded">
+              <div key={index} className="notification-item">
                 {notification}
               </div>
             ))}
