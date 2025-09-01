@@ -263,3 +263,68 @@ html {
   margin: 8px auto;
   touch-action: pan-y;
 }
+
+/* ============================================================================
+   ENHANCED MAP EXPERIENCE - NATIVE-LIKE FEEL
+   ============================================================================ */
+
+/* Smooth map transitions */
+.gm-style {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced marker animations */
+.gm-style-marker {
+  transition: transform 0.15s ease-out;
+}
+
+.gm-style-marker:hover {
+  transform: scale(1.1);
+}
+
+/* Smooth cluster animations */
+.gm-style-marker-cluster {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.gm-style-marker-cluster:hover {
+  transform: scale(1.05);
+}
+
+/* Enhanced zoom controls */
+.gm-bundled-control {
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.2s ease !important;
+}
+
+.gm-bundled-control:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Smooth map canvas */
+.map-canvas {
+  transition: opacity 0.3s ease-in-out;
+}
+
+/* Enhanced touch feedback */
+.map-canvas:active {
+  cursor: grabbing;
+}
+
+/* Smooth bottom sheet transitions */
+.fc-sheet-content {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced mobile search bar */
+.mobile-search-bar {
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  transition: all 0.2s ease;
+}
+
+.mobile-search-bar:focus-within {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}

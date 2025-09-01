@@ -89,6 +89,59 @@ export default function MapShell({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Add haptic feedback for native-like feel
+  const triggerHaptic = useCallback((type: 'light' | 'medium' | 'heavy' = 'light') => {
+    if ('vibrate' in navigator) {
+      const patterns = {
+        light: 10,      // Quick tap
+        medium: 20,     // Selection
+        heavy: 30       // Important action
+      }
+      navigator.vibrate(patterns[type])
+    }
+  }, [])
+
+  // Enhanced cluster click with haptics
+  const handleClusterClick = useCallback((event: any) => {
+    console.log('Cluster clicked:', event.cluster?.getMarkers?.()?.length || 'unknown', 'markers')
+    
+    // Trigger haptic feedback
+    triggerHaptic('medium')
+    
+    // Enable default cluster zoom behavior
+    event.markerClusterer.zoomOnClusterClick(event.cluster);
+    
+    // Additional zoom for better mobile experience (2-3 levels)
+    const map = mapInstanceRef.current;
+    if (map) {
+      const currentZoom = map.getZoom() || 10;
+      const targetZoom = Math.min(currentZoom + 2, 18);
+      console.log('Zooming from', currentZoom, 'to', targetZoom)
+      
+      // Smooth zoom animation
+      const zoomStep = currentZoom < targetZoom ? 1 : -1
+      const animateZoom = () => {
+        const current = map.getZoom() || currentZoom
+        if ((zoomStep > 0 && current < targetZoom) || (zoomStep < 0 && current > targetZoom)) {
+          map.setZoom(current + zoomStep)
+          setTimeout(animateZoom, 50) // Smooth 50ms steps
+        }
+      }
+      animateZoom()
+    }
+  }, [triggerHaptic])
+
+  // Enhanced marker click with haptics
+  const handleMarkerClick = useCallback((farm: FarmShop) => {
+    console.log('Marker clicked:', farm.name)
+    
+    // Trigger haptic feedback
+    triggerHaptic('light')
+    
+    // Call the original handler
+    onFarmSelect?.(farm.id)
+  }, [onFarmSelect, triggerHaptic])
+
   // Flicker prevention refs
   const hasInit = useRef(false)
   const hasFitted = useRef(false)
@@ -139,10 +192,7 @@ export default function MapShell({
         zIndex: google.maps.Marker.MAX_ZINDEX, // Default z-index for all markers
       })
 
-      marker.addListener('click', () => {
-        console.log('Marker clicked:', farm.name)
-        onFarmSelect?.(farm.id)
-      })
+      marker.addListener('click', () => handleMarkerClick(farm))
       markersRef.current[farm.id] = marker
       markers.push(marker)
     })
@@ -193,19 +243,7 @@ export default function MapShell({
         map,
         markers: [],
         renderer: clusterRenderer.current,
-        onClusterClick: (event: any) => {
-          console.log('Cluster clicked:', event.cluster?.getMarkers?.()?.length || 'unknown', 'markers')
-          // Enable default cluster zoom behavior
-          event.markerClusterer.zoomOnClusterClick(event.cluster);
-          // Additional zoom for better mobile experience (2-3 levels)
-          const map = mapInstanceRef.current;
-          if (map) {
-            const currentZoom = map.getZoom() || 10;
-            const targetZoom = Math.min(currentZoom + 2, 18); // Zoom in 2 levels, max 18
-            console.log('Zooming from', currentZoom, 'to', targetZoom)
-            map.setZoom(targetZoom);
-          }
-        }
+        onClusterClick: handleClusterClick
       })
     }
     
@@ -227,7 +265,7 @@ export default function MapShell({
       setTimeout(() => (programmaticMove.current = false), 200)
       hasFitted.current = true
     }
-  }, [selectedFarmId, onFarmSelect])
+  }, [selectedFarmId, onFarmSelect, handleClusterClick])
 
   // one function to (debounced) rebuild markers with the latest farms
   const scheduleMarkerRebuild = useCallback(() => {
@@ -318,21 +356,20 @@ export default function MapShell({
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
+        gestureHandling: 'greedy', // Better iOS touch response
+        clickableIcons: true,
+        keyboardShortcuts: false,
+        // Enhanced mobile experience
         zoomControl: true,
-        zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_CENTER },
-        gestureHandling: 'greedy', // Better for iOS - more responsive touch
-        disableDoubleClickZoom: false, // Enable double-tap zoom for iOS
-        clickableIcons: true, // Keep POI labels clickable
+        zoomControlOptions: { 
+          position: google.maps.ControlPosition.RIGHT_TOP 
+        },
+        // Better touch handling
         draggable: true,
-        // Do NOT set scrollwheel: false — iOS ignores it and sometimes misbehaves
-        keyboardShortcuts: false, // Disable keyboard shortcuts on mobile
-        // Enhanced touch settings for iPhone
-        isFractionalZoomEnabled: true,
-        tilt: 0, // Disable 3D tilt for better performance
-        styles: [
-          { featureType: 'poi', stylers: [{ visibility: 'off' }] },
-          { featureType: 'transit', stylers: [{ visibility: 'off' }] }
-        ]
+        scrollwheel: false, // Disable scroll wheel on mobile
+        // Performance optimizations
+        maxZoom: 20,
+        minZoom: 5
       })
 
       // Set calmer initial camera & real padding
