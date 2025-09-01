@@ -12,6 +12,16 @@ import FloatingActionButton, { createMapFAB } from '@/components/FloatingActionB
 import { useHaptic } from '@/components/HapticFeedback'
 import type { FarmShop } from '@/types/farm'
 
+// Debouncing hook to prevent excessive re-filtering
+function useDebounced<T>(value: T, delay = 150) {
+  const [v, setV] = useState(value)
+  useEffect(() => {
+    const t = setTimeout(() => setV(value), delay)
+    return () => clearTimeout(t)
+  }, [value, delay])
+  return v
+}
+
 // Dynamic imports for performance
 const MapShellWithNoSSR = dynamic(() => import('@/components/MapShell'), {
   ssr: false,
@@ -78,6 +88,10 @@ export default function MapPage() {
   // Mobile-first features
   const { trigger: triggerHaptic } = useHaptic()
 
+  // Debounced values to prevent excessive re-filtering
+  const debouncedQuery = useDebounced(searchQuery, 150)
+  const debouncedBounds = useDebounced(mapBounds, 150)
+
   // Fetch farm data
   useEffect(() => {
     const fetchFarms = async () => {
@@ -127,29 +141,12 @@ export default function MapPage() {
         })
       })
 
-      const location: UserLocation = {
+      setUserLocation({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         accuracy: position.coords.accuracy,
         timestamp: position.timestamp
-      }
-
-      setUserLocation(location)
-      
-      // Calculate distances for all farms
-      const farmsWithDistance = farms.map(farm => ({
-        ...farm,
-        distance: calculateDistance(
-          location.latitude,
-          location.longitude,
-          farm.location.lat,
-          farm.location.lng
-        )
-      }))
-
-      // Sort by distance
-      farmsWithDistance.sort((a, b) => (a.distance || 0) - (b.distance || 0))
-      setFarms(farmsWithDistance)
+      })
       
     } catch (err) {
       console.error('Error getting location:', err)
@@ -157,7 +154,7 @@ export default function MapPage() {
     } finally {
       setIsLocationLoading(false)
     }
-  }, [farms])
+  }, [])
 
   // Zoom to user location
   const zoomToLocation = useCallback(() => {
@@ -177,29 +174,22 @@ export default function MapPage() {
 
   // Handle what3words coordinates
   const handleW3WCoordinates = useCallback((coordinates: { lat: number; lng: number }) => {
-    // Calculate distances from this location
-    const farmsWithDistance = farms.map(farm => ({
-      ...farm,
-      distance: calculateDistance(
-        coordinates.lat,
-        coordinates.lng,
-        farm.location.lat,
-        farm.location.lng
-      )
-    }))
-
-    // Sort by distance
-    farmsWithDistance.sort((a, b) => (a.distance || 0) - (b.distance || 0))
-    setFarms(farmsWithDistance)
-  }, [farms])
+    // Set the coordinates as user location for distance calculation
+    setUserLocation({
+      latitude: coordinates.lat,
+      longitude: coordinates.lng,
+      accuracy: 0, // Unknown accuracy for what3words
+      timestamp: Date.now()
+    })
+  }, [])
 
   // Filter and search farms
   const filteredAndSearchedFarms = useMemo(() => {
     let result = farms
 
-    // Apply search query
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
+    // Apply search query (using debounced value)
+    if (debouncedQuery) {
+      const query = debouncedQuery.toLowerCase()
       result = result.filter(farm => 
         farm.name.toLowerCase().includes(query) ||
         farm.location.address.toLowerCase().includes(query) ||
@@ -258,16 +248,32 @@ export default function MapPage() {
       })
     }
 
-    // Filter by map bounds if available
-    if (mapBounds) {
+    // Filter by map bounds if available (using debounced value)
+    if (debouncedBounds) {
       result = result.filter(farm => {
         const position = new google.maps.LatLng(farm.location.lat, farm.location.lng)
-        return mapBounds.contains(position)
+        return debouncedBounds.contains(position)
       })
     }
 
+    // Calculate distances and sort if user location is available
+    if (userLocation) {
+      result = result.map(farm => ({
+        ...farm,
+        distance: calculateDistance(
+          userLocation.latitude,
+          userLocation.longitude,
+          farm.location.lat,
+          farm.location.lng
+        )
+      }))
+
+      // Sort by distance
+      result.sort((a, b) => (a.distance || 0) - (b.distance || 0))
+    }
+
     return result
-  }, [farms, searchQuery, filters, mapBounds])
+  }, [farms, debouncedQuery, filters, debouncedBounds, userLocation])
 
   // Update filtered farms when the computed result changes
   useEffect(() => {
