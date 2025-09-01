@@ -5,6 +5,7 @@ import { loadGoogle } from '@/lib/googleMaps'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import type { FarmShop } from '@/types/farm'
 import MarkerActions from './MarkerActions'
+import ClusterPreview from './ClusterPreview'
 
 interface UserLocation {
   latitude: number
@@ -91,6 +92,8 @@ export default function MapShell({
   const [error, setError] = useState<string | null>(null)
   const [selectedMarker, setSelectedMarker] = useState<FarmShop | null>(null)
   const [showMarkerActions, setShowMarkerActions] = useState(false)
+  const [selectedCluster, setSelectedCluster] = useState<any>(null)
+  const [showClusterPreview, setShowClusterPreview] = useState(false)
 
   // Add haptic feedback for native-like feel
   const triggerHaptic = useCallback((type: 'light' | 'medium' | 'heavy' = 'light') => {
@@ -104,35 +107,76 @@ export default function MapShell({
     }
   }, [])
 
-  // Enhanced cluster click with haptics
+  // Enhanced cluster click with preview and smart zoom
   const handleClusterClick = useCallback((event: any) => {
     console.log('Cluster clicked:', event.cluster?.getMarkers?.()?.length || 'unknown', 'markers')
     
     // Trigger haptic feedback
     triggerHaptic('medium')
     
-    // Enable default cluster zoom behavior
-    event.markerClusterer.zoomOnClusterClick(event.cluster);
+    // Show cluster preview instead of immediate zoom
+    setSelectedCluster({
+      position: event.cluster.getCenter(),
+      markers: event.cluster.getMarkers(),
+      count: event.cluster.getMarkers().length
+    })
+    setShowClusterPreview(true)
     
-    // Additional zoom for better mobile experience (2-3 levels)
-    const map = mapInstanceRef.current;
-    if (map) {
-      const currentZoom = map.getZoom() || 10;
-      const targetZoom = Math.min(currentZoom + 2, 18);
-      console.log('Zooming from', currentZoom, 'to', targetZoom)
-      
-      // Smooth zoom animation
-      const zoomStep = currentZoom < targetZoom ? 1 : -1
-      const animateZoom = () => {
-        const current = map.getZoom() || currentZoom
-        if ((zoomStep > 0 && current < targetZoom) || (zoomStep < 0 && current > targetZoom)) {
-          map.setZoom(current + zoomStep)
-          setTimeout(animateZoom, 50) // Smooth 50ms steps
-        }
-      }
-      animateZoom()
-    }
+    // Prevent default zoom behavior
+    event.preventDefault()
+    return false
   }, [triggerHaptic])
+
+  // Smart zoom to cluster with optimal zoom level
+  const handleZoomToCluster = useCallback((cluster: any) => {
+    const map = mapInstanceRef.current
+    if (!map) return
+
+    // Calculate optimal zoom level based on cluster size
+    const count = cluster.count
+    let targetZoom = 14 // Default zoom for small clusters
+    
+    if (count > 50) targetZoom = 12      // Large clusters: zoom out to see area
+    else if (count > 20) targetZoom = 13  // Medium clusters: moderate zoom
+    else if (count > 10) targetZoom = 14  // Small clusters: closer zoom
+    else targetZoom = 15                   // Very small clusters: close zoom
+
+    // Calculate bounds for the cluster
+    const bounds = new google.maps.LatLngBounds()
+    cluster.markers.forEach((marker: google.maps.Marker) => {
+      const pos = marker.getPosition()
+      if (pos) bounds.extend(pos)
+    })
+
+    // Add padding for better view
+    const padding = Math.min(count * 2, 100) // Dynamic padding based on cluster size
+    bounds.extend(new google.maps.LatLng(
+      bounds.getNorthEast().lat() + (padding * 0.0001),
+      bounds.getNorthEast().lng() + (padding * 0.0001)
+    ))
+    bounds.extend(new google.maps.LatLng(
+      bounds.getSouthWest().lat() - (padding * 0.0001),
+      bounds.getSouthWest().lng() - (padding * 0.0001)
+    ))
+
+    // Smooth pan and zoom to cluster
+    map.fitBounds(bounds, padding)
+    
+    // Set optimal zoom level
+    setTimeout(() => {
+      map.setZoom(Math.min(map.getZoom() || targetZoom, targetZoom))
+    }, 300)
+  }, [])
+
+  // Show all farms in cluster as list
+  const handleShowAllFarms = useCallback((farms: FarmShop[]) => {
+    // TODO: Implement list view or filter to show only these farms
+    console.log('Show all farms in cluster:', farms.length)
+    
+    // For now, just close the preview
+    setShowClusterPreview(false)
+    setSelectedCluster(null)
+  }, [])
 
   // Enhanced marker click with haptics and actions
   const handleMarkerClick = useCallback((farm: FarmShop) => {
@@ -180,6 +224,11 @@ export default function MapShell({
   const handleCloseMarkerActions = useCallback(() => {
     setShowMarkerActions(false)
     setSelectedMarker(null)
+  }, [])
+
+  const handleCloseClusterPreview = useCallback(() => {
+    setShowClusterPreview(false)
+    setSelectedCluster(null)
   }, [])
 
   // Flicker prevention refs
@@ -797,6 +846,16 @@ export default function MapShell({
         onNavigate={handleNavigate}
         onFavorite={handleFavorite}
         onShare={handleShare}
+        userLocation={userLocation ? { latitude: userLocation.latitude, longitude: userLocation.longitude } : null}
+      />
+
+      {/* Cluster Preview */}
+      <ClusterPreview
+        cluster={selectedCluster}
+        isVisible={showClusterPreview}
+        onClose={handleCloseClusterPreview}
+        onZoomToCluster={handleZoomToCluster}
+        onShowAllFarms={handleShowAllFarms}
         userLocation={userLocation ? { latitude: userLocation.latitude, longitude: userLocation.longitude } : null}
       />
     </div>
