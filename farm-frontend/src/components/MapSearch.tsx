@@ -15,6 +15,7 @@ interface MapSearchProps {
   onNearMe: () => void
   onFilterChange: (filters: FilterState) => void
   onW3WCoordinates?: (coordinates: { lat: number; lng: number }) => void
+  onPostcodeLocation?: (coordinates: { lat: number; lng: number }, address: string) => void
   counties: string[]
   categories: string[]
   className?: string
@@ -38,6 +39,7 @@ export default function MapSearch({
   onNearMe,
   onFilterChange,
   onW3WCoordinates,
+  onPostcodeLocation,
   counties,
   categories,
   className = '',
@@ -78,8 +80,14 @@ export default function MapSearch({
       const place = autocompleteRef.current?.getPlace()
       if (place?.geometry?.location) {
         const { lat, lng } = place.geometry.location
-        setQuery(place.formatted_address || '')
-        console.log('Selected location:', { lat: lat(), lng: lng() })
+        const address = place.formatted_address || ''
+        setQuery(address)
+        console.log('Selected postcode location:', { lat: lat(), lng: lng() }, address)
+        
+        // Emit postcode location to parent component for map zooming
+        if (onPostcodeLocation) {
+          onPostcodeLocation({ lat: lat(), lng: lng() }, address)
+        }
       }
     })
 
@@ -88,7 +96,7 @@ export default function MapSearch({
         window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
       }
     }
-  }, [])
+  }, [onPostcodeLocation])
 
   // Handle what3words search
   const handleW3WSearch = useCallback(async () => {

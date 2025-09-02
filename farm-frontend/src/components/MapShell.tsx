@@ -114,7 +114,7 @@ export default function MapShell({
     // Trigger haptic feedback
     triggerHaptic('medium')
     
-    // Show cluster preview instead of immediate zoom
+    // Show cluster preview
     setSelectedCluster({
       position: event.cluster.getCenter(),
       markers: event.cluster.getMarkers(),
@@ -122,34 +122,38 @@ export default function MapShell({
     })
     setShowClusterPreview(true)
     
-    // Prevent default zoom behavior
-    event.preventDefault()
-    return false
+    // Don't prevent default - let the cluster zoom work naturally
+    // The preview will show additional options
   }, [triggerHaptic])
 
   // Smart zoom to cluster with optimal zoom level
   const handleZoomToCluster = useCallback((cluster: any) => {
     const map = mapInstanceRef.current
-    if (!map) return
+    if (!map || !cluster?.position) return
 
+    console.log('Zooming to cluster with', cluster.count, 'markers')
+    
     // Calculate optimal zoom level based on cluster size
-    const count = cluster.count
     let targetZoom = 14 // Default zoom for small clusters
     
-    if (count > 50) targetZoom = 12      // Large clusters: zoom out to see area
-    else if (count > 20) targetZoom = 13  // Medium clusters: moderate zoom
-    else if (count > 10) targetZoom = 14  // Small clusters: closer zoom
-    else targetZoom = 15                   // Very small clusters: close zoom
+    if (cluster.count > 20) {
+      targetZoom = 12 // Zoom out for large clusters
+    } else if (cluster.count > 10) {
+      targetZoom = 13 // Medium zoom for medium clusters
+    } else if (cluster.count > 5) {
+      targetZoom = 14 // Closer zoom for small clusters
+    } else {
+      targetZoom = 15 // Very close for tiny clusters
+    }
 
-    // Calculate bounds for the cluster
+    // Create bounds around all markers in the cluster
     const bounds = new google.maps.LatLngBounds()
-    cluster.markers.forEach((marker: google.maps.Marker) => {
-      const pos = marker.getPosition()
-      if (pos) bounds.extend(pos)
+    cluster.markers.forEach((marker: any) => {
+      bounds.extend(marker.getPosition())
     })
 
     // Add padding for better view
-    const padding = Math.min(count * 2, 100) // Dynamic padding based on cluster size
+    const padding = Math.min(cluster.count * 2, 100) // Dynamic padding based on cluster size
     bounds.extend(new google.maps.LatLng(
       bounds.getNorthEast().lat() + (padding * 0.0001),
       bounds.getNorthEast().lng() + (padding * 0.0001)
@@ -455,7 +459,7 @@ export default function MapShell({
         },
         // Better touch handling
         draggable: true,
-        scrollwheel: false, // Disable scroll wheel on mobile
+        scrollwheel: isDesktop, // Enable scroll wheel on desktop, disable on mobile
         // Performance optimizations
         maxZoom: 20,
         minZoom: 5

@@ -193,6 +193,25 @@ export default function MapPage() {
     })
   }, [])
 
+  // Handle postcode location selection
+  const handlePostcodeLocation = useCallback((coordinates: { lat: number; lng: number }, address: string) => {
+    console.log('Postcode selected:', address, coordinates)
+    
+    // Zoom map to the postcode area
+    if (mapInstance) {
+      const position = new google.maps.LatLng(coordinates.lat, coordinates.lng)
+      
+      // Pan to the postcode location
+      mapInstance.panTo(position)
+      
+      // Set appropriate zoom level for postcode area
+      mapInstance.setZoom(14)
+      
+      // Trigger haptic feedback
+      triggerHaptic('medium')
+    }
+  }, [mapInstance, triggerHaptic])
+
   // Filter and search farms
   const filteredAndSearchedFarms = useMemo(() => {
     // 1) derive distance (no mutation)
@@ -266,7 +285,35 @@ export default function MapPage() {
   // Handle search
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query)
-  }, [])
+    
+    // Check if the query looks like a UK postcode
+    const postcodeRegex = /^[A-Z]{1,2}[0-9][A-Z0-9]?\s*[0-9][A-Z]{2}$/i
+    if (postcodeRegex.test(query.trim())) {
+      // This is a postcode - try to geocode it and zoom to location
+      if (window.google?.maps?.Geocoder) {
+        const geocoder = new window.google.maps.Geocoder()
+        geocoder.geocode({
+          address: query.trim() + ', UK',
+          componentRestrictions: { country: 'uk' }
+        }, (results, status) => {
+          if (status === 'OK' && results && results[0]?.geometry?.location) {
+            const location = results[0].geometry.location
+            const address = results[0].formatted_address
+            
+            // Zoom to postcode location
+            if (mapInstance) {
+              const position = new google.maps.LatLng(location.lat(), location.lng())
+              mapInstance.panTo(position)
+              mapInstance.setZoom(14)
+              triggerHaptic('medium')
+              
+              console.log('Geocoded postcode:', address, { lat: location.lat(), lng: location.lng() })
+            }
+          }
+        })
+      }
+    }
+  }, [mapInstance, triggerHaptic])
 
   // Handle near me
   const handleNearMe = useCallback(() => {
@@ -356,6 +403,7 @@ export default function MapPage() {
             onNearMe={handleNearMe}
             onFilterChange={handleFilterChange}
             onW3WCoordinates={handleW3WCoordinates}
+            onPostcodeLocation={handlePostcodeLocation}
             counties={counties}
             categories={categories}
             isLocationLoading={isLocationLoading}
@@ -384,11 +432,11 @@ export default function MapPage() {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-search-icon w-4 h-4" />
                 <input
                   type="text"
-                  placeholder="Search farms..."
+                  placeholder="Search farms or enter postcode..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => handleSearch(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 mobile-search-input rounded-xl text-sm shadow-sm"
-                  aria-label="Search farms"
+                  aria-label="Search farms or enter postcode"
                 />
               </div>
             </div>

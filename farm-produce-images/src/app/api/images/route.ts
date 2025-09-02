@@ -66,6 +66,8 @@ export async function GET(request: NextRequest): Promise<NextResponse<ApiRespons
       format: img.format,
       uploadedAt: img.uploadedAt,
       isPrimary: img.isPrimary,
+      produceSlug: img.produceSlug,
+      month: img.month,
     }))
 
     const response: ImageListResponse = {
