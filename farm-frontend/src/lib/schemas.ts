@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { FarmShop } from '@/types/farm'
 
 // Comprehensive FarmShop schema for validation
 export const FarmShopSchema = z.object({
@@ -9,27 +10,23 @@ export const FarmShopSchema = z.object({
   location: z.object({
     lat: z.number().min(-90, 'Latitude must be between -90 and 90').max(90, 'Latitude must be between -90 and 90'),
     lng: z.number().min(-180, 'Longitude must be between -180 and 180').max(180, 'Longitude must be between -180 and 180'),
-    address: z.string().min(5, 'Address must be at least 5 characters').max(200, 'Address too long'),
+    address: z.string().min(1, 'Address is required').max(200, 'Address too long'),
     city: z.string().max(80, 'City name too long').optional().default(''),
     county: z.string().min(1, 'County is required').max(80, 'County name too long'),
     postcode: z.string().min(1, 'Postcode is required').max(12, 'Postcode too long')
   }),
-  hours: z.array(z.object({
-    day: z.string().min(1, 'Day is required'),
-    open: z.string().min(1, 'Opening time is required'),
-    close: z.string().min(1, 'Closing time is required')
-  })).optional(),
+  hours: z.array(z.any()).optional().default([]), // Allow any hours format
   offerings: z.array(z.string()).optional(),
   contact: z.object({
     phone: z.string().optional(),
     website: z.string().url('Invalid website URL').optional()
   }).optional(),
-  verified: z.boolean().optional().default(false),
+  verified: z.union([z.boolean(), z.string()]).optional().default(false), // Allow both boolean and string
   description: z.string().optional(),
   updatedAt: z.string().optional()
 })
 
-export type FarmShop = z.infer<typeof FarmShopSchema>
+// Use the FarmShop type from types/farm.ts instead of inferring from schema
 
 // Deduplication utilities
 export function dedupeFarmsBySlug(farms: FarmShop[]): FarmShop[] {
