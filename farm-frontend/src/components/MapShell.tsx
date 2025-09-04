@@ -64,8 +64,8 @@ const UK_BOUNDS = {
 }
 
 const UK_CENTER = {
-  lat: (UK_BOUNDS.north + UK_BOUNDS.south) / 2,
-  lng: (UK_BOUNDS.east + UK_BOUNDS.west) / 2
+  lat: 54.5,  // Centered vertically for better visual balance
+  lng: -2.0   // Centered horizontally, slightly west for better UK focus
 }
 
 export default function MapShell({
@@ -76,7 +76,7 @@ export default function MapShell({
   onBoundsChange,
   onZoomChange,
   center = UK_CENTER,
-  zoom = 6,
+  zoom = 6, // Optimal zoom for UK overview and cluster visibility
   className = 'w-full h-full',
   userLocation,
   bottomSheetHeight = 200,
@@ -417,15 +417,43 @@ export default function MapShell({
     // Cluster click handling is now done via onClusterClick option in MarkerClusterer
     // This provides better zoom behavior and prevents duplicate handlers
 
-    // Fit bounds only once with calmer UK view (don't re-fit on every render)
+    // Smart landing strategy: UK overview first, then offer location-based zoom
     if (markers.length > 0 && !selectedFarmId && !hasFitted.current) {
-      const bounds = new google.maps.LatLngBounds(
+      // Step 1: Show UK overview with optimal zoom for cluster visibility
+      const ukBounds = new google.maps.LatLngBounds(
         { lat: 49.9, lng: -8.6 }, // southwest
         { lat: 60.9, lng: 1.8 }   // northeast
       )
+      
       programmaticMove.current = true
-      map.fitBounds(bounds, 0) // no extra zoom-in
-      setTimeout(() => (programmaticMove.current = false), 200)
+      
+      // Fit UK bounds with padding for better visual balance
+      map.fitBounds(ukBounds, {
+        top: 80,    // Extra top padding for search bar
+        right: 20,
+        bottom: 20,
+        left: 20
+      })
+      
+      // Set optimal zoom level for cluster visibility (not too close, not too far)
+      setTimeout(() => {
+        const currentZoom = map.getZoom() || 6
+        const optimalZoom = Math.min(Math.max(currentZoom, 5), 7) // Between zoom 5-7
+        
+        if (currentZoom !== optimalZoom) {
+          map.setZoom(optimalZoom)
+        }
+        
+        // Step 2: Offer location-based zoom if user has location
+        if (userLocation && userLocation.latitude && userLocation.longitude) {
+          // Show a subtle hint that they can zoom to their location
+          console.log('User location available - can offer zoom to location')
+          // The LocationTracker component will handle the actual zoom action
+        }
+        
+        programmaticMove.current = false
+      }, 300)
+      
       hasFitted.current = true
     }
   }, [selectedFarmId, handleClusterClick])
@@ -466,7 +494,7 @@ export default function MapShell({
     })
   }, [onBoundsChange])
 
-  // Safe pan function
+  // Enhanced camera control functions
   const safePanTo = useCallback((pos: google.maps.LatLng | google.maps.LatLngLiteral) => {
     const m = mapInstanceRef.current
     if (!m) return
@@ -474,6 +502,48 @@ export default function MapShell({
     m.panTo(pos)
     window.setTimeout(() => { programmaticMove.current = false }, 200)
   }, [])
+
+  // Smart zoom to UK overview
+  const zoomToUKOverview = useCallback(() => {
+    const map = mapInstanceRef.current
+    if (!map) return
+    
+    programmaticMove.current = true
+    
+    const ukBounds = new google.maps.LatLngBounds(
+      { lat: 49.9, lng: -8.6 },
+      { lat: 60.9, lng: 1.8 }
+    )
+    
+    map.fitBounds(ukBounds, {
+      top: 80,
+      right: 20,
+      bottom: 20,
+      left: 20
+    })
+    
+    setTimeout(() => {
+      map.setZoom(6) // Optimal cluster visibility
+      programmaticMove.current = false
+    }, 300)
+  }, [])
+
+  // Smart zoom to user's area (if location available)
+  const zoomToUserArea = useCallback(() => {
+    const map = mapInstanceRef.current
+    if (!map || !userLocation?.latitude || !userLocation?.longitude) return
+    
+    programmaticMove.current = true
+    
+    // Zoom to user's area with optimal zoom for local discovery
+    const userPos = { lat: userLocation.latitude, lng: userLocation.longitude }
+    map.panTo(userPos)
+    
+    setTimeout(() => {
+      map.setZoom(12) // Good zoom for local area discovery
+      programmaticMove.current = false
+    }, 300)
+  }, [userLocation])
 
   // keep farmsRef always fresh and schedule rebuilds when farms change
   useEffect(() => {
@@ -565,6 +635,35 @@ export default function MapShell({
       onMapReady?.(map)
       applyResponsivePadding() // set initial padding
       
+      // Add custom camera control button for better UX
+      const cameraControlDiv = document.createElement('div')
+      cameraControlDiv.innerHTML = `
+        <div style="
+          background: white;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+          margin: 10px;
+          padding: 8px;
+          cursor: pointer;
+          user-select: none;
+          transition: all 0.2s;
+        " 
+        onmouseover="this.style.background='#f8f9fa'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.15)'"
+        onmouseout="this.style.background='white'; this.style.boxShadow='0 2px 6px rgba(0,0,0,0.1)'"
+        onclick="window.zoomToUKOverview && window.zoomToUKOverview()"
+        title="Reset to UK Overview"
+        >
+          🗺️ UK
+        </div>
+      `
+      
+      // Make the function globally accessible for the onclick
+      ;(window as any).zoomToUKOverview = zoomToUKOverview
+      
+      // Add to map controls
+      map.controls[google.maps.ControlPosition.LEFT_TOP].push(cameraControlDiv)
+      
       // attach listeners AFTER init
       attachBoundsListener()
       
@@ -584,6 +683,57 @@ export default function MapShell({
       
       // kick an initial build too
       scheduleMarkerRebuild()
+      
+      // Add subtle welcome animation for first-time users
+      setTimeout(() => {
+        if (map && !localStorage.getItem('map-welcome-shown')) {
+          // Show a subtle welcome hint
+          const welcomeDiv = document.createElement('div')
+          welcomeDiv.innerHTML = `
+            <div style="
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background: rgba(0, 194, 178, 0.9);
+              color: white;
+              padding: 12px 20px;
+              border-radius: 20px;
+              font-size: 14px;
+              font-weight: 500;
+              z-index: 1000;
+              box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+              animation: fadeInOut 3s ease-in-out;
+            ">
+              🗺️ Explore farm shops across the UK
+            </div>
+          `
+          
+          // Add CSS animation
+          const style = document.createElement('style')
+          style.textContent = `
+            @keyframes fadeInOut {
+              0% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+              20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+              80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+              100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            }
+          `
+          document.head.appendChild(style)
+          
+          map.controls[google.maps.ControlPosition.TOP_CENTER].push(welcomeDiv)
+          
+          // Remove after animation
+          setTimeout(() => {
+            if (welcomeDiv.parentNode) {
+              welcomeDiv.parentNode.removeChild(welcomeDiv)
+            }
+          }, 3000)
+          
+          // Mark as shown
+          localStorage.setItem('map-welcome-shown', 'true')
+        }
+      }, 1000)
       
       // Enhanced touch handling for iPhone Safari
       const mapElement = mapRef.current

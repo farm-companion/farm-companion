@@ -26,10 +26,19 @@ function useDebounced<T>(value: T, delay = 150) {
 const MapShellWithNoSSR = dynamic(() => import('@/components/MapShell'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-2"></div>
-        <p className="text-sm text-gray-600">Loading map...</p>
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+      <div className="text-center px-6">
+        <div className="relative mb-4">
+          <div className="w-12 h-12 border-3 border-gray-200 rounded-full mx-auto"></div>
+          <div className="absolute inset-0 w-12 h-12 border-3 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
+        </div>
+        <h3 className="text-base font-semibold text-gray-800 mb-1">Loading Map</h3>
+        <p className="text-sm text-gray-600">Preparing your farm discovery experience...</p>
+        
+        {/* Map skeleton */}
+        <div className="mt-6 w-32 h-24 bg-gray-200 rounded-lg mx-auto relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+        </div>
       </div>
     </div>
   )
@@ -323,21 +332,32 @@ export default function MapPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center max-w-md mx-auto p-6">
-          <div className="text-red-500 mb-4">
-            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+        <div className="text-center max-w-sm mx-auto">
+          <div className="relative mb-6">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-2">Something went wrong</h1>
-          <p className="text-gray-600 mb-4">{error}</p>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-serum text-white rounded-lg hover:bg-serum/90 transition-colors"
-          >
-            Try again
-          </button>
+          <h1 className="text-xl font-semibold text-gray-900 mb-3">Oops! Something went wrong</h1>
+          <p className="text-gray-600 mb-6 text-sm leading-relaxed">{error}</p>
+          
+          <div className="space-y-3">
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full px-6 py-3 bg-serum text-white font-medium rounded-xl hover:bg-serum/90 active:scale-95 transition-all duration-200 shadow-lg"
+            >
+              Try Again
+            </button>
+            <button
+              onClick={() => setError(null)}
+              className="w-full px-6 py-2.5 text-gray-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
         </div>
       </div>
     )
@@ -376,21 +396,52 @@ export default function MapPage() {
 
         {/* Map and List Container */}
         <div className="relative h-[100svh] overflow-hidden">
-          {/* Mobile: Minimal Search Only */}
+          {/* Mobile: Ultra-Compact Search Bar - Minimal Map Blocking */}
           <div className="md:hidden absolute top-0 left-0 right-0 z-20 pointer-events-none">
-            <div className="p-3 pointer-events-auto mobile-search-enhanced">
-              {/* Single search input only */}
+            <div className="px-3 pt-2 pb-1 pointer-events-auto">
+              {/* Ultra-compact search input - minimal height */}
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 mobile-search-icon w-4 h-4" />
+                <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
                 <input
                   type="text"
                   placeholder="Search farms..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 mobile-search-input rounded-xl text-sm shadow-sm"
+                  className="w-full pl-8 pr-2 py-1.5 bg-white/85 backdrop-blur-sm border border-gray-200/40 rounded-lg text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-serum focus:border-transparent transition-all duration-200"
                   aria-label="Search farms"
                 />
+                
+                {/* Minimal search indicator */}
+                {searchQuery && (
+                  <div className="absolute right-1.5 top-1/2 transform -translate-y-1/2">
+                    <div className="w-1 h-1 bg-serum rounded-full animate-pulse"></div>
+                  </div>
+                )}
               </div>
+              
+              {/* Ultra-compact quick filters - minimal space */}
+              {!searchQuery && (
+                <div className="mt-1.5 flex items-center gap-1 overflow-x-auto">
+                  <button 
+                    onClick={() => setSearchQuery('organic')}
+                    className="px-1.5 py-0.5 bg-serum/10 text-serum text-xs font-medium rounded-md whitespace-nowrap border border-serum/20 hover:bg-serum/20 transition-colors"
+                  >
+                    Organic
+                  </button>
+                  <button 
+                    onClick={() => setSearchQuery('eggs')}
+                    className="px-1.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 hover:bg-gray-200 transition-colors"
+                  >
+                    Eggs
+                  </button>
+                  <button 
+                    onClick={() => setSearchQuery('vegetables')}
+                    className="px-1.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 hover:bg-gray-200 transition-colors"
+                  >
+                    Vegetables
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -412,7 +463,7 @@ export default function MapPage() {
 
 
 
-          {/* Mobile: Bottom Sheet with Farm List */}
+          {/* Mobile: Enhanced Bottom Sheet with Farm List */}
           <div className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
             <BottomSheet
               isOpen={true}
@@ -422,24 +473,27 @@ export default function MapPage() {
                 setBottomSheetHeight(height)
                 window.dispatchEvent(new CustomEvent('map:setBottomPadding', { detail: height }))
               }}
-              nonBlocking   // ← NEW
+              nonBlocking
             >
-              {/* Bottom Sheet Header - With Actions */}
-              <div className="px-4 py-3 border-b border-gray-200 bg-white">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-gray-900">
-                      {filteredFarms.length} farms
-                    </span>
+              {/* Enhanced Bottom Sheet Header - Mobile-First Design */}
+              <div className="px-4 py-4 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-serum rounded-full animate-pulse"></div>
+                      <span className="text-sm font-semibold text-gray-900">
+                        {filteredFarms.length} farms nearby
+                      </span>
+                    </div>
                   </div>
                   <div className="text-center">
-                    <div className="w-6 h-1 bg-gray-300 rounded-full mx-auto mb-1"></div>
-                    <span className="text-xs text-gray-500">⌄</span>
+                    <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto mb-1"></div>
+                    <span className="text-xs text-gray-400 font-medium">Pull up</span>
                   </div>
                 </div>
                 
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2">
+                {/* Enhanced Action Buttons with Better Visual Hierarchy */}
+                <div className="flex items-center gap-3">
                   <LocationTracker
                     farms={farms}
                     onLocationUpdate={setUserLocation}
@@ -447,6 +501,15 @@ export default function MapPage() {
                     onZoomToLocation={zoomToLocation}
                     compact={true}
                   />
+                  
+                  {/* Quick Filter Toggle - Mobile-First */}
+                  <button 
+                    onClick={() => {/* TODO: Implement quick filters */}}
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                  >
+                    <span className="w-4 h-4 text-gray-600">⚡</span>
+                    <span className="text-xs font-medium text-gray-700">Quick</span>
+                  </button>
                 </div>
               </div>
               
@@ -478,12 +541,21 @@ export default function MapPage() {
         </div>
       </div>
 
-      {/* Loading Overlay */}
+      {/* Enhanced Loading Overlay - Mobile-First */}
       {isLoading && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-4"></div>
-            <p className="text-gray-600">Loading farm data...</p>
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-8 text-center shadow-2xl mx-4 max-w-sm w-full">
+            <div className="relative mb-6">
+              <div className="w-16 h-16 border-4 border-gray-100 rounded-full mx-auto"></div>
+              <div className="absolute inset-0 w-16 h-16 border-4 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Farms</h3>
+            <p className="text-gray-600 text-sm">Finding local farm shops near you...</p>
+            
+            {/* Progress indicator */}
+            <div className="mt-6 w-full bg-gray-100 rounded-full h-2">
+              <div className="bg-serum h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+            </div>
           </div>
         </div>
       )}
