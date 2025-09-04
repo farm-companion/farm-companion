@@ -278,7 +278,7 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
       </section>
 
       {/* Enhanced Image Gallery - Premium Display */}
-      {shop.images && shop.images.length > 0 && (
+      {shop.images && Array.isArray(shop.images) && shop.images.length > 0 && shop.images.some(img => img && typeof img === 'string' && img.trim() !== '') && (
         <section className="py-16 bg-gradient-to-b from-background-surface to-background-canvas">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-12">
@@ -289,7 +289,9 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
               <p className="text-text-muted text-lg">Discover the beauty of {name}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {shop.images.map((image, index) => (
+              {shop.images
+                .filter(img => img && typeof img === 'string' && img.trim() !== '')
+                .map((image, index) => (
                 <div key={index} className="group relative overflow-hidden rounded-3xl bg-background-canvas shadow-2xl border border-border-default/30 hover:border-serum/50 transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
                   <div className="aspect-[4/3] relative">
                     <Image
