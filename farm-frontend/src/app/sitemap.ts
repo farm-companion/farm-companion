@@ -43,7 +43,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Read farms JSON from /public so sitemap builds without external fetch
   let farms: FarmShop[] = []
   try {
-    const file = path.join(process.cwd(), 'public', 'data', 'farms.uk.json')
+    const file = path.join(process.cwd(), 'data', 'farms.json')
     const raw = await fs.readFile(file, 'utf-8')
     farms = JSON.parse(raw) as FarmShop[]
   } catch (error) {

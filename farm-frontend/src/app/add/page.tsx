@@ -300,21 +300,49 @@ export default function AddFarmPage() {
         <div className="absolute top-32 right-20 w-1 h-1 bg-solar rounded-full opacity-40 animate-ping" style={{ animationDelay: '1.5s' }} />
         <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-50 animate-pulse" style={{ animationDelay: '2s' }} />
         
-        <div className="relative max-w-7xl mx-auto px-6 py-16">
-          {/* Enhanced Hero Content */}
-          <div className="text-center mb-16">
-            {/* Enhanced typography with premium styling */}
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-text-heading mb-8 tracking-tight leading-tight">
-              <span className="bg-gradient-to-r from-text-heading via-serum to-text-heading bg-clip-text text-transparent">
-                Add Your Farm Shop
-              </span>
-            </h1>
-            
-            {/* Enhanced description */}
-            <p className="text-xl md:text-2xl text-text-muted mb-12 max-w-4xl mx-auto leading-relaxed">
-              Help customers find you, learn your story, and visit with confidence. 
-              Share the essentials—hours, offerings, and contact details—and we&apos;ll review and add you to our trusted UK-wide map.
-            </p>
+        {/* Hero Image Header */}
+        <div className="relative w-full h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
+          <Image
+            src="/add.jpg"
+            alt="Beautiful farm landscape - Add your farm shop to our directory"
+            fill
+            className="object-cover object-center"
+            priority
+            fetchPriority="high"
+            sizes="100vw"
+            quality={85}
+          />
+          {/* Professional Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+          {/* Subtle texture overlay for depth */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
+          
+          {/* Hero Content Overlay */}
+          <div className="relative h-full flex items-center justify-center">
+            <div className="text-center max-w-4xl mx-auto px-6">
+              <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
+                <Leaf className="w-10 h-10 text-white" />
+              </div>
+              <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+                Add Your Farm
+                <span className="block text-serum drop-shadow-lg">Shop</span>
+              </h1>
+              <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+                Help customers find you, learn your story, and visit with confidence.
+              </p>
+              <p className="text-lg text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+                Share the essentials—hours, offerings, and contact details—and we&apos;ll review and add you to our trusted UK-wide map.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative max-w-7xl mx-auto px-6 py-8">
+          {/* Additional Content Below Hero */}
+          <div className="text-center mb-8">
+            {/* You can add additional content here if needed */}
           </div>
         </div>
       </section>

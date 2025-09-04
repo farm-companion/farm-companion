@@ -8,7 +8,7 @@ export async function getFarmData(): Promise<FarmShop[]> {
     const path = await import('path')
     
     // Read farm data directly from the JSON file
-    const farmsPath = path.join(process.cwd(), 'public', 'data', 'farms.uk.json')
+    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
     const farmsData = await fs.readFile(farmsPath, 'utf-8')
     const farms = JSON.parse(farmsData)
     
@@ -54,7 +54,7 @@ export async function getFarmStats() {
 // Client-side farm data fetching (for map page only)
 export async function fetchFarmDataClient(): Promise<FarmShop[]> {
   try {
-    const response = await fetch('/data/farms.uk.json', { 
+    const response = await fetch('/api/farms?limit=2000', { 
       cache: 'no-store'
     })
     

@@ -51,7 +51,7 @@ export const metadata: Metadata = {
 // Load farm data with error handling
 async function getFarms(): Promise<FarmShop[]> {
   try {
-    const dataPath = path.join(process.cwd(), 'public', 'data', 'farms.uk.json')
+    const dataPath = path.join(process.cwd(), 'data', 'farms.json')
     const data = await fs.readFile(dataPath, 'utf-8')
     return JSON.parse(data)
   } catch (error) {

@@ -116,7 +116,7 @@ export default async function CountyPage({ params }: { params: Promise<{ slug: s
 // }
 
 async function readFarms(): Promise<FarmShop[]> {
-  const file = path.join(process.cwd(), 'public', 'data', 'farms.uk.json')
+  const file = path.join(process.cwd(), 'data', 'farms.json')
   const raw = await fs.readFile(file, 'utf8')
   return JSON.parse(raw) as FarmShop[]
 }

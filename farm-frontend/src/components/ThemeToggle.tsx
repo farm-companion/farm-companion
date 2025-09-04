@@ -63,16 +63,25 @@ export default function ThemeToggle() {
       setIsDark(false)
       localStorage.setItem('theme', 'light')
       document.documentElement.classList.remove('dark')
+      document.documentElement.classList.add('light')
+      // Dispatch event for other components
+      window.dispatchEvent(new Event('theme-changed'))
     } else if (isDark) {
       // Switch from dark to light
       setIsDark(false)
       localStorage.setItem('theme', 'light')
       document.documentElement.classList.remove('dark')
+      document.documentElement.classList.add('light')
+      // Dispatch event for other components
+      window.dispatchEvent(new Event('theme-changed'))
     } else {
       // Switch from light to dark
       setIsDark(true)
       localStorage.setItem('theme', 'dark')
       document.documentElement.classList.add('dark')
+      document.documentElement.classList.remove('light')
+      // Dispatch event for other components
+      window.dispatchEvent(new Event('theme-changed'))
     }
   }
 
@@ -81,11 +90,12 @@ export default function ThemeToggle() {
     localStorage.removeItem('theme')
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
     setIsDark(systemPrefersDark)
+    document.documentElement.classList.remove('dark', 'light')
     if (systemPrefersDark) {
       document.documentElement.classList.add('dark')
-    } else {
-      document.documentElement.classList.remove('dark')
     }
+    // Dispatch event for other components
+    window.dispatchEvent(new Event('theme-changed'))
   }
 
   // Prevent hydration mismatch
