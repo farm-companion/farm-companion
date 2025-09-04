@@ -77,6 +77,68 @@
    UTILITY CLASSES
    ============================================================================ */
 
+/* Mobile-First Map Enhancements */
+.mobile-search-enhanced {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.mobile-search-input {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.mobile-search-input:focus {
+  box-shadow: 0 4px 25px rgba(0, 194, 178, 0.15);
+}
+
+/* Enhanced animations for mobile */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out;
+}
+
+.animate-fade-in-scale {
+  animation: fadeInScale 0.2s ease-out;
+}
+
+/* Mobile-optimized shadows */
+.shadow-mobile {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-mobile-lg {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+}
+
+/* Enhanced focus states for mobile */
+.focus-ring-mobile:focus {
+  outline: none;
+  ring: 2px;
+  ring-color: var(--brand-primary);
+  ring-offset: 2px;
+}
+
 /* Text colors */
 .text-text-heading { color: var(--text-heading); }
 .text-text-body { color: var(--text-body); }
