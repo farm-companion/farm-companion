@@ -278,7 +278,7 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
       </section>
 
       {/* Enhanced Image Gallery - Premium Display */}
-      {shop.images && Array.isArray(shop.images) && shop.images.length > 0 && shop.images.some(img => img && typeof img === 'string' && img.trim() !== '') && (
+      {shop.images && Array.isArray(shop.images) && shop.images.length > 0 && shop.images.some(img => img && typeof img === 'string' && img.trim() !== '' && !img.includes('maps.googleapis.com/maps/api/place/photo')) && (
         <section className="py-16 bg-gradient-to-b from-background-surface to-background-canvas">
           <div className="max-w-7xl mx-auto px-6">
             <div className="text-center mb-12">
@@ -300,6 +300,14 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
                       fill
                       className="object-cover transition-transform duration-700 group-hover:scale-110"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      onError={(e) => {
+                        // Hide the entire image container if image fails to load
+                        const target = e.target as HTMLImageElement;
+                        const container = target.closest('.group') as HTMLElement;
+                        if (container) {
+                          container.style.display = 'none';
+                        }
+                      }}
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
