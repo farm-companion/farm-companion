@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { ArrowRight } from 'lucide-react'
 import ContactForm from '@/components/forms/ContactForm'
 
 export default function ContactPage() {
@@ -9,50 +10,45 @@ export default function ContactPage() {
 
   return (
     <div className="min-h-screen bg-background-canvas">
-      {/* Professional Header with Background Image */}
-      <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <Image
-            src="/feedback.jpg"
-            alt="Group discussion and feedback session with diverse perspectives"
-            fill
-            className="object-cover object-center"
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            quality={85}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-          />
-          {/* Professional Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
-          {/* Subtle texture overlay for depth */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
-        </div>
+      {/* Enhanced Hero Section - PuredgeOS 3.0 Premium */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-background-surface via-background-canvas to-background-surface">
+        {/* Sophisticated animated background patterns */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.04),transparent_50%)] animate-pulse" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.03),transparent_50%)] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,31,35,0.02),transparent_70%)]" />
         
-        {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center">
-          <div className="text-center max-w-4xl mx-auto px-6">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
-              Share Your
-              <span className="block text-serum drop-shadow-lg">Feedback</span>
+        {/* Floating accent elements */}
+        <div className="absolute top-20 left-10 w-2 h-2 bg-serum rounded-full opacity-60 animate-bounce" style={{ animationDelay: '0.5s' }} />
+        <div className="absolute top-32 right-20 w-1 h-1 bg-solar rounded-full opacity-40 animate-ping" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-50 animate-pulse" style={{ animationDelay: '2s' }} />
+        
+        <div className="relative max-w-7xl mx-auto px-6 py-16">
+          {/* Enhanced Hero Content */}
+          <div className="text-center mb-16">
+            {/* Enhanced typography with premium styling */}
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-text-heading mb-8 tracking-tight leading-tight">
+              <span className="bg-gradient-to-r from-text-heading via-serum to-text-heading bg-clip-text text-transparent">
+                Share Your Feedback
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            
+            {/* Enhanced description */}
+            <p className="text-xl md:text-2xl text-text-muted mb-12 max-w-4xl mx-auto leading-relaxed">
               Have a question, suggestion, or need help? We&apos;d love to hear from you.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            
+            {/* Enhanced Action Buttons with premium styling */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <a
                 href="#contact-form"
-                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-[#00B0A0] hover:text-white transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
+                className="group bg-gradient-to-r from-serum to-teal-500 text-black px-10 py-5 rounded-2xl font-bold text-lg hover:from-teal-500 hover:to-serum transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1"
               >
                 Send Message
+                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </a>
               <a
                 href="#contact-info"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/30 hover:border-white/40 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+                className="group border-2 border-serum text-serum dark:text-serum px-10 py-5 rounded-2xl font-bold text-lg hover:bg-serum hover:text-black dark:hover:bg-serum dark:hover:text-black transition-all duration-300 inline-flex items-center justify-center gap-3 backdrop-blur-sm bg-background-surface/30 hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
               >
                 Contact Info
               </a>
@@ -67,8 +63,9 @@ export default function ContactPage() {
 
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Contact Form */}
-            <div id="contact-form" className="bg-background-surface rounded-lg shadow-sm border border-border-default p-6">
-              <h2 className="text-2xl font-semibold text-text-heading mb-6">
+            <div id="contact-form" className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl shadow-2xl border border-border-default/30 p-8">
+              <h2 className="text-2xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+                <span className="w-2 h-2 bg-serum rounded-full"></span>
                 Send us a message
               </h2>
               
@@ -92,8 +89,9 @@ export default function ContactPage() {
 
             {/* Contact Information */}
             <div id="contact-info" className="space-y-6">
-              <div className="bg-background-surface rounded-lg shadow-sm border border-border-default p-6">
-                <h2 className="text-2xl font-semibold text-text-heading mb-6">
+              <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl shadow-2xl border border-border-default/30 p-8">
+                <h2 className="text-2xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+                  <span className="w-2 h-2 bg-serum rounded-full"></span>
                   Other ways to reach us
                 </h2>
                 
