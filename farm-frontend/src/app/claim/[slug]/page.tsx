@@ -35,7 +35,7 @@ export default async function ClaimPage({ params }: { params: Promise<{ slug: st
 }
 
 async function readFarms(): Promise<FarmShop[]> {
-  const file = path.join(process.cwd(), 'public', 'data', 'farms.uk.json')
+  const file = path.join(process.cwd(), 'data', 'farms.json')
   const raw = await fs.readFile(file, 'utf8')
   return JSON.parse(raw) as FarmShop[]
 }

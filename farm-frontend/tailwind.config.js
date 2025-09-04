@@ -47,10 +47,24 @@ module.exports = {
         'border-focus': 'var(--border-focus)',
       },
       
-      // PuredgeOS Typography - God-tier quality
+      // PuredgeOS Typography - God-tier quality with improved readability
       fontFamily: {
         'heading': ['Satoshi', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         'body': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
+      
+      // Enhanced font sizes for better readability (PuredgeOS Clarity First)
+      fontSize: {
+        'xs': ['0.875rem', { lineHeight: '1.5' }],      // 14px - was 12px
+        'sm': ['1rem', { lineHeight: '1.5' }],          // 16px - was 14px  
+        'base': ['1.125rem', { lineHeight: '1.6' }],    // 18px - was 16px
+        'lg': ['1.25rem', { lineHeight: '1.6' }],       // 20px - was 18px
+        'xl': ['1.5rem', { lineHeight: '1.5' }],        // 24px - was 20px
+        '2xl': ['1.875rem', { lineHeight: '1.4' }],     // 30px - was 24px
+        '3xl': ['2.25rem', { lineHeight: '1.3' }],      // 36px - was 30px
+        '4xl': ['3rem', { lineHeight: '1.2' }],         // 48px - was 36px
+        '5xl': ['3.75rem', { lineHeight: '1.1' }],      // 60px - was 48px
+        '6xl': ['4.5rem', { lineHeight: '1' }],         // 72px - was 60px
       },
       
       // Mobile-first spacing scale (4px baseline)

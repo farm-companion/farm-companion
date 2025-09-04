@@ -141,8 +141,8 @@ function ClaimPageContent() {
   useEffect(() => {
     async function fetchFarms() {
       try {
-        // Use the same approach as the map page - fetch from JSON and apply deduplication
-        const response = await fetch('/data/farms.uk.json', { 
+        // Use the same approach as the map page - fetch from API and apply deduplication
+        const response = await fetch('/api/farms?limit=2000', { 
           cache: 'no-store'
         })
         

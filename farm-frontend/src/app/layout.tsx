@@ -60,11 +60,11 @@ export const metadata: Metadata = {
     description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
     images: [
       { 
-        url: `${SITE_URL}/og?title=Farm Companion&subtitle=UK Farm Shops Directory&type=default`, 
+        url: `${SITE_URL}/og.jpg`, 
         width: 1200, 
         height: 630, 
         alt: 'Farm Companion - UK farm shops directory',
-        type: 'image/png',
+        type: 'image/jpeg',
       },
     ],
     locale: 'en_GB',
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Farm Companion — UK farm shops directory',
     description: 'Find trusted farm shops near you, farmshopsnearme, farm shop near you with verified information and the freshest local produce. Use our interactive map to discover farm shops in your area.',
-    images: [`${SITE_URL}/og?title=Farm Companion&subtitle=UK Farm Shops Directory&type=default`],
+    images: [`${SITE_URL}/og.jpg`],
     creator: '@farmcompanion',
   },
   alternates: {
@@ -195,8 +195,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                   // Apply theme immediately
                   if (theme === 'dark' || (!theme && systemPrefersDark)) {
                     document.documentElement.classList.add('dark');
-                  } else {
+                    document.documentElement.classList.remove('light');
+                  } else if (theme === 'light') {
+                    document.documentElement.classList.add('light');
                     document.documentElement.classList.remove('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark', 'light');
                   }
                   
                   // Listen for system theme changes
@@ -206,8 +210,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     if (!localStorage.getItem('theme')) {
                       if (e.matches) {
                         document.documentElement.classList.add('dark');
+                        document.documentElement.classList.remove('light');
                       } else {
                         document.documentElement.classList.remove('dark');
+                        document.documentElement.classList.remove('light');
                       }
                       // Dispatch event for components to update
                       window.dispatchEvent(new Event('theme-changed'));

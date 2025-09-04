@@ -69,7 +69,12 @@ export default function MarkerActions({
     return distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`
   }
 
-  if (!farm || !isVisible) return null
+  console.log('MarkerActions render - farm:', farm?.name, 'isVisible:', isVisible, 'isDesktop:', isDesktop)
+  
+  if (!farm || !isVisible) {
+    console.log('MarkerActions not rendering - farm:', !!farm, 'isVisible:', isVisible)
+    return null
+  }
 
   const distance = getDistance()
 

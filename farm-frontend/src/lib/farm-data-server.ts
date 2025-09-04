@@ -9,7 +9,7 @@ export async function getFarmDataServer(): Promise<FarmShop[]> {
     const path = await import('path')
     
     // Read farm data directly from the JSON file
-    const farmsPath = path.join(process.cwd(), 'public', 'data', 'farms.uk.json')
+    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
     const farmsData = await fs.readFile(farmsPath, 'utf-8')
     const farms = JSON.parse(farmsData)
     

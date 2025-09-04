@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0')
     
     // Load farm data with deduplication
-    const farmsPath = path.join(process.cwd(), 'public', 'data', 'farms.uk.json')
+    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
     const farmsData = await fs.readFile(farmsPath, 'utf-8')
     const rawFarms: FarmShop[] = JSON.parse(farmsData)
     

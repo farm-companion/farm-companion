@@ -18,7 +18,7 @@
 /* Removed all watermark and protection features for better mobile experience */
 
 /* ============================================================================
-   THEME AND ACCESSIBILITY
+   THEME AND ACCESSIBILITY - PUREDGEOS 3.0 CLARITY FIRST
    ============================================================================ */
 
 /* Theme variables */
@@ -38,9 +38,80 @@
   --search-h: 96px;   /* tweak to your real search block */
 }
 
-/* Dark theme support */
+/* ============================================================================
+   PUREDGEOS 3.0 TYPOGRAPHY - CLARITY FIRST, READABILITY OPTIMIZED
+   ============================================================================ */
+
+/* Base typography improvements for clarity and readability */
+html {
+  font-size: 18px; /* Increased base font size from 16px for better readability */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  /* Cross-browser compatibility */
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-size: 1rem; /* 18px base */
+  line-height: 1.6; /* Improved line height for better readability */
+  color: var(--text-body);
+  background-color: var(--background-canvas);
+}
+
+/* Enhanced readability for different text elements */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Satoshi', 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text-heading);
+  letter-spacing: -0.025em; /* Slightly tighter letter spacing for headings */
+}
+
+p {
+  line-height: 1.7; /* More generous line height for body text */
+  margin-bottom: 1rem;
+}
+
+/* Improved contrast and readability for small text */
+.text-xs {
+  font-size: 0.875rem; /* 14px */
+  line-height: 1.5;
+}
+
+.text-sm {
+  font-size: 1rem; /* 16px */
+  line-height: 1.5;
+}
+
+/* Better readability for form elements */
+input, textarea, select {
+  font-size: 1rem; /* 16px to prevent zoom on iOS */
+  line-height: 1.5;
+}
+
+/* Enhanced button text readability */
+button {
+  font-size: 1rem; /* 16px */
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Dark theme support - Manual toggle */
+.dark {
+  --text-heading: #ffffff;
+  --text-body: #e5e7eb;
+  --text-muted: #9ca3af;
+  --background-canvas: #111827;
+  --background-surface: #1f2937;
+  --border-default: #374151;
+}
+
+/* Dark theme support - System preference (fallback) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.light) {
     --text-heading: #ffffff;
     --text-body: #e5e7eb;
     --text-muted: #9ca3af;
@@ -48,6 +119,84 @@
     --background-surface: #1f2937;
     --border-default: #374151;
   }
+}
+
+/* Additional dark mode styles for common elements */
+.dark body {
+  background-color: var(--background-canvas);
+  color: var(--text-body);
+}
+
+.dark .bg-background-canvas {
+  background-color: var(--background-canvas);
+}
+
+.dark .bg-background-surface {
+  background-color: var(--background-surface);
+}
+
+.dark .text-text-heading {
+  color: var(--text-heading);
+}
+
+.dark .text-text-body {
+  color: var(--text-body);
+}
+
+.dark .text-text-muted {
+  color: var(--text-muted);
+}
+
+.dark .border-border-default {
+  border-color: var(--border-default);
+}
+
+/* Dark mode for form elements */
+.dark input,
+.dark textarea,
+.dark select {
+  background-color: var(--background-surface);
+  color: var(--text-body);
+  border-color: var(--border-default);
+}
+
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 2px rgba(0, 194, 178, 0.2);
+  /* Cross-browser focus support */
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+  -webkit-focus-ring-color: var(--brand-primary);
+  -moz-focus-ring-color: var(--brand-primary);
+}
+
+/* Dark mode for buttons */
+.dark .bg-white {
+  background-color: var(--background-surface);
+}
+
+.dark .text-black {
+  color: var(--text-body);
+}
+
+/* Dark mode for cards and surfaces */
+.dark .bg-gray-50 {
+  background-color: var(--background-surface);
+}
+
+.dark .bg-gray-100 {
+  background-color: var(--background-canvas);
+}
+
+/* Dark mode for shadows */
+.dark .shadow-lg {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+.dark .shadow-xl {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 }
 
 /* High contrast mode */
@@ -81,6 +230,15 @@
 .mobile-search-enhanced {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  /* Fallback for browsers that don't support backdrop-filter */
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Cross-browser backdrop-filter support */
+@supports not (backdrop-filter: blur(8px)) {
+  .mobile-search-enhanced {
+    background-color: rgba(255, 255, 255, 0.95);
+  }
 }
 
 .mobile-search-input {
@@ -137,6 +295,11 @@
   ring: 2px;
   ring-color: var(--brand-primary);
   ring-offset: 2px;
+  /* Cross-browser focus support */
+  -webkit-focus-ring-color: var(--brand-primary);
+  -moz-focus-ring-color: var(--brand-primary);
+  /* Fallback for browsers that don't support ring utilities */
+  box-shadow: 0 0 0 2px var(--brand-primary);
 }
 
 /* Text colors */
@@ -163,6 +326,9 @@
 .focus-visible {
   outline: 2px solid var(--brand-primary);
   outline-offset: 2px;
+  /* Cross-browser focus support */
+  -webkit-focus-ring-color: var(--brand-primary);
+  -moz-focus-ring-color: var(--brand-primary);
 }
 
 /* Skip links for accessibility */
@@ -178,12 +344,19 @@
   z-index: 1000;
   transition: top 0.2s ease;
   font-weight: 500;
+  /* Cross-browser compatibility */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
 
 .skip-link:focus {
   top: 6px;
   outline: 2px solid #fff;
   outline-offset: 2px;
+  /* Cross-browser focus support */
+  -webkit-focus-ring-color: #fff;
+  -moz-focus-ring-color: #fff;
 }
 
 /* Theme ready state */
@@ -214,10 +387,12 @@ html {
 /* Dynamic viewport height utility */
 .full-height {
   height: 100dvh;
+  /* Fallback for browsers that don't support dvh */
+  height: 100vh;
 }
-@supports not (height: 100dvh) {
+@supports (height: 100dvh) {
   .full-height {
-    height: 100vh;
+    height: 100dvh;
   }
 }
 
@@ -235,10 +410,12 @@ html {
   position: relative;
   height: calc(100dvh - var(--header-h));
   padding-bottom: env(safe-area-inset-bottom); /* iOS home bar */
+  /* Fallback for browsers that don't support dvh */
+  height: calc(100vh - var(--header-h));
 }
-@supports not (height: 100dvh) {
+@supports (height: 100dvh) {
   .map-shell { 
-    height: calc(100vh - var(--header-h)); 
+    height: calc(100dvh - var(--header-h)); 
   }
 }
 
@@ -246,10 +423,12 @@ html {
 @media (min-width: 768px) {
   .map-shell {
     height: calc(100dvh - var(--header-h) - var(--search-h));
+    /* Fallback for browsers that don't support dvh */
+    height: calc(100vh - var(--header-h) - var(--search-h));
   }
-  @supports not (height: 100dvh) {
+  @supports (height: 100dvh) {
     .map-shell { 
-      height: calc(100vh - var(--header-h) - var(--search-h)); 
+      height: calc(100dvh - var(--header-h) - var(--search-h)); 
     }
   }
 }
@@ -276,6 +455,13 @@ html {
   touch-action: pan-x pan-y;      /* let map handle touch */
   overscroll-behavior: none;      /* stop pull-to-refresh edge drag */
   -webkit-overflow-scrolling: auto;
+  /* Cross-browser touch support */
+  -ms-touch-action: pan-x pan-y;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Safe area utilities for edge-pinned components */
@@ -314,6 +500,13 @@ html {
   border-top-right-radius: 16px;
   box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
   transition: transform 0.3s ease-out;
+  /* Cross-browser touch support */
+  -ms-touch-action: pan-y;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* Drag handle area should NOT capture the whole screen */
@@ -324,6 +517,13 @@ html {
   background: #d1d5db;
   margin: 8px auto;
   touch-action: pan-y;
+  /* Cross-browser touch support */
+  -ms-touch-action: pan-y;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }
 
 /* ============================================================================
@@ -384,11 +584,23 @@ html {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   transition: all 0.2s ease;
+  /* Fallback for browsers that don't support backdrop-filter */
+  background-color: rgba(255, 255, 255, 0.95);
+}
+
+/* Cross-browser backdrop-filter support for mobile search bar */
+@supports not (backdrop-filter: blur(20px)) {
+  .mobile-search-bar {
+    background-color: rgba(255, 255, 255, 0.98);
+  }
 }
 
 .mobile-search-bar:focus-within {
   background: rgba(255, 255, 255, 0.98);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  /* Cross-browser focus support */
+  outline: 2px solid #00c2b2;
+  outline-offset: 2px;
 }
 
 /* ============================================================================
@@ -399,6 +611,15 @@ html {
 .marker-actions-backdrop {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
+  /* Fallback for browsers that don't support backdrop-filter */
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Cross-browser backdrop-filter support for marker actions */
+@supports not (backdrop-filter: blur(8px)) {
+  .marker-actions-backdrop {
+    background-color: rgba(0, 0, 0, 0.7);
+  }
 }
 
 /* Marker actions sheet */
@@ -599,6 +820,15 @@ html {
   z-index: 41;
   overflow: hidden;
   animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* Fallback for browsers that don't support backdrop-filter */
+  background-color: rgba(255, 255, 255, 0.99);
+}
+
+/* Cross-browser backdrop-filter support for live location details */
+@supports not (backdrop-filter: blur(20px)) {
+  .live-location-details {
+    background-color: #ffffff;
+  }
 }
 
 @keyframes slideIn {
@@ -929,6 +1159,50 @@ html {
 }
 
 /* ============================================================================
+   SIMPLIFIED DESKTOP HEADER
+   ============================================================================ */
+
+/* Simple desktop header transitions */
+@media (min-width: 1024px) {
+  /* Smooth header transitions */
+  .desktop-header-smooth {
+    transition: transform 0.3s ease-out, opacity 0.3s ease-out;
+    will-change: transform, opacity;
+  }
+  
+  /* Dark mode header adjustments */
+  .dark .desktop-header-dark {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-color: rgba(255, 255, 255, 0.1);
+    /* Fallback for browsers that don't support backdrop-filter */
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+  
+  /* Light mode header adjustments */
+  .desktop-header-light {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-color: rgba(0, 0, 0, 0.1);
+    /* Fallback for browsers that don't support backdrop-filter */
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+  
+  /* Cross-browser backdrop-filter support for desktop header */
+  @supports not (backdrop-filter: blur(12px)) {
+    .dark .desktop-header-dark {
+      background-color: rgba(0, 0, 0, 0.9);
+    }
+    
+    .desktop-header-light {
+      background-color: rgba(255, 255, 255, 0.98);
+    }
+  }
+}
+
+/* ============================================================================
    MOBILE SEARCH BAR - FIXED CONTRAST AND VISIBILITY
    ============================================================================ */
 
@@ -939,6 +1213,15 @@ html {
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid #e5e7eb;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  /* Fallback for browsers that don't support backdrop-filter */
+  background-color: rgba(255, 255, 255, 0.99);
+}
+
+/* Cross-browser backdrop-filter support for mobile search */
+@supports not (backdrop-filter: blur(20px)) {
+  .mobile-search-container {
+    background-color: #ffffff;
+  }
 }
 
 /* Mobile search input styling */
@@ -960,6 +1243,9 @@ html {
   box-shadow: 0 0 0 3px rgba(0, 194, 178, 0.1);
   background: #ffffff;
   color: #111827;
+  /* Cross-browser focus outline */
+  outline: 2px solid #00c2b2;
+  outline-offset: 2px;
 }
 
 .mobile-search-input:hover {
@@ -982,6 +1268,15 @@ html {
   box-shadow: 
     0 4px 20px rgba(0, 0, 0, 0.08),
     0 2px 8px rgba(0, 0, 0, 0.04);
+  /* Fallback for browsers that don't support backdrop-filter */
+  background-color: rgba(255, 255, 255, 0.99);
+}
+
+/* Cross-browser backdrop-filter support for enhanced mobile search */
+@supports not (backdrop-filter: blur(20px)) {
+  .mobile-search-enhanced {
+    background-color: #ffffff;
+  }
 }
 
 /* Search input focus states */
@@ -992,6 +1287,9 @@ html {
     0 2px 8px rgba(0, 194, 178, 0.15);
   background: #ffffff;
   color: #111827;
+  /* Cross-browser focus outline */
+  outline: 2px solid #00c2b2;
+  outline-offset: 2px;
 }
 
 /* Search input hover states */
@@ -1025,4 +1323,441 @@ html {
   box-shadow: 
     0 8px 32px rgba(0, 0, 0, 0.12),
     0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================================
+   GOD-TIER MOBILE MENU ANIMATIONS & MICRO-INTERACTIONS
+   ============================================================================ */
+
+/* Mobile menu backdrop blur animation */
+.mobile-menu-backdrop {
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+  /* Fallback for browsers that don't support backdrop-filter */
+  background-color: rgba(0, 0, 0, 0.6);
+  animation: backdropBlurIn 0.3s ease-out forwards;
+}
+
+/* Cross-browser backdrop-filter support for mobile menu */
+@supports not (backdrop-filter: blur(12px)) {
+  .mobile-menu-backdrop {
+    background-color: rgba(0, 0, 0, 0.8);
+  }
+}
+
+@keyframes backdropBlurIn {
+  from {
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+/* Cross-browser animation support for backdrop blur */
+@-webkit-keyframes backdropBlurIn {
+  from {
+    backdrop-filter: blur(0px);
+    -webkit-backdrop-filter: blur(0px);
+  }
+  to {
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+}
+
+@-moz-keyframes backdropBlurIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@-ms-keyframes backdropBlurIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Mobile menu slide-in animation */
+.mobile-menu-panel {
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  /* Cross-browser animation support */
+  -webkit-animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  -moz-animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  -ms-animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Cross-browser animation support for slide in right */
+@-webkit-keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@-moz-keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@-ms-keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Mobile menu item stagger animation */
+.mobile-menu-item {
+  animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  opacity: 0;
+  transform: translateY(20px);
+  /* Cross-browser animation support */
+  -webkit-animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  -moz-animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  -ms-animation: fadeInUp 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.mobile-menu-item:nth-child(1) { animation-delay: 0.05s; }
+.mobile-menu-item:nth-child(2) { animation-delay: 0.1s; }
+.mobile-menu-item:nth-child(3) { animation-delay: 0.15s; }
+.mobile-menu-item:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Cross-browser animation support for fade in up */
+@-webkit-keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@-moz-keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@-ms-keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile menu item hover effects */
+.mobile-menu-item-hover {
+  position: relative;
+  overflow: hidden;
+  /* Cross-browser compatibility */
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.mobile-menu-item-hover::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s ease;
+  /* Cross-browser animation support */
+  -webkit-transition: left 0.5s ease;
+  -moz-transition: left 0.5s ease;
+  -ms-transition: left 0.5s ease;
+}
+
+.mobile-menu-item-hover:hover::before {
+  left: 100%;
+  /* Cross-browser animation support */
+  -webkit-transition: left 0.5s ease;
+  -moz-transition: left 0.5s ease;
+  -ms-transition: left 0.5s ease;
+}
+
+/* Mobile menu icon bounce animation */
+.mobile-menu-icon {
+  transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  /* Cross-browser animation support */
+  -webkit-transition: -webkit-transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  -moz-transition: -moz-transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  -ms-transition: -ms-transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.mobile-menu-item:hover .mobile-menu-icon {
+  transform: scale(1.1) rotate(5deg);
+  /* Cross-browser transform support */
+  -webkit-transform: scale(1.1) rotate(5deg);
+  -moz-transform: scale(1.1) rotate(5deg);
+  -ms-transform: scale(1.1) rotate(5deg);
+}
+
+/* Mobile menu CTA pulse animation */
+.mobile-menu-cta {
+  animation: subtlePulse 2s ease-in-out infinite;
+  /* Cross-browser animation support */
+  -webkit-animation: subtlePulse 2s ease-in-out infinite;
+  -moz-animation: subtlePulse 2s ease-in-out infinite;
+  -ms-animation: subtlePulse 2s ease-in-out infinite;
+}
+
+@keyframes subtlePulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(0, 194, 178, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 30px rgba(0, 194, 178, 0.4);
+  }
+}
+
+/* Cross-browser animation support for subtle pulse */
+@-webkit-keyframes subtlePulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(0, 194, 178, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 30px rgba(0, 194, 178, 0.4);
+  }
+}
+
+@-moz-keyframes subtlePulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(0, 194, 178, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 30px rgba(0, 194, 178, 0.4);
+  }
+}
+
+@-ms-keyframes subtlePulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(0, 194, 178, 0.3);
+  }
+  50% {
+    box-shadow: 0 6px 30px rgba(0, 194, 178, 0.4);
+  }
+}
+
+/* Mobile menu close button rotation */
+.mobile-menu-close {
+  transition: transform 0.2s ease;
+  /* Cross-browser animation support */
+  -webkit-transition: -webkit-transform 0.2s ease;
+  -moz-transition: -moz-transform 0.2s ease;
+  -ms-transition: -ms-transform 0.2s ease;
+}
+
+.mobile-menu-close:hover {
+  transform: rotate(90deg);
+  /* Cross-browser transform support */
+  -webkit-transform: rotate(90deg);
+  -moz-transform: rotate(90deg);
+  -ms-transform: rotate(90deg);
+}
+
+/* Mobile menu scroll indicator */
+.mobile-menu-scroll-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, #00C2B2, transparent);
+  border-radius: 2px;
+  opacity: 0.6;
+  animation: scrollIndicator 2s ease-in-out infinite;
+  /* Cross-browser animation support */
+  -webkit-animation: scrollIndicator 2s ease-in-out infinite;
+  -moz-animation: scrollIndicator 2s ease-in-out infinite;
+  -ms-animation: scrollIndicator 2s ease-in-out infinite;
+}
+
+@keyframes scrollIndicator {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(-50%) scaleX(0.5);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+/* Cross-browser animation support for scroll indicator */
+@-webkit-keyframes scrollIndicator {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(-50%) scaleX(0.5);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+@-moz-keyframes scrollIndicator {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(-50%) scaleX(0.5);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+@-ms-keyframes scrollIndicator {
+  0%, 100% {
+    opacity: 0.3;
+    transform: translateX(-50%) scaleX(0.5);
+  }
+  50% {
+    opacity: 0.8;
+    transform: translateX(-50%) scaleX(1);
+  }
+}
+
+/* Mobile menu glassmorphism effect */
+.mobile-menu-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  /* Fallback for browsers that don't support backdrop-filter */
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+/* Cross-browser glassmorphism support */
+@supports not (backdrop-filter: blur(20px)) {
+  .mobile-menu-glass {
+    background-color: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* Dark mode mobile menu adjustments */
+.dark .mobile-menu-glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  /* Fallback for browsers that don't support backdrop-filter */
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+/* Mobile menu touch feedback */
+.mobile-menu-touch {
+  -webkit-tap-highlight-color: rgba(0, 194, 178, 0.2);
+  touch-action: manipulation;
+  /* Cross-browser touch support */
+  -ms-touch-action: manipulation;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Mobile menu accessibility focus */
+.mobile-menu-focus:focus {
+  outline: 2px solid #00C2B2;
+  outline-offset: 2px;
+  /* Cross-browser focus support */
+  -webkit-focus-ring-color: #00C2B2;
+  -moz-focus-ring-color: #00C2B2;
+}
+
+/* Mobile menu loading state */
+.mobile-menu-loading {
+  position: relative;
+  overflow: hidden;
+  /* Cross-browser compatibility */
+  -webkit-backface-visibility: hidden;
+  -moz-backface-visibility: hidden;
+  -ms-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.mobile-menu-loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 194, 178, 0.1), transparent);
+  animation: loadingShimmer 1.5s infinite;
+  /* Cross-browser animation support */
+  -webkit-animation: loadingShimmer 1.5s infinite;
+  -moz-animation: loadingShimmer 1.5s infinite;
+  -ms-animation: loadingShimmer 1.5s infinite;
+}
+
+@keyframes loadingShimmer {
+  to {
+    left: 100%;
+  }
+}
+
+/* Cross-browser animation support for loading shimmer */
+@-webkit-keyframes loadingShimmer {
+  to {
+    left: 100%;
+  }
+}
+
+@-moz-keyframes loadingShimmer {
+  to {
+    left: 100%;
+  }
+}
+
+@-ms-keyframes loadingShimmer {
+  to {
+    left: 100%;
+  }
 }

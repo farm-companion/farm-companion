@@ -24,15 +24,15 @@ export const metadata: Metadata = {
     description: 'What\'s in season now? Find the freshest local produce with our comprehensive UK seasonal guide.',
     url: `${SITE_URL}/seasonal`,
     siteName: 'Farm Companion',
-          images: [
-        {
-          url: `${SITE_URL}/og?title=Seasonal Produce Guide&subtitle=What's in Season Now&type=seasonal`,
-          width: 1200,
-          height: 630,
-          alt: 'Seasonal produce guide - UK farm shops',
-          type: 'image/png',
-        },
-      ],
+    images: [
+      {
+        url: `${SITE_URL}/seasonal-header.jpg`,
+        width: 1200,
+        height: 630,
+        alt: 'Seasonal produce guide - UK farm shops',
+        type: 'image/jpeg',
+      },
+    ],
     locale: 'en_GB',
     type: 'website',
   },

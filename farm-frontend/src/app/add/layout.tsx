@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: 'Farm Companion',
     images: [
       {
-        url: `${SITE_URL}/og.jpg`,
+        url: `${SITE_URL}/add.jpg`,
         width: 1200,
         height: 630,
         alt: 'Add your farm shop - UK farm directory',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Add Your Farm Shop | Farm Companion',
     description: 'Add your farm shop to our UK directory. Help customers find your fresh local produce and authentic farm experiences.',
-    images: [`${SITE_URL}/og.jpg`],
+    images: [`${SITE_URL}/add.jpg`],
   },
   robots: {
     index: true,

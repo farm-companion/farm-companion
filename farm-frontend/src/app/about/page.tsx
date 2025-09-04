@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     siteName: 'Farm Companion',
     images: [
       {
-        url: `${SITE_URL}/about-header.jpg`,
+        url: `${SITE_URL}/about.jpg`,
         width: 1200,
         height: 630,
         alt: 'About Farm Companion - UK farm shops directory',
@@ -41,7 +41,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'About Farm Companion | UK Farm Shops Directory',
     description: 'Learn about Farm Companion, the UK\'s premium guide to real food, real people, and real places.',
-    images: [`${SITE_URL}/about-header.jpg`],
+    images: [`${SITE_URL}/about.jpg`],
   },
   robots: {
     index: true,
@@ -57,7 +57,7 @@ export default function AboutPage() {
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
-            src="/about-header.jpg"
+            src="/about.jpg"
             alt="Abundant display of fresh, colorful fruits and vegetables including red tomatoes, orange carrots, green leafy vegetables, and purple berries, arranged in wooden crates and baskets at a farm shop"
             fill
             className="object-cover object-center"
