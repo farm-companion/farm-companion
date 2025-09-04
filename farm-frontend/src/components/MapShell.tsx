@@ -418,7 +418,7 @@ export default function MapShell({
       top: 60,
       left: 8,
       right: isDesktop ? 384 : 8,
-      bottom: bottomSheetHeight
+      bottom: isDesktop ? 0 : bottomSheetHeight // No bottom padding on desktop
     }
     
     const key = `${pad.top}|${pad.right}|${pad.bottom}|${pad.left}`
@@ -455,7 +455,7 @@ export default function MapShell({
         },
         // Better touch handling
         draggable: true,
-        scrollwheel: false, // Disable scroll wheel on mobile
+        scrollwheel: isDesktop, // Enable scroll wheel on desktop, disable on mobile
         // Performance optimizations
         maxZoom: 20,
         minZoom: 5
@@ -471,7 +471,7 @@ export default function MapShell({
       map.set('padding', { 
         top: 60, 
         right: isDesktop ? 384 : 8, 
-        bottom: bottomSheetHeight, 
+        bottom: isDesktop ? 0 : bottomSheetHeight, // No bottom padding on desktop
         left: 8 
       })
 
@@ -838,16 +838,19 @@ export default function MapShell({
         }}
       />
 
-      {/* Marker Actions */}
-      <MarkerActions
-        farm={selectedMarker}
-        isVisible={showMarkerActions}
-        onClose={handleCloseMarkerActions}
-        onNavigate={handleNavigate}
-        onFavorite={handleFavorite}
-        onShare={handleShare}
-        userLocation={userLocation ? { latitude: userLocation.latitude, longitude: userLocation.longitude } : null}
-      />
+      {/* Marker Actions - Mobile Only */}
+      {!isDesktop && (
+        <MarkerActions
+          farm={selectedMarker}
+          isVisible={showMarkerActions}
+          onClose={handleCloseMarkerActions}
+          onNavigate={handleNavigate}
+          onFavorite={handleFavorite}
+          onShare={handleShare}
+          userLocation={userLocation ? { latitude: userLocation.latitude, longitude: userLocation.longitude } : null}
+          isDesktop={isDesktop}
+        />
+      )}
 
       {/* Cluster Preview */}
       <ClusterPreview

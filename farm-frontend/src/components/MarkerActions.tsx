@@ -12,6 +12,7 @@ interface MarkerActionsProps {
   onFavorite: (farmId: string) => void
   onShare: (farm: FarmShop) => void
   userLocation: { latitude: number; longitude: number } | null
+  isDesktop?: boolean
 }
 
 export default function MarkerActions({
@@ -21,7 +22,8 @@ export default function MarkerActions({
   onNavigate,
   onFavorite,
   onShare,
-  userLocation
+  userLocation,
+  isDesktop = false
 }: MarkerActionsProps) {
   const [isExpanded, setIsExpanded] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -83,18 +85,22 @@ export default function MarkerActions({
       {/* Marker Actions Sheet */}
       <div
         ref={containerRef}
-        className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 transform transition-transform duration-300 ease-out ${
-          isExpanded ? 'translate-y-0' : 'translate-y-full'
+        className={`fixed bg-white shadow-2xl z-50 transform transition-all duration-300 ease-out ${
+          isDesktop 
+            ? 'right-4 top-4 w-80 rounded-lg' // Desktop: right side panel
+            : `bottom-0 left-0 right-0 rounded-t-3xl ${isExpanded ? 'translate-y-0' : 'translate-y-full'}` // Mobile: bottom sheet
         }`}
         style={{
-          maxHeight: '80vh',
-          minHeight: '200px'
+          maxHeight: isDesktop ? '70vh' : '80vh',
+          minHeight: isDesktop ? 'auto' : '200px'
         }}
       >
-        {/* Drag Handle */}
-        <div className="flex justify-center py-3">
-          <div className="w-12 h-1 bg-gray-300 rounded-full" />
-        </div>
+        {/* Drag Handle - Mobile Only */}
+        {!isDesktop && (
+          <div className="flex justify-center py-3">
+            <div className="w-12 h-1 bg-gray-300 rounded-full" />
+          </div>
+        )}
 
         {/* Farm Header */}
         <div className="px-6 pb-4 border-b border-gray-100">

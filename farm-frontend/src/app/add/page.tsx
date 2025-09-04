@@ -328,18 +328,47 @@ export default function AddFarmPage() {
               <Leaf className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
-              Add a
-              <span className="block text-serum drop-shadow-lg">Farm Shop</span>
+              Put Your Farm Shop
+              <span className="block text-serum drop-shadow-lg">On the Map</span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Help us grow our directory of real food, real people, and real places. 
-              Fill in the essentials and we&apos;ll review and add your farm shop to our map.
+              Help customers find you, learn your story, and visit with confidence.  
+              Share the essentials—hours, offerings, and contact details—and we'll review and add you to our trusted UK-wide map.
             </p>
+
+            <div className="flex items-center justify-center gap-3">
+              <Link href="#add-form" scroll>
+                <Button variant="primary" size="lg">Start the Form</Button>
+              </Link>
+              <Link href="#why-add" scroll>
+                <Button variant="secondary" size="lg">Why Add Your Shop?</Button>
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
-      <div className="mx-auto max-w-7xl px-6 py-12">
+      {/* Value Proposition Section */}
+      <section id="why-add" className="max-w-3xl mx-auto py-12 text-center">
+        <h2 className="text-3xl font-bold mb-6 text-text-heading">
+          Why Add Your Farm Shop?
+        </h2>
+        <p className="text-lg text-text-body leading-relaxed mb-4">
+          Every farm has a story. By sharing yours, you invite customers to discover 
+          the people, produce, and passion behind your work. Adding your shop to our 
+          directory places you on a trusted map that celebrates real food and the 
+          communities that make it possible.
+        </p>
+        <p className="text-lg text-text-body leading-relaxed">
+          It means more than just being found. It means giving locals a way to reach 
+          you directly, encouraging repeat visits, and opening doors to customers who 
+          care about quality, sustainability, and supporting nearby farmers. Join a 
+          growing network that connects people to authentic produce—and let your farm 
+          be part of that story.
+        </p>
+      </section>
+
+      <div id="add-form" className="mx-auto max-w-7xl px-6 py-12">
         {/* Success/Error Messages */}
         {submitStatus === 'success' && (
           <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-xl">
