@@ -2,16 +2,7 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react'
 import type { ChangeEvent } from 'react'
-import { Leaf } from 'lucide-react'
-import { Clock } from 'lucide-react'
-import { Phone } from 'lucide-react'
-import { FileText } from 'lucide-react'
-import { CheckCircle } from 'lucide-react'
-import { AlertCircle } from 'lucide-react'
-import { Loader2 } from 'lucide-react'
-import { Download } from 'lucide-react'
-import { Eye } from 'lucide-react'
-import { Camera } from 'lucide-react'
+import { Leaf, Clock, Phone, FileText, CheckCircle, AlertCircle, Loader2, Download, Eye, Camera, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import PhotoSubmissionForm from '@/components/PhotoSubmissionForm'
 import FarmImageUpload from '@/components/FarmImageUpload'
@@ -297,39 +288,31 @@ export default function AddFarmPage() {
 
   return (
     <main className="bg-background-canvas">
-      {/* Professional Header with Background Image */}
-      <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <Image
-            src="/Addashop.jpg"
-            alt="Beautiful farm stand with fresh produce in a misty rural landscape"
-            fill
-            className="object-cover object-center"
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            quality={85}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-          />
-          {/* Professional Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 via-black/20 to-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
-          {/* Subtle texture overlay for depth */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
-        </div>
+      {/* Enhanced Hero Section - PuredgeOS 3.0 Premium */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-background-surface via-background-canvas to-background-surface">
+        {/* Sophisticated animated background patterns */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.04),transparent_50%)] animate-pulse" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.03),transparent_50%)] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,31,35,0.02),transparent_70%)]" />
         
-        {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center">
-          <div className="text-center max-w-4xl mx-auto px-6">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
-              Add Your
-              <span className="block text-serum drop-shadow-lg">Farm Shop</span>
+        {/* Floating accent elements */}
+        <div className="absolute top-20 left-10 w-2 h-2 bg-serum rounded-full opacity-60 animate-bounce" style={{ animationDelay: '0.5s' }} />
+        <div className="absolute top-32 right-20 w-1 h-1 bg-solar rounded-full opacity-40 animate-ping" style={{ animationDelay: '1.5s' }} />
+        <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-50 animate-pulse" style={{ animationDelay: '2s' }} />
+        
+        <div className="relative max-w-7xl mx-auto px-6 py-16">
+          {/* Enhanced Hero Content */}
+          <div className="text-center mb-16">
+            {/* Enhanced typography with premium styling */}
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-heading font-bold text-text-heading mb-8 tracking-tight leading-tight">
+              <span className="bg-gradient-to-r from-text-heading via-serum to-text-heading bg-clip-text text-transparent">
+                Add Your Farm Shop
+              </span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Help customers find you, learn your story, and visit with confidence.  
+            
+            {/* Enhanced description */}
+            <p className="text-xl md:text-2xl text-text-muted mb-12 max-w-4xl mx-auto leading-relaxed">
+              Help customers find you, learn your story, and visit with confidence. 
               Share the essentials—hours, offerings, and contact details—and we&apos;ll review and add you to our trusted UK-wide map.
             </p>
           </div>
@@ -337,10 +320,11 @@ export default function AddFarmPage() {
       </section>
 
       {/* Value Proposition Section */}
-      <section id="why-add" className="bg-background-surface py-16">
+      <section id="why-add" className="bg-gradient-to-b from-background-surface to-background-canvas py-16">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading mb-4">
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading mb-4 flex items-center justify-center gap-3">
+              <Sparkles className="w-8 h-8 text-serum" />
               Why Add Your Farm Shop?
             </h2>
             <p className="text-lg text-text-muted max-w-2xl mx-auto mb-12">
@@ -350,20 +334,20 @@ export default function AddFarmPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="text-center p-6 rounded-lg bg-background-canvas border border-border-default">
-              <div className="w-16 h-16 bg-serum/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center p-8 rounded-3xl bg-gradient-to-br from-background-surface to-background-canvas border border-border-default/30 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-serum/20 to-teal-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Leaf className="w-8 h-8 text-serum" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading mb-2">Reach New Customers</h3>
-              <p className="text-text-muted">Appear in search results and on our interactive UK-wide map designed for farmers and food lovers.</p>
+              <h3 className="text-xl font-heading font-semibold text-text-heading mb-3">Reach New Customers</h3>
+              <p className="text-text-muted leading-relaxed">Appear in search results and on our interactive UK-wide map designed for farmers and food lovers.</p>
             </div>
             
-            <div className="text-center p-6 rounded-lg bg-background-canvas border border-border-default">
-              <div className="w-16 h-16 bg-serum/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center p-8 rounded-3xl bg-gradient-to-br from-background-surface to-background-canvas border border-border-default/30 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
+              <div className="w-16 h-16 bg-gradient-to-br from-serum/20 to-teal-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Leaf className="w-8 h-8 text-serum" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading mb-2">Tell Your Story</h3>
-              <p className="text-text-muted">Share what makes your farm special and highlight your offerings in one trusted place.</p>
+              <h3 className="text-xl font-heading font-semibold text-text-heading mb-3">Tell Your Story</h3>
+              <p className="text-text-muted leading-relaxed">Share what makes your farm special and highlight your offerings in one trusted place.</p>
             </div>
           </div>
         </div>
@@ -436,9 +420,9 @@ export default function AddFarmPage() {
           </div>
 
           {/* Basic Information */}
-          <section className="bg-background-surface rounded-xl p-6 border border-border-default">
-            <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
-              <Leaf className="w-5 h-5 text-serum" />
+          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
+            <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+              <span className="w-2 h-2 bg-serum rounded-full"></span>
               <span>Basic Information</span>
             </h2>
             
@@ -553,11 +537,11 @@ export default function AddFarmPage() {
           </section>
 
           {/* Contact Information */}
-          <section className="bg-background-surface rounded-xl p-6 border border-border-default mt-8">
-            <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
-              <Phone className="w-5 h-5 text-serum" />
-              <span>Contact Information</span>
-            </h2>
+                  <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
+          <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+            <span className="w-2 h-2 bg-serum rounded-full"></span>
+            <span>Contact Information</span>
+          </h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
@@ -610,9 +594,9 @@ export default function AddFarmPage() {
           </section>
 
           {/* Additional Details */}
-          <section className="bg-background-surface rounded-xl p-6 border border-border-default">
-            <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
-              <FileText className="w-5 h-5 text-serum" />
+          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
+            <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+              <span className="w-2 h-2 bg-serum rounded-full"></span>
               <span>Additional Details</span>
             </h2>
             
@@ -672,9 +656,9 @@ export default function AddFarmPage() {
           </section>
 
           {/* Opening Hours */}
-          <section className="bg-background-surface rounded-xl p-6 border border-border-default mt-8">
-            <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-serum" />
+          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
+            <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+              <span className="w-2 h-2 bg-serum rounded-full"></span>
               <span>Opening Hours (24h format, optional)</span>
             </h2>
             
@@ -701,9 +685,9 @@ export default function AddFarmPage() {
           </section>
 
           {/* Farm Images */}
-          <section className="bg-background-surface rounded-xl p-6 border border-border-default mt-8">
-            <h2 className="text-xl font-semibold text-text-heading mb-6 flex items-center space-x-2">
-              <Camera className="w-5 h-5 text-serum" />
+          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
+            <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+              <span className="w-2 h-2 bg-serum rounded-full"></span>
               <span>Farm Images (Optional)</span>
             </h2>
             
@@ -715,11 +699,11 @@ export default function AddFarmPage() {
           </section>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+          <div className="flex flex-col sm:flex-row gap-6 mt-8">
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || !valid}
-              className="flex-1 group"
+              className="flex-1 group bg-gradient-to-r from-serum to-teal-500 text-black px-10 py-5 rounded-2xl font-bold text-lg hover:from-teal-500 hover:to-serum transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1"
               variant="primary"
               size="lg"
             >
@@ -741,7 +725,7 @@ export default function AddFarmPage() {
               disabled={!valid}
               variant="secondary"
               size="lg"
-              className="group"
+              className="group border-2 border-serum text-serum dark:text-serum px-10 py-5 rounded-2xl font-bold text-lg hover:bg-serum hover:text-black dark:hover:bg-serum dark:hover:text-black transition-all duration-300 backdrop-blur-sm bg-background-surface/30 hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
             >
               <Download className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
               Download JSON
@@ -759,9 +743,9 @@ export default function AddFarmPage() {
         {/* Sidebar - Preview */}
         <div className="lg:col-span-1">
           <div className="sticky top-6 lg:top-24 max-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-6rem)] overflow-y-auto">
-            <div className="bg-background-surface rounded-xl p-6 border border-border-default shadow-sm">
-              <h3 className="text-lg font-semibold text-text-heading mb-4 flex items-center space-x-2">
-                <Eye className="w-5 h-5 text-serum" />
+            <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
+              <h3 className="text-lg font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
+                <span className="w-2 h-2 bg-serum rounded-full"></span>
                 <span>Preview</span>
               </h3>
               
