@@ -92,6 +92,23 @@ export default function MapShell({
   const [error, setError] = useState<string | null>(null)
   const [selectedMarker, setSelectedMarker] = useState<FarmShop | null>(null)
   const [showMarkerActions, setShowMarkerActions] = useState(false)
+  
+  // Debug state changes
+  useEffect(() => {
+    console.log('selectedMarker changed to:', selectedMarker?.name, 'from previous value')
+  }, [selectedMarker])
+  
+  useEffect(() => {
+    console.log('showMarkerActions changed to:', showMarkerActions, 'from previous value')
+  }, [showMarkerActions])
+  
+  // Debug component lifecycle
+  useEffect(() => {
+    console.log('MapShell component mounted')
+    return () => {
+      console.log('MapShell component unmounting')
+    }
+  }, [])
   const [selectedCluster, setSelectedCluster] = useState<any>(null)
   const [showClusterPreview, setShowClusterPreview] = useState(false)
 
@@ -109,28 +126,45 @@ export default function MapShell({
 
   // Enhanced cluster click with preview and smart zoom
   const handleClusterClick = useCallback((event: any) => {
-    console.log('Cluster clicked:', event.cluster?.getMarkers?.()?.length || 'unknown', 'markers')
+    console.log('Cluster click event received:', event)
+    
+    // The event structure is different - it has latLng but not cluster methods
+    // We need to find the actual cluster object or handle this differently
+    if (!event || !event.latLng) {
+      console.warn('Invalid cluster event received:', event)
+      return false
+    }
+    
+    console.log('Cluster clicked at position:', event.latLng.lat(), event.latLng.lng())
     
     // Trigger haptic feedback
     triggerHaptic('medium')
     
-    // Show cluster preview instead of immediate zoom
-    setSelectedCluster({
-      position: event.cluster.getCenter(),
-      markers: event.cluster.getMarkers(),
-      count: event.cluster.getMarkers().length
-    })
-    setShowClusterPreview(true)
+    // Manually zoom into the cluster area
+    const map = mapInstanceRef.current
+    if (map && event.latLng) {
+      const currentZoom = map.getZoom() || 10
+      const targetZoom = Math.min(currentZoom + 2, 16) // Zoom in by 2 levels, max 16
+      
+      // Smooth zoom to cluster center
+      map.panTo(event.latLng)
+      map.setZoom(targetZoom)
+    }
     
-    // Prevent default zoom behavior
-    event.preventDefault()
+    // Return false to prevent default behavior since we're handling it manually
     return false
   }, [triggerHaptic])
 
   // Smart zoom to cluster with optimal zoom level
   const handleZoomToCluster = useCallback((cluster: any) => {
     const map = mapInstanceRef.current
-    if (!map) return
+    if (!map || !cluster) return
+
+    // Validate cluster object has required properties
+    if (!cluster.count || !cluster.markers || !Array.isArray(cluster.markers)) {
+      console.warn('Invalid cluster object for zoom:', cluster)
+      return
+    }
 
     // Calculate optimal zoom level based on cluster size
     const count = cluster.count
@@ -144,8 +178,10 @@ export default function MapShell({
     // Calculate bounds for the cluster
     const bounds = new google.maps.LatLngBounds()
     cluster.markers.forEach((marker: google.maps.Marker) => {
-      const pos = marker.getPosition()
-      if (pos) bounds.extend(pos)
+      if (marker && typeof marker.getPosition === 'function') {
+        const pos = marker.getPosition()
+        if (pos) bounds.extend(pos)
+      }
     })
 
     // Add padding for better view
@@ -178,9 +214,19 @@ export default function MapShell({
     setSelectedCluster(null)
   }, [])
 
+  // Store the latest onFarmSelect in a ref to avoid dependency issues
+  const onFarmSelectRef = useRef(onFarmSelect)
+  useEffect(() => {
+    onFarmSelectRef.current = onFarmSelect
+  }, [onFarmSelect])
+
   // Enhanced marker click with haptics and actions
   const handleMarkerClick = useCallback((farm: FarmShop) => {
+    console.log('=== MARKER CLICK START ===')
     console.log('Marker clicked:', farm.name)
+    console.log('Current state - selectedMarker:', selectedMarker?.name, 'showMarkerActions:', showMarkerActions)
+    console.log('Setting selectedMarker to:', farm.name)
+    console.log('Setting showMarkerActions to: true')
     
     // Trigger haptic feedback
     triggerHaptic('light')
@@ -189,9 +235,12 @@ export default function MapShell({
     setSelectedMarker(farm)
     setShowMarkerActions(true)
     
-    // Call the original handler for compatibility
-    onFarmSelect?.(farm.id)
-  }, [onFarmSelect, triggerHaptic])
+    console.log('State update calls completed')
+    console.log('=== MARKER CLICK END ===')
+    
+    // Call the original handler for compatibility using ref
+    onFarmSelectRef.current?.(farm.id)
+  }, [triggerHaptic, selectedMarker, showMarkerActions]) // Add state dependencies for debugging
 
   // Marker action handlers
   const handleNavigate = useCallback((farm: FarmShop) => {
@@ -249,14 +298,28 @@ export default function MapShell({
 
   // Create clustered markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
-    if (!map || !farmData.length || typeof window === 'undefined') return
+    if (!map || !farmData.length || typeof window === 'undefined') {
+      console.log('createMarkers: Missing requirements', { 
+        hasMap: !!map, 
+        farmDataLength: farmData?.length, 
+        isWindow: typeof window !== 'undefined' 
+      })
+      return
+    }
 
-    console.log('creating markers', farmData.length)
+    console.log('=== CREATING MARKERS ===')
+    console.log('Map instance:', map)
+    console.log('Farm data length:', farmData.length)
+    console.log('First farm:', farmData[0])
 
+    console.log('Clearing existing markers and clusterer')
     // Clear existing markers and clusterer
     Object.values(markersRef.current).forEach(marker => marker.setMap(null))
     markersRef.current = {}
-    clustererRef.current?.clearMarkers()
+    if (clustererRef.current) {
+      clustererRef.current.clearMarkers()
+      console.log('Clusterer cleared')
+    }
 
     // Build markers (but don't add to map one-by-one)
     const markers: google.maps.Marker[] = []
@@ -281,18 +344,30 @@ export default function MapShell({
         zIndex: google.maps.Marker.MAX_ZINDEX, // Default z-index for all markers
       })
 
-      marker.addListener('click', () => handleMarkerClick(farm))
+      console.log('Creating marker for farm:', farm.name, 'at position:', farm.location.lat, farm.location.lng)
+      
+      marker.addListener('click', () => {
+        console.log('Marker click event triggered for:', farm.name)
+        handleMarkerClick(farm)
+      })
+      
+      // Add marker to map first, then to clusterer
+      marker.setMap(map)
+      
       markersRef.current[farm.id] = marker
       markers.push(marker)
+      
+      console.log('Marker added to map and array, total markers:', markers.length)
     })
 
     // Create/update clusterer with stable renderer
     if (!clustererRef.current) {
+      console.log('Creating new clusterer')
       // Create stable renderer instance once
       if (!clusterRenderer.current) {
         clusterRenderer.current = {
           render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
-            console.log('Rendering cluster with count:', count)
+            console.log('Rendering cluster with count:', count, 'at position:', position.lat(), position.lng())
             
             // Choose SVG size based on count for better visual hierarchy
             let raw: string
@@ -317,8 +392,6 @@ export default function MapShell({
             const svg = raw.replace('{COUNT}', String(count))
             const svgUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
             
-            console.log('Cluster SVG URL:', svgUrl.substring(0, 100) + '...')
-            
             return new google.maps.Marker({
               position,
               icon: { url: svgUrl, scaledSize: size, anchor },
@@ -336,6 +409,7 @@ export default function MapShell({
       })
     }
     
+    console.log('Adding', markers.length, 'markers to clusterer')
     clustererRef.current.addMarkers(markers)
 
     console.log('clusterer markers', markers.length)
@@ -354,7 +428,7 @@ export default function MapShell({
       setTimeout(() => (programmaticMove.current = false), 200)
       hasFitted.current = true
     }
-  }, [selectedFarmId, onFarmSelect, handleClusterClick])
+  }, [selectedFarmId, handleClusterClick])
 
   // one function to (debounced) rebuild markers with the latest farms
   const scheduleMarkerRebuild = useCallback(() => {
@@ -435,9 +509,19 @@ export default function MapShell({
     hasInit.current = true
 
     loadGoogle().then(() => {
-      if (!mapRef.current) return
-      if (mapInstanceRef.current) return // double-guard
+      console.log('Google Maps loaded successfully')
+      if (!mapRef.current) {
+        console.error('Map ref not available')
+        return
+      }
+      if (mapInstanceRef.current) {
+        console.log('Map already exists, skipping creation')
+        return // double-guard
+      }
 
+      console.log('=== CREATING MAP ===')
+      console.log('Map ref element:', mapRef.current)
+      
       const map = new google.maps.Map(mapRef.current, {
         center,
         zoom,
@@ -445,7 +529,7 @@ export default function MapShell({
         mapTypeControl: false,
         streetViewControl: false,
         fullscreenControl: false,
-        gestureHandling: 'greedy', // Better iOS touch response
+        gestureHandling: 'cooperative', // Better touch and scroll handling
         clickableIcons: true,
         keyboardShortcuts: false,
         // Enhanced mobile experience
@@ -455,7 +539,7 @@ export default function MapShell({
         },
         // Better touch handling
         draggable: true,
-        scrollwheel: isDesktop, // Enable scroll wheel on desktop, disable on mobile
+        scrollwheel: true, // Enable scroll wheel zoom for all devices
         // Performance optimizations
         maxZoom: 20,
         minZoom: 5
@@ -487,6 +571,16 @@ export default function MapShell({
       // Add idle listener for marker rebuilding (triggers when map stops moving)
       const idleListener = map.addListener('idle', scheduleMarkerRebuild)
       map.set('idleListener', idleListener)
+      
+      // Add zoom change listener to update clusters
+      const zoomListener = map.addListener('zoom_changed', () => {
+        // Force cluster recalculation on zoom changes
+        if (clustererRef.current) {
+          // Trigger a marker rebuild to update clusters
+          scheduleMarkerRebuild()
+        }
+      })
+      map.set('zoomListener', zoomListener)
       
       // kick an initial build too
       scheduleMarkerRebuild()
