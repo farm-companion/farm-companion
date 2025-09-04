@@ -324,51 +324,52 @@ export default function AddFarmPage() {
         {/* Content Overlay */}
         <div className="relative h-full flex items-center justify-center">
           <div className="text-center max-w-4xl mx-auto px-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
-              <Leaf className="w-10 h-10 text-white" />
-            </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
-              Put Your Farm Shop
-              <span className="block text-serum drop-shadow-lg">On the Map</span>
+              Add Your
+              <span className="block text-serum drop-shadow-lg">Farm Shop</span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Help customers find you, learn your story, and visit with confidence.  
-              Share the essentials—hours, offerings, and contact details—and we'll review and add you to our trusted UK-wide map.
+              Share the essentials—hours, offerings, and contact details—and we&apos;ll review and add you to our trusted UK-wide map.
             </p>
-
-            <div className="flex items-center justify-center gap-3">
-              <Link href="#add-form" scroll>
-                <Button variant="primary" size="lg">Start the Form</Button>
-              </Link>
-              <Link href="#why-add" scroll>
-                <Button variant="secondary" size="lg">Why Add Your Shop?</Button>
-              </Link>
-            </div>
           </div>
         </div>
       </section>
 
       {/* Value Proposition Section */}
-      <section id="why-add" className="max-w-3xl mx-auto py-12 text-center">
-        <h2 className="text-3xl font-bold mb-6 text-text-heading">
-          Why Add Your Farm Shop?
-        </h2>
-        <p className="text-lg text-text-body leading-relaxed mb-4">
-          Every farm has a story. By sharing yours, you invite customers to discover 
-          the people, produce, and passion behind your work. Adding your shop to our 
-          directory places you on a trusted map that celebrates real food and the 
-          communities that make it possible.
-        </p>
-        <p className="text-lg text-text-body leading-relaxed">
-          It means more than just being found. It means giving locals a way to reach 
-          you directly, encouraging repeat visits, and opening doors to customers who 
-          care about quality, sustainability, and supporting nearby farmers. Join a 
-          growing network that connects people to authentic produce—and let your farm 
-          be part of that story.
-        </p>
+      <section id="why-add" className="bg-background-surface py-16">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading mb-4">
+              Why Add Your Farm Shop?
+            </h2>
+            <p className="text-lg text-text-muted max-w-2xl mx-auto mb-12">
+              Every farm has a story. By sharing yours, you invite customers to discover 
+              the people, produce, and passion behind your work.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="text-center p-6 rounded-lg bg-background-canvas border border-border-default">
+              <div className="w-16 h-16 bg-serum/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Leaf className="w-8 h-8 text-serum" />
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-text-heading mb-2">Reach New Customers</h3>
+              <p className="text-text-muted">Appear in search results and on our interactive UK-wide map designed for farmers and food lovers.</p>
+            </div>
+            
+            <div className="text-center p-6 rounded-lg bg-background-canvas border border-border-default">
+              <div className="w-16 h-16 bg-serum/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Leaf className="w-8 h-8 text-serum" />
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-text-heading mb-2">Tell Your Story</h3>
+              <p className="text-text-muted">Share what makes your farm special and highlight your offerings in one trusted place.</p>
+            </div>
+          </div>
+        </div>
       </section>
 
-      <div id="add-form" className="mx-auto max-w-7xl px-6 py-12">
+      <div id="add-form" className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {/* Success/Error Messages */}
         {submitStatus === 'success' && (
           <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-xl">
