@@ -258,22 +258,24 @@ export default function Header() {
             ? inverted
               ? 'border-b border-white/10 bg-black/70 backdrop-blur supports-[backdrop-filter]:bg-black/60'
               : 'border-b border-black/10 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70'
-            : 'border-b border-transparent bg-transparent'
+            : inverted
+              ? 'border-b border-transparent bg-black/20 backdrop-blur'
+              : 'border-b border-transparent bg-white/95 backdrop-blur'
         )}
       >
         <Brand inverted={inverted} />
 
         <nav aria-label="Primary" className="hidden items-center gap-6 lg:flex">
-          <Link className={cx('text-sm transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-white')} href="/map">
+          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-black dark:text-white')} href="/map">
             Map
           </Link>
-          <Link className={cx('text-sm transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-white')} href="/seasonal">
+          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-black dark:text-white')} href="/seasonal">
             Seasonal
           </Link>
-          <Link className={cx('text-sm transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-white')} href="/about">
+          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-black dark:text-white')} href="/about">
             About
           </Link>
-          <Link className={cx('text-sm transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-white')} href="/contact">
+          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-black dark:text-white')} href="/contact">
             Feedback
           </Link>
           <Link
