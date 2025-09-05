@@ -13,10 +13,16 @@ const headersCommon = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-XSS-Protection", value: "1; mode=block" },
   { key: "X-DNS-Prefetch-Control", value: "off" },
-  { key: "Permissions-Policy", value: "geolocation=(self), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
+  { key: "Permissions-Policy", value: "geolocation=(), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   // CSP is now set in middleware (consent-aware)
+]
+
+// Headers for routes that need geolocation access
+const headersWithGeolocation = [
+  ...headersCommon,
+  { key: "Permissions-Policy", value: "geolocation=(self), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
 ]
 
 const nextConfig: NextConfig = {
@@ -112,6 +118,27 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           ...headersCommon,
+          // HSTS only in prod on HTTPS
+          ...(isProd
+            ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
+            : []),
+        ],
+      },
+      // Allow geolocation only on map and location-related routes
+      {
+        source: "/map/:path*",
+        headers: [
+          ...headersWithGeolocation,
+          // HSTS only in prod on HTTPS
+          ...(isProd
+            ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
+            : []),
+        ],
+      },
+      {
+        source: "/map",
+        headers: [
+          ...headersWithGeolocation,
           // HSTS only in prod on HTTPS
           ...(isProd
             ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
