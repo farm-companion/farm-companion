@@ -61,8 +61,8 @@ export default async function HomePage() {
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
-            src="/overlay-banner.jpg"
-            alt="Colorful display of fresh vegetables, fruits, and flowers arranged in baskets at a UK farm shop, showcasing the variety of local produce available"
+            src="/oranges-background.jpg"
+            alt="Vibrant orange grove with wooden table and fresh oranges, representing the natural beauty of farm produce"
             fill
             className="object-cover object-center"
             priority
