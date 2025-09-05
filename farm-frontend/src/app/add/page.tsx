@@ -301,7 +301,7 @@ export default function AddFarmPage() {
         <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-50 animate-pulse" style={{ animationDelay: '2s' }} />
         
         {/* Hero Image Header */}
-        <div className="relative w-full h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
+        <div data-header-invert className="relative w-full h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
           <Image
             src="/add.jpg"
             alt="Beautiful farm landscape - Add your farm shop to our directory"

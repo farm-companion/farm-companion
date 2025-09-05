@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { loadGoogle } from '@/lib/googleMaps'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
+import { Map } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import MarkerActions from './MarkerActions'
 import ClusterPreview from './ClusterPreview'
@@ -654,7 +655,7 @@ export default function MapShell({
         onclick="window.zoomToUKOverview && window.zoomToUKOverview()"
         title="Reset to UK Overview"
         >
-          🗺️ UK
+          <Map className="w-4 h-4" /> UK
         </div>
       `
       
@@ -705,7 +706,7 @@ export default function MapShell({
               box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
               animation: fadeInOut 3s ease-in-out;
             ">
-              🗺️ Explore farm shops across the UK
+              <Map className="w-4 h-4 inline mr-1" /> Explore farm shops across the UK
             </div>
           `
           
