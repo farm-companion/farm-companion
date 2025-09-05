@@ -213,12 +213,12 @@ function ClaimPageContent() {
   return (
     <main className="min-h-screen bg-background-canvas dark:bg-gray-900">
       {/* Professional Hero Section with Claim Page Image */}
-      <section className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
+      <section data-header-invert className="relative h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
             src="/feedback.jpg"
-            alt="Green keyboard key with 'Claim' text and document icons"
+            alt="Professional farm shop management interface showing business owner updating their listing with fresh produce and customer information"
             fill
             className="object-cover object-center"
             priority
@@ -237,31 +237,130 @@ function ClaimPageContent() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center">
+        <div className="relative h-full flex items-center justify-center pt-20 pb-20">
           <div className="text-center max-w-4xl mx-auto px-6">
-            
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
+              <Shield className="w-10 h-10 text-white" />
+            </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Claim Your Farm
               <span className="block text-serum drop-shadow-lg">Shop Listing</span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Find your farm shop below and claim ownership to update information, add photos, and manage your listing.
+              Take control of your farm shop&apos;s online presence. Update information, add photos, and connect with customers.
+            </p>
+            <p className="text-lg text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+              Join {stats.farmCount}+ farm shops already managing their listings on Farm Companion.
             </p>
             
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-8">
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">{stats.farmCount}+</div>
-                <div className="text-white/80 text-sm md:text-base">Farm Shops</div>
+                <div className="text-white/80 text-sm md:text-base">Active Listings</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">{stats.countyCount}</div>
-                <div className="text-white/80 text-sm md:text-base">Counties</div>
+                <div className="text-white/80 text-sm md:text-base">UK Counties</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">100%</div>
                 <div className="text-white/80 text-sm md:text-base">Free to Claim</div>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section className="py-16 bg-background-surface dark:bg-gray-800">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading dark:text-white mb-4">
+              Why Claim Your Listing?
+            </h2>
+            <p className="text-xl text-text-muted dark:text-gray-300 max-w-3xl mx-auto">
+              Take control of your farm shop&apos;s online presence and connect with customers who are actively looking for local produce.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {/* Benefit 1 */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
+                <CheckCircle className="w-6 h-6 text-serum" />
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+                Update Your Information
+              </h3>
+              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
+                Keep your opening hours, contact details, and product offerings up to date. Customers always see your latest information.
+              </p>
+            </div>
+            
+            {/* Benefit 2 */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
+                <MapPin className="w-6 h-6 text-serum" />
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+                Reach Local Customers
+              </h3>
+              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
+                Get discovered by customers searching for farm shops in your area. Our map helps people find you when they need fresh produce.
+              </p>
+            </div>
+            
+            {/* Benefit 3 */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
+                <Plus className="w-6 h-6 text-serum" />
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+                Add Your Photos
+              </h3>
+              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
+                Showcase your farm shop with beautiful photos. Let customers see your fresh produce, friendly staff, and welcoming atmosphere.
+              </p>
+            </div>
+            
+            {/* Benefit 4 */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
+                <Shield className="w-6 h-6 text-serum" />
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+                Build Trust & Credibility
+              </h3>
+              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
+                Verified listings get more customer trust. Show that you&apos;re a legitimate, active farm shop that cares about customer experience.
+              </p>
+            </div>
+            
+            {/* Benefit 5 */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
+                <ArrowRight className="w-6 h-6 text-serum" />
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+                Free Marketing
+              </h3>
+              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
+                Get free exposure to customers actively looking for farm shops. No monthly fees, no hidden costs—just results.
+              </p>
+            </div>
+            
+            {/* Benefit 6 */}
+            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
+              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
+                <CheckCircle className="w-6 h-6 text-serum" />
+              </div>
+              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+                Easy Management
+              </h3>
+              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
+                Simple dashboard to manage your listing. Update information, add photos, and respond to customer inquiries—all in one place.
+              </p>
             </div>
           </div>
         </div>
