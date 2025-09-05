@@ -230,20 +230,6 @@ function ClaimPageContent() {
         {/* Content Overlay */}
         <div className="relative h-full flex items-center justify-center">
           <div className="text-center max-w-4xl mx-auto px-6">
-            {/* Visual Element - Keyboard Key */}
-            <div className="flex justify-center mb-8">
-              <div className="relative">
-                <div className="w-20 h-20 md:w-24 md:h-24 bg-serum rounded-2xl shadow-2xl transform rotate-12 hover:rotate-0 transition-transform duration-500 flex items-center justify-center backdrop-blur-sm border border-white/20">
-                  <div className="text-center transform -rotate-12">
-                    <div className="text-white font-bold text-lg md:text-xl mb-1">CLAIM</div>
-                    <div className="text-white/80 text-xs">✓ VERIFIED</div>
-                  </div>
-                </div>
-                <div className="absolute -top-2 -right-2 w-5 h-5 md:w-6 md:h-6 bg-solar rounded-full flex items-center justify-center shadow-lg">
-                  <div className="w-2.5 h-2.5 md:w-3 md:h-3 bg-black rounded-full"></div>
-                </div>
-              </div>
-            </div>
             
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Claim Your Farm
