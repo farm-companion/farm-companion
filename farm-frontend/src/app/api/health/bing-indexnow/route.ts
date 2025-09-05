@@ -47,6 +47,7 @@ export async function GET(request: NextRequest) {
         accessible: false,
         statusCode: 0,
         size: 0,
+        error: null as string | null,
       }
     }
 
@@ -76,8 +77,8 @@ export async function GET(request: NextRequest) {
       status: 'pass',
       details: {
         testUrl: 'https://www.farmcompanion.co.uk/',
-        response: null,
-        error: null,
+        response: null as any,
+        error: null as string | null,
       }
     }
 
@@ -104,6 +105,7 @@ export async function GET(request: NextRequest) {
       details: {
         submitEndpoint: false,
         pingEndpoint: false,
+        error: null as string | null,
       }
     }
 
@@ -143,6 +145,7 @@ export async function GET(request: NextRequest) {
         corePages: false,
         farmsChunk: false,
         producePages: false,
+        error: null as string | null,
       }
     }
 
