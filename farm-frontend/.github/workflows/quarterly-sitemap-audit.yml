@@ -1,0 +1,144 @@
+name: Quarterly Sitemap Reconciliation Audit
+
+on:
+  schedule:
+    # Run quarterly on the first day of January, April, July, and October at 9 AM UTC
+    - cron: '0 9 1 1,4,7,10 *'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  sitemap-audit:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Quarterly Sitemap Reconciliation Audit
+        env:
+          INDEXNOW_INTERNAL_TOKEN: ${{ secrets.INDEXNOW_INTERNAL_TOKEN }}
+          BING_INDEXNOW_KEY: ${{ secrets.BING_INDEXNOW_KEY }}
+          ADMIN_EMAIL: ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+        run: |
+          echo "🔍 Starting quarterly sitemap reconciliation audit..."
+          
+          # Run the audit endpoint
+          response=$(curl -s -w "%{http_code}" -o /tmp/audit_response.json \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -u "$ADMIN_EMAIL:$ADMIN_PASSWORD" \
+            "https://www.farmcompanion.co.uk/api/admin/audit/sitemap-reconciliation")
+          
+          http_code="${response: -3}"
+          echo "Audit HTTP status: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Quarterly audit completed successfully"
+            cat /tmp/audit_response.json | jq '.'
+            
+            # Extract key metrics
+            missing_count=$(cat /tmp/audit_response.json | jq '.audit.summary.missingCount')
+            extra_count=$(cat /tmp/audit_response.json | jq '.audit.summary.extraCount')
+            notifications_sent=$(cat /tmp/audit_response.json | jq '.audit.results.notificationsSent')
+            drift_detected=$(cat /tmp/audit_response.json | jq '.audit.summary.driftDetected')
+            
+            echo "📊 Audit Results:"
+            echo "  - Missing URLs: $missing_count"
+            echo "  - Extra URLs: $extra_count"
+            echo "  - Notifications Sent: $notifications_sent"
+            echo "  - Drift Detected: $drift_detected"
+            
+            # Set outputs for notification
+            echo "missing_count=$missing_count" >> $GITHUB_OUTPUT
+            echo "extra_count=$extra_count" >> $GITHUB_OUTPUT
+            echo "notifications_sent=$notifications_sent" >> $GITHUB_OUTPUT
+            echo "drift_detected=$drift_detected" >> $GITHUB_OUTPUT
+            
+          else
+            echo "❌ Quarterly audit failed with status $http_code"
+            cat /tmp/audit_response.json
+            exit 1
+          fi
+
+      - name: Notify on Drift Detected
+        if: steps.sitemap-audit.outputs.drift_detected == 'true'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: warning
+          channel: '#alerts'
+          text: |
+            ⚠️ Quarterly Sitemap Audit - Drift Detected
+            
+            The quarterly sitemap reconciliation audit has detected drift between the database and sitemap.
+            
+            **Results:**
+            - Missing URLs: ${{ steps.sitemap-audit.outputs.missing_count }}
+            - Extra URLs: ${{ steps.sitemap-audit.outputs.extra_count }}
+            - Notifications Sent: ${{ steps.sitemap-audit.outputs.notifications_sent }}
+            
+            **Action Required:**
+            - Review sitemap generation logic
+            - Check for deleted content in sitemap
+            - Monitor IndexNow submissions
+            
+            Repository: ${{ github.repository }}
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify on Success
+        if: steps.sitemap-audit.outputs.drift_detected == 'false'
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#monitoring'
+          text: |
+            ✅ Quarterly Sitemap Audit - No Drift Detected
+            
+            The quarterly sitemap reconciliation audit completed successfully with no drift detected.
+            
+            **Results:**
+            - Database URLs: All synchronized
+            - Sitemap URLs: All synchronized
+            - Notifications Sent: ${{ steps.sitemap-audit.outputs.notifications_sent }}
+            
+            The sitemap is perfectly synchronized with the database.
+            
+            Repository: ${{ github.repository }}
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify on Failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#alerts'
+          text: |
+            🚨 Quarterly Sitemap Audit Failed
+            
+            The quarterly sitemap reconciliation audit has failed. Please check the GitHub Actions logs for details.
+            
+            **Action Required:**
+            - Check audit endpoint accessibility
+            - Verify authentication credentials
+            - Review server logs for errors
+            
+            Repository: ${{ github.repository }}
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

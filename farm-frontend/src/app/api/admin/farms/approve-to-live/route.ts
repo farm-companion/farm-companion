@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
 import { getCurrentUser } from '@/lib/auth'
-import { notifyBingOfUrl, getFarmPageUrl } from '@/lib/bing-notifications'
+import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-tracker'
 
 export async function POST(request: NextRequest) {
   try {
@@ -87,19 +87,25 @@ export async function POST(request: NextRequest) {
     // Send notification to farm contact
     await sendLiveNotification(liveFarm)
 
-    // Notify Bing IndexNow about the new farm page (fire-and-forget)
+    // Track content change and notify Bing IndexNow (fire-and-forget)
     ;(async () => {
       try {
-        const farmPageUrl = getFarmPageUrl(liveFarm)
-        const result = await notifyBingOfUrl(farmPageUrl)
+        const changeEvent = createFarmChangeEvent(
+          'publish',
+          liveFarm.slug,
+          undefined,
+          liveFarm.location.county
+        )
+        
+        const result = await trackContentChange(changeEvent)
         if (result.success) {
-          console.log(`🚀 Bing notified of new farm page: ${farmPageUrl}`)
+          console.log(`🚀 Content change tracked: ${result.notificationsSent} Bing notifications sent`)
         } else {
-          console.warn(`⚠️ Bing notification failed for farm page: ${result.error}`)
+          console.warn(`⚠️ Content change tracking failed: ${result.errors.join(', ')}`)
         }
       } catch (error) {
-        console.error('Error notifying Bing of farm page:', error)
-        // Don't fail the main operation if Bing notification fails
+        console.error('Error tracking content change:', error)
+        // Don't fail the main operation if content change tracking fails
       }
     })()
 

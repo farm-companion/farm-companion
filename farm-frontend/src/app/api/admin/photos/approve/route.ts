@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import redis, { ensureConnection } from '@/lib/redis'
 // import { sendPhotoApprovedEmail } from '@/lib/email'
 import { revalidatePath } from 'next/cache'
-import { notifyBingOfUrl } from '@/lib/bing-notifications'
+import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-tracker'
 
 export async function POST(req: NextRequest) {
   try {
@@ -108,19 +108,23 @@ export async function POST(req: NextRequest) {
     // Revalidate the farm page
     revalidatePath(`/shop/${photo.farmSlug}`)
 
-    // Notify Bing IndexNow about the updated farm page (fire-and-forget)
+    // Track content change and notify Bing IndexNow (fire-and-forget)
     ;(async () => {
       try {
-        const farmPageUrl = `https://www.farmcompanion.co.uk/shop/${photo.farmSlug}`
-        const result = await notifyBingOfUrl(farmPageUrl)
+        const changeEvent = createFarmChangeEvent(
+          'photo_approval',
+          photo.farmSlug
+        )
+        
+        const result = await trackContentChange(changeEvent)
         if (result.success) {
-          console.log(`🚀 Bing notified of farm page update (photo approved): ${farmPageUrl}`)
+          console.log(`🚀 Content change tracked (photo approved): ${result.notificationsSent} Bing notifications sent`)
         } else {
-          console.warn(`⚠️ Bing notification failed for farm page update: ${result.error}`)
+          console.warn(`⚠️ Content change tracking failed: ${result.errors.join(', ')}`)
         }
       } catch (error) {
-        console.error('Error notifying Bing of farm page update:', error)
-        // Don't fail the main operation if Bing notification fails
+        console.error('Error tracking content change:', error)
+        // Don't fail the main operation if content change tracking fails
       }
     })()
 
