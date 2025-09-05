@@ -251,7 +251,7 @@ export default async function HomePage() {
         {/* Orange Grove Background Image */}
         <div className="absolute inset-0">
           <Image
-            src="/AdobeStock_1487189999.jpeg"
+            src="/produce-secondary-image.jpg"
             alt="Vibrant orange grove with wooden table and fresh oranges, representing the natural beauty of farm produce"
             fill
             className="object-cover object-center blur-sm"
