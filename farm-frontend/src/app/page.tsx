@@ -267,19 +267,6 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-br from-background-canvas/20 via-transparent to-background-canvas/30" />
         </div>
         
-        {/* Subtle Geometric Pattern Background (kept for depth) */}
-        <div className="absolute inset-0 opacity-[0.02]">
-          <div className="absolute inset-0" style={{
-            backgroundImage: `
-              radial-gradient(circle at 20% 30%, rgba(0, 194, 178, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 70%, rgba(212, 255, 79, 0.08) 0%, transparent 50%),
-              linear-gradient(45deg, transparent 40%, rgba(0, 194, 178, 0.02) 50%, transparent 60%),
-              linear-gradient(-45deg, transparent 40%, rgba(212, 255, 79, 0.02) 50%, transparent 60%)
-            `,
-            backgroundSize: '400px 400px, 300px 300px, 200px 200px, 150px 150px',
-            backgroundPosition: '0 0, 100px 100px, 50px 50px, 25px 25px'
-          }} />
-        </div>
         
         
         {/* Content Container with Enhanced Background */}
