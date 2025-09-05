@@ -1,0 +1,168 @@
+name: Bing IndexNow Monitoring
+
+on:
+  schedule:
+    # Run every Monday at 9 AM UTC (weekly health check)
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  health-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Bing IndexNow Health Check
+        env:
+          INDEXNOW_INTERNAL_TOKEN: ${{ secrets.INDEXNOW_INTERNAL_TOKEN }}
+          BING_INDEXNOW_KEY: ${{ secrets.BING_INDEXNOW_KEY }}
+        run: |
+          echo "🔍 Running Bing IndexNow health check..."
+          
+          # Test the health check endpoint
+          response=$(curl -s -w "%{http_code}" -o /tmp/health_response.json \
+            "https://www.farmcompanion.co.uk/api/health/bing-indexnow")
+          
+          http_code="${response: -3}"
+          echo "Health check HTTP status: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Health check passed"
+            cat /tmp/health_response.json | jq '.'
+          else
+            echo "❌ Health check failed with status $http_code"
+            cat /tmp/health_response.json
+            exit 1
+          fi
+
+      - name: Test IndexNow Ping Endpoint
+        env:
+          INDEXNOW_INTERNAL_TOKEN: ${{ secrets.INDEXNOW_INTERNAL_TOKEN }}
+        run: |
+          echo "🔍 Testing IndexNow ping endpoint..."
+          
+          response=$(curl -s -w "%{http_code}" -o /tmp/ping_response.json \
+            -X POST \
+            -H "x-internal-token: $INDEXNOW_INTERNAL_TOKEN" \
+            "https://www.farmcompanion.co.uk/api/bing/ping")
+          
+          http_code="${response: -3}"
+          echo "Ping endpoint HTTP status: $http_code"
+          
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Ping endpoint test passed"
+            cat /tmp/ping_response.json | jq '.'
+          else
+            echo "❌ Ping endpoint test failed with status $http_code"
+            cat /tmp/ping_response.json
+            exit 1
+          fi
+
+      - name: Verify Sitemap Structure
+        run: |
+          echo "🔍 Verifying sitemap structure..."
+          
+          # Check main sitemap
+          sitemap_response=$(curl -s -w "%{http_code}" -o /tmp/sitemap.xml \
+            "https://www.farmcompanion.co.uk/sitemap.xml")
+          
+          sitemap_code="${sitemap_response: -3}"
+          echo "Main sitemap HTTP status: $sitemap_code"
+          
+          if [ "$sitemap_code" -ne 200 ]; then
+            echo "❌ Main sitemap is not accessible"
+            exit 1
+          fi
+          
+          # Check if it's an index sitemap
+          if grep -q "sitemapindex" /tmp/sitemap.xml; then
+            echo "✅ Main sitemap is properly structured as an index"
+          else
+            echo "❌ Main sitemap is not an index sitemap"
+            exit 1
+          fi
+          
+          # Check sitemap chunks
+          echo "🔍 Checking sitemap chunks..."
+          
+          chunks=("core-pages.xml" "farms-1.xml" "produce-pages.xml")
+          for chunk in "${chunks[@]}"; do
+            chunk_response=$(curl -s -w "%{http_code}" -o /dev/null \
+              "https://www.farmcompanion.co.uk/sitemaps/$chunk")
+            
+            chunk_code="${chunk_response: -3}"
+            echo "Chunk $chunk HTTP status: $chunk_code"
+            
+            if [ "$chunk_code" -ne 200 ]; then
+              echo "❌ Sitemap chunk $chunk is not accessible"
+              exit 1
+            fi
+          done
+          
+          echo "✅ All sitemap chunks are accessible"
+
+      - name: Check Bot Accessibility
+        run: |
+          echo "🔍 Checking bot accessibility..."
+          
+          # Test with Bing bot user agent
+          bot_response=$(curl -s -w "%{http_code}" -o /dev/null \
+            -H "User-Agent: Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)" \
+            "https://www.farmcompanion.co.uk/")
+          
+          bot_code="${bot_response: -3}"
+          echo "Bot accessibility HTTP status: $bot_code"
+          
+          if [ "$bot_code" -eq 200 ]; then
+            echo "✅ Site is accessible to Bing bot"
+          else
+            echo "❌ Site is not accessible to Bing bot (status: $bot_code)"
+            exit 1
+          fi
+
+      - name: Notify on Failure
+        if: failure()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: failure
+          channel: '#alerts'
+          text: |
+            🚨 Bing IndexNow Monitoring Failed
+            
+            The weekly health check for the Bing IndexNow system has failed.
+            Please check the GitHub Actions logs for details.
+            
+            Repository: ${{ github.repository }}
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+      - name: Notify on Success
+        if: success()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: success
+          channel: '#monitoring'
+          text: |
+            ✅ Bing IndexNow Monitoring Passed
+            
+            The weekly health check for the Bing IndexNow system completed successfully.
+            All endpoints are healthy and accessible.
+            
+            Repository: ${{ github.repository }}
+            Workflow: ${{ github.workflow }}
+            Run: ${{ github.run_id }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
