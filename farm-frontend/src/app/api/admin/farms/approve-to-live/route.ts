@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
 import { getCurrentUser } from '@/lib/auth'
+import { notifyBingOfUrl, getFarmPageUrl } from '@/lib/bing-notifications'
 
 export async function POST(request: NextRequest) {
   try {
@@ -85,6 +86,22 @@ export async function POST(request: NextRequest) {
 
     // Send notification to farm contact
     await sendLiveNotification(liveFarm)
+
+    // Notify Bing IndexNow about the new farm page (fire-and-forget)
+    ;(async () => {
+      try {
+        const farmPageUrl = getFarmPageUrl(liveFarm)
+        const result = await notifyBingOfUrl(farmPageUrl)
+        if (result.success) {
+          console.log(`🚀 Bing notified of new farm page: ${farmPageUrl}`)
+        } else {
+          console.warn(`⚠️ Bing notification failed for farm page: ${result.error}`)
+        }
+      } catch (error) {
+        console.error('Error notifying Bing of farm page:', error)
+        // Don't fail the main operation if Bing notification fails
+      }
+    })()
 
     return NextResponse.json({ 
       success: true, 

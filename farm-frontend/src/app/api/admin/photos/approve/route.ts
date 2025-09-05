@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import redis, { ensureConnection } from '@/lib/redis'
 // import { sendPhotoApprovedEmail } from '@/lib/email'
 import { revalidatePath } from 'next/cache'
+import { notifyBingOfUrl } from '@/lib/bing-notifications'
 
 export async function POST(req: NextRequest) {
   try {
@@ -106,6 +107,22 @@ export async function POST(req: NextRequest) {
 
     // Revalidate the farm page
     revalidatePath(`/shop/${photo.farmSlug}`)
+
+    // Notify Bing IndexNow about the updated farm page (fire-and-forget)
+    ;(async () => {
+      try {
+        const farmPageUrl = `https://www.farmcompanion.co.uk/shop/${photo.farmSlug}`
+        const result = await notifyBingOfUrl(farmPageUrl)
+        if (result.success) {
+          console.log(`🚀 Bing notified of farm page update (photo approved): ${farmPageUrl}`)
+        } else {
+          console.warn(`⚠️ Bing notification failed for farm page update: ${result.error}`)
+        }
+      } catch (error) {
+        console.error('Error notifying Bing of farm page update:', error)
+        // Don't fail the main operation if Bing notification fails
+      }
+    })()
 
     // TODO: Send approval email when PhotoApproved template is implemented
     // if (photo.authorEmail) {
