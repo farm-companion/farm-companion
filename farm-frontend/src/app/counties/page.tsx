@@ -87,7 +87,7 @@ export default async function CountiesPage() {
   return (
     <main className="bg-background-canvas">
       {/* Professional Hero Section with Counties Page Image */}
-      <section className="relative h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
+      <section className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image

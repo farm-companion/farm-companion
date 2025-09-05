@@ -11,7 +11,7 @@ export default function ContactPage() {
   return (
     <div className="min-h-screen bg-background-canvas">
       {/* Enhanced Hero Section - PuredgeOS 3.0 Premium */}
-      <section data-header-invert className="relative h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
+      <section data-header-invert className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
