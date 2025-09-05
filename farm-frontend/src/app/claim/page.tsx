@@ -3,19 +3,12 @@
 import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import Head from 'next/head'
 import { MapPin, Shield, CheckCircle, Plus, ArrowRight } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { dedupeFarms } from '@/lib/schemas'
 
 import BackToTopButton from '@/components/BackToTopButton'
-
-// Add noindex,follow meta tag to prevent indexing while allowing crawling
-export const metadata = {
-  robots: {
-    index: false,
-    follow: true,
-  },
-}
 
 // Clean farm card component with simple styling
 function FarmCard({ farm }: { farm: FarmShop }) {
@@ -221,9 +214,13 @@ function ClaimPageContent() {
   }
 
   return (
-    <main className="min-h-screen bg-background-canvas dark:bg-gray-900">
-      {/* Professional Hero Section with Claim Page Image */}
-      <section data-header-invert className="relative h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden">
+    <>
+      <Head>
+        <meta name="robots" content="noindex,follow" />
+      </Head>
+      <main className="min-h-screen bg-background-canvas dark:bg-gray-900">
+        {/* Professional Hero Section with Claim Page Image */}
+        <section data-header-invert className="relative h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
@@ -472,6 +469,7 @@ function ClaimPageContent() {
       {/* Back to Top Button */}
       <BackToTopButton />
     </main>
+    </>
   )
 }
 
