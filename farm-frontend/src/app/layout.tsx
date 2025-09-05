@@ -1,23 +1,35 @@
 import './globals.css'
 
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Manrope, IBM_Plex_Sans } from 'next/font/google'
 import Script from 'next/script'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
 import Header from '@/components/Header'
 import FooterWrapper from '@/components/FooterWrapper'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
+import { AriaLiveRegion } from '@/components/accessibility/AriaLiveRegion'
+import { SkipLinks } from '@/components/accessibility/SkipLinks'
 import { SITE_URL } from '@/lib/site'
 
-// Optimize font loading with next/font - preload primary weights
-const inter = Inter({
+// Modern Swiss Minimalism Font Stack
+// Primary: Clash Display (self-hosted via CSS @font-face)
+// Note: Clash Display is loaded via CSS in fonts.css, no need for Next.js font loader
+
+// Secondary: Manrope (geometric sans, ultra-readable)
+const manrope = Manrope({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-inter',
-  preload: true,
-  fallback: ['system-ui', 'arial'],
+  variable: '--font-body',
   weight: ['400', '500', '600', '700'],
+})
+
+// Accent: IBM Plex Sans Condensed (tight, functional)
+const plexCondensed = IBM_Plex_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '600'],
+  variable: '--font-accent',
 })
 
 export const metadata: Metadata = {
@@ -116,7 +128,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
+    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${plexCondensed.variable}`}>
       <head>
         {/* Site-wide structured data - optimized with next/script */}
         <Script
@@ -156,6 +168,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
         {/* Preload critical LCP resources */}
         {/* Removed overlay-banner.jpg preload - not used above the fold */}
+        
+        {/* Preload critical font weights for above-the-fold content */}
+        <link rel="preload" href="/fonts/clash-display/ClashDisplay-Bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/clash-display/ClashDisplay-Semibold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/clash-display/ClashDisplay-Medium.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         
         {/* Google Analytics - now handled by AnalyticsLoader component */}
         
@@ -253,19 +270,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
       </head>
       <body className="min-h-screen bg-background-canvas text-text-body antialiased">
-        {/* Skip link for keyboard users */}
-        <a
-          href="#main"
-          className="skip-link"
-        >
-          Skip to main content
-        </a>
+        {/* Accessibility Components */}
+        <SkipLinks />
+        <AriaLiveRegion />
 
         {/* Header */}
         <Header />
 
         {/* Page content */}
-        <main id="main" className="flex-1">{children}</main>
+        <main id="main-content" className="flex-1" role="main">{children}</main>
 
         {/* Consent */}
         <ConsentBanner />
