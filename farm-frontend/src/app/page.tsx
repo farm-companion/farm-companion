@@ -57,7 +57,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-background-canvas">
       {/* Professional Hero Section with Image Overlay */}
-      <section data-header-invert className="relative h-screen min-h-[600px] max-h-[800px] overflow-hidden">
+      <section data-header-invert className="relative h-screen min-h-[700px] max-h-[900px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
@@ -81,7 +81,7 @@ export default async function HomePage() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center">
+        <div className="relative h-full flex items-center justify-center pb-16">
           <div className="text-center max-w-4xl mx-auto px-6">
             <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
             <h2 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
@@ -112,7 +112,7 @@ export default async function HomePage() {
         </div>
         
         {/* Subtle Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
           <div className="animate-bounce">
             <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
               <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse"></div>
