@@ -180,6 +180,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Bing Webmaster Tools Verification */}
         <meta name="msvalidate.01" content="D5F792E19E823EAE982BA6AB25F2B588" />
         
+        {/* Bing-specific meta tags for better indexing */}
+        <meta name="msapplication-TileColor" content="#00C2B2" />
+        <meta name="msapplication-config" content="/browserconfig.xml" />
+        <meta name="theme-color" content="#00C2B2" />
+        
         {/* Theme detection script - optimized with next/script */}
         <Script
           id="theme-detection"

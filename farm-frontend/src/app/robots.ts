@@ -3,7 +3,11 @@ import { SITE_URL, IS_PROD } from '@/lib/site'
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: IS_PROD ? [{ userAgent: '*', allow: '/' }] : [{ userAgent: '*', disallow: '/' }],
+    rules: IS_PROD ? [
+      { userAgent: '*', allow: '/' },
+      { userAgent: 'bingbot', allow: '/' },
+      { userAgent: 'msnbot', allow: '/' }
+    ] : [{ userAgent: '*', disallow: '/' }],
     sitemap: `${SITE_URL}/sitemap.xml`,
   }
 }
