@@ -1,3 +1,5 @@
+@import '../styles/fonts.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -23,6 +25,12 @@
 
 /* Theme variables */
 :root {
+  /* Modern Swiss Minimalism Font Stack */
+  --font-primary: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-body: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-accent: 'IBM Plex Sans Condensed', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  
+  /* Color variables */
   --text-heading: #1a1a1a;
   --text-body: #4a4a4a;
   --text-muted: #6b7280;
@@ -44,6 +52,7 @@
 
 /* Base typography improvements for clarity and readability */
 html {
+  font-family: var(--font-body);
   font-size: 18px; /* Increased base font size from 16px for better readability */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -54,20 +63,37 @@ html {
 }
 
 body {
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-body);
   font-size: 1rem; /* 18px base */
   line-height: 1.6; /* Improved line height for better readability */
   color: var(--text-body);
   background-color: var(--background-canvas);
 }
 
-/* Enhanced readability for different text elements */
-h1, h2, h3, h4, h5, h6 {
-  font-family: 'Satoshi', 'Inter', ui-sans-serif, system-ui, sans-serif;
-  font-weight: 700;
-  line-height: 1.3;
+/* Modern Swiss Minimalism Font Assignments */
+
+/* Headings / Brand - Clash Display (bold, high-impact) */
+h1, h2, h3, h4, h5, h6, .brand {
+  font-family: var(--font-primary);
+  font-weight: 600;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   color: var(--text-heading);
-  letter-spacing: -0.025em; /* Slightly tighter letter spacing for headings */
+}
+
+/* Body text - Manrope (geometric sans, ultra-readable) */
+body, p, li, .body-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* UI Labels / Buttons / Filters - IBM Plex Sans Condensed (tight, functional) */
+button, .filter, .ui-label, .cta, .btn, .button {
+  font-family: var(--font-accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
 p {
@@ -329,6 +355,37 @@ button {
   /* Cross-browser focus support */
   -webkit-focus-ring-color: var(--brand-primary);
   -moz-focus-ring-color: var(--brand-primary);
+}
+
+/* Enhanced focus styles for keyboard users */
+.keyboard-user *:focus {
+  outline: 2px solid var(--brand-primary) !important;
+  outline-offset: 2px !important;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Screen reader only content that can be focused */
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: inherit;
+  margin: inherit;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
 }
 
 /* Skip links for accessibility */

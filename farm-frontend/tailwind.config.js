@@ -47,10 +47,25 @@ module.exports = {
         'border-focus': 'var(--border-focus)',
       },
       
-      // PuredgeOS Typography - God-tier quality with improved readability
+      // Modern Swiss Minimalism Typography - Awwwards-grade clarity
       fontFamily: {
-        'heading': ['Satoshi', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        'body': ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        'primary': ['var(--font-primary)', 'system-ui', '-apple-system', 'sans-serif'],
+        'body': ['var(--font-body)', 'system-ui', '-apple-system', 'sans-serif'],
+        'accent': ['var(--font-accent)', 'system-ui', '-apple-system', 'sans-serif'],
+        // Legacy aliases for backward compatibility
+        'heading': ['var(--font-primary)', 'system-ui', '-apple-system', 'sans-serif'],
+        // Clash Display specific classes
+        'clash': ['Clash Display', 'var(--font-primary)', 'system-ui', '-apple-system', 'sans-serif'],
+      },
+      
+      // Extended font weights for Clash Display
+      fontWeight: {
+        'extralight': '200',
+        'light': '300',
+        'normal': '400',
+        'medium': '500',
+        'semibold': '600',
+        'bold': '700',
       },
       
       // Enhanced font sizes for better readability (PuredgeOS Clarity First)

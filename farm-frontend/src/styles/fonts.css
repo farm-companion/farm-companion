@@ -1,0 +1,111 @@
+/* Modern Swiss Minimalism Font Stack - @font-face Declarations */
+
+/* Fallbacks first — will render immediately */
+:root {
+  --font-primary: "Clash Display", "Inter", "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-accent: "IBM Plex Sans Condensed", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+/* Self-hosted Clash Display - Complete Font Family */
+@font-face {
+  font-family: "Clash Display";
+  src: url("/fonts/clash-display/ClashDisplay-Extralight.woff2") format("woff2");
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Clash Display";
+  src: url("/fonts/clash-display/ClashDisplay-Light.woff2") format("woff2");
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Clash Display";
+  src: url("/fonts/clash-display/ClashDisplay-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Clash Display";
+  src: url("/fonts/clash-display/ClashDisplay-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Clash Display";
+  src: url("/fonts/clash-display/ClashDisplay-Semibold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Clash Display";
+  src: url("/fonts/clash-display/ClashDisplay-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Variable Font Support (if needed) */
+@font-face {
+  font-family: "Clash Display Variable";
+  src: url("/fonts/clash-display/ClashDisplay-Variable.woff2") format("woff2-variations");
+  font-weight: 200 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Font Usage Classes */
+h1, h2, h3, h4, h5, h6, .brand, .display {
+  font-family: var(--font-primary);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  font-weight: 600;
+}
+
+/* Body text uses Manrope (loaded via Google Fonts) */
+body, p, li, .body-text {
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+/* UI elements use IBM Plex Sans Condensed (loaded via Google Fonts) */
+button, .filter, .ui-label, .cta, .btn, .button {
+  font-family: var(--font-accent);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Enhanced font smoothing for better rendering */
+h1, h2, h3, h4, h5, h6, .brand, .display {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Clash Display Specific Utility Classes */
+.clash-extralight { font-family: var(--font-primary); font-weight: 200; }
+.clash-light { font-family: var(--font-primary); font-weight: 300; }
+.clash-regular { font-family: var(--font-primary); font-weight: 400; }
+.clash-medium { font-family: var(--font-primary); font-weight: 500; }
+.clash-semibold { font-family: var(--font-primary); font-weight: 600; }
+.clash-bold { font-family: var(--font-primary); font-weight: 700; }
+
+/* Typography Scale with Clash Display */
+.text-display-2xl { font-family: var(--font-primary); font-size: 4.5rem; font-weight: 700; line-height: 1.1; letter-spacing: -0.02em; }
+.text-display-xl { font-family: var(--font-primary); font-size: 3.75rem; font-weight: 600; line-height: 1.1; letter-spacing: -0.02em; }
+.text-display-lg { font-family: var(--font-primary); font-size: 3rem; font-weight: 600; line-height: 1.2; letter-spacing: -0.02em; }
+.text-display-md { font-family: var(--font-primary); font-size: 2.25rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.02em; }
+.text-display-sm { font-family: var(--font-primary); font-size: 1.875rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.02em; }
