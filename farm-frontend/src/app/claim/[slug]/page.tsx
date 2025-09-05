@@ -7,6 +7,14 @@ import ClaimForm from '@/components/ClaimForm'
 
 export const dynamic = 'force-dynamic'
 
+// Add noindex,follow meta tag to prevent indexing while allowing crawling
+export const metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
+}
+
 export default async function ClaimPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const farms = await readFarms()
