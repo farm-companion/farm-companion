@@ -1,72 +1,48 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
-// Bing URL Submission API endpoint
-// This allows programmatic submission of URLs to Bing for faster indexing
-export async function POST(request: NextRequest) {
+const HOST = 'www.farmcompanion.co.uk';
+
+function isAllowedUrl(url: string) {
   try {
-    const { url } = await request.json()
-    
-    if (!url) {
-      return NextResponse.json({ error: 'URL is required' }, { status: 400 })
-    }
-
-    // Validate URL format
-    try {
-      new URL(url)
-    } catch {
-      return NextResponse.json({ error: 'Invalid URL format' }, { status: 400 })
-    }
-
-    // Submit to Bing IndexNow API
-    const bingApiKey = process.env.BING_API_KEY
-    if (!bingApiKey) {
-      console.warn('BING_API_KEY not configured - skipping Bing submission')
-      return NextResponse.json({ 
-        message: 'Bing API key not configured',
-        url: url 
-      })
-    }
-
-    const bingResponse = await fetch('https://api.indexnow.org/indexnow', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        host: 'www.farmcompanion.co.uk',
-        key: bingApiKey,
-        keyLocation: `https://www.farmcompanion.co.uk/${bingApiKey}.txt`,
-        urlList: [url]
-      })
-    })
-
-    if (bingResponse.ok) {
-      return NextResponse.json({ 
-        message: 'URL submitted to Bing successfully',
-        url: url,
-        status: bingResponse.status
-      })
-    } else {
-      console.error('Bing submission failed:', bingResponse.status, bingResponse.statusText)
-      return NextResponse.json({ 
-        error: 'Failed to submit to Bing',
-        url: url,
-        status: bingResponse.status
-      }, { status: 500 })
-    }
-
-  } catch (error) {
-    console.error('Bing submission error:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 })
+    const u = new URL(url);
+    return u.host === HOST && (u.protocol === 'https:' || u.protocol === 'http:');
+  } catch {
+    return false;
   }
 }
 
-// GET endpoint for health check
-export async function GET() {
-  return NextResponse.json({ 
-    message: 'Bing URL submission endpoint is active',
-    documentation: 'POST with { "url": "https://example.com/page" } to submit URLs to Bing'
-  })
+export async function POST(req: NextRequest) {
+  const token = req.headers.get('x-internal-token');
+  if (token !== process.env.INDEXNOW_INTERNAL_TOKEN) {
+    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+  }
+
+  const { url, urls } = await req.json().catch(() => ({} as any));
+  const urlList: string[] =
+    Array.isArray(urls) ? urls.filter(isAllowedUrl) :
+    typeof url === 'string' && isAllowedUrl(url) ? [url] : [];
+
+  if (urlList.length === 0) {
+    return NextResponse.json({ ok: false, error: 'no valid urls for host' }, { status: 400 });
+  }
+
+  const key = process.env.BING_INDEXNOW_KEY!;
+  const keyLocation = `https://${HOST}/${key}.txt`;
+
+  const payload = {
+    host: HOST,
+    key,
+    keyLocation,
+    urlList,
+  };
+
+  const r = await fetch('https://www.bing.com/indexnow', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await r.text();
+  const ok = r.ok;
+  return NextResponse.json({ ok, status: r.status, body: text, submitted: urlList });
 }
