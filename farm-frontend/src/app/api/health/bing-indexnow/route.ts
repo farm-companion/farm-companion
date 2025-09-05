@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
       
       if (!result.success) {
         indexNowCheck.status = 'fail'
-        indexNowCheck.details.error = result.error
+        indexNowCheck.details.error = result.error || 'Unknown error'
         healthChecks.status = 'unhealthy'
       }
     } catch (error) {
