@@ -281,18 +281,12 @@ export default async function HomePage() {
           }} />
         </div>
         
-        {/* Subtle embossed texture overlay */}
+        {/* Oranges background overlay */}
         <div className="absolute inset-0 opacity-[0.01]" style={{
-          backgroundImage: `
-            repeating-linear-gradient(
-              45deg,
-              transparent,
-              transparent 2px,
-              rgba(0, 194, 178, 0.01) 2px,
-              rgba(0, 194, 178, 0.01) 4px
-            )
-          `,
-          backgroundSize: '8px 8px'
+          backgroundImage: 'url(/oranges-background.jpg)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
         }} />
         
         {/* Content Container with Enhanced Background */}
