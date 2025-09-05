@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { Leaf, Menu, X, ArrowRight } from 'lucide-react'
+import { Leaf, Menu, X, ArrowRight, Map, Sprout, Home, MessageCircle } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import ThemeToggle from '@/components/ThemeToggle'
 
@@ -111,31 +111,31 @@ function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
   if (!isOpen) return null
 
   const menuItems = [
-    { 
+    {
       href: '/map', 
       label: 'Farm Map', 
-      icon: '🗺️', 
+      icon: Map, 
       description: 'Find farm shops near you',
       color: 'from-blue-500 to-cyan-500'
     },
-    { 
+    {
       href: '/seasonal', 
       label: 'What\'s in Season', 
-      icon: '🌱', 
+      icon: Sprout, 
       description: 'Fresh produce calendar',
       color: 'from-green-500 to-emerald-500'
     },
-    { 
+    {
       href: '/about', 
       label: 'About Us', 
-      icon: '🏡', 
+      icon: Home, 
       description: 'Our farm companion story',
       color: 'from-amber-500 to-orange-500'
     },
-    { 
+    {
       href: '/contact', 
       label: 'Feedback', 
-      icon: '💬', 
+      icon: MessageCircle, 
       description: 'Share your thoughts',
       color: 'from-purple-500 to-pink-500'
     }
@@ -202,8 +202,8 @@ function MobileMenu({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
                   onMouseLeave={() => setActiveSection('')}
                 >
                   <div className="flex items-center space-x-4">
-                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white text-xl shadow-lg group-hover:shadow-xl transition-shadow duration-200 mobile-menu-icon`}>
-                      {item.icon}
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white shadow-lg group-hover:shadow-xl transition-shadow duration-200 mobile-menu-icon`}>
+                      <item.icon className="w-6 h-6" />
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-gray-900 dark:text-white group-hover:text-serum transition-colors duration-200">
