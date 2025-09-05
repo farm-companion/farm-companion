@@ -1,13 +1,12 @@
 import type { MetadataRoute } from 'next'
-import { SITE_URL, IS_PROD } from '@/lib/site'
 
 export default function robots(): MetadataRoute.Robots {
   return {
-    rules: IS_PROD ? [
+    rules: [
       { userAgent: '*', allow: '/' },
       { userAgent: 'bingbot', allow: '/' },
-      { userAgent: 'msnbot', allow: '/' }
-    ] : [{ userAgent: '*', disallow: '/' }],
-    sitemap: `${SITE_URL}/sitemap.xml`,
+      { userAgent: 'msnbot', allow: '/' },
+    ],
+    sitemap: 'https://www.farmcompanion.co.uk/sitemap.xml',
   }
 }
