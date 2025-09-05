@@ -144,9 +144,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
-        className="absolute inset-x-0 bottom-0 h-[88vh] max-h-[720px] rounded-t-2xl border border-white/10
-                   bg-white shadow-2xl outline-none dark:bg-gray-900
-                   motion-safe:animate-[sheetIn_.28s_cubic-bezier(0.2,0.8,0.2,1)]"
+        className="absolute inset-x-0 bottom-0 h-[88vh] max-h-[720px] rounded-t-2xl border border-white/10 bg-white shadow-2xl outline-none dark:bg-gray-900 motion-safe:animate-[sheetIn_.28s_cubic-bezier(0.2,0.8,0.2,1)]"
       >
         {/* FLEX COLUMN + SCROLL AREA */}
         <div className="mx-auto flex h-full max-w-screen-sm flex-col px-5 pt-4 pb-8">
@@ -155,9 +153,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
             <h2 id={labelledBy} className="text-base font-semibold text-gray-900 dark:text-white">Menu</h2>
             <button
               onClick={onClose}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200
-                         text-gray-700 hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:text-gray-200
-                         dark:hover:bg-gray-800"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
               aria-label="Close menu"
             >
               <X className="h-5 w-5" />
@@ -168,33 +164,25 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
           <div className="-mr-2 grow overflow-y-auto overscroll-contain pr-1">
             <nav aria-label="Mobile navigation" className="space-y-2">
               <Link href="/map" onClick={onClose}
-                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition
-                           hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px]
-                           dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 Farm Map
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Find farm shops near you</p>
               </Link>
 
               <Link href="/seasonal" onClick={onClose}
-                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition
-                           hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px]
-                           dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 What's in Season
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Fresh produce calendar</p>
               </Link>
 
               <Link href="/about" onClick={onClose}
-                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition
-                           hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px]
-                           dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 About
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Our story and mission</p>
               </Link>
 
               <Link href="/contact" onClick={onClose}
-                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition
-                           hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px]
-                           dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 Feedback
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Share your thoughts</p>
               </Link>
@@ -211,9 +199,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
 
               <div className="mt-6">
                 <Link href="/add" onClick={onClose}
-                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-900
-                             bg-gray-900 text-white transition hover:bg-black active:scale-[.99]
-                             dark:border-white dark:bg-white dark:text-black">
+                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-900 bg-gray-900 text-white transition hover:bg-black active:scale-[.99] dark:border-white dark:bg-white dark:text-black">
                   Add a Farm Shop
                 </Link>
               </div>
