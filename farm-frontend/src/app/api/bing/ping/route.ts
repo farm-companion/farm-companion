@@ -1,54 +1,30 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server';
 
-// Bing Sitemap Ping endpoint
-// This notifies Bing when the sitemap has been updated
-export async function POST(request: NextRequest) {
-  try {
-    const { SITE_URL } = await import('@/lib/site')
-    const sitemapUrl = `${SITE_URL}/sitemap.xml`
-    
-    // Ping Bing about sitemap update
-    const pingUrl = `https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`
-    
-    const response = await fetch(pingUrl, {
-      method: 'GET',
-      headers: {
-        'User-Agent': 'FarmCompanion/1.0'
-      }
-    })
+const HOST = 'www.farmcompanion.co.uk';
 
-    if (response.ok) {
-      return NextResponse.json({ 
-        message: 'Sitemap pinged to Bing successfully',
-        sitemapUrl: sitemapUrl,
-        status: response.status
-      })
-    } else {
-      console.error('Bing ping failed:', response.status, response.statusText)
-      return NextResponse.json({ 
-        error: 'Failed to ping Bing',
-        sitemapUrl: sitemapUrl,
-        status: response.status
-      }, { status: 500 })
-    }
-
-  } catch (error) {
-    console.error('Bing ping error:', error)
-    return NextResponse.json({ 
-      error: 'Internal server error' 
-    }, { status: 500 })
+export async function POST(req: NextRequest) {
+  const token = req.headers.get('x-internal-token');
+  if (token !== process.env.INDEXNOW_INTERNAL_TOKEN) {
+    return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
   }
-}
 
-// GET endpoint for manual testing
-export async function GET() {
-  const { SITE_URL } = await import('@/lib/site')
-  const sitemapUrl = `${SITE_URL}/sitemap.xml`
-  
-  return NextResponse.json({ 
-    message: 'Bing sitemap ping endpoint',
-    sitemapUrl: sitemapUrl,
-    pingUrl: `https://www.bing.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`,
-    documentation: 'POST to this endpoint to ping Bing about sitemap updates'
-  })
+  const key = process.env.BING_INDEXNOW_KEY!;
+  const keyLocation = `https://${HOST}/${key}.txt`;
+  const sitemapUrl = `https://${HOST}/sitemap.xml`;
+
+  const payload = {
+    host: HOST,
+    key,
+    keyLocation,
+    urlList: [sitemapUrl],
+  };
+
+  const r = await fetch('https://www.bing.com/indexnow', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  const text = await r.text();
+  return NextResponse.json({ ok: r.ok, status: r.status, body: text, submitted: [sitemapUrl] });
 }
