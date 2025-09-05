@@ -177,7 +177,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
 
               <Link href="/seasonal" onClick={onClose}
                 className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
-                What's in Season
+                What&apos;s in Season
                 <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Fresh produce calendar</p>
               </Link>
 
