@@ -281,13 +281,6 @@ export default async function HomePage() {
           }} />
         </div>
         
-        {/* Oranges background overlay */}
-        <div className="absolute inset-0 opacity-[0.01]" style={{
-          backgroundImage: 'url(/oranges-background.jpg)',
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        }} />
         
         {/* Content Container with Enhanced Background */}
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-20">
@@ -303,7 +296,7 @@ export default async function HomePage() {
               <div className="prose prose-lg max-w-none">
                 {/* Enhanced main heading with maximum contrast */}
                 <div className="text-center mb-12">
-                  <h2 className="text-4xl md:text-5xl font-heading font-bold text-black mb-4 animate-fade-in drop-shadow-xl" style={{textShadow: '0 0 10px rgba(255,255,255,0.8), 0 0 20px rgba(255,255,255,0.6)'}}>
+                  <h2 className="text-3xl md:text-4xl font-heading font-bold text-black mb-4 animate-fade-in">
                     UK Farm Shops Directory
                   </h2>
                   <div className="w-24 h-1 bg-gradient-to-r from-serum to-solar mx-auto rounded-full opacity-60 drop-shadow-sm"></div>
@@ -311,9 +304,9 @@ export default async function HomePage() {
                 
                 {/* Enhanced intro paragraph with maximum contrast */}
                 <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                  <p className="text-xl text-black mb-6 leading-relaxed drop-shadow-lg font-semibold" style={{textShadow: '0 0 8px rgba(255,255,255,0.7), 0 0 16px rgba(255,255,255,0.5)'}}>
+                  <p className="text-lg text-black mb-6 leading-relaxed font-medium">
                     Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated 
-                    a directory of over <span className="font-bold text-serum drop-shadow-lg">{farmCount}</span> authentic farm shops across <span className="font-bold text-serum drop-shadow-lg">{countyCount}</span> counties, 
+                    a directory of over <span className="font-bold text-serum">{farmCount}</span> authentic farm shops across <span className="font-bold text-serum">{countyCount}</span> counties, 
                     helping you discover the freshest local produce and connect with real farmers.
                   </p>
                 </div>
@@ -321,13 +314,13 @@ export default async function HomePage() {
                 {/* Enhanced content sections with maximum contrast */}
                 <div className="space-y-12">
                   <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                    <h3 className="text-2xl font-heading font-semibold text-black mb-4 flex items-center gap-3 drop-shadow-xl" style={{textShadow: '0 0 8px rgba(255,255,255,0.7), 0 0 16px rgba(255,255,255,0.5)'}}>
+                    <h3 className="text-xl font-heading font-semibold text-black mb-4 flex items-center gap-3">
                       <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
-                        <MapPin className="w-4 h-4 text-serum drop-shadow-lg" />
+                        <MapPin className="w-4 h-4 text-serum" />
                       </div>
                       Find Farm Shops Near You
                     </h3>
-                    <p className="text-black leading-relaxed drop-shadow-lg font-semibold" style={{textShadow: '0 0 6px rgba(255,255,255,0.6), 0 0 12px rgba(255,255,255,0.4)'}}>
+                    <p className="text-black leading-relaxed font-medium">
                       Search for farm shops near you to buy fresh vegetables, organic meat, artisanal cheese, 
                       and homemade preserves. Our interactive map shows verified contact details, opening hours, 
                       and what each farm sells locally.
@@ -335,13 +328,13 @@ export default async function HomePage() {
                   </div>
 
                   <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-                    <h3 className="text-2xl font-heading font-semibold text-black mb-4 flex items-center gap-3 drop-shadow-xl" style={{textShadow: '0 0 8px rgba(255,255,255,0.7), 0 0 16px rgba(255,255,255,0.5)'}}>
+                    <h3 className="text-xl font-heading font-semibold text-black mb-4 flex items-center gap-3">
                       <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
-                        <Calendar className="w-4 h-4 text-serum drop-shadow-lg" />
+                        <Calendar className="w-4 h-4 text-serum" />
                       </div>
                       Seasonal Produce Guides
                     </h3>
-                    <p className="text-black leading-relaxed drop-shadow-lg font-semibold" style={{textShadow: '0 0 6px rgba(255,255,255,0.6), 0 0 12px rgba(255,255,255,0.4)'}}>
+                    <p className="text-black leading-relaxed font-medium">
                       Buy seasonal UK fruit and vegetables at their peak flavour and nutritional value. 
                       Our guides show what&apos;s in season each month, with tips on choosing, storing, 
                       and cooking the freshest local produce.
@@ -349,13 +342,13 @@ export default async function HomePage() {
                   </div>
 
                   <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                    <h3 className="text-2xl font-heading font-semibold text-black mb-4 flex items-center gap-3 drop-shadow-xl" style={{textShadow: '0 0 8px rgba(255,255,255,0.7), 0 0 16px rgba(255,255,255,0.5)'}}>
+                    <h3 className="text-xl font-heading font-semibold text-black mb-4 flex items-center gap-3">
                       <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
-                        <Heart className="w-4 h-4 text-serum drop-shadow-lg" />
+                        <Heart className="w-4 h-4 text-serum" />
                       </div>
                       Support Local Farmers
                     </h3>
-                    <p className="text-black leading-relaxed drop-shadow-lg font-semibold" style={{textShadow: '0 0 6px rgba(255,255,255,0.6), 0 0 12px rgba(255,255,255,0.4)'}}>
+                    <p className="text-black leading-relaxed font-medium">
                       By choosing to shop at local farm shops, you&apos;re supporting British farmers and 
                       contributing to sustainable, local food systems. You&apos;ll enjoy fresher produce, 
                       reduce food miles, and help maintain the UK&apos;s rich agricultural heritage.
