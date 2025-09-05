@@ -265,7 +265,7 @@ export default function Header() {
       >
         <Brand inverted={inverted} />
 
-        <nav aria-label="Primary" className="hidden items-center gap-6 lg:flex">
+        <nav aria-label="Primary" className="hidden items-center gap-4 md:flex">
           <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-black dark:text-white')} href="/map">
             Map
           </Link>
@@ -292,7 +292,7 @@ export default function Header() {
           <ThemeToggle />
         </nav>
 
-        <div className="lg:hidden">
+        <div className="md:hidden">
           <button
             onClick={() => setOpen(true)}
             aria-haspopup="dialog"
