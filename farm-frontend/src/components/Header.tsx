@@ -1,354 +1,288 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { Leaf, Menu, X } from 'lucide-react'
 import ThemeToggle from '@/components/ThemeToggle'
 
-// PuredgeOS Mobile-First Header & Sheet Menu
-export default function Header() {
-  const [isSheetOpen, setIsSheetOpen] = useState(false)
-  const [isHeaderInverted, setIsHeaderInverted] = useState(false)
-  const [isScrolled, setIsScrolled] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(false)
-  const [lastScrollY, setLastScrollY] = useState(0)
-  const [isHeaderVisible, setIsHeaderVisible] = useState(true)
+/**
+ * PuredgeOS Header 3.0 — mobile‑first, Awwwards‑grade
+ *
+ * Design doctrine
+ * 1) Mobile first. One clean top bar. No decorative icons. No emojis.
+ * 2) Sticky by default, not fixed — prevents overlap with hero and preserves flow.
+ * 3) Safe motion. Subtle elevation + glass on scroll. Prefers‑reduced‑motion respected.
+ * 4) Inversion by intent. Any section can opt‑in to an inverted header via data‑header‑invert.
+ * 5) Accessible sheet menu. Focus return, escape to close, background scroll locked.
+ */
 
-  const headerRef = useRef<HTMLElement>(null)
-  const previousActiveElement = useRef<HTMLElement | null>(null)
+// Utilities --------------------------------------------------------------
+const cx = (...classes: Array<string | false | undefined>) => classes.filter(Boolean).join(' ')
 
-  // Check for dark mode
+function useScrollState() {
+  const [scrolled, setScrolled] = useState(false)
   useEffect(() => {
-    const checkDarkMode = () => {
-      setIsDarkMode(document.documentElement.classList.contains('dark'))
-    }
-    
-    checkDarkMode()
-    const observer = new MutationObserver(checkDarkMode)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    
-    return () => observer.disconnect()
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
   }, [])
+  return scrolled
+}
 
-  // Handle scroll and header visibility
+function useHeaderInvert() {
+  // Any section in the viewport with data‑header‑invert will invert header styling
+  const [invert, setInvert] = useState(false)
   useEffect(() => {
-    const handleScroll = () => {
-      const currentScrollY = window.scrollY
-      const direction = currentScrollY > lastScrollY ? 'down' : 'up'
-      
-      setIsScrolled(currentScrollY > 20)
-      
-      // Auto-hide on desktop only, and only when scrolling down
-      if (window.innerWidth >= 1024) {
-        if (direction === 'down' && currentScrollY > 100) {
-          setIsHeaderVisible(false)
-        } else if (direction === 'up' || currentScrollY <= 100) {
-          setIsHeaderVisible(true)
-        }
-      } else {
-        setIsHeaderVisible(true)
-      }
-      
-      setLastScrollY(currentScrollY)
-    }
-
-    window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [lastScrollY])
-
-  // Check for header inversion based on data-header-invert attribute
-  useEffect(() => {
-    const checkHeaderInversion = () => {
-      const invertedSections = document.querySelectorAll('[data-header-invert]')
-      let shouldInvert = false
-      
-      invertedSections.forEach(section => {
-        const rect = section.getBoundingClientRect()
-        if (rect.top <= 100 && rect.bottom > 100) {
-          shouldInvert = true
-        }
-      })
-      
-      setIsHeaderInverted(shouldInvert)
-    }
-
-    checkHeaderInversion()
-    window.addEventListener('scroll', checkHeaderInversion, { passive: true })
-    window.addEventListener('resize', checkHeaderInversion, { passive: true })
-    
-    return () => {
-      window.removeEventListener('scroll', checkHeaderInversion)
-      window.removeEventListener('resize', checkHeaderInversion)
-    }
+    const sections = Array.from(document.querySelectorAll<HTMLElement>('[data-header-invert]'))
+    if (!sections.length) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        // Consider header height margin at ~88px for desktop hit area
+        const anyActive = entries.some((e) => e.isIntersecting)
+        setInvert(anyActive)
+      },
+      { root: null, rootMargin: '-88px 0px 0px 0px', threshold: 0.01 }
+    )
+    sections.forEach((el) => io.observe(el))
+    return () => io.disconnect()
   }, [])
+  return invert
+}
 
-  // Handle sheet open/close with focus management
-  const openSheet = () => {
-    previousActiveElement.current = document.activeElement as HTMLElement
-    setIsSheetOpen(true)
-    document.body.style.overflow = 'hidden'
-  }
-
-  const closeSheet = () => {
-    setIsSheetOpen(false)
-    document.body.style.overflow = 'unset'
-    
-    // Return focus to previous element
-    if (previousActiveElement.current) {
-      previousActiveElement.current.focus()
-    }
-  }
-
-  // Handle escape key
+function useLockBody(locked: boolean) {
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && isSheetOpen) {
-        closeSheet()
-      }
-    }
-
-    if (isSheetOpen) {
-      document.addEventListener('keydown', handleEscape)
-    }
-
+    const { body } = document
+    if (!body) return
+    const prev = body.style.overflow
+    if (locked) body.style.overflow = 'hidden'
     return () => {
-      document.removeEventListener('keydown', handleEscape)
+      body.style.overflow = prev
     }
-  }, [isSheetOpen])
+  }, [locked])
+}
 
-  // Handle overlay click
-  const handleOverlayClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      closeSheet()
+// Components ------------------------------------------------------------
+
+function Brand({ inverted }: { inverted: boolean }) {
+  return (
+    <Link href="/" aria-label="Farm Companion — Home" className="group inline-flex items-center gap-3">
+      <div
+        className={cx(
+          'flex h-9 w-9 items-center justify-center rounded-lg shadow-sm transition',
+          inverted ? 'bg-white' : 'bg-gradient-to-br from-serum to-serum/80'
+        )}
+      >
+        <Leaf className={cx('h-4 w-4', inverted ? 'text-black' : 'text-white')} />
+      </div>
+      <div className="leading-tight">
+        <span className={cx('block text-base font-semibold', inverted ? 'text-white' : 'text-gray-900')}>Farm Companion</span>
+        <span className={cx('hidden text-xs font-medium sm:block', inverted ? 'text-white/70' : 'text-gray-600')}>Real food, real places</span>
+      </div>
+    </Link>
+  )
+}
+
+function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => void; labelledBy: string }) {
+  useLockBody(open)
+  const panelRef = useRef<HTMLDivElement | null>(null)
+  const lastActiveRef = useRef<HTMLElement | null>(null)
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && open) onClose()
     }
-  }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [open, onClose])
 
-  // Determine header styling based on state
-  const getHeaderClasses = () => {
-    const baseClasses = "sticky top-0 z-40 transition-all duration-300 ease-out border-b"
-    
-    // Visibility
-    const visibilityClasses = isHeaderVisible ? "translate-y-0 opacity-100" : "lg:-translate-y-full lg:opacity-0"
-    
-    // Background and border
-    let backgroundClasses = ""
-    if (isHeaderInverted) {
-      backgroundClasses = "bg-white/95 backdrop-blur-md border-gray-200"
-    } else if (isDarkMode) {
-      backgroundClasses = "bg-black/80 backdrop-blur-md border-white/20"
+  useEffect(() => {
+    if (open) {
+      lastActiveRef.current = document.activeElement as HTMLElement
+      panelRef.current?.focus()
     } else {
-      backgroundClasses = isScrolled 
-        ? "bg-white/95 backdrop-blur-md border-gray-200" 
-        : "bg-transparent border-transparent"
+      lastActiveRef.current?.focus()
     }
-    
-    return `${baseClasses} ${visibilityClasses} ${backgroundClasses}`
-  }
+  }, [open])
 
-  // Determine text colors
-  const getTextClasses = (isLink = false) => {
-    if (isHeaderInverted) {
-      return isLink 
-        ? "text-gray-700 hover:text-gray-900 hover:bg-gray-100" 
-        : "text-gray-900"
-    } else if (isDarkMode) {
-      return isLink 
-        ? "text-white hover:text-white hover:bg-white/10" 
-        : "text-white"
-    } else {
-      return isLink 
-        ? "text-gray-700 hover:text-gray-900 hover:bg-gray-100" 
-        : "text-gray-900"
-    }
-  }
+  if (!open) return null
 
   return (
-    <>
-      {/* Header */}
-      <header ref={headerRef} className={getHeaderClasses()}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-14 lg:h-16">
-            {/* Logo */}
-            <Link 
-              href="/" 
-              className="flex items-center space-x-3 group"
-              aria-label="Farm Companion - Home"
-            >
-              <div className="flex-shrink-0 w-8 h-8 bg-gradient-to-br from-serum to-serum/80 rounded-lg flex items-center justify-center">
-                <Leaf className="w-4 h-4 text-white" />
-              </div>
-              <div className="flex flex-col">
-                <span className={`font-bold text-lg leading-tight ${getTextClasses()}`}>
-                  Farm Companion
-                </span>
-                <span className={`text-xs font-medium leading-tight hidden sm:block ${
-                  isHeaderInverted ? 'text-gray-600' : isDarkMode ? 'text-white/70' : 'text-gray-600'
-                }`}>
-                  Real food, real places
-                </span>
-              </div>
-            </Link>
-
-            {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-6">
-              <Link 
-                href="/map" 
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getTextClasses(true)}`}
-              >
-                Map
-              </Link>
-              <Link 
-                href="/seasonal" 
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getTextClasses(true)}`}
-              >
-                Seasonal
-              </Link>
-              <Link 
-                href="/about" 
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getTextClasses(true)}`}
-              >
-                About
-              </Link>
-              <Link 
-                href="/contact" 
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${getTextClasses(true)}`}
-              >
-                Feedback
-              </Link>
-              
-              {/* Add Farm Shop Button */}
-              <Link 
-                href="/add"
-                className={`inline-flex items-center justify-center rounded-md text-sm font-medium px-4 py-2 h-10 transition-all duration-300 ${
-                  isHeaderInverted
-                    ? 'bg-serum text-black hover:bg-serum/90 border border-serum/20 shadow-md hover:shadow-lg'
-                    : isDarkMode
-                    ? 'bg-white text-black hover:bg-gray-100 border border-white/20 shadow-lg hover:shadow-xl'
-                    : 'bg-serum text-black hover:bg-serum/90 border border-serum/20 shadow-md hover:shadow-lg'
-                }`}
-              >
-                Add a Farm Shop
-              </Link>
-            </nav>
-
-            {/* Mobile Menu Button */}
+    <div className="fixed inset-0 z-[60]">
+      <button
+        aria-hidden
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-[1px] transition-opacity"
+      />
+      <div
+        ref={panelRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={labelledBy}
+        tabIndex={-1}
+        className={cx(
+          'absolute inset-x-0 bottom-0 z-[61] h-[88vh] max-h-[720px] rounded-t-2xl border border-white/10 bg-white px-5 pb-8 pt-4 shadow-2xl outline-none transition-transform will-change-transform dark:bg-gray-900',
+          'translate-y-0 motion-safe:animate-[sheetIn_.28s_cubic-bezier(0.2,0.8,0.2,1)]'
+        )}
+      >
+        <div className="mx-auto max-w-screen-sm">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 id={labelledBy} className="text-base font-semibold text-gray-900 dark:text-white">
+              Menu
+            </h2>
             <button
-              onClick={openSheet}
-              className={`lg:hidden p-2 rounded-lg transition-colors ${getTextClasses(true)}`}
-              aria-expanded={isSheetOpen}
-              aria-controls="mobile-sheet"
-              aria-label="Open navigation menu"
+              onClick={onClose}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-gray-700 transition hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+              aria-label="Close menu"
             >
-              <Menu className="w-5 h-5" />
+              <X className="h-5 w-5" />
             </button>
           </div>
-        </div>
-      </header>
 
-      {/* Mobile Sheet Menu */}
-      {isSheetOpen && (
-        <div 
-          className="lg:hidden fixed inset-0 z-50"
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navigation menu"
-        >
-          {/* Backdrop */}
-          <div 
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
-            onClick={handleOverlayClick}
-            aria-hidden="true"
-          />
-          
-          {/* Sheet */}
-          <div className="absolute bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-2xl shadow-2xl max-h-[85vh] overflow-hidden">
-            {/* Handle */}
-            <div className="flex justify-center pt-3 pb-2">
-              <div className="w-12 h-1 bg-gray-300 dark:bg-gray-600 rounded-full" />
-            </div>
-            
-            {/* Header */}
-            <div className="flex items-center justify-between px-6 pb-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-gradient-to-br from-serum to-serum/80 rounded-lg flex items-center justify-center">
-                  <Leaf className="w-4 h-4 text-white" />
-                </div>
-                <span className="font-bold text-lg text-gray-900 dark:text-white">
-                  Farm Companion
-                </span>
+          <nav aria-label="Mobile navigation" className="space-y-2">
+            <Link
+              href="/map"
+              onClick={onClose}
+              className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              Farm Map
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Find farm shops near you</p>
+            </Link>
+            <Link
+              href="/seasonal"
+              onClick={onClose}
+              className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              What's in Season
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Fresh produce calendar</p>
+            </Link>
+            <Link
+              href="/about"
+              onClick={onClose}
+              className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              About
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Our story and mission</p>
+            </Link>
+            <Link
+              href="/contact"
+              onClick={onClose}
+              className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            >
+              Feedback
+              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Share your thoughts</p>
+            </Link>
+          </nav>
+
+          <div className="mt-6 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-900 dark:text-white">Theme</p>
+                <p className="text-xs text-gray-600 dark:text-gray-300">Light or dark mode</p>
               </div>
-              <button
-                onClick={closeSheet}
-                className="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
-                aria-label="Close menu"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            {/* Navigation */}
-            <nav className="px-6 py-4 space-y-2">
-              <Link
-                href="/map"
-                onClick={closeSheet}
-                className="block px-4 py-3 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <div className="font-medium">Farm Map</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Find farm shops near you</div>
-              </Link>
-              
-              <Link
-                href="/seasonal"
-                onClick={closeSheet}
-                className="block px-4 py-3 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <div className="font-medium">What's in Season</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Fresh produce calendar</div>
-              </Link>
-              
-              <Link
-                href="/about"
-                onClick={closeSheet}
-                className="block px-4 py-3 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <div className="font-medium">About Us</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Our farm companion story</div>
-              </Link>
-              
-              <Link
-                href="/contact"
-                onClick={closeSheet}
-                className="block px-4 py-3 rounded-lg text-gray-900 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              >
-                <div className="font-medium">Feedback</div>
-                <div className="text-sm text-gray-600 dark:text-gray-400">Share your thoughts</div>
-              </Link>
-            </nav>
-            
-            {/* CTA Section */}
-            <div className="px-6 pb-4">
-              <Link
-                href="/add"
-                onClick={closeSheet}
-                className="block w-full px-4 py-3 rounded-lg bg-serum text-black font-medium text-center hover:bg-serum/90 transition-colors shadow-sm"
-              >
-                Add a Farm Shop
-              </Link>
-            </div>
-            
-            {/* Theme Toggle */}
-            <div className="px-6 pb-6 border-t border-gray-200 dark:border-gray-700 pt-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">Theme</div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400">Light or dark mode</div>
-                </div>
-                <ThemeToggle />
-              </div>
+              <ThemeToggle />
             </div>
           </div>
+
+          <div className="mt-6">
+            <Link
+              href="/add"
+              onClick={onClose}
+              className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-900 bg-gray-900 text-white transition hover:bg-black active:scale-[.99] dark:border-white dark:bg-white dark:text-black"
+            >
+              Add a Farm Shop
+            </Link>
+          </div>
         </div>
+      </div>
+      <style jsx global>{`
+        @keyframes sheetIn { from { transform: translateY(24px); opacity: .98 } to { transform: translateY(0); opacity: 1 } }
+      `}</style>
+    </div>
+  )
+}
+
+export default function Header() {
+  const scrolled = useScrollState()
+  const inverted = useHeaderInvert()
+  const [open, setOpen] = useState(false)
+  const labelId = 'mobile-menu-title'
+
+  // Desktop auto‑hide on scroll down (kept minimal to avoid jank). Hidden only when scrolled.
+  const [hide, setHide] = useState(false)
+  const lastY = useRef(0)
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY
+      const goingDown = y > lastY.current
+      setHide(goingDown && y > 120 && window.innerWidth >= 1024)
+      lastY.current = y
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return (
+    <header
+      className={cx(
+        'sticky top-0 z-50 transition-all duration-300',
+        hide ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
       )}
-    </>
+    >
+      <div
+        className={cx(
+          'mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8',
+          'h-14 sm:h-16',
+          // Surface states
+          scrolled
+            ? inverted
+              ? 'border-b border-white/10 bg-black/70 backdrop-blur supports-[backdrop-filter]:bg-black/60'
+              : 'border-b border-black/10 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70'
+            : 'border-b border-transparent bg-transparent'
+        )}
+      >
+        <Brand inverted={inverted} />
+
+        <nav aria-label="Primary" className="hidden items-center gap-6 lg:flex">
+          <Link className="text-sm text-gray-700 transition hover:text-black dark:text-gray-200 dark:hover:text-white" href="/map">
+            Map
+          </Link>
+          <Link className="text-sm text-gray-700 transition hover:text-black dark:text-gray-200 dark:hover:text-white" href="/seasonal">
+            Seasonal
+          </Link>
+          <Link className="text-sm text-gray-700 transition hover:text-black dark:text-gray-200 dark:hover:text-white" href="/about">
+            About
+          </Link>
+          <Link className="text-sm text-gray-700 transition hover:text-black dark:text-gray-200 dark:hover:text-white" href="/contact">
+            Feedback
+          </Link>
+          <Link
+            href="/add"
+            className="inline-flex h-10 items-center justify-center rounded-md border border-gray-900 bg-gray-900 px-4 text-sm font-medium text-white transition hover:bg-black dark:border-white dark:bg-white dark:text-black"
+          >
+            Add a Farm Shop
+          </Link>
+          <ThemeToggle />
+        </nav>
+
+        <div className="lg:hidden">
+          <button
+            onClick={() => setOpen(true)}
+            aria-haspopup="dialog"
+            aria-expanded={open}
+            aria-controls="mobile-menu"
+            className={cx(
+              'inline-flex h-10 w-10 items-center justify-center rounded-md border text-gray-700 transition hover:bg-gray-50 active:scale-95 dark:text-gray-200',
+              inverted ? 'border-white/30' : 'border-gray-300'
+            )}
+            aria-label="Open menu"
+          >
+            <Menu className={'h-5 w-5'} />
+          </button>
+        </div>
+      </div>
+
+      <Sheet open={open} onClose={() => setOpen(false)} labelledBy={labelId} />
+    </header>
   )
 }
