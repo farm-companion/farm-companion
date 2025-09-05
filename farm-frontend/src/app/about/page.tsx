@@ -51,7 +51,7 @@ export const metadata: Metadata = {
 
 export default function AboutPage() {
   return (
-    <main className="bg-background-canvas">
+    <main className="min-h-screen bg-background-canvas">
       {/* Professional Hero Section with About Page Image */}
       <section data-header-invert className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
         {/* Background Image with Professional Handling */}
@@ -77,7 +77,7 @@ export default function AboutPage() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center">
+        <div className="relative h-full flex items-center justify-center pb-16">
           <div className="text-center max-w-4xl mx-auto px-6">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
               <Leaf className="w-10 h-10 text-white" />
