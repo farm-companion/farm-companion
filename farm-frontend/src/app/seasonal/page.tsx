@@ -153,7 +153,7 @@ export default async function SeasonalPage() {
     <main className="min-h-screen bg-background-canvas">
       <JsonLd data={seasonalJsonLd} />
       {/* Professional Hero Section with Seasonal Produce Image */}
-      <section className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
+      <section className="relative h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
@@ -177,7 +177,7 @@ export default async function SeasonalPage() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center pb-16">
+        <div className="relative h-full flex items-center justify-center pt-20 pb-20">
           <div className="text-center max-w-4xl mx-auto px-6">
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Seasonal Produce

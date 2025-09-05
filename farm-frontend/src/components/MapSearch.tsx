@@ -204,15 +204,15 @@ export default function MapSearch({
   }
 
   return (
-    <div className={`bg-white shadow-lg rounded-lg p-4 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 ${className}`}>
       {/* Search Type Toggle */}
-      <div className="flex mb-4 bg-gray-100 rounded-lg p-1">
+      <div className="flex mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
         <button
           onClick={() => handleSearchTypeChange('text')}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
             searchType === 'text' 
-              ? 'bg-white text-gray-900 shadow-sm' 
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Search className="w-4 h-4 inline mr-2" />
@@ -222,8 +222,8 @@ export default function MapSearch({
           onClick={() => handleSearchTypeChange('w3w')}
           className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
             searchType === 'w3w' 
-              ? 'bg-white text-gray-900 shadow-sm' 
-              : 'text-gray-600 hover:text-gray-900'
+              ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Globe className="w-4 h-4 inline mr-2" />
@@ -234,7 +234,7 @@ export default function MapSearch({
       {/* Search Bar */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
           <input
             ref={searchRef}
             type="text"
@@ -251,13 +251,13 @@ export default function MapSearch({
                 handleW3WSearch()
               }
             }}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none transition-all"
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 dark:border-gray-600"
             aria-label={searchType === 'w3w' ? 'Enter what3words address' : 'Search farms'}
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
               aria-label="Clear search"
             >
               <X className="w-4 h-4" />
@@ -304,10 +304,10 @@ export default function MapSearch({
 
       {/* what3words Info */}
       {searchType === 'w3w' && (
-        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-2">
-            <Globe className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-800">
+            <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+            <div className="text-sm text-blue-800 dark:text-blue-200">
               <p className="font-medium mb-1">what3words Address</p>
               <p>Enter a 3-word address like &ldquo;filled.count.soap&rdquo; to find the exact location.</p>
             </div>
@@ -322,8 +322,8 @@ export default function MapSearch({
           onClick={() => handleFilterChange('openNow', !filters.openNow)}
           className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
             filters.openNow 
-              ? 'bg-green-50 text-green-600 border border-green-200' 
-              : 'bg-gray-50 text-gray-600 hover:bg-gray-100'
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800' 
+              : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
           }`}
           aria-label="Show only open farms"
         >
@@ -334,7 +334,7 @@ export default function MapSearch({
         {/* Filter Toggle */}
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
+          className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
           aria-expanded={showFilters}
           aria-controls="filter-panel"
         >
@@ -348,7 +348,7 @@ export default function MapSearch({
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
             Clear all
           </button>

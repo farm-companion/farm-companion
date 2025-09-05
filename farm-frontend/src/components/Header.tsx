@@ -77,8 +77,14 @@ function Brand({ inverted }: { inverted: boolean }) {
         <Leaf className={cx('h-4 w-4', inverted ? 'text-black' : 'text-white')} />
       </div>
       <div className="leading-tight">
-        <span className={cx('block text-base font-semibold', inverted ? 'text-white' : 'text-gray-900')}>Farm Companion</span>
-        <span className={cx('hidden text-xs font-medium sm:block', inverted ? 'text-white/70' : 'text-gray-600')}>Real food, real places</span>
+        <span className={cx(
+          'block text-base font-semibold', 
+          inverted ? 'text-white' : 'text-gray-900 dark:text-white'
+        )}>Farm Companion</span>
+        <span className={cx(
+          'hidden text-xs font-medium sm:block', 
+          inverted ? 'text-white/70' : 'text-gray-600 dark:text-white/70'
+        )}>Real food, real places</span>
       </div>
     </Link>
   )
@@ -258,21 +264,26 @@ export default function Header() {
         <Brand inverted={inverted} />
 
         <nav aria-label="Primary" className="hidden items-center gap-6 lg:flex">
-          <Link className="text-sm text-gray-700 transition hover:text-black dark:text-gray-200 dark:hover:text-white" href="/map">
+          <Link className={cx('text-sm transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-white')} href="/map">
             Map
           </Link>
-          <Link className="text-sm text-gray-700 transition hover:text-black dark:text-gray-200 dark:hover:text-white" href="/seasonal">
+          <Link className={cx('text-sm transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-white')} href="/seasonal">
             Seasonal
           </Link>
-          <Link className="text-sm text-gray-700 transition hover:text-black dark:text-gray-200 dark:hover:text-white" href="/about">
+          <Link className={cx('text-sm transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-white')} href="/about">
             About
           </Link>
-          <Link className="text-sm text-gray-700 transition hover:text-black dark:text-gray-200 dark:hover:text-white" href="/contact">
+          <Link className={cx('text-sm transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-white')} href="/contact">
             Feedback
           </Link>
           <Link
             href="/add"
-            className="inline-flex h-10 items-center justify-center rounded-md border border-gray-900 bg-gray-900 px-4 text-sm font-medium text-white transition hover:bg-black dark:border-white dark:bg-white dark:text-black"
+            className={cx(
+              'inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium transition hover:opacity-90',
+              inverted
+                ? 'border-white bg-white text-black hover:bg-gray-100'
+                : 'border-gray-900 bg-gray-900 text-white hover:bg-black'
+            )}
           >
             Add a Farm Shop
           </Link>
@@ -286,8 +297,10 @@ export default function Header() {
             aria-expanded={open}
             aria-controls="mobile-menu"
             className={cx(
-              'inline-flex h-10 w-10 items-center justify-center rounded-md border text-gray-700 transition hover:bg-gray-50 active:scale-95 dark:text-gray-200',
-              inverted ? 'border-white/30' : 'border-gray-300'
+              'inline-flex h-10 w-10 items-center justify-center rounded-md border transition hover:bg-gray-50 active:scale-95',
+              inverted 
+                ? 'border-white/30 text-white hover:bg-white/10' 
+                : 'border-gray-300 text-gray-900 hover:bg-gray-100 dark:text-white dark:border-gray-600 dark:hover:bg-gray-800'
             )}
             aria-label="Open menu"
           >

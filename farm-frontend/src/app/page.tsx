@@ -57,7 +57,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-background-canvas">
       {/* Professional Hero Section with Image Overlay */}
-      <section data-header-invert className="relative h-screen min-h-[700px] max-h-[900px] overflow-hidden">
+      <section data-header-invert className="relative h-screen min-h-[800px] max-h-[1000px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
@@ -81,7 +81,7 @@ export default async function HomePage() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center pb-16">
+        <div className="relative h-full flex items-center justify-center pt-20 pb-20">
           <div className="text-center max-w-4xl mx-auto px-6">
             <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
             <h2 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
