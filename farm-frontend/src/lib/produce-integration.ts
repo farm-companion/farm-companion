@@ -48,7 +48,7 @@ export interface ProduceStats {
 }
 
 // API Configuration
-const PRODUCE_IMAGES_API_URL = 'https://farm-produce-images-e26nfxge7-abdur-rahman-morris-projects.vercel.app'
+const PRODUCE_IMAGES_API_URL = 'https://farm-produce-images-mm7s8jmyf-abdur-rahman-morris-projects.vercel.app'
 
 // Upload images to produce-images system
 export async function uploadProduceImages(upload: ProduceImageUpload): Promise<ProduceUploadResult> {
