@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { Leaf, Menu, X } from 'lucide-react'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -88,144 +89,144 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
   const panelRef = useRef<HTMLDivElement | null>(null)
   const lastActiveRef = useRef<HTMLElement | null>(null)
 
+  // Esc + focus trap
   useEffect(() => {
+    if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) {
-        onClose()
-      }
-      // Focus trap - keep focus within the modal
-      if (e.key === 'Tab' && open) {
-        const focusableElements = panelRef.current?.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-        )
-        if (focusableElements && focusableElements.length > 0) {
-          const firstElement = focusableElements[0] as HTMLElement
-          const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement
-          
-          if (e.shiftKey) {
-            if (document.activeElement === firstElement) {
-              lastElement.focus()
-              e.preventDefault()
-            }
-          } else {
-            if (document.activeElement === lastElement) {
-              firstElement.focus()
-              e.preventDefault()
-            }
-          }
-        }
+      if (e.key === 'Escape') onClose()
+      if (e.key !== 'Tab') return
+      const nodes = panelRef.current?.querySelectorAll<HTMLElement>(
+        'a[href],button:not([disabled]),textarea,input,select,[tabindex]:not([tabindex="-1"])'
+      )
+      if (!nodes || nodes.length === 0) return
+      const list = Array.from(nodes)
+      const first = list[0]
+      const last = list[list.length - 1]
+      const active = document.activeElement as HTMLElement | null
+      if (e.shiftKey) {
+        if (active === first || !panelRef.current?.contains(active)) { e.preventDefault(); last.focus() }
+      } else {
+        if (active === last || !panelRef.current?.contains(active)) { e.preventDefault(); first.focus() }
       }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [open, onClose])
 
+  // Return focus; inert page
   useEffect(() => {
+    const main = document.querySelector('main') as HTMLElement | null
     if (open) {
       lastActiveRef.current = document.activeElement as HTMLElement
-      // Focus the panel after a short delay to ensure it's rendered
-      setTimeout(() => {
-        panelRef.current?.focus()
-      }, 100)
+      panelRef.current?.focus()
+      if (main) main.setAttribute('inert', '')
     } else {
-      // Return focus to the previous element
-      setTimeout(() => {
-        lastActiveRef.current?.focus()
-      }, 100)
+      if (main) main.removeAttribute('inert')
+      lastActiveRef.current?.focus()
     }
   }, [open])
 
   if (!open) return null
 
-  return (
-    <div className="fixed inset-0 z-[60]">
+  return createPortal(
+    <div className="fixed inset-0 z-[100]">
+      {/* backdrop */}
       <button
         aria-hidden
         onClick={onClose}
-        className="absolute inset-0 bg-black/60 backdrop-blur-[1px] transition-opacity"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
       />
+      {/* sheet panel */}
       <div
+        id="mobile-menu"
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
-        className={cx(
-          'absolute inset-x-0 bottom-0 z-[61] h-[88vh] max-h-[720px] rounded-t-2xl border border-white/10 bg-white px-5 pb-8 pt-4 shadow-2xl outline-none transition-transform will-change-transform dark:bg-gray-900',
-          'translate-y-0 animate-in slide-in-from-bottom-6 duration-300 ease-out'
-        )}
+        className="absolute inset-x-0 bottom-0 h-[88vh] max-h-[720px] rounded-t-2xl border border-white/10
+                   bg-white shadow-2xl outline-none dark:bg-gray-900
+                   motion-safe:animate-[sheetIn_.28s_cubic-bezier(0.2,0.8,0.2,1)]"
       >
-        <div className="mx-auto max-w-screen-sm">
+        {/* FLEX COLUMN + SCROLL AREA */}
+        <div className="mx-auto flex h-full max-w-screen-sm flex-col px-5 pt-4 pb-8">
+          {/* header row */}
           <div className="mb-4 flex items-center justify-between">
-            <h2 id={labelledBy} className="text-base font-semibold text-gray-900 dark:text-white">
-              Menu
-            </h2>
+            <h2 id={labelledBy} className="text-base font-semibold text-gray-900 dark:text-white">Menu</h2>
             <button
               onClick={onClose}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-gray-700 transition hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200
+                         text-gray-700 hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:text-gray-200
+                         dark:hover:bg-gray-800"
               aria-label="Close menu"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <nav aria-label="Mobile navigation" className="space-y-2">
-            <Link
-              href="/map"
-              onClick={onClose}
-              className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            >
-              Farm Map
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Find farm shops near you</p>
-            </Link>
-            <Link
-              href="/seasonal"
-              onClick={onClose}
-              className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            >
-              What's in Season
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Fresh produce calendar</p>
-            </Link>
-            <Link
-              href="/about"
-              onClick={onClose}
-              className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            >
-              About
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Our story and mission</p>
-            </Link>
-            <Link
-              href="/contact"
-              onClick={onClose}
-              className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white"
-            >
-              Feedback
-              <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Share your thoughts</p>
-            </Link>
-          </nav>
+          {/* scrollable content */}
+          <div className="-mr-2 grow overflow-y-auto overscroll-contain pr-1">
+            <nav aria-label="Mobile navigation" className="space-y-2">
+              <Link href="/map" onClick={onClose}
+                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition
+                           hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px]
+                           dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                Farm Map
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Find farm shops near you</p>
+              </Link>
 
-          <div className="mt-6 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-900 dark:text-white">Theme</p>
-                <p className="text-xs text-gray-600 dark:text-gray-300">Light or dark mode</p>
+              <Link href="/seasonal" onClick={onClose}
+                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition
+                           hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px]
+                           dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                What's in Season
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Fresh produce calendar</p>
+              </Link>
+
+              <Link href="/about" onClick={onClose}
+                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition
+                           hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px]
+                           dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                About
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Our story and mission</p>
+              </Link>
+
+              <Link href="/contact" onClick={onClose}
+                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition
+                           hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px]
+                           dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                Feedback
+                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Share your thoughts</p>
+              </Link>
+
+              <div className="mt-6 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Theme</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-300">Light or dark mode</p>
+                  </div>
+                  <ThemeToggle />
+                </div>
               </div>
-              <ThemeToggle />
-            </div>
-          </div>
 
-          <div className="mt-6">
-            <Link
-              href="/add"
-              onClick={onClose}
-              className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-900 bg-gray-900 text-white transition hover:bg-black active:scale-[.99] dark:border-white dark:bg-white dark:text-black"
-            >
-              Add a Farm Shop
-            </Link>
+              <div className="mt-6">
+                <Link href="/add" onClick={onClose}
+                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-900
+                             bg-gray-900 text-white transition hover:bg-black active:scale-[.99]
+                             dark:border-white dark:bg-white dark:text-black">
+                  Add a Farm Shop
+                </Link>
+              </div>
+            </nav>
           </div>
         </div>
       </div>
-    </div>
+
+      <style jsx global>{`
+        @keyframes sheetIn { from { transform: translateY(24px); opacity: .98 } to { transform: translateY(0); opacity: 1 } }
+      `}</style>
+    </div>,
+    document.body
   )
 }
 
