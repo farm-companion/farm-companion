@@ -22,7 +22,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     
     // User pages - Medium priority
     { url: `${base}/add`,             changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${base}/claim`,           changeFrequency: 'monthly', priority: 0.6 },
     { url: `${base}/contact`,         changeFrequency: 'yearly', priority: 0.4 },
     
     // Info pages - Lower priority

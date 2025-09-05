@@ -9,6 +9,14 @@ import { dedupeFarms } from '@/lib/schemas'
 
 import BackToTopButton from '@/components/BackToTopButton'
 
+// Add noindex,follow meta tag to prevent indexing while allowing crawling
+export const metadata = {
+  robots: {
+    index: false,
+    follow: true,
+  },
+}
+
 // Clean farm card component with simple styling
 function FarmCard({ farm }: { farm: FarmShop }) {
   return (
