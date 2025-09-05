@@ -90,7 +90,31 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && open) onClose()
+      if (e.key === 'Escape' && open) {
+        onClose()
+      }
+      // Focus trap - keep focus within the modal
+      if (e.key === 'Tab' && open) {
+        const focusableElements = panelRef.current?.querySelectorAll(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        )
+        if (focusableElements && focusableElements.length > 0) {
+          const firstElement = focusableElements[0] as HTMLElement
+          const lastElement = focusableElements[focusableElements.length - 1] as HTMLElement
+          
+          if (e.shiftKey) {
+            if (document.activeElement === firstElement) {
+              lastElement.focus()
+              e.preventDefault()
+            }
+          } else {
+            if (document.activeElement === lastElement) {
+              firstElement.focus()
+              e.preventDefault()
+            }
+          }
+        }
+      }
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
@@ -99,9 +123,15 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
   useEffect(() => {
     if (open) {
       lastActiveRef.current = document.activeElement as HTMLElement
-      panelRef.current?.focus()
+      // Focus the panel after a short delay to ensure it's rendered
+      setTimeout(() => {
+        panelRef.current?.focus()
+      }, 100)
     } else {
-      lastActiveRef.current?.focus()
+      // Return focus to the previous element
+      setTimeout(() => {
+        lastActiveRef.current?.focus()
+      }, 100)
     }
   }, [open])
 
@@ -122,7 +152,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
         tabIndex={-1}
         className={cx(
           'absolute inset-x-0 bottom-0 z-[61] h-[88vh] max-h-[720px] rounded-t-2xl border border-white/10 bg-white px-5 pb-8 pt-4 shadow-2xl outline-none transition-transform will-change-transform dark:bg-gray-900',
-          'translate-y-0 motion-safe:animate-[sheetIn_.28s_cubic-bezier(0.2,0.8,0.2,1)]'
+          'translate-y-0 animate-in slide-in-from-bottom-6 duration-300 ease-out'
         )}
       >
         <div className="mx-auto max-w-screen-sm">
@@ -195,9 +225,6 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
           </div>
         </div>
       </div>
-      <style jsx global>{`
-        @keyframes sheetIn { from { transform: translateY(24px); opacity: .98 } to { transform: translateY(0); opacity: 1 } }
-      `}</style>
     </div>
   )
 }
