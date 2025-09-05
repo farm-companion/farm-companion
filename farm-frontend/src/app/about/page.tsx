@@ -53,7 +53,7 @@ export default function AboutPage() {
   return (
     <main className="bg-background-canvas">
       {/* Professional Hero Section with About Page Image */}
-      <section className="relative h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
+      <section data-header-invert className="relative h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
@@ -429,7 +429,7 @@ export default function AboutPage() {
           </Link>
         </div>
         <p className="text-sm text-text-muted">
-          Made with ❤️ for local food • Open source
+          Made with care for local food • Open source
         </p>
       </footer>
       </div>

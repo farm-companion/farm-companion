@@ -57,7 +57,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-background-canvas">
       {/* Professional Hero Section with Image Overlay */}
-      <section className="relative h-screen min-h-[600px] max-h-[800px] overflow-hidden">
+      <section data-header-invert className="relative h-screen min-h-[600px] max-h-[800px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
