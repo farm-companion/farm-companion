@@ -161,7 +161,7 @@ async function checkSitemapPresence(url: string) {
                 break
               }
             }
-          } catch (error) {
+          } catch {
             // Continue checking other child sitemaps
           }
         }

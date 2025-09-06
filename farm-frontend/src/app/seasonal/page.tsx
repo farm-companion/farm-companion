@@ -276,7 +276,7 @@ export default async function SeasonalPage() {
             </p>
             <Link
               href="/map"
-              className="group bg-white/95 backdrop-blur-sm text-black px-10 py-5 rounded-xl font-semibold hover:bg-white transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-white/25 hover:scale-105 border border-white/20"
+              className="group bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm text-black dark:text-white px-10 py-5 rounded-xl font-semibold hover:bg-white dark:hover:bg-gray-700 transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-white/25 dark:hover:shadow-gray-800/25 hover:scale-105 border border-white/20 dark:border-gray-600/20"
             >
               <MapPin className="w-6 h-6 group-hover:animate-gentle-bounce" />
               Find Farm Shops Near You

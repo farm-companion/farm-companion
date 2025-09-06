@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
     try {
       const content = await fs.readFile(farmFile, 'utf-8')
       farm = JSON.parse(content)
-    } catch (error) {
+    } catch {
       return NextResponse.json(
         { error: 'Farm submission not found' },
         { status: 404 }

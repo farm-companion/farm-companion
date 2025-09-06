@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import redis, { ensureConnection } from '@/lib/redis'
-import { headBlob, getBlobInfo } from '@/lib/blob'
+import { ensureConnection } from '@/lib/redis'
+import { getBlobInfo } from '@/lib/blob'
 import { sendPhotoSubmissionReceipt } from '@/lib/email'
 import { createRecord, ValidationError as DBValidationError, ConstraintViolationError } from '@/lib/database-constraints'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'

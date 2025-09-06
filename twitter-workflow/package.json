@@ -1,0 +1,44 @@
+{
+  "name": "twitter-workflow",
+  "version": "1.5.0",
+  "description": "Daily farm spotlight Twitter/X workflow for Farm Companion",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch src/index.js",
+    "start": "node src/index.js",
+    "test": "node --test tests/compose.test.js tests/idempotency.test.js",
+    "test:dry-run": "node src/scripts/dry-run.js",
+    "test:content": "node src/scripts/test-content-generation.js",
+    "test:apple-ogilvy": "node src/scripts/test-apple-ogilvy-content.js",
+    "test:ogilvy": "node src/scripts/test-ogilvy-prompts.js",
+    "test:deepseek": "node src/scripts/test-deepseek-ogilvy.js",
+    "test:images": "node src/scripts/test-image-generation.js",
+    "test:variety": "node src/scripts/test-image-variety.js",
+    "test:slack": "node src/scripts/test-slack-notifications.js",
+    "test:complete": "node src/scripts/test-complete-workflow.js",
+    "lint": "eslint src/**/*.js",
+    "build": "echo 'No build step required for Node.js'"
+  },
+  "dependencies": {
+    "twitter-api-v2": "^1.15.2",
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "date-fns": "^2.30.0",
+    "date-fns-tz": "^2.0.0",
+    "twitter-text": "^3.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "@eslint/js": "^9.0.0"
+  },
+  "keywords": [
+    "twitter",
+    "social-media",
+    "automation",
+    "farm-companion",
+    "cron"
+  ],
+  "author": "Farm Companion Team",
+  "license": "MIT"
+}

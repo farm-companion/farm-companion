@@ -135,7 +135,6 @@ function CountySection({ county, farms }: { county: string; farms: FarmShop[] })
 
 // Main claim page component
 function ClaimPageContent() {
-  const [farms, setFarms] = useState<FarmShop[]>([])
   const [filteredFarms, setFilteredFarms] = useState<FarmShop[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [stats, setStats] = useState({ farmCount: 0, countyCount: 92 }) // 39 England + 6 NI + 34 Scotland + 13 Wales = 92
@@ -171,7 +170,6 @@ function ClaimPageContent() {
         console.log('📊 Farm data processing:', stats)
         console.log('✅ Valid farms after validation and deduplication:', validFarms.length, 'out of', rawFarms.length)
         
-        setFarms(validFarms)
         setFilteredFarms(validFarms)
         setStats({ farmCount: validFarms.length, countyCount: 92 }) // Use fixed county count: 39 England + 6 NI + 34 Scotland + 13 Wales = 92
       } catch (error) {
@@ -224,7 +222,7 @@ function ClaimPageContent() {
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
-            src="/feedback.jpg"
+            src="/share.jpg"
             alt="Professional farm shop management interface showing business owner updating their listing with fresh produce and customer information"
             fill
             className="object-cover object-center"

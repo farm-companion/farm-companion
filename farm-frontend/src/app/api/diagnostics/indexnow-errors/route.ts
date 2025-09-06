@@ -82,7 +82,7 @@ async function checkPublicKeyFile() {
       const keyFileContent = await fs.readFile(keyFilePath, 'utf-8')
       result.details.fileContent = keyFileContent.trim()
       result.details.fileMatches = keyFileContent.trim() === bingIndexNowKey
-    } catch (error) {
+    } catch {
       result.details.error = 'Key file not found in public directory'
       result.status = 'fail'
       return result
@@ -195,7 +195,7 @@ async function checkUrlListValidation(submittedUrl?: string) {
         result.status = 'fail'
         result.details.error = `URL host '${url.host}' does not match expected host 'www.farmcompanion.co.uk'`
       }
-    } catch (error) {
+    } catch {
       result.status = 'fail'
       result.details.error = 'Invalid URL format'
     }

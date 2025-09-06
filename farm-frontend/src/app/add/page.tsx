@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react'
 import type { ChangeEvent } from 'react'
-import { Leaf, Clock, Phone, FileText, CheckCircle, AlertCircle, Loader2, Download, Eye, Camera, Sparkles } from 'lucide-react'
+import { Leaf, CheckCircle, AlertCircle, Loader2, Download, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import PhotoSubmissionForm from '@/components/PhotoSubmissionForm'
 import FarmImageUpload from '@/components/FarmImageUpload'
@@ -248,7 +248,7 @@ export default function AddFarmPage() {
           setSubmitMessage(result.error || 'Submission failed. Please try again.')
         }
       }
-    } catch (error) {
+    } catch {
       setSubmitStatus('error')
       setSubmitMessage('Network error. Please check your connection and try again.')
     } finally {

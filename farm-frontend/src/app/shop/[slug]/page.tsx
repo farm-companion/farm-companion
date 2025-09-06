@@ -7,22 +7,18 @@ import Image from 'next/image'
 import { 
   MapPin, 
   Phone, 
-  Mail, 
   Globe, 
   Clock, 
-  Star, 
   Navigation, 
   ExternalLink,
   ArrowLeft,
   ArrowRight,
   CheckCircle,
   Heart,
-  Share2,
   Map,
   Calendar,
   Camera,
-  Sparkles,
-  Leaf
+  Sparkles
 } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { ObfuscatedEmail, ObfuscatedPhone } from '@/components/ObfuscatedContact'

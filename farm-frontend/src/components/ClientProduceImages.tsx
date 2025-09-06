@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import ProduceImage, { ProduceGallery } from '@/components/ProduceImage'
 import ApiProduceImage, { ApiProduceGallery } from '@/components/ApiProduceImage'
 import { Button } from '@/components/ui/Button'
@@ -31,14 +31,7 @@ export default function ClientProduceImages({
   const [useApiImages, setUseApiImages] = useState(true)
   const [effectiveMonth, setEffectiveMonth] = useState(month)
 
-  // Check if we have images for the current month, if not, try other months
-  useEffect(() => {
-    if (fallbackToAnyMonth && month) {
-      checkAndSetEffectiveMonth()
-    }
-  }, [month, fallbackToAnyMonth])
-
-  const checkAndSetEffectiveMonth = async () => {
+  const checkAndSetEffectiveMonth = useCallback(async () => {
     try {
       // First try the current month
       const currentMonthImages = await getProduceImages(produceSlug, month)
@@ -66,7 +59,14 @@ export default function ClientProduceImages({
       console.error('Error checking for fallback images:', error)
       setEffectiveMonth(month)
     }
-  }
+  }, [produceSlug, month])
+
+  // Check if we have images for the current month, if not, try other months
+  useEffect(() => {
+    if (fallbackToAnyMonth && month) {
+      checkAndSetEffectiveMonth()
+    }
+  }, [month, fallbackToAnyMonth, checkAndSetEffectiveMonth])
 
   // Always show API images by default, only show toggle if explicitly requested
   const displayApiImages = showToggle ? useApiImages : true
@@ -149,43 +149,6 @@ export function ClientProduceImage({
 }: ClientProduceImageProps) {
   const [useApiImage, setUseApiImage] = useState(true)
   const [effectiveMonth, setEffectiveMonth] = useState(month)
-
-  // Check if we have images for the current month, if not, try other months
-  useEffect(() => {
-    if (fallbackToAnyMonth && month) {
-      checkAndSetEffectiveMonth()
-    }
-  }, [month, fallbackToAnyMonth])
-
-  const checkAndSetEffectiveMonth = async () => {
-    try {
-      // First try the current month
-      const currentMonthImages = await getProduceImages(produceSlug, month)
-      
-      if (currentMonthImages.length > 0) {
-        setEffectiveMonth(month)
-        return
-      }
-      
-      // If no images for current month, try other months (1-12)
-      for (let testMonth = 1; testMonth <= 12; testMonth++) {
-        if (testMonth === month) continue // Skip current month as we already checked it
-        
-        const testImages = await getProduceImages(produceSlug, testMonth)
-        if (testImages.length > 0) {
-          console.log(`Found ${testImages.length} images for ${produceSlug} in month ${testMonth}, using those instead of month ${month}`)
-          setEffectiveMonth(testMonth)
-          return
-        }
-      }
-      
-      // If no images found in any month, use the original month
-      setEffectiveMonth(month)
-    } catch (error) {
-      console.error('Error checking for fallback images:', error)
-      setEffectiveMonth(month)
-    }
-  }
 
   // Always show API image by default, only show toggle if explicitly requested
   const displayApiImage = showToggle ? useApiImage : true

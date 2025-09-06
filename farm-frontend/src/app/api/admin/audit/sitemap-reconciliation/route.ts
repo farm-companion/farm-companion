@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import { getCurrentUser } from '@/lib/auth'
@@ -13,7 +13,7 @@ import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-
  * 3. Identifies missing URLs and drift
  * 4. Submits missing URLs to IndexNow in batches
  */
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Require authentication
     const user = await getCurrentUser()
@@ -127,7 +127,7 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
           }
         }
       }
-    } catch (error) {
+    } catch {
       console.warn('Live farms directory not found, checking main farms directory...')
       
       // Fallback to main farms directory
@@ -197,7 +197,7 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
                 .replace(/^-+|-+$/g, '')
               counties.add(countySlug)
             }
-          } catch (error) {
+          } catch {
             // Continue processing other files
           }
         }
@@ -306,14 +306,12 @@ async function submitMissingUrlsToIndexNow(missingUrls: string[]): Promise<{
           const slug = url.split('/shop/')[1]
           return createFarmChangeEvent('content_update', slug)
         } else if (url.includes('/seasonal/')) {
-          const slug = url.split('/seasonal/')[1]
           return {
             type: 'content_update' as const,
             url,
             metadata: { timestamp: new Date().toISOString() }
           }
         } else if (url.includes('/counties/')) {
-          const slug = url.split('/counties/')[1]
           return {
             type: 'content_update' as const,
             url,

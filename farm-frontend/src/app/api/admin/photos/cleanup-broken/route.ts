@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import redis, { ensureConnection } from '@/lib/redis'
+import { NextResponse } from 'next/server'
+import { ensureConnection } from '@/lib/redis'
 import { head } from '@vercel/blob'
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     const client = await ensureConnection()
     
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         try {
           await head(pathname)
           console.log(`Photo ${photoId} exists: ${url}`)
-        } catch (error) {
+        } catch {
           console.log(`Photo ${photoId} is broken: ${url}`)
           brokenPhotos.push({
             id: photoId,

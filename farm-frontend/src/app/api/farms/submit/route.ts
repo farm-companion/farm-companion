@@ -1,32 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { kv } from '@vercel/kv'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 import { createRecord, ValidationError, ConstraintViolationError } from '@/lib/database-constraints'
-
-// Input validation schema
-const FarmInput = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(120, 'Name must be less than 120 characters'),
-  address: z.string().min(6, 'Address must be at least 6 characters').max(240, 'Address must be less than 240 characters'),
-  city: z.string().min(2, 'City must be at least 2 characters').max(80, 'City must be less than 80 characters'),
-  county: z.string().min(2, 'County must be at least 2 characters').max(80, 'County must be less than 80 characters'),
-  postcode: z.string().min(3, 'Postcode must be at least 3 characters').max(12, 'Postcode must be less than 12 characters'),
-  contactEmail: z.string().email('Invalid email format').optional().or(z.literal('')),
-  website: z.string().url('Invalid website URL').optional().or(z.literal('')),
-  phone: z.string().optional(),
-  lat: z.string().optional(),
-  lng: z.string().optional(),
-  offerings: z.string().optional(),
-  story: z.string().optional(),
-  hours: z.array(z.object({
-    day: z.string(),
-    open: z.string().optional(),
-    close: z.string().optional()
-  })).optional(),
-  _hp: z.string().max(0, 'Honeypot field must be empty').optional().or(z.literal('')), // honeypot
-  ttf: z.number().int().nonnegative('Time to fill must be a positive number').optional(), // time to fill
-})
+import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
 
 // Rate limiter setup
 const redis = Redis.fromEnv()
@@ -43,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   // Rate limiting
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '0.0.0.0'
-  const { success, limit, reset, remaining } = await limiter.limit(`add:${ip}`)
+  const { success, reset, remaining } = await limiter.limit(`add:${ip}`)
   
   if (!success) {
     return NextResponse.json(
@@ -66,19 +43,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) 
   }
 
-  // Validate input
-  const parsed = FarmInput.safeParse(data)
-  if (!parsed.success) {
+  // Validate input using comprehensive validation
+  let v
+  try {
+    v = await validateAndSanitize(ValidationSchemas.farmSubmission, data, {
+      sanitize: true,
+      strict: false
+    })
+  } catch (error) {
+    if (error instanceof InputValidationError) {
+      return NextResponse.json(
+        { 
+          error: 'Validation failed', 
+          message: error.message,
+          field: error.field
+        }, 
+        { status: 422 }
+      )
+    }
     return NextResponse.json(
-      { 
-        error: 'Validation failed', 
-        details: parsed.error.flatten() 
-      }, 
-      { status: 422 }
+      { error: 'Invalid input data' }, 
+      { status: 400 }
     )
   }
-
-  const v = parsed.data
 
   // Anti-spam checks
   if (v._hp) {

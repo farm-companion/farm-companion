@@ -212,7 +212,7 @@ async function detectChallenges(url: string) {
       result.status = 'pass'
     }
 
-  } catch (error) {
+  } catch {
     result.status = 'fail'
     result.details.recommendations.push('Check network connectivity and server status')
   }

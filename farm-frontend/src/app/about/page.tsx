@@ -212,8 +212,53 @@ export default function AboutPage() {
       </section>
 
       {/* Trust & verification - Clarity Pillar: Emotion */}
-      <section className="mb-16 bg-background-surface rounded-2xl p-8 border border-border-default">
-        <div className="text-center mb-8">
+      <section className="mb-16 bg-background-surface rounded-2xl p-8 border border-border-default relative overflow-hidden">
+        {/* Animated Leaf Background */}
+        <div className="absolute inset-0 pointer-events-none">
+          {/* Leaf 1 - Top right */}
+          <div className="absolute top-8 right-12 w-16 h-16 opacity-8 animate-leaf-float-1">
+            <Image
+              src="/android-chrome-512x512.png"
+              alt=""
+              width={64}
+              height={64}
+              className="w-full h-full object-contain filter brightness-0 saturate-100 opacity-20"
+              style={{
+                filter: 'brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%)'
+              }}
+            />
+          </div>
+          
+          {/* Leaf 2 - Bottom left */}
+          <div className="absolute bottom-8 left-8 w-12 h-12 opacity-6 animate-leaf-float-2">
+            <Image
+              src="/android-chrome-512x512.png"
+              alt=""
+              width={48}
+              height={48}
+              className="w-full h-full object-contain filter brightness-0 saturate-100 opacity-15"
+              style={{
+                filter: 'brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%)'
+              }}
+            />
+          </div>
+          
+          {/* Leaf 3 - Center right */}
+          <div className="absolute top-1/2 right-20 w-10 h-10 opacity-5 animate-leaf-float-3">
+            <Image
+              src="/android-chrome-512x512.png"
+              alt=""
+              width={40}
+              height={40}
+              className="w-full h-full object-contain filter brightness-0 saturate-100 opacity-12"
+              style={{
+                filter: 'brightness(0) saturate(100%) invert(27%) sepia(51%) saturate(2878%) hue-rotate(346deg) brightness(104%) contrast(97%)'
+              }}
+            />
+          </div>
+        </div>
+        
+        <div className="text-center mb-8 relative z-10">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-serum/10 rounded-full mb-4">
             <Shield className="w-8 h-8 text-serum" />
           </div>
@@ -222,7 +267,7 @@ export default function AboutPage() {
           </h2>
           <p className="text-lg text-text-body">Every shop shows a simple trust status:</p>
         </div>
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-3 gap-6 relative z-10">
           <div className="text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-green-600" />
@@ -245,7 +290,7 @@ export default function AboutPage() {
             <p className="text-text-body text-sm">We&apos;re checking; basic details are available meanwhile.</p>
           </div>
         </div>
-        <div className="text-center mt-8">
+        <div className="text-center mt-8 relative z-10">
           <p className="text-sm text-text-muted">
             See something wrong? Use the &ldquo;Suggest an update&rdquo; link on any shop page.
           </p>

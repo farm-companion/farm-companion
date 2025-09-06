@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { MapPin, Bell, Target, Compass, Navigation } from 'lucide-react'
+import { MapPin, Bell, Target } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 
 interface LiveLocationTrackerProps {
@@ -36,7 +36,7 @@ export default function LiveLocationTracker({
   const [isTracking, setIsTracking] = useState(false)
   const [locationHistory, setLocationHistory] = useState<LocationData[]>([])
   const [nearbyFarms, setNearbyFarms] = useState<NearbyFarm[]>([])
-  const [predictiveLocation, setPredictiveLocation] = useState<{ latitude: number; longitude: number } | null>(null)
+  const [, setPredictiveLocation] = useState<{ latitude: number; longitude: number } | null>(null)
   const [notifications, setNotifications] = useState<string[]>([])
   const [trackingStats, setTrackingStats] = useState({
     totalDistance: 0,
@@ -50,6 +50,43 @@ export default function LiveLocationTracker({
   const trackingStartTime = useRef<number | 0>(0)
   const lastLocation = useRef<LocationData | null>(null)
   const nearbyFarmsCache = useRef<Set<string>>(new Set())
+
+  const addNotification = useCallback((message: string) => {
+    setNotifications(prev => [...prev.slice(-4), message])
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n !== message))
+    }, 5000)
+  }, [])
+
+  const handleLocationUpdate = useCallback((position: GeolocationPosition) => {
+    const locationData: LocationData = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+      accuracy: position.coords.accuracy,
+      timestamp: Date.now(),
+      speed: position.coords.speed || undefined,
+      heading: position.coords.heading || undefined
+    }
+    setLocationHistory(prev => [...prev.slice(-50), locationData])
+    lastLocation.current = locationData
+    onLocationUpdate(locationData)
+    if (lastLocation.current) {
+      const distance = calculateDistance(
+        lastLocation.current.latitude,
+        lastLocation.current.longitude,
+        locationData.latitude,
+        locationData.longitude
+      )
+      setTrackingStats(prev => ({
+        ...prev,
+        totalDistance: prev.totalDistance + distance,
+        averageSpeed: prev.totalDistance > 0 ? (prev.totalDistance + distance) / ((Date.now() - trackingStartTime.current) / 1000 / 60) : 0,
+        trackingDuration: Date.now() - trackingStartTime.current
+      }))
+    }
+    checkNearbyFarms(locationData)
+    updatePredictiveLocation(locationData)
+  }, [onLocationUpdate])
 
   const startTracking = useCallback(async () => {
     if (!navigator.geolocation) {
@@ -91,7 +128,7 @@ export default function LiveLocationTracker({
       console.error('Failed to start tracking:', error)
       addNotification('❌ Failed to start location tracking')
     }
-  }, [onLocationUpdate])
+  }, [onLocationUpdate, addNotification, handleLocationUpdate])
 
   const stopTracking = useCallback(() => {
     if (locationWatchId.current) {
@@ -100,36 +137,8 @@ export default function LiveLocationTracker({
     }
     setIsTracking(false)
     addNotification('⏹️ Location tracking stopped')
-  }, [])
+  }, [addNotification])
 
-  const handleLocationUpdate = useCallback((position: GeolocationPosition) => {
-    const locationData: LocationData = {
-      latitude: position.coords.latitude,
-      longitude: position.coords.longitude,
-      accuracy: position.coords.accuracy,
-      timestamp: Date.now(),
-      speed: position.coords.speed || undefined,
-      heading: position.coords.heading || undefined
-    }
-    setLocationHistory(prev => [...prev.slice(-50), locationData])
-    lastLocation.current = locationData
-    onLocationUpdate(locationData)
-    if (lastLocation.current) {
-      const distance = calculateDistance(
-        lastLocation.current.latitude,
-        lastLocation.current.longitude,
-        locationData.latitude,
-        locationData.longitude
-      )
-      setTrackingStats(prev => ({
-        ...prev,
-        totalDistance: prev.totalDistance + distance,
-        trackingDuration: Date.now() - trackingStartTime.current
-      }))
-    }
-    checkNearbyFarms(locationData)
-    updatePredictiveLocation(locationData)
-  }, [onLocationUpdate, farms, onFarmNearby, locationHistory])
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 6371
@@ -172,7 +181,7 @@ export default function LiveLocationTracker({
     })
     nearby.sort((a, b) => a.distance - b.distance)
     setNearbyFarms(nearby.slice(0, 10))
-  }, [farms, onFarmNearby])
+  }, [farms, onFarmNearby, addNotification])
 
   const calculateETA = (distance: number, speed?: number): number => {
     if (!speed || speed === 0) return Math.round(distance * 20)
@@ -191,13 +200,6 @@ export default function LiveLocationTracker({
       })
     }
   }, [locationHistory])
-
-  const addNotification = useCallback((message: string) => {
-    setNotifications(prev => [...prev.slice(-4), message])
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n !== message))
-    }, 5000)
-  }, [])
 
   const getMovementDirection = (heading?: number): string => {
     if (!heading) return '📍'
@@ -306,7 +308,7 @@ export default function LiveLocationTracker({
                       <span>Nearby Farms ({nearbyFarms.length})</span>
                     </div>
                     <div className="farms-list">
-                      {nearbyFarms.slice(0, 3).map(({ farm, distance, eta, isNewlyDiscovered }) => (
+                      {nearbyFarms.slice(0, 3).map(({ farm, distance, isNewlyDiscovered }) => (
                         <div key={farm.id} className={`farm-item ${isNewlyDiscovered ? 'new' : ''}`}>
                           <div className="farm-info">
                             <div className="farm-name">{farm.name}</div>

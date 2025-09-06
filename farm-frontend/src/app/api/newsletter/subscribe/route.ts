@@ -3,44 +3,13 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
-import { z } from 'zod'
 import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
+import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Rate limiting store (in production, use Redis)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
-
-// Enhanced validation schema with anti-spam measures
-const subscribeSchema = z.object({
-  email: z.string().email('Invalid email address'),
-  name: z.string().min(1, 'Name is required').max(100, 'Name too long'),
-  recaptchaToken: z.string().optional(), // Optional for progressive enhancement
-  hp: z.string().optional(), // honeypot field
-  source: z.string().optional(),
-  consent: z.boolean().refine(val => val === true, 'Consent is required'),
-  t: z.number() // submission timestamp
-})
-
-// Rate limiting function
-function checkRateLimit(identifier: string, limit: number = 3, windowMs: number = 3600000): boolean {
-  const now = Date.now()
-  const record = rateLimitStore.get(identifier)
-  
-  if (!record || now > record.resetTime) {
-    rateLimitStore.set(identifier, { count: 1, resetTime: now + windowMs })
-    return true
-  }
-  
-  if (record.count >= limit) {
-    return false
-  }
-  
-  record.count++
-  return true
-}
 
 // reCAPTCHA verification
 async function verifyRecaptcha(token: string): Promise<boolean> {
@@ -74,7 +43,7 @@ async function sendWelcomeEmail(email: string, name: string) {
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Welcome to Farm Companion</title>
           <style>
-            body { margin: 0; padding: 0; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8f9fa; color: #1E1F23; }
+            body { margin: 0; padding: 0; font-family: 'Clash Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f8f9fa; color: #1E1F23; }
             .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
             .header { background: linear-gradient(135deg, #00C2B2 0%, #00A896 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0; }
             .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
@@ -184,16 +153,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
     
-    // Validate input
-    const validation = subscribeSchema.safeParse(body)
-    if (!validation.success) {
+    // Validate input using comprehensive validation
+    let subscriptionData
+    try {
+      subscriptionData = await validateAndSanitize(ValidationSchemas.newsletterSubscription, body, {
+        sanitize: true,
+        strict: false
+      })
+    } catch (error) {
+      if (error instanceof InputValidationError) {
+        return NextResponse.json(
+          { 
+            error: 'Validation failed', 
+            message: error.message,
+            field: error.field
+          }, 
+          { status: 422 }
+        )
+      }
       return NextResponse.json(
-        { error: 'Invalid input', details: validation.error.issues },
+        { error: 'Invalid input data' }, 
         { status: 400 }
       )
     }
     
-    const { email, name, recaptchaToken, source, hp, t } = validation.data
+    const { email, name, recaptchaToken, source, hp, t } = subscriptionData
 
     // Anti-spam checks
     if (hp) {

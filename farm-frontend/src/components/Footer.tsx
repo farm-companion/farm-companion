@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ChevronDown, ChevronUp, Heart } from 'lucide-react'
+import { ChevronDown, ChevronUp, Heart, Leaf } from 'lucide-react'
 
 interface FooterSection {
   title: string
@@ -64,7 +64,10 @@ export default function Footer() {
       <div className="mx-auto max-w-6xl px-4 py-12">
         {/* Mobile: Brand section (always visible) */}
         <div className="mb-8 space-y-4 md:hidden">
-          <h3 className="font-heading font-bold text-text-heading">Farm Companion</h3>
+          <h3 className="font-heading font-bold text-text-heading flex items-center gap-2">
+            <Leaf className="h-5 w-5 text-serum" />
+            Farm Companion
+          </h3>
           <p className="text-sm text-text-muted">
             The UK&apos;s premium guide to real food, real people, and real places.
           </p>
@@ -129,7 +132,10 @@ export default function Footer() {
         <div className="hidden grid-cols-1 gap-8 md:grid md:grid-cols-4">
           {/* Brand section */}
           <div className="space-y-4">
-            <h3 className="font-heading font-bold text-text-heading">Farm Companion</h3>
+            <h3 className="font-heading font-bold text-text-heading flex items-center gap-2">
+              <Leaf className="h-5 w-5 text-serum" />
+              Farm Companion
+            </h3>
             <p className="text-sm text-text-muted">
               The UK&apos;s premium guide to real food, real people, and real places.
             </p>

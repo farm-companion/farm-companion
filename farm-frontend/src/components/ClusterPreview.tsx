@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { MapPin, ZoomIn, List, Navigation, Share2 } from 'lucide-react'
+import { MapPin, ZoomIn, List, Navigation } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 
 interface ClusterPreviewProps {
@@ -126,7 +126,7 @@ export default function ClusterPreview({
       {/* Cluster Preview Sheet */}
       <div
         ref={containerRef}
-        className={`fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl shadow-2xl z-50 transform transition-transform duration-300 ease-out ${
+        className={`fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 rounded-t-3xl shadow-2xl z-50 transform transition-transform duration-300 ease-out ${
           isExpanded ? 'translate-y-0' : 'translate-y-full'
         }`}
         style={{
@@ -148,7 +148,7 @@ export default function ClusterPreview({
                   {cluster.count}
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
                     {cluster.count} Farms
                   </h3>
                   {distanceFromUser && (
@@ -189,7 +189,7 @@ export default function ClusterPreview({
                 onShowAllFarms(farms)
                 onClose()
               }}
-              className="flex flex-col items-center p-3 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+              className="flex flex-col items-center p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               <List className="w-5 h-5 mb-1" />
               <span className="text-xs">List View</span>
@@ -213,12 +213,12 @@ export default function ClusterPreview({
 
           {/* Sample Farms Preview */}
           <div className="mb-4">
-            <h4 className="font-medium text-gray-900 mb-3">Sample Farms in Cluster</h4>
+            <h4 className="font-medium text-gray-900 dark:text-white mb-3">Sample Farms in Cluster</h4>
             <div className="space-y-2 max-h-32 overflow-y-auto">
               {farms.slice(0, 5).map((farm, index) => (
                 <div key={farm.id || index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm text-gray-900 truncate">
+                    <div className="font-medium text-sm text-gray-900 dark:text-white truncate">
                       {farm.name}
                     </div>
                     <div className="text-xs text-gray-600 truncate">

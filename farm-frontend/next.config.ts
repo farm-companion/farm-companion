@@ -11,11 +11,13 @@ const headersCommon = [
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
-  { key: "X-XSS-Protection", value: "1; mode=block" },
   { key: "X-DNS-Prefetch-Control", value: "off" },
+  { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   { key: "Permissions-Policy", value: "geolocation=(), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
+  { key: "Origin-Agent-Cluster", value: "?1" },
   // CSP is now set in middleware (consent-aware)
 ]
 
@@ -52,7 +54,10 @@ const nextConfig: NextConfig = {
   // Environment variables
   env: { 
     NEXT_PUBLIC_ADD_FORM_ENABLED: process.env.ADD_FORM_ENABLED,
-    NEXT_PUBLIC_CONTACT_FORM_ENABLED: process.env.CONTACT_FORM_ENABLED
+    NEXT_PUBLIC_CONTACT_FORM_ENABLED: process.env.CONTACT_FORM_ENABLED,
+    NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
+    NEXT_PUBLIC_GA_MEASUREMENT_ID_DEV: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID_DEV,
+    NEXT_PUBLIC_GA_ENABLED: process.env.NEXT_PUBLIC_GA_ENABLED
   },
   // Performance optimizations
   experimental: {
@@ -118,9 +123,12 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [
           ...headersCommon,
-          // HSTS only in prod on HTTPS
+          // HSTS and Expect-CT only in prod on HTTPS
           ...(isProd
-            ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
+            ? [
+                { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+                { key: "Expect-CT", value: "max-age=86400, enforce" }
+              ]
             : []),
         ],
       },
@@ -129,9 +137,12 @@ const nextConfig: NextConfig = {
         source: "/map/:path*",
         headers: [
           ...headersWithGeolocation,
-          // HSTS only in prod on HTTPS
+          // HSTS and Expect-CT only in prod on HTTPS
           ...(isProd
-            ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
+            ? [
+                { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+                { key: "Expect-CT", value: "max-age=86400, enforce" }
+              ]
             : []),
         ],
       },
@@ -139,9 +150,12 @@ const nextConfig: NextConfig = {
         source: "/map",
         headers: [
           ...headersWithGeolocation,
-          // HSTS only in prod on HTTPS
+          // HSTS and Expect-CT only in prod on HTTPS
           ...(isProd
-            ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]
+            ? [
+                { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+                { key: "Expect-CT", value: "max-age=86400, enforce" }
+              ]
             : []),
         ],
       },
@@ -160,6 +174,25 @@ const nextConfig: NextConfig = {
         headers: [
           { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
           { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // Clear-Site-Data headers for logout and sensitive endpoints
+      {
+        source: '/api/admin/logout',
+        headers: [
+          { key: 'Clear-Site-Data', value: '"cache", "cookies", "storage", "executionContexts"' },
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+      // Additional security headers for admin endpoints
+      {
+        source: '/api/admin/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
         ],
       },
     ]

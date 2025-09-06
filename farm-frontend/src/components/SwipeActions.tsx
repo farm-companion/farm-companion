@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Trash2, Star, Share2, Phone, MapPin } from 'lucide-react'
+import { Star, Share2, Phone, MapPin } from 'lucide-react'
 
 interface SwipeAction {
   id: string
@@ -27,7 +27,7 @@ export default function SwipeActions({
   const [isDragging, setIsDragging] = useState(false)
   const [dragDistance, setDragDistance] = useState(0)
   const [startX, setStartX] = useState(0)
-  const [isRevealed, setIsRevealed] = useState(false)
+  const [, setIsRevealed] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
 
@@ -103,7 +103,7 @@ export default function SwipeActions({
     >
       {/* Actions background */}
       <div className="absolute top-0 right-0 bottom-0 flex">
-        {actions.map((action, index) => (
+        {actions.map((action) => (
           <button
             key={action.id}
             onClick={() => handleActionClick(action)}

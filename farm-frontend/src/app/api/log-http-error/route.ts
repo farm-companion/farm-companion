@@ -3,7 +3,7 @@ import { kv } from '@vercel/kv'
 
 export async function POST(request: NextRequest) {
   try {
-    const { statusCode, url, method, timestamp } = await request.json()
+    const { statusCode, url, method } = await request.json()
     
     // Basic validation
     if (!statusCode || !url) {

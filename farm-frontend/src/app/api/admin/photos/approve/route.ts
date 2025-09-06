@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import redis, { ensureConnection } from '@/lib/redis'
+import { ensureConnection } from '@/lib/redis'
 // import { sendPhotoApprovedEmail } from '@/lib/email'
 import { revalidatePath } from 'next/cache'
 import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-tracker'

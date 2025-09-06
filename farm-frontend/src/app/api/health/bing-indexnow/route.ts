@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { notifyBingOfSitemap } from '@/lib/bing-notifications'
 
 /**
@@ -12,7 +12,7 @@ import { notifyBingOfSitemap } from '@/lib/bing-notifications'
  * 
  * Used by monitoring systems to ensure the Bing indexing system is working properly.
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   const startTime = Date.now()
   const healthChecks = {
     timestamp: new Date().toISOString(),
@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
           if (url.includes('core-pages')) chunksCheck.details.corePages = response.ok
           if (url.includes('farms-1')) chunksCheck.details.farmsChunk = response.ok
           if (url.includes('produce-pages')) chunksCheck.details.producePages = response.ok
-        } catch (error) {
+        } catch {
           // Individual chunk failures are not critical
         }
       }
@@ -200,6 +200,6 @@ export async function GET(request: NextRequest) {
 }
 
 // Also support POST for flexibility
-export async function POST(request: NextRequest) {
-  return GET(request)
+export async function POST() {
+  return GET()
 }

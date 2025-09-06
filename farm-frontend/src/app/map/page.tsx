@@ -26,17 +26,17 @@ function useDebounced<T>(value: T, delay = 150) {
 const MapShellWithNoSSR = dynamic(() => import('@/components/MapShell'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="text-center px-6">
         <div className="relative mb-4">
-          <div className="w-12 h-12 border-3 border-gray-200 rounded-full mx-auto"></div>
+          <div className="w-12 h-12 border-3 border-gray-200 dark:border-gray-600 rounded-full mx-auto"></div>
           <div className="absolute inset-0 w-12 h-12 border-3 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
-        <h3 className="text-base font-semibold text-gray-800 mb-1">Loading Map</h3>
-        <p className="text-sm text-gray-600">Preparing your farm discovery experience...</p>
+        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Loading Map</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400">Preparing your farm discovery experience...</p>
         
         {/* Map skeleton */}
-        <div className="mt-6 w-32 h-24 bg-gray-200 rounded-lg mx-auto relative overflow-hidden">
+        <div className="mt-6 w-32 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
         </div>
       </div>
@@ -315,8 +315,9 @@ export default function MapPage() {
   // Cleanup location tracking on unmount
   useEffect(() => {
     return () => {
-      if (locationWatchIdRef.current) {
-        navigator.geolocation.clearWatch(locationWatchIdRef.current)
+      const watchId = locationWatchIdRef.current
+      if (watchId) {
+        navigator.geolocation.clearWatch(watchId)
       }
     }
   }, [])
@@ -341,8 +342,8 @@ export default function MapPage() {
               </svg>
             </div>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 mb-3">Oops! Something went wrong</h1>
-          <p className="text-gray-600 mb-6 text-sm leading-relaxed">{error}</p>
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Oops! Something went wrong</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">{error}</p>
           
           <div className="space-y-3">
             <button
@@ -353,7 +354,7 @@ export default function MapPage() {
             </button>
             <button
               onClick={() => setError(null)}
-              className="w-full px-6 py-2.5 text-gray-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+              className="w-full px-6 py-2.5 text-gray-600 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               Go Back
             </button>
@@ -364,7 +365,7 @@ export default function MapPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Mobile: Header removed for maximum map space */}
 
       {/* Main Content */}
@@ -407,7 +408,7 @@ export default function MapPage() {
                   placeholder="Search farms..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-2 py-1.5 bg-white/85 backdrop-blur-sm border border-gray-200/40 rounded-lg text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-serum focus:border-transparent transition-all duration-200"
+                  className="w-full pl-8 pr-2 py-1.5 bg-white/85 dark:bg-gray-800/85 backdrop-blur-sm border border-gray-200/40 dark:border-gray-600/40 rounded-lg text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-serum focus:border-transparent transition-all duration-200"
                   aria-label="Search farms"
                 />
                 
@@ -430,13 +431,13 @@ export default function MapPage() {
                   </button>
                   <button 
                     onClick={() => setSearchQuery('eggs')}
-                    className="px-1.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 hover:bg-gray-200 transition-colors"
+                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Eggs
                   </button>
                   <button 
                     onClick={() => setSearchQuery('vegetables')}
-                    className="px-1.5 py-0.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 hover:bg-gray-200 transition-colors"
+                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Vegetables
                   </button>
@@ -476,12 +477,12 @@ export default function MapPage() {
               nonBlocking
             >
               {/* Enhanced Bottom Sheet Header - Mobile-First Design */}
-              <div className="px-4 py-4 border-b border-gray-100 bg-white/95 backdrop-blur-sm">
+              <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-serum rounded-full animate-pulse"></div>
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
                         {filteredFarms.length} farms nearby
                       </span>
                     </div>
@@ -505,7 +506,7 @@ export default function MapPage() {
                   {/* Quick Filter Toggle - Mobile-First */}
                   <button 
                     onClick={() => {/* TODO: Implement quick filters */}}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-lg border border-gray-200 transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors"
                   >
                     <span className="w-4 h-4 text-gray-600">⚡</span>
                     <span className="text-xs font-medium text-gray-700">Quick</span>
@@ -528,7 +529,7 @@ export default function MapPage() {
           </div>
 
           {/* Desktop: Sidebar with Farm List */}
-          <div className="hidden md:block absolute right-0 top-0 bottom-0 w-96 bg-white shadow-lg border-l border-gray-200">
+          <div className="hidden md:block absolute right-0 top-0 bottom-0 w-96 bg-white dark:bg-gray-900 shadow-lg border-l border-gray-200 dark:border-gray-700">
             <FarmList
               farms={filteredFarms}
               selectedFarmId={selectedFarmId}
@@ -544,16 +545,16 @@ export default function MapPage() {
       {/* Enhanced Loading Overlay - Mobile-First */}
       {isLoading && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-8 text-center shadow-2xl mx-4 max-w-sm w-full">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-2xl mx-4 max-w-sm w-full">
             <div className="relative mb-6">
-              <div className="w-16 h-16 border-4 border-gray-100 rounded-full mx-auto"></div>
+              <div className="w-16 h-16 border-4 border-gray-100 dark:border-gray-600 rounded-full mx-auto"></div>
               <div className="absolute inset-0 w-16 h-16 border-4 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading Farms</h3>
-            <p className="text-gray-600 text-sm">Finding local farm shops near you...</p>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Loading Farms</h3>
+            <p className="text-gray-600 dark:text-gray-300 text-sm">Finding local farm shops near you...</p>
             
             {/* Progress indicator */}
-            <div className="mt-6 w-full bg-gray-100 rounded-full h-2">
+            <div className="mt-6 w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
               <div className="bg-serum h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
             </div>
           </div>

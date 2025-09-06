@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, MapPin, Filter, X, Navigation, Loader2, Globe, Clock } from 'lucide-react'
-import type { FarmShop } from '@/types/farm'
+import { Search, Filter, X, Navigation, Loader2, Globe, Clock } from 'lucide-react'
 
 interface FilterState {
   county?: string

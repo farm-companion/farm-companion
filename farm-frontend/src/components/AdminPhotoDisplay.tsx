@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Eye, Download, ExternalLink } from 'lucide-react'
 
 interface AdminPhotoDisplayProps {
@@ -68,10 +69,11 @@ export default function AdminPhotoDisplay({
       )}
 
       {/* Main Image */}
-      <img 
+      <Image 
         className="w-full h-full object-cover rounded-lg transition-transform duration-300 group-hover:scale-105" 
         src={url} 
         alt={alt || caption || 'Farm photo'}
+        fill
         onError={(e) => {
           console.error('AdminPhotoDisplay: Image failed to load:', url, e)
           setImageError(true)

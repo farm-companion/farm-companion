@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import redis from '@/lib/redis'
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     console.log('Testing Redis connection...')
     

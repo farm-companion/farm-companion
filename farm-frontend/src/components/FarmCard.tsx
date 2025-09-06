@@ -1,6 +1,7 @@
 'use client'
 
 import React from 'react'
+import Image from 'next/image'
 import { MapPin, Navigation, CheckCircle, Clock, Camera } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 
@@ -26,11 +27,12 @@ export function FarmCard({ farm, onSelect, onDirections, selected = false }: Far
         {/* Thumbnail */}
         <div className="h-14 w-14 rounded-xl bg-background-canvas overflow-hidden flex-shrink-0">
           {hasPhotos ? (
-            <img 
+            <Image 
               src={farm.images![0]} 
               alt={`${farm.name} photo`} 
-              className="h-full w-full object-cover"
-              loading="lazy"
+              width={56}
+              height={56}
+              className="object-cover"
             />
           ) : (
             <div className="h-full w-full flex items-center justify-center bg-background-canvas/50">

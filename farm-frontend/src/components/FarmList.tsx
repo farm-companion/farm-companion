@@ -26,7 +26,6 @@ export default function FarmList({
   selectedFarmId,
   onFarmSelect,
   className = '',
-  userLocation,
   formatDistance
 }: FarmListProps) {
   const [expandedFarmId, setExpandedFarmId] = useState<string | null>(null)
@@ -36,7 +35,7 @@ export default function FarmList({
     setExpandedFarmId(expandedFarmId === farmId ? null : farmId)
   }, [onFarmSelect, expandedFarmId])
 
-  const FarmCard = useCallback(({ farm, index }: { farm: FarmShop; index: number }) => {
+  const FarmCard = useCallback(({ farm }: { farm: FarmShop; index: number }) => {
     const isSelected = selectedFarmId === farm.id
     const isExpanded = expandedFarmId === farm.id
     const hasContact = farm.contact?.phone || farm.contact?.website
@@ -63,7 +62,7 @@ export default function FarmList({
         {/* Farm Header */}
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 truncate">{farm.name}</h3>
+            <h3 className="font-semibold text-gray-900 dark:text-white truncate">{farm.name}</h3>
             <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
               <MapPin className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">
@@ -201,7 +200,7 @@ export default function FarmList({
   const EmptyState = useCallback(() => (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <MapPin className="w-12 h-12 text-gray-300 mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 mb-2">No farms found</h3>
+      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No farms found</h3>
       <p className="text-gray-600 max-w-sm">
         Try adjusting your search or filters to find farm shops in your area.
       </p>

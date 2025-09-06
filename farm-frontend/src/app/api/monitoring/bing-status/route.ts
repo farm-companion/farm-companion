@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
@@ -11,7 +11,7 @@ import path from 'node:path'
  * - System health metrics
  * - Configuration status
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     const status = {
       timestamp: new Date().toISOString(),
@@ -93,7 +93,7 @@ export async function GET(request: NextRequest) {
           url: chunkUrl,
           status: response.ok ? 'accessible' : `error-${response.status}`,
         })
-      } catch (error) {
+      } catch {
         status.sitemap.chunks.push({
           name: chunkName,
           url: `https://www.farmcompanion.co.uk/sitemaps/${chunkName}`,
