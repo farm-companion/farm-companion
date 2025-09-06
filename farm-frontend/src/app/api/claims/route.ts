@@ -1,32 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
-import { z } from 'zod'
 import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
+import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
 
-// Enhanced validation schema with anti-spam measures
-const claimSchema = z.object({
-  shopId: z.string().min(1, 'Shop ID is required'),
-  shopName: z.string().min(2, 'Shop name must be at least 2 characters').max(200, 'Shop name too long'),
-  shopSlug: z.string().min(1, 'Shop slug is required'),
-  shopUrl: z.string().url('Invalid shop URL'),
-  shopAddress: z.string().min(5, 'Shop address must be at least 5 characters').max(500, 'Shop address too long'),
-  claimantName: z.string().min(2, 'Name must be at least 2 characters').max(100, 'Name too long'),
-  claimantRole: z.string().min(2, 'Role must be at least 2 characters').max(100, 'Role too long'),
-  claimantEmail: z.string().email('Invalid email address'),
-  claimantPhone: z.string().min(10, 'Phone must be at least 10 characters').max(20, 'Phone too long'),
-  claimType: z.enum(['ownership', 'management', 'correction', 'removal']),
-  corrections: z.string().max(2000, 'Corrections too long'),
-  additionalInfo: z.string().max(2000, 'Additional info too long'),
-  verificationMethod: z.enum(['email', 'phone', 'document']),
-  verificationDetails: z.string().max(1000, 'Verification details too long'),
-  consent: z.boolean().refine(val => val === true, 'Consent is required'),
-  hp: z.string().optional(), // honeypot field
-  t: z.number() // submission timestamp
-})
-
-type ClaimData = z.infer<typeof claimSchema>
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,16 +26,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
 
-    // Validate input
-    const validation = claimSchema.safeParse(body)
-    if (!validation.success) {
+    // Validate input using comprehensive validation
+    let claimData
+    try {
+      claimData = await validateAndSanitize(ValidationSchemas.claimSubmission, body, {
+        sanitize: true,
+        strict: false
+      })
+    } catch (error) {
+      if (error instanceof InputValidationError) {
+        return NextResponse.json(
+          { 
+            error: 'Validation failed', 
+            message: error.message,
+            field: error.field
+          }, 
+          { status: 422 }
+        )
+      }
       return NextResponse.json(
-        { error: 'Validation failed', details: validation.error.issues },
+        { error: 'Invalid input data' }, 
         { status: 400 }
       )
     }
-
-    const claimData = validation.data
 
     // Anti-spam checks
     if (claimData.hp) {

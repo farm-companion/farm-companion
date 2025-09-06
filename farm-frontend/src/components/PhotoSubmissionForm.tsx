@@ -39,7 +39,7 @@ export default function PhotoSubmissionForm({
   const [submitSuccess, setSubmitSuccess] = useState(false)
   const [showReplaceModal, setShowReplaceModal] = useState(false)
   const [existingPhotos, setExistingPhotos] = useState<ExistingPhoto[]>([])
-  const [selectedPhotoId, setSelectedPhotoId] = useState<string | null>(null)
+  const [, setSelectedPhotoId] = useState<string | null>(null)
   
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -348,13 +348,13 @@ export default function PhotoSubmissionForm({
               
               {uploadState.uploaded && (
                 <div className="absolute top-4 right-4">
-                  <CheckCircle className="w-6 h-6 text-green-500 bg-white rounded-full" />
+                  <CheckCircle className="w-6 h-6 text-green-500 bg-white dark:bg-gray-800 rounded-full" />
                 </div>
               )}
               
               {uploadState.error && (
                 <div className="absolute top-4 right-4">
-                  <AlertCircle className="w-6 h-6 text-red-500 bg-white rounded-full" />
+                  <AlertCircle className="w-6 h-6 text-red-500 bg-white dark:bg-gray-800 rounded-full" />
                 </div>
               )}
             </div>

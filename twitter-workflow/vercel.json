@@ -1,0 +1,28 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "src/api/**/*.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/cron/daily-farm-spotlight",
+      "dest": "/src/api/cron/daily-farm-spotlight/route.js"
+    },
+    {
+      "src": "/api/health",
+      "dest": "/src/api/health/route.js"
+    }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/daily-farm-spotlight",
+      "schedule": "5 8 * * *"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}

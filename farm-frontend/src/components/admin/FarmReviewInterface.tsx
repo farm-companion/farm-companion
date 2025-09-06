@@ -6,11 +6,9 @@ import {
   XCircle, 
   Clock, 
   Eye, 
-  MapPin, 
   Phone, 
   Mail, 
   Globe, 
-  FileText, 
   Image as ImageIcon,
   Filter,
   Search,
@@ -171,7 +169,7 @@ export default function FarmReviewInterface() {
       case 'changes_requested':
         return `${baseClasses} bg-orange-100 text-orange-800`
       default:
-        return `${baseClasses} bg-gray-100 text-gray-800`
+        return `${baseClasses} bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200`
     }
   }
 
@@ -247,7 +245,7 @@ export default function FarmReviewInterface() {
                 placeholder="Search farms by name or county..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-serum focus:border-serum"
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-serum focus:border-serum bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             </div>
           </div>
@@ -452,7 +450,7 @@ export default function FarmReviewInterface() {
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {selectedSubmission.images.map((image) => (
-                      <div key={image.id} className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
+                      <div key={image.id} className="aspect-square bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
                         {image.url ? (
                           <img 
                             src={image.url} 

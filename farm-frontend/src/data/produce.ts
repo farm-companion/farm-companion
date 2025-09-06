@@ -22,12 +22,7 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'sweetcorn',
     name: 'Sweetcorn',
-    images: [
-      { src: '/images/produce/sweetcorn1.jpg', alt: 'Fresh sweetcorn on the cob with green husks, ready for cooking' },
-      { src: '/images/produce/sweetcorn2.jpg', alt: 'Close-up of golden sweetcorn kernels, showing their juicy texture' },
-      { src: '/images/produce/sweetcorn3.jpg', alt: 'Multiple sweetcorn cobs arranged in a rustic basket, freshly harvested' },
-      { src: '/images/produce/sweetcorn4.jpg', alt: 'Sweetcorn field at sunset, with tall stalks and golden light' },
-    ],
+    images: [],
     monthsInSeason: [7, 8, 9],            // Jul–Sep
     peakMonths: [8],
     nutritionPer100g: { kcal: 86, protein: 3.4, carbs: 19, sugars: 6.3, fiber: 2.7, fat: 1.2 },
@@ -71,12 +66,7 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'tomato',
     name: 'Tomatoes',
-    images: [
-      { src: '/images/produce/tomato1.jpg', alt: 'Hands holding fresh heirloom tomatoes in various colors' },
-      { src: '/images/produce/tomato2.jpg', alt: 'Fresh cherry tomatoes with water droplets in rustic wooden crate' },
-      { src: '/images/produce/tomato3.jpg', alt: 'Tomato vines with ripe red and green tomatoes growing' },
-      { src: '/images/produce/tomato4.jpg', alt: 'Large pile of fresh red tomatoes with water droplets' },
-    ],
+    images: [],
     monthsInSeason: [6, 7, 8, 9, 10],    // Jun–Oct
     peakMonths: [7, 8, 9],
     nutritionPer100g: { kcal: 18, protein: 0.9, carbs: 3.9, sugars: 2.6, fiber: 1.2, fat: 0.2 },
@@ -169,12 +159,7 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'blackberries',
     name: 'Blackberries',
-    images: [
-      { src: '/images/produce/Blackberries1.jpg', alt: 'Close-up of fresh blackberries piled in a rustic wooden bowl with green leaves' },
-      { src: '/images/produce/Blackberries2.jpg', alt: 'Dense pile of ripe blackberries in a dark bowl on wooden cutting board' },
-      { src: '/images/produce/Blackberries3.jpg', alt: 'Fresh blackberries overflowing from a rustic wooden crate' },
-      { src: '/images/produce/Blackberries4.jpg', alt: 'Fresh blackberries with lemon slice on rustic surface' },
-    ],
+    images: [],
     monthsInSeason: [7, 8, 9],            // Jul–Sep
     peakMonths: [8],
     nutritionPer100g: { kcal: 43, protein: 1.4, carbs: 9.6, sugars: 4.9, fiber: 5.3, fat: 0.5 },
@@ -218,12 +203,7 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'runner-beans',
     name: 'Runner Beans',
-    images: [
-      { src: '/images/produce/runner-beans1.jpg', alt: 'Fresh green runner beans piled in a rustic wooden bowl' },
-      { src: '/images/produce/runner-beans2.jpg', alt: 'Single runner bean hanging from vine in golden sunlight' },
-      { src: '/images/produce/runner-beans3.jpg', alt: 'Freshly chopped runner beans showing bright green segments' },
-      { src: '/images/produce/runner-beans4.jpg', alt: 'Close-up of fresh runner beans with natural texture and detail' },
-    ],
+    images: [],
     monthsInSeason: [7, 8, 9, 10],       // Jul–Oct
     peakMonths: [8, 9],
     nutritionPer100g: { kcal: 31, protein: 1.8, carbs: 7.0, sugars: 1.4, fiber: 3.4, fat: 0.2 },
@@ -267,12 +247,7 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'plums',
     name: 'Plums',
-    images: [
-      { src: '/images/produce/Plums1.jpg', alt: 'Hand harvesting ripe purple plums from tree branch' },
-      { src: '/images/produce/Plums2.jpg', alt: 'Homemade plum jam jar with fresh plums on rustic wooden surface' },
-      { src: '/images/produce/Plums3.jpg', alt: 'Fresh plums cut open showing bright red flesh on wooden surface' },
-      { src: '/images/produce/Plums4.jpg', alt: 'Fresh plums with water droplets on rustic wooden surface' },
-    ],
+    images: [],
     monthsInSeason: [8, 9, 10],           // Aug–Oct
     peakMonths: [9],
     nutritionPer100g: { kcal: 46, protein: 0.7, carbs: 11.4, sugars: 9.9, fiber: 1.4, fat: 0.3 },

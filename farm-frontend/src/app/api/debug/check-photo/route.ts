@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
       exists,
       extensionTests: results,
       suggestions: exists ? [] : Object.entries(results)
-        .filter(([_, exists]) => exists)
+        .filter(([, exists]) => exists)
         .map(([ext]) => `${blobUrl}${objectKey.replace('/main', `/main.${ext}`)}`)
     })
 

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { ChevronUp, ChevronDown } from 'lucide-react'
 
 interface BottomSheetProps {
   children: React.ReactNode
@@ -111,7 +110,7 @@ export default function BottomSheet({
         dragElement.removeEventListener('touchend', handleTouchEnd)
       }
     }
-  }, [handleStart, handleMove, handleEnd])
+  }, [handleStart, handleMove, handleEnd, isDragging])
 
   // Mouse events
   useEffect(() => {

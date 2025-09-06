@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
-import redis, { ensureConnection } from '@/lib/redis'
+import { NextResponse } from 'next/server'
+import { ensureConnection } from '@/lib/redis'
 import { head } from '@vercel/blob'
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     const client = await ensureConnection()
     
@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
     const allApprovedIds = []
     
     for (const farmKey of farmKeys) {
-      const farmSlug = farmKey.replace('farm:', '').replace(':photos:approved', '')
       const approvedIds = await client.sMembers(farmKey)
       allApprovedIds.push(...approvedIds)
     }
@@ -38,7 +37,7 @@ export async function POST(req: NextRequest) {
         try {
           await head(pathname)
           console.log(`✅ Photo ${photoId} exists in blob storage`)
-        } catch (error) {
+        } catch {
           console.log(`❌ Photo ${photoId} was deleted from blob storage: ${url}`)
           deletedPhotos.push({
             id: photoId,

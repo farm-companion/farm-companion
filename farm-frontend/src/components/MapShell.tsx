@@ -42,26 +42,26 @@ const CLUSTER_SVGS = {
   small: `
     <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
       <circle cx="20" cy="20" r="18" fill="#00C2B2" stroke="white" stroke-width="2"/>
-      <text x="20" y="25" text-anchor="middle" fill="white" font-family="Inter" font-size="14" font-weight="600">{COUNT}</text>
+      <text x="20" y="25" text-anchor="middle" fill="white" font-family="Clash Display" font-size="14" font-weight="600">{COUNT}</text>
     </svg>`,
   medium: `
     <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
       <circle cx="24" cy="24" r="22" fill="#00C2B2" stroke="white" stroke-width="2"/>
-      <text x="24" y="30" text-anchor="middle" fill="white" font-family="Inter" font-size="16" font-weight="600">{COUNT}</text>
+      <text x="24" y="30" text-anchor="middle" fill="white" font-family="Clash Display" font-size="16" font-weight="600">{COUNT}</text>
     </svg>`,
   large: `
     <svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
       <circle cx="28" cy="28" r="26" fill="#00C2B2" stroke="white" stroke-width="2"/>
-      <text x="28" y="35" text-anchor="middle" fill="white" font-family="Inter" font-size="18" font-weight="600">{COUNT}</text>
+      <text x="28" y="35" text-anchor="middle" fill="white" font-family="Clash Display" font-size="18" font-weight="600">{COUNT}</text>
     </svg>`
 }
 
-// UK bounds for fallback
+// UK bounds for fallback (including Ireland)
 const UK_BOUNDS = {
-  north: 60.9,
-  south: 49.9,
-  east: 1.8,
-  west: -8.6
+  north: 61.0,  // Slightly more north to include northern Scotland
+  south: 49.8,  // Slightly more south to include southern England
+  east: 2.0,    // Slightly more east to include eastern England
+  west: -10.5   // More west to include all of Ireland
 }
 
 const UK_CENTER = {
@@ -77,7 +77,7 @@ export default function MapShell({
   onBoundsChange,
   onZoomChange,
   center = UK_CENTER,
-  zoom = 6, // Optimal zoom for UK overview and cluster visibility
+  zoom = 5, // Optimal zoom for UK overview and cluster visibility
   className = 'w-full h-full',
   userLocation,
   bottomSheetHeight = 200,
@@ -422,8 +422,8 @@ export default function MapShell({
     if (markers.length > 0 && !selectedFarmId && !hasFitted.current) {
       // Step 1: Show UK overview with optimal zoom for cluster visibility
       const ukBounds = new google.maps.LatLngBounds(
-        { lat: 49.9, lng: -8.6 }, // southwest
-        { lat: 60.9, lng: 1.8 }   // northeast
+        { lat: UK_BOUNDS.south, lng: UK_BOUNDS.west }, // southwest
+        { lat: UK_BOUNDS.north, lng: UK_BOUNDS.east }   // northeast
       )
       
       programmaticMove.current = true
@@ -438,8 +438,8 @@ export default function MapShell({
       
       // Set optimal zoom level for cluster visibility (not too close, not too far)
       setTimeout(() => {
-        const currentZoom = map.getZoom() || 6
-        const optimalZoom = Math.min(Math.max(currentZoom, 5), 7) // Between zoom 5-7
+        const currentZoom = map.getZoom() || 5
+        const optimalZoom = Math.min(Math.max(currentZoom, 4), 6) // Between zoom 4-6 for better overview
         
         if (currentZoom !== optimalZoom) {
           map.setZoom(optimalZoom)
@@ -512,8 +512,8 @@ export default function MapShell({
     programmaticMove.current = true
     
     const ukBounds = new google.maps.LatLngBounds(
-      { lat: 49.9, lng: -8.6 },
-      { lat: 60.9, lng: 1.8 }
+      { lat: UK_BOUNDS.south, lng: UK_BOUNDS.west },
+      { lat: UK_BOUNDS.north, lng: UK_BOUNDS.east }
     )
     
     map.fitBounds(ukBounds, {
@@ -524,7 +524,7 @@ export default function MapShell({
     })
     
     setTimeout(() => {
-      map.setZoom(6) // Optimal cluster visibility
+      map.setZoom(5) // Optimal cluster visibility for UK overview
       programmaticMove.current = false
     }, 300)
   }, [])
@@ -613,12 +613,12 @@ export default function MapShell({
         scrollwheel: true, // Enable scroll wheel zoom for all devices
         // Performance optimizations
         maxZoom: 20,
-        minZoom: 5
+        minZoom: 3  // Allow wider view to show UK and Ireland
       })
 
       // Set calmer initial camera & real padding
       map.setOptions({
-        minZoom: 4,
+        minZoom: 3,  // Allow wider view to show UK and Ireland
         maxZoom: 18,
       })
       

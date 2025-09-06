@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { generateSitemapChunks, generateSitemapXML } from '@/lib/sitemap-generator'
+import { generateComprehensiveSitemap, generateSitemapXML } from '@/lib/enhanced-sitemap'
 
-/**
- * Dynamic sitemap chunk endpoint
- * Serves individual sitemap chunks like /sitemaps/farms-1.xml, /sitemaps/counties-1.xml, etc.
- */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ filename: string }> }
@@ -13,34 +9,44 @@ export async function GET(
     const { filename } = await params
     
     // Validate filename format
-    if (!filename || !filename.endsWith('.xml')) {
-      return new NextResponse('Invalid sitemap filename', { status: 400 })
+    if (!filename.match(/^sitemap-\d+\.xml$/)) {
+      return NextResponse.json({ error: 'Invalid sitemap filename' }, { status: 400 })
     }
-
-    // Generate all sitemap chunks
-    const { chunks } = await generateSitemapChunks()
     
-    // Find the requested chunk
-    const chunk = chunks.find(c => c.filename === filename)
-    
-    if (!chunk) {
-      return new NextResponse('Sitemap chunk not found', { status: 404 })
+    // Extract sitemap index from filename
+    const match = filename.match(/^sitemap-(\d+)\.xml$/)
+    if (!match) {
+      return NextResponse.json({ error: 'Invalid sitemap filename format' }, { status: 400 })
     }
-
+    
+    const sitemapIndex = parseInt(match[1]) - 1 // Convert to 0-based index
+    
+    // Generate sitemaps
+    const { sitemaps } = await generateComprehensiveSitemap()
+    
+    // Check if requested sitemap exists
+    if (sitemapIndex < 0 || sitemapIndex >= sitemaps.length) {
+      return NextResponse.json({ error: 'Sitemap not found' }, { status: 404 })
+    }
+    
+    // Get the requested sitemap
+    const sitemapEntries = sitemaps[sitemapIndex]
+    
     // Generate XML content
-    const xmlContent = generateSitemapXML(chunk.entries)
+    const xmlContent = generateSitemapXML(sitemapEntries)
     
-    // Return XML response with proper headers
+    // Return XML response
     return new NextResponse(xmlContent, {
       status: 200,
       headers: {
         'Content-Type': 'application/xml',
-        'Cache-Control': 'public, max-age=3600, s-maxage=3600', // Cache for 1 hour
+        'Cache-Control': 'public, max-age=3600, s-maxage=86400',
+        'X-Sitemap-Index': sitemapIndex.toString(),
+        'X-Sitemap-Entries': sitemapEntries.length.toString(),
       },
     })
-
   } catch (error) {
-    console.error('Error generating sitemap chunk:', error)
-    return new NextResponse('Internal server error', { status: 500 })
+    console.error('Error generating sitemap:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }

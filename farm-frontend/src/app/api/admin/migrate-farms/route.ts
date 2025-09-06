@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import redis from '@/lib/redis'
 import { getCurrentUser } from '@/lib/auth'
 import fs from 'fs/promises'
 import path from 'path'
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     // Require authentication
     const user = await getCurrentUser()

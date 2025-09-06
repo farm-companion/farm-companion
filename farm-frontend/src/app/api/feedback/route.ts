@@ -1,41 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
 import { Resend } from 'resend'
 import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
+import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
 
-// Enhanced validation schema with anti-spam measures
-const feedbackSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters').max(80, 'Name must be less than 80 characters'),
-  email: z.string().email('Invalid email address'),
-  subject: z.string().min(5, 'Subject must be at least 5 characters').max(100, 'Subject must be less than 100 characters'),
-  message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message must be less than 2000 characters'),
-  hp: z.string().optional(), // honeypot field
-  t: z.number() // submission timestamp
-})
 
-// Rate limiting (simple in-memory store - in production use Redis)
-const rateLimitStore = new Map<string, { count: number; resetTime: number }>()
-
-function checkRateLimit(email: string): boolean {
-  const now = Date.now()
-  const windowMs = 60 * 60 * 1000 // 1 hour
-  const maxRequests = 3
-
-  const record = rateLimitStore.get(email)
-  
-  if (!record || now > record.resetTime) {
-    rateLimitStore.set(email, { count: 1, resetTime: now + windowMs })
-    return true
-  }
-
-  if (record.count >= maxRequests) {
-    return false
-  }
-
-  record.count++
-  return true
-}
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -90,16 +59,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
     }
     
-    // Validate input
-    const validationResult = feedbackSchema.safeParse(body)
-    if (!validationResult.success) {
+    // Validate input using comprehensive validation
+    let feedbackData
+    try {
+      feedbackData = await validateAndSanitize(ValidationSchemas.feedbackForm, body, {
+        sanitize: true,
+        strict: false
+      })
+    } catch (error) {
+      if (error instanceof InputValidationError) {
+        return NextResponse.json(
+          { 
+            error: 'Validation failed', 
+            message: error.message,
+            field: error.field
+          }, 
+          { status: 422 }
+        )
+      }
       return NextResponse.json(
-        { error: 'Validation failed', details: validationResult.error.issues },
+        { error: 'Invalid input data' }, 
         { status: 400 }
       )
     }
 
-    const { name, email, subject, message, hp, t } = validationResult.data
+    const { name, email, subject, message, hp, t } = feedbackData
 
     // Anti-spam checks
     if (hp) {

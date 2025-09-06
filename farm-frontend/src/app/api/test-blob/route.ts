@@ -1,27 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createUploadUrl } from '@/lib/blob'
+import { apiMiddleware } from '@/lib/api-middleware'
+import { withRetry } from '@/lib/error-handler'
 
-export async function GET(req: NextRequest) {
-  try {
-    console.log('Testing Vercel Blob...')
-    
-    // Test creating an upload URL
+async function testBlobHandler() {
+  // Use retry logic for external service calls
+  const result = await withRetry(async () => {
     const { uploadUrl } = await createUploadUrl({
       pathname: 'test/test-image.jpg',
       contentType: 'image/jpeg',
       contentLength: 1000
     })
-    
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Vercel Blob is working',
-      uploadUrl: uploadUrl ? 'URL generated' : 'No URL'
-    })
-  } catch (error) {
-    console.error('Vercel Blob test failed:', error)
-    return NextResponse.json({ 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
-  }
+    return uploadUrl
+  }, 3, 1000)
+  
+  return NextResponse.json({ 
+    success: true, 
+    message: 'Vercel Blob is working',
+    uploadUrl: result ? 'URL generated' : 'No URL',
+    timestamp: new Date().toISOString()
+  })
 }
+
+export const GET = apiMiddleware.basic(testBlobHandler)

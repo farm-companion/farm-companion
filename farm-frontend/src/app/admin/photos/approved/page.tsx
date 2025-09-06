@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { requireAuth } from '@/lib/auth'
-import redis, { ensureConnection } from '@/lib/redis'
+import { ensureConnection } from '@/lib/redis'
 import AdminPhotoDisplay from '@/components/AdminPhotoDisplay'
 import { 
   CheckCircle, 
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 }
 
 export default async function ApprovedPhotosPage() {
-  const user = await requireAuth()
+  await requireAuth()
   const client = await ensureConnection()
   
   // Get all approved photo IDs

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useCallback } from 'react'
+import Image from 'next/image'
 import { Upload } from 'lucide-react'
 import { X } from 'lucide-react'
 import { Image as ImageIcon } from 'lucide-react'
@@ -43,16 +44,16 @@ export default function FarmImageUpload({
   const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
   const MIN_W = 800, MIN_H = 600;
 
-  function validateBasic(file: File): string | null {
+  const validateBasic = useCallback((file: File): string | null => {
     if (!ALLOWED.has(file.type)) return 'Please upload a JPG, PNG, or WebP.';
     if (file.size > MAX_BYTES)    return 'Please keep images under 5 MB.';
     return null;
-  }
+  }, [])
 
   async function validateDims(file: File): Promise<string | null> {
     const url = URL.createObjectURL(file);
     const ok = await new Promise<boolean>((res) => {
-      const img = new Image();
+      const img = new window.Image();
       img.onload = () => res(img.naturalWidth >= MIN_W && img.naturalHeight >= MIN_H);
       img.onerror = () => res(false);
       img.src = url;
@@ -122,7 +123,7 @@ export default function FarmImageUpload({
     const updatedImages = [...images, ...newImagePreviews]
     setImages(updatedImages)
     onImagesChange(updatedImages.map(img => img.file))
-  }, [images, maxImages, onImagesChange])
+  }, [images, maxImages, onImagesChange, validateBasic])
 
   const removeImage = (id: string) => {
     const updatedImages = images.filter(img => img.id !== id)
@@ -148,7 +149,7 @@ export default function FarmImageUpload({
       try {
         const errorData = await response.json()
         errorMessage = errorData.error || errorMessage
-      } catch (e) {
+      } catch {
         // If response is not JSON, get the text
         const text = await response.text()
         errorMessage = text || errorMessage
@@ -202,7 +203,7 @@ export default function FarmImageUpload({
       try {
         const errorData = await response.json()
         errorMessage = errorData.error || errorMessage
-      } catch (e) {
+      } catch {
         // If response is not JSON, get the text
         const text = await response.text()
         errorMessage = text || errorMessage
@@ -384,10 +385,11 @@ export default function FarmImageUpload({
               >
                 {/* Image Preview */}
                 <div className="w-full h-full relative">
-                  <img
+                  <Image
                     src={image.preview}
                     alt={`Preview of ${image.file.name}`}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                   />
                   
                   {/* Overlay */}
@@ -402,13 +404,13 @@ export default function FarmImageUpload({
                   
                   {image.uploaded && (
                     <div className="absolute top-2 right-2">
-                      <CheckCircle className="w-5 h-5 text-green-500 bg-white rounded-full" />
+                      <CheckCircle className="w-5 h-5 text-green-500 bg-white dark:bg-gray-800 rounded-full" />
                     </div>
                   )}
                   
                   {image.error && (
                     <div className="absolute top-2 right-2">
-                      <AlertCircle className="w-5 h-5 text-red-500 bg-white rounded-full" />
+                      <AlertCircle className="w-5 h-5 text-red-500 bg-white dark:bg-gray-800 rounded-full" />
                     </div>
                   )}
                 </div>

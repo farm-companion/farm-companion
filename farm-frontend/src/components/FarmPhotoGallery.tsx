@@ -32,6 +32,18 @@ export default function FarmPhotoGallery({
     return () => clearInterval(interval)
   }, [isPlaying, isHovered, photos.length, autoPlayMs])
 
+  const goToPrevious = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)
+  }, [photos.length])
+
+  const goToNext = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % photos.length)
+  }, [photos.length])
+
+  const togglePlay = useCallback(() => {
+    setIsPlaying((prev) => !prev)
+  }, [])
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -49,19 +61,7 @@ export default function FarmPhotoGallery({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
-
-  const goToPrevious = useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + photos.length) % photos.length)
-  }, [photos.length])
-
-  const goToNext = useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % photos.length)
-  }, [photos.length])
-
-  const togglePlay = useCallback(() => {
-    setIsPlaying((prev) => !prev)
-  }, [])
+  }, [goToPrevious, goToNext, togglePlay])
 
   const goToSlide = useCallback((index: number) => {
     setCurrentIndex(index)
@@ -127,11 +127,11 @@ export default function FarmPhotoGallery({
                 )}
               </div>
               <div className="flex items-center gap-2">
-                <button className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-300 backdrop-blur-sm">
-                  <Heart className="w-4 h-4 text-white" />
+                <button className="p-2 bg-white/20 dark:bg-gray-800/20 hover:bg-white/30 dark:hover:bg-gray-800/30 rounded-full transition-all duration-300 backdrop-blur-sm">
+                  <Heart className="w-4 h-4 text-white dark:text-gray-200" />
                 </button>
-                <button className="p-2 bg-white/20 hover:bg-white/30 rounded-full transition-all duration-300 backdrop-blur-sm">
-                  <Share2 className="w-4 h-4 text-white" />
+                <button className="p-2 bg-white/20 dark:bg-gray-800/20 hover:bg-white/30 dark:hover:bg-gray-800/30 rounded-full transition-all duration-300 backdrop-blur-sm">
+                  <Share2 className="w-4 h-4 text-white dark:text-gray-200" />
                 </button>
               </div>
             </div>
@@ -185,7 +185,7 @@ export default function FarmPhotoGallery({
               className={`w-3 h-3 rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 transform hover:scale-125 ${
                 index === currentIndex 
                   ? 'bg-serum shadow-lg scale-125' 
-                  : 'bg-white/60 hover:bg-white/80'
+                  : 'bg-white/60 dark:bg-gray-600/60 hover:bg-white/80 dark:hover:bg-gray-600/80'
               }`}
               aria-label={`Go to photo ${index + 1}`}
               aria-current={index === currentIndex ? 'true' : 'false'}

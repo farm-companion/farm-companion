@@ -1,5 +1,5 @@
 'use client'
-import Script from 'next/script'
+import { GoogleAnalytics } from '@next/third-parties/google'
 
 export default function AnalyticsLoader() {
   const consent = (() => {
@@ -11,19 +11,14 @@ export default function AnalyticsLoader() {
     }
   })() as { analytics?: boolean }
 
-  if (!consent.analytics || !process.env.NEXT_PUBLIC_GA_ID) return null
+  // Use existing environment variable
+  const measurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID || process.env.NEXT_PUBLIC_GA_ID
+
+  if (!consent.analytics || !measurementId) return null
 
   return (
-    <>
-      <Script 
-        id="ga" 
-        strategy="afterInteractive" 
-        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.NEXT_PUBLIC_GA_ID}`} 
-      />
-      <Script id="ga-init" strategy="afterInteractive">
-        {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date()); gtag('config','${process.env.NEXT_PUBLIC_GA_ID}',{anonymize_ip:true});`}
-      </Script>
-    </>
+    <GoogleAnalytics 
+      gaId={measurementId}
+    />
   )
 }

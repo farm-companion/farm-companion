@@ -14,6 +14,83 @@
 }
 
 /* ============================================================================
+   LEAF ANIMATIONS - WIND EFFECT
+   ============================================================================ */
+
+/* Leaf floating animations with wind effect */
+@keyframes leaf-float-1 {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  25% {
+    transform: translateY(-8px) rotate(2deg) scale(1.02);
+  }
+  50% {
+    transform: translateY(-4px) rotate(-1deg) scale(0.98);
+  }
+  75% {
+    transform: translateY(-12px) rotate(1deg) scale(1.01);
+  }
+}
+
+@keyframes leaf-float-2 {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  30% {
+    transform: translateY(-6px) rotate(-2deg) scale(1.01);
+  }
+  60% {
+    transform: translateY(-10px) rotate(1deg) scale(0.99);
+  }
+  90% {
+    transform: translateY(-3px) rotate(-1deg) scale(1.02);
+  }
+}
+
+@keyframes leaf-float-3 {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg) scale(1);
+  }
+  20% {
+    transform: translateY(-5px) rotate(1deg) scale(1.01);
+  }
+  40% {
+    transform: translateY(-9px) rotate(-1deg) scale(0.98);
+  }
+  70% {
+    transform: translateY(-7px) rotate(2deg) scale(1.02);
+  }
+  85% {
+    transform: translateY(-2px) rotate(-1deg) scale(0.99);
+  }
+}
+
+/* Animation classes */
+.animate-leaf-float-1 {
+  animation: leaf-float-1 8s ease-in-out infinite;
+}
+
+.animate-leaf-float-2 {
+  animation: leaf-float-2 10s ease-in-out infinite;
+  animation-delay: -2s;
+}
+
+.animate-leaf-float-3 {
+  animation: leaf-float-3 12s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-leaf-float-1,
+  .animate-leaf-float-2,
+  .animate-leaf-float-3 {
+    animation: none;
+  }
+}
+
+/* ============================================================================
    MOBILE-FRIENDLY - NO WATERMARK PROTECTION
    ============================================================================ */
 
@@ -26,7 +103,7 @@
 /* Theme variables */
 :root {
   /* Modern Swiss Minimalism Font Stack */
-  --font-primary: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-primary: 'Clash Display', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-accent: 'IBM Plex Sans Condensed', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   
@@ -914,7 +991,7 @@ html {
   font-size: 18px;
   font-weight: 600;
   margin: 0;
-  font-family: 'Inter', sans-serif;
+  font-family: 'Clash Display', sans-serif;
 }
 
 .close-button {

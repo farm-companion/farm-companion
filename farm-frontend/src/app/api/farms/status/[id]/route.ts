@@ -17,7 +17,7 @@ export async function GET(
     try {
       const content = await fs.readFile(farmFile, 'utf-8')
       farm = JSON.parse(content)
-    } catch (error) {
+    } catch {
       // Check in live farms directory
       const liveFarmsDir = path.join(process.cwd(), 'data', 'live-farms')
       const liveFarmFile = path.join(liveFarmsDir, `${farmId}.json`)
@@ -26,7 +26,7 @@ export async function GET(
         const liveContent = await fs.readFile(liveFarmFile, 'utf-8')
         farm = JSON.parse(liveContent)
         farm.status = 'live' // Override status for live farms
-      } catch (liveError) {
+      } catch {
         return NextResponse.json(
           { error: 'Farm submission not found' },
           { status: 404 }

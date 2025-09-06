@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { v4 as uuidv4 } from 'uuid'
-import redis, { ensureConnection } from '@/lib/redis'
+import { ensureConnection } from '@/lib/redis'
 import { buildObjectKey, createUploadUrl } from '@/lib/blob'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 

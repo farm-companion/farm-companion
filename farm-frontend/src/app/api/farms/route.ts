@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs/promises'
 import path from 'path'
 import type { FarmShop } from '@/types/farm'
+import { performanceMiddleware } from '@/lib/performance-middleware'
+import { CACHE_NAMESPACES, CACHE_TTL } from '@/lib/cache-manager'
 
 interface FarmShopData {
   name: string
@@ -41,7 +43,7 @@ interface FarmShopData {
 }
 
 // Enhanced GET endpoint with filtering
-export async function GET(request: NextRequest) {
+async function farmsHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
     
@@ -286,3 +288,20 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+
+// Export with performance middleware
+export const GET = performanceMiddleware.cached(
+  CACHE_NAMESPACES.FARMS,
+  (request: NextRequest) => {
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.get('q') || ''
+    const county = searchParams.get('county') || ''
+    const category = searchParams.get('category') || ''
+    const bbox = searchParams.get('bbox') || ''
+    const limit = searchParams.get('limit') || '100'
+    const offset = searchParams.get('offset') || '0'
+    
+    return `farms:${query}:${county}:${category}:${bbox}:${limit}:${offset}`
+  },
+  CACHE_TTL.MEDIUM
+)(farmsHandler)

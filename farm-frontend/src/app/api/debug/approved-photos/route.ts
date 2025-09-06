@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import redis, { ensureConnection } from '@/lib/redis'
+import { ensureConnection } from '@/lib/redis'
 
 export async function GET(req: NextRequest) {
   try {

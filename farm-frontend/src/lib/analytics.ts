@@ -1,93 +1,99 @@
-// Analytics utility for tracking user interactions
-// Uses Vercel Analytics for privacy-friendly tracking
+// Google Analytics 4 Integration
+// Enhanced analytics using existing consent system
 
-type AnalyticsEvent = {
-  name: string
-  properties?: Record<string, any>
-}
-
-// Track a custom analytics event
-export function trackEvent(event: AnalyticsEvent) {
-  try {
-    // Only track in production
-    if (process.env.NODE_ENV !== 'production') {
-      console.log('Analytics Event:', event)
-      return
-    }
-
-    // Check if we're in a browser environment
-    if (typeof window === 'undefined') {
-      return
-    }
-
-    // Use Vercel Analytics if available
-    if (window.va && typeof window.va.track === 'function') {
-      window.va.track(event.name, event.properties)
-    }
-  } catch (error) {
-    // Silently fail in production, log in development
-    if (process.env.NODE_ENV !== 'production') {
-      console.warn('Analytics error:', error)
-    }
-  }
-}
-
-// Track produce page view
-export function trackProduceView(slug: string, name: string) {
-  trackEvent({
-    name: 'produce_view',
-    properties: {
-      produce_slug: slug,
-      produce_name: name,
-      page_type: 'produce_detail',
-      timestamp: new Date().toISOString(),
-    }
-  })
-}
-
-// Track farm shop view
-export function trackFarmView(slug: string, name: string) {
-  trackEvent({
-    name: 'farm_view',
-    properties: {
-      farm_slug: slug,
-      farm_name: name,
-      page_type: 'farm_detail',
-      timestamp: new Date().toISOString(),
-    }
-  })
-}
-
-// Track map interaction
-export function trackMapInteraction(action: string, properties?: Record<string, any>) {
-  trackEvent({
-    name: 'map_interaction',
-    properties: {
-      action,
-      page_type: 'map',
-      timestamp: new Date().toISOString(),
-      ...properties
-    }
-  })
-}
-
-// Track seasonal page view
-export function trackSeasonalView(month: number) {
-  trackEvent({
-    name: 'seasonal_view',
-    properties: {
-      month,
-      page_type: 'seasonal',
-      timestamp: new Date().toISOString(),
-    }
-  })
-}
-
-// Declare global types for Vercel Analytics
+// Declare gtag function for TypeScript
 declare global {
-  interface Window {
-    va?: {
-      track: (eventName: string, properties?: Record<string, any>) => void
+  function gtag(...args: any[]): void
+}
+
+// Check if GA4 is enabled and user has consented
+export function isAnalyticsEnabled(): boolean {
+  if (typeof window === 'undefined') return false
+  
+  // Check existing consent system
+  const consent = (() => {
+    try { 
+      return JSON.parse(decodeURIComponent((document.cookie.split('; ').find(c=>c.startsWith('fc_consent='))||'').split('=')[1]||'{}')) 
     }
-  }
+    catch { 
+      return {} 
+    }
+  })() as { analytics?: boolean }
+  
+  const gaEnabled = process.env.NEXT_PUBLIC_GA_ENABLED === 'true'
+  
+  return gaEnabled && consent.analytics === true
+}
+
+// Get the appropriate GA4 measurement ID
+export function getGA4MeasurementId(): string | null {
+  if (typeof window === 'undefined') return null
+  
+  const isDev = process.env.NODE_ENV === 'development'
+  const devId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID_DEV
+  const prodId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID
+  
+  return isDev ? (devId || prodId || null) : (prodId || null)
+}
+
+// Simple tracking functions using existing gtag
+export function trackEvent(action: string, parameters?: Record<string, any>): void {
+  if (!isAnalyticsEnabled() || typeof window === 'undefined' || !window.gtag) return
+  
+  window.gtag('event', action, parameters)
+  console.log('📊 Event tracked:', action, parameters)
+}
+
+// Track page views
+export function trackPageView(pagePath: string, pageTitle: string): void {
+  trackEvent('page_view', {
+    page_path: pagePath,
+    page_title: pageTitle,
+    page_location: window.location.href
+  })
+}
+
+// Track farm shop events
+export function trackFarmShop(farmId: string, farmName: string, action: string, county?: string): void {
+  trackEvent('farm_shop_interaction', {
+    farm_id: farmId,
+    farm_name: farmName,
+    action: action,
+    county: county
+  })
+}
+
+// Track map events
+export function trackMap(action: string, details?: Record<string, any>): void {
+  trackEvent('map_interaction', {
+    action: action,
+    ...details
+  })
+}
+
+// Track search events
+export function trackSearch(query: string, resultsCount: number, searchType: string = 'general'): void {
+  trackEvent('search', {
+    search_term: query,
+    results_count: resultsCount,
+    search_type: searchType
+  })
+}
+
+// Track form submissions
+export function trackForm(formName: string, success: boolean, details?: Record<string, any>): void {
+  trackEvent('form_submit', {
+    form_name: formName,
+    success: success,
+    ...details
+  })
+}
+
+// Track errors
+export function trackError(error: string, details?: Record<string, any>): void {
+  trackEvent('exception', {
+    description: error,
+    fatal: false,
+    ...details
+  })
 }

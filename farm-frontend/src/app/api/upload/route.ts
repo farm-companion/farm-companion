@@ -10,10 +10,10 @@ let sharp: any = null
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   sharp = require('sharp')
-} catch (error) {
+} catch {
   console.warn('Sharp not available for image processing')
 }
-import { checkCsrf, validateHoneypot, validateSubmissionTime, verifyTurnstile, trackIPReputation, isIPBlocked } from '@/lib/security'
+import { validateHoneypot, validateSubmissionTime, verifyTurnstile, trackIPReputation, isIPBlocked } from '@/lib/security'
 import { ImageUploadSchema } from '@/lib/validation'
 
 export async function POST(req: Request) {

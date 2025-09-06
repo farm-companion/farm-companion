@@ -83,7 +83,7 @@ function Brand({ inverted }: { inverted: boolean }) {
         )}>Farm Companion</span>
         <span className={cx(
           'hidden text-xs font-medium sm:block', 
-          inverted ? 'text-white/70' : 'text-gray-600 dark:text-white/70'
+          inverted ? 'text-white/80' : 'text-gray-600 dark:text-gray-300'
         )}>Real food, real places</span>
       </div>
     </Link>
@@ -150,7 +150,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
-        className="absolute inset-x-0 bottom-0 h-[88vh] max-h-[720px] rounded-t-2xl border border-white/10 bg-white shadow-2xl outline-none dark:bg-gray-900 motion-safe:animate-[sheetIn_.28s_cubic-bezier(0.2,0.8,0.2,1)]"
+        className="absolute inset-x-0 bottom-0 h-[88vh] max-h-[720px] rounded-t-2xl border border-white/10 dark:border-gray-700/30 bg-white dark:bg-gray-900 shadow-2xl outline-none motion-safe:animate-[sheetIn_.28s_cubic-bezier(0.2,0.8,0.2,1)]"
       >
         {/* FLEX COLUMN + SCROLL AREA */}
         <div className="mx-auto flex h-full max-w-screen-sm flex-col px-5 pt-4 pb-8">
@@ -159,7 +159,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
             <h2 id={labelledBy} className="text-base font-semibold text-gray-900 dark:text-white">Menu</h2>
             <button
               onClick={onClose}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 active:scale-95 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95"
               aria-label="Close menu"
             >
               <X className="h-5 w-5" />
@@ -172,25 +172,25 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
               <Link href="/map" onClick={onClose}
                 className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 Farm Map
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Find farm shops near you</p>
+                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Find farm shops near you</p>
               </Link>
 
               <Link href="/seasonal" onClick={onClose}
                 className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 What&apos;s in Season
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Fresh produce calendar</p>
+                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Fresh produce calendar</p>
               </Link>
 
               <Link href="/about" onClick={onClose}
                 className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 About
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Our story and mission</p>
+                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Our story and mission</p>
               </Link>
 
               <Link href="/contact" onClick={onClose}
                 className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 Feedback
-                <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Share your thoughts</p>
+                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Share your thoughts</p>
               </Link>
 
               <div className="mt-6 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
@@ -256,26 +256,26 @@ export default function Header() {
           // Surface states
           scrolled
             ? inverted
-              ? 'border-b border-white/10 bg-black/70 backdrop-blur supports-[backdrop-filter]:bg-black/60'
-              : 'border-b border-black/10 bg-white/85 backdrop-blur supports-[backdrop-filter]:bg-white/70'
+              ? 'border-b border-white/10 bg-black/80 backdrop-blur supports-[backdrop-filter]:bg-black/70'
+              : 'border-b border-black/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 dark:border-white/10 dark:bg-gray-900/95 dark:backdrop-blur dark:supports-[backdrop-filter]:bg-gray-900/90'
             : inverted
-              ? 'border-b border-transparent bg-black/20 backdrop-blur'
-              : 'border-b border-transparent bg-white/95 backdrop-blur'
+              ? 'border-b border-transparent bg-black/30 backdrop-blur'
+              : 'border-b border-transparent bg-white/98 backdrop-blur dark:bg-gray-900/98'
         )}
       >
         <Brand inverted={inverted} />
 
         <nav aria-label="Primary" className="hidden items-center gap-4 md:flex">
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-black dark:text-white')} href="/map">
+          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/map">
             Map
           </Link>
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-black dark:text-white')} href="/seasonal">
+          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/seasonal">
             Seasonal
           </Link>
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-black dark:text-white')} href="/about">
+          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/about">
             About
           </Link>
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-black dark:text-white')} href="/contact">
+          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/contact">
             Feedback
           </Link>
           <Link
@@ -284,7 +284,7 @@ export default function Header() {
               'inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium transition hover:opacity-90',
               inverted
                 ? 'border-white bg-white text-black hover:bg-gray-100'
-                : 'border-gray-900 bg-gray-900 text-white hover:bg-black'
+                : 'border-gray-900 bg-gray-900 text-white hover:bg-black dark:border-gray-100 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white'
             )}
           >
             Add a Farm Shop

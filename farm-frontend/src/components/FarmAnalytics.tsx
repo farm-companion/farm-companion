@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { trackFarmView } from '@/lib/analytics'
+import { trackFarmShop, trackPageView } from '@/lib/analytics'
 
 interface FarmAnalyticsProps {
   slug: string
@@ -11,7 +11,8 @@ interface FarmAnalyticsProps {
 export default function FarmAnalytics({ slug, name }: FarmAnalyticsProps) {
   useEffect(() => {
     // Track farm page view on mount
-    trackFarmView(slug, name)
+    trackPageView(`/shop/${slug}`, `${name} - Farm Shop`)
+    trackFarmShop(slug, name, 'view')
   }, [slug, name])
 
   // This component doesn't render anything
