@@ -1,6 +1,7 @@
 import { twitterClient } from './twitter-client.js';
 import { contentGenerator } from './content-generator.js';
 import { farmSelector } from './farm-selector.js';
+import { blueskyClient } from './bluesky-client.js';
 import { monitoringSystem } from './monitoring.js';
 import pkg from 'twitter-text';
 const { parseTweet } = pkg;
@@ -15,29 +16,73 @@ const KV_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 /**
  * Set a key once per day (idempotency guard)
+ * Uses file-based locking if Redis is not available
  */
 async function setOnceToday(key) {
-  if (!KV_URL || !KV_TOKEN) return { enforced: false }; // soft skip if not configured
   const today = new Date().toISOString().slice(0,10);
-  const namespaced = `fc:tweeted:${today}`;
-  if (key) namespaced += `:${key}`;
-
-  // SETNX
-  const resp = await fetch(`${KV_URL}/set/${encodeURIComponent(namespaced)}/${Date.now()}?nx=true`, {
-    headers: { Authorization: `Bearer ${KV_TOKEN}` }
-  });
-  const data = await resp.json();
-  return { enforced: true, created: data.result === 'OK', key: namespaced };
+  const lockKey = `fc:tweeted:${today}`;
+  if (key) lockKey += `:${key}`;
+  
+  // Try Redis first if configured
+  if (KV_URL && KV_TOKEN) {
+    try {
+      const namespaced = lockKey;
+      const resp = await fetch(`${KV_URL}/set/${encodeURIComponent(namespaced)}/${Date.now()}?nx=true`, {
+        headers: { Authorization: `Bearer ${KV_TOKEN}` }
+      });
+      const data = await resp.json();
+      return { enforced: true, created: data.result === 'OK', key: namespaced };
+    } catch (error) {
+      console.warn('⚠️  Redis idempotency failed, falling back to file-based:', error.message);
+    }
+  }
+  
+  // Fallback to file-based idempotency
+  try {
+    const fs = await import('fs/promises');
+    const path = await import('path');
+    const os = await import('os');
+    
+    const lockDir = path.join(os.tmpdir(), 'farm-companion-locks');
+    await fs.mkdir(lockDir, { recursive: true });
+    
+    const lockFile = path.join(lockDir, `${lockKey}.lock`);
+    
+    try {
+      // Try to create the lock file exclusively
+      const fd = await fs.open(lockFile, 'wx');
+      await fd.write(Date.now().toString());
+      await fd.close();
+      
+      console.log(`🔒 Created idempotency lock: ${lockKey}`);
+      return { enforced: true, created: true, key: lockKey };
+    } catch (error) {
+      if (error.code === 'EEXIST') {
+        console.log(`⏭️  Idempotency lock exists: ${lockKey}`);
+        return { enforced: true, created: false, key: lockKey };
+      }
+      throw error;
+    }
+  } catch (error) {
+    console.warn('⚠️  File-based idempotency failed:', error.message);
+    return { enforced: false, created: false, key: lockKey };
+  }
 }
 
 /**
  * Compose final tweet with farm URL and proper length trimming
  */
-function composeFinalTweet({ baseText, farm }) {
+function composeFinalTweet({ baseText, farm, hasImageWithUrl = false }) {
   // Safety check for baseText
   if (!baseText || typeof baseText !== 'string') {
     console.error('❌ Invalid baseText in composeFinalTweet:', baseText);
     baseText = 'Farm shop with local produce. #FarmShop #FarmCompanion';
+  }
+  
+  // If URL is embedded in image, don't add it to tweet text
+  if (hasImageWithUrl) {
+    console.log('🔗 URL embedded in image, using text-only tweet');
+    return baseText.replace(/\s+$/, '').trim();
   }
   
   const url = `https://www.farmcompanion.co.uk/shop/${encodeURIComponent(farm.slug)}?utm_source=twitter&utm_medium=organic&utm_campaign=daily_farm`;
@@ -141,20 +186,35 @@ export class WorkflowOrchestrator {
         throw new Error(`Content generation failed: ${contentGeneration.error}`);
       }
 
-      // Step 3: Compose final tweet with farm URL
-      console.log('\n🐦 Step 3: Posting to Twitter...');
+      // Step 3: Compose final content for both platforms
+      console.log('\n📱 Step 3: Posting to social platforms...');
       const finalTweet = composeFinalTweet({ 
         baseText: contentGeneration.content.content || contentGeneration.content, 
-        farm: farmSelection.farm 
+        farm: farmSelection.farm,
+        hasImageWithUrl: contentGeneration.content.hasImage
       });
-      console.log(`📝 Final tweet (${finalTweet.length} chars): "${finalTweet.substring(0, 80)}..."`);
+      console.log(`📝 Final content (${finalTweet.length} chars): "${finalTweet.substring(0, 80)}..."`);
       
-      // Post tweet with image if available
+      // Post to Twitter
+      console.log('\n🐦 Posting to Twitter...');
       const twitterPost = await this.postToTwitter(finalTweet, contentGeneration, { ...options, dryRun: isDryRun });
       results.steps.twitterPost = twitterPost;
       
-      if (!twitterPost.success) {
-        throw new Error(`Twitter posting failed: ${twitterPost.error}`);
+      // Post to Bluesky
+      console.log('\n🔵 Posting to Bluesky...');
+      const blueskyPost = await this.postToBluesky(finalTweet, contentGeneration, farmSelection.farm, { ...options, dryRun: isDryRun });
+      results.steps.blueskyPost = blueskyPost;
+      
+      // Check if at least one platform succeeded
+      const twitterSuccess = twitterPost.success || twitterPost.skipped;
+      const blueskySuccess = blueskyPost.success || blueskyPost.skipped;
+      
+      if (!twitterSuccess && !blueskySuccess) {
+        throw new Error(`Both Twitter and Bluesky posting failed. Twitter: ${twitterPost.error}, Bluesky: ${blueskyPost.error}`);
+      } else if (!twitterSuccess) {
+        console.warn(`⚠️  Twitter posting failed: ${twitterPost.error}, but Bluesky succeeded`);
+      } else if (!blueskySuccess) {
+        console.warn(`⚠️  Bluesky posting failed: ${blueskyPost.error}, but Twitter succeeded`);
       }
 
       // Step 4: Send success notification
@@ -334,6 +394,59 @@ export class WorkflowOrchestrator {
       return result;
     } catch (error) {
       console.error('❌ Twitter posting error:', error.message);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Post content to Bluesky with optional image and website card
+   */
+  async postToBluesky(content, contentGeneration, farm, options) {
+    try {
+      if (!this.postingEnabled) {
+        console.log('⚠️  Posting disabled, skipping Bluesky post');
+        return {
+          success: true,
+          skipped: true,
+          reason: 'posting_disabled'
+        };
+      }
+
+      // Initialize Bluesky client if not already done
+      if (!blueskyClient.initialized) {
+        await blueskyClient.initialize();
+      }
+
+      // Prepare image buffer if available
+      let imageBuffer = null;
+      if (contentGeneration && contentGeneration.image) {
+        imageBuffer = contentGeneration.image;
+        console.log('🖼️  Image ready for Bluesky upload');
+      }
+
+      // Post to Bluesky
+      const dryRun = options.dryRun !== undefined ? options.dryRun : this.dryRunMode;
+      const result = await blueskyClient.post(content, imageBuffer, farm, dryRun);
+      
+      if (result.success) {
+        console.log(`✅ Bluesky post successful: ${result.uri}`);
+        if (result.url) {
+          console.log(`🔗 Bluesky URL: ${result.url}`);
+        }
+        if (result.hasImage) {
+          console.log(`🖼️  Post includes image`);
+        }
+        if (result.hasWebsiteCard) {
+          console.log(`🔗 Post includes website card`);
+        }
+      }
+
+      return result;
+    } catch (error) {
+      console.error('❌ Bluesky posting error:', error.message);
       return {
         success: false,
         error: error.message

@@ -38,6 +38,13 @@ export const metadata: Metadata = {
     default: 'Farm Companion',
     template: '%s · Farm Companion',
   },
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: 'cover',
+  },
   description: 'Discover 1,300+ authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information. Find farm shops near you, farmshopsnearme, farm shop near you with our interactive map and location-based search.',
   keywords: [
     'farm shops', 'UK farm shops', 'local produce', 'fresh food', 'farm directory', 

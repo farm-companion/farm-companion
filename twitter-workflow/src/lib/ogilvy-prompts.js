@@ -27,12 +27,14 @@ Inputs:
 
 Hard rules:
 - Output JSON only.
-- Field "body" ≤ 220 characters (we append a t.co link afterwards).
+- Field "body" must be 120-220 characters (we append a t.co link afterwards).
 - Include two hashtags exactly: "#FarmShop" and "#FarmCompanion".
 - Optionally add ONE produce/region hashtag if it's crystal-relevant (e.g. #RawMilk or #Yorkshire). Never more than three total.
 - Mention the location once.
 - No colons at the start, no "click", no promises, no salesy phrasing.
 - British spelling, sentence case, clean typography.
+- NEVER mention pork, pigs, bacon, ham, or any pig-related products.
+- Ensure content is substantial and informative, not just a basic listing.
 
 Style guardrails (Ogilvy):
 - One clear idea, one useful benefit.
@@ -153,16 +155,36 @@ export function parseOgilvyResponse(response) {
  */
 export function generateOgilvyFallback(farm) {
   const location = `${farm.town || 'local area'}, ${farm.county || 'UK'}`;
-  const produce = farm.produce || 'local produce';
+  let produce = farm.produce || 'local produce';
   
-  // Simple, concrete benefit-focused copy
-  const body = `${farm.name} in ${location} — ${produce} from independent farmers. #FarmShop #FarmCompanion`;
+  // Filter out pork-related content from produce
+  if (produce.toLowerCase().includes('pork') || 
+      produce.toLowerCase().includes('pig') || 
+      produce.toLowerCase().includes('bacon') || 
+      produce.toLowerCase().includes('ham')) {
+    produce = 'local produce, fresh vegetables, dairy products';
+  }
+  
+  // Ensure minimum character count (at least 120 characters)
+  const baseBody = `${farm.name} in ${location} — ${produce} from independent farmers. #FarmShop #FarmCompanion`;
+  
+  // If too short, add more descriptive content
+  let body = baseBody;
+  if (body.length < 120) {
+    const additionalContent = ` Fresh seasonal produce, traditional farming methods, and local community support.`;
+    body = `${farm.name} in ${location} offers ${produce} from independent farmers.${additionalContent} #FarmShop #FarmCompanion`;
+  }
+  
+  // Ensure we don't exceed 220 characters
+  if (body.length > 220) {
+    body = baseBody;
+  }
   
   return {
     success: true,
     body: body,
     alt_text: `Farm shop exterior with local produce on display`,
-    notes: 'Fallback content using Ogilvy principles: location + concrete benefit',
+    notes: 'Fallback content using Ogilvy principles: location + concrete benefit (pork filtered, min 120 chars)',
     hashtagCount: 2,
     method: 'fallback'
   };

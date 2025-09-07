@@ -301,7 +301,7 @@ export default function AddFarmPage() {
         <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-50 animate-pulse" style={{ animationDelay: '2s' }} />
         
         {/* Hero Image Header */}
-        <div data-header-invert className="relative w-full h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden">
+        <div data-header-invert className="relative w-full h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden safe-top safe-bottom">
           <Image
             src="/add.jpg"
             alt="Beautiful farm landscape - Add your farm shop to our directory"
@@ -320,16 +320,16 @@ export default function AddFarmPage() {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
           
           {/* Hero Content Overlay */}
-          <div className="relative h-full flex items-center justify-center">
+          <div className="relative h-full flex items-center justify-center pt-20 pb-16 safe-top safe-bottom">
             <div className="text-center max-w-4xl mx-auto px-6">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
                 <Leaf className="w-10 h-10 text-white" />
               </div>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+              <h1 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
                 Add Your Farm
                 <span className="block text-serum drop-shadow-lg">Shop</span>
               </h1>
-              <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+              <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
                 Help customers find you, learn your story, and visit with confidence.
               </p>
               <p className="text-lg text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">

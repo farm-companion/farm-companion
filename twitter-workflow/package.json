@@ -21,16 +21,19 @@
     "build": "echo 'No build step required for Node.js'"
   },
   "dependencies": {
-    "twitter-api-v2": "^1.15.2",
+    "@atproto/api": "^0.16.7",
+    "@fal-ai/client": "^1.6.2",
     "axios": "^1.6.2",
-    "dotenv": "^16.3.1",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
+    "dotenv": "^16.3.1",
+    "sharp": "^0.34.3",
+    "twitter-api-v2": "^1.15.2",
     "twitter-text": "^3.1.0"
   },
   "devDependencies": {
-    "eslint": "^8.55.0",
-    "@eslint/js": "^9.0.0"
+    "@eslint/js": "^9.0.0",
+    "eslint": "^8.55.0"
   },
   "keywords": [
     "twitter",

@@ -99,7 +99,7 @@ function FarmCard({ farm }: { farm: FarmShop }) {
           
           <Link
             href={`/claim/${farm.slug}`}
-            className="bg-serum text-black px-4 py-2 rounded-lg font-semibold text-sm hover:bg-serum/90 transition-colors duration-200"
+            className="bg-serum text-white px-4 py-2 rounded-lg font-semibold text-sm hover:bg-teal-600 transition-colors duration-200"
           >
             Claim This Shop
           </Link>
@@ -455,7 +455,7 @@ function ClaimPageContent() {
             </p>
             <Link
               href="/add"
-              className="inline-flex items-center gap-2 bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="inline-flex items-center gap-2 bg-serum text-white px-8 py-4 rounded-lg font-semibold hover:bg-teal-600 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
             >
               Add Your Farm Shop
               <ArrowRight className="w-5 h-5" />

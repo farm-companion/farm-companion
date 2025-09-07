@@ -205,7 +205,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
 
               <div className="mt-6">
                 <Link href="/add" onClick={onClose}
-                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-900 bg-gray-900 text-white transition hover:bg-black active:scale-[.99] dark:border-white dark:bg-white dark:text-black">
+                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-900 bg-gray-900 text-white transition hover:bg-gray-800 active:scale-[.99] dark:border-white dark:bg-white dark:text-black dark:hover:bg-gray-100">
                   Add a Farm Shop
                 </Link>
               </div>
@@ -284,7 +284,7 @@ export default function Header() {
               'inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium transition hover:opacity-90',
               inverted
                 ? 'border-white bg-white text-black hover:bg-gray-100'
-                : 'border-gray-900 bg-gray-900 text-white hover:bg-black dark:border-gray-100 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white'
+                : 'border-gray-900 bg-gray-900 text-white hover:bg-gray-800 dark:border-white dark:bg-white dark:text-black dark:hover:bg-gray-100'
             )}
           >
             Add a Farm Shop

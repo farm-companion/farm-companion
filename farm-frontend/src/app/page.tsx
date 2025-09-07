@@ -57,7 +57,7 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-background-canvas">
       {/* Professional Hero Section with Image Overlay */}
-      <section data-header-invert className="relative h-screen min-h-[800px] max-h-[1000px] overflow-hidden">
+      <section data-header-invert className="relative full-height min-h-[800px] max-h-[1000px] overflow-hidden safe-top safe-bottom">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
@@ -81,14 +81,14 @@ export default async function HomePage() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center pt-20 pb-20">
+        <div className="relative h-full flex items-center justify-center pt-20 pb-16 safe-top safe-bottom">
           <div className="text-center max-w-4xl mx-auto px-6">
             <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+            <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Find Fresh Local
               <span className="block text-serum drop-shadow-lg">Farm Shops</span>
             </h2>
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Find farm shops near you with fresh local produce, seasonal UK fruit and vegetables, 
               and authentic farm experiences across {countyCount} counties.
             </p>
@@ -283,7 +283,7 @@ export default async function HomePage() {
               <div className="prose prose-lg max-w-none">
                 {/* Enhanced main heading with maximum contrast */}
                 <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-4 animate-fade-in">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-4 animate-fade-in">
                     UK Farm Shops Directory
                   </h2>
                   <div className="w-24 h-1 bg-gradient-to-r from-serum to-solar mx-auto rounded-full opacity-60 drop-shadow-sm"></div>

@@ -82,27 +82,27 @@ export default function AboutPage() {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
               <Leaf className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               About Farm
               <span className="block text-serum drop-shadow-lg">Companion</span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               The UK&apos;s premium guide to real food, real people, and real places.
             </p>
-            <p className="text-lg text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-base sm:text-lg text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               We help you find trusted farm shops near you—fast, clear, and without the clutter.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/map"
-                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
+                className="btn-primary"
               >
                 <MapPin className="w-5 h-5" />
                 Explore Farm Map
               </Link>
               <Link
                 href="#about-content"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+                className="btn-secondary"
               >
                 Learn More
                 <ArrowRight className="w-5 h-5" />

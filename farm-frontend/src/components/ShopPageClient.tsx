@@ -143,7 +143,7 @@ export default function ShopPageClient({ farms, stats }: ShopPageClientProps) {
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.03),transparent_50%)]" />
           
           <div className="relative max-w-7xl mx-auto px-6 py-16 text-center">
-            <h1 className="text-4xl md:text-5xl font-heading font-bold mb-6 text-text-heading dark:text-white">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold mb-6 text-text-heading dark:text-white">
               UK Farm Shops Directory
             </h1>
             <p className="text-xl md:text-2xl text-text-muted dark:text-gray-300 max-w-3xl mx-auto mb-8">

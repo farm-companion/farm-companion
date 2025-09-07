@@ -61,7 +61,7 @@ async function main() {
   
   // Test DeepSeek API connection
   console.log('🔍 Testing DeepSeek API connection...');
-  const apiTest = await contentGenerator.testGeneration();
+  const apiTest = await contentGenerator.testContentGeneration();
   
   if (!apiTest.success) {
     console.log('❌ DeepSeek API test failed:', apiTest.error);

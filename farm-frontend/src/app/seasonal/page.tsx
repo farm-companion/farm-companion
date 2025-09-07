@@ -179,25 +179,25 @@ export default async function SeasonalPage() {
         {/* Content Overlay */}
         <div className="relative h-full flex items-center justify-center pt-20 pb-20">
           <div className="text-center max-w-4xl mx-auto px-6">
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-6xl xl:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Seasonal Produce
               <span className="block text-serum drop-shadow-lg">Guide</span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-lg sm:text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               What&apos;s in season {monthName}? Find fresh UK fruit and vegetables at their peak, 
               plus tips on buying local produce from farm shops near you.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="/map"
-                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
+                className="btn-primary"
               >
                 <MapPin className="w-5 h-5" />
                 Find Farm Shops
               </Link>
               <Link
                 href="#seasonal-content"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+                className="btn-secondary"
               >
                 Explore {monthName}
               </Link>

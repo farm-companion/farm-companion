@@ -249,13 +249,13 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
               <span className="font-medium">{location.address}, {location.county} {location.postcode}</span>
             </div>
 
-            {/* Enhanced Action Buttons with premium styling */}
+            {/* Enhanced Action Buttons with proper contrast */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center">
               <a
                 href={directionsUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="group bg-gradient-to-r from-serum to-teal-500 text-black px-10 py-5 rounded-2xl font-bold text-lg hover:from-teal-500 hover:to-serum transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1"
+                className="group bg-gradient-to-r from-serum to-teal-500 text-white px-10 py-5 rounded-2xl font-bold text-lg hover:from-teal-600 hover:to-serum transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1"
               >
                 <Navigation className="w-6 h-6 transition-transform group-hover:scale-110" />
                 Get Directions
@@ -263,7 +263,7 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
               </a>
               <Link
                 href={`/claim/${shop.slug}`}
-                className="group border-2 border-serum text-serum dark:text-serum px-10 py-5 rounded-2xl font-bold text-lg hover:bg-serum hover:text-black dark:hover:bg-serum dark:hover:text-black transition-all duration-300 inline-flex items-center justify-center gap-3 backdrop-blur-sm bg-background-surface/30 hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
+                className="group border-2 border-serum bg-serum text-white dark:bg-serum dark:text-white px-10 py-5 rounded-2xl font-bold text-lg hover:bg-teal-600 hover:border-teal-600 dark:hover:bg-teal-600 dark:hover:border-teal-600 transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-xl hover:shadow-2xl transform hover:scale-105 hover:-translate-y-1"
               >
                 <Heart className="w-6 h-6 transition-transform group-hover:scale-110" />
                 Claim This Shop

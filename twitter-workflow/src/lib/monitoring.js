@@ -190,7 +190,7 @@ export class MonitoringSystem {
 
       // Content
       const { contentGenerator } = await import('./content-generator.js');
-      const contentTest = await contentGenerator.testGeneration();
+      const contentTest = await contentGenerator.testContentGeneration();
       result.components.contentGeneration = {
         status: contentTest?.success ? 'healthy' : 'degraded',
         details: contentTest?.success ? 'AI generation working' : 'Using fallback content'

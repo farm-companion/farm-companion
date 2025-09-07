@@ -1,17 +1,27 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
+import { fal } from '@fal-ai/client';
+import sharp from 'sharp';
 
 dotenv.config();
 
-// Stronger negative prompt used across providers
-const NO_FACE_NEGATIVE = 'no people, no person, no faces, no face, nobody, no humans, no portrait, no selfie, no crowds, no watermark, no text, no logo';
+// Positive-only prompts - no negative prompts to avoid confusion
+const SAFE_POSITIVE_ADDITIONS = 'clean composition, professional photography, food focus, product display, market stall, farm setting, natural lighting, high quality, detailed, sharp focus';
 
 class ImageGenerator {
   constructor() {
     this.apiKey = process.env.DEEPSEEK_IMAGE_API_KEY || process.env.DEEPSEEK_API_KEY;
+    this.falApiKey = process.env.FAL_KEY;
     this.maxRetries = 3;
     this.retryDelay = 1000;
     this.userAgent = 'FarmCompanion-TwitterWorkflow/1.2.0';
+    
+    // Configure fal.ai client
+    if (this.falApiKey) {
+      fal.config({
+        credentials: this.falApiKey
+      });
+    }
   }
 
   /**
@@ -24,7 +34,7 @@ class ImageGenerator {
   /**
    * Generate a farm shop image with no-faces protection and seeded retries
    * @param {Object} farm - Farm data object
-   * @param {Object} opts - Options including width, height, styleHint
+   * @param {Object} opts - Options including width, height, styleHint, contentContext, theme
    * @returns {Promise<Buffer|null>} Image buffer or null if generation fails
    */
   async generateFarmImage(farm, opts = {}) {
@@ -33,31 +43,48 @@ class ImageGenerator {
       
       const width = opts.width ?? 1024;
       const height = opts.height ?? 1024;
-      const prompt = this.createFarmPrompt(farm, opts.styleHint);
+      
+      // Use theme from content coordination if provided
+      const styleHint = opts.theme || opts.styleHint || this.determineStyleFromFarm(farm);
+      const prompt = this.createFarmPrompt(farm, styleHint, opts.contentContext);
       const seed = this.hashString(farm?.name || 'default');
       
       console.log(`🎨 Image prompt: "${prompt.substring(0, 100)}..."`);
+      console.log(`🎨 Using theme: ${styleHint}`);
       
-      // Pollinations first with multi-seed retries
-      let imageBuffer = await this.callPollinations(prompt, { 
+      // Qwen Image first (primary method)
+      let imageBuffer = await this.callQwenImageAPI(prompt, { 
         width, 
         height, 
         seed, 
         maxAttempts: 3 
       });
       
-      // Optional: fall back to HF if you left it enabled
+      // Fall back to Pollinations if Qwen fails
+      if (!imageBuffer) {
+        console.log('🔄 Falling back to Pollinations...');
+        imageBuffer = await this.callPollinations(prompt, { 
+          width, 
+          height, 
+          seed, 
+          maxAttempts: 3 
+        });
+      }
+      
+      // Final fallback to Hugging Face
       if (!imageBuffer) {
         console.log('🔄 Falling back to Hugging Face...');
         imageBuffer = await this.callHuggingFaceImageAPI(
-          `${prompt}, Negative: ${NO_FACE_NEGATIVE}`,
+          prompt,
           { width, height }
         );
       }
       
       if (imageBuffer) {
-        console.log(`✅ Image generated successfully (${imageBuffer.length} bytes)`);
-        return imageBuffer;
+        // Add farm URL overlay to the image
+        const imageWithUrl = await this.addFarmUrlOverlay(imageBuffer, farm);
+        console.log(`✅ Image generated successfully (${imageWithUrl.length} bytes) with embedded URL`);
+        return imageWithUrl;
       } else {
         console.warn('⚠️  Image generation returned null');
         return null;
@@ -69,16 +96,44 @@ class ImageGenerator {
   }
 
   /**
+   * Determine style hint from farm data
+   * @param {Object} farm - Farm data object
+   */
+  determineStyleFromFarm(farm) {
+    const nameLower = (farm?.name || '').toLowerCase();
+    const produceLower = (farm?.produce || '').toLowerCase();
+    
+    if (produceLower.includes('beef') || produceLower.includes('lamb') || produceLower.includes('venison')) {
+      return 'meat_products';
+    } else if (produceLower.includes('chicken') || produceLower.includes('poultry') || produceLower.includes('eggs')) {
+      return 'poultry_products';
+    } else if (produceLower.includes('dairy') || produceLower.includes('milk') || produceLower.includes('cheese')) {
+      return 'dairy_products';
+    } else if (produceLower.includes('fruit') || produceLower.includes('apple') || produceLower.includes('berry')) {
+      return 'fruit_display';
+    } else if (produceLower.includes('vegetable') || produceLower.includes('produce')) {
+      return 'fresh_produce';
+    } else if (produceLower.includes('bread') || produceLower.includes('bakery')) {
+      return 'bakery_items';
+    } else if (nameLower.includes('garden') || nameLower.includes('growing')) {
+      return 'vegetable_garden';
+    } else {
+      return 'farm_landscape'; // Default
+    }
+  }
+
+  /**
    * Build the farm prompt with deterministic variety and a strong negative section.
    * Now includes farm produce, fruits, scenic views, and seeds for diverse content.
    * @param {Object} farm - Farm data object
    * @param {string} styleHint - Optional style hint for different image types
+   * @param {string} contentContext - Content context for better image-text matching
    * @returns {string} Formatted prompt
    */
-  createFarmPrompt(farm, styleHint = '') {
+  createFarmPrompt(farm, styleHint = '', contentContext = '') {
     const h = this.hashString(farm?.name || 'default');
     
-    // Determine image category based on farm name hash
+    // Use provided styleHint or determine from farm data
     const imageCategories = [
       'farm_shop_exterior',
       'farm_produce',
@@ -87,10 +142,16 @@ class ImageGenerator {
       'seeds_grains',
       'vegetable_garden',
       'farm_landscape',
-      'produce_still_life'
+      'produce_still_life',
+      'meat_products',
+      'dairy_products',
+      'fresh_produce',
+      'poultry_products',
+      'bakery_items'
     ];
     
-    const selectedCategory = imageCategories[h % imageCategories.length];
+    // Use styleHint if provided, otherwise use hash-based selection
+    const selectedCategory = styleHint || imageCategories[h % imageCategories.length];
     
     let basePrompt = [];
     let specificElements = [];
@@ -244,6 +305,90 @@ class ImageGenerator {
           'textured backgrounds', 'vintage props', 'handmade elements'
         ];
         break;
+        
+      case 'meat_products':
+        basePrompt = [
+          'Farm meat products display',
+          'butchery counter',
+          'natural lighting',
+          'high quality food photography',
+          'professional presentation',
+          'empty butchery counter',
+          'meat cuts on display',
+          'clean food photography'
+        ];
+        specificElements = [
+          'grass-fed beef cuts', 'lamb cuts', 'venison', 'game meat',
+          'butcher paper', 'wooden cutting boards', 'butcher knives', 'meat scales',
+          'refrigerated display', 'artisan butchery', 'traditional cuts', 'quality marbling'
+        ];
+        break;
+        
+      case 'dairy_products':
+        basePrompt = [
+          'Farm dairy products display',
+          'cheese and milk products',
+          'natural lighting',
+          'high quality food photography',
+          'artisan presentation',
+          'no people visible'
+        ];
+        specificElements = [
+          'artisan cheese wheels', 'fresh milk bottles', 'yogurt pots', 'butter blocks',
+          'cheese boards', 'dairy display case', 'glass milk bottles', 'cheese knives',
+          'traditional dairy', 'farm-fresh milk', 'aged cheeses', 'cream products'
+        ];
+        break;
+        
+      case 'fresh_produce':
+        basePrompt = [
+          'Fresh farm produce display',
+          'seasonal vegetables only',
+          'natural lighting',
+          'high quality produce photography',
+          'market stall presentation',
+          'empty market stall',
+          'vegetables on display',
+          'clean food photography'
+        ];
+        specificElements = [
+          'fresh vegetables', 'seasonal vegetables', 'organic vegetables', 'root vegetables',
+          'leafy greens', 'tomatoes', 'carrots', 'potatoes', 'onions', 'peppers',
+          'cucumbers', 'lettuce', 'spinach', 'kale', 'cabbage', 'broccoli'
+        ];
+        break;
+        
+      case 'poultry_products':
+        basePrompt = [
+          'Farm poultry products display',
+          'free-range chicken and eggs',
+          'natural lighting',
+          'high quality food photography',
+          'professional presentation',
+          'no people visible'
+        ];
+        specificElements = [
+          'free-range chicken', 'fresh eggs', 'poultry display', 'egg cartons',
+          'chicken cuts', 'whole chicken', 'organic poultry', 'farm-fresh eggs',
+          'poultry counter', 'refrigerated poultry', 'traditional poultry', 'quality poultry'
+        ];
+        break;
+        
+      case 'bakery_items':
+        basePrompt = [
+          'Farm bakery display',
+          'fresh baked goods',
+          'natural lighting',
+          'high quality bakery photography',
+          'artisan presentation',
+          'no people visible'
+        ];
+        specificElements = [
+          'fresh bread loaves', 'artisan breads', 'pastries', 'cakes', 'cookies',
+          'wooden bread boards', 'basket displays', 'bakery cases', 'flour dusting',
+          'traditional baking', 'handmade bread', 'sourdough', 'whole grain bread'
+        ];
+        break;
     }
     
     // Add location context
@@ -272,8 +417,7 @@ class ImageGenerator {
       typeContext,
       styleHint,
       selectedElements.join(', '),
-      // embed negatives directly; Pollinations doesn't expose a separate negative parameter
-      `Negative: ${NO_FACE_NEGATIVE}`
+      SAFE_POSITIVE_ADDITIONS
     ].filter(Boolean);
 
     return parts.join(', ');
@@ -342,6 +486,109 @@ class ImageGenerator {
         
         // Wait before retry
         await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempt));
+      }
+    }
+    
+    return null;
+  }
+
+  /**
+   * Call Qwen Image via fal.ai client (official implementation)
+   * @param {string} prompt - Image generation prompt
+   * @param {Object} opts - Options including width, height, seed, maxAttempts
+   * @returns {Promise<Buffer|null>} Image buffer or null
+   */
+  async callQwenImageAPI(prompt, opts) {
+    for (let attempt = 1; attempt <= (opts.maxAttempts || this.maxRetries); attempt++) {
+      try {
+        console.log(`🔄 Qwen Image generation attempt ${attempt}/${opts.maxAttempts || this.maxRetries}`);
+        
+        // Enhanced prompt with Qwen Image magic words for better quality
+        const enhancedPrompt = `${prompt}, Ultra HD, 4K, cinematic composition.`;
+        
+        // Map dimensions to Qwen Image supported aspect ratios
+        const aspectRatios = {
+          "1:1": { width: 1328, height: 1328 },
+          "16:9": { width: 1664, height: 928 },
+          "9:16": { width: 928, height: 1664 },
+          "4:3": { width: 1472, height: 1140 },
+          "3:4": { width: 1140, height: 1472 },
+          "3:2": { width: 1584, height: 1056 },
+          "2:3": { width: 1056, height: 1584 }
+        };
+        
+        // Find closest aspect ratio or use 16:9 as default
+        let targetWidth = opts.width || 1024;
+        let targetHeight = opts.height || 1024;
+        
+        // Find the closest supported aspect ratio
+        const targetRatio = targetWidth / targetHeight;
+        let closestRatio = "16:9";
+        let minDiff = Infinity;
+        
+        for (const [ratio, dimensions] of Object.entries(aspectRatios)) {
+          const ratioValue = dimensions.width / dimensions.height;
+          const diff = Math.abs(ratioValue - targetRatio);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestRatio = ratio;
+          }
+        }
+        
+        const { width, height } = aspectRatios[closestRatio];
+        
+        // Use fal.ai client as per documentation
+        const result = await fal.subscribe("fal-ai/qwen-image", {
+          input: {
+            prompt: enhancedPrompt,
+            width: width,
+            height: height,
+            num_inference_steps: 50,
+            true_cfg_scale: 4.0,
+            seed: opts.seed || Math.floor(Math.random() * 1000000)
+          },
+          logs: true,
+          onQueueUpdate: (update) => {
+            if (update.status === "IN_PROGRESS") {
+              console.log("🔄 Qwen Image generation in progress...");
+            }
+          },
+        });
+
+        if (result && result.data && result.data.images && result.data.images.length > 0) {
+          const imageUrl = result.data.images[0].url;
+          console.log('🖼️  Image URL:', imageUrl);
+          
+          // Download the image
+          const imageResponse = await axios.get(imageUrl, {
+            responseType: 'arraybuffer',
+            timeout: 30000
+          });
+
+          if (imageResponse.data && imageResponse.data.length > 0) {
+            const imageBuffer = Buffer.from(imageResponse.data);
+            console.log(`✅ Qwen Image generated successfully (${imageBuffer.length} bytes, seed: ${opts.seed}, ratio: ${closestRatio})`);
+            return imageBuffer;
+          }
+        }
+        
+        console.log('❌ No images in result:', result);
+        throw new Error('No image returned from fal.ai');
+        
+      } catch (error) {
+        console.error(`❌ Qwen Image generation attempt ${attempt} failed:`, error.message);
+        
+        if (error.response) {
+          console.error(`📊 Status: ${error.response.status}, Data:`, error.response.data);
+        }
+        
+        if (attempt === (opts.maxAttempts || this.maxRetries)) {
+          console.error('❌ All Qwen Image generation attempts failed');
+          return null;
+        }
+        
+        // Wait before retry with exponential backoff
+        await this.sleep(this.retryDelay * attempt);
       }
     }
     
@@ -450,6 +697,65 @@ class ImageGenerator {
    */
   async generateTweetImage(farm, styleHint) {
     return this.generateFarmImage(farm, { width: 1600, height: 900, styleHint });
+  }
+
+  /**
+   * Add farm URL overlay to the generated image
+   * @param {Buffer} imageBuffer - Original image buffer
+   * @param {Object} farm - Farm data object
+   * @returns {Promise<Buffer>} Image buffer with URL overlay
+   */
+  async addFarmUrlOverlay(imageBuffer, farm) {
+    try {
+      const farmUrl = `https://www.farmcompanion.co.uk/shop/${farm.slug}`;
+      console.log(`🔗 Adding farm URL overlay: ${farmUrl}`);
+      
+      // Get image metadata
+      const metadata = await sharp(imageBuffer).metadata();
+      const { width, height } = metadata;
+      
+      // Create SVG text overlay
+      const fontSize = Math.max(24, Math.floor(width / 40)); // Responsive font size
+      const textY = height - 40; // Position near bottom
+      const textX = 20; // Left margin
+      
+      const svgOverlay = `
+        <svg width="${width}" height="${height}">
+          <defs>
+            <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+              <feDropShadow dx="2" dy="2" stdDeviation="3" flood-color="black" flood-opacity="0.5"/>
+            </filter>
+          </defs>
+          <rect x="${textX - 10}" y="${textY - fontSize - 10}" width="${farmUrl.length * fontSize * 0.6 + 20}" height="${fontSize + 20}" 
+                fill="rgba(0,0,0,0.7)" rx="8" ry="8"/>
+          <text x="${textX}" y="${textY}" 
+                font-family="Arial, sans-serif" 
+                font-size="${fontSize}" 
+                font-weight="bold" 
+                fill="white" 
+                filter="url(#shadow)">
+            ${farmUrl}
+          </text>
+        </svg>
+      `;
+      
+      // Apply overlay to image
+      const imageWithOverlay = await sharp(imageBuffer)
+        .composite([{
+          input: Buffer.from(svgOverlay),
+          top: 0,
+          left: 0
+        }])
+        .jpeg({ quality: 90 })
+        .toBuffer();
+      
+      console.log(`✅ URL overlay added successfully`);
+      return imageWithOverlay;
+      
+    } catch (error) {
+      console.error('❌ Failed to add URL overlay:', error.message);
+      return imageBuffer; // Return original if overlay fails
+    }
   }
 }
 

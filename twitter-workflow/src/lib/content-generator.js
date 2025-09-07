@@ -68,19 +68,25 @@ class ContentGenerator {
   }
 
   /**
-   * Generate both content and image for a farm spotlight
+   * Generate both content and image for a farm spotlight with coordination
    * @param {Object} farm - Farm data object
    * @param {Object} options - Generation options
    */
   async generateFarmSpotlightWithImage(farm, options = {}) {
     try {
-      console.log(`🎨 Generating content and image for: ${farm.name}`);
+      console.log(`🎨 Generating coordinated content and image for: ${farm.name}`);
+      
+      // Filter farm data to remove pork-related content
+      const filteredFarm = this.filterPorkContent(farm);
       
       // Generate content first
-      const contentResult = await this.generateFarmSpotlight(farm, options);
+      const contentResult = await this.generateFarmSpotlight(filteredFarm, options);
       
-      // Generate image
-      const imageBuffer = await imageGenerator.generateFarmImage(farm);
+      // Generate image with content context for better matching
+      const imageBuffer = await imageGenerator.generateFarmImage(filteredFarm, {
+        contentContext: contentResult.content,
+        theme: this.extractContentTheme(contentResult.content)
+      });
       
       return {
         ...contentResult,
@@ -90,12 +96,88 @@ class ContentGenerator {
     } catch (error) {
       console.error(`❌ Content and image generation error: ${error.message}`);
       // Return content without image if image generation fails
-      const contentResult = await this.generateFarmSpotlight(farm, options);
+      const filteredFarm = this.filterPorkContent(farm);
+      const contentResult = await this.generateFarmSpotlight(filteredFarm, options);
       return {
         ...contentResult,
         image: null,
         hasImage: false
       };
+    }
+  }
+
+  /**
+   * Filter out pork-related content from farm data
+   * @param {Object} farm - Farm data object
+   */
+  filterPorkContent(farm) {
+    const filtered = { ...farm };
+    
+    // Filter produce
+    if (filtered.produce) {
+      const porkKeywords = ['pork', 'pig', 'bacon', 'ham', 'sausage', 'chorizo', 'prosciutto'];
+      const hasPork = porkKeywords.some(keyword => 
+        filtered.produce.toLowerCase().includes(keyword)
+      );
+      
+      if (hasPork) {
+        // Replace pork content with alternative produce
+        filtered.produce = filtered.produce
+          .replace(/pork[^,]*/gi, 'grass-fed beef')
+          .replace(/pig[^,]*/gi, 'free-range chicken')
+          .replace(/bacon[^,]*/gi, 'artisan cheese')
+          .replace(/ham[^,]*/gi, 'local honey')
+          .replace(/sausage[^,]*/gi, 'fresh vegetables')
+          .replace(/chorizo[^,]*/gi, 'seasonal fruit')
+          .replace(/prosciutto[^,]*/gi, 'organic eggs');
+      }
+    }
+    
+    // Filter signature
+    if (filtered.signature) {
+      const porkKeywords = ['pork', 'pig', 'bacon', 'ham', 'sausage', 'chorizo', 'prosciutto'];
+      const hasPork = porkKeywords.some(keyword => 
+        filtered.signature.toLowerCase().includes(keyword)
+      );
+      
+      if (hasPork) {
+        filtered.signature = filtered.signature
+          .replace(/pork[^,]*/gi, 'grass-fed beef')
+          .replace(/pig[^,]*/gi, 'free-range chicken')
+          .replace(/bacon[^,]*/gi, 'artisan cheese')
+          .replace(/ham[^,]*/gi, 'local honey')
+          .replace(/sausage[^,]*/gi, 'fresh vegetables')
+          .replace(/chorizo[^,]*/gi, 'seasonal fruit')
+          .replace(/prosciutto[^,]*/gi, 'organic eggs');
+      }
+    }
+    
+    return filtered;
+  }
+
+  /**
+   * Extract theme from content for image coordination
+   * @param {string} content - Generated tweet content
+   */
+  extractContentTheme(content) {
+    const contentLower = content.toLowerCase();
+    
+    if (contentLower.includes('beef') || contentLower.includes('lamb') || contentLower.includes('venison')) {
+      return 'meat_products';
+    } else if (contentLower.includes('chicken') || contentLower.includes('poultry') || contentLower.includes('eggs')) {
+      return 'poultry_products';
+    } else if (contentLower.includes('dairy') || contentLower.includes('milk') || contentLower.includes('cheese')) {
+      return 'dairy_products';
+    } else if (contentLower.includes('fruit') || contentLower.includes('apple') || contentLower.includes('berry')) {
+      return 'fruit_display';
+    } else if (contentLower.includes('vegetable') || contentLower.includes('produce')) {
+      return 'fresh_produce';
+    } else if (contentLower.includes('bread') || contentLower.includes('bakery')) {
+      return 'bakery_items';
+    } else if (contentLower.includes('garden') || contentLower.includes('growing')) {
+      return 'vegetable_garden';
+    } else {
+      return 'farm_landscape'; // Default theme
     }
   }
 
