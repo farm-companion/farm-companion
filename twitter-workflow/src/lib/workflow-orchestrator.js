@@ -1,4 +1,6 @@
 import { twitterClient } from './twitter-client.js';
+import { blueskyClient } from './bluesky-client.js';
+import { telegramClient } from './telegram-client.js';
 import { contentGenerator } from './content-generator.js';
 import { farmSelector } from './farm-selector.js';
 import { monitoringSystem } from './monitoring.js';
@@ -7,7 +9,7 @@ const { parseTweet } = pkg;
 import axios from 'axios';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 // Upstash Redis configuration for idempotency
 const KV_URL = process.env.UPSTASH_REDIS_REST_URL;
@@ -141,21 +143,40 @@ export class WorkflowOrchestrator {
         throw new Error(`Content generation failed: ${contentGeneration.error}`);
       }
 
-      // Step 3: Compose final tweet with farm URL
-      console.log('\n🐦 Step 3: Posting to Twitter...');
+      // Step 3: Post to all social media platforms
+      console.log('\n📱 Step 3: Posting to social media platforms...');
+      
+      // Compose final tweet with farm URL
       const finalTweet = composeFinalTweet({ 
         baseText: contentGeneration.content.content || contentGeneration.content, 
         farm: farmSelection.farm 
       });
       console.log(`📝 Final tweet (${finalTweet.length} chars): "${finalTweet.substring(0, 80)}..."`);
       
-      // Post tweet with image if available
+      // Post to X/Twitter
+      console.log('\n🐦 Posting to X/Twitter...');
       const twitterPost = await this.postToTwitter(finalTweet, contentGeneration, { ...options, dryRun: isDryRun });
       results.steps.twitterPost = twitterPost;
       
-      if (!twitterPost.success) {
-        throw new Error(`Twitter posting failed: ${twitterPost.error}`);
+      // Post to Bluesky
+      console.log('\n🦋 Posting to Bluesky...');
+      const blueskyPost = await this.postToBluesky(contentGeneration.content.content || contentGeneration.content, contentGeneration.image, farmSelection.farm, { ...options, dryRun: isDryRun });
+      results.steps.blueskyPost = blueskyPost;
+      
+      // Post to Telegram
+      console.log('\n📱 Posting to Telegram...');
+      const telegramPost = await this.postToTelegram(contentGeneration.content.content || contentGeneration.content, contentGeneration.image, farmSelection.farm, { ...options, dryRun: isDryRun });
+      results.steps.telegramPost = telegramPost;
+      
+      // Check if at least one platform succeeded
+      const platforms = [twitterPost, blueskyPost, telegramPost];
+      const successfulPosts = platforms.filter(post => post.success && !post.skipped);
+      
+      if (successfulPosts.length === 0) {
+        throw new Error('All social media posting failed');
       }
+      
+      console.log(`✅ Successfully posted to ${successfulPosts.length}/3 platforms`);
 
       // Step 4: Send success notification
       console.log('\n📢 Step 4: Sending notifications...');
@@ -341,17 +362,97 @@ export class WorkflowOrchestrator {
     }
   }
 
+  /**
+   * Post content to Bluesky with optional image
+   */
+  async postToBluesky(content, imageBuffer, farm, options) {
+    try {
+      if (!this.postingEnabled) {
+        console.log('⚠️  Posting disabled, skipping Bluesky post');
+        return {
+          success: true,
+          skipped: true,
+          reason: 'posting_disabled'
+        };
+      }
+
+      const dryRun = options.dryRun !== undefined ? options.dryRun : this.dryRunMode;
+      const result = await blueskyClient.post(content, imageBuffer, farm, dryRun);
+      
+      if (result.success && !result.skipped) {
+        console.log(`✅ Bluesky post successful`);
+        if (result.url) {
+          console.log(`🔗 Bluesky URL: ${result.url}`);
+        }
+        if (imageBuffer) {
+          console.log(`🖼️  Bluesky post includes image`);
+        }
+      } else if (result.skipped) {
+        console.log(`⏭️  Bluesky post skipped: ${result.reason}`);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('❌ Bluesky posting error:', error.message);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Post content to Telegram with optional image
+   */
+  async postToTelegram(content, imageBuffer, farm, options) {
+    try {
+      if (!this.postingEnabled) {
+        console.log('⚠️  Posting disabled, skipping Telegram post');
+        return {
+          success: true,
+          skipped: true,
+          reason: 'posting_disabled'
+        };
+      }
+
+      const dryRun = options.dryRun !== undefined ? options.dryRun : this.dryRunMode;
+      const result = await telegramClient.post(content, imageBuffer, farm, dryRun);
+      
+      if (result.success && !result.skipped) {
+        console.log(`✅ Telegram post successful`);
+        if (result.messageId) {
+          console.log(`📱 Telegram message ID: ${result.messageId}`);
+        }
+        if (imageBuffer) {
+          console.log(`🖼️  Telegram post includes image`);
+        }
+      } else if (result.skipped) {
+        console.log(`⏭️  Telegram post skipped: ${result.reason}`);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('❌ Telegram posting error:', error.message);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
 
   /**
    * Test the complete workflow
    */
   async testWorkflow() {
-    console.log('🧪 Testing Twitter workflow components...');
+    console.log('🧪 Testing multi-platform workflow components...');
     
     const tests = {
       farmSelection: await farmSelector.testSelection(),
       contentGeneration: await contentGenerator.testGeneration(),
-      twitterConnection: await twitterClient.testConnection()
+      twitterConnection: await twitterClient.testConnection(),
+      blueskyConnection: await blueskyClient.testConnection(),
+      telegramConnection: await telegramClient.testConnection()
     };
 
     const allPassed = Object.values(tests).every(test => test.success);
