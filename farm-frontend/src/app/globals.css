@@ -130,7 +130,8 @@
 /* Base typography improvements for clarity and readability */
 html {
   font-family: var(--font-body);
-  font-size: 18px; /* Increased base font size from 16px for better readability */
+  /* Adaptive base font size: scales from 18px on mobile to 22px on desktop - ensures readability */
+  font-size: clamp(18px, 2.5vw, 22px);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -141,7 +142,7 @@ html {
 
 body {
   font-family: var(--font-body);
-  font-size: 1rem; /* 18px base */
+  font-size: 1rem; /* Inherits adaptive size from html */
   line-height: 1.6; /* Improved line height for better readability */
   color: var(--text-body);
   background-color: var(--background-canvas);
@@ -158,11 +159,43 @@ h1, h2, h3, h4, h5, h6, .brand {
   color: var(--text-heading);
 }
 
+/* Adaptive heading sizes - ensuring minimum readability */
+h1 {
+  font-size: clamp(2.25rem, 6vw, 3.5rem); /* 36px to 56px - larger minimum */
+}
+
+h2 {
+  font-size: clamp(1.875rem, 5vw, 2.5rem); /* 30px to 40px - larger minimum */
+}
+
+h3 {
+  font-size: clamp(1.5rem, 4vw, 2rem); /* 24px to 32px */
+}
+
+h4 {
+  font-size: clamp(1.25rem, 3vw, 1.5rem); /* 20px to 24px */
+}
+
+h5 {
+  font-size: clamp(1.125rem, 2.5vw, 1.25rem); /* 18px to 20px */
+}
+
+h6 {
+  font-size: clamp(1rem, 2vw, 1.125rem); /* 16px to 18px */
+}
+
 /* Body text - Manrope (geometric sans, ultra-readable) */
 body, p, li, .body-text {
   font-family: var(--font-body);
   font-weight: 400;
   line-height: 1.6;
+}
+
+/* Adaptive body text sizes - ensuring readability */
+p {
+  font-size: clamp(1.125rem, 2vw, 1.25rem); /* 18px to 20px - larger minimum */
+  line-height: 1.7; /* More generous line height for body text */
+  margin-bottom: 1rem;
 }
 
 /* UI Labels / Buttons / Filters - IBM Plex Sans Condensed (tight, functional) */
@@ -171,35 +204,111 @@ button, .filter, .ui-label, .cta, .btn, .button {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
+  font-size: clamp(0.875rem, 2vw, 1rem); /* 14px to 16px */
 }
 
-p {
-  line-height: 1.7; /* More generous line height for body text */
-  margin-bottom: 1rem;
-}
-
-/* Improved contrast and readability for small text */
+/* Improved contrast and readability for small text - ensuring minimum readability */
 .text-xs {
-  font-size: 0.875rem; /* 14px */
+  font-size: clamp(0.875rem, 1.5vw, 1rem); /* 14px to 16px - larger minimum */
   line-height: 1.5;
 }
 
 .text-sm {
-  font-size: 1rem; /* 16px */
+  font-size: clamp(1rem, 2vw, 1.125rem); /* 16px to 18px - larger minimum */
+  line-height: 1.5;
+}
+
+.text-base {
+  font-size: clamp(1.125rem, 2vw, 1.25rem); /* 18px to 20px - larger minimum */
+  line-height: 1.6;
+}
+
+.text-lg {
+  font-size: clamp(1.25rem, 2.5vw, 1.375rem); /* 20px to 22px - larger minimum */
+  line-height: 1.6;
+}
+
+.text-xl {
+  font-size: clamp(1.375rem, 3vw, 1.5rem); /* 22px to 24px - larger minimum */
   line-height: 1.5;
 }
 
 /* Better readability for form elements */
 input, textarea, select {
-  font-size: 1rem; /* 16px to prevent zoom on iOS */
+  font-size: clamp(1.125rem, 2vw, 1.25rem); /* 18px to 20px - larger minimum, prevents iOS zoom */
   line-height: 1.5;
 }
 
 /* Enhanced button text readability */
 button {
-  font-size: 1rem; /* 16px */
   font-weight: 500;
   line-height: 1.5;
+}
+
+/* ============================================================================
+   ADAPTIVE FONT UTILITIES - SCREEN SIZE RESPONSIVE TYPOGRAPHY
+   ============================================================================ */
+
+/* Adaptive font utilities for common use cases - ensuring minimum readability */
+.font-adaptive-xs {
+  font-size: clamp(0.875rem, 1.5vw, 1rem); /* 14px to 16px - larger minimum */
+}
+
+.font-adaptive-sm {
+  font-size: clamp(1rem, 2vw, 1.125rem); /* 16px to 18px - larger minimum */
+}
+
+.font-adaptive-base {
+  font-size: clamp(1.125rem, 2vw, 1.25rem); /* 18px to 20px - larger minimum */
+}
+
+.font-adaptive-lg {
+  font-size: clamp(1.25rem, 2.5vw, 1.375rem); /* 20px to 22px - larger minimum */
+}
+
+.font-adaptive-xl {
+  font-size: clamp(1.375rem, 3vw, 1.5rem); /* 22px to 24px - larger minimum */
+}
+
+.font-adaptive-2xl {
+  font-size: clamp(1.5rem, 4vw, 2rem); /* 24px to 32px - larger minimum */
+}
+
+.font-adaptive-3xl {
+  font-size: clamp(1.875rem, 5vw, 2.5rem); /* 30px to 40px - larger minimum */
+}
+
+.font-adaptive-4xl {
+  font-size: clamp(2.25rem, 6vw, 3.5rem); /* 36px to 56px - larger minimum */
+}
+
+/* Mobile-first responsive breakpoints for fine-tuning */
+@media (max-width: 480px) {
+  /* Extra small screens - ensure minimum readability */
+  html {
+    font-size: 16px; /* Fixed minimum for very small screens */
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  /* Small tablets - moderate scaling */
+  html {
+    font-size: clamp(16px, 3vw, 18px);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Large tablets - balanced scaling */
+  html {
+    font-size: clamp(18px, 2.5vw, 20px);
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop - full adaptive scaling */
+  html {
+    font-size: clamp(18px, 2vw, 22px);
+  }
 }
 
 /* Dark theme support - Manual toggle */
