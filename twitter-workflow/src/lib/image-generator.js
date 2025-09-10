@@ -9,6 +9,7 @@ const NO_FACE_NEGATIVE = 'no people, no person, no faces, no face, nobody, no hu
 class ImageGenerator {
   constructor() {
     this.apiKey = process.env.DEEPSEEK_IMAGE_API_KEY || process.env.DEEPSEEK_API_KEY;
+    this.falApiKey = process.env.FAL_KEY;
     this.maxRetries = 3;
     this.retryDelay = 1000;
     this.userAgent = 'FarmCompanion-TwitterWorkflow/1.2.0';
@@ -38,21 +39,23 @@ class ImageGenerator {
       
       console.log(`🎨 Image prompt: "${prompt.substring(0, 100)}..."`);
       
-      // Pollinations first with multi-seed retries
-      let imageBuffer = await this.callPollinations(prompt, { 
+      // fal.ai FLUX first with multi-seed retries
+      let imageBuffer = await this.callFalAI(prompt, { 
         width, 
         height, 
         seed, 
         maxAttempts: 3 
       });
       
-      // Optional: fall back to HF if you left it enabled
+      // Fall back to Pollinations if fal.ai fails
       if (!imageBuffer) {
-        console.log('🔄 Falling back to Hugging Face...');
-        imageBuffer = await this.callHuggingFaceImageAPI(
-          `${prompt}, Negative: ${NO_FACE_NEGATIVE}`,
-          { width, height }
-        );
+        console.log('🔄 Falling back to Pollinations...');
+        imageBuffer = await this.callPollinations(prompt, { 
+          width, 
+          height, 
+          seed, 
+          maxAttempts: 3 
+        });
       }
       
       if (imageBuffer) {
@@ -345,6 +348,93 @@ class ImageGenerator {
       }
     }
     
+    return null;
+  }
+
+  /**
+   * fal.ai FLUX with seeded retries. We try multiple seeds if needed.
+   * Nothing breaks: same return type Buffer|null, same inputs.
+   * @param {string} prompt - Image generation prompt
+   * @param {Object} opts - Options including width, height, seed, maxAttempts, backoffMs
+   * @returns {Promise<Buffer|null>} Image buffer or null
+   */
+  async callFalAI(prompt, opts) {
+    const attempts = Math.max(1, opts.maxAttempts ?? 3);
+    const backoff = Math.max(0, opts.backoffMs ?? 400);
+
+    if (!this.falApiKey) {
+      console.warn('⚠️  FAL_KEY not found, skipping fal.ai generation');
+      return null;
+    }
+
+    for (let i = 0; i < attempts; i++) {
+      // vary seed each attempt but stay deterministic around the base seed
+      const attemptSeed = (opts.seed + i * 9973) >>> 0;
+
+      try {
+        console.log(`🔄 fal.ai FLUX attempt ${i + 1}/${attempts} (seed: ${attemptSeed})...`);
+        
+        // Use the full prompt for production
+        
+        // Map dimensions to valid image_size values
+        let imageSize = 'square';
+        if (opts.width === 1024 && opts.height === 1024) {
+          imageSize = 'square';
+        } else if (opts.width === 1600 && opts.height === 900) {
+          imageSize = 'landscape_16_9';
+        } else if (opts.width === 900 && opts.height === 1600) {
+          imageSize = 'portrait_16_9';
+        }
+        
+        const response = await axios.post(
+          'https://fal.run/fal-ai/flux',
+          {
+            prompt: prompt,
+            image_size: imageSize,
+            num_inference_steps: 20,
+            guidance_scale: 7.5,
+            seed: attemptSeed,
+            enable_safety_checker: true
+          },
+          {
+            headers: {
+              'Authorization': `Key ${this.falApiKey}`,
+              'Content-Type': 'application/json'
+            },
+            timeout: 120000, // 2 minute timeout
+            responseType: 'json'
+          }
+        );
+
+        if (response.data && response.data.images && response.data.images.length > 0) {
+          const imageUrl = response.data.images[0].url;
+          if (imageUrl) {
+            // Download the image from the URL
+            const imageResponse = await axios.get(imageUrl, {
+              responseType: 'arraybuffer',
+              timeout: 60000
+            });
+            
+            if (imageResponse.data && imageResponse.data.length > 0) {
+              const imageBuffer = Buffer.from(imageResponse.data);
+              console.log(`✅ fal.ai FLUX generated image (${imageBuffer.length} bytes, seed: ${attemptSeed})`);
+              return imageBuffer;
+            }
+          }
+        }
+        
+        // retry on unexpected response
+        await this.sleep(backoff * (i + 1));
+      } catch (err) {
+        console.warn(`⚠️  fal.ai FLUX attempt ${i + 1} failed: ${err.message}`);
+        if (err.response) {
+          console.warn(`Response status: ${err.response.status}`);
+          console.warn(`Response data:`, err.response.data);
+        }
+        // network/timeouts → retry with next seed
+        await this.sleep(backoff * (i + 1));
+      }
+    }
     return null;
   }
 

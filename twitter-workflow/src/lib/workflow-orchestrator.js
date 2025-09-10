@@ -16,20 +16,43 @@ const KV_URL = process.env.UPSTASH_REDIS_REST_URL;
 const KV_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 
 /**
- * Set a key once per day (idempotency guard)
+ * Set a key with a limit per day (idempotency guard for multiple posts)
  */
-async function setOnceToday(key) {
+async function setWithLimitToday(key, limit = 2) {
   if (!KV_URL || !KV_TOKEN) return { enforced: false }; // soft skip if not configured
   const today = new Date().toISOString().slice(0,10);
   const namespaced = `fc:tweeted:${today}`;
   if (key) namespaced += `:${key}`;
 
-  // SETNX
-  const resp = await fetch(`${KV_URL}/set/${encodeURIComponent(namespaced)}/${Date.now()}?nx=true`, {
+  // Check current count
+  const countResp = await fetch(`${KV_URL}/get/${encodeURIComponent(namespaced)}`, {
     headers: { Authorization: `Bearer ${KV_TOKEN}` }
   });
-  const data = await resp.json();
-  return { enforced: true, created: data.result === 'OK', key: namespaced };
+  const countData = await countResp.json();
+  const currentCount = countData.result ? parseInt(countData.result) : 0;
+
+  if (currentCount >= limit) {
+    return { enforced: true, created: false, key: namespaced, count: currentCount, limit };
+  }
+
+  // Increment counter
+  const incrResp = await fetch(`${KV_URL}/incr/${encodeURIComponent(namespaced)}`, {
+    headers: { Authorization: `Bearer ${KV_TOKEN}` }
+  });
+  const incrData = await incrResp.json();
+  
+  // Set expiration to end of day (24 hours from now)
+  const expireResp = await fetch(`${KV_URL}/expire/${encodeURIComponent(namespaced)}/86400`, {
+    headers: { Authorization: `Bearer ${KV_TOKEN}` }
+  });
+
+  return { 
+    enforced: true, 
+    created: true, 
+    key: namespaced, 
+    count: incrData.result || currentCount + 1,
+    limit 
+  };
 }
 
 /**
@@ -86,6 +109,148 @@ export class WorkflowOrchestrator {
   }
 
   /**
+   * Execute dual daily farm spotlight workflow (2 posts per day)
+   * @param {Object} options - Workflow options
+   */
+  async executeDualDailySpotlight(options = {}) {
+    const startTime = new Date();
+    const workflowId = `dual-spotlight-${startTime.toISOString().split('T')[0]}`;
+    
+    // Override dry run mode if specified in options
+    const isDryRun = options.dryRun !== undefined ? options.dryRun : this.dryRunMode;
+    
+    console.log(`🚀 Starting dual daily farm spotlight workflow: ${workflowId}`);
+    console.log(`📊 Mode: ${isDryRun ? 'DRY RUN' : 'LIVE'}`);
+    console.log(`📝 Content Generation: ${this.contentGenerationEnabled ? 'ENABLED' : 'DISABLED'}`);
+    console.log(`🐦 Posting: ${this.postingEnabled ? 'ENABLED' : 'DISABLED'}`);
+
+    const results = {
+      workflowId,
+      startTime: startTime.toISOString(),
+      dryRun: this.dryRunMode,
+      posts: [],
+      success: false,
+      error: null
+    };
+
+    try {
+      // Step 1: Select 2 farms for today
+      console.log('\n🏡 Step 1: Selecting farms for dual spotlight...');
+      const farmSelection = await this.selectFarms();
+      if (!farmSelection.success) {
+        throw new Error(`Farm selection failed: ${farmSelection.error}`);
+      }
+      
+      console.log(`✅ Selected ${farmSelection.farms.length} farms for dual spotlight`);
+
+      // Step 2: Generate content and post for each farm
+      for (let i = 0; i < farmSelection.farms.length; i++) {
+        const farm = farmSelection.farms[i];
+        const postNumber = i + 1;
+        
+        console.log(`\n🎯 Post ${postNumber}/${farmSelection.farms.length}: ${farm.name}`);
+        
+        // Check idempotency for this specific post
+        if (!isDryRun) {
+          const lock = await setWithLimitToday(`post-${postNumber}`, 1);
+          if (lock.enforced && !lock.created) {
+            console.log(`⏭️  Post ${postNumber} already completed today, skipping`);
+            results.posts.push({
+              postNumber,
+              farm: farm.name,
+              success: true,
+              skipped: true,
+              reason: 'already_posted_today'
+            });
+            continue;
+          }
+        }
+
+        // Generate content for this farm
+        console.log(`\n📝 Step 2.${postNumber}: Generating content...`);
+        const contentGeneration = await this.generateContent(farm, { ...options, dryRun: isDryRun });
+        if (!contentGeneration.success) {
+          console.error(`❌ Content generation failed for ${farm.name}: ${contentGeneration.error}`);
+          results.posts.push({
+            postNumber,
+            farm: farm.name,
+            success: false,
+            error: contentGeneration.error
+          });
+          continue;
+        }
+
+        // Compose final tweet
+        const finalTweet = composeFinalTweet({ 
+          baseText: contentGeneration.content.content || contentGeneration.content, 
+          farm: farm 
+        });
+        console.log(`📝 Final tweet (${finalTweet.length} chars): "${finalTweet.substring(0, 80)}..."`);
+
+        // Post to all platforms
+        console.log(`\n🌐 Step 3.${postNumber}: Posting to all platforms...`);
+        
+        const postResults = {
+          postNumber,
+          farm: farm.name,
+          platforms: {}
+        };
+
+        // Post to X/Twitter
+        console.log(`🐦 Posting to X/Twitter...`);
+        const twitterPost = await this.postToTwitter(finalTweet, contentGeneration, { ...options, dryRun: isDryRun });
+        postResults.platforms.twitter = twitterPost;
+
+        // Post to Bluesky
+        console.log(`🦋 Posting to Bluesky...`);
+        const blueskyPost = await this.postToBluesky(contentGeneration.content.content || contentGeneration.content, contentGeneration.image, farm, { ...options, dryRun: isDryRun });
+        postResults.platforms.bluesky = blueskyPost;
+
+        // Post to Telegram
+        console.log(`📱 Posting to Telegram...`);
+        const telegramPost = await this.postToTelegram(contentGeneration.content.content || contentGeneration.content, contentGeneration.image, farm, { ...options, dryRun: isDryRun });
+        postResults.platforms.telegram = telegramPost;
+
+        // Check if at least one platform succeeded
+        const platforms = [twitterPost, blueskyPost, telegramPost];
+        const successfulPosts = platforms.filter(post => post.success && !post.skipped);
+        
+        if (successfulPosts.length === 0) {
+          postResults.success = false;
+          postResults.error = 'All social media posting failed';
+        } else {
+          postResults.success = true;
+          console.log(`✅ Post ${postNumber} successfully posted to ${successfulPosts.length}/3 platforms`);
+        }
+
+        results.posts.push(postResults);
+      }
+
+      // Check overall success
+      const successfulPosts = results.posts.filter(post => post.success && !post.skipped);
+      if (successfulPosts.length === 0) {
+        throw new Error('All posts failed');
+      }
+
+      results.success = true;
+      results.endTime = new Date().toISOString();
+      results.duration = new Date() - startTime;
+      
+      console.log(`\n🎉 Dual spotlight workflow completed successfully!`);
+      console.log(`📊 Successfully posted ${successfulPosts.length}/${results.posts.length} posts`);
+      console.log(`⏱️  Total duration: ${Math.round(results.duration / 1000)}s`);
+
+      return results;
+    } catch (error) {
+      console.error('❌ Dual spotlight workflow failed:', error.message);
+      results.error = error.message;
+      results.endTime = new Date().toISOString();
+      results.duration = new Date() - startTime;
+      return results;
+    }
+  }
+
+  /**
    * Execute the complete daily farm spotlight workflow
    * @param {Object} options - Workflow options
    */
@@ -96,18 +261,21 @@ export class WorkflowOrchestrator {
     // Override dry run mode if specified in options
     const isDryRun = options.dryRun !== undefined ? options.dryRun : this.dryRunMode;
     
-    // Idempotency check - prevent double posting (only for live runs)
+    // Idempotency check - allow up to 2 posts per day (only for live runs)
     if (!isDryRun) {
-      const lock = await setOnceToday('daily');
+      const lock = await setWithLimitToday('daily', 2);
       if (lock.enforced && !lock.created) {
-        console.log('⏭️  Already posted today, skipping workflow');
+        console.log(`⏭️  Already posted ${lock.count}/${lock.limit} times today, skipping workflow`);
         return { 
           success: true, 
           skipped: true, 
-          reason: 'already_posted_today',
-          workflowId 
+          reason: 'daily_limit_reached',
+          workflowId,
+          count: lock.count,
+          limit: lock.limit
         };
       }
+      console.log(`📊 Post ${lock.count}/${lock.limit} for today`);
     }
     
     console.log(`🚀 Starting daily farm spotlight workflow: ${workflowId}`);
@@ -247,6 +415,28 @@ export class WorkflowOrchestrator {
       if (result.success) {
         console.log(`✅ Selected farm: ${result.farm.name} (${result.farm.location?.county})`);
         console.log(`📊 Farm index: ${result.farmIndex + 1}/${result.totalFarms}`);
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('❌ Farm selection error:', error.message);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Select 2 farms for today's dual spotlight
+   */
+  async selectFarms(date) {
+    try {
+      const result = await farmSelector.getTodaysFarms(date);
+      
+      if (result.success) {
+        console.log(`✅ Selected farms: ${result.farms.map(f => f.name).join(' & ')}`);
+        console.log(`📊 Farm indices: ${result.farmIndices.map(i => i + 1).join(', ')}/${result.totalFarms}`);
       }
       
       return result;

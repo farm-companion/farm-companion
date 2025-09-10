@@ -41,9 +41,9 @@ export class TelegramClient {
   }
 
   /**
-   * Check if we've already posted today (idempotency)
+   * Check if we've already posted the maximum times today (idempotency)
    */
-  async checkIdempotency() {
+  async checkIdempotency(maxPosts = 2) {
     try {
       const os = await import('os');
       const fs = await import('fs');
@@ -51,35 +51,72 @@ export class TelegramClient {
       
       const today = new Date().toISOString().split('T')[0];
       const lockDir = path.join(os.tmpdir(), 'farm-companion-locks');
-      const lockFile = path.join(lockDir, `telegram:posted:${today}.lock`);
+      const countFile = path.join(lockDir, `telegram:count:${today}.json`);
       
       // Ensure lock directory exists
       if (!fs.existsSync(lockDir)) {
         fs.mkdirSync(lockDir, { recursive: true });
       }
       
-      if (fs.existsSync(lockFile)) {
-        return { alreadyPosted: true, lockFile };
+      let currentCount = 0;
+      if (fs.existsSync(countFile)) {
+        try {
+          const data = fs.readFileSync(countFile, 'utf8');
+          const parsed = JSON.parse(data);
+          currentCount = parsed.count || 0;
+        } catch (parseError) {
+          console.warn('⚠️  Could not parse Telegram count file, resetting');
+          currentCount = 0;
+        }
       }
       
-      return { alreadyPosted: false, lockFile };
+      if (currentCount >= maxPosts) {
+        return { alreadyPosted: true, count: currentCount, maxPosts, countFile };
+      }
+      
+      return { alreadyPosted: false, count: currentCount, maxPosts, countFile };
     } catch (error) {
       console.warn('⚠️  Could not check Telegram idempotency:', error.message);
-      return { alreadyPosted: false };
+      return { alreadyPosted: false, count: 0, maxPosts };
     }
   }
 
   /**
-   * Create idempotency lock file
+   * Increment idempotency count file
    */
-  async createIdempotencyLock(lockFile) {
+  async incrementIdempotencyCount(countFile) {
     try {
       const fs = await import('fs');
-      fs.writeFileSync(lockFile, new Date().toISOString());
-      return true;
+      const os = await import('os');
+      const path = await import('path');
+      
+      const lockDir = path.join(os.tmpdir(), 'farm-companion-locks');
+      if (!fs.existsSync(lockDir)) {
+        fs.mkdirSync(lockDir, { recursive: true });
+      }
+      
+      let currentCount = 0;
+      if (fs.existsSync(countFile)) {
+        try {
+          const data = fs.readFileSync(countFile, 'utf8');
+          const parsed = JSON.parse(data);
+          currentCount = parsed.count || 0;
+        } catch (parseError) {
+          currentCount = 0;
+        }
+      }
+      
+      const newCount = currentCount + 1;
+      fs.writeFileSync(countFile, JSON.stringify({ 
+        count: newCount,
+        timestamp: new Date().toISOString(),
+        platform: 'telegram'
+      }));
+      
+      return { success: true, count: newCount };
     } catch (error) {
-      console.warn('⚠️  Could not create Telegram idempotency lock:', error.message);
-      return false;
+      console.warn('⚠️  Could not increment Telegram count:', error.message);
+      return { success: false, error: error.message };
     }
   }
 
@@ -210,11 +247,11 @@ export class TelegramClient {
    */
   async post(content, imageBuffer = null, farm = null, dryRun = false) {
     try {
-      // Check idempotency
-      const idempotency = await this.checkIdempotency();
+      // Check idempotency (allow up to 2 posts per day)
+      const idempotency = await this.checkIdempotency(2);
       if (idempotency.alreadyPosted) {
-        console.log('⏭️  Already posted to Telegram today, skipping');
-        return { success: true, skipped: true, reason: 'already_posted_today' };
+        console.log(`⏭️  Already posted ${idempotency.count}/${idempotency.maxPosts} times to Telegram today, skipping`);
+        return { success: true, skipped: true, reason: 'daily_limit_reached', count: idempotency.count, maxPosts: idempotency.maxPosts };
       }
 
       let message = content;
@@ -234,9 +271,9 @@ export class TelegramClient {
         result = await this.sendMessage(message, dryRun);
       }
 
-      // Create idempotency lock if successful
-      if (result.success && !dryRun && idempotency.lockFile) {
-        await this.createIdempotencyLock(idempotency.lockFile);
+      // Increment idempotency count if successful
+      if (result.success && !dryRun && idempotency.countFile) {
+        await this.incrementIdempotencyCount(idempotency.countFile);
       }
 
       return result;

@@ -12,14 +12,12 @@
       "dest": "/src/api/cron/daily-farm-spotlight/route.js"
     },
     {
+      "src": "/api/cron/dual-farm-spotlight",
+      "dest": "/src/api/cron/dual-farm-spotlight/route.js"
+    },
+    {
       "src": "/api/health",
       "dest": "/src/api/health/route.js"
-    }
-  ],
-  "crons": [
-    {
-      "path": "/api/cron/daily-farm-spotlight",
-      "schedule": "5 8 * * *"
     }
   ],
   "env": {

@@ -51,6 +51,64 @@ export class FarmSelector {
   }
 
   /**
+   * Get 2 different farms for today's dual spotlight
+   * @param {Date} date - Optional date (defaults to today)
+   * @param {boolean} useCache - Whether to use cached farm data
+   */
+  async getTodaysFarms(date = new Date(), useCache = true) {
+    try {
+      const farms = await this.getFarms(useCache);
+      
+      if (farms.length < 2) {
+        throw new Error('Not enough farms available for dual spotlight');
+      }
+      
+      // Get first farm using standard selection
+      const firstFarm = this.selectFarmForDate(date, farms);
+      const firstIndex = this.getFarmIndex(date, farms.length);
+      
+      // Get second farm using a different seed (offset by half the farm count)
+      const secondDate = new Date(date);
+      secondDate.setDate(secondDate.getDate() + Math.floor(farms.length / 2));
+      const secondFarm = this.selectFarmForDate(secondDate, farms);
+      const secondIndex = this.getFarmIndex(secondDate, farms.length);
+      
+      // Ensure we have 2 different farms
+      if (firstFarm.id === secondFarm.id) {
+        // If same farm, pick the next one in the rotation
+        const nextIndex = (secondIndex + 1) % farms.length;
+        const nextFarm = farms[nextIndex];
+        
+        console.log(`📅 Selected farms for ${format(date, 'yyyy-MM-dd')}: ${firstFarm.name} & ${nextFarm.name}`);
+        
+        return {
+          success: true,
+          farms: [firstFarm, nextFarm],
+          date: date.toISOString(),
+          totalFarms: farms.length,
+          farmIndices: [firstIndex, nextIndex]
+        };
+      }
+      
+      console.log(`📅 Selected farms for ${format(date, 'yyyy-MM-dd')}: ${firstFarm.name} & ${secondFarm.name}`);
+      
+      return {
+        success: true,
+        farms: [firstFarm, secondFarm],
+        date: date.toISOString(),
+        totalFarms: farms.length,
+        farmIndices: [firstIndex, secondIndex]
+      };
+    } catch (error) {
+      console.error('❌ Failed to get today\'s farms:', error.message);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
+  }
+
+  /**
    * Get farm data from API or cache
    */
   async getFarms(useCache = true) {
