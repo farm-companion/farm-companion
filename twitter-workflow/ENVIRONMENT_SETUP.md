@@ -10,18 +10,16 @@ DEEPSEEK_API_KEY=sk-your-deepseek-api-key-here
 DEEPSEEK_BASE_URL=https://api.deepseek.com
 
 # Image Generation Services (choose one or more)
-# Qwen-Image (recommended)
-QWEN_IMAGE_API_KEY=your-qwen-image-api-key-here
-QWEN_IMAGE_BASE_URL=https://your-qwen-host/v1/images
-QWEN_IMAGE_SIZE=1024x1024
+# fal.ai FLUX (recommended - primary)
+FAL_KEY=your-fal-ai-api-key-here
+
+# Pollinations AI (fallback - no config needed)
 
 # Hugging Face (fallback)
 HUGGING_FACE_API_KEY=your-hugging-face-api-key-here
 
 # DeepSeek (fallback)
 DEEPSEEK_API_KEY=your-deepseek-api-key-here
-
-# Pollinations AI (always available, no config needed)
 
 # X/Twitter API Configuration
 X_API_KEY=your-x-api-key
@@ -52,7 +50,7 @@ DRY_RUN_MODE=false
 - **Fallback system** for reliability
 
 ### 2. Robust Image Generation
-- **Multiple fallback services**: Qwen-Image, Pollinations AI, Hugging Face, DeepSeek
+- **Multiple fallback services**: fal.ai FLUX, Pollinations AI, Hugging Face, DeepSeek
 - **No faces/hands/text** policy enforced
 - **UK countryside realism** style
 - **Editorial natural light** photography

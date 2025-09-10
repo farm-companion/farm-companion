@@ -98,3 +98,4 @@ lighthouse-report.json
 tmp/
 temp/
 .vercel
+.env*.local

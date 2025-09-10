@@ -52,7 +52,7 @@ All notable changes to the Twitter Workflow project will be documented in this f
 ### 🛡️ No-Faces Protection
 - **NEW**: Strong negative prompts to eliminate people from AI-generated images
 - **NEW**: Seeded retry system for consistent but varied images per farm
-- **NEW**: Enhanced Pollinations AI integration with better error handling
+- **NEW**: Enhanced fal.ai FLUX integration with better error handling
 - **NEW**: Tweet aspect ratio support (16:9) for optimized social media images
 
 ### 🔧 Technical Improvements
@@ -63,7 +63,8 @@ All notable changes to the Twitter Workflow project will be documented in this f
 - **IMPROVED**: Enhanced image prompts with composition hints to discourage people
 
 ### 🎨 Image Generation Enhancements
-- **NEW**: `callPollinations()` method with seeded retry logic
+- **NEW**: `callFalAI()` method with seeded retry logic (primary)
+- **NEW**: `callPollinations()` method as fallback (no API key required)
 - **NEW**: `generateTweetImage()` helper for 16:9 aspect ratio
 - **IMPROVED**: Deterministic variety - same farm gets same seed, different farms get different images
 - **IMPROVED**: Better error handling and fallback mechanisms

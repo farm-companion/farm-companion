@@ -1,0 +1,51 @@
+name: Dual Farm Spotlight Posting
+
+on:
+  schedule:
+    # Run at 10:00 AM and 7:00 PM UTC daily
+    - cron: '0 10 * * *'  # Morning post
+    - cron: '0 19 * * *'  # Evening post
+  workflow_dispatch:  # Allow manual triggering
+
+jobs:
+  post-farm-spotlight:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Run dual posting workflow
+        env:
+          # Twitter API
+          TWITTER_API_KEY: ${{ secrets.TWITTER_API_KEY }}
+          TWITTER_API_SECRET: ${{ secrets.TWITTER_API_SECRET }}
+          TWITTER_ACCESS_TOKEN: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          TWITTER_ACCESS_TOKEN_SECRET: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
+          
+          # Bluesky
+          BLUESKY_IDENTIFIER: ${{ secrets.BLUESKY_IDENTIFIER }}
+          BLUESKY_PASSWORD: ${{ secrets.BLUESKY_PASSWORD }}
+          
+          # Telegram
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          
+          # AI Services
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          FAL_KEY: ${{ secrets.FAL_KEY }}
+          
+          # Workflow settings
+          POSTING_ENABLED: true
+          CONTENT_GENERATION_ENABLED: true
+          DRY_RUN_MODE: false
+        run: npm start dual

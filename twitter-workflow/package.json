@@ -7,6 +7,9 @@
   "scripts": {
     "dev": "node --watch src/index.js",
     "start": "node src/index.js",
+    "scheduler": "node src/scripts/local-scheduler.js",
+    "scheduler:test": "node src/scripts/local-scheduler.js --test",
+    "scheduler:dry-run": "node src/scripts/local-scheduler.js --dry-run",
     "test": "node --test tests/compose.test.js tests/idempotency.test.js",
     "test:dry-run": "node src/scripts/dry-run.js",
     "test:content": "node src/scripts/test-content-generation.js",
@@ -14,6 +17,7 @@
     "test:ogilvy": "node src/scripts/test-ogilvy-prompts.js",
     "test:deepseek": "node src/scripts/test-deepseek-ogilvy.js",
     "test:images": "node src/scripts/test-image-generation.js",
+    "test:falai": "node src/scripts/test-qwen-images.js",
     "test:variety": "node src/scripts/test-image-variety.js",
     "test:slack": "node src/scripts/test-slack-notifications.js",
     "test:complete": "node src/scripts/test-complete-workflow.js",
