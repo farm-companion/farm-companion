@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { MapPin, Phone, Globe, Clock, Navigation, Share2, Heart } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
+import { calculateDistance, formatDistance } from '@/lib/geo-utils'
 
 interface MarkerActionsProps {
   farm: FarmShop | null
@@ -55,24 +56,18 @@ export default function MarkerActions({
   // Calculate distance if user location available
   const getDistance = () => {
     if (!userLocation || !farm?.location) return null
-    
-    const R = 6371 // Earth's radius in km
-    const dLat = (farm.location.lat - userLocation.latitude) * Math.PI / 180
-    const dLon = (farm.location.lng - userLocation.longitude) * Math.PI / 180
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(userLocation.latitude * Math.PI / 180) * Math.cos(farm.location.lat * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-    const distance = R * c
-    
-    return distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`
+
+    const distance = calculateDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      farm.location.lat,
+      farm.location.lng
+    )
+
+    return formatDistance(distance)
   }
 
-  console.log('MarkerActions render - farm:', farm?.name, 'isVisible:', isVisible, 'isDesktop:', isDesktop)
-  
   if (!farm || !isVisible) {
-    console.log('MarkerActions not rendering - farm:', !!farm, 'isVisible:', isVisible)
     return null
   }
 

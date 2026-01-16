@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { MapPin, ZoomIn, List, Navigation } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
+import { calculateDistance, formatDistance } from '@/lib/geo-utils'
 
 interface ClusterPreviewProps {
   cluster: {
@@ -32,21 +33,14 @@ export default function ClusterPreview({
   // Extract farm data from markers
   useEffect(() => {
     if (cluster?.markers) {
-      const farmData = cluster.markers.map(marker => {
-        // Extract farm data from marker (you'll need to store this when creating markers)
-        const farmId = (marker as any).farmId || marker.getTitle()
-        // For now, we'll create placeholder data - you'll need to pass actual farm data
-        return {
-          id: farmId,
-          name: marker.getTitle() || 'Unknown Farm',
-          location: {
-            lat: marker.getPosition()?.lat() || 0,
-            lng: marker.getPosition()?.lng() || 0,
-            address: 'Address not available',
-            city: 'City not available'
-          }
-        } as FarmShop
-      })
+      const farmData = cluster.markers
+        .map(marker => {
+          // Extract farm data attached to marker
+          const farmData = (marker as any).farmData as FarmShop
+          return farmData
+        })
+        .filter((farm): farm is FarmShop => farm !== undefined && farm !== null)
+
       setFarms(farmData)
     }
   }, [cluster])
@@ -95,18 +89,15 @@ export default function ClusterPreview({
   // Calculate distance from user
   const getDistanceFromUser = (lat: number, lng: number) => {
     if (!userLocation) return null
-    
-    const R = 6371 // Earth's radius in km
-    const dLat = (lat - userLocation.latitude) * Math.PI / 180
-    const dLon = (lng - userLocation.longitude) * Math.PI / 180
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(userLocation.latitude * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2)
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-    const distance = R * c
-    
-    return distance < 1 ? `${Math.round(distance * 1000)}m` : `${distance.toFixed(1)}km`
+
+    const distance = calculateDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      lat,
+      lng
+    )
+
+    return formatDistance(distance)
   }
 
   if (!cluster || !isVisible) return null

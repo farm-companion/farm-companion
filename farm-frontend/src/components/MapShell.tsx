@@ -5,6 +5,7 @@ import { loadGoogle } from '@/lib/googleMaps'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import { Map } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
+import type { ClusterClickEvent, MarkerState } from '@/types/map'
 import MarkerActions from './MarkerActions'
 import ClusterPreview from './ClusterPreview'
 
@@ -91,26 +92,12 @@ export default function MapShell({
   const userLocationMarkerRef = useRef<google.maps.marker.AdvancedMarkerElement | google.maps.Marker | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [selectedMarker, setSelectedMarker] = useState<FarmShop | null>(null)
-  const [showMarkerActions, setShowMarkerActions] = useState(false)
-  
-  // Debug state changes
-  useEffect(() => {
-    console.log('selectedMarker changed to:', selectedMarker?.name, 'from previous value')
-  }, [selectedMarker])
-  
-  useEffect(() => {
-    console.log('showMarkerActions changed to:', showMarkerActions, 'from previous value')
-  }, [showMarkerActions])
-  
-  // Debug component lifecycle
-  useEffect(() => {
-    console.log('MapShell component mounted')
-    return () => {
-      console.log('MapShell component unmounting')
-    }
-  }, [])
-  const [selectedCluster, setSelectedCluster] = useState<any>(null)
+  const [markerState, setMarkerState] = useState<MarkerState>({
+    selected: null,
+    showActions: false
+  })
+
+  const [selectedCluster, setSelectedCluster] = useState<{ position: google.maps.LatLng; markers: google.maps.Marker[]; count: number } | null>(null)
   const [showClusterPreview, setShowClusterPreview] = useState(false)
 
   // Add haptic feedback for native-like feel
@@ -126,27 +113,29 @@ export default function MapShell({
   }, [])
 
   // Enhanced cluster click with preview and smart zoom
-  const handleClusterClick = useCallback((event: any) => {
-    console.log('Cluster click event received:', event)
-    
+  const handleClusterClick = useCallback((event: ClusterClickEvent) => {
+    if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+      console.log('Cluster click event:', event)
+    }
+
     // The event structure is different - it has latLng but not cluster methods
     // We need to find the actual cluster object or handle this differently
-    if (!event || !event.latLng) {
-      console.warn('Invalid cluster event received:', event)
+    if (!event || event.latLng === null) {
+      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+        console.warn('Invalid cluster event:', event)
+      }
       return false
     }
-    
-    console.log('Cluster clicked at position:', event.latLng.lat(), event.latLng.lng())
-    
+
     // Trigger haptic feedback
     triggerHaptic('medium')
-    
+
     // Manually zoom into the cluster area
     const map = mapInstanceRef.current
     if (map && event.latLng) {
       const currentZoom = map.getZoom() || 10
       const targetZoom = Math.min(currentZoom + 2, 16) // Zoom in by 2 levels, max 16
-      
+
       // Smooth zoom to cluster center
       map.panTo(event.latLng)
       map.setZoom(targetZoom)
@@ -157,13 +146,15 @@ export default function MapShell({
   }, [triggerHaptic])
 
   // Smart zoom to cluster with optimal zoom level
-  const handleZoomToCluster = useCallback((cluster: any) => {
+  const handleZoomToCluster = useCallback((cluster: { count: number; markers: google.maps.Marker[] }) => {
     const map = mapInstanceRef.current
     if (!map || !cluster) return
 
     // Validate cluster object has required properties
     if (!cluster.count || !cluster.markers || !Array.isArray(cluster.markers)) {
-      console.warn('Invalid cluster object for zoom:', cluster)
+      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+        console.warn('Invalid cluster object for zoom:', cluster)
+      }
       return
     }
 
@@ -208,8 +199,10 @@ export default function MapShell({
   // Show all farms in cluster as list
   const handleShowAllFarms = useCallback((farms: FarmShop[]) => {
     // TODO: Implement list view or filter to show only these farms
-    console.log('Show all farms in cluster:', farms.length)
-    
+    if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+      console.log('Show all farms in cluster:', farms.length)
+    }
+
     // For now, just close the preview
     setShowClusterPreview(false)
     setSelectedCluster(null)
@@ -223,37 +216,32 @@ export default function MapShell({
 
   // Enhanced marker click with haptics and actions
   const handleMarkerClick = useCallback((farm: FarmShop) => {
-    console.log('=== MARKER CLICK START ===')
-    console.log('Marker clicked:', farm.name)
-    console.log('Current state - selectedMarker:', selectedMarker?.name, 'showMarkerActions:', showMarkerActions)
-    console.log('Setting selectedMarker to:', farm.name)
-    console.log('Setting showMarkerActions to: true')
-    
     // Trigger haptic feedback
     triggerHaptic('light')
-    
-    // Show marker actions
-    setSelectedMarker(farm)
-    setShowMarkerActions(true)
-    
-    console.log('State update calls completed')
-    console.log('=== MARKER CLICK END ===')
-    
+
+    // Show marker actions with atomic state update (prevents race condition)
+    setMarkerState({
+      selected: farm,
+      showActions: true
+    })
+
     // Call the original handler for compatibility using ref
     onFarmSelectRef.current?.(farm.id)
-  }, [triggerHaptic, selectedMarker, showMarkerActions]) // Add state dependencies for debugging
+  }, [triggerHaptic])
 
   // Marker action handlers
   const handleNavigate = useCallback((farm: FarmShop) => {
     // Open in default maps app
     const url = `https://maps.google.com/maps?q=${farm.location.lat},${farm.location.lng}`
     window.open(url, '_blank')
-    setShowMarkerActions(false)
+    setMarkerState({ selected: null, showActions: false })
   }, [])
 
   const handleFavorite = useCallback((farmId: string) => {
     // TODO: Implement favorites system
-    console.log('Favorite farm:', farmId)
+    if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+      console.log('Favorite farm:', farmId)
+    }
     triggerHaptic('medium')
   }, [triggerHaptic])
 
@@ -268,12 +256,11 @@ export default function MapShell({
       // Fallback: copy to clipboard
       navigator.clipboard.writeText(`${farm.name} - ${farm.location.address}`)
     }
-    setShowMarkerActions(false)
+    setMarkerState({ selected: null, showActions: false })
   }, [])
 
   const handleCloseMarkerActions = useCallback(() => {
-    setShowMarkerActions(false)
-    setSelectedMarker(null)
+    setMarkerState({ selected: null, showActions: false })
   }, [])
 
   const handleCloseClusterPreview = useCallback(() => {
@@ -291,7 +278,7 @@ export default function MapShell({
   const idsKey = useRef<string>('')
 
   // Stable cluster renderer instance (avoid recreating per render)
-  const clusterRenderer = useRef<any>(null)
+  const clusterRenderer = useRef<{ render: (args: { count: number; position: google.maps.LatLng }) => google.maps.Marker } | null>(null)
 
   // top-level refs
   const farmsRef = useRef<FarmShop[]>([])
@@ -300,31 +287,33 @@ export default function MapShell({
   // Create clustered markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
     if (!map || !farmData.length || typeof window === 'undefined') {
-      console.log('createMarkers: Missing requirements', { 
-        hasMap: !!map, 
-        farmDataLength: farmData?.length, 
-        isWindow: typeof window !== 'undefined' 
-      })
+      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+        console.log('createMarkers: Missing requirements', {
+          hasMap: !!map,
+          farmDataLength: farmData?.length,
+          isWindow: typeof window !== 'undefined'
+        })
+      }
       return
     }
 
-    console.log('=== CREATING MARKERS ===')
-    console.log('Map instance:', map)
-    console.log('Farm data length:', farmData.length)
-    console.log('First farm:', farmData[0])
+    if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+      console.log('=== CREATING MARKERS ===')
+      console.log('Map instance:', map)
+      console.log('Farm data length:', farmData.length)
+      console.log('First farm:', farmData[0])
+    }
 
-    console.log('Clearing existing markers and clusterer')
     // Clear existing markers and clusterer
     Object.values(markersRef.current).forEach(marker => marker.setMap(null))
     markersRef.current = {}
     if (clustererRef.current) {
       clustererRef.current.clearMarkers()
-      console.log('Clusterer cleared')
     }
 
     // Build markers (but don't add to map one-by-one)
     const markers: google.maps.Marker[] = []
-    
+
     farmData.forEach(farm => {
       if (!farm.location?.lat || !farm.location?.lng) return
 
@@ -345,30 +334,26 @@ export default function MapShell({
         zIndex: google.maps.Marker.MAX_ZINDEX, // Default z-index for all markers
       })
 
-      console.log('Creating marker for farm:', farm.name, 'at position:', farm.location.lat, farm.location.lng)
-      
+      // Attach farm data to marker for ClusterPreview access
+      ;(marker as any).farmData = farm
+
       marker.addListener('click', () => {
-        console.log('Marker click event triggered for:', farm.name)
         handleMarkerClick(farm)
       })
-      
+
       // Add marker to map first, then to clusterer
       marker.setMap(map)
-      
+
       markersRef.current[farm.id] = marker
       markers.push(marker)
-      
-      console.log('Marker added to map and array, total markers:', markers.length)
     })
 
     // Create/update clusterer with stable renderer
     if (!clustererRef.current) {
-      console.log('Creating new clusterer')
       // Create stable renderer instance once
       if (!clusterRenderer.current) {
         clusterRenderer.current = {
           render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
-            console.log('Rendering cluster with count:', count, 'at position:', position.lat(), position.lng())
             
             // Choose SVG size based on count for better visual hierarchy
             let raw: string
@@ -409,11 +394,8 @@ export default function MapShell({
         onClusterClick: handleClusterClick
       })
     }
-    
-    console.log('Adding', markers.length, 'markers to clusterer')
-    clustererRef.current.addMarkers(markers)
 
-    console.log('clusterer markers', markers.length)
+    clustererRef.current.addMarkers(markers)
 
     // Cluster click handling is now done via onClusterClick option in MarkerClusterer
     // This provides better zoom behavior and prevents duplicate handlers
@@ -425,9 +407,9 @@ export default function MapShell({
         { lat: UK_BOUNDS.south, lng: UK_BOUNDS.west }, // southwest
         { lat: UK_BOUNDS.north, lng: UK_BOUNDS.east }   // northeast
       )
-      
+
       programmaticMove.current = true
-      
+
       // Fit UK bounds with padding for better visual balance
       map.fitBounds(ukBounds, {
         top: 80,    // Extra top padding for search bar
@@ -435,23 +417,22 @@ export default function MapShell({
         bottom: 20,
         left: 20
       })
-      
+
       // Set optimal zoom level for cluster visibility (not too close, not too far)
       setTimeout(() => {
         const currentZoom = map.getZoom() || 5
         const optimalZoom = Math.min(Math.max(currentZoom, 4), 6) // Between zoom 4-6 for better overview
-        
+
         if (currentZoom !== optimalZoom) {
           map.setZoom(optimalZoom)
         }
-        
+
         // Step 2: Offer location-based zoom if user has location
         if (userLocation && userLocation.latitude && userLocation.longitude) {
           // Show a subtle hint that they can zoom to their location
-          console.log('User location available - can offer zoom to location')
           // The LocationTracker component will handle the actual zoom action
         }
-        
+
         programmaticMove.current = false
       }, 300)
       
@@ -472,7 +453,7 @@ export default function MapShell({
     if (rebuildTimer.current) window.clearTimeout(rebuildTimer.current)
     rebuildTimer.current = window.setTimeout(() => {
       if ('requestIdleCallback' in window) {
-        ;(window as any).requestIdleCallback(
+        window.requestIdleCallback(
           () => createMarkers(map, farmsRef.current),
           { timeout: 120 }
         )
@@ -548,7 +529,6 @@ export default function MapShell({
 
   // keep farmsRef always fresh and schedule rebuilds when farms change
   useEffect(() => {
-    console.log('farms length', farms.length)
     farmsRef.current = farms
     // also schedule a rebuild when farms actually change
     scheduleMarkerRebuild()
@@ -571,7 +551,7 @@ export default function MapShell({
     
     lastPadding.current = key
     // Apply real padding that actually moves the camera
-    ;(map as any).setOptions({ padding: pad })
+    map.set('padding', pad)
   }, [bottomSheetHeight, isDesktop])
 
   // Create map once (guard StrictMode)
@@ -580,18 +560,23 @@ export default function MapShell({
     hasInit.current = true
 
     loadGoogle().then(() => {
-      console.log('Google Maps loaded successfully')
       if (!mapRef.current) {
-        console.error('Map ref not available')
+        if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+          console.error('Map ref not available')
+        }
         return
       }
       if (mapInstanceRef.current) {
-        console.log('Map already exists, skipping creation')
+        if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+          console.log('Map already exists, skipping creation')
+        }
         return // double-guard
       }
 
-      console.log('=== CREATING MAP ===')
-      console.log('Map ref element:', mapRef.current)
+      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+        console.log('=== CREATING MAP ===')
+        console.log('Map ref element:', mapRef.current)
+      }
       
       const map = new google.maps.Map(mapRef.current, {
         center,
@@ -751,9 +736,11 @@ export default function MapShell({
         }, { passive: false })
       }
       
-    }).catch((err: any) => {
-      console.error('Failed to load Google Maps:', err)
-      
+    }).catch((err: Error) => {
+      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+        console.error('Failed to load Google Maps:', err)
+      }
+
       // Handle specific error types
       if (err.message?.includes('OverQuotaMapError')) {
         setError('Map service temporarily unavailable. Please try again later.')
@@ -822,10 +809,12 @@ export default function MapShell({
             anchor: new google.maps.Point(12, 12),
           },
           title: 'Your Location',
-        }) as any
+        })
       }
     } catch (error) {
-      console.warn('AdvancedMarkerElement not available, using fallback:', error)
+      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+        console.warn('AdvancedMarkerElement not available, using fallback:', error)
+      }
       // Fallback to regular marker
       userLocationMarkerRef.current = new google.maps.Marker({
         position,
@@ -841,7 +830,7 @@ export default function MapShell({
           anchor: new google.maps.Point(12, 12),
         },
         title: 'Your Location',
-      }) as any
+      })
     }
 
     // Add accuracy circle
@@ -903,7 +892,9 @@ export default function MapShell({
         try {
           google.maps.event.trigger(mapInstanceRef.current, 'resize')
         } catch (err) {
-          console.warn('Error triggering map resize:', err)
+          if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+            console.warn('Error triggering map resize:', err)
+          }
         }
       }
     })
@@ -912,7 +903,7 @@ export default function MapShell({
     if (mapRef.current && mapRef.current instanceof Element) {
       resizeObserver.observe(mapRef.current)
     }
-    
+
     if (mapRef.current?.parentElement && mapRef.current.parentElement instanceof Element) {
       resizeObserver.observe(mapRef.current.parentElement)
     }
@@ -921,7 +912,9 @@ export default function MapShell({
       try {
         resizeObserver.disconnect()
       } catch (err) {
-        console.warn('Error disconnecting resize observer:', err)
+        if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
+          console.warn('Error disconnecting resize observer:', err)
+        }
       }
     }
   }, [])
@@ -949,12 +942,13 @@ export default function MapShell({
 
   // Map padding update handler (bottom sheet + desktop rail)
   useEffect(() => {
-    const handler = (e: any) => {
-      const pad = { 
-        top: 60, 
-        left: 8, 
-        right: window.matchMedia('(min-width:768px)').matches ? 384 : 8, 
-        bottom: e.detail 
+    const handler = (e: Event) => {
+      const customEvent = e as CustomEvent<number>
+      const pad = {
+        top: 60,
+        left: 8,
+        right: window.matchMedia('(min-width:768px)').matches ? 384 : 8,
+        bottom: customEvent.detail
       }
       if (mapInstanceRef.current) {
         mapInstanceRef.current.set('padding', pad)
@@ -1086,8 +1080,8 @@ export default function MapShell({
       {/* Marker Actions - Mobile Only */}
       {!isDesktop && (
         <MarkerActions
-          farm={selectedMarker}
-          isVisible={showMarkerActions}
+          farm={markerState.selected}
+          isVisible={markerState.showActions}
           onClose={handleCloseMarkerActions}
           onNavigate={handleNavigate}
           onFavorite={handleFavorite}

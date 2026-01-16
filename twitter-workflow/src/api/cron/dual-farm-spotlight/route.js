@@ -120,9 +120,9 @@ export default async function handler(req, res) {
       });
     } else {
       console.error(`❌ ${postType} dual spotlight failed:`, result.error);
-      
-      // Send failure notification
-      await monitoringSystem.sendFailureNotification({
+
+      // Send error notification
+      await monitoringSystem.sendErrorNotification({
         workflowId,
         type: 'dual-spotlight',
         postType: postType,
@@ -130,8 +130,8 @@ export default async function handler(req, res) {
         duration
       });
 
-      return res.status(500).json({ 
-        error: 'Dual spotlight workflow failed', 
+      return res.status(500).json({
+        error: 'Dual spotlight workflow failed',
         details: result.error,
         workflowId,
         postType,
@@ -142,9 +142,9 @@ export default async function handler(req, res) {
   } catch (error) {
     const duration = Date.now() - startTime;
     console.error('❌ Fatal error in dual spotlight cron:', error.message);
-    
-    // Send failure notification
-    await monitoringSystem.sendFailureNotification({
+
+    // Send error notification
+    await monitoringSystem.sendErrorNotification({
       workflowId,
       type: 'dual-spotlight',
       error: error.message,
