@@ -7,8 +7,8 @@ import type { FarmShop } from '@/types/farm'
 
 interface FarmCardProps {
   farm: FarmShop
-  onSelect: (farm: FarmShop) => void
-  onDirections: (farm: FarmShop) => void
+  onSelect?: (farm: FarmShop) => void
+  onDirections?: (farm: FarmShop) => void
   selected?: boolean
 }
 
@@ -75,14 +75,14 @@ export function FarmCard({ farm, onSelect, onDirections, selected = false }: Far
         
         {/* Actions */}
         <div className="flex flex-col gap-2">
-          <button 
-            onClick={() => onSelect(farm)}
+          <button
+            onClick={() => onSelect?.(farm)}
             className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           >
             View
           </button>
-          <button 
-            onClick={() => onDirections(farm)}
+          <button
+            onClick={() => onDirections?.(farm)}
             className="px-3 py-1.5 text-sm rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
           >
             <Navigation className="h-4 w-4" />
