@@ -1,135 +1,318 @@
-import type { FarmShop } from '@/types/farm'
+import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { SITE_URL } from '@/lib/site'
+import {
+  getCachedFarmsByCounty,
+  getCachedCountyStats,
+  getCachedRelatedCounties,
+  getCachedAllCounties,
+} from '@/lib/server-cache-counties'
+import { FarmCard } from '@/components/FarmCard'
+import { Badge } from '@/components/ui/Badge'
+import { CountyStats } from '@/components/CountyStats'
 
-// Revalidate every 6 hours for fresh farm data
+// Revalidate every 6 hours
 export const revalidate = 21600
 
-export default async function CountyPage({ params }: { params: Promise<{ slug: string }> }) {
-  const { slug } = await params
-  const farms = await readFarms()
-  const countyName = unslugify(slug, farms)
-  if (!countyName) return notFound()
-  const list = farms
-    .filter(f => f.location?.county && slugify(f.location.county) === slug)
-    .sort((a, b) => a.name.localeCompare(b.name))
+interface CountyPageProps {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ category?: string; page?: string }>
+}
 
-  // CollectionPage + ItemList + BreadcrumbList JSON-LD
-  const countyJsonLd = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'CollectionPage',
-      '@id': `${SITE_URL}/counties/${slug}#collection`,
-      url: `${SITE_URL}/counties/${slug}`,
-      name: `Farm Shops in ${countyName}`,
-      description: `Directory of farm shops in ${countyName}, UK. Find local produce and fresh food.`,
-      isPartOf: { '@id': `${SITE_URL}#website` },
-      mainEntity: {
-        '@type': 'ItemList',
-        name: `Farm Shops in ${countyName}`,
-        numberOfItems: list.length,
-        itemListOrder: 'http://schema.org/ItemListOrderAscending',
-        itemListElement: list.map((farm, index) => ({
-          '@type': 'ListItem',
-          position: index + 1,
-          item: {
-            '@type': 'LocalBusiness',
-            name: farm.name,
-            url: `${SITE_URL}/shop/${farm.slug}`,
-            address: {
-              '@type': 'PostalAddress',
-              streetAddress: farm.location.address,
-              addressLocality: farm.location.county,
-              postalCode: farm.location.postcode,
-              addressCountry: 'GB'
-            }
-          }
-        }))
-      }
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'Home',
-          item: SITE_URL
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: 'Counties',
-          item: `${SITE_URL}/counties`
-        },
-        {
-          '@type': 'ListItem',
-          position: 3,
-          name: countyName,
-          item: `${SITE_URL}/counties/${slug}`
-        }
-      ]
+// Generate static params for all counties at build time
+export async function generateStaticParams() {
+  const counties = await getCachedAllCounties()
+  return counties.map((county) => ({
+    slug: county.slug,
+  }))
+}
+
+// Generate metadata for SEO
+export async function generateMetadata({ params }: CountyPageProps): Promise<Metadata> {
+  const { slug } = await params
+  const { countyName, total } = await getCachedFarmsByCounty(slug, { limit: 1 })
+
+  if (!countyName) {
+    return {
+      title: 'County Not Found',
+      description: 'The requested county could not be found.',
     }
-  ]
+  }
+
+  const title = `Farm Shops & Local Producers in ${countyName} | Farm Companion`
+  const description = `Discover ${total} farm shops, local producers, and agricultural businesses in ${countyName}, UK. Find fresh produce, organic farms, pick your own, and more.`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      url: `https://farmcompanion.co.uk/counties/${slug}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+    },
+    alternates: {
+      canonical: `https://farmcompanion.co.uk/counties/${slug}`,
+    },
+  }
+}
+
+export default async function CountyPage({ params, searchParams }: CountyPageProps) {
+  const { slug } = await params
+  const { category, page = '1' } = await searchParams
+
+  const currentPage = parseInt(page)
+  const limit = 24
+  const offset = (currentPage - 1) * limit
+
+  // Fetch farms in this county
+  const { farms, total, hasMore, countyName } = await getCachedFarmsByCounty(slug, {
+    limit,
+    offset,
+    category: category || undefined,
+  })
+
+  if (!countyName) {
+    notFound()
+  }
+
+  // Fetch county stats
+  const stats = await getCachedCountyStats(slug)
+
+  // Fetch related counties
+  const relatedCounties = await getCachedRelatedCounties(slug, 6)
+
+  const totalPages = Math.ceil(total / limit)
 
   return (
-    <main className="mx-auto max-w-4xl px-6 py-10">
-      {/* SEO: CollectionPage + Breadcrumbs JSON-LD */}
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+      {/* Structured Data - CollectionPage */}
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(countyJsonLd) }}
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'CollectionPage',
+            name: `Farm Shops & Local Producers in ${countyName}`,
+            description: `Directory of ${total} farms and producers in ${countyName}, UK`,
+            url: `https://farmcompanion.co.uk/counties/${slug}`,
+            about: {
+              '@type': 'Place',
+              name: countyName,
+              '@id': `https://farmcompanion.co.uk/counties/${slug}`,
+            },
+            numberOfItems: total,
+          }),
+        }}
       />
-      <Link href="/counties" className="text-sm underline hover:no-underline">← All counties</Link>
-      <h1 className="mt-2 text-3xl font-semibold">{countyName}</h1>
-      <p className="mt-2 text-gray-700 dark:text-[#E4E2DD]/80">
-        {list.length} farm shop{list.length === 1 ? '' : 's'} listed.
-      </p>
 
-      <ul className="mt-6 divide-y rounded border dark:divide-gray-700 dark:border-gray-700">
-        {list.map(f => (
-          <li key={f.id} className="px-4 py-3">
-            <div className="flex items-baseline justify-between gap-4">
-              <Link className="font-medium hover:underline" href={`/shop/${f.slug}`}>{f.name}</Link>
-              <span className="text-xs text-gray-600 dark:text-[#E4E2DD]/70">{f.location.postcode}</span>
+      {/* Structured Data - BreadcrumbList */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            itemListElement: [
+              {
+                '@type': 'ListItem',
+                position: 1,
+                name: 'Home',
+                item: 'https://farmcompanion.co.uk',
+              },
+              {
+                '@type': 'ListItem',
+                position: 2,
+                name: 'Counties',
+                item: 'https://farmcompanion.co.uk/counties',
+              },
+              {
+                '@type': 'ListItem',
+                position: 3,
+                name: countyName,
+                item: `https://farmcompanion.co.uk/counties/${slug}`,
+              },
+            ],
+          }),
+        }}
+      />
+
+      {/* Breadcrumbs */}
+      <div className="border-b border-slate-200 dark:border-slate-800">
+        <div className="container mx-auto px-4 py-4">
+          <nav className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+            <Link href="/" className="hover:text-brand-primary transition-colors">
+              Home
+            </Link>
+            <span>/</span>
+            <Link href="/counties" className="hover:text-brand-primary transition-colors">
+              Counties
+            </Link>
+            <span>/</span>
+            <span className="font-medium text-slate-900 dark:text-slate-100">{countyName}</span>
+          </nav>
+        </div>
+      </div>
+
+      {/* Hero Section */}
+      <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="container mx-auto px-4 py-12 md:py-16">
+          <div className="max-w-3xl">
+            {/* County Name */}
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
+              Farms & Producers in {countyName}
+            </h1>
+
+            {/* Description */}
+            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-6">
+              Discover {total} local farm shops, pick your own farms, organic producers, and
+              agricultural businesses in {countyName}. Support local farmers and enjoy fresh,
+              locally-sourced produce.
+            </p>
+
+            {/* Stats */}
+            <div className="flex flex-wrap items-center gap-4">
+              <Badge variant="default" size="lg">
+                {total} {total === 1 ? 'Farm' : 'Farms'}
+              </Badge>
+              {stats && stats.verified > 0 && (
+                <Badge variant="success" size="lg">
+                  ✓ {stats.verified} Verified
+                </Badge>
+              )}
+              {stats && stats.averageRating > 0 && (
+                <Badge variant="outline" size="lg">
+                  ⭐ {stats.averageRating.toFixed(1)} Average Rating
+                </Badge>
+              )}
             </div>
-            <div className="text-sm text-gray-700 dark:text-[#E4E2DD]/80">{f.location.address}</div>
-          </li>
-        ))}
-      </ul>
-    </main>
+          </div>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-8 md:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar - Stats & Related */}
+          <aside className="lg:col-span-1">
+            <div className="sticky top-4 space-y-6">
+              {/* County Stats */}
+              {stats && <CountyStats stats={stats} countyName={countyName} />}
+
+              {/* Related Counties */}
+              {relatedCounties.length > 0 && (
+                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+                  <h2 className="font-semibold text-slate-900 dark:text-white mb-3">
+                    Nearby Counties
+                  </h2>
+                  <div className="space-y-2">
+                    {relatedCounties.map((county) => (
+                      <Link
+                        key={county.slug}
+                        href={`/counties/${county.slug}`}
+                        className="block px-3 py-2 rounded-md text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{county.name}</span>
+                          <span className="text-xs text-slate-500">({county.farmCount})</span>
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                  <Link
+                    href="/counties"
+                    className="block mt-4 text-sm text-brand-primary hover:underline text-center"
+                  >
+                    View all counties →
+                  </Link>
+                </div>
+              )}
+            </div>
+          </aside>
+
+          {/* Main Content - Farm Grid */}
+          <main className="lg:col-span-3">
+            {/* Results Header */}
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+                {category ? `Farms in ${countyName}` : `All Farms in ${countyName}`}
+              </h2>
+              <p className="text-slate-600 dark:text-slate-400">
+                Showing {farms.length} of {total} {total === 1 ? 'result' : 'results'}
+                {category && (
+                  <>
+                    {' '}
+                    in selected category{' '}
+                    <Link
+                      href={`/counties/${slug}`}
+                      className="text-brand-primary hover:underline"
+                    >
+                      (Clear filter)
+                    </Link>
+                  </>
+                )}
+              </p>
+            </div>
+
+            {/* Farm Grid */}
+            {farms.length > 0 ? (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  {farms.map((farm) => (
+                    <FarmCard key={farm.id} farm={farm} />
+                  ))}
+                </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <div className="flex justify-center gap-2">
+                    {currentPage > 1 && (
+                      <Link
+                        href={`/counties/${slug}?page=${currentPage - 1}${category ? `&category=${category}` : ''}`}
+                        className="px-4 py-2 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        Previous
+                      </Link>
+                    )}
+
+                    <span className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                      Page {currentPage} of {totalPages}
+                    </span>
+
+                    {hasMore && (
+                      <Link
+                        href={`/counties/${slug}?page=${currentPage + 1}${category ? `&category=${category}` : ''}`}
+                        className="px-4 py-2 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                      >
+                        Next
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-lg text-slate-600 dark:text-slate-400 mb-4">
+                  No farms found in {countyName}
+                  {category && ' with the selected category'}.
+                </p>
+                {category && (
+                  <Link
+                    href={`/counties/${slug}`}
+                    className="text-brand-primary hover:underline"
+                  >
+                    View all farms in {countyName}
+                  </Link>
+                )}
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
+    </div>
   )
-}
-
-// Remove generateStaticParams to make this dynamic
-// export async function generateStaticParams() {
-//   const farms = await readFarms()
-//   const slugs = Array.from(new Set(
-//     farms
-//       .filter(f => f.location?.county)
-//       .map(f => slugify(f.location.county))
-//   ))
-//   return slugs.map(slug => ({ slug }))
-// }
-
-async function readFarms(): Promise<FarmShop[]> {
-  const file = path.join(process.cwd(), 'data', 'farms.json')
-  const raw = await fs.readFile(file, 'utf8')
-  return JSON.parse(raw) as FarmShop[]
-}
-
-function slugify(s: string) {
-  return s
-    .toLowerCase()
-    .replace(/&/g, ' and ')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-}
-
-function unslugify(slug: string, farms: FarmShop[]) {
-  const match = farms.find(f => f.location?.county && slugify(f.location.county) === slug)
-  return match?.location?.county ?? null
 }
