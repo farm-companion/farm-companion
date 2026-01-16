@@ -42,39 +42,34 @@ export class TelegramClient {
 
   /**
    * Check if we've already posted the maximum times today (idempotency)
+   * Uses Redis for serverless-compatible distributed locking
    */
   async checkIdempotency(maxPosts = 2) {
     try {
-      const os = await import('os');
-      const fs = await import('fs');
-      const path = await import('path');
-      
+      const KV_URL = process.env.UPSTASH_REDIS_REST_URL;
+      const KV_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+      // Fallback if Redis not configured
+      if (!KV_URL || !KV_TOKEN) {
+        console.warn('⚠️  Redis not configured, idempotency check disabled');
+        return { alreadyPosted: false, count: 0, maxPosts, redisConfigured: false };
+      }
+
       const today = new Date().toISOString().split('T')[0];
-      const lockDir = path.join(os.tmpdir(), 'farm-companion-locks');
-      const countFile = path.join(lockDir, `telegram:count:${today}.json`);
-      
-      // Ensure lock directory exists
-      if (!fs.existsSync(lockDir)) {
-        fs.mkdirSync(lockDir, { recursive: true });
-      }
-      
-      let currentCount = 0;
-      if (fs.existsSync(countFile)) {
-        try {
-          const data = fs.readFileSync(countFile, 'utf8');
-          const parsed = JSON.parse(data);
-          currentCount = parsed.count || 0;
-        } catch (parseError) {
-          console.warn('⚠️  Could not parse Telegram count file, resetting');
-          currentCount = 0;
-        }
-      }
-      
+      const redisKey = `fc:telegram:posted:${today}`;
+
+      // Get current count from Redis
+      const countResp = await fetch(`${KV_URL}/get/${encodeURIComponent(redisKey)}`, {
+        headers: { Authorization: `Bearer ${KV_TOKEN}` }
+      });
+      const countData = await countResp.json();
+      const currentCount = countData.result ? parseInt(countData.result) : 0;
+
       if (currentCount >= maxPosts) {
-        return { alreadyPosted: true, count: currentCount, maxPosts, countFile };
+        return { alreadyPosted: true, count: currentCount, maxPosts, redisKey };
       }
-      
-      return { alreadyPosted: false, count: currentCount, maxPosts, countFile };
+
+      return { alreadyPosted: false, count: currentCount, maxPosts, redisKey };
     } catch (error) {
       console.warn('⚠️  Could not check Telegram idempotency:', error.message);
       return { alreadyPosted: false, count: 0, maxPosts };
@@ -82,37 +77,31 @@ export class TelegramClient {
   }
 
   /**
-   * Increment idempotency count file
+   * Increment idempotency count in Redis
    */
-  async incrementIdempotencyCount(countFile) {
+  async incrementIdempotencyCount(redisKey) {
     try {
-      const fs = await import('fs');
-      const os = await import('os');
-      const path = await import('path');
-      
-      const lockDir = path.join(os.tmpdir(), 'farm-companion-locks');
-      if (!fs.existsSync(lockDir)) {
-        fs.mkdirSync(lockDir, { recursive: true });
+      const KV_URL = process.env.UPSTASH_REDIS_REST_URL;
+      const KV_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+      if (!KV_URL || !KV_TOKEN) {
+        console.warn('⚠️  Redis not configured, skipping count increment');
+        return { success: false, error: 'Redis not configured' };
       }
-      
-      let currentCount = 0;
-      if (fs.existsSync(countFile)) {
-        try {
-          const data = fs.readFileSync(countFile, 'utf8');
-          const parsed = JSON.parse(data);
-          currentCount = parsed.count || 0;
-        } catch (parseError) {
-          currentCount = 0;
-        }
-      }
-      
-      const newCount = currentCount + 1;
-      fs.writeFileSync(countFile, JSON.stringify({ 
-        count: newCount,
-        timestamp: new Date().toISOString(),
-        platform: 'telegram'
-      }));
-      
+
+      // Increment counter in Redis
+      const incrResp = await fetch(`${KV_URL}/incr/${encodeURIComponent(redisKey)}`, {
+        headers: { Authorization: `Bearer ${KV_TOKEN}` }
+      });
+      const incrData = await incrResp.json();
+      const newCount = incrData.result || 1;
+
+      // Set expiration to end of day (24 hours)
+      await fetch(`${KV_URL}/expire/${encodeURIComponent(redisKey)}/86400`, {
+        headers: { Authorization: `Bearer ${KV_TOKEN}` }
+      });
+
+      console.log(`✅ Incremented Telegram post count to ${newCount}`);
       return { success: true, count: newCount };
     } catch (error) {
       console.warn('⚠️  Could not increment Telegram count:', error.message);
@@ -272,8 +261,8 @@ export class TelegramClient {
       }
 
       // Increment idempotency count if successful
-      if (result.success && !dryRun && idempotency.countFile) {
-        await this.incrementIdempotencyCount(idempotency.countFile);
+      if (result.success && !dryRun && idempotency.redisKey) {
+        await this.incrementIdempotencyCount(idempotency.redisKey);
       }
 
       return result;
