@@ -2,20 +2,42 @@
 
 import React from 'react'
 import Image from 'next/image'
-import { MapPin, Navigation, CheckCircle, Clock, Camera } from 'lucide-react'
+import { MapPin, Navigation, CheckCircle, Camera, GitCompare } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
+import { StatusBadgeCompact } from './StatusBadge'
+import { isCurrentlyOpen } from '@/lib/farm-status'
+import { useRouter } from 'next/navigation'
 
 interface FarmCardProps {
   farm: FarmShop
   onSelect?: (farm: FarmShop) => void
   onDirections?: (farm: FarmShop) => void
+  onCompare?: (farm: FarmShop) => void
   selected?: boolean
+  showCompare?: boolean
 }
 
-export function FarmCard({ farm, onSelect, onDirections, selected = false }: FarmCardProps) {
+export function FarmCard({
+  farm,
+  onSelect,
+  onDirections,
+  onCompare,
+  selected = false,
+  showCompare = true
+}: FarmCardProps) {
+  const router = useRouter()
   const hasPhotos = farm.images && farm.images.length > 0
-  const isOpenNow = false // TODO: Implement open/closed logic based on hours array
+  const isOpenNow = isCurrentlyOpen(farm.hours)
   const isVerified = farm.verified || false
+
+  const handleCompare = () => {
+    if (onCompare) {
+      onCompare(farm)
+    } else {
+      // Default behavior: navigate to compare page
+      router.push(`/compare?farms=${farm.id}`)
+    }
+  }
 
   return (
     <article 
@@ -58,12 +80,8 @@ export function FarmCard({ farm, onSelect, onDirections, selected = false }: Far
                 Verified
               </span>
             )}
-            {isOpenNow && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">
-                <Clock className="h-3 w-3" />
-                Open now
-              </span>
-            )}
+            {/* Real-time status badge */}
+            <StatusBadgeCompact openingHours={farm.hours} />
             {hasPhotos && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
                 <Camera className="h-3 w-3" />
@@ -72,7 +90,7 @@ export function FarmCard({ farm, onSelect, onDirections, selected = false }: Far
             )}
           </div>
         </div>
-        
+
         {/* Actions */}
         <div className="flex flex-col gap-2">
           <button
@@ -87,6 +105,15 @@ export function FarmCard({ farm, onSelect, onDirections, selected = false }: Far
           >
             <Navigation className="h-4 w-4" />
           </button>
+          {showCompare && (
+            <button
+              onClick={handleCompare}
+              className="px-3 py-1.5 text-sm rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              title="Compare this farm"
+            >
+              <GitCompare className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
     </article>
