@@ -12,6 +12,7 @@ import {
 import { FarmCard } from '@/components/FarmCard'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
+import { categoryFAQs, genericCategoryFAQs } from '@/data/category-faqs'
 
 interface CategoryPageProps {
   params: Promise<{ slug: string }>
@@ -96,6 +97,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const farmCount = category._count.farms
   const totalPages = Math.ceil(total / limit)
 
+  // Get FAQs for this category
+  const faqs = categoryFAQs[slug] || genericCategoryFAQs
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
       {/* Structured Data - CollectionPage */}
@@ -147,6 +151,27 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           }),
         }}
       />
+
+      {/* Structured Data - FAQPage */}
+      {faqs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: faqs.map((faq) => ({
+                '@type': 'Question',
+                name: faq.question,
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: faq.answer,
+                },
+              })),
+            }),
+          }}
+        />
+      )}
 
       {/* Breadcrumbs */}
       <div className="border-b border-slate-200 dark:border-slate-800">
@@ -348,6 +373,30 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             )}
           </main>
         </div>
+
+        {/* FAQ Section */}
+        {faqs.length > 0 && (
+          <section className="mt-12 max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-8 text-center">
+              Frequently Asked Questions
+            </h2>
+            <div className="space-y-6">
+              {faqs.map((faq, index) => (
+                <div
+                  key={index}
+                  className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6"
+                >
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
+                    {faq.question}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   )

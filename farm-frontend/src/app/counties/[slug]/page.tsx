@@ -10,6 +10,7 @@ import {
 import { FarmCard } from '@/components/FarmCard'
 import { Badge } from '@/components/ui/Badge'
 import { CountyStats } from '@/components/CountyStats'
+import { countyFAQs } from '@/data/county-faqs'
 
 // Revalidate every 6 hours
 export const revalidate = 21600
@@ -141,6 +142,27 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
           }),
         }}
       />
+
+      {/* Structured Data - FAQPage */}
+      {countyFAQs.length > 0 && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@type': 'FAQPage',
+              mainEntity: countyFAQs.map((faq) => ({
+                '@type': 'Question',
+                name: faq.question,
+                acceptedAnswer: {
+                  '@type': 'Answer',
+                  text: faq.answer,
+                },
+              })),
+            }),
+          }}
+        />
+      )}
 
       {/* Breadcrumbs */}
       <div className="border-b border-slate-200 dark:border-slate-800">
@@ -312,6 +334,30 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
             )}
           </main>
         </div>
+
+        {/* FAQ Section */}
+        {countyFAQs.length > 0 && (
+          <section className="mt-12 max-w-4xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-8 text-center">
+              Frequently Asked Questions
+            </h2>
+            <div className="space-y-6">
+              {countyFAQs.map((faq, index) => (
+                <div
+                  key={index}
+                  className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6"
+                >
+                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
+                    {faq.question}
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                    {faq.answer}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </div>
   )

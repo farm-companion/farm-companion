@@ -58,6 +58,51 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background-canvas">
+      {/* Structured Data - Organization */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'Organization',
+            name: 'Farm Companion',
+            url: 'https://farmcompanion.co.uk',
+            logo: 'https://farmcompanion.co.uk/logo.png',
+            description: 'UK farm shops directory helping you find fresh local produce, farm shops, and agricultural businesses across the UK.',
+            sameAs: [
+              // Add social media URLs when available
+            ],
+            contactPoint: {
+              '@type': 'ContactPoint',
+              contactType: 'Customer Service',
+              availableLanguage: 'English',
+            },
+          }),
+        }}
+      />
+
+      {/* Structured Data - WebSite */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            '@context': 'https://schema.org',
+            '@type': 'WebSite',
+            name: 'Farm Companion',
+            url: 'https://farmcompanion.co.uk',
+            description: 'Discover authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information.',
+            potentialAction: {
+              '@type': 'SearchAction',
+              target: {
+                '@type': 'EntryPoint',
+                urlTemplate: 'https://farmcompanion.co.uk/shop?q={search_term_string}',
+              },
+              'query-input': 'required name=search_term_string',
+            },
+          }),
+        }}
+      />
+
       {/* Professional Hero Section with Image Overlay */}
       <section data-header-invert className="relative h-screen min-h-[800px] max-h-[1000px] overflow-hidden">
         {/* Background Image with Professional Handling */}
