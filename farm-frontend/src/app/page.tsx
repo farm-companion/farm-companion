@@ -5,6 +5,8 @@ import { MapPin, ArrowRight, Leaf, Calendar, Heart } from 'lucide-react'
 import NewsletterSignup from '@/components/NewsletterSignup'
 import { getFarmStatsServer } from '@/lib/farm-data-server'
 import { SITE_URL } from '@/lib/site'
+import { FeaturedGuides } from '@/components/FeaturedGuides'
+import { CategoryGrid } from '@/components/CategoryGrid'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -137,6 +139,12 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Featured Guides Section */}
+      <FeaturedGuides />
+
+      {/* Category Grid Section */}
+      <CategoryGrid limit={8} />
 
       {/* Features Section */}
       <section className="bg-background-surface py-16">
