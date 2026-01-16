@@ -1,0 +1,340 @@
+// Prisma Schema for Farm Companion
+// Database: PostgreSQL (via Supabase)
+// ORM: Prisma
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+// =============================================================================
+// FARM MODEL
+// =============================================================================
+
+model Farm {
+  id String @id @default(uuid())
+
+  // Basic Information
+  name        String  @db.VarChar(255)
+  slug        String  @unique @db.VarChar(255)
+  description String? @db.Text
+
+  // Location
+  address   String  @db.Text
+  city      String? @db.VarChar(100)
+  county    String  @db.VarChar(100)
+  postcode  String  @db.VarChar(10)
+  latitude  Decimal @db.Decimal(10, 8)
+  longitude Decimal @db.Decimal(11, 8)
+
+  // Contact
+  phone   String? @db.VarChar(20)
+  email   String? @db.VarChar(255)
+  website String? @db.VarChar(500)
+
+  // Google Places Integration
+  googlePlaceId      String?  @db.VarChar(255)
+  googleRating       Decimal? @db.Decimal(2, 1)
+  googleReviewsCount Int      @default(0)
+
+  // Metadata
+  verified Boolean @default(false)
+  featured Boolean @default(false)
+  status   String  @default("active") @db.VarChar(20) // active, pending, suspended
+
+  // Opening Hours (stored as JSON)
+  openingHours Json?
+
+  // Facilities (stored as JSON)
+  facilities Json?
+
+  // Payment Methods (stored as JSON)
+  paymentMethods Json?
+
+  // Relationships
+  categories FarmCategory[]
+  products   Product[]
+  images     Image[]
+  reviews    Review[]
+  events     Event[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Indexes for performance
+  // Single-column indexes
+  @@index([county])
+  @@index([city])
+  @@index([postcode])
+  @@index([status])
+  @@index([verified])
+  @@index([featured])
+  @@index([latitude, longitude])
+  @@index([googleRating])
+  // Composite indexes for common query patterns
+  @@index([county, status]) // County pages with active farms
+  @@index([city, status]) // City-based searches
+  @@index([status, verified]) // Verified active farms
+  @@index([status, featured]) // Featured active farms
+  @@index([status, googleRating]) // Active farms sorted by rating
+  @@index([county, verified, status]) // Verified active farms in county
+  @@index([featured, verified, status]) // Featured verified active farms
+  @@map("farms")
+}
+
+// =============================================================================
+// CATEGORY MODEL
+// =============================================================================
+
+model Category {
+  id String @id @default(uuid())
+
+  name        String  @db.VarChar(100)
+  slug        String  @unique @db.VarChar(100)
+  description String? @db.Text
+  icon        String? @db.VarChar(50)
+
+  // Hierarchical categories
+  parentId String?
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryHierarchy")
+
+  displayOrder Int @default(0)
+
+  // Relationships
+  farms FarmCategory[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([parentId])
+  @@map("categories")
+}
+
+// =============================================================================
+// FARM-CATEGORY JUNCTION
+// =============================================================================
+
+model FarmCategory {
+  farmId     String
+  categoryId String
+
+  farm     Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([farmId, categoryId])
+  @@index([farmId])
+  @@index([categoryId])
+  @@map("farm_categories")
+}
+
+// =============================================================================
+// PRODUCT MODEL
+// =============================================================================
+
+model Product {
+  id String @id @default(uuid())
+
+  farmId String
+  farm   Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  name        String  @db.VarChar(255)
+  description String? @db.Text
+  category    String? @db.VarChar(100)
+
+  // Seasonality
+  seasonal        Boolean @default(false)
+  availableMonths Int[] // Array of months (1-12)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([farmId])
+  @@index([seasonal])
+  @@index([category])
+  @@map("products")
+}
+
+// =============================================================================
+// IMAGE MODEL
+// =============================================================================
+
+model Image {
+  id String @id @default(uuid())
+
+  farmId String
+  farm   Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  url     String  @db.VarChar(500)
+  altText String? @db.VarChar(255)
+  caption String? @db.Text
+
+  isHero       Boolean @default(false)
+  displayOrder Int     @default(0)
+
+  // Metadata
+  uploadedBy String @db.VarChar(50) // 'owner', 'admin', 'user'
+  status     String @default("pending") @db.VarChar(20) // pending, approved, rejected
+
+  // Timestamps
+  createdAt  DateTime  @default(now())
+  approvedAt DateTime?
+  rejectedAt DateTime?
+
+  // Single-column indexes
+  @@index([farmId])
+  @@index([status])
+  @@index([isHero])
+  // Composite indexes for common image queries
+  @@index([farmId, status]) // Fetch approved images for a farm
+  @@index([farmId, isHero, status]) // Fetch approved hero image for a farm
+  @@index([status, isHero]) // All approved hero images
+  @@map("images")
+}
+
+// =============================================================================
+// REVIEW MODEL
+// =============================================================================
+
+model Review {
+  id String @id @default(uuid())
+
+  farmId String
+  farm   Farm   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  // User (future implementation)
+  userId      String?
+  authorName  String  @db.VarChar(100)
+  authorEmail String? @db.VarChar(255)
+
+  // Review content
+  rating  Int // 1-5
+  title   String? @db.VarChar(255)
+  content String  @db.Text
+
+  // Metadata
+  helpfulCount     Int     @default(0)
+  verifiedPurchase Boolean @default(false)
+  status           String  @default("pending") @db.VarChar(20) // pending, approved, rejected
+
+  // Timestamps
+  createdAt  DateTime  @default(now())
+  approvedAt DateTime?
+  rejectedAt DateTime?
+
+  @@index([farmId])
+  @@index([status])
+  @@index([rating])
+  @@index([userId])
+  @@map("reviews")
+}
+
+// =============================================================================
+// BLOG POST MODEL
+// =============================================================================
+
+model BlogPost {
+  id String @id @default(uuid())
+
+  title   String  @db.VarChar(255)
+  slug    String  @unique @db.VarChar(255)
+  excerpt String? @db.Text
+  content String  @db.Text
+
+  // Author
+  authorName String? @db.VarChar(100)
+  authorId   String? // Future user system
+
+  // Media
+  featuredImage String? @db.VarChar(500)
+
+  // Taxonomy
+  category String?  @db.VarChar(100)
+  tags     String[]
+
+  // Publishing
+  status      String    @default("draft") @db.VarChar(20) // draft, published, archived
+  publishedAt DateTime?
+
+  // SEO
+  seoTitle       String? @db.VarChar(255)
+  seoDescription String? @db.Text
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([slug])
+  @@index([status])
+  @@index([publishedAt])
+  @@index([category])
+  @@map("blog_posts")
+}
+
+// =============================================================================
+// EVENT MODEL (Analytics)
+// =============================================================================
+
+model Event {
+  id String @id @default(uuid())
+
+  eventType String @db.VarChar(50) // page_view, farm_click, directions, call, etc.
+
+  // Relations
+  farmId String?
+  farm   Farm?   @relation(fields: [farmId], references: [id], onDelete: Cascade)
+
+  // Session tracking
+  sessionId String? @db.VarChar(100)
+
+  // Request metadata
+  userAgent String? @db.Text
+  referrer  String? @db.VarChar(500)
+  ipAddress String? @db.VarChar(45)
+
+  // Additional data
+  metadata Json?
+
+  // Timestamp
+  createdAt DateTime @default(now())
+
+  // Single-column indexes
+  @@index([farmId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@index([sessionId])
+  // Composite indexes for analytics queries
+  @@index([farmId, eventType]) // Events by farm and type
+  @@index([farmId, createdAt]) // Events by farm over time
+  @@index([eventType, createdAt]) // Events by type over time
+  @@index([farmId, eventType, createdAt]) // Full analytics queries
+  @@map("events")
+}
+
+// =============================================================================
+// USER MODEL (Future)
+// =============================================================================
+
+// model User {
+//   id String @id @default(uuid())
+//
+//   email String @unique @db.VarChar(255)
+//   name String? @db.VarChar(255)
+//
+//   role String @default("user") @db.VarChar(20) // user, owner, admin
+//
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+//
+//   @@map("users")
+// }

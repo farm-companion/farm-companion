@@ -193,72 +193,113 @@ export async function getCategoryStats(categorySlug: string) {
 
 /**
  * Get related categories (based on farms that have both)
+ * Optimized: Uses single aggregation query instead of two separate queries
  */
 export async function getRelatedCategories(categorySlug: string, limit = 6) {
-  // Get farms in this category
-  const farmsInCategory = await prisma.farm.findMany({
-    where: {
-      status: 'active',
-      categories: {
-        some: {
-          category: { slug: categorySlug },
-        },
-      },
-    },
-    select: {
-      id: true,
-    },
+  // First, get the category ID from slug
+  const targetCategory = await prisma.category.findUnique({
+    where: { slug: categorySlug },
+    select: { id: true },
   })
 
-  const farmIds = farmsInCategory.map((f) => f.id)
+  if (!targetCategory) return []
 
-  if (farmIds.length === 0) return []
-
-  // Find other categories these farms belong to
-  const relatedCategories = await prisma.category.findMany({
+  // Use aggregation to find categories that share the most farms with target category
+  // This finds farm-category pairs where the farm also has the target category
+  const relatedCategoryStats = await prisma.farmCategory.groupBy({
+    by: ['categoryId'],
     where: {
-      slug: { not: categorySlug },
-      farms: {
-        some: {
-          farmId: { in: farmIds },
+      categoryId: { not: targetCategory.id },
+      farm: {
+        status: 'active',
+        categories: {
+          some: {
+            categoryId: targetCategory.id,
+          },
         },
       },
     },
-    include: {
+    _count: {
+      farmId: true,
+    },
+    orderBy: {
       _count: {
-        select: {
-          farms: true,
-        },
+        farmId: 'desc',
       },
     },
     take: limit,
   })
 
-  return relatedCategories
-}
+  // Fetch category details for the related categories
+  const categoryIds = relatedCategoryStats.map((stat) => stat.categoryId)
+  if (categoryIds.length === 0) return []
 
-/**
- * Get top categories (by farm count)
- */
-export async function getTopCategories(limit = 12) {
   const categories = await prisma.category.findMany({
+    where: {
+      id: { in: categoryIds },
+    },
     include: {
       _count: {
         select: {
-          farms: true,
+          farms: {
+            where: {
+              farm: { status: 'active' },
+            },
+          },
         },
       },
     },
   })
 
-  return categories
-    .filter((cat) => cat._count.farms > 0)
-    .sort((a, b) => b._count.farms - a._count.farms)
-    .slice(0, limit)
-    .map((cat) => ({
-      ...cat,
-      farmCount: cat._count.farms,
-    }))
+  // Sort categories by the overlap count (preserve the order from aggregation)
+  const categoryMap = new Map(categories.map((c) => [c.id, c]))
+  const sortedCategories = relatedCategoryStats
+    .map((stat) => categoryMap.get(stat.categoryId))
+    .filter((c): c is typeof categories[number] => c !== undefined)
+
+  return sortedCategories
+}
+
+/**
+ * Get top categories (by farm count)
+ * Optimized: Uses database-level filtering, sorting, and limiting
+ */
+export async function getTopCategories(limit = 12) {
+  const categories = await prisma.category.findMany({
+    where: {
+      farms: {
+        some: {
+          farm: {
+            status: 'active',
+          },
+        },
+      },
+    },
+    include: {
+      _count: {
+        select: {
+          farms: {
+            where: {
+              farm: {
+                status: 'active',
+              },
+            },
+          },
+        },
+      },
+    },
+    orderBy: {
+      farms: {
+        _count: 'desc',
+      },
+    },
+    take: limit,
+  })
+
+  return categories.map((cat) => ({
+    ...cat,
+    farmCount: cat._count.farms,
+  }))
 }
 
 /**

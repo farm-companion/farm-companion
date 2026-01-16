@@ -130,64 +130,111 @@ export async function getFarmsByCounty(
 
 /**
  * Get county statistics
+ * Optimized: Uses database-level aggregation instead of in-memory iteration
  */
 export async function getCountyStats(countySlug: string) {
   const countyName = await getCountyNameFromSlug(countySlug)
   if (!countyName) return null
 
-  const farms = await prisma.farm.findMany({
+  // Use Promise.all to run queries in parallel
+  const [
+    totalCount,
+    verifiedCount,
+    featuredCount,
+    ratingStats,
+    categoryStats,
+  ] = await Promise.all([
+    // Total farms
+    prisma.farm.count({
+      where: {
+        status: 'active',
+        county: countyName,
+      },
+    }),
+
+    // Verified farms count
+    prisma.farm.count({
+      where: {
+        status: 'active',
+        county: countyName,
+        verified: true,
+      },
+    }),
+
+    // Featured farms count
+    prisma.farm.count({
+      where: {
+        status: 'active',
+        county: countyName,
+        featured: true,
+      },
+    }),
+
+    // Average rating (database-level calculation)
+    prisma.farm.aggregate({
+      where: {
+        status: 'active',
+        county: countyName,
+        googleRating: { not: null },
+      },
+      _avg: {
+        googleRating: true,
+      },
+    }),
+
+    // Category counts (database-level grouping)
+    prisma.farmCategory.groupBy({
+      by: ['categoryId'],
+      where: {
+        farm: {
+          status: 'active',
+          county: countyName,
+        },
+      },
+      _count: {
+        farmId: true,
+      },
+      orderBy: {
+        _count: {
+          farmId: 'desc',
+        },
+      },
+      take: 10,
+    }),
+  ])
+
+  // Fetch category details for top categories
+  const categoryIds = categoryStats.map((c) => c.categoryId)
+  const categories = await prisma.category.findMany({
     where: {
-      status: 'active',
-      county: countyName,
+      id: { in: categoryIds },
     },
     select: {
       id: true,
-      verified: true,
-      featured: true,
-      googleRating: true,
-      categories: {
-        include: {
-          category: true,
-        },
-      },
+      name: true,
+      slug: true,
     },
   })
 
-  // Count farms by category
-  const categoryCount: Record<string, { name: string; slug: string; count: number }> = {}
-
-  farms.forEach((farm) => {
-    farm.categories.forEach((fc) => {
-      const catSlug = fc.category.slug
-      if (!categoryCount[catSlug]) {
-        categoryCount[catSlug] = {
-          name: fc.category.name,
-          slug: catSlug,
-          count: 0,
-        }
+  // Map category details to counts
+  const categoryMap = new Map(categories.map((c) => [c.id, c]))
+  const topCategories = categoryStats
+    .map((stat) => {
+      const category = categoryMap.get(stat.categoryId)
+      if (!category) return null
+      return {
+        name: category.name,
+        slug: category.slug,
+        count: stat._count.farmId,
       }
-      categoryCount[catSlug].count++
     })
-  })
-
-  const topCategories = Object.values(categoryCount)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 10)
-
-  // Calculate stats
-  const verifiedCount = farms.filter((f) => f.verified).length
-  const featuredCount = farms.filter((f) => f.featured).length
-  const ratedFarms = farms.filter((f) => f.googleRating !== null)
-  const avgRating =
-    ratedFarms.length > 0
-      ? ratedFarms.reduce((sum, f) => sum + Number(f.googleRating), 0) / ratedFarms.length
-      : 0
+    .filter((c): c is { name: string; slug: string; count: number } => c !== null)
 
   return {
-    total: farms.length,
+    total: totalCount,
     verified: verifiedCount,
     featured: featuredCount,
-    averageRating: avgRating,
+    averageRating: ratingStats._avg.googleRating ? Number(ratingStats._avg.googleRating) : 0,
     topCategories,
   }
 }
