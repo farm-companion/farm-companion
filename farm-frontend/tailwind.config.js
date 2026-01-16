@@ -31,6 +31,28 @@ module.exports = {
         'brand-primary': '#00C2B2',
         'brand-accent': '#D4FF4F',
         'brand-danger': '#FF5A5F',
+
+        // Semantic feedback colors (god-tier design system)
+        success: {
+          light: '#D1FAE5',
+          DEFAULT: '#10B981',
+          dark: '#065F46'
+        },
+        warning: {
+          light: '#FEF3C7',
+          DEFAULT: '#F59E0B',
+          dark: '#92400E'
+        },
+        error: {
+          light: '#FEE2E2',
+          DEFAULT: '#EF4444',
+          dark: '#991B1B'
+        },
+        info: {
+          light: '#DBEAFE',
+          DEFAULT: '#3B82F6',
+          dark: '#1E40AF'
+        },
         
         // Background colors
         'background-canvas': 'var(--background-canvas)',
@@ -145,13 +167,28 @@ module.exports = {
           '0%': { transform: 'translateY(0)' },
           '100%': { transform: 'translateY(-2px)' },
         },
+        'shimmer': {
+          '0%': { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        'accordion-down': {
+          from: { height: '0' },
+          to: { height: 'var(--radix-accordion-content-height)' },
+        },
+        'accordion-up': {
+          from: { height: 'var(--radix-accordion-content-height)' },
+          to: { height: '0' },
+        },
       },
-      
+
       animation: {
         'fade-in': 'fade-in 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
         'fade-in-up': 'fade-in-up 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
         'scale-in': 'scale-in 150ms cubic-bezier(0.2, 0.8, 0.2, 1)',
         'lift': 'lift 150ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+        'shimmer': 'shimmer 2s linear infinite',
+        'accordion-down': 'accordion-down 0.2s ease-out',
+        'accordion-up': 'accordion-up 0.2s ease-out',
       },
       
       // Premium background patterns
