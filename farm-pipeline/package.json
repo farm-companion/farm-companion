@@ -1,0 +1,46 @@
+{
+  "name": "farm-companion",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Farm Companion - Complete farm management and seasonal produce system",
+  "workspaces": [
+    "farm-frontend",
+    "farm-pipeline",
+    "farm-produce-images",
+    "farm-photos",
+    "farm-golden-template"
+  ],
+  "scripts": {
+    "dev": "pnpm --filter farm-frontend dev",
+    "build": "pnpm --filter farm-frontend build",
+    "deploy": "pnpm --filter farm-frontend vercel --prod",
+    "pipeline:run": "pnpm --filter farm-pipeline run",
+    "produce:dev": "pnpm --filter farm-produce-images dev",
+    "photos:dev": "pnpm --filter farm-photos dev",
+    "install:all": "pnpm install --recursive",
+    "build:all": "pnpm --recursive build",
+    "lint:all": "pnpm --recursive lint",
+    "test:all": "pnpm --recursive test"
+  },
+  "devDependencies": {
+    "pnpm": "^10.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/farm-companion/farm-companion.git"
+  },
+  "keywords": [
+    "farm",
+    "seasonal",
+    "produce",
+    "uk",
+    "local",
+    "farm-shops"
+  ],
+  "author": "Farm Companion Team",
+  "license": "MIT"
+}

@@ -1,0 +1,139 @@
+name: Build farms dataset (Google Places)
+
+on:
+  schedule:
+    - cron: "30 2 */14 * *"   # every 14 days at 02:30 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install deps
+        run: |
+          python -m pip install -U pip wheel
+          pip install -r requirements.txt
+
+      - name: Check env present (masked)
+        env:
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+        run: |
+          test -n "$GOOGLE_PLACES_API_KEY"
+          echo "Key length: ${#GOOGLE_PLACES_API_KEY}"
+          echo "✅ Google Places API key is present and configured"
+
+      - name: Verify script and environment
+        run: |
+          ls -la google_places.sh
+          pwd
+          echo "Current directory contents:"
+          ls -la
+
+      - name: Build dataset (Google Places)
+        env:
+          GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+        run: ./google_places.sh
+
+      - name: Verify generated files
+        run: |
+          echo "📊 Checking generated files:"
+          ls -la dist/
+          echo "📁 File sizes:"
+          du -h dist/*.json || true
+          echo "✅ Files generated successfully"
+
+      - name: Commit artifacts to data branch
+        run: |
+          set -euo pipefail
+          BR=data
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          
+          # switch/create data branch
+          if git show-ref --verify --quiet refs/heads/$BR; then
+            git checkout $BR
+            # Reset to match origin/main to avoid conflicts
+            git reset --hard origin/main
+            git clean -fd
+          else
+            git checkout --orphan $BR
+            git rm -rf . || true
+          fi
+          
+          # Ensure dist directory exists and copy files
+          mkdir -p dist
+          if [ -f "dist/farms.uk.json" ]; then
+            cp -f dist/farms.uk.json ./farms.uk.json
+            echo "✅ Copied farms.uk.json"
+          else
+            echo "❌ farms.uk.json not found in dist/"
+            exit 1
+          fi
+          
+          if [ -f "dist/farms.geo.json" ]; then
+            cp -f dist/farms.geo.json ./farms.geo.json
+            echo "✅ Copied farms.geo.json"
+          else
+            echo "❌ farms.geo.json not found in dist/"
+            exit 1
+          fi
+          
+          # Add and commit files
+          git add farms.uk.json farms.geo.json
+          if git diff --cached --quiet; then
+            echo "ℹ️ No changes to commit."
+          else
+            git commit -m "data: bi-weekly farms dataset (Google Places) - $(date -u +'%Y-%m-%d %H:%M UTC')"
+            git push --force-with-lease origin $BR
+            echo "✅ Data branch updated successfully"
+          fi
+
+      - name: Notify farm-frontend (repository_dispatch)
+        if: ${{ success() }}
+        env:
+          GH_TOKEN: ${{ secrets.FRONTEND_DISPATCH_PAT }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "❌ FRONTEND_DISPATCH_PAT is missing"
+            echo "⚠️  Frontend data copy skipped - farm-frontend not available in this workspace"
+            echo "ℹ️  The workflow should handle copying these files to the frontend repository"
+            exit 1
+          fi
+          
+          echo '🔄 Triggering repository_dispatch: farms-updated'
+          RESPONSE=$(curl -fsSL -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: token ${GH_TOKEN}" \
+            https://api.github.com/repos/farm-companion/farm-frontend/dispatches \
+            -d '{"event_type":"farms-updated","client_payload":{"source_repo":"farm-pipeline","workflow":"farms-google.yml","timestamp":"'$(date -u -Iseconds)'"}}')
+          
+          if [ $? -eq 0 ]; then
+            echo "✅ Repository dispatch triggered successfully"
+            echo "📊 Frontend will sync farms data automatically"
+          else
+            echo "❌ Failed to trigger repository dispatch"
+            exit 1
+          fi
+
+      - name: Upload artifacts for manual inspection
+        uses: actions/upload-artifact@v4
+        with:
+          name: farms-dataset
+          path: |
+            dist/farms.uk.json
+            dist/farms.geo.json
+          retention-days: 7

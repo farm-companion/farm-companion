@@ -1,0 +1,9 @@
+# seeds/uk.yml
+sources:
+  - url: "https://example.org/your-allowed-list"   # replace with a permitted URL
+    list_selector: ".listing"                       # tweak these selectors
+    name_selector: ".name"
+    addr_selector: ".address"
+    county_selector: ".county"
+    pc_selector: ".postcode"
+    website_selector: "a.website"

@@ -1,0 +1,100 @@
+name: Build seasonal dataset
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "21 3 */14 * *"  # every 14 days at 03:21 UTC
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Checkout farm-schema (for sample seasons file)
+        uses: actions/checkout@v4
+        with:
+          repository: farm-companion/farm-schema
+          path: farm-schema
+          token: ${{ secrets.FRONTEND_DISPATCH_PAT }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run seasonal pipeline (local provider)
+        env:
+          SEASON_PROVIDER: local
+        run: ./seasons.sh
+
+      - name: Verify generated files
+        run: |
+          echo "📊 Checking generated seasonal files:"
+          ls -la dist/
+          if [ -f "dist/seasons.uk.json" ]; then
+            echo "✅ seasons.uk.json generated successfully"
+            echo "📁 File size: $(du -h dist/seasons.uk.json | cut -f1)"
+          else
+            echo "❌ seasons.uk.json not found in dist/"
+            exit 1
+          fi
+
+      - name: Notify farm-frontend (repository_dispatch)
+        if: ${{ success() }}
+        env:
+          GH_TOKEN: ${{ secrets.FRONTEND_DISPATCH_PAT }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "❌ FRONTEND_DISPATCH_PAT is missing"
+            echo "⚠️  Frontend data copy skipped - farm-frontend not available in this workspace"
+            echo "ℹ️  The workflow should handle copying these files to the frontend repository"
+            exit 1
+          fi
+
+          OWNER=farm-companion
+          REPO=farm-frontend
+          EVENT=seasons-updated
+          DATA=$(jq -n --arg e "$EVENT" '{event_type:$e, client_payload:{source_repo:"farm-pipeline", workflow:"Build seasonal dataset", timestamp:"'$(date -u -Iseconds)'"}}')
+
+          echo "🔄 Triggering repository_dispatch: $EVENT → $OWNER/$REPO"
+          CODE=$(curl -sS -o /tmp/resp.txt -w "%{http_code}" -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            https://api.github.com/repos/${OWNER}/${REPO}/dispatches \
+            -d "$DATA")
+
+          echo "HTTP $CODE"
+          cat /tmp/resp.txt || true
+          
+          if [ "$CODE" = "204" ]; then
+            echo "✅ Repository dispatch triggered successfully"
+            echo "📊 Frontend will sync seasonal data automatically"
+          else
+            echo "❌ Failed to trigger repository dispatch (HTTP $CODE)"
+            exit 1
+          fi
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: seasons-uk
+          path: dist/seasons.uk.json
+          if-no-files-found: error
