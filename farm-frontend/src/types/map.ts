@@ -72,3 +72,17 @@ export interface FarmStatus {
   opensAt?: string
   nextOpen?: Date
 }
+
+/**
+ * Extended marker with farm data
+ */
+export interface FarmMarkerExtended extends google.maps.Marker {
+  farmData?: FarmShop
+}
+
+/**
+ * Window with map utility functions
+ */
+export interface WindowWithMapUtils extends Window {
+  zoomToUKOverview?: () => void
+}

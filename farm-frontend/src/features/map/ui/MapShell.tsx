@@ -5,7 +5,7 @@ import { loadGoogle } from '@/lib/googleMaps'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import { Map } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
-import type { ClusterClickEvent, MarkerState } from '@/types/map'
+import type { ClusterClickEvent, MarkerState, FarmMarkerExtended, WindowWithMapUtils } from '@/types/map'
 import MarkerActions from './MarkerActions'
 import ClusterPreview from './ClusterPreview'
 
@@ -308,7 +308,7 @@ export default function MapShell({
       })
 
       // Attach farm data to marker for ClusterPreview access
-      ;(marker as any).farmData = farm
+      ;(marker as FarmMarkerExtended).farmData = farm
 
       marker.addListener('click', () => {
         handleMarkerClick(farm)
@@ -608,7 +608,7 @@ export default function MapShell({
       `
       
       // Make the function globally accessible for the onclick
-      ;(window as any).zoomToUKOverview = zoomToUKOverview
+      ;(window as WindowWithMapUtils).zoomToUKOverview = zoomToUKOverview
       
       // Add to map controls
       map.controls[google.maps.ControlPosition.LEFT_TOP].push(cameraControlDiv)
