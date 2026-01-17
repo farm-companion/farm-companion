@@ -160,7 +160,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'FAQPage',
-              mainEntity: faqs.map((faq) => ({
+              mainEntity: faqs.map((faq: { question: string; answer: string }) => ({
                 '@type': 'Question',
                 name: faq.question,
                 acceptedAnswer: {
@@ -323,7 +323,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             {farms.length > 0 ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                  {farms.map((farm) => (
+                  {farms.map((farm: any) => (
                     <FarmCard key={farm.id} farm={farm} />
                   ))}
                 </div>
@@ -381,7 +381,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               Frequently Asked Questions
             </h2>
             <div className="space-y-6">
-              {faqs.map((faq, index) => (
+              {faqs.map((faq: { question: string; answer: string }, index: number) => (
                 <div
                   key={index}
                   className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6"
