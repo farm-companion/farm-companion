@@ -31,7 +31,7 @@ export async function getAllCounties() {
     },
   })
 
-  return counties.map((county) => ({
+  return counties.map((county: { county: string; _count: { id: number } }) => ({
     name: county.county,
     slug: slugifyCounty(county.county),
     farmCount: county._count.id,
@@ -101,7 +101,7 @@ export async function getFarmsByCounty(
   ])
 
   // Transform to FarmShop format
-  const farms = rawFarms.map((farm) => ({
+  const farms = rawFarms.map((farm: any) => ({
     id: farm.id,
     name: farm.name,
     slug: farm.slug,
@@ -119,7 +119,7 @@ export async function getFarmsByCounty(
       email: farm.email || undefined,
       website: farm.website || undefined,
     },
-    images: farm.images.map((img) => img.url),
+    images: farm.images.map((img: { url: string }) => img.url),
     verified: farm.verified,
     hours: farm.openingHours as any,
     categories: farm.categories,
@@ -204,7 +204,7 @@ export async function getCountyStats(countySlug: string) {
   ])
 
   // Fetch category details for top categories
-  const categoryIds = categoryStats.map((c) => c.categoryId)
+  const categoryIds = categoryStats.map((c: { categoryId: string }) => c.categoryId)
   const categories = await prisma.category.findMany({
     where: {
       id: { in: categoryIds },
@@ -217,9 +217,9 @@ export async function getCountyStats(countySlug: string) {
   })
 
   // Map category details to counts
-  const categoryMap = new Map(categories.map((c) => [c.id, c]))
+  const categoryMap = new Map(categories.map((c: any) => [c.id, c]))
   const topCategories = categoryStats
-    .map((stat) => {
+    .map((stat: { categoryId: string; _count: { farmId: number } }) => {
       const category = categoryMap.get(stat.categoryId)
       if (!category) return null
       return {
@@ -251,8 +251,8 @@ export async function getRelatedCounties(countySlug: string, limit = 6) {
 
   // Filter out current county and sort by farm count
   const related = allCounties
-    .filter((c) => c.slug !== countySlug)
-    .sort((a, b) => b.farmCount - a.farmCount)
+    .filter((c: { slug: string }) => c.slug !== countySlug)
+    .sort((a: { farmCount: number }, b: { farmCount: number }) => b.farmCount - a.farmCount)
     .slice(0, limit)
 
   return related
@@ -265,8 +265,8 @@ export async function getTopCounties(limit = 20) {
   const counties = await getAllCounties()
 
   return counties
-    .filter((c) => c.farmCount > 0)
-    .sort((a, b) => b.farmCount - a.farmCount)
+    .filter((c: { farmCount: number }) => c.farmCount > 0)
+    .sort((a: { farmCount: number }, b: { farmCount: number }) => b.farmCount - a.farmCount)
     .slice(0, limit)
 }
 
@@ -276,7 +276,7 @@ export async function getTopCounties(limit = 20) {
 export async function searchCounties(query: string) {
   const counties = await getAllCounties()
 
-  return counties.filter((c) => c.name.toLowerCase().includes(query.toLowerCase())).slice(0, 10)
+  return counties.filter((c: { name: string }) => c.name.toLowerCase().includes(query.toLowerCase())).slice(0, 10)
 }
 
 /**
@@ -295,7 +295,7 @@ async function getCountyNameFromSlug(slug: string): Promise<string | null> {
   })
 
   // Find matching county by slug
-  const match = counties.find((c) => slugifyCounty(c.county) === slug)
+  const match = counties.find((c: { county: string }) => slugifyCounty(c.county) === slug)
   return match?.county || null
 }
 
@@ -315,5 +315,5 @@ function slugifyCounty(name: string): string {
  */
 export async function generateCountyParams() {
   const counties = await getAllCounties()
-  return counties.map((county) => ({ slug: county.slug }))
+  return counties.map((county: { slug: string }) => ({ slug: county.slug }))
 }

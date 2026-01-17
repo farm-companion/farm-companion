@@ -171,7 +171,7 @@ export default async function CountiesPage() {
               </div>
               
               <div className="space-y-2">
-                {countyFarms.slice(0, 3).map((farm) => (
+                {countyFarms.slice(0, 3).map((farm: { id: string; slug: string; name: string }) => (
                   <Link
                     key={farm.id}
                     href={`/shop/${farm.slug}`}

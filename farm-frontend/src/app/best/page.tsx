@@ -24,8 +24,8 @@ export const metadata: Metadata = {
 
 export default function BestGuidesPage() {
   // Separate featured and regular lists
-  const featuredLists = bestLists.filter((list) => list.featured)
-  const regularLists = bestLists.filter((list) => !list.featured)
+  const featuredLists = bestLists.filter((list: { featured?: boolean }) => list.featured)
+  const regularLists = bestLists.filter((list: { featured?: boolean }) => !list.featured)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">

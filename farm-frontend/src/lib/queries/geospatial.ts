@@ -73,7 +73,7 @@ export async function searchFarmsNearby(
   `
 
   // Transform to FarmShop format
-  return farms.map((farm) => transformToFarmShop(farm))
+  return farms.map((farm: any) => transformToFarmShop(farm))
 }
 
 /**

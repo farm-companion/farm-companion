@@ -31,7 +31,7 @@ export async function getAllCategories() {
     },
   })
 
-  return categories.map((cat) => ({
+  return categories.map((cat: { _count: { farms: number } }) => ({
     ...cat,
     farmCount: cat._count.farms,
   }))
@@ -143,7 +143,7 @@ export async function getFarmsByCategory(
   ])
 
   // Transform to FarmShop format expected by FarmCard
-  const farms = rawFarms.map((farm) => ({
+  const farms = rawFarms.map((farm: any) => ({
     id: farm.id,
     name: farm.name,
     slug: farm.slug,
@@ -161,7 +161,7 @@ export async function getFarmsByCategory(
       email: farm.email || undefined,
       website: farm.website || undefined,
     },
-    images: farm.images.map((img) => img.url),
+    images: farm.images.map((img: { url: string }) => img.url),
     verified: farm.verified,
     hours: farm.openingHours as any,
     categories: farm.categories,
@@ -196,22 +196,22 @@ export async function getCategoryStats(categorySlug: string): Promise<{
   })
 
   // Count farms by county
-  const countyCount = farms.reduce((acc, farm) => {
+  const countyCount = farms.reduce((acc: Record<string, number>, farm: { county: string }) => {
     acc[farm.county] = (acc[farm.county] || 0) + 1
     return acc
   }, {} as Record<string, number>)
 
   const topCounties = Object.entries(countyCount)
-    .sort(([, a], [, b]) => b - a)
+    .sort(([, a]: [string, number], [, b]: [string, number]) => b - a)
     .slice(0, 10)
-    .map(([county, count]) => ({ county, count }))
+    .map(([county, count]: [string, number]) => ({ county, count }))
 
   // Calculate stats
-  const verifiedCount = farms.filter((f) => f.verified).length
-  const ratedFarms = farms.filter((f) => f.googleRating !== null)
+  const verifiedCount = farms.filter((f: any) => f.verified).length
+  const ratedFarms = farms.filter((f: any) => f.googleRating !== null)
   const avgRating =
     ratedFarms.length > 0
-      ? ratedFarms.reduce((sum, f) => sum + Number(f.googleRating), 0) / ratedFarms.length
+      ? ratedFarms.reduce((sum: number, f: any) => sum + Number(f.googleRating), 0) / ratedFarms.length
       : 0
 
   return {
@@ -270,7 +270,7 @@ export async function getRelatedCategories(categorySlug: string, limit = 6): Pro
   })
 
   // Fetch category details for the related categories
-  const categoryIds = relatedCategoryStats.map((stat) => stat.categoryId)
+  const categoryIds = relatedCategoryStats.map((stat: { categoryId: string }) => stat.categoryId)
   if (categoryIds.length === 0) return []
 
   const categories = await prisma.category.findMany({
@@ -291,9 +291,9 @@ export async function getRelatedCategories(categorySlug: string, limit = 6): Pro
   })
 
   // Sort categories by the overlap count (preserve the order from aggregation)
-  const categoryMap = new Map(categories.map((c) => [c.id, c]))
+  const categoryMap = new Map(categories.map((c: any) => [c.id, c]))
   const sortedCategories = relatedCategoryStats
-    .map((stat) => categoryMap.get(stat.categoryId))
+    .map((stat: { categoryId: string }) => categoryMap.get(stat.categoryId))
     .filter((c): c is typeof categories[number] => c !== undefined)
 
   return sortedCategories
@@ -335,7 +335,7 @@ export async function getTopCategories(limit = 12) {
     take: limit,
   })
 
-  return categories.map((cat) => ({
+  return categories.map((cat: { _count: { farms: number } }) => ({
     ...cat,
     farmCount: cat._count.farms,
   }))

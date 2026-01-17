@@ -23,11 +23,11 @@ export default async function CategoriesPage() {
   const categories = await getCachedAllCategories()
 
   // Group categories by display order ranges for better organization
-  const primaryCategories = categories.filter((cat) => cat.displayOrder <= 10)
+  const primaryCategories = categories.filter((cat: any) => cat.displayOrder <= 10)
   const specializedCategories = categories.filter(
-    (cat) => cat.displayOrder > 10 && cat.displayOrder <= 20
+    (cat: any) => cat.displayOrder > 10 && cat.displayOrder <= 20
   )
-  const otherCategories = categories.filter((cat) => cat.displayOrder > 20)
+  const otherCategories = categories.filter((cat: any) => cat.displayOrder > 20)
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
@@ -71,7 +71,7 @@ export default async function CategoriesPage() {
               businesses across the UK
             </p>
             <Badge variant="default" size="lg">
-              {categories.reduce((sum, cat) => sum + cat.farmCount, 0)} Total Farms
+              {categories.reduce((sum: number, cat: any) => sum + cat.farmCount, 0)} Total Farms
             </Badge>
           </div>
         </div>
@@ -85,7 +85,7 @@ export default async function CategoriesPage() {
               Popular Categories
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {primaryCategories.map((category) => (
+              {primaryCategories.map((category: any) => (
                 <CategoryCard key={category.id} category={category} />
               ))}
             </div>
@@ -99,7 +99,7 @@ export default async function CategoriesPage() {
               Specialized & Seasonal
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {specializedCategories.map((category) => (
+              {specializedCategories.map((category: any) => (
                 <CategoryCard key={category.id} category={category} />
               ))}
             </div>
@@ -113,7 +113,7 @@ export default async function CategoriesPage() {
               Products & Practices
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {otherCategories.map((category) => (
+              {otherCategories.map((category: any) => (
                 <CategoryCard key={category.id} category={category} />
               ))}
             </div>

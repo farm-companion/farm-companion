@@ -16,7 +16,7 @@ interface BestPageProps {
 
 // Generate static params for all best-of lists
 export async function generateStaticParams() {
-  return bestLists.map((list) => ({
+  return bestLists.map((list: { slug: string }) => ({
     slug: list.slug,
   }))
 }
@@ -24,7 +24,7 @@ export async function generateStaticParams() {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: BestPageProps): Promise<Metadata> {
   const { slug } = await params
-  const list = bestLists.find((l) => l.slug === slug)
+  const list = bestLists.find((l: { slug: string }) => l.slug === slug)
 
   if (!list) {
     return {
@@ -57,7 +57,7 @@ export async function generateMetadata({ params }: BestPageProps): Promise<Metad
 
 export default async function BestPage({ params }: BestPageProps) {
   const { slug } = await params
-  const list = bestLists.find((l) => l.slug === slug)
+  const list = bestLists.find((l: { slug: string }) => l.slug === slug)
 
   if (!list) {
     notFound()
@@ -74,7 +74,7 @@ export default async function BestPage({ params }: BestPageProps) {
   } else if (list.region === 'london') {
     // For London, get farms from nearby counties
     const londonCounties = ['surrey', 'kent', 'essex', 'hertfordshire', 'buckinghamshire']
-    const farmPromises = londonCounties.map((county) =>
+    const farmPromises = londonCounties.map((county: string) =>
       getCachedFarmsByCounty(county, { limit: 5 })
     )
     const results = await Promise.all(farmPromises)
@@ -119,7 +119,7 @@ export default async function BestPage({ params }: BestPageProps) {
             __html: JSON.stringify({
               '@context': 'https://schema.org',
               '@type': 'FAQPage',
-              mainEntity: list.faqs.map((faq) => ({
+              mainEntity: list.faqs.map((faq: { question: string; answer: string }) => ({
                 '@type': 'Question',
                 name: faq.question,
                 acceptedAnswer: {
@@ -271,9 +271,9 @@ export default async function BestPage({ params }: BestPageProps) {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {bestLists
-                .filter((l) => l.slug !== slug && l.featured)
+                .filter((l: { slug: string; featured?: boolean }) => l.slug !== slug && l.featured)
                 .slice(0, 3)
-                .map((relatedList) => (
+                .map((relatedList: { slug: string; title: string; intro: string; updateDate: string }) => (
                   <Link
                     key={relatedList.slug}
                     href={`/best/${relatedList.slug}`}
