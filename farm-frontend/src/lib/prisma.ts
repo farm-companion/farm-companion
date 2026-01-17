@@ -36,13 +36,6 @@ const CONNECTION_POOL_CONFIG = {
   log: (process.env.NODE_ENV === 'development'
     ? ['query', 'error', 'warn']
     : ['error']) as Array<'query' | 'error' | 'warn' | 'info'>,
-
-  // Connection pool settings
-  datasources: {
-    db: {
-      url: process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL,
-    },
-  },
 }
 
 export const prisma =

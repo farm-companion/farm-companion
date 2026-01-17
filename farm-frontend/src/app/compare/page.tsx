@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
@@ -33,7 +33,7 @@ interface Farm {
   categories?: Array<{ category: { name: string; slug: string } }>
 }
 
-export default function ComparePage() {
+function ComparePageContent() {
   const searchParams = useSearchParams()
   const [farms, setFarms] = useState<Farm[]>([])
   const [loading, setLoading] = useState(true)
@@ -93,7 +93,7 @@ export default function ComparePage() {
               <Button>Browse Map</Button>
             </Link>
             <Link href="/shop">
-              <Button variant="outline">View All Shops</Button>
+              <Button variant="secondary">View All Shops</Button>
             </Link>
           </div>
         </motion.div>
@@ -186,7 +186,7 @@ export default function ComparePage() {
                 {/* Actions */}
                 <div className="mt-6 flex gap-2">
                   <Link href={`/shop/${farm.slug}`} className="flex-1">
-                    <Button variant="outline" className="w-full">View Details</Button>
+                    <Button variant="secondary" className="w-full">View Details</Button>
                   </Link>
                   <Link
                     href={`https://www.google.com/maps/dir/?api=1&destination=${farm.location.lat},${farm.location.lng}`}
@@ -209,7 +209,7 @@ export default function ComparePage() {
           className="mt-8 text-center"
         >
           <Link href="/shop">
-            <Button variant="outline" size="lg">
+            <Button variant="secondary" size="lg">
               + Add More Farms to Compare
             </Button>
           </Link>
@@ -225,5 +225,20 @@ function ComparisonMetric({ label, value }: { label: string; value: string }) {
       <span className="text-sm font-medium text-text-muted">{label}</span>
       <span className="text-sm font-semibold">{value}</span>
     </div>
+  )
+}
+
+export default function ComparePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-serum mx-auto mb-4"></div>
+          <p className="text-text-muted">Loading comparison...</p>
+        </div>
+      </div>
+    }>
+      <ComparePageContent />
+    </Suspense>
   )
 }

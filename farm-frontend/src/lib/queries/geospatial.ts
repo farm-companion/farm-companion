@@ -252,9 +252,6 @@ function transformToFarmShop(farm: any): FarmShop {
       : [],
     verified: farm.verified,
     hours: farm.openingHours,
-    categories: farm.categories || [],
-    googleRating: farm.googleRating ? Number(farm.googleRating) : undefined,
-    googleReviewsCount: farm.googleReviewsCount || undefined,
     distance: farm.distance_km,
   }
 }
