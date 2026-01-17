@@ -24,7 +24,7 @@
 - [ ] Add missing components
 - [ ] Add design tokens
 - [ ] Add micro interactions
-- [ ] WCAG AA compliance
+- [x] WCAG AA compliance
 
 ### Queue 5: Backend optimization
 - [ ] Fix N+1 queries
@@ -52,3 +52,4 @@
 - Added desktop marker popovers with screen-position calculation (MapMarkerPopover component, replaces mobile bottom sheet on desktop)
 - Consolidated Haversine utilities to shared/lib/geo (deleted lib/geo-utils.ts, moved calculateBearing and isWithinBounds, removed inline implementation from LiveLocationTracker)
 - Fixed ClusterPreview data loss: replaced any casts with FarmMarkerExtended type, added validation for missing farm data, prevent render when farms array empty, use farms.length instead of cluster.count for accuracy
+- Added WCAG 2.1 AA accessibility utilities to globals.css: touch-target class (44x44px), sr-only for screen readers, skip-to-content link, focus-visible-ring, prefers-reduced-motion support, prefers-contrast high support
