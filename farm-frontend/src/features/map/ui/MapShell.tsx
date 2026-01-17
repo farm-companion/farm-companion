@@ -114,16 +114,9 @@ export default function MapShell({
 
   // Enhanced cluster click with preview and smart zoom
   const handleClusterClick = useCallback((event: ClusterClickEvent) => {
-    if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-      console.log('Cluster click event:', event)
-    }
-
     // The event structure is different - it has latLng but not cluster methods
     // We need to find the actual cluster object or handle this differently
     if (!event || event.latLng === null) {
-      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-        console.warn('Invalid cluster event:', event)
-      }
       return false
     }
 
@@ -199,9 +192,6 @@ export default function MapShell({
   // Show all farms in cluster as list
   const handleShowAllFarms = useCallback((farms: FarmShop[]) => {
     // TODO: Implement list view or filter to show only these farms
-    if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-      console.log('Show all farms in cluster:', farms.length)
-    }
 
     // For now, just close the preview
     setShowClusterPreview(false)
@@ -239,9 +229,6 @@ export default function MapShell({
 
   const handleFavorite = useCallback((farmId: string) => {
     // TODO: Implement favorites system
-    if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-      console.log('Favorite farm:', farmId)
-    }
     triggerHaptic('medium')
   }, [triggerHaptic])
 
@@ -287,21 +274,7 @@ export default function MapShell({
   // Create clustered markers for farms
   const createMarkers = useCallback((map: google.maps.Map, farmData: FarmShop[]) => {
     if (!map || !farmData.length || typeof window === 'undefined') {
-      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-        console.log('createMarkers: Missing requirements', {
-          hasMap: !!map,
-          farmDataLength: farmData?.length,
-          isWindow: typeof window !== 'undefined'
-        })
-      }
       return
-    }
-
-    if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-      console.log('=== CREATING MARKERS ===')
-      console.log('Map instance:', map)
-      console.log('Farm data length:', farmData.length)
-      console.log('First farm:', farmData[0])
     }
 
     // Clear existing markers and clusterer
@@ -561,23 +534,13 @@ export default function MapShell({
 
     loadGoogle().then(() => {
       if (!mapRef.current) {
-        if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-          console.error('Map ref not available')
-        }
+        console.error('Map ref not available')
         return
       }
       if (mapInstanceRef.current) {
-        if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-          console.log('Map already exists, skipping creation')
-        }
         return // double-guard
       }
 
-      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-        console.log('=== CREATING MAP ===')
-        console.log('Map ref element:', mapRef.current)
-      }
-      
       const map = new google.maps.Map(mapRef.current, {
         center,
         zoom,
@@ -912,9 +875,7 @@ export default function MapShell({
       try {
         resizeObserver.disconnect()
       } catch (err) {
-        if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-          console.warn('Error disconnecting resize observer:', err)
-        }
+        // Silently handle cleanup errors
       }
     }
   }, [])
