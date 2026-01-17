@@ -232,7 +232,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
                     Nearby Counties
                   </h2>
                   <div className="space-y-2">
-                    {relatedCounties.map((county) => (
+                    {relatedCounties.map((county: { slug: string; name: string; farmCount: number }) => (
                       <Link
                         key={county.slug}
                         href={`/counties/${county.slug}`}
