@@ -2004,3 +2004,80 @@ html {
     left: 100%;
   }
 }
+
+/* ============================================================================
+   ACCESSIBILITY UTILITIES - WCAG 2.1 AA COMPLIANCE
+   ============================================================================ */
+
+/* Minimum touch target size (WCAG 2.1 Level AAA - 44x44px) */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Screen reader only text (visible to assistive technologies only) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Skip to main content link (accessible navigation) */
+.skip-to-content {
+  position: absolute;
+  left: -9999px;
+  z-index: 999;
+  padding: 1rem 1.5rem;
+  background-color: var(--background-canvas);
+  color: var(--text-body);
+  text-decoration: none;
+  border: 2px solid var(--border-focus);
+  border-radius: 0.375rem;
+}
+
+.skip-to-content:focus {
+  left: 1rem;
+  top: 1rem;
+}
+
+/* Focus visible states (keyboard navigation) */
+.focus-visible-ring {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+.focus-visible-ring:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+
+/* Reduced motion preference (WCAG 2.1 Level AAA) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border-default: #000000;
+    --border-focus: #0000ff;
+  }
+
+  .dark {
+    --border-default: #ffffff;
+    --border-focus: #00ffff;
+  }
+}
