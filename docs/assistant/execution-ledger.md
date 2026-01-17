@@ -15,7 +15,7 @@
 ### Queue 3: Track 0 Map fixes
 - [x] Remove production console logs
 - [x] Fix MapShell.tsx type safety
-- [ ] Fix cluster event handling
+- [x] Fix cluster event handling
 - [ ] Add desktop marker popovers
 - [ ] Extract Haversine utility
 - [ ] Fix ClusterPreview data loss
@@ -48,3 +48,4 @@
 - Updated twitter-workflow dependencies to resolve Next.js CVE-2025-66478
 - Removed all debug console statements from MapShell.tsx (17 statements removed, 2 console.error preserved)
 - Fixed MapShell.tsx type safety by replacing all any casts with proper interfaces (FarmMarkerExtended, WindowWithMapUtils)
+- Improved cluster event handling: added ClusterData type, show preview for small clusters (<=8 farms), smart zoom for large clusters, proper event validation
