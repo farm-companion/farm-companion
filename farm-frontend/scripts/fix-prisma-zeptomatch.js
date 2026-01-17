@@ -153,5 +153,6 @@ if (indexPaths.length > 0) {
   console.log(`Patched ${patchedCount} file(s)`);
 } else {
   console.log('Could not find any @prisma/dev/dist/index.cjs');
-  process.exit(1);
+  console.log('This is expected in production builds - skipping patch.');
+  process.exit(0);
 }
