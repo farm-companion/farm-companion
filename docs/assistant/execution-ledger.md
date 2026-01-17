@@ -18,7 +18,7 @@
 - [x] Fix cluster event handling
 - [x] Add desktop marker popovers
 - [x] Extract Haversine utility
-- [ ] Fix ClusterPreview data loss
+- [x] Fix ClusterPreview data loss
 
 ### Queue 4: Design system
 - [ ] Add missing components
@@ -51,3 +51,4 @@
 - Improved cluster event handling: added ClusterData type, show preview for small clusters (<=8 farms), smart zoom for large clusters, proper event validation
 - Added desktop marker popovers with screen-position calculation (MapMarkerPopover component, replaces mobile bottom sheet on desktop)
 - Consolidated Haversine utilities to shared/lib/geo (deleted lib/geo-utils.ts, moved calculateBearing and isWithinBounds, removed inline implementation from LiveLocationTracker)
+- Fixed ClusterPreview data loss: replaced any casts with FarmMarkerExtended type, added validation for missing farm data, prevent render when farms array empty, use farms.length instead of cluster.count for accuracy
