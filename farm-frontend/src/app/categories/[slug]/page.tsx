@@ -22,7 +22,7 @@ interface CategoryPageProps {
 // Generate static params for all categories at build time
 export async function generateStaticParams() {
   const categories = await getCachedAllCategories()
-  return categories.map((category) => ({
+  return categories.map((category: { slug: string }) => ({
     slug: category.slug,
   }))
 }
