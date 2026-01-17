@@ -16,7 +16,7 @@
 - [x] Remove production console logs
 - [x] Fix MapShell.tsx type safety
 - [x] Fix cluster event handling
-- [ ] Add desktop marker popovers
+- [x] Add desktop marker popovers
 - [ ] Extract Haversine utility
 - [ ] Fix ClusterPreview data loss
 
@@ -49,3 +49,4 @@
 - Removed all debug console statements from MapShell.tsx (17 statements removed, 2 console.error preserved)
 - Fixed MapShell.tsx type safety by replacing all any casts with proper interfaces (FarmMarkerExtended, WindowWithMapUtils)
 - Improved cluster event handling: added ClusterData type, show preview for small clusters (<=8 farms), smart zoom for large clusters, proper event validation
+- Added desktop marker popovers with screen-position calculation (MapMarkerPopover component, replaces mobile bottom sheet on desktop)
