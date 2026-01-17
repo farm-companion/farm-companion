@@ -74,7 +74,33 @@ export async function getFarmsByCategory(
     county?: string
     featured?: boolean
   } = {}
-) {
+): Promise<{
+  farms: Array<{
+    id: string
+    name: string
+    slug: string
+    description?: string
+    location: {
+      lat: number
+      lng: number
+      address: string
+      city?: string
+      county: string
+      postcode: string
+    }
+    contact: {
+      phone?: string
+      email?: string
+      website?: string
+    }
+    images: string[]
+    verified: boolean
+    hours: any
+    categories: any[]
+  }>
+  total: number
+  hasMore: boolean
+}> {
   const { limit = 50, offset = 0, county, featured } = options
 
   const where: any = {
