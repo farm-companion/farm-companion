@@ -13,7 +13,7 @@
 - [x] Fix remaining build blockers (none remaining)
 
 ### Queue 3: Track 0 Map fixes
-- [ ] Remove production console logs
+- [x] Remove production console logs
 - [ ] Fix MapShell.tsx type safety
 - [ ] Fix cluster event handling
 - [ ] Add desktop marker popovers
@@ -46,3 +46,4 @@
 ### 2026-01-17
 - Created execution ledger
 - Updated twitter-workflow dependencies to resolve Next.js CVE-2025-66478
+- Removed all debug console statements from MapShell.tsx (17 statements removed, 2 console.error preserved)
