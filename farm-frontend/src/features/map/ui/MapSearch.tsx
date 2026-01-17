@@ -78,7 +78,6 @@ export default function MapSearch({
       if (place?.geometry?.location) {
         const { lat, lng } = place.geometry.location
         setQuery(place.formatted_address || '')
-        console.log('Selected location:', { lat: lat(), lng: lng() })
       }
     })
 
@@ -99,10 +98,9 @@ export default function MapSearch({
       if (!response.ok) {
         throw new Error('Failed to convert what3words')
       }
-      
+
       const data: W3WResponse = await response.json()
-      console.log('what3words coordinates:', data.coordinates)
-      
+
       // Emit coordinates to parent component
       if (onW3WCoordinates) {
         onW3WCoordinates(data.coordinates)

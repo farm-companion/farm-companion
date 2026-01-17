@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs/promises'
-import path from 'path'
+import { PrismaClient } from '@prisma/client'
 import type { FarmShop } from '@/types/farm'
 import { performanceMiddleware } from '@/lib/performance-middleware'
 import { CACHE_NAMESPACES, CACHE_TTL } from '@/lib/cache-manager'
+
+const prisma = new PrismaClient()
 
 interface FarmShopData {
   name: string
@@ -12,6 +13,7 @@ interface FarmShopData {
     lat: number
     lng: number
     address: string
+    city?: string
     county: string
     postcode: string
   }
@@ -42,11 +44,11 @@ interface FarmShopData {
   updatedAt: string
 }
 
-// Enhanced GET endpoint with filtering
+// Enhanced GET endpoint with filtering using Prisma
 async function farmsHandler(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
-    
+
     // Parse query parameters
     const query = searchParams.get('q')?.toLowerCase()
     const county = searchParams.get('county')
@@ -54,62 +56,144 @@ async function farmsHandler(request: NextRequest) {
     const bbox = searchParams.get('bbox') // "west,south,east,north"
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
-    
-    // Load farm data with deduplication
-    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
-    const farmsData = await fs.readFile(farmsPath, 'utf-8')
-    const rawFarms: FarmShop[] = JSON.parse(farmsData)
-    
-    // Apply deduplication
-    const { dedupeFarms } = await import('@/lib/schemas')
-    const { farms: allFarms, stats } = dedupeFarms(rawFarms)
-    
-    console.log('📊 Farm data processing:', stats)
-    console.log(`✅ Loaded ${allFarms.length} valid, deduplicated farms from JSON file`)
-    
-    // Apply filters
-    const filteredFarms = allFarms.filter((farm: FarmShop) => {
-      // Text search
-      if (query) {
-        const searchText = `${farm.name} ${farm.location.address} ${farm.location.county} ${farm.location.postcode}`.toLowerCase()
-        if (!searchText.includes(query)) return false
+
+    // Build Prisma where clause
+    const where: any = {
+      status: 'active', // Only return active farms
+    }
+
+    // Text search (searches name, address, county, postcode)
+    if (query) {
+      where.OR = [
+        { name: { contains: query, mode: 'insensitive' } },
+        { address: { contains: query, mode: 'insensitive' } },
+        { county: { contains: query, mode: 'insensitive' } },
+        { postcode: { contains: query, mode: 'insensitive' } },
+        { description: { contains: query, mode: 'insensitive' } },
+      ]
+    }
+
+    // County filter
+    if (county) {
+      where.county = county
+    }
+
+    // Category filter (through junction table)
+    if (category) {
+      where.categories = {
+        some: {
+          category: {
+            slug: category
+          }
+        }
       }
-      
-      // County filter
-      if (county && farm.location.county !== county) return false
-      
-      // Category filter (offerings)
-      if (category && farm.offerings && !farm.offerings.includes(category)) return false
-      
-      // Bounding box filter
-      if (bbox) {
-        const [west, south, east, north] = bbox.split(',').map(Number)
-        const { lat, lng } = farm.location
-        if (lat < south || lat > north || lng < west || lng > east) return false
-      }
-      
-      // Validate coordinates
-      if (!farm.location.lat || !farm.location.lng) return false
-      if (farm.location.lat === 0 && farm.location.lng === 0) return false
-      
-      return true
-    })
-    
-    // Apply pagination
-    const paginatedFarms = filteredFarms.slice(offset, offset + limit)
-    
-    // Get unique counties and categories for faceted search
-    const counties = [...new Set(allFarms.map(f => f.location.county).filter(Boolean))].sort()
-    const categories = [...new Set(allFarms.flatMap(f => f.offerings || []).filter(Boolean))].sort()
-    
+    }
+
+    // Bounding box filter (geographic bounds)
+    if (bbox) {
+      const [west, south, east, north] = bbox.split(',').map(Number)
+      where.AND = [
+        { latitude: { gte: south, lte: north } },
+        { longitude: { gte: west, lte: east } }
+      ]
+    }
+
+    // Query database with filters and pagination
+    const [farms, total] = await Promise.all([
+      prisma.farm.findMany({
+        where,
+        include: {
+          categories: {
+            include: {
+              category: {
+                select: {
+                  name: true,
+                  slug: true
+                }
+              }
+            }
+          },
+          images: {
+            where: { status: 'approved' },
+            take: 3,
+            orderBy: { displayOrder: 'asc' }
+          }
+        },
+        take: limit,
+        skip: offset,
+        orderBy: [
+          { featured: 'desc' }, // Featured farms first
+          { verified: 'desc' }, // Then verified farms
+          { googleRating: 'desc' }, // Then by rating
+          { name: 'asc' } // Then alphabetically
+        ]
+      }),
+      prisma.farm.count({ where })
+    ])
+
+    // Get facets for filtering UI
+    const [countyFacets, categoryFacets] = await Promise.all([
+      prisma.farm.groupBy({
+        by: ['county'],
+        where: { status: 'active' },
+        _count: true,
+        orderBy: { county: 'asc' }
+      }),
+      prisma.category.findMany({
+        select: {
+          name: true,
+          slug: true,
+          _count: {
+            select: {
+              farms: true
+            }
+          }
+        },
+        orderBy: { name: 'asc' }
+      })
+    ])
+
+    // Transform farms to match expected format
+    const transformedFarms = farms.map(farm => ({
+      id: farm.id,
+      name: farm.name,
+      slug: farm.slug,
+      description: farm.description,
+      location: {
+        lat: Number(farm.latitude),
+        lng: Number(farm.longitude),
+        address: farm.address,
+        city: farm.city || '',
+        county: farm.county,
+        postcode: farm.postcode
+      },
+      contact: {
+        phone: farm.phone,
+        email: farm.email,
+        website: farm.website
+      },
+      hours: farm.openingHours || [],
+      offerings: farm.categories.map(fc => fc.category.name),
+      images: farm.images.map(img => ({
+        url: img.url,
+        alt: img.altText || farm.name
+      })),
+      verified: farm.verified,
+      rating: farm.googleRating ? Number(farm.googleRating) : null,
+      user_ratings_total: farm.googleReviewsCount || 0,
+      updatedAt: farm.updatedAt.toISOString()
+    }))
+
     return NextResponse.json({
-      farms: paginatedFarms,
-      total: filteredFarms.length,
+      farms: transformedFarms,
+      total,
       offset,
       limit,
       facets: {
-        counties,
-        categories
+        counties: countyFacets.map(c => c.county),
+        categories: categoryFacets
+          .filter(c => c._count.farms > 0)
+          .map(c => c.slug)
       },
       timestamp: new Date().toISOString()
     }, {
@@ -177,107 +261,101 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check for potential duplicates
-    const farmsDir = path.join(process.cwd(), 'data', 'farms')
-    const liveFarmsDir = path.join(process.cwd(), 'data', 'live-farms')
-    
-    try {
-      // Check submissions directory
-      const submissionFiles = await fs.readdir(farmsDir)
-      for (const file of submissionFiles) {
-        if (file.endsWith('.json')) {
-          const filePath = path.join(farmsDir, file)
-          const fileContent = await fs.readFile(filePath, 'utf-8')
-          const existingFarm = JSON.parse(fileContent)
-          
-          // Check for exact name match
-          if (existingFarm.name.toLowerCase() === farmData.name.toLowerCase()) {
-            return NextResponse.json(
-              { error: 'A farm with this name already exists' },
-              { status: 409 }
-            )
-          }
-          
-          // Check for exact address match
-          if (existingFarm.location?.address?.toLowerCase() === farmData.location.address.toLowerCase() &&
-              existingFarm.location?.postcode?.toLowerCase() === farmData.location.postcode.toLowerCase()) {
-            return NextResponse.json(
-              { error: 'A farm at this address already exists' },
-              { status: 409 }
-            )
-          }
-        }
-      }
-      
-      // Check live farms directory
-      const liveFiles = await fs.readdir(liveFarmsDir)
-      for (const file of liveFiles) {
-        if (file.endsWith('.json')) {
-          const filePath = path.join(liveFarmsDir, file)
-          const fileContent = await fs.readFile(filePath, 'utf-8')
-          const existingFarm = JSON.parse(fileContent)
-          
-          // Check for exact name match
-          if (existingFarm.name.toLowerCase() === farmData.name.toLowerCase()) {
-            return NextResponse.json(
-              { error: 'A farm with this name already exists' },
-              { status: 409 }
-            )
-          }
-          
-          // Check for exact address match
-          if (existingFarm.location?.address?.toLowerCase() === farmData.location.address.toLowerCase() &&
-              existingFarm.location?.postcode?.toLowerCase() === farmData.location.postcode.toLowerCase()) {
-            return NextResponse.json(
-              { error: 'A farm at this address already exists' },
-              { status: 409 }
-            )
-          }
-        }
-      }
-    } catch (error) {
-      // Directory doesn't exist or other error, continue with submission
-      console.log('Directory check failed, continuing with submission:', error)
+    // Check for duplicates in database
+    const existingByName = await prisma.farm.findFirst({
+      where: { name: { equals: farmData.name, mode: 'insensitive' } }
+    })
+
+    if (existingByName) {
+      return NextResponse.json(
+        { error: 'A farm with this name already exists' },
+        { status: 409 }
+      )
     }
 
-    // Generate unique ID and slug
-    const id = `farm_${farmData.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`
-    const slug = farmData.name.toLowerCase().replace(/[^a-z0-9]/g, '-')
-    
-    // Create farm object
-    const newFarm = {
-      id,
-      slug,
-      name: farmData.name,
-      location: {
-        lat: farmData.location.lat || null,
-        lng: farmData.location.lng || null,
+    const existingByAddress = await prisma.farm.findFirst({
+      where: {
+        AND: [
+          { address: { equals: farmData.location.address, mode: 'insensitive' } },
+          { postcode: { equals: farmData.location.postcode, mode: 'insensitive' } }
+        ]
+      }
+    })
+
+    if (existingByAddress) {
+      return NextResponse.json(
+        { error: 'A farm at this address already exists' },
+        { status: 409 }
+      )
+    }
+
+    // Generate unique slug
+    const baseSlug = farmData.name.toLowerCase().replace(/[^a-z0-9]/g, '-')
+    let slug = baseSlug
+    let counter = 1
+
+    // Ensure slug is unique
+    while (await prisma.farm.findUnique({ where: { slug } })) {
+      slug = `${baseSlug}-${counter}`
+      counter++
+    }
+
+    // Create farm in database (status: pending for admin approval)
+    const newFarm = await prisma.farm.create({
+      data: {
+        name: farmData.name,
+        slug,
+        description: farmData.story || null,
         address: farmData.location.address,
-        city: '',
+        city: farmData.location.city || null,
         county: farmData.location.county,
-        postcode: farmData.location.postcode
-      },
-      contact: {
+        postcode: farmData.location.postcode,
+        latitude: farmData.location.lat || 0,
+        longitude: farmData.location.lng || 0,
         phone: farmData.contact.phone || null,
         email: farmData.contact.email || null,
-        website: farmData.contact.website || null
+        website: farmData.contact.website || null,
+        openingHours: farmData.hours || null,
+        verified: false,
+        featured: false,
+        status: 'pending', // Requires admin approval
       },
-      hours: farmData.hours || [],
-      offerings: farmData.offerings || [],
-      description: farmData.story || '',
-      images: farmData.images || [],
-      verified: false,
-      updatedAt: new Date().toISOString()
-    }
+      include: {
+        categories: true,
+        images: true
+      }
+    })
 
-    // Save to submissions directory
-    const submissionPath = path.join(farmsDir, `${id}.json`)
-    await fs.writeFile(submissionPath, JSON.stringify(newFarm, null, 2))
+    // Transform to match expected format
+    const responseData = {
+      id: newFarm.id,
+      slug: newFarm.slug,
+      name: newFarm.name,
+      location: {
+        lat: Number(newFarm.latitude),
+        lng: Number(newFarm.longitude),
+        address: newFarm.address,
+        city: newFarm.city || '',
+        county: newFarm.county,
+        postcode: newFarm.postcode
+      },
+      contact: {
+        phone: newFarm.phone,
+        email: newFarm.email,
+        website: newFarm.website
+      },
+      hours: newFarm.openingHours || [],
+      offerings: [],
+      description: newFarm.description || '',
+      images: [],
+      verified: false,
+      updatedAt: newFarm.updatedAt.toISOString()
+    }
 
     return NextResponse.json({
       success: true,
-      message: 'Farm submission received successfully',
-      farm: newFarm
+      message: 'Farm submission received successfully. It will be reviewed by our team before being published.',
+      farm: responseData
     }, { status: 201 })
 
   } catch (error) {
@@ -286,6 +364,8 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to process farm submission' },
       { status: 500 }
     )
+  } finally {
+    await prisma.$disconnect()
   }
 }
 

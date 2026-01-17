@@ -179,45 +179,64 @@ export async function getCategoryStats(categorySlug: string): Promise<{
   averageRating: number
   topCounties: Array<{ county: string; count: number }>
 }> {
-  const farms = await prisma.farm.findMany({
-    where: {
-      status: 'active',
-      categories: {
-        some: {
-          category: { slug: categorySlug },
-        },
+  const categoryWhere = {
+    status: 'active' as const,
+    categories: {
+      some: {
+        category: { slug: categorySlug },
       },
     },
-    select: {
-      county: true,
-      verified: true,
-      googleRating: true,
-    },
-  })
+  }
 
-  // Count farms by county
-  const countyCount = farms.reduce((acc: Record<string, number>, farm: { county: string }) => {
-    acc[farm.county] = (acc[farm.county] || 0) + 1
-    return acc
-  }, {} as Record<string, number>)
+  // Use parallel database aggregations instead of in-memory processing
+  const [total, verified, avgRating, countyStats] = await Promise.all([
+    // Total count
+    prisma.farm.count({ where: categoryWhere }),
 
-  const topCounties = Object.entries(countyCount)
-    .sort(([, a]: [string, number], [, b]: [string, number]) => b - a)
-    .slice(0, 10)
-    .map(([county, count]: [string, number]) => ({ county, count }))
+    // Verified count
+    prisma.farm.count({
+      where: {
+        ...categoryWhere,
+        verified: true,
+      },
+    }),
 
-  // Calculate stats
-  const verifiedCount = farms.filter((f: any) => f.verified).length
-  const ratedFarms = farms.filter((f: any) => f.googleRating !== null)
-  const avgRating =
-    ratedFarms.length > 0
-      ? ratedFarms.reduce((sum: number, f: any) => sum + Number(f.googleRating), 0) / ratedFarms.length
-      : 0
+    // Average rating
+    prisma.farm.aggregate({
+      where: {
+        ...categoryWhere,
+        googleRating: { not: null },
+      },
+      _avg: {
+        googleRating: true,
+      },
+    }),
+
+    // Top counties by farm count
+    prisma.farm.groupBy({
+      by: ['county'],
+      where: categoryWhere,
+      _count: {
+        county: true,
+      },
+      orderBy: {
+        _count: {
+          county: 'desc',
+        },
+      },
+      take: 10,
+    }),
+  ])
+
+  const topCounties = countyStats.map((stat: { county: string; _count: { county: number } }) => ({
+    county: stat.county,
+    count: stat._count.county,
+  }))
 
   return {
-    total: farms.length,
-    verified: verifiedCount,
-    averageRating: avgRating,
+    total,
+    verified,
+    averageRating: avgRating._avg.googleRating ? Number(avgRating._avg.googleRating) : 0,
     topCounties,
   }
 }
