@@ -1,7 +1,7 @@
 import axios from 'axios';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 // Stronger negative prompt used across providers
 const NO_FACE_NEGATIVE = 'no people, no person, no faces, no face, nobody, no humans, no portrait, no selfie, no crowds, no watermark, no text, no logo';
@@ -82,15 +82,13 @@ class ImageGenerator {
     const h = this.hashString(farm?.name || 'default');
     
     // Determine image category based on farm name hash
+    // Removed 'farm_produce', 'fruit_display', and 'produce_still_life' due to AI generating abnormal-looking fruits/vegetables
     const imageCategories = [
       'farm_shop_exterior',
-      'farm_produce',
-      'fruit_display',
       'scenic_views',
       'seeds_grains',
       'vegetable_garden',
-      'farm_landscape',
-      'produce_still_life'
+      'farm_landscape'
     ];
     
     const selectedCategory = imageCategories[h % imageCategories.length];
@@ -118,41 +116,6 @@ class ImageGenerator {
         ];
         break;
         
-      case 'farm_produce':
-        basePrompt = [
-          'Fresh farm produce display',
-          'wooden crates and baskets',
-          'natural lighting',
-          'farm shop interior',
-          'high quality product photography',
-          'still life composition',
-          'no people visible'
-        ];
-        specificElements = [
-          'carrots', 'potatoes', 'onions', 'cabbage', 'lettuce', 'tomatoes',
-          'cucumbers', 'peppers', 'mushrooms', 'herbs', 'garlic', 'beets',
-          'radishes', 'spinach', 'kale', 'broccoli', 'cauliflower', 'squash',
-          'pumpkins', 'sweet potatoes', 'turnips', 'parsnips'
-        ];
-        break;
-        
-      case 'fruit_display':
-        basePrompt = [
-          'Fresh fruit display',
-          'colorful seasonal fruits',
-          'natural lighting',
-          'farm shop or market stall',
-          'high quality product photography',
-          'still life composition',
-          'no people visible'
-        ];
-        specificElements = [
-          'apples', 'pears', 'plums', 'cherries', 'strawberries', 'raspberries',
-          'blackberries', 'blueberries', 'grapes', 'oranges', 'lemons', 'limes',
-          'bananas', 'peaches', 'apricots', 'figs', 'pomegranates', 'kiwi',
-          'mangoes', 'pineapples', 'melons', 'watermelons'
-        ];
-        break;
         
       case 'scenic_views':
         basePrompt = [
@@ -229,24 +192,6 @@ class ImageGenerator {
         ];
         break;
         
-      case 'produce_still_life':
-        basePrompt = [
-          'Farm produce still life',
-          'artisan food photography',
-          'natural materials',
-          'soft natural lighting',
-          'high quality still life',
-          'carefully arranged composition',
-          'no people visible'
-        ];
-        specificElements = [
-          'wooden cutting board', 'wicker baskets', 'ceramic bowls', 'linen cloth',
-          'rustic table', 'natural textures', 'earth tones', 'warm lighting',
-          'shallow depth of field', 'artisan presentation', 'farm-to-table style',
-          'organic arrangement', 'seasonal colors', 'natural shadows',
-          'textured backgrounds', 'vintage props', 'handmade elements'
-        ];
-        break;
     }
     
     // Add location context

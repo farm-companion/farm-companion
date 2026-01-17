@@ -1,4 +1,3 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { monitoringSystem } from '../../lib/monitoring.js';
 
 /**
@@ -7,7 +6,24 @@ import { monitoringSystem } from '../../lib/monitoring.js';
  * This endpoint provides health status for the Twitter workflow system
  * Can be used for monitoring and alerting
  */
-export async function GET(request) {
+export default async function handler(req, res) {
+  // Set CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+  
+  // Only allow GET requests
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+  
   try {
     console.log('🏥 Performing health check...');
     
@@ -24,32 +40,32 @@ export async function GET(request) {
         statusCode = 200; // OK but with warnings
       }
       
-      return NextResponse.json({
+      res.status(statusCode).json({
         status: 'success',
         timestamp: healthCheck.timestamp,
         overall: healthCheck.overall,
         components: healthCheck.components,
         message: getHealthMessage(healthCheck.overall)
-      }, { status: statusCode });
+      });
     } else {
-      return NextResponse.json({
+      res.status(503).json({
         status: 'error',
         timestamp: new Date().toISOString(),
         overall: 'unhealthy',
         error: healthResult.healthCheck.error,
         message: 'Health check failed'
-      }, { status: 503 });
+      });
     }
   } catch (error) {
     console.error('❌ Health check error:', error.message);
     
-    return NextResponse.json({
+    res.status(503).json({
       status: 'error',
       timestamp: new Date().toISOString(),
       overall: 'unhealthy',
       error: error.message,
       message: 'Health check failed with exception'
-    }, { status: 503 });
+    });
   }
 }
 

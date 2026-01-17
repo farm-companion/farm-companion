@@ -1,7 +1,7 @@
 import { TwitterApi } from 'twitter-api-v2';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 /**
  * Twitter API Client for Farm Companion Daily Spotlights

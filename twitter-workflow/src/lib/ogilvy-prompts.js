@@ -26,8 +26,8 @@ Inputs:
 - farm.slug: ${farm.slug}
 
 Hard rules:
-- Output JSON only.
-- Field "body" ≤ 220 characters (we append a t.co link afterwards).
+- Output JSON only (no markdown, no code blocks, no explanations).
+- Field "body" ≤ 200 characters (we append a t.co link afterwards).
 - Include two hashtags exactly: "#FarmShop" and "#FarmCompanion".
 - Optionally add ONE produce/region hashtag if it's crystal-relevant (e.g. #RawMilk or #Yorkshire). Never more than three total.
 - Mention the location once.
@@ -41,8 +41,8 @@ Style guardrails (Ogilvy):
 
 Return JSON with fields:
 {
-  "body": "<tweet text without URL, ≤220 chars, includes the hashtags>",
-  "alt_text": "<120-char image description if a shop photo exists; else empty string>",
+  "body": "<tweet text without URL, ≤200 chars, includes the hashtags>",
+  "alt_text": "<100-char image description if a shop photo exists; else empty string>",
   "notes": "<one sentence explaining the chosen benefit and hashtag>"
 }`;
 }
@@ -89,10 +89,11 @@ export function getAltTextPrompt(farm) {
   return `You are writing concise, factual alt text for a farm-shop photo.
 
 Rules:
-- ≤120 characters.
+- ≤100 characters (strict limit).
 - Plain description of what a sighted user can see.
 - No sales language, no proper nouns unless on signage.
 - British English.
+- Focus on key visual elements only.
 
 Inputs: shop exterior/interior? key items visible? season?
 
@@ -104,7 +105,15 @@ Return ALT_TEXT only.`;
  */
 export function parseOgilvyResponse(response) {
   try {
-    const parsed = JSON.parse(response);
+    // Clean the response - remove markdown code blocks if present
+    let cleanResponse = response.trim();
+    if (cleanResponse.startsWith('```json')) {
+      cleanResponse = cleanResponse.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+    } else if (cleanResponse.startsWith('```')) {
+      cleanResponse = cleanResponse.replace(/^```\s*/, '').replace(/\s*```$/, '');
+    }
+    
+    const parsed = JSON.parse(cleanResponse);
     
     // Validate required fields
     if (!parsed.body) {
@@ -112,12 +121,12 @@ export function parseOgilvyResponse(response) {
     }
     
     // Validate character limits
-    if (parsed.body.length > 220) {
-      throw new Error(`Body too long: ${parsed.body.length} chars (max 220)`);
+    if (parsed.body.length > 200) {
+      throw new Error(`Body too long: ${parsed.body.length} chars (max 200)`);
     }
     
-    if (parsed.alt_text && parsed.alt_text.length > 120) {
-      throw new Error(`Alt text too long: ${parsed.alt_text.length} chars (max 120)`);
+    if (parsed.alt_text && parsed.alt_text.length > 100) {
+      throw new Error(`Alt text too long: ${parsed.alt_text.length} chars (max 100)`);
     }
     
     // Validate hashtags
@@ -161,7 +170,7 @@ export function generateOgilvyFallback(farm) {
   return {
     success: true,
     body: body,
-    alt_text: `Farm shop exterior with local produce on display`,
+    alt_text: `Farm shop with local produce display`,
     notes: 'Fallback content using Ogilvy principles: location + concrete benefit',
     hashtagCount: 2,
     method: 'fallback'

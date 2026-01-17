@@ -67,9 +67,10 @@ function composeFinalTweet({ baseText, farm }) {
   
   const url = `https://www.farmcompanion.co.uk/shop/${encodeURIComponent(farm.slug)}?utm_source=twitter&utm_medium=organic&utm_campaign=daily_farm`;
   
-  // Twitter counts URLs as 23 characters (t.co shortening), but be conservative
-  const urlLength = 25; // Conservative estimate
-  const maxContentLength = 250; // Conservative limit to ensure we stay under 280
+  // Twitter counts URLs as 23 characters (t.co shortening), but be very conservative
+  // Some URLs might not be shortened, so use actual URL length for safety
+  const urlLength = url.length; // Use actual URL length to be safe
+  const maxContentLength = 280 - urlLength - 1; // Leave 1 space for separator
   
   // Trim content to fit with URL
   let trimmedContent = baseText.replace(/\s+$/, '').trim();
@@ -79,13 +80,29 @@ function composeFinalTweet({ baseText, farm }) {
   
   const finalText = trimmedContent + ' ' + url;
   
-  // Final validation
+  // Final validation with twitter-text library
   const parsed = parseTweet(finalText);
   if (!parsed.valid) {
     console.warn(`⚠️  Tweet still invalid after trimming: ${finalText.length} chars`);
-    // Emergency fallback - use shorter content
-    const emergencyContent = 'Fresh local produce from UK farm shops. #FarmShop #FarmCompanion';
-    return emergencyContent + ' ' + url;
+    console.warn(`⚠️  Validation errors:`, parsed.errors);
+    
+    // More aggressive trimming
+    const emergencyMaxLength = Math.max(50, 280 - urlLength - 1 - 10); // Leave extra buffer
+    let emergencyContent = baseText.replace(/\s+$/, '').trim();
+    if (emergencyContent.length > emergencyMaxLength) {
+      emergencyContent = emergencyContent.substring(0, emergencyMaxLength - 3) + '...';
+    }
+    
+    const emergencyFinal = emergencyContent + ' ' + url;
+    const emergencyParsed = parseTweet(emergencyFinal);
+    
+    if (!emergencyParsed.valid) {
+      // Last resort - use minimal content
+      const minimalContent = 'Fresh local produce from UK farm shops. #FarmShop #FarmCompanion';
+      return minimalContent + ' ' + url;
+    }
+    
+    return emergencyFinal;
   }
   
   return finalText;
@@ -182,7 +199,7 @@ export class WorkflowOrchestrator {
 
         // Compose final tweet
         const finalTweet = composeFinalTweet({ 
-          baseText: contentGeneration.content.content || contentGeneration.content, 
+          baseText: contentGeneration.content, 
           farm: farm 
         });
         console.log(`📝 Final tweet (${finalTweet.length} chars): "${finalTweet.substring(0, 80)}..."`);
@@ -203,12 +220,12 @@ export class WorkflowOrchestrator {
 
         // Post to Bluesky
         console.log(`🦋 Posting to Bluesky...`);
-        const blueskyPost = await this.postToBluesky(contentGeneration.content.content || contentGeneration.content, contentGeneration.image, farm, { ...options, dryRun: isDryRun });
+        const blueskyPost = await this.postToBluesky(contentGeneration.content, contentGeneration.image, farm, { ...options, dryRun: isDryRun });
         postResults.platforms.bluesky = blueskyPost;
 
         // Post to Telegram
         console.log(`📱 Posting to Telegram...`);
-        const telegramPost = await this.postToTelegram(contentGeneration.content.content || contentGeneration.content, contentGeneration.image, farm, { ...options, dryRun: isDryRun });
+        const telegramPost = await this.postToTelegram(contentGeneration.content, contentGeneration.image, farm, { ...options, dryRun: isDryRun });
         postResults.platforms.telegram = telegramPost;
 
         // Check if at least one platform succeeded
@@ -316,7 +333,7 @@ export class WorkflowOrchestrator {
       
       // Compose final tweet with farm URL
       const finalTweet = composeFinalTweet({ 
-        baseText: contentGeneration.content.content || contentGeneration.content, 
+        baseText: contentGeneration.content, 
         farm: farmSelection.farm 
       });
       console.log(`📝 Final tweet (${finalTweet.length} chars): "${finalTweet.substring(0, 80)}..."`);
@@ -328,12 +345,12 @@ export class WorkflowOrchestrator {
       
       // Post to Bluesky
       console.log('\n🦋 Posting to Bluesky...');
-      const blueskyPost = await this.postToBluesky(contentGeneration.content.content || contentGeneration.content, contentGeneration.image, farmSelection.farm, { ...options, dryRun: isDryRun });
+      const blueskyPost = await this.postToBluesky(contentGeneration.content, contentGeneration.image, farmSelection.farm, { ...options, dryRun: isDryRun });
       results.steps.blueskyPost = blueskyPost;
       
       // Post to Telegram
       console.log('\n📱 Posting to Telegram...');
-      const telegramPost = await this.postToTelegram(contentGeneration.content.content || contentGeneration.content, contentGeneration.image, farmSelection.farm, { ...options, dryRun: isDryRun });
+      const telegramPost = await this.postToTelegram(contentGeneration.content, contentGeneration.image, farmSelection.farm, { ...options, dryRun: isDryRun });
       results.steps.telegramPost = telegramPost;
       
       // Check if at least one platform succeeded
@@ -380,7 +397,7 @@ export class WorkflowOrchestrator {
       console.log(`\n✅ Daily farm spotlight workflow completed successfully!`);
       console.log(`⏱️  Duration: ${Math.round(results.duration / 1000)}s`);
       console.log(`🏪 Farm: ${farmSelection.farm.name}`);
-      const content = contentGeneration.content.content || contentGeneration.content;
+      const content = contentGeneration.content;
       console.log(`📝 Content: "${content?.substring(0, 100)}..."`);
 
       return results;
@@ -533,7 +550,6 @@ export class WorkflowOrchestrator {
       const result = await twitterClient.postTweet(content, mediaIds, dryRun);
       
       if (result.success) {
-        console.log(`✅ Tweet posted successfully: ${result.tweetId}`);
         if (result.url) {
           console.log(`🔗 Tweet URL: ${result.url}`);
         }

@@ -11,7 +11,7 @@ import { workflowOrchestrator } from './lib/workflow-orchestrator.js';
 import dotenv from 'dotenv';
 
 // Load environment variables
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 /**
  * Main execution function

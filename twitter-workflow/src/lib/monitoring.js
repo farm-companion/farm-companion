@@ -139,7 +139,7 @@ export class MonitoringSystem {
           timeout: 10000,
           validateStatus: () => true // handle manually
         });
-        const ok = r.status === 200 && (typeof r.data === 'string' ? r.data.trim() === 'ok' : true);
+        const ok = r.status === 200;
         if (ok) return { success: true };
 
         const errMsg = `Slack returned ${r.status} ${r.statusText || ''}`.trim();

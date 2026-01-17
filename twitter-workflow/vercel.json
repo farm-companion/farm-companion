@@ -20,6 +20,12 @@
       "dest": "/src/api/health/route.js"
     }
   ],
+  "crons": [
+    {
+      "path": "/api/cron/daily-farm-spotlight",
+      "schedule": "5 8 * * *"
+    }
+  ],
   "env": {
     "NODE_ENV": "production"
   }

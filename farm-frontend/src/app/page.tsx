@@ -1,12 +1,15 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { MapPin, ArrowRight, Leaf, Calendar, Heart } from 'lucide-react'
+import { MapPin, ArrowRight, Leaf, Calendar, Heart, TrendingUp, Award, Clock } from 'lucide-react'
 import NewsletterSignup from '@/components/NewsletterSignup'
 import { getFarmStatsServer } from '@/lib/farm-data-server'
 import { SITE_URL } from '@/lib/site'
 import { FeaturedGuides } from '@/components/FeaturedGuides'
 import { CategoryGrid } from '@/components/CategoryGrid'
+import { AnimatedHero } from '@/components/AnimatedHero'
+import { AnimatedStats } from '@/components/AnimatedStats'
+import { AnimatedFeatures } from '@/components/AnimatedFeatures'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -103,87 +106,11 @@ export default async function HomePage() {
         }}
       />
 
-      {/* Professional Hero Section with Image Overlay */}
-      <section data-header-invert className="relative h-screen min-h-[800px] max-h-[1000px] overflow-hidden">
-        {/* Background Image with Professional Handling */}
-        <div className="absolute inset-0">
-          <Image
-            src="/main_header.jpg"
-            alt="Colorful display of fresh vegetables, fruits, and flowers arranged in baskets at a UK farm shop, showcasing the variety of local produce available"
-            fill
-            className="object-cover object-center"
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            quality={85}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-          />
-                  {/* Professional Overlay Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
-        {/* Subtle texture overlay for depth */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_70%)]" />
-        </div>
-        
-        {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center pt-20 pb-20">
-          <div className="text-center max-w-4xl mx-auto px-6">
-            <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
-            <h2 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
-              Find Fresh Local
-              <span className="block text-serum drop-shadow-lg">Farm Shops</span>
-            </h2>
-            <p className="text-xl md:text-2xl text-white/90 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Find farm shops near you with fresh local produce, seasonal UK fruit and vegetables, 
-              and authentic farm experiences across {countyCount} counties.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="/map"
-                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
-              >
-                <MapPin className="w-5 h-5" />
-                Explore Farm Map
-              </Link>
-              <Link
-                href="/seasonal"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
-              >
-                What&apos;s in Season
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-        
-        {/* Subtle Scroll Indicator */}
-        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2">
-          <div className="animate-bounce">
-            <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-              <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse"></div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Animated Hero Section */}
+      <AnimatedHero countyCount={countyCount} />
 
-      {/* Stats Section */}
-      <section aria-labelledby="site-stats" className="bg-background-canvas border-b border-border-default">
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <h2 id="site-stats" className="sr-only">Site Statistics</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-center">
-            <div>
-              <div className="text-4xl font-heading font-bold text-serum mb-2">{farmCount}+</div>
-              <div className="text-text-muted">Farm Shops</div>
-            </div>
-            <div>
-              <div className="text-4xl font-heading font-bold text-serum mb-2">{countyCount}</div>
-              <div className="text-text-muted">Counties</div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Animated Stats Section */}
+      <AnimatedStats farmCount={farmCount} countyCount={countyCount} />
 
       {/* Featured Guides Section */}
       <FeaturedGuides />
@@ -191,45 +118,8 @@ export default async function HomePage() {
       {/* Category Grid Section */}
       <CategoryGrid limit={8} />
 
-      {/* Features Section */}
-      <section className="bg-background-surface py-16">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading mb-4">
-              Why Choose Farm Shops?
-            </h2>
-            <p className="text-lg text-text-muted max-w-2xl mx-auto mb-12">
-              Experience the difference of truly fresh, local produce from family-run farms across the UK.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="text-center p-6 rounded-lg bg-background-canvas border border-border-default">
-              <div className="w-16 h-16 bg-serum/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Leaf className="w-8 h-8 text-serum" />
-              </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading mb-2">Fresh & Local</h3>
-              <p className="text-text-muted">Direct from farm to table, ensuring maximum freshness and flavor.</p>
-            </div>
-            
-            <div className="text-center p-6 rounded-lg bg-background-canvas border border-border-default">
-              <div className="w-16 h-16 bg-serum/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Calendar className="w-8 h-8 text-serum" />
-              </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading mb-2">Seasonal Selection</h3>
-              <p className="text-text-muted">Discover what&apos;s in season and at its peak flavor throughout the year.</p>
-            </div>
-            
-            <div className="text-center p-6 rounded-lg bg-background-canvas border border-border-default">
-              <div className="w-16 h-16 bg-serum/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Heart className="w-8 h-8 text-serum" />
-              </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading mb-2">Family Values</h3>
-              <p className="text-text-muted">Support local families and sustainable farming practices.</p>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Animated Features Section */}
+      <AnimatedFeatures />
 
       {/* CTA Section with Stylish Parallax */}
       <section className="relative py-32 overflow-hidden">

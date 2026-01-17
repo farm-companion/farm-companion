@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
 
 export async function GET() {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+  // Use testing key for server-side API calls (IP restricted)
+  const apiKey = process.env.GOOGLE_MAPS_API_KEY_TESTING || process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
   
   if (!apiKey) {
     return NextResponse.json({

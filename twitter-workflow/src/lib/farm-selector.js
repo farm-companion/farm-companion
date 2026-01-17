@@ -3,7 +3,7 @@ import { zonedTimeToUtc, utcToZonedTime, format } from 'date-fns-tz';
 import { addDays, startOfYear, differenceInDays } from 'date-fns';
 import dotenv from 'dotenv';
 
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 /**
  * Farm Selector for Daily Twitter Spotlights

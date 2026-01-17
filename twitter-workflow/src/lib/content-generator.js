@@ -7,7 +7,7 @@ import {
 } from './ogilvy-prompts.js';
 import { imageGenerator } from './image-generator.js';
 
-dotenv.config();
+dotenv.config({ path: '.env.local' });
 
 /**
  * Ogilvy Content Generator for Farm Spotlights
@@ -214,6 +214,13 @@ class ContentGenerator {
     }
     
     return result;
+  }
+
+  /**
+   * Test content generation (alias for monitoring system)
+   */
+  async testGeneration() {
+    return await this.testContentGeneration();
   }
 }
 
