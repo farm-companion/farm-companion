@@ -23,7 +23,7 @@ interface CountyPageProps {
 // Generate static params for all counties at build time
 export async function generateStaticParams() {
   const counties = await getCachedAllCounties()
-  return counties.map((county) => ({
+  return counties.map((county: { slug: string }) => ({
     slug: county.slug,
   }))
 }
