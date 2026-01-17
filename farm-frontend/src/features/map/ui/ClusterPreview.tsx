@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { MapPin, ZoomIn, List, Navigation } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
+import type { FarmMarkerExtended, ClusterData } from '@/types/map'
 import { calculateDistance, formatDistance } from '@/shared/lib/geo'
 
 interface ClusterPreviewProps {
@@ -13,7 +14,7 @@ interface ClusterPreviewProps {
   } | null
   isVisible: boolean
   onClose: () => void
-  onZoomToCluster: (cluster: any) => void
+  onZoomToCluster: (cluster: ClusterData) => void
   onShowAllFarms: (farms: FarmShop[]) => void
   userLocation: { latitude: number; longitude: number } | null
 }
@@ -35,13 +36,18 @@ export default function ClusterPreview({
     if (cluster?.markers) {
       const farmData = cluster.markers
         .map(marker => {
-          // Extract farm data attached to marker
-          const farmData = (marker as any).farmData as FarmShop
-          return farmData
+          const farmMarker = marker as FarmMarkerExtended
+          return farmMarker.farmData
         })
         .filter((farm): farm is FarmShop => farm !== undefined && farm !== null)
 
       setFarms(farmData)
+
+      if (farmData.length === 0 && cluster.markers.length > 0) {
+        console.error('ClusterPreview: No farm data found on markers. Ensure markers have farmData attached.')
+      }
+    } else {
+      setFarms([])
     }
   }, [cluster])
 
@@ -82,7 +88,7 @@ export default function ClusterPreview({
     return {
       center: cluster.position,
       bounds,
-      radius: Math.sqrt(cluster.count) * 50 // Approximate radius based on count
+      radius: Math.sqrt(farms.length) * 50 // Approximate radius based on farm count
     }
   }
 
@@ -101,6 +107,11 @@ export default function ClusterPreview({
   }
 
   if (!cluster || !isVisible) return null
+
+  // Don't render if no farm data available
+  if (farms.length === 0) {
+    return null
+  }
 
   const clusterInfo = getClusterInfo()
   const distanceFromUser = userLocation ? getDistanceFromUser(userLocation.latitude, userLocation.longitude) : null
@@ -136,11 +147,11 @@ export default function ClusterPreview({
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <div className="w-12 h-12 bg-serum rounded-full flex items-center justify-center text-white font-bold text-lg">
-                  {cluster.count}
+                  {farms.length}
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
-                    {cluster.count} Farms
+                    {farms.length} {farms.length === 1 ? 'Farm' : 'Farms'}
                   </h3>
                   {distanceFromUser && (
                     <p className="text-sm text-gray-600">
@@ -149,7 +160,7 @@ export default function ClusterPreview({
                   )}
                 </div>
               </div>
-              
+
               {/* Cluster Area Info */}
               <div className="text-sm text-gray-600">
                 <MapPin className="w-4 h-4 inline mr-1" />
@@ -237,7 +248,7 @@ export default function ClusterPreview({
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-gray-500">Total Farms:</span>
-                <span className="ml-2 font-medium">{cluster.count}</span>
+                <span className="ml-2 font-medium">{farms.length}</span>
               </div>
               <div>
                 <span className="text-gray-500">Area Radius:</span>
