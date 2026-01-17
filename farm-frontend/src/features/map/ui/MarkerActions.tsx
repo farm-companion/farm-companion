@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { MapPin, Phone, Globe, Clock, Navigation, Share2, Heart } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
-import { calculateDistance, formatDistance } from '@/lib/geo-utils'
+import { calculateDistance, formatDistance } from '@/shared/lib/geo'
 
 interface MarkerActionsProps {
   farm: FarmShop | null

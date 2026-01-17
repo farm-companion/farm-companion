@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { MapPin, Navigation, Wifi, WifiOff } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
-import { calculateDistance, formatDistance } from '@/lib/geo-utils'
+import { calculateDistance, formatDistance } from '@/shared/lib/geo'
 
 interface UserLocation {
   latitude: number

@@ -69,3 +69,57 @@ export function sortByDistance<T extends { location: { lat: number; lng: number 
     }))
     .sort((a, b) => a.distance - b.distance)
 }
+
+/**
+ * Calculate bearing between two geographic points
+ * @param lat1 - Latitude of point 1 (degrees)
+ * @param lng1 - Longitude of point 1 (degrees)
+ * @param lat2 - Latitude of point 2 (degrees)
+ * @param lng2 - Longitude of point 2 (degrees)
+ * @returns Bearing in degrees (0-360)
+ */
+export function calculateBearing(
+  lat1: number,
+  lng1: number,
+  lat2: number,
+  lng2: number
+): number {
+  const dLng = toRadians(lng2 - lng1)
+  const lat1Rad = toRadians(lat1)
+  const lat2Rad = toRadians(lat2)
+
+  const y = Math.sin(dLng) * Math.cos(lat2Rad)
+  const x =
+    Math.cos(lat1Rad) * Math.sin(lat2Rad) -
+    Math.sin(lat1Rad) * Math.cos(lat2Rad) * Math.cos(dLng)
+
+  const bearing = Math.atan2(y, x)
+  return (toDegrees(bearing) + 360) % 360
+}
+
+/**
+ * Convert radians to degrees
+ */
+function toDegrees(radians: number): number {
+  return radians * (180 / Math.PI)
+}
+
+/**
+ * Check if a point is within a bounding box
+ * @param lat - Point latitude
+ * @param lng - Point longitude
+ * @param bounds - Bounding box { north, south, east, west }
+ * @returns True if point is within bounds
+ */
+export function isWithinBounds(
+  lat: number,
+  lng: number,
+  bounds: { north: number; south: number; east: number; west: number }
+): boolean {
+  return (
+    lat >= bounds.south &&
+    lat <= bounds.north &&
+    lng >= bounds.west &&
+    lng <= bounds.east
+  )
+}
