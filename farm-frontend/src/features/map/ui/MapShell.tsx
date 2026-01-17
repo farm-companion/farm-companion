@@ -5,7 +5,7 @@ import { loadGoogle } from '@/lib/googleMaps'
 import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import { Map } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
-import type { ClusterClickEvent, MarkerState, FarmMarkerExtended, WindowWithMapUtils } from '@/types/map'
+import type { ClusterClickEvent, MarkerState, FarmMarkerExtended, WindowWithMapUtils, ClusterData } from '@/types/map'
 import MarkerActions from './MarkerActions'
 import ClusterPreview from './ClusterPreview'
 
@@ -112,55 +112,19 @@ export default function MapShell({
     }
   }, [])
 
-  // Enhanced cluster click with preview and smart zoom
-  const handleClusterClick = useCallback((event: ClusterClickEvent) => {
-    // The event structure is different - it has latLng but not cluster methods
-    // We need to find the actual cluster object or handle this differently
-    if (!event || event.latLng === null) {
-      return false
-    }
-
-    // Trigger haptic feedback
-    triggerHaptic('medium')
-
-    // Manually zoom into the cluster area
-    const map = mapInstanceRef.current
-    if (map && event.latLng) {
-      const currentZoom = map.getZoom() || 10
-      const targetZoom = Math.min(currentZoom + 2, 16) // Zoom in by 2 levels, max 16
-
-      // Smooth zoom to cluster center
-      map.panTo(event.latLng)
-      map.setZoom(targetZoom)
-    }
-    
-    // Return false to prevent default behavior since we're handling it manually
-    return false
-  }, [triggerHaptic])
-
   // Smart zoom to cluster with optimal zoom level
-  const handleZoomToCluster = useCallback((cluster: { count: number; markers: google.maps.Marker[] }) => {
+  const handleZoomToCluster = useCallback((cluster: ClusterData) => {
     const map = mapInstanceRef.current
-    if (!map || !cluster) return
+    if (!map || !cluster || !cluster.markers?.length) return
 
-    // Validate cluster object has required properties
-    if (!cluster.count || !cluster.markers || !Array.isArray(cluster.markers)) {
-      if (process.env.NEXT_PUBLIC_DEBUG_MAP === 'true') {
-        console.warn('Invalid cluster object for zoom:', cluster)
-      }
-      return
-    }
-
-    // Calculate optimal zoom level based on cluster size
     const count = cluster.count
-    let targetZoom = 14 // Default zoom for small clusters
-    
-    if (count > 50) targetZoom = 12      // Large clusters: zoom out to see area
-    else if (count > 20) targetZoom = 13  // Medium clusters: moderate zoom
-    else if (count > 10) targetZoom = 14  // Small clusters: closer zoom
-    else targetZoom = 15                   // Very small clusters: close zoom
+    let targetZoom = 14
 
-    // Calculate bounds for the cluster
+    if (count > 50) targetZoom = 12
+    else if (count > 20) targetZoom = 13
+    else if (count > 10) targetZoom = 14
+    else targetZoom = 15
+
     const bounds = new google.maps.LatLngBounds()
     cluster.markers.forEach((marker: google.maps.Marker) => {
       if (marker && typeof marker.getPosition === 'function') {
@@ -169,8 +133,7 @@ export default function MapShell({
       }
     })
 
-    // Add padding for better view
-    const padding = Math.min(count * 2, 100) // Dynamic padding based on cluster size
+    const padding = Math.min(count * 2, 100)
     bounds.extend(new google.maps.LatLng(
       bounds.getNorthEast().lat() + (padding * 0.0001),
       bounds.getNorthEast().lng() + (padding * 0.0001)
@@ -180,14 +143,59 @@ export default function MapShell({
       bounds.getSouthWest().lng() - (padding * 0.0001)
     ))
 
-    // Smooth pan and zoom to cluster
     map.fitBounds(bounds, padding)
-    
-    // Set optimal zoom level
     setTimeout(() => {
       map.setZoom(Math.min(map.getZoom() || targetZoom, targetZoom))
     }, 300)
   }, [])
+
+  // Enhanced cluster click with preview and smart zoom
+  const handleClusterClick = useCallback((event: ClusterClickEvent) => {
+    if (!event || !event.latLng) {
+      return false
+    }
+
+    triggerHaptic('medium')
+
+    const markers = event.markers || []
+    const markerCount = markers.length
+
+    // For small clusters, show preview sheet
+    if (markerCount > 0 && markerCount <= 8) {
+      const farms: FarmShop[] = []
+      markers.forEach(marker => {
+        const farmMarker = marker as FarmMarkerExtended
+        if (farmMarker.farmData) {
+          farms.push(farmMarker.farmData)
+        }
+      })
+
+      if (farms.length > 0) {
+        setSelectedCluster({
+          position: event.latLng,
+          markers,
+          count: farms.length
+        })
+        setShowClusterPreview(true)
+        return false
+      }
+    }
+
+    // For larger clusters or when markers not available, zoom in
+    const map = mapInstanceRef.current
+    if (map) {
+      if (markerCount > 0) {
+        handleZoomToCluster({ count: markerCount, markers })
+      } else {
+        const currentZoom = map.getZoom() || 10
+        const targetZoom = Math.min(currentZoom + 2, 16)
+        map.panTo(event.latLng)
+        map.setZoom(targetZoom)
+      }
+    }
+
+    return false
+  }, [triggerHaptic, handleZoomToCluster])
 
   // Show all farms in cluster as list
   const handleShowAllFarms = useCallback((farms: FarmShop[]) => {

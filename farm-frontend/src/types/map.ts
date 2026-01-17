@@ -13,14 +13,22 @@ export interface MarkerClickEvent {
 }
 
 /**
+ * Cluster data structure
+ */
+export interface ClusterData {
+  count: number
+  markers: google.maps.Marker[]
+  position?: google.maps.LatLng
+}
+
+/**
  * Cluster click event from MarkerClusterer
  * Matches MapMouseEvent from @googlemaps/markerclusterer
  */
 export interface ClusterClickEvent {
   latLng: google.maps.LatLng | null
   markers?: google.maps.Marker[]
-  // Note: cluster object varies by markerclusterer version
-  cluster?: any
+  cluster?: ClusterData
   domEvent?: Event
   stop?: () => void
 }
