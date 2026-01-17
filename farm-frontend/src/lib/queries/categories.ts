@@ -147,7 +147,12 @@ export async function getFarmsByCategory(
 /**
  * Get category statistics (top counties, farm count, etc.)
  */
-export async function getCategoryStats(categorySlug: string) {
+export async function getCategoryStats(categorySlug: string): Promise<{
+  total: number
+  verified: number
+  averageRating: number
+  topCounties: Array<{ county: string; count: number }>
+}> {
   const farms = await prisma.farm.findMany({
     where: {
       status: 'active',
