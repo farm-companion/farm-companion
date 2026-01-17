@@ -7,6 +7,7 @@ import { Map } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import type { ClusterClickEvent, MarkerState, FarmMarkerExtended, WindowWithMapUtils, ClusterData } from '@/types/map'
 import MarkerActions from './MarkerActions'
+import MapMarkerPopover from './MapMarkerPopover'
 import ClusterPreview from './ClusterPreview'
 
 interface UserLocation {
@@ -99,6 +100,7 @@ export default function MapShell({
 
   const [selectedCluster, setSelectedCluster] = useState<{ position: google.maps.LatLng; markers: google.maps.Marker[]; count: number } | null>(null)
   const [showClusterPreview, setShowClusterPreview] = useState(false)
+  const [popoverPosition, setPopoverPosition] = useState<{ x: number; y: number }>({ x: 0, y: 0 })
 
   // Add haptic feedback for native-like feel
   const triggerHaptic = useCallback((type: 'light' | 'medium' | 'heavy' = 'light') => {
@@ -213,19 +215,44 @@ export default function MapShell({
   }, [onFarmSelect])
 
   // Enhanced marker click with haptics and actions
-  const handleMarkerClick = useCallback((farm: FarmShop) => {
-    // Trigger haptic feedback
+  const handleMarkerClick = useCallback((farm: FarmShop, marker: google.maps.Marker) => {
     triggerHaptic('light')
 
-    // Show marker actions with atomic state update (prevents race condition)
+    // Calculate screen position for desktop popover
+    if (isDesktop) {
+      const map = mapInstanceRef.current
+      const position = marker.getPosition()
+      if (map && position) {
+        const projection = map.getProjection()
+        if (projection) {
+          const point = projection.fromLatLngToPoint(position)
+          const scale = Math.pow(2, map.getZoom() || 10)
+          const bounds = map.getBounds()
+          if (point && bounds) {
+            const ne = projection.fromLatLngToPoint(bounds.getNorthEast())
+            const sw = projection.fromLatLngToPoint(bounds.getSouthWest())
+            if (ne && sw) {
+              const mapDiv = mapRef.current
+              if (mapDiv) {
+                const worldWidth = mapDiv.offsetWidth
+                const worldHeight = mapDiv.offsetHeight
+                const x = ((point.x - sw.x) / (ne.x - sw.x)) * worldWidth
+                const y = ((point.y - ne.y) / (sw.y - ne.y)) * worldHeight
+                setPopoverPosition({ x, y })
+              }
+            }
+          }
+        }
+      }
+    }
+
     setMarkerState({
       selected: farm,
       showActions: true
     })
 
-    // Call the original handler for compatibility using ref
     onFarmSelectRef.current?.(farm.id)
-  }, [triggerHaptic])
+  }, [triggerHaptic, isDesktop])
 
   // Marker action handlers
   const handleNavigate = useCallback((farm: FarmShop) => {
@@ -319,7 +346,7 @@ export default function MapShell({
       ;(marker as FarmMarkerExtended).farmData = farm
 
       marker.addListener('click', () => {
-        handleMarkerClick(farm)
+        handleMarkerClick(farm, marker)
       })
 
       // Add marker to map first, then to clusterer
@@ -1057,6 +1084,20 @@ export default function MapShell({
           onShare={handleShare}
           userLocation={userLocation ? { latitude: userLocation.latitude, longitude: userLocation.longitude } : null}
           isDesktop={isDesktop}
+        />
+      )}
+
+      {/* Marker Popover - Desktop Only */}
+      {isDesktop && (
+        <MapMarkerPopover
+          farm={markerState.selected}
+          isVisible={markerState.showActions}
+          onClose={handleCloseMarkerActions}
+          onNavigate={handleNavigate}
+          onFavorite={handleFavorite}
+          onShare={handleShare}
+          userLocation={userLocation ? { latitude: userLocation.latitude, longitude: userLocation.longitude } : null}
+          position={popoverPosition}
         />
       )}
 
