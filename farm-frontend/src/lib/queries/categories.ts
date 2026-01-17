@@ -200,7 +200,15 @@ export async function getCategoryStats(categorySlug: string): Promise<{
  * Get related categories (based on farms that have both)
  * Optimized: Uses single aggregation query instead of two separate queries
  */
-export async function getRelatedCategories(categorySlug: string, limit = 6) {
+export async function getRelatedCategories(categorySlug: string, limit = 6): Promise<Array<{
+  id: string
+  name: string
+  slug: string
+  icon: string | null
+  _count: {
+    farms: number
+  }
+}>> {
   // First, get the category ID from slug
   const targetCategory = await prisma.category.findUnique({
     where: { slug: categorySlug },
