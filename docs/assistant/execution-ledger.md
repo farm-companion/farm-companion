@@ -21,7 +21,7 @@
 - [x] Fix ClusterPreview data loss
 
 ### Queue 4: Design system
-- [ ] Add missing components
+- [x] Add missing components
 - [ ] Add design tokens
 - [ ] Add micro interactions
 - [x] WCAG AA compliance
@@ -53,3 +53,4 @@
 - Consolidated Haversine utilities to shared/lib/geo (deleted lib/geo-utils.ts, moved calculateBearing and isWithinBounds, removed inline implementation from LiveLocationTracker)
 - Fixed ClusterPreview data loss: replaced any casts with FarmMarkerExtended type, added validation for missing farm data, prevent render when farms array empty, use farms.length instead of cluster.count for accuracy
 - Added WCAG 2.1 AA accessibility utilities to globals.css: touch-target class (44x44px), sr-only for screen readers, skip-to-content link, focus-visible-ring, prefers-reduced-motion support, prefers-contrast high support
+- Added essential layout and utility components: EmptyState (no results/empty lists), Divider (solid/dashed/dotted, horizontal/vertical, with label), Container (responsive max-width layouts), Stack (flexbox with direction/spacing/alignment), all exported from ui/index.ts
