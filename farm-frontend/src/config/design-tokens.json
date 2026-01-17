@@ -26,6 +26,28 @@
       "primary": { "light": "#00C2B2", "dark": "#00C2B2" },
       "accent": { "light": "#D4FF4F", "dark": "#D4FF4F" },
       "danger": { "light": "#FF5A5F", "dark": "#FF5A5F" }
+    },
+    "semantic": {
+      "success": {
+        "light": { "value": "#D1FAE5", "contrast": "#065F46" },
+        "default": { "value": "#10B981", "contrast": "#FFFFFF" },
+        "dark": { "value": "#065F46", "contrast": "#D1FAE5" }
+      },
+      "warning": {
+        "light": { "value": "#FEF3C7", "contrast": "#92400E" },
+        "default": { "value": "#F59E0B", "contrast": "#FFFFFF" },
+        "dark": { "value": "#92400E", "contrast": "#FEF3C7" }
+      },
+      "error": {
+        "light": { "value": "#FEE2E2", "contrast": "#991B1B" },
+        "default": { "value": "#EF4444", "contrast": "#FFFFFF" },
+        "dark": { "value": "#991B1B", "contrast": "#FEE2E2" }
+      },
+      "info": {
+        "light": { "value": "#DBEAFE", "contrast": "#1E40AF" },
+        "default": { "value": "#3B82F6", "contrast": "#FFFFFF" },
+        "dark": { "value": "#1E40AF", "contrast": "#DBEAFE" }
+      }
     }
   },
   "font": {
@@ -80,7 +102,10 @@
   },
   "elevation": {
     "card": { "value": "0 2px 4px rgba(0,0,0,0.1)" },
-    "modal": { "value": "0 8px 16px rgba(0,0,0,0.2)" }
+    "modal": { "value": "0 8px 16px rgba(0,0,0,0.2)" },
+    "premium": { "value": "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)" },
+    "premiumLg": { "value": "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)" },
+    "premiumXl": { "value": "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)" }
   },
   "motion": {
     "duration": {
@@ -98,11 +123,18 @@
   },
   "a11y": {
     "focusRing": {
-      "width": { "value": "3px" },
+      "width": { "value": "2px" },
+      "offset": { "value": "2px" },
       "color": { "light": "#D4FF4F", "dark": "#D4FF4F" }
     },
-    "minContrast": { "value": 4.5 },
-    "targetSize": { "value": "48px" }
+    "minContrast": {
+      "AA": { "value": 4.5 },
+      "AAA": { "value": 7.0 }
+    },
+    "targetSize": {
+      "AA": { "value": "24px" },
+      "AAA": { "value": "44px" }
+    }
   },
   "breakpoints": {
     "xs": { "value": "480px" },
