@@ -14,7 +14,7 @@
 
 ### Queue 3: Track 0 Map fixes
 - [x] Remove production console logs
-- [ ] Fix MapShell.tsx type safety
+- [x] Fix MapShell.tsx type safety
 - [ ] Fix cluster event handling
 - [ ] Add desktop marker popovers
 - [ ] Extract Haversine utility
@@ -47,3 +47,4 @@
 - Created execution ledger
 - Updated twitter-workflow dependencies to resolve Next.js CVE-2025-66478
 - Removed all debug console statements from MapShell.tsx (17 statements removed, 2 console.error preserved)
+- Fixed MapShell.tsx type safety by replacing all any casts with proper interfaces (FarmMarkerExtended, WindowWithMapUtils)
