@@ -10,6 +10,8 @@ import { CategoryGrid } from '@/components/CategoryGrid'
 import { AnimatedHero } from '@/components/AnimatedHero'
 import { AnimatedStats } from '@/components/AnimatedStats'
 import { AnimatedFeatures } from '@/components/AnimatedFeatures'
+import { SeasonalCarousel } from '@/components/SeasonalCarousel'
+import { NearbyFarms } from '@/components/NearbyFarms'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -112,11 +114,17 @@ export default async function HomePage() {
       {/* Animated Stats Section */}
       <AnimatedStats farmCount={farmCount} countyCount={countyCount} />
 
+      {/* Seasonal Carousel Section */}
+      <SeasonalCarousel />
+
       {/* Featured Guides Section */}
       <FeaturedGuides />
 
       {/* Category Grid Section */}
       <CategoryGrid limit={8} />
+
+      {/* Nearby Farms Section */}
+      <NearbyFarms limit={4} />
 
       {/* Animated Features Section */}
       <AnimatedFeatures />
