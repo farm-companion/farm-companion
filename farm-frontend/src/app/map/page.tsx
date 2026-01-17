@@ -4,10 +4,9 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { Search } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
-import MapSearch from '@/components/MapSearch'
+import { MapSearch, LocationTracker } from '@/features/map'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
-import LocationTracker from '@/components/LocationTracker'
 
 // Removed unused mobile-first components for cleaner imports
 import { useHaptic } from '@/components/HapticFeedback'
@@ -24,7 +23,7 @@ function useDebounced<T>(value: T, delay = 150) {
 }
 
 // Dynamic imports for performance
-const MapShellWithNoSSR = dynamic(() => import('@/components/MapShell'), {
+const MapShellWithNoSSR = dynamic(() => import('@/features/map/ui/MapShell'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">

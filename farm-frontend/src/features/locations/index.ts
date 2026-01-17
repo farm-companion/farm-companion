@@ -1,17 +1,14 @@
 /**
  * Locations feature barrel export
  *
- * TODO: Populate as components are migrated
+ * Geo utilities and location-related helpers
  */
 
 // Re-export from shared/lib/geo (single source of truth for geo utils)
 export { calculateDistance, formatDistance, sortByDistance } from '@/shared/lib/geo'
 
-// Re-export existing components (compatibility layer)
-export { default as LocationTracker } from '@/components/LocationTracker'
-
-// Placeholder for future migrations
-// export { LocationTracker } from './ui/LocationTracker'
+// Note: LocationTracker moved to @/features/map (it's a map-specific component)
+// Future location-specific components will go here:
 // export { CountySelector } from './ui/CountySelector'
 // export type { Location, UKCounty } from './model/types'
 // export { getUserLocation, geocodeAddress } from './lib/geolocation'

@@ -1,17 +1,13 @@
 /**
  * Map feature barrel export
  *
- * TODO: Populate as components are migrated from /src/components
- * For now, this provides compatibility re-exports
+ * All map-related components, hooks, and utilities
  */
 
-// Re-export existing components (compatibility layer)
-export { default as MapShell } from '@/components/MapShell'
-export { default as MapSearch } from '@/components/MapSearch'
-
-// Placeholder for future migrations
-// export { MapShell } from './ui/MapShell'
-// export { MapSearch } from './ui/MapSearch'
-// export { MarkerCluster } from './ui/MarkerCluster'
-// export type { MapBounds, MapConfig } from './model/types'
-// export { createClusterer, getBoundsFromMarkers } from './lib/clustering'
+// UI Components
+export { default as MapShell } from './ui/MapShell'
+export { default as MapSearch } from './ui/MapSearch'
+export { default as LocationTracker } from './ui/LocationTracker'
+export { default as LiveLocationTracker } from './ui/LiveLocationTracker'
+export { default as ClusterPreview } from './ui/ClusterPreview'
+export { default as MarkerActions } from './ui/MarkerActions'
