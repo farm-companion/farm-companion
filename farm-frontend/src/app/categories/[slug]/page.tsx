@@ -255,7 +255,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                     >
                       All Counties ({farmCount})
                     </Link>
-                    {stats.topCounties.slice(0, 10).map((countyData) => (
+                    {stats.topCounties.slice(0, 10).map((countyData: { county: string; count: number }) => (
                       <Link
                         key={countyData.county}
                         href={`/categories/${slug}?county=${encodeURIComponent(countyData.county)}`}
