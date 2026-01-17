@@ -17,7 +17,7 @@
 - [x] Fix MapShell.tsx type safety
 - [x] Fix cluster event handling
 - [x] Add desktop marker popovers
-- [ ] Extract Haversine utility
+- [x] Extract Haversine utility
 - [ ] Fix ClusterPreview data loss
 
 ### Queue 4: Design system
@@ -50,3 +50,4 @@
 - Fixed MapShell.tsx type safety by replacing all any casts with proper interfaces (FarmMarkerExtended, WindowWithMapUtils)
 - Improved cluster event handling: added ClusterData type, show preview for small clusters (<=8 farms), smart zoom for large clusters, proper event validation
 - Added desktop marker popovers with screen-position calculation (MapMarkerPopover component, replaces mobile bottom sheet on desktop)
+- Consolidated Haversine utilities to shared/lib/geo (deleted lib/geo-utils.ts, moved calculateBearing and isWithinBounds, removed inline implementation from LiveLocationTracker)
