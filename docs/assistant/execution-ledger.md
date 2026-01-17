@@ -4,13 +4,13 @@
 
 ### Queue 1: Security closure and secret removal
 - [x] Fix twitter-workflow critical Next.js vulnerabilities (CVE-2025-66478)
-- [ ] Fix js-yaml vulnerability
-- [ ] Confirm undici vulnerability status
-- [ ] Remove hardcoded API key in farm-pipeline
+- [x] Fix js-yaml vulnerability (not present, false positive)
+- [x] Confirm undici vulnerability status (fixed with override)
+- [x] Remove hardcoded API key in farm-pipeline (already using env var)
 
 ### Queue 2: Deployment stability
-- [ ] Run Vercel build commands locally
-- [ ] Fix remaining build blockers
+- [x] Run Vercel build commands locally (farm-frontend: 254 pages, 0 errors)
+- [x] Fix remaining build blockers (none remaining)
 
 ### Queue 3: Track 0 Map fixes
 - [ ] Remove production console logs
