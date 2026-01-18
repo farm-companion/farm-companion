@@ -153,46 +153,46 @@ export default function MapSearch({
 
   const hasActiveFilters = filters.county || filters.category || filters.openNow
 
-  // Compact mobile version
+  // Compact mobile version - Premium styling
   if (compact) {
     return (
       <div className={`flex gap-2 ${className}`}>
         <div className="relative flex-1">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
           <input
             ref={searchRef}
             type="text"
             placeholder="Search farms..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-7 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-serum focus:border-transparent outline-none"
+            className="w-full pl-9 pr-8 py-2.5 text-sm border border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all duration-150"
             aria-label="Search farms"
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-2.5 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-300 p-1 hover:bg-neutral-100 dark:hover:bg-neutral-700 rounded-lg transition-colors"
               aria-label="Clear search"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
-        
+
         <button
           onClick={handleNearMe}
           disabled={isLocationLoading}
-          className={`px-3 py-2 rounded-md transition-colors flex items-center gap-1 text-xs ${
-            hasLocation 
-              ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-              : 'bg-serum text-white hover:bg-serum/90'
+          className={`px-3.5 py-2.5 rounded-xl transition-all duration-150 flex items-center gap-1.5 text-xs font-medium ${
+            hasLocation
+              ? 'bg-green-50 text-green-600 border border-green-200 hover:bg-green-100'
+              : 'bg-gradient-to-br from-brand-primary to-brand-primary/90 text-white shadow-md shadow-brand-primary/20 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
           } disabled:opacity-50`}
           title="Find farms near me"
         >
           {isLocationLoading ? (
-            <Loader2 className="w-3 h-3 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <Navigation className="w-3 h-3" />
+            <Navigation className="w-3.5 h-3.5" />
           )}
           Near
         </button>
@@ -201,15 +201,15 @@ export default function MapSearch({
   }
 
   return (
-    <div className={`bg-white dark:bg-gray-800 shadow-lg rounded-lg p-4 ${className}`}>
-      {/* Search Type Toggle */}
-      <div className="flex mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+    <div className={`bg-white/98 dark:bg-neutral-900/98 backdrop-blur-xl shadow-xl rounded-2xl p-5 border border-neutral-200/50 dark:border-neutral-700/50 ${className}`}>
+      {/* Search Type Toggle - Premium segmented control */}
+      <div className="flex mb-4 bg-neutral-100 dark:bg-neutral-800 rounded-xl p-1">
         <button
           onClick={() => handleSearchTypeChange('text')}
-          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-            searchType === 'text' 
-              ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
-              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+          className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-150 ${
+            searchType === 'text'
+              ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-md'
+              : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
           }`}
         >
           <Search className="w-4 h-4 inline mr-2" />
@@ -217,10 +217,10 @@ export default function MapSearch({
         </button>
         <button
           onClick={() => handleSearchTypeChange('w3w')}
-          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
-            searchType === 'w3w' 
-              ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
-              : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
+          className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-150 ${
+            searchType === 'w3w'
+              ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-md'
+              : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200'
           }`}
         >
           <Globe className="w-4 h-4 inline mr-2" />
@@ -228,16 +228,16 @@ export default function MapSearch({
         </button>
       </div>
 
-      {/* Search Bar */}
-      <div className="flex gap-2 mb-4">
+      {/* Search Bar - Premium styling */}
+      <div className="flex gap-3 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+          <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-neutral-400 dark:text-neutral-500 w-4 h-4" />
           <input
             ref={searchRef}
             type="text"
             placeholder={
-              searchType === 'w3w' 
-                ? "Enter what3words address (e.g., filled.count.soap)" 
+              searchType === 'w3w'
+                ? "Enter what3words address (e.g., filled.count.soap)"
                 : "Search by name, postcode, or address..."
             }
             value={query}
@@ -248,25 +248,25 @@ export default function MapSearch({
                 handleW3WSearch()
               }
             }}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 dark:border-gray-600"
+            className="w-full pl-11 pr-10 py-3.5 border border-neutral-200 dark:border-neutral-700 rounded-xl focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all duration-150 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500"
             aria-label={searchType === 'w3w' ? 'Enter what3words address' : 'Search farms'}
           />
           {query && (
             <button
               onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-neutral-400 hover:text-neutral-600 dark:text-neutral-500 dark:hover:text-neutral-300 p-1 hover:bg-neutral-200 dark:hover:bg-neutral-700 rounded-lg transition-colors"
               aria-label="Clear search"
             >
               <X className="w-4 h-4" />
             </button>
           )}
         </div>
-        
+
         {searchType === 'w3w' && (
           <button
             onClick={handleW3WSearch}
             disabled={isW3WLoading || !query}
-            className="px-4 py-3 rounded-lg transition-colors flex items-center gap-2 bg-serum text-white hover:bg-serum/90 disabled:opacity-50"
+            className="px-5 py-3.5 rounded-xl transition-all duration-150 flex items-center gap-2 bg-gradient-to-br from-brand-primary to-brand-primary/90 text-white shadow-md shadow-brand-primary/20 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0 disabled:shadow-md"
             aria-label="Convert what3words address"
           >
             {isW3WLoading ? (
@@ -274,17 +274,17 @@ export default function MapSearch({
             ) : (
               <Globe className="w-4 h-4" />
             )}
-            <span className="hidden sm:inline">Convert</span>
+            <span className="hidden sm:inline font-medium">Convert</span>
           </button>
         )}
-        
+
         <button
           onClick={handleNearMe}
           disabled={isLocationLoading}
-          className={`px-4 py-3 rounded-lg transition-colors flex items-center gap-2 ${
-            hasLocation 
-              ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-              : 'bg-serum text-white hover:bg-serum/90'
+          className={`px-5 py-3.5 rounded-xl transition-all duration-150 flex items-center gap-2 font-medium ${
+            hasLocation
+              ? 'bg-green-50 text-green-600 border border-green-200 dark:bg-green-900/20 dark:border-green-800 hover:bg-green-100 dark:hover:bg-green-900/30'
+              : 'bg-gradient-to-br from-brand-primary to-brand-primary/90 text-white shadow-md shadow-brand-primary/20 hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0'
           } disabled:opacity-50`}
           aria-label="Find farms near me"
         >
@@ -299,28 +299,30 @@ export default function MapSearch({
         </button>
       </div>
 
-      {/* what3words Info */}
+      {/* what3words Info - Premium info box */}
       {searchType === 'w3w' && (
-        <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-          <div className="flex items-start gap-2">
-            <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+        <div className="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-100 dark:border-blue-800/50">
+          <div className="flex items-start gap-3">
+            <div className="w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center flex-shrink-0">
+              <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+            </div>
             <div className="text-sm text-blue-800 dark:text-blue-200">
-              <p className="font-medium mb-1">what3words Address</p>
-              <p>Enter a 3-word address like &ldquo;filled.count.soap&rdquo; to find the exact location.</p>
+              <p className="font-semibold mb-1">what3words Address</p>
+              <p className="text-blue-600 dark:text-blue-300">Enter a 3-word address like &ldquo;filled.count.soap&rdquo; to find the exact location.</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Quick Filters */}
+      {/* Quick Filters - Premium filter chips */}
       <div className="flex items-center gap-2 mb-4">
         {/* Open Now Filter */}
         <button
           onClick={() => handleFilterChange('openNow', !filters.openNow)}
-          className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${
-            filters.openNow 
-              ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800' 
-              : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600'
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl transition-all duration-150 font-medium text-sm ${
+            filters.openNow
+              ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 border border-green-200 dark:border-green-800 shadow-sm'
+              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 border border-transparent hover:bg-neutral-200 dark:hover:bg-neutral-700'
           }`}
           aria-label="Show only open farms"
         >
@@ -331,40 +333,40 @@ export default function MapSearch({
         {/* Filter Toggle */}
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all duration-150 font-medium text-sm"
           aria-expanded={showFilters}
           aria-controls="filter-panel"
         >
           <Filter className="w-4 h-4" />
           <span className="hidden sm:inline">More Filters</span>
           {hasActiveFilters && (
-            <span className="w-2 h-2 bg-serum rounded-full" />
+            <span className="w-2 h-2 bg-brand-primary rounded-full animate-pulse" />
           )}
         </button>
-        
+
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            className="text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors px-2"
           >
             Clear all
           </button>
         )}
       </div>
 
-      {/* Filter Panel */}
+      {/* Filter Panel - Premium styling */}
       {showFilters && (
-        <div id="filter-panel" className="space-y-4">
+        <div id="filter-panel" className="space-y-4 p-4 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl border border-neutral-100 dark:border-neutral-700/50 animate-fade-in">
           {/* County Filter */}
           <div>
-            <label htmlFor="county-filter" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="county-filter" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
               County
             </label>
             <select
               id="county-filter"
               value={filters.county || ''}
               onChange={(e) => handleFilterChange('county', e.target.value || undefined)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none"
+              className="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all duration-150"
             >
               <option value="">All counties</option>
               {counties.map(county => (
@@ -375,14 +377,14 @@ export default function MapSearch({
 
           {/* Category Filter */}
           <div>
-            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="category-filter" className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-2">
               Category
             </label>
             <select
               id="category-filter"
               value={filters.category || ''}
               onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none"
+              className="w-full px-4 py-3 border border-neutral-200 dark:border-neutral-700 rounded-xl bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary outline-none transition-all duration-150"
             >
               <option value="">All categories</option>
               {categories.map(category => (
@@ -393,43 +395,43 @@ export default function MapSearch({
         </div>
       )}
 
-      {/* Active Filters Display */}
+      {/* Active Filters Display - Premium tags */}
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 mt-4">
           {filters.openNow && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-600 rounded-full text-sm">
-              <Clock className="w-3 h-3" />
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-full text-sm font-medium border border-green-100 dark:border-green-800/50">
+              <Clock className="w-3.5 h-3.5" />
               Open now
               <button
                 onClick={() => handleFilterChange('openNow', undefined)}
-                className="hover:bg-green-200 rounded-full p-0.5"
+                className="hover:bg-green-200 dark:hover:bg-green-800/50 rounded-full p-0.5 transition-colors"
                 aria-label="Remove open now filter"
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </span>
           )}
           {filters.county && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-primary/10 text-brand-primary rounded-full text-sm font-medium border border-brand-primary/20">
               {filters.county}
               <button
                 onClick={() => handleFilterChange('county', undefined)}
-                className="hover:bg-serum/20 rounded-full p-0.5"
+                className="hover:bg-brand-primary/20 rounded-full p-0.5 transition-colors"
                 aria-label={`Remove ${filters.county} filter`}
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </span>
           )}
           {filters.category && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-primary/10 text-brand-primary rounded-full text-sm font-medium border border-brand-primary/20">
               {filters.category}
               <button
                 onClick={() => handleFilterChange('category', undefined)}
-                className="hover:bg-serum/20 rounded-full p-0.5"
+                className="hover:bg-brand-primary/20 rounded-full p-0.5 transition-colors"
                 aria-label={`Remove ${filters.category} filter`}
               >
-                <X className="w-3 h-3" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </span>
           )}

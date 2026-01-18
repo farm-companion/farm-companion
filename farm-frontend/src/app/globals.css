@@ -722,36 +722,46 @@ html {
 }
 
 /* ============================================================================
-   BOTTOM SHEET COMPONENT - NON-BLOCKING TOUCH BEHAVIOR
+   BOTTOM SHEET COMPONENT - PREMIUM DESIGN TOKENS
    ============================================================================ */
 
 /* Root takes full width — but should not block the map by default */
 .fc-sheet-root {
-  position: relative; /* parent is already absolute positioned by you */
+  position: relative;
 }
 
 /* The backdrop often defaults to full-screen. Make it non-interactive */
 .fc-sheet-root[data-nonblocking="true"] .fc-sheet-backdrop {
   position: fixed;
   inset: 0;
-  pointer-events: none !important; /* ← key line */
-  background: transparent; /* or your dim if you want, still non-interactive */
+  pointer-events: none !important;
+  background: transparent;
 }
 
-/* The visible sheet area should be interactive and draggable */
+/* The visible sheet area - Premium glassmorphism design */
 .fc-sheet-content {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   pointer-events: auto;
-  touch-action: pan-y;              /* allow vertical drag of the sheet */
+  touch-action: pan-y;
   -webkit-overflow-scrolling: touch;
-  background: #fff;
-  border-top-left-radius: 16px;
-  border-top-right-radius: 16px;
-  box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1), 0 -2px 4px -1px rgba(0, 0, 0, 0.06);
-  transition: transform 0.3s ease-out;
+  /* Premium glassmorphism background */
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  /* Design token radius - 2xl */
+  border-top-left-radius: 1.5rem;
+  border-top-right-radius: 1.5rem;
+  /* Premium shadow with depth */
+  box-shadow:
+    0 -8px 32px -4px rgba(0, 0, 0, 0.12),
+    0 -4px 16px -2px rgba(0, 0, 0, 0.08),
+    0 -1px 4px rgba(0, 0, 0, 0.04);
+  /* Design token motion - smooth spring */
+  transition: transform 300ms cubic-bezier(0.2, 0.8, 0.2, 1),
+              height 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
   /* Cross-browser touch support */
   -ms-touch-action: pan-y;
   -webkit-touch-callout: none;
@@ -761,14 +771,26 @@ html {
   user-select: none;
 }
 
-/* Drag handle area should NOT capture the whole screen */
+/* Dark mode - Premium dark glassmorphism */
+.dark .fc-sheet-content {
+  background: rgba(17, 24, 39, 0.98);
+  box-shadow:
+    0 -8px 32px -4px rgba(0, 0, 0, 0.4),
+    0 -4px 16px -2px rgba(0, 0, 0, 0.3),
+    0 -1px 4px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Drag handle - Premium pill design */
 .fc-sheet-grip {
-  width: 36px;
-  height: 4px;
-  border-radius: 2px;
-  background: #d1d5db;
-  margin: 8px auto;
+  width: 40px;
+  height: 5px;
+  border-radius: 9999px;
+  background: linear-gradient(to right, #d1d5db, #e5e7eb, #d1d5db);
+  margin: 12px auto 8px;
   touch-action: pan-y;
+  cursor: grab;
+  transition: all 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
   /* Cross-browser touch support */
   -ms-touch-action: pan-y;
   -webkit-touch-callout: none;
@@ -776,49 +798,75 @@ html {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+}
+
+.fc-sheet-grip:hover {
+  background: linear-gradient(to right, #9ca3af, #d1d5db, #9ca3af);
+  transform: scaleX(1.1);
+}
+
+.fc-sheet-grip:active {
+  cursor: grabbing;
+  background: var(--brand-primary);
+  transform: scaleX(1.2);
+}
+
+.dark .fc-sheet-grip {
+  background: linear-gradient(to right, #4b5563, #6b7280, #4b5563);
+}
+
+.dark .fc-sheet-grip:hover {
+  background: linear-gradient(to right, #6b7280, #9ca3af, #6b7280);
 }
 
 /* ============================================================================
-   ENHANCED MAP EXPERIENCE - NATIVE-LIKE FEEL
+   ENHANCED MAP EXPERIENCE - APPLE-LIKE PREMIUM FEEL
    ============================================================================ */
 
 /* Smooth map transitions */
 .gm-style {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 250ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* Enhanced marker animations */
+/* Enhanced marker animations - Premium bounce */
 .gm-style-marker {
-  transition: transform 0.15s ease-out;
+  transition: transform 150ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .gm-style-marker:hover {
-  transform: scale(1.1);
+  transform: scale(1.15) translateY(-2px);
 }
 
-/* Smooth cluster animations */
+/* Smooth cluster animations - Premium scale */
 .gm-style-marker-cluster {
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .gm-style-marker-cluster:hover {
-  transform: scale(1.05);
+  transform: scale(1.08);
+  filter: brightness(1.05);
 }
 
-/* Enhanced zoom controls */
+/* Enhanced zoom controls - Premium rounded */
 .gm-bundled-control {
-  border-radius: 8px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
-  transition: all 0.2s ease !important;
+  border-radius: 12px !important;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.1),
+    0 2px 4px rgba(0, 0, 0, 0.06) !important;
+  transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  overflow: hidden !important;
 }
 
 .gm-bundled-control:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(0, 0, 0, 0.08) !important;
+  transform: translateY(-1px);
 }
 
 /* Smooth map canvas */
 .map-canvas {
-  transition: opacity 0.3s ease-in-out;
+  transition: opacity 300ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 /* Enhanced touch feedback */
@@ -826,18 +874,33 @@ html {
   cursor: grabbing;
 }
 
-/* Smooth bottom sheet transitions */
-.fc-sheet-content {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+/* Mobile search bar - Premium glassmorphism */
+.mobile-search-bar {
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  transition: all 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow:
+    0 4px 16px rgba(0, 0, 0, 0.08),
+    0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
-/* Enhanced mobile search bar */
-.mobile-search-bar {
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  transition: all 0.2s ease;
-  /* Fallback for browsers that don't support backdrop-filter */
-  background-color: rgba(255, 255, 255, 0.95);
+.dark .mobile-search-bar {
+  background: rgba(17, 24, 39, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.mobile-search-bar:focus-within {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow:
+    0 8px 32px rgba(0, 194, 178, 0.15),
+    0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: var(--brand-primary);
+}
+
+.dark .mobile-search-bar:focus-within {
+  background: rgba(17, 24, 39, 0.95);
 }
 
 /* Cross-browser backdrop-filter support for mobile search bar */
