@@ -142,10 +142,10 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
       {/* QUICK ACTIONS */}
       <section className="mt-6 grid gap-3 sm:grid-cols-3">
         <Link
-          href={`/map?q=${encodeURIComponent(p.name)}`}
-          className="flex items-center justify-center gap-2 rounded-xl border border-border-default bg-background-canvas py-3 shadow-sm hover:shadow-md transition motion-reduce:transition-none"
+          href={`/map?produce=${p.slug}`}
+          className="flex items-center justify-center gap-2 rounded-xl border border-primary-500/20 bg-primary-50 dark:bg-primary-900/20 py-3 shadow-sm hover:shadow-md hover:bg-primary-100 dark:hover:bg-primary-900/30 transition motion-reduce:transition-none text-primary-700 dark:text-primary-300 font-medium"
         >
-          <MapPin className="w-4 h-4" /> Find at farm shops
+          <MapPin className="w-4 h-4" /> Find {p.name.toLowerCase()} near me
         </Link>
         <a
           href={`https://www.google.com/search?q=${encodeURIComponent(p.name + ' recipes')}`}
@@ -344,10 +344,10 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
       {/* CTA */}
       <section className="mt-10">
         <Link
-          href={`/map?q=${encodeURIComponent(p.name)}`}
+          href={`/map?produce=${p.slug}`}
           className="inline-flex items-center gap-2 rounded-xl bg-brand-primary text-white px-5 py-3 font-semibold hover:bg-brand-primary/90 transition motion-reduce:transition-none"
         >
-          <MapPin className="w-4 h-4" /> Find {p.name.toLowerCase()} near you
+          <MapPin className="w-4 h-4" /> Find {p.name.toLowerCase()} near me
         </Link>
       </section>
 

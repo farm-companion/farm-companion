@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Search } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
@@ -61,13 +62,27 @@ interface FilterState {
 }
 
 export default function MapPage() {
+  const searchParams = useSearchParams()
+
+  // Initialize filters from URL parameters
+  const initialFilters = useMemo((): FilterState => {
+    const produce = searchParams.get('produce')
+    const county = searchParams.get('county')
+    const category = searchParams.get('category')
+    return {
+      ...(produce && { produce }),
+      ...(county && { county }),
+      ...(category && { category }),
+    }
+  }, [searchParams])
+
   const [farms, setFarms] = useState<FarmShop[]>([])
   const [filteredFarms, setFilteredFarms] = useState<FarmShop[]>([])
   const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null)
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [isLocationLoading, setIsLocationLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState<FilterState>({})
+  const [filters, setFilters] = useState<FilterState>(initialFilters)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
@@ -76,7 +91,12 @@ export default function MapPage() {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
 
   const locationWatchIdRef = useRef<number | null>(null)
-  
+
+  // Sync filters when URL parameters change
+  useEffect(() => {
+    setFilters(initialFilters)
+  }, [initialFilters])
+
   // Mobile-first features
   const { trigger: triggerHaptic } = useHaptic()
 
