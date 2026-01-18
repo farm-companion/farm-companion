@@ -81,12 +81,12 @@ export default function ContactForm() {
 
   if (status === 'success') {
     return (
-      <div className="rounded-lg border p-6 bg-green-50 border-green-200">
-        <h2 className="text-lg font-semibold text-green-900 mb-2">Thanks—message sent!</h2>
-        <p className="text-green-800 text-sm mb-4">
+      <div className="rounded-lg border p-6 bg-success-light border-success/30 animate-fade-in">
+        <h2 className="text-lg font-semibold text-success-dark mb-2">Thanks - message sent!</h2>
+        <p className="text-success-dark/80 text-sm mb-4">
           We&apos;ll reply to <span className="font-mono">your email</span> soon. You&apos;ll also receive an acknowledgement.
         </p>
-        <div className="text-xs text-green-700">
+        <div className="text-xs text-success-dark/70">
           We typically respond within 24-48 hours during business days.
         </div>
       </div>
@@ -115,17 +115,17 @@ export default function ContactForm() {
           name="name" 
           type="text"
           required
-          className={`w-full rounded-lg border px-4 py-3 text-sm bg-background-surface text-text-body
+          className={`w-full rounded-lg border px-4 py-3 text-sm bg-background-surface text-text-body min-h-touch
                      focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
-                     placeholder-text-muted ${
-                       errors.name ? 'border-red-500' : 'border-border-default'
+                     placeholder-text-muted transition-all duration-fast ease-gentle-spring ${
+                       errors.name ? 'border-error' : 'border-border-default'
                      }`}
           placeholder="Your name"
           aria-invalid={!!errors.name} 
           aria-describedby={errors.name ? 'err-name' : undefined}
         />
         {errors.name && (
-          <p id="err-name" className="mt-1 text-sm text-red-600">{errors.name}</p>
+          <p id="err-name" className="mt-1 text-sm text-error">{errors.name}</p>
         )}
       </div>
 
@@ -133,22 +133,22 @@ export default function ContactForm() {
         <label htmlFor="email" className="block text-sm font-medium text-text-body mb-2">
           Email *
         </label>
-        <input 
-          id="email" 
-          name="email" 
-          type="email" 
+        <input
+          id="email"
+          name="email"
+          type="email"
           required
-          className={`w-full rounded-lg border px-4 py-3 text-sm bg-background-surface text-text-body
+          className={`w-full rounded-lg border px-4 py-3 text-sm bg-background-surface text-text-body min-h-touch
                      focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
-                     placeholder-text-muted ${
-                       errors.email ? 'border-red-500' : 'border-border-default'
+                     placeholder-text-muted transition-all duration-fast ease-gentle-spring ${
+                       errors.email ? 'border-error' : 'border-border-default'
                      }`}
           placeholder="your.email@example.com"
-          aria-invalid={!!errors.email} 
+          aria-invalid={!!errors.email}
           aria-describedby={errors.email ? 'err-email' : undefined}
         />
         {errors.email && (
-          <p id="err-email" className="mt-1 text-sm text-red-600">{errors.email}</p>
+          <p id="err-email" className="mt-1 text-sm text-error">{errors.email}</p>
         )}
       </div>
 
@@ -156,11 +156,12 @@ export default function ContactForm() {
         <label htmlFor="topic" className="block text-sm font-medium text-text-body mb-2">
           Topic *
         </label>
-        <select 
-          id="topic" 
-          name="topic" 
-          className="w-full rounded-lg border border-border-default px-4 py-3 text-sm bg-background-surface text-text-body
-                     focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
+        <select
+          id="topic"
+          name="topic"
+          className="w-full rounded-lg border border-border-default px-4 py-3 text-sm bg-background-surface text-text-body min-h-touch
+                     focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
+                     transition-all duration-fast ease-gentle-spring"
         >
           <option value="general">General</option>
           <option value="bug">Bug Report</option>
@@ -173,40 +174,40 @@ export default function ContactForm() {
         <label htmlFor="message" className="block text-sm font-medium text-text-body mb-2">
           Message *
         </label>
-        <textarea 
-          id="message" 
-          name="message" 
+        <textarea
+          id="message"
+          name="message"
           rows={6}
           required
           className={`w-full rounded-lg border px-4 py-3 text-sm bg-background-surface text-text-body
                      focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
-                     placeholder-text-muted ${
-                       errors.message ? 'border-red-500' : 'border-border-default'
+                     placeholder-text-muted transition-all duration-fast ease-gentle-spring ${
+                       errors.message ? 'border-error' : 'border-border-default'
                      }`}
           placeholder="Tell us more..."
-          aria-invalid={!!errors.message} 
+          aria-invalid={!!errors.message}
           aria-describedby={errors.message ? 'err-message' : undefined}
         />
         {errors.message && (
-          <p id="err-message" className="mt-1 text-sm text-red-600">{errors.message}</p>
+          <p id="err-message" className="mt-1 text-sm text-error">{errors.message}</p>
         )}
       </div>
 
-      <div className="flex items-start gap-2">
-        <input 
-          id="consent" 
-          name="consent" 
-          type="checkbox" 
+      <div className="flex items-start gap-3">
+        <input
+          id="consent"
+          name="consent"
+          type="checkbox"
           required
-          className="mt-1 rounded border-border-default text-brand-primary focus:ring-brand-primary"
+          className="mt-0.5 w-5 h-5 rounded border-border-default text-brand-primary focus:ring-brand-primary transition-colors duration-fast"
           aria-invalid={!!errors.consent}
         />
-        <label htmlFor="consent" className="text-sm text-text-body">
+        <label htmlFor="consent" className="text-sm text-text-body leading-relaxed">
           I&apos;ve read the{' '}
-          <a 
-            className="underline text-brand-primary hover:text-brand-primary/80" 
-            href="/privacy" 
-            target="_blank" 
+          <a
+            className="underline text-brand-primary hover:text-brand-primary/80 transition-colors duration-fast"
+            href="/privacy"
+            target="_blank"
             rel="noopener noreferrer"
           >
             privacy notice
@@ -215,21 +216,21 @@ export default function ContactForm() {
         </label>
       </div>
       {errors.consent && (
-        <p className="text-sm text-red-600">{errors.consent}</p>
+        <p className="text-sm text-error">{errors.consent}</p>
       )}
 
       {status === 'error' && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-800">{serverMsg}</p>
+        <div className="p-4 bg-error-light border border-error/30 rounded-lg animate-shake">
+          <p className="text-sm text-error-dark">{serverMsg}</p>
         </div>
       )}
 
-      <button 
+      <button
         type="submit"
         disabled={status === 'submitting'}
-        className="btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed"
+        className="btn-primary w-full min-h-touch disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-fast ease-gentle-spring shadow-premium hover:shadow-premium-lg"
       >
-        {status === 'submitting' ? 'Sending…' : 'Send message'}
+        {status === 'submitting' ? 'Sending...' : 'Send message'}
       </button>
     </form>
   )
