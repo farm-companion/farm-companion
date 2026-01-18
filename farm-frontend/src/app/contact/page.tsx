@@ -3,15 +3,16 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
+import { Mail } from 'lucide-react'
 import ContactForm from '@/components/forms/ContactForm'
 
 export default function ContactPage() {
   const enabled = process.env.NEXT_PUBLIC_CONTACT_FORM_ENABLED === 'true'
 
   return (
-    <div className="min-h-screen bg-background-canvas">
-      {/* Enhanced Hero Section - PuredgeOS 3.0 Premium */}
-      <section data-header-invert className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
+    <main className="min-h-screen bg-background-canvas">
+      {/* Professional Hero Section with Contact Page Image */}
+      <section data-header-invert className="relative h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image
@@ -35,10 +36,10 @@ export default function ContactPage() {
         </div>
         
         {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center">
+        <div className="relative h-full flex items-center justify-center pt-20 pb-20">
           <div className="text-center max-w-4xl mx-auto px-6">
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
-              <ArrowRight className="w-10 h-10 text-white" />
+              <Mail className="w-10 h-10 text-white" />
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Share Your
@@ -69,10 +70,8 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-4xl mx-auto">
-
-
+      {/* Main Content */}
+      <div className="mx-auto max-w-4xl px-6 py-12">
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Contact Form */}
             <div id="contact-form" className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl shadow-2xl border border-border-default/30 p-8">
@@ -194,8 +193,7 @@ export default function ContactPage() {
               </div>
             </div>
           </div>
-        </div>
       </div>
-    </div>
+    </main>
   )
 }
