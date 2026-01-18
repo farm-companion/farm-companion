@@ -113,7 +113,8 @@ const nextConfig: NextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
   // Configure API routes for larger file uploads
-  serverExternalPackages: [],
+  // External packages that should not be bundled (helps with ESM/CommonJS issues)
+  serverExternalPackages: ['isomorphic-dompurify', 'jsdom'],
   // Enable compression
   compress: true,
   // Add strong headers for every route

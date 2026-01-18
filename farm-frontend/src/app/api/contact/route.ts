@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Content validation
-    const contentValidation = validateContent(data.message)
+    const contentValidation = await validateContent(data.message)
     if (!contentValidation.valid) {
       await trackIPReputation(ip, 'spam')
       return NextResponse.json(

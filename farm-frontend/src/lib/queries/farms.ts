@@ -21,7 +21,7 @@
  */
 
 import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
 
 /**
  * Get a single farm by its slug

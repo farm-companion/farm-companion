@@ -2,7 +2,14 @@
 // PuredgeOS 3.0 Compliant Input Sanitization
 
 import { z } from 'zod'
-import DOMPurify from 'isomorphic-dompurify'
+// Dynamic import for DOMPurify to avoid ESM/CommonJS issues during build
+let DOMPurify: any = null
+async function getDOMPurify() {
+  if (!DOMPurify) {
+    DOMPurify = (await import('isomorphic-dompurify')).default
+  }
+  return DOMPurify
+}
 
 // Base validation schemas
 export const BaseValidation = {
@@ -168,15 +175,21 @@ export const DatabaseIntegritySchema = z.object({
 })
 
 // Input sanitization functions
-export function sanitizeInput(input: string): string {
+export async function sanitizeInput(input: string): Promise<string> {
   // Remove null bytes and control characters
   let sanitized = input.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
   
-  // Remove potential script tags and dangerous content
-  sanitized = DOMPurify.sanitize(sanitized, {
-    ALLOWED_TAGS: [],
-    ALLOWED_ATTR: [],
-  })
+  // Remove potential script tags and dangerous content using dynamic import
+  try {
+    const purify = await getDOMPurify()
+    sanitized = purify.sanitize(sanitized, {
+      ALLOWED_TAGS: [],
+      ALLOWED_ATTR: [],
+    })
+  } catch (error) {
+    // Fallback: basic HTML tag removal if DOMPurify fails to load
+    sanitized = sanitized.replace(/<[^>]*>/g, '')
+  }
   
   // Trim whitespace
   sanitized = sanitized.trim()
@@ -184,14 +197,14 @@ export function sanitizeInput(input: string): string {
   return sanitized
 }
 
-export function sanitizeObject<T extends Record<string, any>>(obj: T): T {
+export async function sanitizeObject<T extends Record<string, any>>(obj: T): Promise<T> {
   const sanitized = { ...obj } as T
   
   for (const [key, value] of Object.entries(sanitized)) {
     if (typeof value === 'string') {
-      (sanitized as any)[key] = sanitizeInput(value)
+      (sanitized as any)[key] = await sanitizeInput(value)
     } else if (typeof value === 'object' && value !== null) {
-      (sanitized as any)[key] = sanitizeObject(value)
+      (sanitized as any)[key] = await sanitizeObject(value)
     }
   }
   
@@ -235,7 +248,7 @@ export async function validateAndSanitize<T>(
     // Sanitize input if requested
     let sanitizedData = data
     if (options.sanitize && typeof data === 'object' && data !== null) {
-      sanitizedData = sanitizeObject(data as Record<string, any>)
+      sanitizedData = await sanitizeObject(data as Record<string, any>)
     }
     
     // Validate with schema
@@ -316,11 +329,11 @@ export function validateRateLimit(
 }
 
 // Content validation for user-generated content
-export function validateContent(content: string): {
+export async function validateContent(content: string): Promise<{
   valid: boolean
   issues: string[]
   sanitized?: string
-} {
+}> {
   const issues: string[] = []
   
   // Check for suspicious patterns
@@ -374,7 +387,7 @@ export function validateContent(content: string): {
   return {
     valid,
     issues,
-    sanitized: valid ? sanitizeInput(content) : undefined
+    sanitized: valid ? (await sanitizeInput(content)) : undefined
   }
 }
 
