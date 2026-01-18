@@ -91,11 +91,41 @@ export default function MapPage() {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
 
   const locationWatchIdRef = useRef<number | null>(null)
+  const hasAutoFittedRef = useRef(false)
 
   // Sync filters when URL parameters change
   useEffect(() => {
     setFilters(initialFilters)
   }, [initialFilters])
+
+  // Auto-fit map to county bounds when navigating from county page
+  useEffect(() => {
+    if (
+      !mapInstance ||
+      !initialFilters.county ||
+      farms.length === 0 ||
+      hasAutoFittedRef.current
+    ) {
+      return
+    }
+
+    // Filter farms by county
+    const countyFarms = farms.filter(
+      f => f.location.county?.toLowerCase() === initialFilters.county?.toLowerCase()
+    )
+
+    if (countyFarms.length === 0) return
+
+    // Calculate bounds from county farms
+    const bounds = new google.maps.LatLngBounds()
+    countyFarms.forEach(farm => {
+      bounds.extend({ lat: farm.location.lat, lng: farm.location.lng })
+    })
+
+    // Fit map to bounds with padding
+    mapInstance.fitBounds(bounds, { top: 80, right: 40, bottom: 200, left: 40 })
+    hasAutoFittedRef.current = true
+  }, [mapInstance, farms, initialFilters.county])
 
   // Mobile-first features
   const { trigger: triggerHaptic } = useHaptic()

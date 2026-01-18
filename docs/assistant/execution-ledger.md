@@ -60,10 +60,10 @@
 - [x] Add "Available now" vs "Coming soon" status
 
 ### Queue 11: County to map integration
-- [ ] Add "View on map" CTA to county pages
-- [ ] Pass county bbox/centroid to map via URL params
-- [ ] Auto-focus map viewport to county bounds
-- [ ] Preserve county context in breadcrumb
+- [x] Add "View on map" CTA to county pages
+- [x] Pass county bbox/centroid to map via URL params
+- [x] Auto-focus map viewport to county bounds
+- [x] Preserve county context in breadcrumb
 
 ### Queue 12: Cross-page journey scaffolding
 - [ ] Add persistent seasonal banner with peak produce
@@ -80,6 +80,15 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Queue 11: County to Map Integration** (Queue 11 Complete)
+  - Added "View [County] farms on map" CTA button to county page hero section
+  - Premium styling with shadow-premium, hover effects, and gentle-spring animation
+  - Links to /map?county=[countyName] with URL-encoded county name
+  - Added auto-fit effect to map page that calculates bounds from county farms
+  - Uses hasAutoFittedRef to prevent re-fitting on subsequent renders
+  - Fits map with padding (top: 80, bottom: 200 for mobile bottom sheet)
+  - County filter shows in active filters display (existing functionality)
+  - **Queue 11 Complete**: All county to map integration work done
 - **Queue 10: Farm Profile Seasonal Context** (Queue 10 Complete)
   - Created FarmSeasonalProduce.tsx component with season-aware display
   - Shows "Available Now" items with green styling and pulse indicator
