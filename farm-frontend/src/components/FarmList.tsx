@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { MapPin, Phone, Globe, Clock, Star, Navigation, Circle } from 'lucide-react'
+import Link from 'next/link'
+import { MapPin, Phone, Globe, Clock, Star, Navigation, Circle, X, RefreshCw, Search } from 'lucide-react'
 import { Virtuoso } from 'react-virtuoso'
 import type { FarmShop } from '@/types/farm'
 import { formatOpeningStatus } from '@/lib/opening-hours'
@@ -19,6 +20,12 @@ interface FarmListProps {
     timestamp: number
   } | null
   formatDistance?: (distance: number) => string
+  hasFilters?: boolean
+  hasSearch?: boolean
+  searchQuery?: string
+  countyFilter?: string
+  onClearFilters?: () => void
+  onClearSearch?: () => void
 }
 
 export default function FarmList({
@@ -26,7 +33,13 @@ export default function FarmList({
   selectedFarmId,
   onFarmSelect,
   className = '',
-  formatDistance
+  formatDistance,
+  hasFilters = false,
+  hasSearch = false,
+  searchQuery = '',
+  countyFilter,
+  onClearFilters,
+  onClearSearch
 }: FarmListProps) {
   const [expandedFarmId, setExpandedFarmId] = useState<string | null>(null)
 
@@ -198,14 +211,69 @@ export default function FarmList({
   }, [selectedFarmId, expandedFarmId, handleFarmClick, formatDistance])
 
   const EmptyState = useCallback(() => (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <MapPin className="w-12 h-12 text-gray-300 mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No farms found</h3>
-      <p className="text-gray-600 max-w-sm">
-        Try adjusting your search or filters to find farm shops in your area.
+    <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
+      <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mb-4">
+        <Search className="w-8 h-8 text-gray-400" />
+      </div>
+      <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+        No farms found
+      </h3>
+      <p className="text-gray-600 dark:text-gray-400 max-w-sm mb-6">
+        {hasSearch && searchQuery
+          ? `No results for "${searchQuery}". Try a different search term.`
+          : hasFilters
+          ? 'No farms match your current filters.'
+          : 'Try searching or adjusting the map view to find farm shops.'}
       </p>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+        {/* Clear Search */}
+        {hasSearch && searchQuery && onClearSearch && (
+          <button
+            onClick={onClearSearch}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-serum text-black font-medium rounded-lg hover:bg-serum/90 transition-colors"
+          >
+            <X className="w-4 h-4" />
+            Clear search
+          </button>
+        )}
+
+        {/* Clear Filters */}
+        {hasFilters && onClearFilters && (
+          <button
+            onClick={onClearFilters}
+            className="flex items-center justify-center gap-2 px-4 py-2.5 bg-serum text-black font-medium rounded-lg hover:bg-serum/90 transition-colors"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Clear filters
+          </button>
+        )}
+
+        {/* Browse Counties */}
+        {countyFilter && (
+          <Link
+            href="/counties"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          >
+            <MapPin className="w-4 h-4" />
+            Browse other counties
+          </Link>
+        )}
+
+        {/* View All Farms */}
+        {!hasSearch && !hasFilters && (
+          <Link
+            href="/shop"
+            className="flex items-center justify-center gap-2 px-4 py-2.5 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
+          >
+            <Navigation className="w-4 h-4" />
+            Browse all farms
+          </Link>
+        )}
+      </div>
     </div>
-  ), [])
+  ), [hasSearch, searchQuery, hasFilters, countyFilter, onClearSearch, onClearFilters])
 
   return (
     <div className={`h-full flex flex-col ${className}`}>

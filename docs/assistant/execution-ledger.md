@@ -41,9 +41,60 @@
 - [x] Add retries and backoff (Comprehensive retry.py with exponential backoff, jitter, async/sync decorators, retry context manager, predefined configs)
 - [x] Structured logging (Comprehensive logging.py with JSON formatter, colored console output, performance logger, progress logger, function call decorator)
 
+### Queue 8: UX Integration and Polish (from 2026-01-18 audit)
+- [x] Slice 1: Add skeleton loading states to MapShell
+- [x] Slice 2: Surface trust signals above fold on farm profiles
+- [x] Slice 3: Add View on Map CTA to county pages with pre-applied bounds
+- [x] Slice 4: Improve desktop marker popover with direct profile link
+- [x] Slice 5: Add actionable empty states to filtered views
+- [ ] Slice 6: Enhance mobile bottom sheet with visible quick filters
+- [ ] Slice 7: Add In Season Now section to farm profiles
+- [ ] Slice 8: Add Nearby Farms section to farm profiles
+- [ ] Slice 9: Add browse link from map county filter to county page
+- [ ] Slice 10: Add Farms selling this section to seasonal produce pages
+- [ ] Slice 11: Replace static JSON reads with Prisma for shop pages
+- [ ] Slice 12: Use PostGIS bbox query in farms API
+
 ## Completed Work
 
-### 2026-01-17 (latest)
+### 2026-01-18 (latest)
+- **Slice 5: Add actionable empty states to filtered views** (Queue 8)
+  - Enhanced FarmList EmptyState with contextual messaging based on active filters/search
+  - Added props: hasFilters, hasSearch, searchQuery, countyFilter, onClearFilters, onClearSearch
+  - Added "Clear search" and "Clear filters" action buttons
+  - Added "Browse other counties" link when county filter active
+  - Added "Browse all farms" fallback link
+  - Added handleClearFilters and handleClearSearch handlers to map page
+  - Added hasActiveFilters computed value for filter state detection
+- **Slice 4: Improve desktop marker popover with direct profile link** (Queue 8)
+  - Added Link, Star, CheckCircle, ExternalLink icons to MapMarkerPopover
+  - Made farm name clickable with link to /shop/{slug}
+  - Added trust signals row showing verified badge and rating with star
+  - Added prominent "View Full Profile" primary CTA button
+  - Moved Directions to secondary action alongside Favorite and Share
+  - Added aria-labels for icon-only buttons
+- **Slice 3: Add View on Map CTA to county pages with pre-applied bounds** (Queue 8)
+  - Added Map and ArrowRight icons to county page
+  - Added prominent "View X farms on map" CTA button in hero section
+  - Button links to /map?county={countyName} with pre-applied filter
+  - Added useSearchParams to map page to read initial county from URL
+  - Added auto-zoom effect that fits map to county farms bounds when loading with county filter
+  - Responsive padding for mobile/desktop bottom sheet heights
+- **Slice 2: Surface trust signals above fold on farm profiles** (Queue 8)
+  - Added rating and user_ratings_total fields to FarmShop type
+  - Created renderStars helper for star rating display with half-star support
+  - Updated hero section with compact trust signal row: Verified badge, Rating badge with stars and review count, Status badge
+  - Rating badge shows amber gradient with star icons and review count with Users icon
+  - All badges visible without scrolling on mobile
+- **Slice 1: Add skeleton loading states to MapShell** (Queue 8)
+  - Replaced spinner with content-shaped skeleton during map initialization
+  - Added skeleton marker clusters positioned to suggest UK farm distribution
+  - Added subtle road line placeholders for map context
+  - Added animated loading pill with ping indicator
+  - Dark mode support with appropriate color tokens
+  - Added aria-hidden and role="presentation" for accessibility
+
+### 2026-01-17
 - **Slice 2: Optimized getCategoryStats with Database Aggregation** (Queue 5)
   - Replaced in-memory JavaScript processing with parallel Prisma aggregations in categories.ts
   - Changed from `findMany` + reduce/filter to `Promise.all` with `count`, `aggregate`, and `groupBy`

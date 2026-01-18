@@ -22,4 +22,6 @@ export interface FarmShop {
   description?: string
   updatedAt?: string
   distance?: number // Distance in kilometers from user location
+  rating?: number // Google rating 1-5
+  user_ratings_total?: number // Total number of reviews
 }

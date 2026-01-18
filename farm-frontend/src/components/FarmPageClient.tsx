@@ -17,7 +17,9 @@ import {
   Map,
   Calendar,
   Camera,
-  Sparkles
+  Sparkles,
+  Star,
+  Users
 } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { ObfuscatedEmail, ObfuscatedPhone } from './ObfuscatedContact'
@@ -41,7 +43,33 @@ export function FarmPageClient({
   issueUrl,
   approvedPhotos
 }: FarmPageClientProps) {
-  const { name, location, contact, offerings, verified, hours } = shop
+  const { name, location, contact, offerings, verified, hours, rating, user_ratings_total } = shop
+
+  // Helper to render star rating
+  const renderStars = (rating: number) => {
+    const fullStars = Math.floor(rating)
+    const hasHalfStar = rating % 1 >= 0.5
+    const emptyStars = 5 - fullStars - (hasHalfStar ? 1 : 0)
+
+    return (
+      <div className="flex items-center gap-0.5">
+        {[...Array(fullStars)].map((_, i) => (
+          <Star key={`full-${i}`} className="w-5 h-5 fill-amber-400 text-amber-400" />
+        ))}
+        {hasHalfStar && (
+          <div className="relative">
+            <Star className="w-5 h-5 text-gray-300" />
+            <div className="absolute inset-0 overflow-hidden w-1/2">
+              <Star className="w-5 h-5 fill-amber-400 text-amber-400" />
+            </div>
+          </div>
+        )}
+        {[...Array(emptyStars)].map((_, i) => (
+          <Star key={`empty-${i}`} className="w-5 h-5 text-gray-300 dark:text-gray-600" />
+        ))}
+      </div>
+    )
+  }
 
   return (
     <>
@@ -81,20 +109,35 @@ export function FarmPageClient({
             variants={staggerContainer}
             className="text-center mb-16"
           >
-            {/* Premium verification badge and Status Badge */}
+            {/* Trust Signals Row: Verified, Rating, Status */}
             <motion.div
               variants={fadeInUp}
-              className="flex items-center justify-center gap-4 mb-8 flex-wrap"
+              className="flex items-center justify-center gap-3 mb-8 flex-wrap"
             >
+              {/* Verified Badge */}
               {verified && (
-                <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 px-6 py-3 rounded-full border border-emerald-200 dark:border-emerald-800 shadow-lg backdrop-blur-sm">
-                  <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Verified Farm Shop</span>
-                  <Sparkles className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
+                <div className="flex items-center gap-2 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 px-4 py-2.5 rounded-full border border-emerald-200 dark:border-emerald-800 shadow-md backdrop-blur-sm">
+                  <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Verified</span>
                 </div>
               )}
+
+              {/* Rating Badge */}
+              {rating && rating > 0 && (
+                <div className="flex items-center gap-2.5 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 px-4 py-2.5 rounded-full border border-amber-200 dark:border-amber-800 shadow-md backdrop-blur-sm">
+                  {renderStars(rating)}
+                  <span className="text-sm font-bold text-amber-700 dark:text-amber-300">{rating.toFixed(1)}</span>
+                  {user_ratings_total && user_ratings_total > 0 && (
+                    <span className="flex items-center gap-1 text-sm text-amber-600 dark:text-amber-400">
+                      <Users className="w-3.5 h-3.5" />
+                      {user_ratings_total.toLocaleString()}
+                    </span>
+                  )}
+                </div>
+              )}
+
               {/* Real-time Status Badge */}
-              <StatusBadge openingHours={hours} className="text-base px-6 py-3 shadow-lg" />
+              <StatusBadge openingHours={hours} className="text-sm px-4 py-2.5 shadow-md" />
             </motion.div>
 
             {/* Enhanced typography with premium styling */}

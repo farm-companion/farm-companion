@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Search } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
@@ -58,13 +59,18 @@ interface FilterState {
 }
 
 export default function MapPage() {
+  const searchParams = useSearchParams()
+  const initialCounty = searchParams.get('county')
+
   const [farms, setFarms] = useState<FarmShop[]>([])
   const [filteredFarms, setFilteredFarms] = useState<FarmShop[]>([])
   const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null)
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [isLocationLoading, setIsLocationLoading] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [filters, setFilters] = useState<FilterState>({})
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    county: initialCounty || undefined,
+  }))
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
@@ -73,7 +79,7 @@ export default function MapPage() {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
 
   const locationWatchIdRef = useRef<number | null>(null)
-  
+
   // Mobile-first features
   const { trigger: triggerHaptic } = useHaptic()
 
@@ -105,6 +111,29 @@ export default function MapPage() {
 
     fetchFarms()
   }, [])
+
+  // Auto-zoom to county bounds when loading with county filter from URL
+  useEffect(() => {
+    if (!mapInstance || !farms.length || !initialCounty) return
+
+    // Find farms in the specified county
+    const countyFarms = farms.filter(f => f.location.county === initialCounty)
+    if (countyFarms.length === 0) return
+
+    // Calculate bounds from county farms
+    const bounds = new google.maps.LatLngBounds()
+    countyFarms.forEach(f => {
+      bounds.extend(new google.maps.LatLng(f.location.lat, f.location.lng))
+    })
+
+    // Fit map to county bounds with padding
+    mapInstance.fitBounds(bounds, {
+      top: 80,
+      right: isDesktop ? 400 : 20,
+      bottom: isDesktop ? 20 : 250,
+      left: 20,
+    })
+  }, [mapInstance, farms, initialCounty, isDesktop])
 
   // Get user location with consent
   const getCurrentLocation = useCallback(async () => {
@@ -265,6 +294,19 @@ export default function MapPage() {
   const handleFilterChange = useCallback((newFilters: FilterState) => {
     setFilters(newFilters)
   }, [])
+
+  // Clear all filters
+  const handleClearFilters = useCallback(() => {
+    setFilters({})
+  }, [])
+
+  // Clear search
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('')
+  }, [])
+
+  // Check if any filters are active
+  const hasActiveFilters = !!(filters.county || filters.category || filters.openNow)
 
   // Handle farm selection
   const handleFarmSelect = useCallback((farmId: string) => {
@@ -502,6 +544,12 @@ export default function MapPage() {
                   userLocation={userLocation}
                   formatDistance={formatDistance}
                   className="h-full"
+                  hasFilters={hasActiveFilters}
+                  hasSearch={!!searchQuery}
+                  searchQuery={searchQuery}
+                  countyFilter={filters.county}
+                  onClearFilters={handleClearFilters}
+                  onClearSearch={handleClearSearch}
                 />
               </div>
             </BottomSheet>
@@ -516,6 +564,12 @@ export default function MapPage() {
               userLocation={userLocation}
               formatDistance={formatDistance}
               className="h-full"
+              hasFilters={hasActiveFilters}
+              hasSearch={!!searchQuery}
+              searchQuery={searchQuery}
+              countyFilter={filters.county}
+              onClearFilters={handleClearFilters}
+              onClearSearch={handleClearSearch}
             />
           </div>
         </div>

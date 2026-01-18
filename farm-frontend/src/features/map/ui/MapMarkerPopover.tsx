@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { MapPin, Navigation, Share2, Heart, X } from 'lucide-react'
+import Link from 'next/link'
+import { MapPin, Navigation, Share2, Heart, X, Star, CheckCircle, ExternalLink } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { calculateDistance, formatDistance } from '@/shared/lib/geo'
 
@@ -96,10 +97,34 @@ export default function MapMarkerPopover({
 
         {/* Content */}
         <div className="p-4">
-          {/* Farm name */}
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1 pr-6">
+          {/* Farm name - clickable to profile */}
+          <Link
+            href={`/shop/${farm.slug}`}
+            className="block text-lg font-semibold text-slate-900 dark:text-white mb-1 pr-6 hover:text-serum transition-colors"
+          >
             {farm.name}
-          </h3>
+          </Link>
+
+          {/* Trust signals row */}
+          <div className="flex items-center gap-2 mb-2">
+            {farm.verified && (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                <CheckCircle className="w-3.5 h-3.5" />
+                Verified
+              </span>
+            )}
+            {farm.rating && farm.rating > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs font-medium text-amber-600 dark:text-amber-400">
+                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
+                {farm.rating.toFixed(1)}
+                {farm.user_ratings_total && farm.user_ratings_total > 0 && (
+                  <span className="text-slate-500 dark:text-slate-400">
+                    ({farm.user_ratings_total.toLocaleString()})
+                  </span>
+                )}
+              </span>
+            )}
+          </div>
 
           {/* Location */}
           <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400 mb-3">
@@ -109,16 +134,25 @@ export default function MapMarkerPopover({
 
           {/* Distance badge */}
           {distance && (
-            <div className="inline-flex items-center gap-1 px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-xs font-medium mb-4">
+            <div className="inline-flex items-center gap-1 px-2 py-1 bg-serum/10 text-serum rounded-full text-xs font-medium mb-4">
               {distance} away
             </div>
           )}
 
-          {/* Actions */}
+          {/* Primary Action - View Profile */}
+          <Link
+            href={`/shop/${farm.slug}`}
+            className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-serum text-black rounded-lg hover:bg-serum/90 transition-colors text-sm font-semibold mb-2"
+          >
+            View Full Profile
+            <ExternalLink className="w-4 h-4" />
+          </Link>
+
+          {/* Secondary Actions */}
           <div className="flex gap-2">
             <button
               onClick={() => onNavigate(farm)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors text-sm font-medium"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors text-sm font-medium text-slate-700 dark:text-slate-300"
             >
               <Navigation className="w-4 h-4" />
               Directions
@@ -127,6 +161,7 @@ export default function MapMarkerPopover({
             <button
               onClick={() => onFavorite(farm.id)}
               className="flex items-center justify-center p-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Add to favorites"
             >
               <Heart className="w-4 h-4 text-slate-600 dark:text-slate-400" />
             </button>
@@ -134,6 +169,7 @@ export default function MapMarkerPopover({
             <button
               onClick={() => onShare(farm)}
               className="flex items-center justify-center p-2 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Share"
             >
               <Share2 className="w-4 h-4 text-slate-600 dark:text-slate-400" />
             </button>

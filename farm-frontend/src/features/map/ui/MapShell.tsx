@@ -1056,10 +1056,39 @@ export default function MapShell({
   return (
     <div className={`${className} relative safe-bottom`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 pointer-events-none">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-2"></div>
-            <p className="text-sm text-gray-600">Loading map...</p>
+        <div
+          className="absolute inset-0 bg-gray-100 dark:bg-gray-900 z-10 pointer-events-none overflow-hidden"
+          aria-hidden="true"
+          role="presentation"
+        >
+          {/* Skeleton map background with subtle gradient */}
+          <div className="absolute inset-0 bg-gradient-to-b from-gray-50 to-gray-200 dark:from-gray-800 dark:to-gray-900" />
+
+          {/* Skeleton road lines */}
+          <div className="absolute top-1/4 left-0 right-0 h-px bg-gray-300 dark:bg-gray-700 opacity-50" />
+          <div className="absolute top-1/2 left-0 right-0 h-px bg-gray-300 dark:bg-gray-700 opacity-30" />
+          <div className="absolute top-3/4 left-0 right-0 h-px bg-gray-300 dark:bg-gray-700 opacity-40" />
+          <div className="absolute top-0 bottom-0 left-1/3 w-px bg-gray-300 dark:bg-gray-700 opacity-30" />
+          <div className="absolute top-0 bottom-0 right-1/3 w-px bg-gray-300 dark:bg-gray-700 opacity-40" />
+
+          {/* Skeleton marker clusters - positioned to suggest UK distribution */}
+          <div className="absolute top-[20%] left-[45%] w-14 h-14 rounded-full bg-serum/20 animate-pulse" />
+          <div className="absolute top-[35%] left-[30%] w-12 h-12 rounded-full bg-serum/20 animate-pulse [animation-delay:75ms]" />
+          <div className="absolute top-[30%] right-[25%] w-10 h-10 rounded-full bg-serum/20 animate-pulse [animation-delay:150ms]" />
+          <div className="absolute top-[50%] left-[40%] w-16 h-16 rounded-full bg-serum/20 animate-pulse [animation-delay:100ms]" />
+          <div className="absolute top-[55%] right-[30%] w-11 h-11 rounded-full bg-serum/20 animate-pulse [animation-delay:200ms]" />
+          <div className="absolute top-[70%] left-[35%] w-10 h-10 rounded-full bg-serum/20 animate-pulse [animation-delay:125ms]" />
+          <div className="absolute top-[65%] right-[40%] w-8 h-8 rounded-full bg-serum/20 animate-pulse [animation-delay:175ms]" />
+
+          {/* Loading indicator pill */}
+          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm px-4 py-2.5 rounded-full shadow-md border border-gray-200 dark:border-gray-700">
+            <p className="text-sm text-gray-700 dark:text-gray-300 flex items-center gap-2.5 font-medium">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-serum opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-serum"></span>
+              </span>
+              Loading farm shops...
+            </p>
           </div>
         </div>
       )}
