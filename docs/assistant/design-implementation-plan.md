@@ -151,27 +151,59 @@ pnpm dev
 
 ---
 
-### Slice 6: Farm profile page design compliance
-**Files (3):**
-- src/app/shop/[slug]/page.tsx
-- src/components/FarmPageClient.tsx (if separate)
+### Slice 6: Farm profile page design compliance ✅ COMPLETED
+**Files (2):**
+- src/app/shop/[slug]/page.tsx (already semantic, no changes needed)
+- src/components/FarmPageClient.tsx
 
-**Violations to Fix:**
-- Hardcoded status colors → semantic tokens
-- Wrong shadows → premium variants
-- Missing focus states → add focus rings
+**Violations Fixed:**
 
-**Acceptance:**
-- All status indicators use semantic tokens
-- Premium shadows
-- Focus rings on all interactive elements
+**Accent elements:**
+- ✅ bg-serum → bg-brand-primary (floating dots)
+- ✅ bg-solar → bg-brand-secondary
+
+**Navigation:**
+- ✅ hover:text-serum → hover:text-brand-primary
+- ✅ hover:border-serum/50 → hover:border-brand-primary/50
+- ✅ transition-all duration-300 → transition-colors duration-150
+
+**Verified badge:**
+- ✅ Emerald gradients → bg-success-light dark:bg-success-dark
+- ✅ border-emerald → border-success
+- ✅ All emerald text colors → semantic success tokens
+- ✅ shadow-lg → shadow-premium-lg
+
+**Title and icons:**
+- ✅ via-serum → via-brand-primary (title gradient)
+- ✅ All text-serum → text-brand-primary (throughout)
+
+**Action buttons:**
+- ✅ Removed teal gradients → bg-brand-primary hover:bg-brand-primary/90
+- ✅ Button heights: py-5 → h-14 (56px, above 48px minimum)
+- ✅ shadow-2xl hover:shadow-3xl → shadow-premium-xl
+- ✅ transition-all → transition-[background-color,transform,box-shadow] duration-150
+- ✅ Added focus rings (ring-border-focus) and active states (active:scale-[0.98])
+
+**Content sections:**
+- ✅ All border-serum → border-brand-primary (replaced all instances)
+- ✅ All bg-serum → bg-brand-primary (replaced all instances)
+- ✅ bg-gradient-to-r from-serum/10 to-teal-500/10 → bg-brand-primary/10
+- ✅ All hover states → semantic brand-primary
+
+**Completed:** 2026-01-18
+**Commit:** 231c350
+**Lines changed:** 202 insertions, 172 deletions
 
 **Verification:**
 ```bash
-# Visit /shop/[slug]
-# Check "Open Now" badge (semantic success)
-# Check image gallery (premium shadows)
-# Tab through interactive elements (focus rings)
+pnpm dev
+# Visit /shop/[any-farm-slug]
+# ✅ Verified badge: bg-success-light with text-success
+# ✅ All buttons: h-14 (56px) with proper focus rings
+# ✅ Image gallery: hover:border-brand-primary/50
+# ✅ Navigation links: all use brand-primary for hover states
+# ✅ All shadows use premium variants
+# ✅ Tab navigation shows focus rings on all interactive elements
 ```
 
 ---
