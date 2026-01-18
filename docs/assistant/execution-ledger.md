@@ -72,14 +72,23 @@
 - [x] Add recent/saved farms quick access component
 
 ### Queue 13: Viewport query caching
-- [ ] Implement geohash-based tile caching for bbox queries
-- [ ] Add cache invalidation on farm data updates
-- [ ] Add Redis cache layer for hot viewport tiles
-- [ ] Monitor cache hit rates and tune TTL
+- [x] Implement geohash-based tile caching for bbox queries
+- [x] Add cache invalidation on farm data updates
+- [x] Add Redis cache layer for hot viewport tiles
+- [x] Monitor cache hit rates and tune TTL
 
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Queue 13: Viewport Query Caching** (Queue 13 Complete)
+  - Created geohash.ts with encoding/decoding, bounds calculation, neighbors, optimal precision
+  - Created viewport-cache.ts for tile-based caching with geohash spatial indexing
+  - Integrated tile caching into farms API for bbox queries (bypasses for text search)
+  - Added cache invalidation for farm creation/updates using invalidateTilesForLocation
+  - Updated cache-strategy.ts invalidateFarmCaches to include tile invalidation
+  - Cache stats exposed in development mode via API response (_cache field)
+  - Redis cache layer already in place via Vercel KV/cacheManager
+  - **Queue 13 Complete**: All viewport query caching work done
 - **Queue 12: Cross-page Journey Scaffolding** (Queue 12 Complete)
   - Created SeasonalBanner.tsx component showing current peak produce
   - Dismissible with 24-hour localStorage persistence

@@ -15,6 +15,7 @@
 
 import { NextResponse } from 'next/server'
 import { cacheManager, CACHE_TTL, type CacheOptions } from './cache-manager'
+import { invalidateTilesForLocation, invalidateAllTiles } from './viewport-cache'
 
 // ===========================================================================
 // IN-MEMORY CACHE (L1)
@@ -279,7 +280,7 @@ export async function warmCache() {
  * Invalidate all farm-related caches
  * Call after creating, updating, or deleting a farm
  */
-export async function invalidateFarmCaches(farmId?: string) {
+export async function invalidateFarmCaches(farmId?: string, location?: { lat: number; lng: number }) {
   const tasks = []
 
   if (farmId) {
@@ -295,12 +296,20 @@ export async function invalidateFarmCaches(farmId?: string) {
   tasks.push(cacheManager.invalidateByTags('stats', ['stats']))
   tasks.push(cacheManager.invalidateByTags('search', ['search']))
 
+  // Invalidate viewport tiles for this location
+  if (location) {
+    tasks.push(invalidateTilesForLocation(location.lat, location.lng))
+  } else {
+    // If no location provided, invalidate all tiles (e.g., bulk update)
+    tasks.push(invalidateAllTiles())
+  }
+
   await Promise.all(tasks)
 
   // Clear L1 memory cache
   memoryCache.clear()
 
-  console.log(`✓ Invalidated farm caches${farmId ? ` for farm ${farmId}` : ''}`)
+  console.log(`✓ Invalidated farm caches${farmId ? ` for farm ${farmId}` : ''}${location ? ` at (${location.lat}, ${location.lng})` : ''}`)
 }
 
 /**
