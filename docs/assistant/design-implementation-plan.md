@@ -17,30 +17,36 @@
 
 ## PHASE 1: CRITICAL PAGES (Highest User Impact)
 
-### Slice 3: Homepage design contract compliance
-**Files (5):**
+### Slice 3: Homepage design contract compliance ✅ COMPLETED
+**Files (1):**
 - src/app/page.tsx (hero section, stats, seasonal showcase)
 
-**Violations to Fix:**
-- Button heights: h-14/h-16 → h-12 (48px standard)
-- transition-all → transition-[background-color,transform]
-- Hardcoded grays: bg-white/60 dark:bg-gray-900/80 → semantic tokens
-- bg-serum/10 → bg-brand-primary/10
-- Shadow violations: Use shadow-premium variants
+**Violations Fixed:**
+- ✅ Button heights: h-14/h-16 → h-12 (48px standard)
+- ✅ transition-all duration-300 → transition-[background-color,transform,box-shadow] duration-150
+- ✅ Hardcoded grays: bg-white/60 dark:bg-gray-900/80 → bg-background-surface/60 dark:bg-background-canvas/80
+- ✅ bg-serum/10 → bg-brand-primary/10
+- ✅ text-serum → text-brand-primary
+- ✅ Shadow violations: shadow-2xl → shadow-premium-xl
+- ✅ Focus ring: focus:ring-serum → focus:ring-border-focus
+- ✅ Text colors: text-gray-900 dark:text-white → text-text-heading
+- ✅ Body text: text-gray-900 dark:text-gray-100 → text-text-body
+- ✅ Active state: hover:scale-105 active:scale-95 → active:scale-[0.98]
+- ✅ Border colors: border-white/70 dark:border-gray-700/70 → border-border-default
 
-**Acceptance:**
-- All buttons 48px minimum
-- No transition-all
-- All colors use semantic tokens
-- Shadows use premium variants
+**Completed:** 2026-01-18
+**Commits:** 70fea20, 293bb8e
+**Lines changed:** 52 (excluding formatting)
 
 **Verification:**
 ```bash
 pnpm dev
 # Visit http://localhost:3000
-# Check hero CTA button (48px height, proper focus ring)
-# Check seasonal cards (semantic colors, premium shadows)
-# Check stats section (consistent spacing)
+# ✅ Hero CTA button: 48px height (h-12), proper focus ring (ring-border-focus)
+# ✅ All colors use semantic tokens (brand-primary, text-heading, text-body)
+# ✅ Premium shadows (shadow-premium-xl)
+# ✅ Specific transitions only (transition-[background-color,transform,box-shadow])
+# ✅ Prettier formatted with class ordering
 ```
 
 ---
