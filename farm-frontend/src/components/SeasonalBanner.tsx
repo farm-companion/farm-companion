@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { X, MapPin, ArrowRight } from 'lucide-react'
 
@@ -41,16 +41,17 @@ const DISMISS_DURATION_MS = 24 * 60 * 60 * 1000 // 24 hours
 export function SeasonalBanner() {
   const [dismissed, setDismissed] = useState(true) // Start hidden to prevent flash
   const [mounted, setMounted] = useState(false)
+  const [peakProduce, setPeakProduce] = useState<SeasonalItem[]>([])
 
-  const currentMonth = new Date().getMonth() + 1
-
-  const peakProduce = useMemo(() => {
-    return SEASONAL_PRODUCE.filter(item => isInSeason(item, currentMonth)).slice(0, 3)
-  }, [currentMonth])
-
-  // Check localStorage on mount
+  // Check localStorage and compute seasonal data on mount (client-side only)
   useEffect(() => {
     setMounted(true)
+
+    // Compute current month on client only to avoid hydration mismatch
+    const currentMonth = new Date().getMonth() + 1
+    const inSeason = SEASONAL_PRODUCE.filter(item => isInSeason(item, currentMonth)).slice(0, 3)
+    setPeakProduce(inSeason)
+
     const dismissedAt = localStorage.getItem(STORAGE_KEY)
     if (dismissedAt) {
       const dismissedTime = parseInt(dismissedAt, 10)
