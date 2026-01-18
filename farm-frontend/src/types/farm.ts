@@ -1,3 +1,12 @@
+export interface FarmProduce {
+  name: string
+  slug: string
+  seasonStart: number
+  seasonEnd: number
+  icon?: string | null
+  isPYO?: boolean
+}
+
 export interface FarmShop {
   id: string
   name: string
@@ -13,6 +22,7 @@ export interface FarmShop {
   }
   hours?: any[] // Allow any hours format
   offerings?: string[]
+  produce?: FarmProduce[] // Seasonal produce available at this farm
   contact?: {
     phone?: string
     email?: string

@@ -57,6 +57,19 @@ type FarmWithRelations = Prisma.FarmGetPayload<{
       }
     }
     images: true
+    produce: {
+      include: {
+        produce: {
+          select: {
+            name: true,
+            slug: true,
+            seasonStart: true,
+            seasonEnd: true,
+            icon: true
+          }
+        }
+      }
+    }
   }
 }>
 
@@ -69,6 +82,7 @@ async function farmsHandler(request: NextRequest) {
     const query = searchParams.get('q')?.toLowerCase()
     const county = searchParams.get('county')
     const category = searchParams.get('category')
+    const produce = searchParams.get('produce') // Filter by produce slug
     const bbox = searchParams.get('bbox') // "west,south,east,north"
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
@@ -105,6 +119,18 @@ async function farmsHandler(request: NextRequest) {
       }
     }
 
+    // Produce filter (through FarmProduce junction table)
+    if (produce) {
+      where.produce = {
+        some: {
+          available: true,
+          produce: {
+            slug: produce
+          }
+        }
+      }
+    }
+
     // Bounding box filter (geographic bounds)
     if (bbox) {
       const [west, south, east, north] = bbox.split(',').map(Number)
@@ -133,6 +159,20 @@ async function farmsHandler(request: NextRequest) {
             where: { status: 'approved' },
             take: 3,
             orderBy: { displayOrder: 'asc' }
+          },
+          produce: {
+            where: { available: true },
+            include: {
+              produce: {
+                select: {
+                  name: true,
+                  slug: true,
+                  seasonStart: true,
+                  seasonEnd: true,
+                  icon: true
+                }
+              }
+            }
           }
         },
         take: limit,
@@ -193,6 +233,14 @@ async function farmsHandler(request: NextRequest) {
       images: farm.images.map(img => ({
         url: img.url,
         alt: img.altText || farm.name
+      })),
+      produce: farm.produce.map(fp => ({
+        name: fp.produce.name,
+        slug: fp.produce.slug,
+        seasonStart: fp.produce.seasonStart,
+        seasonEnd: fp.produce.seasonEnd,
+        icon: fp.produce.icon,
+        isPYO: fp.isPYO
       })),
       verified: farm.verified,
       rating: farm.googleRating ? Number(farm.googleRating) : null,
@@ -391,11 +439,12 @@ export const GET = performanceMiddleware.cached(
     const query = searchParams.get('q') || ''
     const county = searchParams.get('county') || ''
     const category = searchParams.get('category') || ''
+    const produce = searchParams.get('produce') || ''
     const bbox = searchParams.get('bbox') || ''
     const limit = searchParams.get('limit') || '100'
     const offset = searchParams.get('offset') || '0'
-    
-    return `farms:${query}:${county}:${category}:${bbox}:${limit}:${offset}`
+
+    return `farms:${query}:${county}:${category}:${produce}:${bbox}:${limit}:${offset}`
   },
   CACHE_TTL.MEDIUM
 )(farmsHandler)

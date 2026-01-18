@@ -49,7 +49,7 @@
 
 ### Queue 9: Seasonal location integration (North Star Journey)
 - [x] Add map filter for produce type with season awareness
-- [ ] Update map API to accept produce filter parameter
+- [x] Update map API to accept produce filter parameter
 - [ ] Add "Find [produce] near me" CTAs on seasonal pages
 - [ ] Show "In season now" badges on farm markers
 
@@ -80,6 +80,14 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Queue 9, Slice 2: Map API Produce Filter Parameter** (Queue 9)
+  - Added produce query parameter to /api/farms endpoint
+  - Added FarmProduce junction table filtering (filters by available produce with matching slug)
+  - Updated FarmWithRelations type to include produce relation
+  - Included produce data in farm response (name, slug, seasonStart, seasonEnd, icon, isPYO)
+  - Updated cache key to include produce parameter
+  - Added FarmProduce interface and produce field to FarmShop type
+  - TypeScript compilation verified
 - **Queue 9, Slice 1: Map Filter for Produce with Season Awareness** (Queue 9)
   - Created ProduceFilter.tsx component with season-aware chip display
   - In-season items show green styling with "Now" badge
