@@ -26,22 +26,22 @@ function useDebounced<T>(value: T, delay = 150) {
 const MapShellWithNoSSR = dynamic(() => import('@/features/map/ui/MapShell'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
-      <div className="text-center px-6">
+    <div className="flex h-full w-full items-center justify-center bg-background-canvas">
+      <div className="px-6 text-center">
         <div className="relative mb-4">
-          <div className="w-12 h-12 border-3 border-gray-200 dark:border-gray-600 rounded-full mx-auto"></div>
-          <div className="absolute inset-0 w-12 h-12 border-3 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="border-3 mx-auto h-12 w-12 rounded-full border-border-default"></div>
+          <div className="border-3 absolute inset-0 mx-auto h-12 w-12 animate-spin rounded-full border-brand-primary border-t-transparent"></div>
         </div>
-        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Loading Map</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Preparing your farm discovery experience...</p>
-        
+        <h3 className="mb-1 text-base font-semibold text-text-heading">Loading Map</h3>
+        <p className="text-sm text-text-body">Preparing your farm discovery experience...</p>
+
         {/* Map skeleton */}
-        <div className="mt-6 w-32 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+        <div className="relative mx-auto mt-6 h-24 w-32 overflow-hidden rounded-lg bg-background-surface">
+          <div className="absolute inset-0 animate-pulse bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
         </div>
       </div>
     </div>
-  )
+  ),
 })
 
 interface UserLocation {
@@ -73,7 +73,7 @@ export default function MapPage() {
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
 
   const locationWatchIdRef = useRef<number | null>(null)
-  
+
   // Mobile-first features
   const { trigger: triggerHaptic } = useHaptic()
 
@@ -82,7 +82,6 @@ export default function MapPage() {
   const debouncedBounds = useDebounced(mapBounds, 150)
 
   // Live location tracking callbacks
-
 
   // Fetch farm data
   useEffect(() => {
@@ -114,7 +113,7 @@ export default function MapPage() {
     }
 
     setIsLocationLoading(true)
-    
+
     try {
       // Check permission first (with Safari fallback)
       const canQuery = typeof navigator.permissions?.query === 'function'
@@ -135,7 +134,7 @@ export default function MapPage() {
         navigator.geolocation.getCurrentPosition(resolve, reject, {
           enableHighAccuracy: true,
           timeout: 10000,
-          maximumAge: 60000
+          maximumAge: 60000,
         })
       })
 
@@ -143,9 +142,8 @@ export default function MapPage() {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         accuracy: position.coords.accuracy,
-        timestamp: position.timestamp
+        timestamp: position.timestamp,
       })
-      
     } catch (err) {
       console.error('Error getting location:', err)
       alert('Unable to get your location. Please check your browser settings.')
@@ -161,11 +159,11 @@ export default function MapPage() {
       getCurrentLocation()
       return
     }
-    
+
     const position = new google.maps.LatLng(userLocation.latitude, userLocation.longitude)
     mapInstance.panTo(position)
     mapInstance.setZoom(15) // Zoom to street level
-    
+
     // Trigger haptic feedback
     triggerHaptic('light')
   }, [mapInstance, userLocation, getCurrentLocation, triggerHaptic])
@@ -177,16 +175,21 @@ export default function MapPage() {
       latitude: coordinates.lat,
       longitude: coordinates.lng,
       accuracy: 0, // Unknown accuracy for what3words
-      timestamp: Date.now()
+      timestamp: Date.now(),
     })
   }, [])
 
   // Filter and search farms
   const filteredAndSearchedFarms = useMemo(() => {
     // 1) derive distance (no mutation)
-    let result = farms.map(f => {
+    let result = farms.map((f) => {
       const d = userLocation
-        ? calculateDistance(userLocation.latitude, userLocation.longitude, f.location.lat, f.location.lng)
+        ? calculateDistance(
+            userLocation.latitude,
+            userLocation.longitude,
+            f.location.lat,
+            f.location.lng
+          )
         : undefined
       return { ...f, distance: d }
     })
@@ -194,42 +197,52 @@ export default function MapPage() {
     // 2) search
     if (debouncedQuery) {
       const q = debouncedQuery.toLowerCase()
-      result = result.filter(f =>
-        f.name.toLowerCase().includes(q) ||
-        f.location.address.toLowerCase().includes(q) ||
-        f.location.postcode.toLowerCase().includes(q) ||
-        f.location.county.toLowerCase().includes(q) ||
-        f.offerings?.some(o => o.toLowerCase().includes(q))
+      result = result.filter(
+        (f) =>
+          f.name.toLowerCase().includes(q) ||
+          f.location.address.toLowerCase().includes(q) ||
+          f.location.postcode.toLowerCase().includes(q) ||
+          f.location.county.toLowerCase().includes(q) ||
+          f.offerings?.some((o) => o.toLowerCase().includes(q))
       )
     }
 
     // 3) filters
-    if (filters.county) result = result.filter(f => f.location.county === filters.county)
-    if (filters.category) result = result.filter(f => f.offerings?.some(o => o === filters.category))
+    if (filters.county) result = result.filter((f) => f.location.county === filters.county)
+    if (filters.category)
+      result = result.filter((f) => f.offerings?.some((o) => o === filters.category))
 
     if (filters.openNow) {
-      result = result.filter(f => {
+      result = result.filter((f) => {
         if (!f.hours || !f.hours.length) return false
         const now = new Date()
         const day = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
-        const time = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })
-        const h = f.hours.find(x => x.day.toLowerCase() === day)
+        const time = now.toLocaleTimeString('en-US', {
+          hour12: false,
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+        const h = f.hours.find((x) => x.day.toLowerCase() === day)
         if (!h) return false
-        const open = h.open.toLowerCase(), close = h.close.toLowerCase()
+        const open = h.open.toLowerCase(),
+          close = h.close.toLowerCase()
         if (open === 'closed' || close === 'closed') return false
         if (open === '24 hours' || close === '24 hours') return true
         // overnight
-        return close < open ? (time >= open || time <= close) : (time >= open && time <= close)
+        return close < open ? time >= open || time <= close : time >= open && time <= close
       })
     }
 
     // 4) map bounds (debounced)
     if (debouncedBounds) {
-      result = result.filter(f => debouncedBounds.contains(new google.maps.LatLng(f.location.lat, f.location.lng)))
+      result = result.filter((f) =>
+        debouncedBounds.contains(new google.maps.LatLng(f.location.lat, f.location.lng))
+      )
     }
 
     // 5) final sort by distance if we have one
-    if (userLocation) result = result.sort((a,b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
+    if (userLocation)
+      result = result.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
 
     return result
   }, [farms, userLocation, debouncedQuery, filters, debouncedBounds])
@@ -241,12 +254,12 @@ export default function MapPage() {
 
   // Get unique counties and categories for filters
   const counties = useMemo(() => {
-    const uniqueCounties = new Set(farms.map(farm => farm.location.county))
+    const uniqueCounties = new Set(farms.map((farm) => farm.location.county))
     return Array.from(uniqueCounties).sort()
   }, [farms])
 
   const categories = useMemo(() => {
-    const allOfferings = farms.flatMap(farm => farm.offerings || [])
+    const allOfferings = farms.flatMap((farm) => farm.offerings || [])
     const uniqueCategories = new Set(allOfferings)
     return Array.from(uniqueCategories).sort()
   }, [farms])
@@ -289,8 +302,6 @@ export default function MapPage() {
     // Zoom change handled by MapShell internally
   }, [])
 
-
-
   // Cleanup location tracking on unmount
   useEffect(() => {
     return () => {
@@ -312,28 +323,40 @@ export default function MapPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
-        <div className="text-center max-w-sm mx-auto">
+      <div className="flex min-h-screen items-center justify-center bg-background-canvas p-4">
+        <div className="mx-auto max-w-sm text-center">
           <div className="relative mb-6">
-            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-error-light">
+              <svg
+                className="h-10 w-10 text-error"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"
+                />
               </svg>
             </div>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Oops! Something went wrong</h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">{error}</p>
-          
+          <h1 className="mb-3 text-xl font-semibold text-text-heading">
+            Oops! Something went wrong
+          </h1>
+          <p className="mb-6 text-sm leading-relaxed text-text-body">{error}</p>
+
           <div className="space-y-3">
             <button
               onClick={() => window.location.reload()}
-              className="w-full px-6 py-3 bg-serum text-white font-medium rounded-xl hover:bg-serum/90 active:scale-95 transition-all duration-200 shadow-lg"
+              className="h-12 w-full rounded-xl bg-brand-primary px-6 font-medium text-white shadow-premium-lg transition-[background-color,transform] duration-150 hover:bg-brand-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2 active:scale-[0.98]"
             >
               Try Again
             </button>
             <button
               onClick={() => setError(null)}
-              className="w-full px-6 py-2.5 text-gray-600 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="h-12 w-full rounded-lg px-6 font-medium text-text-body transition-colors duration-150 hover:bg-background-surface"
             >
               Go Back
             </button>
@@ -344,13 +367,13 @@ export default function MapPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background-canvas">
       {/* Mobile: Header removed for maximum map space */}
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto">
+      <div className="mx-auto max-w-7xl">
         {/* Search and Filters - Desktop Only */}
-        <div className="hidden md:block p-4">
+        <div className="hidden p-4 md:block">
           <MapSearch
             onSearch={handleSearch}
             onNearMe={handleNearMe}
@@ -361,7 +384,7 @@ export default function MapPage() {
             isLocationLoading={isLocationLoading}
             hasLocation={userLocation !== null}
           />
-          
+
           {/* Enhanced Location Tracker */}
           <div className="mt-4">
             <LocationTracker
@@ -377,46 +400,46 @@ export default function MapPage() {
         {/* Map and List Container */}
         <div className="relative h-[100svh] overflow-hidden">
           {/* Mobile: Ultra-Compact Search Bar - Minimal Map Blocking */}
-          <div className="md:hidden absolute top-0 left-0 right-0 z-20 pointer-events-none">
-            <div className="px-3 pt-2 pb-1 pointer-events-auto">
+          <div className="pointer-events-none absolute left-0 right-0 top-0 z-20 md:hidden">
+            <div className="pointer-events-auto px-3 pb-1 pt-2">
               {/* Ultra-compact search input - minimal height */}
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 transform text-text-muted" />
                 <input
                   type="text"
                   placeholder="Search farms..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-2 py-1.5 bg-white/85 dark:bg-gray-800/85 backdrop-blur-sm border border-gray-200/40 dark:border-gray-600/40 rounded-lg text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-serum focus:border-transparent transition-all duration-200"
+                  className="bg-background-canvas/85 border-border-default/40 w-full rounded-lg border py-1.5 pl-8 pr-2 text-xs shadow-sm backdrop-blur-sm transition-[border-color,box-shadow] duration-150 focus:border-transparent focus:outline-none focus:ring-1 focus:ring-border-focus"
                   aria-label="Search farms"
                 />
-                
+
                 {/* Minimal search indicator */}
                 {searchQuery && (
-                  <div className="absolute right-1.5 top-1/2 transform -translate-y-1/2">
-                    <div className="w-1 h-1 bg-serum rounded-full animate-pulse"></div>
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 transform">
+                    <div className="h-1 w-1 animate-pulse rounded-full bg-brand-primary"></div>
                   </div>
                 )}
               </div>
-              
+
               {/* Ultra-compact quick filters - minimal space */}
               {!searchQuery && (
                 <div className="mt-1.5 flex items-center gap-1 overflow-x-auto">
-                  <button 
+                  <button
                     onClick={() => setSearchQuery('organic')}
-                    className="px-1.5 py-0.5 bg-serum/10 text-serum text-xs font-medium rounded-md whitespace-nowrap border border-serum/20 hover:bg-serum/20 transition-colors"
+                    className="whitespace-nowrap rounded-md border border-brand-primary/20 bg-brand-primary/10 px-1.5 py-0.5 text-xs font-medium text-brand-primary transition-colors duration-150 hover:bg-brand-primary/20"
                   >
                     Organic
                   </button>
-                  <button 
+                  <button
                     onClick={() => setSearchQuery('eggs')}
-                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="hover:bg-background-elevated whitespace-nowrap rounded-md border border-border-default bg-background-surface px-1.5 py-0.5 text-xs font-medium text-text-body transition-colors duration-150"
                   >
                     Eggs
                   </button>
-                  <button 
+                  <button
                     onClick={() => setSearchQuery('vegetables')}
-                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="hover:bg-background-elevated whitespace-nowrap rounded-md border border-border-default bg-background-surface px-1.5 py-0.5 text-xs font-medium text-text-body transition-colors duration-150"
                   >
                     Vegetables
                   </button>
@@ -437,14 +460,12 @@ export default function MapPage() {
               bottomSheetHeight={bottomSheetHeight}
               isDesktop={isDesktop}
               onMapReady={setMapInstance}
-              className="w-full h-full"
+              className="h-full w-full"
             />
           </div>
 
-
-
           {/* Mobile: Enhanced Bottom Sheet with Farm List */}
-          <div className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
+          <div className="pointer-events-none absolute bottom-0 left-0 right-0 z-30 md:hidden">
             <BottomSheet
               isOpen={true}
               snapPoints={[40, 200, 400]}
@@ -456,22 +477,22 @@ export default function MapPage() {
               nonBlocking
             >
               {/* Enhanced Bottom Sheet Header - Mobile-First Design */}
-              <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
-                <div className="flex items-center justify-between mb-4">
+              <div className="bg-background-canvas/95 border-b border-border-default px-4 py-4 backdrop-blur-sm">
+                <div className="mb-4 flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-serum rounded-full animate-pulse"></div>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <div className="h-2 w-2 animate-pulse rounded-full bg-brand-primary"></div>
+                      <span className="text-sm font-semibold text-text-heading">
                         {filteredFarms.length} farms nearby
                       </span>
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto mb-1"></div>
-                    <span className="text-xs text-gray-400 font-medium">Pull up</span>
+                    <div className="mx-auto mb-1 h-1 w-8 rounded-full bg-border-default"></div>
+                    <span className="text-xs font-medium text-text-muted">Pull up</span>
                   </div>
                 </div>
-                
+
                 {/* Enhanced Action Buttons with Better Visual Hierarchy */}
                 <div className="flex items-center gap-3">
                   <LocationTracker
@@ -481,18 +502,20 @@ export default function MapPage() {
                     onZoomToLocation={zoomToLocation}
                     compact={true}
                   />
-                  
+
                   {/* Quick Filter Toggle - Mobile-First */}
-                  <button 
-                    onClick={() => {/* TODO: Implement quick filters */}}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors"
+                  <button
+                    onClick={() => {
+                      /* TODO: Implement quick filters */
+                    }}
+                    className="hover:bg-background-elevated flex items-center gap-2 rounded-lg border border-border-default bg-background-surface px-3 py-2 transition-colors duration-150"
                   >
-                    <span className="w-4 h-4 text-gray-600">⚡</span>
-                    <span className="text-xs font-medium text-gray-700">Quick</span>
+                    <span className="h-4 w-4 text-text-body">⚡</span>
+                    <span className="text-xs font-medium text-text-body">Quick</span>
                   </button>
                 </div>
               </div>
-              
+
               {/* Farm List */}
               <div className="flex-1 overflow-hidden">
                 <FarmList
@@ -508,7 +531,7 @@ export default function MapPage() {
           </div>
 
           {/* Desktop: Sidebar with Farm List */}
-          <div className="hidden md:block absolute right-0 top-0 bottom-0 w-96 bg-white dark:bg-gray-900 shadow-lg border-l border-gray-200 dark:border-gray-700">
+          <div className="absolute bottom-0 right-0 top-0 hidden w-96 border-l border-border-default bg-background-canvas shadow-premium-lg md:block">
             <FarmList
               farms={filteredFarms}
               selectedFarmId={selectedFarmId}
@@ -523,18 +546,21 @@ export default function MapPage() {
 
       {/* Enhanced Loading Overlay - Mobile-First */}
       {isLoading && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-2xl mx-4 max-w-sm w-full">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-2xl bg-background-canvas p-8 text-center shadow-premium-xl">
             <div className="relative mb-6">
-              <div className="w-16 h-16 border-4 border-gray-100 dark:border-gray-600 rounded-full mx-auto"></div>
-              <div className="absolute inset-0 w-16 h-16 border-4 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="mx-auto h-16 w-16 rounded-full border-4 border-border-default"></div>
+              <div className="absolute inset-0 mx-auto h-16 w-16 animate-spin rounded-full border-4 border-brand-primary border-t-transparent"></div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Loading Farms</h3>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">Finding local farm shops near you...</p>
-            
+            <h3 className="mb-2 text-lg font-semibold text-text-heading">Loading Farms</h3>
+            <p className="text-sm text-text-body">Finding local farm shops near you...</p>
+
             {/* Progress indicator */}
-            <div className="mt-6 w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-serum h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+            <div className="mt-6 h-2 w-full rounded-full bg-background-surface">
+              <div
+                className="h-2 animate-pulse rounded-full bg-brand-primary"
+                style={{ width: '60%' }}
+              ></div>
             </div>
           </div>
         </div>
