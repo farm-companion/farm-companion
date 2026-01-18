@@ -48,9 +48,9 @@ export interface ViewportQuery {
   minLng: number
   maxLng: number
   filters?: {
-    category?: string
-    produce?: string
-    county?: string
+    category?: string | null
+    produce?: string | null
+    county?: string | null
     openNow?: boolean
   }
 }
