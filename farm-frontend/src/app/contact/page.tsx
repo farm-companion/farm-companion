@@ -2,8 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowRight } from 'lucide-react'
-import { Mail } from 'lucide-react'
+import { ArrowRight, Mail, AlertTriangle, Building2, Clock } from 'lucide-react'
 import ContactForm from '@/components/forms/ContactForm'
 
 export default function ContactPage() {
@@ -25,7 +24,7 @@ export default function ContactPage() {
             sizes="100vw"
             quality={85}
             placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxAAPwCdABmX/9k="
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
           {/* Professional Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
@@ -34,7 +33,7 @@ export default function ContactPage() {
           {/* Subtle texture overlay for depth */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
         </div>
-        
+
         {/* Content Overlay */}
         <div className="relative h-full flex items-center justify-center pt-20 pb-20">
           <div className="text-center max-w-4xl mx-auto px-6">
@@ -54,14 +53,14 @@ export default function ContactPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="#contact-form"
-                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
+                className="group bg-serum text-black px-8 py-4 rounded-xl font-semibold transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl shadow-serum/25 hover:shadow-2xl hover:shadow-serum/30 hover:bg-serum/90 active:scale-[0.98]"
               >
                 Send Message
-                <ArrowRight className="w-5 h-5" />
+                <ArrowRight className="w-5 h-5 transition-transform group-hover:translate-x-1" />
               </a>
               <a
                 href="#contact-info"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl active:scale-[0.98]"
               >
                 Contact Info
               </a>
@@ -71,128 +70,129 @@ export default function ContactPage() {
       </section>
 
       {/* Main Content */}
-      <div className="mx-auto max-w-4xl px-6 py-12">
-          <div className="grid gap-8 lg:grid-cols-2">
-            {/* Contact Form */}
-            <div id="contact-form" className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl shadow-2xl border border-border-default/30 p-8">
-              <h2 className="text-2xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
-                <span className="w-2 h-2 bg-serum rounded-full"></span>
-                Send us a message
-              </h2>
-              
-              {enabled ? (
-                <ContactForm />
-              ) : (
-                <div className="rounded-lg border p-4 bg-amber-50 text-amber-800 border-amber-200">
-                  <p className="text-sm">
-                    The contact form is temporarily unavailable. Please email{' '}
-                    <a 
-                      className="underline font-medium" 
-                      href={`mailto:${process.env.CONTACT_TO_EMAIL || 'support@farmcompanion.co.uk'}`}
-                    >
-                      {process.env.CONTACT_TO_EMAIL || 'support@farmcompanion.co.uk'}
-                    </a>
-                    .
-                  </p>
-                </div>
-              )}
-            </div>
+      <div className="mx-auto max-w-4xl px-6 py-16">
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Contact Form */}
+          <div id="contact-form" className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl shadow-2xl border border-border-default/30 p-8 transition-shadow duration-300 hover:shadow-3xl">
+            <h2 className="text-2xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+              <span className="w-2 h-2 bg-serum rounded-full" />
+              Send us a message
+            </h2>
 
-            {/* Contact Information */}
-            <div id="contact-info" className="space-y-6">
-              <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl shadow-2xl border border-border-default/30 p-8">
-                <h2 className="text-2xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
-                  <span className="w-2 h-2 bg-serum rounded-full"></span>
-                  Other ways to reach us
-                </h2>
-                
-                <div className="space-y-6">
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-10 h-10 bg-brand-primary/10 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-text-heading mb-1">Email</h3>
-                      <a 
-                        href="mailto:hello@farmcompanion.co.uk" 
-                        className="text-text-link hover:underline transition-colors"
-                      >
-                        hello@farmcompanion.co.uk
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-10 h-10 bg-red-50 dark:bg-red-900/20 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-text-heading mb-1">Report Issues</h3>
-                      <p className="text-sm text-text-muted mb-2">
-                        Found an error in our data or have a technical issue?
-                      </p>
-                      <a 
-                        href="https://github.com/farm-companion/farm-frontend/issues/new?title=Issue%20Report&labels=bug&template=bug_report.yml" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-text-link hover:underline text-sm transition-colors"
-                      >
-                        Report on GitHub →
-                      </a>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      <div className="w-10 h-10 bg-midnight/10 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-midnight dark:text-sandstone" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                        </svg>
-                      </div>
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-text-heading mb-1">Farm Shop Owners</h3>
-                      <p className="text-sm text-text-muted mb-2">
-                        Need to update your listing or claim ownership?
-                      </p>
-                      <Link 
-                        href="/claim" 
-                        className="text-text-link hover:underline text-sm transition-colors"
-                      >
-                        Claim Your Listing →
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-brand-primary/10 to-brand-accent/5 dark:from-brand-primary/20 dark:to-brand-accent/10 rounded-lg border border-brand-primary/20 dark:border-brand-primary/30 p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                    <div className="w-10 h-10 bg-brand-primary/20 rounded-lg flex items-center justify-center">
-                      <svg className="w-5 h-5 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
+            {enabled ? (
+              <ContactForm />
+            ) : (
+              <div className="relative overflow-hidden rounded-2xl border border-amber-300/50 bg-gradient-to-br from-amber-50 to-orange-50 p-6 dark:from-amber-900/20 dark:to-orange-900/20 dark:border-amber-700/50">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_0%,rgba(251,191,36,0.1),transparent_50%)]" />
+                <div className="relative flex items-start gap-4">
+                  <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-amber-100 dark:bg-amber-900/50">
+                    <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                   </div>
                   <div>
-                    <h3 className="font-medium text-text-heading mb-1">Response Time</h3>
-                    <p className="text-sm text-text-muted">
-                      We typically respond within 24-48 hours during business days.
+                    <h3 className="font-semibold text-amber-900 dark:text-amber-100 mb-1">
+                      Form temporarily unavailable
+                    </h3>
+                    <p className="text-sm text-amber-800 dark:text-amber-200">
+                      Please email us directly at{' '}
+                      <a
+                        className="font-medium underline underline-offset-2 transition-colors hover:text-amber-600"
+                        href={`mailto:${process.env.CONTACT_TO_EMAIL || 'support@farmcompanion.co.uk'}`}
+                      >
+                        {process.env.CONTACT_TO_EMAIL || 'support@farmcompanion.co.uk'}
+                      </a>
                     </p>
                   </div>
                 </div>
               </div>
+            )}
+          </div>
+
+          {/* Contact Information */}
+          <div id="contact-info" className="space-y-6">
+            <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl shadow-2xl border border-border-default/30 p-8 transition-all duration-300 hover:shadow-3xl">
+              <h2 className="text-2xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+                <span className="w-2 h-2 bg-serum rounded-full" />
+                Other ways to reach us
+              </h2>
+
+              <div className="space-y-5">
+                {/* Email */}
+                <div className="group flex items-start gap-4 rounded-2xl p-4 -mx-4 transition-all duration-200 hover:bg-brand-primary/5">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-brand-primary/10 transition-colors group-hover:bg-brand-primary/20">
+                    <Mail className="h-5 w-5 text-brand-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-text-heading mb-1">Email</h3>
+                    <a
+                      href="mailto:hello@farmcompanion.co.uk"
+                      className="text-brand-primary font-medium transition-colors hover:text-brand-primary/80"
+                    >
+                      hello@farmcompanion.co.uk
+                    </a>
+                  </div>
+                </div>
+
+                {/* Report Issues */}
+                <div className="group flex items-start gap-4 rounded-2xl p-4 -mx-4 transition-all duration-200 hover:bg-red-500/5">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-red-100 transition-colors group-hover:bg-red-200 dark:bg-red-900/30 dark:group-hover:bg-red-900/50">
+                    <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-text-heading mb-1">Report Issues</h3>
+                    <p className="text-sm text-text-muted mb-2">
+                      Found an error in our data or have a technical issue?
+                    </p>
+                    <a
+                      href="https://github.com/farm-companion/farm-frontend/issues/new?title=Issue%20Report&labels=bug&template=bug_report.yml"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-sm font-medium text-red-600 transition-colors hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                    >
+                      Report on GitHub
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
+                </div>
+
+                {/* Farm Shop Owners */}
+                <div className="group flex items-start gap-4 rounded-2xl p-4 -mx-4 transition-all duration-200 hover:bg-midnight/5 dark:hover:bg-sandstone/5">
+                  <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-midnight/10 transition-colors group-hover:bg-midnight/20 dark:bg-sandstone/10 dark:group-hover:bg-sandstone/20">
+                    <Building2 className="h-5 w-5 text-midnight dark:text-sandstone" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-text-heading mb-1">Farm Shop Owners</h3>
+                    <p className="text-sm text-text-muted mb-2">
+                      Need to update your listing or claim ownership?
+                    </p>
+                    <Link
+                      href="/claim"
+                      className="inline-flex items-center gap-1 text-sm font-medium text-brand-primary transition-colors hover:text-brand-primary/80"
+                    >
+                      Claim Your Listing
+                      <ArrowRight className="h-3.5 w-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Response Time Card */}
+            <div className="relative overflow-hidden rounded-3xl border border-brand-primary/20 bg-gradient-to-br from-brand-primary/5 via-brand-primary/10 to-solar/5 p-6 transition-all duration-300 hover:border-brand-primary/30 hover:shadow-lg dark:from-brand-primary/10 dark:via-brand-primary/15 dark:to-solar/10">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_100%_100%,rgba(0,194,178,0.1),transparent_50%)]" />
+              <div className="relative flex items-start gap-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-brand-primary/20">
+                  <Clock className="h-5 w-5 text-brand-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-text-heading mb-1">Response Time</h3>
+                  <p className="text-sm text-text-muted">
+                    We typically respond within 24-48 hours during business days.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
+        </div>
       </div>
     </main>
   )
