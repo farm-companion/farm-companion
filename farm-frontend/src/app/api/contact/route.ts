@@ -4,18 +4,24 @@ import { ContactSchema, sanitizeText } from '@/lib/validation'
 import { rateLimiters, getClientIP } from '@/lib/rate-limit'
 import { checkCsrf, validateHoneypot, validateSubmissionTime, verifyTurnstile, validateContent, trackIPReputation, isIPBlocked } from '@/lib/security'
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy-initialize Resend to avoid build-time errors when API key is missing
+let resend: Resend | null = null
+function getResend(): Resend {
+  if (!resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY not configured')
+    }
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
 
 // Email sending function with Resend API
 async function sendEmail(to: string, subject: string, html: string, text: string) {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.error('RESEND_API_KEY not configured')
-      throw new Error('Email service not configured')
-    }
+    const client = getResend()
 
-    const result = await resend.emails.send({
+    const result = await client.emails.send({
       from: 'Farm Companion <hello@farmcompanion.co.uk>',
       to: [to],
       subject: subject,

@@ -6,7 +6,17 @@ import PhotoSubmissionReceiptEmail from '@/emails/PhotoSubmissionReceipt'
 // import PhotoApprovedEmail from '@/emails/PhotoApproved'
 // import PhotoRejectedEmail from '@/emails/PhotoRejected'
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
+// Lazy-initialize Resend to avoid build-time errors when API key is missing
+let resend: Resend | null = null
+function getResend(): Resend {
+  if (!resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY not configured')
+    }
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
 
 export type ReceiptInput = {
   to: string
@@ -55,7 +65,7 @@ export async function sendPhotoSubmissionReceipt(input: ReceiptInput) {
       authorEmail: input.authorEmail,
     })
 
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
       from,
       to: input.to,
       ...(bcc ? { bcc } : {}),
@@ -126,7 +136,7 @@ export async function sendPhotoApprovedEmail(opts: {
       caption: opts.caption,
     })
 
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
       from,
       to: opts.to,
       ...(bcc ? { bcc } : {}),
@@ -195,7 +205,7 @@ export async function sendPhotoRejectedEmail(opts: {
       rejectReason: opts.rejectReason,
     })
 
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
       from,
       to: opts.to,
       ...(bcc ? { bcc } : {}),
@@ -263,7 +273,7 @@ export async function sendSubmissionAckEmail(opts: {
       </div>
     `
 
-    const result = await resend.emails.send({
+    const result = await getResend().emails.send({
       from,
       to: opts.to,
       ...(bcc ? { bcc } : {}),
