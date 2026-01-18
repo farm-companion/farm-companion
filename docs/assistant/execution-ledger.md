@@ -45,7 +45,7 @@
 - [x] Add Zod validation for opening hours JSON (Comprehensive schemas for both array and object formats in validation.ts, with parsing and conversion utilities, integrated into farm-status.ts and StatusBadge)
 - [x] Add Produce model with seasonality fields (Global produce catalog with name, slug, category, seasonStart, seasonEnd, icon, seasonalPageSlug in schema.prisma)
 - [x] Add FarmProduce junction table (farmId, produceId, available, isPYO, notes with proper indexes and unique constraint)
-- [ ] Seed initial seasonal produce data
+- [x] Seed initial seasonal produce data (12 UK seasonal items in prisma/seed-data/produce.ts, seed script in prisma/seed.ts, run with npm run db:seed)
 
 ### Queue 9: Seasonal location integration (North Star Journey)
 - [ ] Add map filter for produce type with season awareness
@@ -80,6 +80,12 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Queue 8, Slice 3: Seasonal Produce Seed Data** (Queue 8)
+  - Created prisma/seed-data/produce.ts with 12 UK seasonal produce items (asparagus, PSB, strawberries, tomatoes, sweetcorn, runner beans, blackberries, apples, plums, pumpkins, kale, leeks)
+  - Created prisma/seed.ts seed script using upsert for idempotent seeding
+  - Added npm run db:seed script and prisma.seed configuration
+  - Each item includes: name, slug, description, category, seasonStart/End, icon, imageUrl, displayOrder, seasonalPageSlug
+  - **Queue 8 Complete**: All data integrity and schema foundation work done
 - **Queue 8, Slice 2: Produce and FarmProduce Models** (Queue 8)
   - Added Produce model for global seasonal produce catalog (name, slug, category, seasonStart, seasonEnd, icon, imageUrl, seasonalPageSlug)
   - Added FarmProduce junction table linking farms to produce they offer (available, isPYO, notes)
