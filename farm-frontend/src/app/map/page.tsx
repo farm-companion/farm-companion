@@ -14,6 +14,7 @@ import BottomSheet from '@/components/BottomSheet'
 // Removed unused mobile-first components for cleaner imports
 import { useHaptic } from '@/components/HapticFeedback'
 import type { FarmShop } from '@/types/farm'
+import { RecentFarms } from '@/components/RecentFarms'
 
 // Debouncing hook to prevent excessive re-filtering
 function useDebounced<T>(value: T, delay = 150) {
@@ -468,6 +469,11 @@ export default function MapPage() {
               onZoomToLocation={zoomToLocation}
               className="max-w-md"
             />
+          </div>
+
+          {/* Recent Farms Quick Access */}
+          <div className="mt-4">
+            <RecentFarms compact maxItems={4} />
           </div>
         </div>
 

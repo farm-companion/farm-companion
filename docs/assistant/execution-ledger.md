@@ -66,10 +66,10 @@
 - [x] Preserve county context in breadcrumb
 
 ### Queue 12: Cross-page journey scaffolding
-- [ ] Add persistent seasonal banner with peak produce
-- [ ] Add "Farms with this produce" section to seasonal pages
-- [ ] Add category to seasonal produce cross-links
-- [ ] Add recent/saved farms quick access component
+- [x] Add persistent seasonal banner with peak produce
+- [x] Add "Farms with this produce" section to seasonal pages
+- [x] Add category to seasonal produce cross-links
+- [x] Add recent/saved farms quick access component
 
 ### Queue 13: Viewport query caching
 - [ ] Implement geohash-based tile caching for bbox queries
@@ -80,6 +80,22 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Queue 12: Cross-page Journey Scaffolding** (Queue 12 Complete)
+  - Created SeasonalBanner.tsx component showing current peak produce
+  - Dismissible with 24-hour localStorage persistence
+  - Links to map with produce filter and seasonal guide
+  - Integrated into layout.tsx after Header
+  - Created FarmsWithProduce.tsx component for seasonal pages
+  - Fetches farms with selected produce from API
+  - Shows up to 6 farm previews with PYO indicators
+  - Created ProduceCategoryLinks.tsx component
+  - Shows category cross-links (PYO, Farm Shop, Organic, Box Scheme)
+  - Combined produce + category filters in map URLs
+  - Created RecentFarms.tsx component for quick access
+  - Tracks recently viewed farms in localStorage (max 5)
+  - Added addRecentFarm tracking to FarmPageClient
+  - Added compact RecentFarms to map page desktop sidebar
+  - **Queue 12 Complete**: All cross-page journey scaffolding done
 - **Queue 11: County to Map Integration** (Queue 11 Complete)
   - Added "View [County] farms on map" CTA button to county page hero section
   - Premium styling with shadow-premium, hover effects, and gentle-spring animation

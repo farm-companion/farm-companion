@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -25,6 +26,7 @@ import { StatusBadge } from './StatusBadge'
 import PhotoSubmissionForm from './PhotoSubmissionForm'
 import PhotoGalleryWrapper from './PhotoGalleryWrapper'
 import { FarmSeasonalProduce } from './FarmSeasonalProduce'
+import { addRecentFarm } from './RecentFarms'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
 
 interface FarmPageClientProps {
@@ -43,6 +45,15 @@ export function FarmPageClient({
   approvedPhotos
 }: FarmPageClientProps) {
   const { name, location, contact, offerings, verified, hours } = shop
+
+  // Track farm view for recent farms feature
+  useEffect(() => {
+    addRecentFarm({
+      slug: shop.slug,
+      name: shop.name,
+      county: location.county || 'UK'
+    })
+  }, [shop.slug, shop.name, location.county])
 
   return (
     <>

@@ -4,7 +4,15 @@ import { PRODUCE } from '@/data/produce'
 import Link from 'next/link'
 import { MapPin, Clock, ExternalLink, Sprout, ArrowRight } from 'lucide-react'
 import ClientProduceImages, { ClientProduceImage } from '@/components/ClientProduceImages'
+import { FarmsWithProduce } from '@/components/FarmsWithProduce'
+import { ProduceCategoryLinks } from '@/components/ProduceCategoryLinks'
 import { SITE_URL } from '@/lib/site'
+
+// Produce commonly available as PYO
+const PYO_PRODUCE_SLUGS = [
+  'strawberries', 'raspberries', 'blackberries', 'blueberries',
+  'apples', 'plums', 'cherries', 'pumpkins', 'sweetcorn',
+]
 
 // Revalidate daily
 export const revalidate = 86400
@@ -163,6 +171,13 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
         </a>
       </section>
 
+      {/* CATEGORY CROSS-LINKS */}
+      <ProduceCategoryLinks
+        produceSlug={p.slug}
+        produceName={p.name}
+        isPYOCommon={PYO_PRODUCE_SLUGS.includes(p.slug)}
+      />
+
       {/* SEASONALITY BAR */}
       <section className="mt-8">
         <h2 className="text-xl font-semibold text-text-heading">Seasonality</h2>
@@ -286,6 +301,9 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
           </div>
         </section>
       )}
+
+      {/* Farms with this produce */}
+      <FarmsWithProduce produceSlug={p.slug} produceName={p.name} />
 
       {/* Related Produce */}
       <section className="mt-10">

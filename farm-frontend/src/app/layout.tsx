@@ -6,6 +6,7 @@ import Script from 'next/script'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
 import Header from '@/components/Header'
+import { SeasonalBanner } from '@/components/SeasonalBanner'
 import FooterWrapper from '@/components/FooterWrapper'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
 import { AriaLiveRegion } from '@/components/accessibility/AriaLiveRegion'
@@ -285,6 +286,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Header */}
         <Header />
+
+        {/* Seasonal Banner */}
+        <SeasonalBanner />
 
         {/* Page content */}
         <main id="main-content" className="flex-1" role="main">{children}</main>
