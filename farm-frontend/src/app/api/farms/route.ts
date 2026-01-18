@@ -3,7 +3,7 @@ import type { FarmShop } from '@/types/farm'
 import { performanceMiddleware } from '@/lib/performance-middleware'
 import { CACHE_NAMESPACES, CACHE_TTL } from '@/lib/cache-manager'
 import { prisma } from '@/lib/prisma'
-import type { Prisma } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 interface FarmShopData {
   name: string
