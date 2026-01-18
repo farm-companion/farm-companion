@@ -7,15 +7,37 @@ import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/i
 
 // Using the centralized validation schema from input-validation.ts
 
-const redis = Redis.fromEnv()
-const limiter = new Ratelimit({ 
-  redis, 
-  limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
-})
+// Lazy-initialized clients (avoids build-time errors when env vars not available)
+let redisClient: Redis | null = null
+let rateLimiter: Ratelimit | null = null
+let resendClient: Resend | null = null
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const TO = process.env.CONTACT_TO_EMAIL!
-const FROM = process.env.CONTACT_FROM_EMAIL!
+function getRedis(): Redis {
+  if (!redisClient) {
+    redisClient = Redis.fromEnv()
+  }
+  return redisClient
+}
+
+function getRateLimiter(): Ratelimit {
+  if (!rateLimiter) {
+    rateLimiter = new Ratelimit({
+      redis: getRedis(),
+      limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
+    })
+  }
+  return rateLimiter
+}
+
+function getResendClient(): Resend {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY not configured')
+  }
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resendClient
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     // Rate limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '0.0.0.0'
-    const rate = await limiter.limit(`contact:${ip}`)
+    const rate = await getRateLimiter().limit(`contact:${ip}`)
     if (!rate.success) {
       return NextResponse.json(
         { error: 'Too many messages. Please try later.' }, 
@@ -89,40 +111,45 @@ export async function POST(req: NextRequest) {
     }
 
     // Send admin forward (don't fail the user if email fails)
-    ;(async () => {
-      try {
-        await resend.emails.send({
-          from: FROM,
-          to: TO,
-          subject: `Contact: ${v.topic} — ${v.name}`,
-          replyTo: v.email,
-          text: [
-            `Name: ${v.name}`,
-            `Email: ${v.email}`,
-            `Topic: ${v.topic}`,
-            `Time to fill: ${v.ttf} ms`,
-            '',
-            v.message
-          ].join('\n')
-        })
-      } catch (e) {
-        console.error('admin email failed', e)
-      }
-    })()
+    const TO = process.env.CONTACT_TO_EMAIL
+    const FROM = process.env.CONTACT_FROM_EMAIL
 
-    // Send user acknowledgement (non-blocking)
-    ;(async () => {
-      try {
-        await resend.emails.send({
-          from: FROM,
-          to: v.email,
-          subject: 'We received your message — Farm Companion',
-          text: `Hi ${v.name},\n\nThanks for contacting Farm Companion. We've received your message and will reply soon.\n\n— The Farm Companion team`,
-        })
-      } catch (e) {
-        console.error('ack email failed', e)
-      }
-    })()
+    if (TO && FROM) {
+      ;(async () => {
+        try {
+          await getResendClient().emails.send({
+            from: FROM,
+            to: TO,
+            subject: `Contact: ${v.topic} - ${v.name}`,
+            replyTo: v.email,
+            text: [
+              `Name: ${v.name}`,
+              `Email: ${v.email}`,
+              `Topic: ${v.topic}`,
+              `Time to fill: ${v.ttf} ms`,
+              '',
+              v.message
+            ].join('\n')
+          })
+        } catch (e) {
+          console.error('admin email failed', e)
+        }
+      })()
+
+      // Send user acknowledgement (non-blocking)
+      ;(async () => {
+        try {
+          await getResendClient().emails.send({
+            from: FROM,
+            to: v.email,
+            subject: 'We received your message - Farm Companion',
+            text: `Hi ${v.name},\n\nThanks for contacting Farm Companion. We've received your message and will reply soon.\n\n- The Farm Companion team`,
+          })
+        } catch (e) {
+          console.error('ack email failed', e)
+        }
+      })()
+    }
 
     return NextResponse.json({ ok: true, id }, { status: 201 })
   } catch (error) {

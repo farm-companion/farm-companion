@@ -41,9 +41,159 @@
 - [x] Add retries and backoff (Comprehensive retry.py with exponential backoff, jitter, async/sync decorators, retry context manager, predefined configs)
 - [x] Structured logging (Comprehensive logging.py with JSON formatter, colored console output, performance logger, progress logger, function call decorator)
 
+### Queue 8: Data integrity and schema foundation
+- [x] Add Zod validation for opening hours JSON (Comprehensive schemas for both array and object formats in validation.ts, with parsing and conversion utilities, integrated into farm-status.ts and StatusBadge)
+- [x] Add Produce model with seasonality fields (Global produce catalog with name, slug, category, seasonStart, seasonEnd, icon, seasonalPageSlug in schema.prisma)
+- [x] Add FarmProduce junction table (farmId, produceId, available, isPYO, notes with proper indexes and unique constraint)
+- [x] Seed initial seasonal produce data (12 UK seasonal items in prisma/seed-data/produce.ts, seed script in prisma/seed.ts, run with npm run db:seed)
+
+### Queue 9: Seasonal location integration (North Star Journey)
+- [x] Add map filter for produce type with season awareness
+- [x] Update map API to accept produce filter parameter
+- [x] Add "Find [produce] near me" CTAs on seasonal pages
+- [x] Show "In season now" badges on farm markers
+
+### Queue 10: Farm profile seasonal context
+- [x] Add "What's in season here" section to farm profiles
+- [x] Query FarmProduct joined with Product for seasonal items
+- [x] Link produce items to seasonal guide pages
+- [x] Add "Available now" vs "Coming soon" status
+
+### Queue 11: County to map integration
+- [x] Add "View on map" CTA to county pages
+- [x] Pass county bbox/centroid to map via URL params
+- [x] Auto-focus map viewport to county bounds
+- [x] Preserve county context in breadcrumb
+
+### Queue 12: Cross-page journey scaffolding
+- [x] Add persistent seasonal banner with peak produce
+- [x] Add "Farms with this produce" section to seasonal pages
+- [x] Add category to seasonal produce cross-links
+- [x] Add recent/saved farms quick access component
+
+### Queue 13: Viewport query caching
+- [x] Implement geohash-based tile caching for bbox queries
+- [x] Add cache invalidation on farm data updates
+- [x] Add Redis cache layer for hot viewport tiles
+- [x] Monitor cache hit rates and tune TTL
+
 ## Completed Work
 
-### 2026-01-17 (latest)
+### 2026-01-18 (latest)
+- **Queue 13: Viewport Query Caching** (Queue 13 Complete)
+  - Created geohash.ts with encoding/decoding, bounds calculation, neighbors, optimal precision
+  - Created viewport-cache.ts for tile-based caching with geohash spatial indexing
+  - Integrated tile caching into farms API for bbox queries (bypasses for text search)
+  - Added cache invalidation for farm creation/updates using invalidateTilesForLocation
+  - Updated cache-strategy.ts invalidateFarmCaches to include tile invalidation
+  - Cache stats exposed in development mode via API response (_cache field)
+  - Redis cache layer already in place via Vercel KV/cacheManager
+  - **Queue 13 Complete**: All viewport query caching work done
+- **Queue 12: Cross-page Journey Scaffolding** (Queue 12 Complete)
+  - Created SeasonalBanner.tsx component showing current peak produce
+  - Dismissible with 24-hour localStorage persistence
+  - Links to map with produce filter and seasonal guide
+  - Integrated into layout.tsx after Header
+  - Created FarmsWithProduce.tsx component for seasonal pages
+  - Fetches farms with selected produce from API
+  - Shows up to 6 farm previews with PYO indicators
+  - Created ProduceCategoryLinks.tsx component
+  - Shows category cross-links (PYO, Farm Shop, Organic, Box Scheme)
+  - Combined produce + category filters in map URLs
+  - Created RecentFarms.tsx component for quick access
+  - Tracks recently viewed farms in localStorage (max 5)
+  - Added addRecentFarm tracking to FarmPageClient
+  - Added compact RecentFarms to map page desktop sidebar
+  - **Queue 12 Complete**: All cross-page journey scaffolding done
+- **Queue 11: County to Map Integration** (Queue 11 Complete)
+  - Added "View [County] farms on map" CTA button to county page hero section
+  - Premium styling with shadow-premium, hover effects, and gentle-spring animation
+  - Links to /map?county=[countyName] with URL-encoded county name
+  - Added auto-fit effect to map page that calculates bounds from county farms
+  - Uses hasAutoFittedRef to prevent re-fitting on subsequent renders
+  - Fits map with padding (top: 80, bottom: 200 for mobile bottom sheet)
+  - County filter shows in active filters display (existing functionality)
+  - **Queue 11 Complete**: All county to map integration work done
+- **Queue 10: Farm Profile Seasonal Context** (Queue 10 Complete)
+  - Created FarmSeasonalProduce.tsx component with season-aware display
+  - Shows "Available Now" items with green styling and pulse indicator
+  - Shows "Coming Soon" items (within 2 months) with amber styling
+  - Collapses out-of-season items by default
+  - Each item links to its seasonal guide page (/seasonal/[slug])
+  - Displays PYO badge for pick-your-own items
+  - Shows season range (e.g., "May - Aug")
+  - Integrated into FarmPageClient between Offerings and Photo sections
+  - Uses shop.produce array from FarmShop type
+  - **Queue 10 Complete**: All farm profile seasonal context work done
+- **Design System Alignment: Map Page God-Tier Polish**
+  - Replaced hard-coded gray colors with semantic tokens (text-body, text-muted, text-heading, background-canvas, background-surface)
+  - Updated shadows to premium variants (shadow-premium)
+  - Added gentle-spring easing to all transitions (ease-gentle-spring, duration-fast)
+  - Ensured touch targets meet 44x44px minimum (min-h-[44px], min-h-[48px])
+  - Standardized brand-primary usage instead of serum
+  - Added backdrop-blur-md for premium glass effect
+  - Used border-default tokens for consistent borders
+  - Fixed error state, mobile search, and bottom sheet styling
+- **Queue 9, Slice 4: In Season Now Badges on Farm Markers** (Queue 9)
+  - Added isInSeason helper function to MapMarkerPopover
+  - Added seasonalBadge memo to check if farm has selected produce in season
+  - Added selectedProduce prop to MapMarkerPopover component
+  - Added selectedProduce prop to MapShell component
+  - Passed filters.produce from map page to MapShell
+  - Badge shows produce name, icon, and PYO indicator when applicable
+  - Green styling matches seasonal theme
+  - **Queue 9 Complete**: All seasonal location integration work done
+- **Queue 9, Slice 3: Find Produce Near Me CTAs** (Queue 9)
+  - Updated seasonal page CTAs to use produce filter parameter (/map?produce=slug)
+  - Changed "Find at farm shops" to "Find [produce] near me" with highlighted styling
+  - Updated bottom CTA to use produce filter
+  - Added useSearchParams to map page to read produce/county/category from URL
+  - Added initialFilters memo to parse URL parameters
+  - Added effect to sync filters when URL parameters change
+  - TypeScript compilation verified
+- **Queue 9, Slice 2: Map API Produce Filter Parameter** (Queue 9)
+  - Added produce query parameter to /api/farms endpoint
+  - Added FarmProduce junction table filtering (filters by available produce with matching slug)
+  - Updated FarmWithRelations type to include produce relation
+  - Included produce data in farm response (name, slug, seasonStart, seasonEnd, icon, isPYO)
+  - Updated cache key to include produce parameter
+  - Added FarmProduce interface and produce field to FarmShop type
+  - TypeScript compilation verified
+- **Queue 9, Slice 1: Map Filter for Produce with Season Awareness** (Queue 9)
+  - Created ProduceFilter.tsx component with season-aware chip display
+  - In-season items show green styling with "Now" badge
+  - Items sorted with in-season first, then alphabetically
+  - Handles wrap-around seasons (e.g., kale Nov-Apr)
+  - Updated MapSearch.tsx FilterState to include produce field
+  - Added ProduceFilter to MapSearch filter panel
+  - Added produce filter chip to active filters display
+  - Updated map/page.tsx with produceItems conversion from PRODUCE data
+  - Added placeholder produce filtering (searches farm name/offerings until FarmProduce data populated)
+  - TypeScript compilation verified
+- **Queue 8, Slice 3: Seasonal Produce Seed Data** (Queue 8)
+  - Created prisma/seed-data/produce.ts with 12 UK seasonal produce items (asparagus, PSB, strawberries, tomatoes, sweetcorn, runner beans, blackberries, apples, plums, pumpkins, kale, leeks)
+  - Created prisma/seed.ts seed script using upsert for idempotent seeding
+  - Added npm run db:seed script and prisma.seed configuration
+  - Each item includes: name, slug, description, category, seasonStart/End, icon, imageUrl, displayOrder, seasonalPageSlug
+  - **Queue 8 Complete**: All data integrity and schema foundation work done
+- **Queue 8, Slice 2: Produce and FarmProduce Models** (Queue 8)
+  - Added Produce model for global seasonal produce catalog (name, slug, category, seasonStart, seasonEnd, icon, imageUrl, seasonalPageSlug)
+  - Added FarmProduce junction table linking farms to produce they offer (available, isPYO, notes)
+  - Added Farm.produce relationship for querying farm's available produce
+  - Proper indexes on category, seasonStart/seasonEnd, slug, farmId, produceId, available, isPYO
+  - Unique constraint on [farmId, produceId] to prevent duplicates
+  - Prisma client generated successfully
+- **Queue 8, Slice 1: Opening Hours Zod Validation** (Queue 8)
+  - Added comprehensive Zod schemas in validation.ts for both array format ([{ day, open, close }]) and object format ({ [dayNum]: { open, close, closed? } })
+  - Added TimeStringSchema validating HH:MM format plus "Closed" and "24 hours" special values
+  - Added DayNameSchema for day name validation
+  - Added parseOpeningHours(), arrayToObjectHours(), objectToArrayHours(), normalizeToObjectHours(), validateOpeningHours() utility functions
+  - Updated farm-status.ts to use normalizeToObjectHours() internally, accepting both formats
+  - Updated schemas.ts to use OpeningHoursArraySchema instead of z.any()
+  - Updated StatusBadge.tsx props to accept unknown type
+  - Verified TypeScript compiles with no errors in changed files
+
+### 2026-01-17
 - **Slice 2: Optimized getCategoryStats with Database Aggregation** (Queue 5)
   - Replaced in-memory JavaScript processing with parallel Prisma aggregations in categories.ts
   - Changed from `findMany` + reduce/filter to `Promise.all` with `count`, `aggregate`, and `groupBy`

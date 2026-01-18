@@ -4,6 +4,13 @@ import { performanceMiddleware } from '@/lib/performance-middleware'
 import { CACHE_NAMESPACES, CACHE_TTL } from '@/lib/cache-manager'
 import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
+import {
+  getViewportCached,
+  cacheViewportFarms,
+  getTileCacheStats,
+  invalidateTilesForLocation,
+} from '@/lib/viewport-cache'
+import { decodeGeohashBounds } from '@/lib/geohash'
 
 interface FarmShopData {
   name: string
@@ -57,6 +64,19 @@ type FarmWithRelations = Prisma.FarmGetPayload<{
       }
     }
     images: true
+    produce: {
+      include: {
+        produce: {
+          select: {
+            name: true,
+            slug: true,
+            seasonStart: true,
+            seasonEnd: true,
+            icon: true
+          }
+        }
+      }
+    }
   }
 }>
 
@@ -69,6 +89,7 @@ async function farmsHandler(request: NextRequest) {
     const query = searchParams.get('q')?.toLowerCase()
     const county = searchParams.get('county')
     const category = searchParams.get('category')
+    const produce = searchParams.get('produce') // Filter by produce slug
     const bbox = searchParams.get('bbox') // "west,south,east,north"
     const limit = parseInt(searchParams.get('limit') || '100')
     const offset = parseInt(searchParams.get('offset') || '0')
@@ -105,9 +126,39 @@ async function farmsHandler(request: NextRequest) {
       }
     }
 
-    // Bounding box filter (geographic bounds)
+    // Produce filter (through FarmProduce junction table)
+    if (produce) {
+      where.produce = {
+        some: {
+          available: true,
+          produce: {
+            slug: produce
+          }
+        }
+      }
+    }
+
+    // Bounding box filter with tile caching
+    let useTileCache = false
+    let tileCacheResult: Awaited<ReturnType<typeof getViewportCached>> | null = null
+
     if (bbox) {
       const [west, south, east, north] = bbox.split(',').map(Number)
+
+      // Only use tile cache for bbox queries without text search (q parameter)
+      // Text search requires full-text matching which doesn't work with tiles
+      if (!query) {
+        useTileCache = true
+        tileCacheResult = await getViewportCached({
+          minLat: south,
+          maxLat: north,
+          minLng: west,
+          maxLng: east,
+          filters: { category, produce, county },
+        })
+      }
+
+      // Add bbox filter for direct queries or uncached tiles
       where.AND = [
         { latitude: { gte: south, lte: north } },
         { longitude: { gte: west, lte: east } }
@@ -133,6 +184,20 @@ async function farmsHandler(request: NextRequest) {
             where: { status: 'approved' },
             take: 3,
             orderBy: { displayOrder: 'asc' }
+          },
+          produce: {
+            where: { available: true },
+            include: {
+              produce: {
+                select: {
+                  name: true,
+                  slug: true,
+                  seasonStart: true,
+                  seasonEnd: true,
+                  icon: true
+                }
+              }
+            }
           }
         },
         take: limit,
@@ -169,8 +234,8 @@ async function farmsHandler(request: NextRequest) {
       })
     ])
 
-    // Transform farms to match expected format
-    const transformedFarms = farms.map((farm: FarmWithRelations) => ({
+    // Transform database farms to match expected format
+    const transformFarm = (farm: FarmWithRelations) => ({
       id: farm.id,
       name: farm.name,
       slug: farm.slug,
@@ -194,15 +259,59 @@ async function farmsHandler(request: NextRequest) {
         url: img.url,
         alt: img.altText || farm.name
       })),
+      produce: farm.produce.map(fp => ({
+        name: fp.produce.name,
+        slug: fp.produce.slug,
+        seasonStart: fp.produce.seasonStart,
+        seasonEnd: fp.produce.seasonEnd,
+        icon: fp.produce.icon,
+        isPYO: fp.isPYO
+      })),
       verified: farm.verified,
       rating: farm.googleRating ? Number(farm.googleRating) : null,
       user_ratings_total: farm.googleReviewsCount || 0,
       updatedAt: farm.updatedAt.toISOString()
-    }))
+    })
+
+    const transformedFarms = farms.map(transformFarm)
+
+    // Handle tile cache integration
+    let finalFarms = transformedFarms
+    let cacheHitRate = 0
+
+    if (useTileCache && tileCacheResult) {
+      const { cachedFarms, uncachedTiles, allTiles, cacheHitRate: hitRate } = tileCacheResult
+      cacheHitRate = hitRate
+
+      if (cachedFarms.length > 0 && uncachedTiles.length === 0) {
+        // Full cache hit - use cached data directly
+        finalFarms = cachedFarms as typeof transformedFarms
+      } else if (uncachedTiles.length > 0) {
+        // Partial cache hit or miss - cache the fetched farms for uncached tiles
+        await cacheViewportFarms(
+          transformedFarms,
+          uncachedTiles,
+          { category, produce, county }
+        )
+
+        // Merge cached farms with newly fetched farms, dedupe by id
+        const farmMap = new Map<string, typeof transformedFarms[0]>()
+        for (const farm of cachedFarms as typeof transformedFarms) {
+          farmMap.set(farm.id, farm)
+        }
+        for (const farm of transformedFarms) {
+          farmMap.set(farm.id, farm)
+        }
+        finalFarms = Array.from(farmMap.values())
+      }
+    }
+
+    // Get tile cache stats for monitoring
+    const tileStats = useTileCache ? getTileCacheStats() : null
 
     return NextResponse.json({
-      farms: transformedFarms,
-      total,
+      farms: finalFarms,
+      total: useTileCache ? finalFarms.length : total,
       offset,
       limit,
       facets: {
@@ -211,7 +320,14 @@ async function farmsHandler(request: NextRequest) {
           .filter(c => c._count.farms > 0)
           .map(c => c.slug)
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      // Include cache stats for monitoring (only in development or with debug flag)
+      ...(process.env.NODE_ENV === 'development' && tileStats ? {
+        _cache: {
+          hitRate: cacheHitRate.toFixed(1) + '%',
+          stats: tileStats
+        }
+      } : {})
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',
@@ -342,6 +458,11 @@ export async function POST(request: NextRequest) {
       }
     })
 
+    // Invalidate viewport tile cache for this location
+    if (farmData.location.lat && farmData.location.lng) {
+      await invalidateTilesForLocation(farmData.location.lat, farmData.location.lng)
+    }
+
     // Transform to match expected format
     const responseData = {
       id: newFarm.id,
@@ -391,11 +512,12 @@ export const GET = performanceMiddleware.cached(
     const query = searchParams.get('q') || ''
     const county = searchParams.get('county') || ''
     const category = searchParams.get('category') || ''
+    const produce = searchParams.get('produce') || ''
     const bbox = searchParams.get('bbox') || ''
     const limit = searchParams.get('limit') || '100'
     const offset = searchParams.get('offset') || '0'
-    
-    return `farms:${query}:${county}:${category}:${bbox}:${limit}:${offset}`
+
+    return `farms:${query}:${county}:${category}:${produce}:${bbox}:${limit}:${offset}`
   },
   CACHE_TTL.MEDIUM
 )(farmsHandler)

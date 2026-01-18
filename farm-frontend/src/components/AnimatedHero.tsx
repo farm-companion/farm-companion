@@ -19,7 +19,7 @@ export function AnimatedHero({ countyCount }: AnimatedHeroProps) {
       {/* Background Image with Professional Handling */}
       <div className="absolute inset-0">
         <Image
-          src="/main_header.jpg"
+          src="/seasonal-header.jpg"
           alt="Colorful display of fresh vegetables, fruits, and flowers arranged in baskets at a UK farm shop, showcasing the variety of local produce available"
           fill
           className="object-cover object-center"

@@ -53,14 +53,14 @@ export default function ContactPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <a
                 href="#contact-form"
-                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
+                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-fast ease-gentle-spring inline-flex items-center justify-center gap-2 shadow-premium-lg hover:shadow-premium-xl backdrop-blur-sm min-h-touch"
               >
                 Send Message
                 <ArrowRight className="w-5 h-5" />
               </a>
               <a
                 href="#contact-info"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-fast ease-gentle-spring inline-flex items-center justify-center gap-2 shadow-premium hover:shadow-premium-lg min-h-touch"
               >
                 Contact Info
               </a>
@@ -84,11 +84,11 @@ export default function ContactPage() {
               {enabled ? (
                 <ContactForm />
               ) : (
-                <div className="rounded-lg border p-4 bg-amber-50 text-amber-800 border-amber-200">
+                <div className="rounded-lg border p-4 bg-warning-light text-warning-dark border-warning/30">
                   <p className="text-sm">
                     The contact form is temporarily unavailable. Please email{' '}
-                    <a 
-                      className="underline font-medium" 
+                    <a
+                      className="underline font-medium transition-colors duration-fast hover:text-warning"
                       href={`mailto:${process.env.CONTACT_TO_EMAIL || 'support@farmcompanion.co.uk'}`}
                     >
                       {process.env.CONTACT_TO_EMAIL || 'support@farmcompanion.co.uk'}
@@ -118,9 +118,9 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-medium text-text-heading mb-1">Email</h3>
-                      <a 
-                        href="mailto:hello@farmcompanion.co.uk" 
-                        className="text-text-link hover:underline transition-colors"
+                      <a
+                        href="mailto:hello@farmcompanion.co.uk"
+                        className="text-text-link hover:underline transition-colors duration-fast"
                       >
                         hello@farmcompanion.co.uk
                       </a>
@@ -140,13 +140,14 @@ export default function ContactPage() {
                       <p className="text-sm text-text-muted mb-2">
                         Found an error in our data or have a technical issue?
                       </p>
-                      <a 
-                        href="https://github.com/farm-companion/farm-frontend/issues/new?title=Issue%20Report&labels=bug&template=bug_report.yml" 
-                        target="_blank" 
+                      <a
+                        href="https://github.com/farm-companion/farm-frontend/issues/new?title=Issue%20Report&labels=bug&template=bug_report.yml"
+                        target="_blank"
                         rel="noopener noreferrer"
-                        className="text-text-link hover:underline text-sm transition-colors"
+                        className="text-text-link hover:underline text-sm transition-colors duration-fast inline-flex items-center gap-1 min-h-touch-ios"
                       >
-                        Report on GitHub →
+                        Report on GitHub
+                        <ArrowRight className="w-4 h-4" />
                       </a>
                     </div>
                   </div>
@@ -164,11 +165,12 @@ export default function ContactPage() {
                       <p className="text-sm text-text-muted mb-2">
                         Need to update your listing or claim ownership?
                       </p>
-                      <Link 
-                        href="/claim" 
-                        className="text-text-link hover:underline text-sm transition-colors"
+                      <Link
+                        href="/claim"
+                        className="text-text-link hover:underline text-sm transition-colors duration-fast inline-flex items-center gap-1 min-h-touch-ios"
                       >
-                        Claim Your Listing →
+                        Claim Your Listing
+                        <ArrowRight className="w-4 h-4" />
                       </Link>
                     </div>
                   </div>

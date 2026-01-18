@@ -4,20 +4,23 @@ import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
 
+// Lazy-initialized Resend client (avoids build-time errors when env var not available)
+let resendClient: Resend | null = null
 
-
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY)
+function getResendClient(): Resend {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY not configured')
+  }
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resendClient
+}
 
 // Email sending function with Resend API
 async function sendEmail(to: string, subject: string, html: string, text: string) {
   try {
-    if (!process.env.RESEND_API_KEY) {
-      console.error('RESEND_API_KEY not configured')
-      throw new Error('Email service not configured')
-    }
-
-    const result = await resend.emails.send({
+    const result = await getResendClient().emails.send({
       from: 'Farm Companion <hello@farmcompanion.co.uk>',
       to: [to],
       subject: subject,

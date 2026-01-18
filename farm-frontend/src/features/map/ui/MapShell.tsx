@@ -37,6 +37,7 @@ interface MapShellProps {
   bottomSheetHeight?: number
   isDesktop?: boolean
   onMapReady?: (map: google.maps.Map) => void
+  selectedProduce?: string // Produce slug for seasonal badge display
 }
 
 // RAW SVG strings (not encoded) - will be encoded when building data: URLs
@@ -84,7 +85,8 @@ export default function MapShell({
   userLocation,
   bottomSheetHeight = 200,
   isDesktop = false,
-  onMapReady
+  onMapReady,
+  selectedProduce
 }: MapShellProps) {
   const mapRef = useRef<HTMLDivElement>(null)
   const mapInstanceRef = useRef<google.maps.Map | null>(null)
@@ -1098,6 +1100,7 @@ export default function MapShell({
           onShare={handleShare}
           userLocation={userLocation ? { latitude: userLocation.latitude, longitude: userLocation.longitude } : null}
           position={popoverPosition}
+          selectedProduce={selectedProduce}
         />
       )}
 

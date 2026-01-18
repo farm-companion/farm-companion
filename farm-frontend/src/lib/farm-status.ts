@@ -3,15 +3,13 @@
  *
  * Real-time status indicators for farms based on opening hours.
  * Shows "Open Now", "Closed", "Opens at X" with smart messaging.
+ * Accepts both array and object formats via normalizeToObjectHours.
  */
 
-export interface OpeningHours {
-  [key: number]: {
-    open: string // "09:00"
-    close: string // "17:00"
-    closed?: boolean
-  }
-}
+import { normalizeToObjectHours, type OpeningHoursObject } from './validation'
+
+// Re-export for backward compatibility
+export type OpeningHours = OpeningHoursObject
 
 export interface FarmStatus {
   status: 'open' | 'closed' | 'unknown'
@@ -25,12 +23,16 @@ export interface FarmStatus {
 
 /**
  * Get current farm status based on opening hours
- * @param openingHours - Farm opening hours object (0 = Sunday, 6 = Saturday)
+ * Accepts both array format [{ day, open, close }] and object format { [dayNum]: { open, close } }
+ * @param openingHours - Farm opening hours in either format
  * @returns FarmStatus object with status, message, and styling
  */
-export function getFarmStatus(openingHours?: OpeningHours): FarmStatus {
-  // No hours provided
-  if (!openingHours || Object.keys(openingHours).length === 0) {
+export function getFarmStatus(openingHours?: unknown): FarmStatus {
+  // Normalize to object format (handles both array and object input)
+  const normalizedHours = normalizeToObjectHours(openingHours)
+
+  // No hours provided or invalid format
+  if (!normalizedHours || Object.keys(normalizedHours).length === 0) {
     return {
       status: 'unknown',
       message: 'Hours not available',
@@ -42,11 +44,11 @@ export function getFarmStatus(openingHours?: OpeningHours): FarmStatus {
   const currentDay = now.getDay() // 0 = Sunday, 6 = Saturday
   const currentTime = now.getHours() * 60 + now.getMinutes() // Minutes since midnight
 
-  const todayHours = openingHours[currentDay]
+  const todayHours = normalizedHours[currentDay]
 
   // Closed today
   if (!todayHours || todayHours.closed) {
-    const nextOpen = getNextOpenTime(openingHours, now)
+    const nextOpen = getNextOpenTime(normalizedHours, now)
     if (nextOpen) {
       return {
         status: 'closed',
@@ -112,7 +114,7 @@ export function getFarmStatus(openingHours?: OpeningHours): FarmStatus {
   }
 
   // Closed for today (past closing time)
-  const nextOpen = getNextOpenTime(openingHours, now)
+  const nextOpen = getNextOpenTime(normalizedHours, now)
   if (nextOpen) {
     return {
       status: 'closed',
@@ -134,28 +136,27 @@ export function getFarmStatus(openingHours?: OpeningHours): FarmStatus {
 
 /**
  * Find the next time the farm opens
- * @param openingHours - Farm opening hours
+ * @param hours - Normalized opening hours object
  * @param fromDate - Date to start searching from
  * @returns Object with day name and opening time, or null if not found
  */
 function getNextOpenTime(
-  openingHours: OpeningHours,
+  hours: OpeningHoursObject,
   fromDate: Date
 ): { day: string; time: string } | null {
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
   const currentDay = fromDate.getDay()
-  const currentTime = fromDate.getHours() * 60 + fromDate.getMinutes()
 
   // Check next 7 days
   for (let i = 1; i <= 7; i++) {
     const dayToCheck = (currentDay + i) % 7
-    const hours = openingHours[dayToCheck]
+    const dayHours = hours[dayToCheck]
 
-    if (hours && !hours.closed) {
+    if (dayHours && !dayHours.closed) {
       const dayName = i === 1 ? 'tomorrow' : dayNames[dayToCheck]
       return {
         day: dayName,
-        time: hours.open
+        time: dayHours.open
       }
     }
   }
@@ -165,11 +166,13 @@ function getNextOpenTime(
 
 /**
  * Format opening hours for display
- * @param openingHours - Farm opening hours
+ * Accepts both array and object formats
+ * @param openingHours - Farm opening hours in either format
  * @returns Formatted string like "Mon-Fri 9am-5pm, Sat-Sun 10am-4pm"
  */
-export function formatOpeningHours(openingHours?: OpeningHours): string {
-  if (!openingHours || Object.keys(openingHours).length === 0) {
+export function formatOpeningHours(openingHours?: unknown): string {
+  const normalized = normalizeToObjectHours(openingHours)
+  if (!normalized || Object.keys(normalized).length === 0) {
     return 'Hours not available'
   }
 
@@ -179,7 +182,7 @@ export function formatOpeningHours(openingHours?: OpeningHours): string {
   let currentRange: { start: number; end: number; hours: string } | null = null
 
   for (let day = 0; day < 7; day++) {
-    const hours = openingHours[day]
+    const hours = normalized[day]
     const hoursStr = hours && !hours.closed ? `${formatTime(hours.open)}-${formatTime(hours.close)}` : 'Closed'
 
     if (currentRange && currentRange.hours === hoursStr) {
@@ -233,10 +236,11 @@ function formatTime(time: string): string {
 
 /**
  * Check if farm is currently open (simple boolean check)
- * @param openingHours - Farm opening hours
+ * Accepts both array and object formats
+ * @param openingHours - Farm opening hours in either format
  * @returns true if open, false otherwise
  */
-export function isCurrentlyOpen(openingHours?: OpeningHours): boolean {
+export function isCurrentlyOpen(openingHours?: unknown): boolean {
   const status = getFarmStatus(openingHours)
   return status.status === 'open'
 }

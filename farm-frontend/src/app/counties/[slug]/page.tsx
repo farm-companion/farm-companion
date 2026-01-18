@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import { Map, ArrowRight } from 'lucide-react'
 import {
   getCachedFarmsByCounty,
   getCachedCountyStats,
@@ -22,10 +23,21 @@ interface CountyPageProps {
 
 // Generate static params for all counties at build time
 export async function generateStaticParams() {
-  const counties = await getCachedAllCounties()
-  return counties.map((county: { slug: string }) => ({
-    slug: county.slug,
-  }))
+  // Skip static generation when database unavailable (CI/preview builds)
+  // Pages will generate on-demand via ISR
+  if (!process.env.DATABASE_URL) {
+    return []
+  }
+
+  try {
+    const counties = await getCachedAllCounties()
+    return counties.map((county: { slug: string }) => ({
+      slug: county.slug,
+    }))
+  } catch {
+    // Fallback to on-demand generation if DB query fails
+    return []
+  }
 }
 
 // Generate metadata for SEO
@@ -198,7 +210,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
             </p>
 
             {/* Stats */}
-            <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-wrap items-center gap-4 mb-6">
               <Badge variant="default" size="lg">
                 {total} {total === 1 ? 'Farm' : 'Farms'}
               </Badge>
@@ -213,6 +225,16 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
                 </Badge>
               )}
             </div>
+
+            {/* View on Map CTA */}
+            <Link
+              href={`/map?county=${encodeURIComponent(countyName)}`}
+              className="group inline-flex items-center gap-3 px-6 py-3 bg-brand-primary text-white font-semibold rounded-xl hover:bg-brand-primary/90 active:scale-95 transition-all duration-fast ease-gentle-spring shadow-premium hover:shadow-premium-lg"
+            >
+              <Map className="w-5 h-5" />
+              View {countyName} farms on map
+              <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+            </Link>
           </div>
         </div>
       </section>

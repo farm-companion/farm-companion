@@ -1,12 +1,14 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, Filter, X, Navigation, Loader2, Globe, Clock } from 'lucide-react'
+import { Search, Filter, X, Navigation, Loader2, Globe, Clock, Leaf } from 'lucide-react'
+import { ProduceFilter, type ProduceItem } from './ProduceFilter'
 
-interface FilterState {
+export interface FilterState {
   county?: string
   category?: string
   openNow?: boolean
+  produce?: string
 }
 
 interface MapSearchProps {
@@ -16,6 +18,7 @@ interface MapSearchProps {
   onW3WCoordinates?: (coordinates: { lat: number; lng: number }) => void
   counties: string[]
   categories: string[]
+  produce?: ProduceItem[]
   className?: string
   isLocationLoading?: boolean
   hasLocation?: boolean
@@ -39,6 +42,7 @@ export default function MapSearch({
   onW3WCoordinates,
   counties,
   categories,
+  produce = [],
   className = '',
   isLocationLoading = false,
   hasLocation = false,
@@ -151,7 +155,7 @@ export default function MapSearch({
     onFilterChange({})
   }, [onFilterChange])
 
-  const hasActiveFilters = filters.county || filters.category || filters.openNow
+  const hasActiveFilters = filters.county || filters.category || filters.openNow || filters.produce
 
   // Compact mobile version
   if (compact) {
@@ -390,6 +394,15 @@ export default function MapSearch({
               ))}
             </select>
           </div>
+
+          {/* Seasonal Produce Filter */}
+          {produce.length > 0 && (
+            <ProduceFilter
+              produce={produce}
+              selectedProduce={filters.produce}
+              onSelect={(slug) => handleFilterChange('produce', slug)}
+            />
+          )}
         </div>
       )}
 
@@ -428,6 +441,19 @@ export default function MapSearch({
                 onClick={() => handleFilterChange('category', undefined)}
                 className="hover:bg-serum/20 rounded-full p-0.5"
                 aria-label={`Remove ${filters.category} filter`}
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          )}
+          {filters.produce && (
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+              <Leaf className="w-3 h-3" />
+              {produce.find(p => p.slug === filters.produce)?.name || filters.produce}
+              <button
+                onClick={() => handleFilterChange('produce', undefined)}
+                className="hover:bg-green-200 rounded-full p-0.5"
+                aria-label={`Remove ${filters.produce} filter`}
               >
                 <X className="w-3 h-3" />
               </button>

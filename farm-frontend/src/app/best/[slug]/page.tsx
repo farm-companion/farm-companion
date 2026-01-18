@@ -16,6 +16,12 @@ interface BestPageProps {
 
 // Generate static params for all best-of lists
 export async function generateStaticParams() {
+  // Skip static generation when database unavailable (CI/preview builds)
+  // Pages fetch farm data from DB, so generate on-demand via ISR
+  if (!process.env.DATABASE_URL) {
+    return []
+  }
+
   return bestLists.map((list: { slug: string }) => ({
     slug: list.slug,
   }))

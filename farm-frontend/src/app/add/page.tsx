@@ -119,9 +119,9 @@ export default function AddFarmPage() {
   if (!isFormEnabled) {
     return (
       <main className="bg-background-canvas min-h-screen flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto px-6">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
-            <AlertCircle className="w-8 h-8 text-red-600" />
+        <div className="text-center max-w-md mx-auto px-6 animate-fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-warning-light rounded-full mb-6">
+            <AlertCircle className="w-8 h-8 text-warning-dark" />
           </div>
           <h1 className="text-2xl font-bold text-text-heading mb-4">
             Form Temporarily Unavailable
@@ -130,7 +130,7 @@ export default function AddFarmPage() {
             The farm submission form is currently being updated. Please check back later or contact us directly.
           </p>
           <Link href="/">
-            <Button variant="primary">
+            <Button variant="primary" className="min-h-touch transition-all duration-fast ease-gentle-spring">
               Return Home
             </Button>
           </Link>
@@ -362,15 +362,17 @@ export default function AddFarmPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="text-center p-8 rounded-3xl bg-gradient-to-br from-background-surface to-background-canvas border border-border-default/30 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
+            <div className="text-center p-8 rounded-3xl bg-gradient-to-br from-background-surface to-background-canvas border border-border-default/30
+                           shadow-premium-lg hover:shadow-premium-xl transition-all duration-base ease-gentle-spring transform hover:scale-105 hover:-translate-y-2">
               <div className="w-16 h-16 bg-gradient-to-br from-serum/20 to-teal-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Leaf className="w-8 h-8 text-serum" />
               </div>
               <h3 className="text-xl font-heading font-semibold text-text-heading mb-3">Reach New Customers</h3>
               <p className="text-text-muted leading-relaxed">Appear in search results and on our interactive UK-wide map designed for farmers and food lovers.</p>
             </div>
-            
-            <div className="text-center p-8 rounded-3xl bg-gradient-to-br from-background-surface to-background-canvas border border-border-default/30 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
+
+            <div className="text-center p-8 rounded-3xl bg-gradient-to-br from-background-surface to-background-canvas border border-border-default/30
+                           shadow-premium-lg hover:shadow-premium-xl transition-all duration-base ease-gentle-spring transform hover:scale-105 hover:-translate-y-2">
               <div className="w-16 h-16 bg-gradient-to-br from-serum/20 to-teal-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <Leaf className="w-8 h-8 text-serum" />
               </div>
@@ -384,31 +386,32 @@ export default function AddFarmPage() {
       <div id="add-form" className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         {/* Success/Error Messages */}
         {submitStatus === 'success' && (
-          <div className="mb-8 p-6 bg-green-50 border border-green-200 rounded-xl">
+          <div className="mb-8 p-6 bg-success-light border border-success/30 rounded-xl animate-fade-in">
             <div className="flex items-center space-x-3">
-              <CheckCircle className="w-6 h-6 text-green-600" />
+              <CheckCircle className="w-6 h-6 text-success" />
               <div>
-                <h3 className="font-semibold text-green-800">Submission Successful!</h3>
-                <p className="text-green-700">{submitMessage}</p>
-                <p className="text-green-600 text-sm mt-2">
+                <h3 className="font-semibold text-success-dark">Submission Successful!</h3>
+                <p className="text-success-dark/90">{submitMessage}</p>
+                <p className="text-success-dark/70 text-sm mt-2">
                   We&apos;ll review your submission and email you if you provided an email address.
                 </p>
                 <div className="mt-4 flex gap-3">
                   <Link href="/map">
-                    <Button variant="primary" size="sm">
+                    <Button variant="primary" size="sm" className="min-h-touch-ios transition-all duration-fast ease-gentle-spring">
                       View Map
                     </Button>
                   </Link>
-                  <Button 
+                  <Button
                     onClick={() => {
                       setSubmitStatus('idle')
                       setForm({ name: '', address: '', county: '', postcode: '' })
                       setHours(DAYS.map(d => ({ day: d })))
                       setTouched(false)
                       setFarmImages([])
-                    }} 
-                    variant="secondary" 
+                    }}
+                    variant="secondary"
                     size="sm"
+                    className="min-h-touch-ios transition-all duration-fast ease-gentle-spring"
                   >
                     Submit Another
                   </Button>
@@ -419,12 +422,12 @@ export default function AddFarmPage() {
         )}
 
         {submitStatus === 'error' && (
-          <div className="mb-8 p-6 bg-red-50 border border-red-200 rounded-xl">
+          <div className="mb-8 p-6 bg-error-light border border-error/30 rounded-xl animate-shake">
             <div className="flex items-center space-x-3">
-              <AlertCircle className="w-6 h-6 text-red-600" />
+              <AlertCircle className="w-6 h-6 text-error" />
               <div>
-                <h3 className="font-semibold text-red-800">Submission Failed</h3>
-                <p className="text-red-700">{submitMessage}</p>
+                <h3 className="font-semibold text-error-dark">Submission Failed</h3>
+                <p className="text-error-dark/90">{submitMessage}</p>
               </div>
             </div>
           </div>
@@ -448,7 +451,7 @@ export default function AddFarmPage() {
           </div>
 
           {/* Basic Information */}
-          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
+          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-premium-lg">
             <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
               <span className="w-2 h-2 bg-serum rounded-full"></span>
               <span>Basic Information</span>
@@ -459,20 +462,22 @@ export default function AddFarmPage() {
                 <label htmlFor="farm-name" className="block text-sm font-medium text-text-heading mb-2">
                   Farm shop name *
                 </label>
-                <input 
+                <input
                   id="farm-name"
                   name="name"
-                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
-                    touched && !form.name ? 'border-red-500' : 'border-border-default'
+                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                             focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                             transition-all duration-fast ease-gentle-spring ${
+                    touched && !form.name ? 'border-error' : 'border-border-default'
                   }`}
-                  value={form.name} 
+                  value={form.name}
                   onChange={onChange('name')}
                   placeholder="e.g. Green Valley Farm Shop"
                   aria-invalid={touched && !form.name}
                   aria-describedby={touched && !form.name ? 'name-error' : undefined}
                 />
                 {touched && !form.name && (
-                  <p id="name-error" className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                  <p id="name-error" className="text-sm text-error mt-1 flex items-center space-x-1">
                     <AlertCircle className="w-4 h-4" />
                     <span>Name is required</span>
                   </p>
@@ -483,20 +488,22 @@ export default function AddFarmPage() {
                 <label htmlFor="farm-address" className="block text-sm font-medium text-text-heading mb-2">
                   Address *
                 </label>
-                <input 
+                <input
                   id="farm-address"
                   name="address"
-                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
-                    touched && !form.address ? 'border-red-500' : 'border-border-default'
+                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                             focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                             transition-all duration-fast ease-gentle-spring ${
+                    touched && !form.address ? 'border-error' : 'border-border-default'
                   }`}
-                  value={form.address} 
+                  value={form.address}
                   onChange={onChange('address')}
                   placeholder="e.g. 123 Farm Lane"
                   aria-invalid={touched && !form.address}
                   aria-describedby={touched && !form.address ? 'address-error' : undefined}
                 />
                 {touched && !form.address && (
-                  <p id="address-error" className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                  <p id="address-error" className="text-sm text-error mt-1 flex items-center space-x-1">
                     <AlertCircle className="w-4 h-4" />
                     <span>Address is required</span>
                   </p>
@@ -508,20 +515,22 @@ export default function AddFarmPage() {
                   <label htmlFor="farm-county" className="block text-sm font-medium text-text-heading mb-2">
                     County *
                   </label>
-                  <input 
+                  <input
                     id="farm-county"
                     name="county"
-                    className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
-                      touched && !form.county ? 'border-red-500' : 'border-border-default'
+                    className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                               focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                               transition-all duration-fast ease-gentle-spring ${
+                      touched && !form.county ? 'border-error' : 'border-border-default'
                     }`}
-                    value={form.county} 
+                    value={form.county}
                     onChange={onChange('county')}
                     placeholder="e.g. Devon"
                     aria-invalid={touched && !form.county}
                     aria-describedby={touched && !form.county ? 'county-error' : undefined}
                   />
                   {touched && !form.county && (
-                    <p id="county-error" className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                    <p id="county-error" className="text-sm text-error mt-1 flex items-center space-x-1">
                       <AlertCircle className="w-4 h-4" />
                       <span>County is required</span>
                     </p>
@@ -531,20 +540,22 @@ export default function AddFarmPage() {
                   <label htmlFor="farm-postcode" className="block text-sm font-medium text-text-heading mb-2">
                     Postcode *
                   </label>
-                  <input 
+                  <input
                     id="farm-postcode"
                     name="postcode"
-                    className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
-                      touched && !form.postcode ? 'border-red-500' : 'border-border-default'
+                    className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                               focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                               transition-all duration-fast ease-gentle-spring ${
+                      touched && !form.postcode ? 'border-error' : 'border-border-default'
                     }`}
-                    value={form.postcode} 
+                    value={form.postcode}
                     onChange={onChange('postcode')}
                     placeholder="e.g. EX1 1AA"
                     aria-invalid={touched && !form.postcode}
                     aria-describedby={touched && !form.postcode ? 'postcode-error' : undefined}
                   />
                   {touched && !form.postcode && (
-                    <p id="postcode-error" className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                    <p id="postcode-error" className="text-sm text-error mt-1 flex items-center space-x-1">
                       <AlertCircle className="w-4 h-4" />
                       <span>Postcode is required</span>
                     </p>
@@ -565,7 +576,7 @@ export default function AddFarmPage() {
           </section>
 
           {/* Contact Information */}
-                  <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
+                  <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-premium-lg mt-8">
           <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
             <span className="w-2 h-2 bg-serum rounded-full"></span>
             <span>Contact Information</span>
@@ -576,14 +587,18 @@ export default function AddFarmPage() {
                 <label className="block text-sm font-medium text-text-heading mb-2">
                   Website
                 </label>
-                <input 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
-                  value={form.website || ''} 
+                <input
+                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                             focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                             transition-all duration-fast ease-gentle-spring ${
+                    touched && !hasValidWebsite ? 'border-error' : 'border-border-default'
+                  }`}
+                  value={form.website || ''}
                   onChange={onChange('website')}
                   placeholder="https://..."
                 />
                 {touched && !hasValidWebsite && (
-                  <p className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                  <p className="text-sm text-error mt-1 flex items-center space-x-1">
                     <AlertCircle className="w-4 h-4" />
                     <span>Website must start with http:// or https://</span>
                   </p>
@@ -593,15 +608,19 @@ export default function AddFarmPage() {
                 <label className="block text-sm font-medium text-text-heading mb-2">
                   Email
                 </label>
-                <input 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
-                  value={form.email || ''} 
+                <input
+                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                             focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                             transition-all duration-fast ease-gentle-spring ${
+                    touched && !hasValidEmail ? 'border-error' : 'border-border-default'
+                  }`}
+                  value={form.email || ''}
                   onChange={onChange('email')}
                   placeholder="hello@example.org"
                   type="email"
                 />
                 {touched && !hasValidEmail && (
-                  <p className="text-sm text-red-600 mt-1 flex items-center space-x-1">
+                  <p className="text-sm text-error mt-1 flex items-center space-x-1">
                     <AlertCircle className="w-4 h-4" />
                     <span>Please enter a valid email address</span>
                   </p>
@@ -611,9 +630,11 @@ export default function AddFarmPage() {
                 <label className="block text-sm font-medium text-text-heading mb-2">
                   Phone
                 </label>
-                <input 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
-                  value={form.phone || ''} 
+                <input
+                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                             focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                             transition-all duration-fast ease-gentle-spring"
+                  value={form.phone || ''}
                   onChange={onChange('phone')}
                   placeholder="+44 ..."
                 />
@@ -622,7 +643,7 @@ export default function AddFarmPage() {
           </section>
 
           {/* Additional Details */}
-          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
+          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-premium-lg">
             <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
               <span className="w-2 h-2 bg-serum rounded-full"></span>
               <span>Additional Details</span>
@@ -634,9 +655,11 @@ export default function AddFarmPage() {
                   <label className="block text-sm font-medium text-text-heading mb-2">
                     Latitude (optional)
                   </label>
-                  <input 
-                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
-                    value={form.lat || ''} 
+                  <input
+                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                               focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                               transition-all duration-fast ease-gentle-spring"
+                    value={form.lat || ''}
                     onChange={onChange('lat')}
                     placeholder="e.g. 51.507"
                     type="number"
@@ -647,9 +670,11 @@ export default function AddFarmPage() {
                   <label className="block text-sm font-medium text-text-heading mb-2">
                     Longitude (optional)
                   </label>
-                  <input 
-                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
-                    value={form.lng || ''} 
+                  <input
+                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                               focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                               transition-all duration-fast ease-gentle-spring"
+                    value={form.lng || ''}
                     onChange={onChange('lng')}
                     placeholder="-0.127"
                     type="number"
@@ -660,9 +685,11 @@ export default function AddFarmPage() {
                   <label className="block text-sm font-medium text-text-heading mb-2">
                     Offerings (comma-separated)
                   </label>
-                  <input 
-                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
-                    value={form.offerings || ''} 
+                  <input
+                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body min-h-touch
+                               focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                               transition-all duration-fast ease-gentle-spring"
+                    value={form.offerings || ''}
                     onChange={onChange('offerings')}
                     placeholder="Apples, Cheese, Eggs"
                   />
@@ -673,9 +700,11 @@ export default function AddFarmPage() {
                 <label className="block text-sm font-medium text-text-heading mb-2">
                   Farm story (optional)
                 </label>
-                <textarea 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors min-h-[100px] resize-vertical" 
-                  value={form.story || ''} 
+                <textarea
+                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body
+                             focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum
+                             transition-all duration-fast ease-gentle-spring min-h-[100px] resize-vertical"
+                  value={form.story || ''}
                   onChange={onChange('story')}
                   placeholder="Tell us about your farm, your story, what makes you special..."
                 />
@@ -684,7 +713,7 @@ export default function AddFarmPage() {
           </section>
 
           {/* Opening Hours */}
-          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
+          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-premium-lg mt-8">
             <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
               <span className="w-2 h-2 bg-serum rounded-full"></span>
               <span>Opening Hours (24h format, optional)</span>
@@ -692,19 +721,21 @@ export default function AddFarmPage() {
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {hours.map(h => (
-                <div key={h.day} className="flex items-center space-x-3 p-3 bg-background-canvas rounded-lg">
+                <div key={h.day} className="flex items-center space-x-3 p-3 bg-background-canvas rounded-lg border border-border-default/50">
                   <span className="w-12 text-sm font-medium text-text-heading">{h.day}</span>
-                  <input 
-                    className="w-20 rounded border border-border-default px-2 py-1 text-sm bg-background-canvas text-text-body focus:outline-none focus:ring-1 focus:ring-serum" 
-                    placeholder="09:00" 
-                    value={h.open || ''} 
+                  <input
+                    className="w-20 rounded border border-border-default px-2 py-2 text-sm bg-background-canvas text-text-body
+                               focus:outline-none focus:ring-1 focus:ring-serum transition-all duration-fast ease-gentle-spring"
+                    placeholder="09:00"
+                    value={h.open || ''}
                     onChange={onHoursChange(h.day, 'open')}
                   />
-                  <span className="text-sm text-text-muted">–</span>
-                  <input 
-                    className="w-20 rounded border border-border-default px-2 py-1 text-sm bg-background-canvas text-text-body focus:outline-none focus:ring-1 focus:ring-serum" 
-                    placeholder="17:00" 
-                    value={h.close || ''} 
+                  <span className="text-sm text-text-muted">-</span>
+                  <input
+                    className="w-20 rounded border border-border-default px-2 py-2 text-sm bg-background-canvas text-text-body
+                               focus:outline-none focus:ring-1 focus:ring-serum transition-all duration-fast ease-gentle-spring"
+                    placeholder="17:00"
+                    value={h.close || ''}
                     onChange={onHoursChange(h.day, 'close')}
                   />
                 </div>
@@ -713,7 +744,7 @@ export default function AddFarmPage() {
           </section>
 
           {/* Farm Images */}
-          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
+          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-premium-lg mt-8">
             <h2 className="text-xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
               <span className="w-2 h-2 bg-serum rounded-full"></span>
               <span>Farm Images (Optional)</span>
@@ -731,7 +762,9 @@ export default function AddFarmPage() {
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || !valid}
-              className="flex-1 group bg-gradient-to-r from-serum to-teal-500 text-black px-10 py-5 rounded-2xl font-bold text-lg hover:from-teal-500 hover:to-serum transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1"
+              className="flex-1 group bg-gradient-to-r from-serum to-teal-500 text-black px-10 py-5 rounded-2xl font-bold text-lg
+                         hover:from-teal-500 hover:to-serum transition-all duration-fast ease-gentle-spring
+                         shadow-premium-lg hover:shadow-premium-xl transform hover:scale-105 hover:-translate-y-1 min-h-touch-spacious"
               variant="primary"
               size="lg"
             >
@@ -742,26 +775,29 @@ export default function AddFarmPage() {
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                  <CheckCircle className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-fast" />
                   Submit Farm Shop
                 </>
               )}
             </Button>
-            
+
             <Button
               onClick={handleDownload}
               disabled={!valid}
               variant="secondary"
               size="lg"
-              className="group border-2 border-serum text-serum dark:text-serum px-10 py-5 rounded-2xl font-bold text-lg hover:bg-serum hover:text-black dark:hover:bg-serum dark:hover:text-black transition-all duration-300 backdrop-blur-sm bg-background-surface/30 hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
+              className="group border-2 border-serum text-serum dark:text-serum px-10 py-5 rounded-2xl font-bold text-lg
+                         hover:bg-serum hover:text-black dark:hover:bg-serum dark:hover:text-black
+                         transition-all duration-fast ease-gentle-spring backdrop-blur-sm bg-background-surface/30
+                         shadow-premium hover:shadow-premium-lg transform hover:scale-105 hover:-translate-y-1 min-h-touch-spacious"
             >
-              <Download className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+              <Download className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform duration-fast" />
               Download JSON
             </Button>
           </div>
 
           {submitMessage && submitStatus === 'idle' && (
-            <p className="text-sm text-red-600 flex items-center space-x-2">
+            <p className="text-sm text-error flex items-center space-x-2 mt-4">
               <AlertCircle className="w-4 h-4" />
               <span>{submitMessage}</span>
             </p>
@@ -771,7 +807,7 @@ export default function AddFarmPage() {
         {/* Sidebar - Preview */}
         <div className="lg:col-span-1">
           <div className="sticky top-6 lg:top-24 max-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-6rem)] overflow-y-auto">
-            <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
+            <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-premium-lg">
               <h3 className="text-lg font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
                 <span className="w-2 h-2 bg-serum rounded-full"></span>
                 <span>Preview</span>

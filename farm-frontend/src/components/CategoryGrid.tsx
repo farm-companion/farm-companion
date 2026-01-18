@@ -8,8 +8,14 @@ interface CategoryGridProps {
 }
 
 export async function CategoryGrid({ limit = 12, featured = false }: CategoryGridProps) {
-  // Fetch top categories by farm count
-  const categories = await getCachedTopCategories(limit)
+  // Fetch top categories by farm count - fail gracefully if DB unavailable
+  let categories: any[] = []
+  try {
+    categories = await getCachedTopCategories(limit)
+  } catch (error) {
+    console.warn('CategoryGrid: Failed to fetch categories', error)
+    return null
+  }
 
   if (categories.length === 0) {
     return null
