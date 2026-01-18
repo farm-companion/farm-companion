@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import type { FarmShop } from '@/types/farm'
+import { OpeningHoursArraySchema } from './validation'
 
 // Comprehensive FarmShop schema for validation
 export const FarmShopSchema = z.object({
@@ -15,7 +16,7 @@ export const FarmShopSchema = z.object({
     county: z.string().min(1, 'County is required').max(80, 'County name too long'),
     postcode: z.string().min(1, 'Postcode is required').max(12, 'Postcode too long')
   }),
-  hours: z.array(z.any()).optional().default([]), // Allow any hours format
+  hours: OpeningHoursArraySchema.optional().default([]),
   offerings: z.array(z.string()).optional(),
   contact: z.object({
     phone: z.string().optional(),

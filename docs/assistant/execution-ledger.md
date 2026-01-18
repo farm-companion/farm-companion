@@ -42,7 +42,7 @@
 - [x] Structured logging (Comprehensive logging.py with JSON formatter, colored console output, performance logger, progress logger, function call decorator)
 
 ### Queue 8: Data integrity and schema foundation
-- [ ] Add Zod validation for opening hours JSON
+- [x] Add Zod validation for opening hours JSON (Comprehensive schemas for both array and object formats in validation.ts, with parsing and conversion utilities, integrated into farm-status.ts and StatusBadge)
 - [ ] Add Product model with seasonality fields
 - [ ] Add FarmProduct junction table
 - [ ] Seed initial seasonal produce data
@@ -79,7 +79,18 @@
 
 ## Completed Work
 
-### 2026-01-17 (latest)
+### 2026-01-18 (latest)
+- **Queue 8, Slice 1: Opening Hours Zod Validation** (Queue 8)
+  - Added comprehensive Zod schemas in validation.ts for both array format ([{ day, open, close }]) and object format ({ [dayNum]: { open, close, closed? } })
+  - Added TimeStringSchema validating HH:MM format plus "Closed" and "24 hours" special values
+  - Added DayNameSchema for day name validation
+  - Added parseOpeningHours(), arrayToObjectHours(), objectToArrayHours(), normalizeToObjectHours(), validateOpeningHours() utility functions
+  - Updated farm-status.ts to use normalizeToObjectHours() internally, accepting both formats
+  - Updated schemas.ts to use OpeningHoursArraySchema instead of z.any()
+  - Updated StatusBadge.tsx props to accept unknown type
+  - Verified TypeScript compiles with no errors in changed files
+
+### 2026-01-17
 - **Slice 2: Optimized getCategoryStats with Database Aggregation** (Queue 5)
   - Replaced in-memory JavaScript processing with parallel Prisma aggregations in categories.ts
   - Changed from `findMany` + reduce/filter to `Promise.all` with `count`, `aggregate`, and `groupBy`
