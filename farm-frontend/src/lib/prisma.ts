@@ -27,24 +27,45 @@ const globalForPrisma = global as unknown as {
   prisma: PrismaClient | undefined
 }
 
-// Connection pool configuration
-const CONNECTION_POOL_CONFIG = {
-  // Use pooler URL if available (recommended for production)
-  datasourceUrl: process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL,
+// Lazy-initialized Prisma client
+// Defers creation until first use, preventing build-time errors when DATABASE_URL unavailable
+function createPrismaClient(): PrismaClient {
+  const url = process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL
+  if (!url) {
+    throw new Error('DATABASE_URL not configured')
+  }
 
-  // Logging configuration
-  log: (process.env.NODE_ENV === 'development'
-    ? ['query', 'error', 'warn']
-    : ['error']) as Array<'query' | 'error' | 'warn' | 'info'>,
+  const client = new PrismaClient({
+    datasourceUrl: url,
+    log: (process.env.NODE_ENV === 'development'
+      ? ['query', 'error', 'warn']
+      : ['error']) as Array<'query' | 'error' | 'warn' | 'info'>,
+  })
+
+  if (process.env.NODE_ENV !== 'production') {
+    globalForPrisma.prisma = client
+  }
+
+  return client
 }
 
-export const prisma =
-  globalForPrisma.prisma ??
-  new PrismaClient(CONNECTION_POOL_CONFIG)
-
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
+// Getter for lazy initialization
+export function getPrisma(): PrismaClient {
+  if (globalForPrisma.prisma) {
+    return globalForPrisma.prisma
+  }
+  const client = createPrismaClient()
+  globalForPrisma.prisma = client
+  return client
 }
+
+// Backward-compatible export using Proxy for lazy access
+// This allows existing code using `prisma.farm.findMany()` to work without changes
+export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
+  get(_target, prop) {
+    return getPrisma()[prop as keyof PrismaClient]
+  }
+})
 
 // Graceful shutdown for serverless environments
 if (process.env.NODE_ENV === 'production') {

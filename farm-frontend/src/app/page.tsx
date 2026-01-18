@@ -1,4 +1,8 @@
 import type { Metadata } from 'next'
+
+// Force dynamic - homepage uses CategoryGrid which queries database
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight, Leaf, Calendar, Heart, TrendingUp, Award, Clock } from 'lucide-react'
