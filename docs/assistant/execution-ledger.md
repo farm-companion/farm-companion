@@ -47,8 +47,8 @@
 - [x] Slice 3: Add View on Map CTA to county pages with pre-applied bounds
 - [x] Slice 4: Improve desktop marker popover with direct profile link
 - [x] Slice 5: Add actionable empty states to filtered views
-- [ ] Slice 6: Enhance mobile bottom sheet with visible quick filters
-- [ ] Slice 7: Add In Season Now section to farm profiles
+- [x] Slice 6: Enhance mobile bottom sheet with visible quick filters
+- [x] Slice 7: Add In Season Now section to farm profiles
 - [ ] Slice 8: Add Nearby Farms section to farm profiles
 - [ ] Slice 9: Add browse link from map county filter to county page
 - [ ] Slice 10: Add Farms selling this section to seasonal produce pages
@@ -58,6 +58,20 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Slice 7: Add In Season Now section to farm profiles** (Queue 8)
+  - Added getInSeasonProduce() helper function using current month
+  - Imported PRODUCE data and Leaf icon
+  - Added emerald-themed "In Season Now" section with grid of 4 produce items
+  - Each item links to /seasonal/{slug} with hover animation
+  - Shows "Peak" badge for items in peak month
+  - Links to full seasonal guide at bottom
+- **Slice 6: Enhance mobile bottom sheet with visible quick filters** (Queue 8)
+  - Replaced placeholder Quick button with actual filter pills in bottom sheet header
+  - Added "Open Now" toggle pill with emerald active state
+  - Added category quick filters: Farm Shop, Organic, PYO
+  - Added "Clear" pill when filters active
+  - Haptic feedback on filter toggle
+  - Horizontal scroll for filter overflow
 - **Slice 5: Add actionable empty states to filtered views** (Queue 8)
   - Enhanced FarmList EmptyState with contextual messaging based on active filters/search
   - Added props: hasFilters, hasSearch, searchQuery, countyFilter, onClearFilters, onClearSearch

@@ -19,7 +19,8 @@ import {
   Camera,
   Sparkles,
   Star,
-  Users
+  Users,
+  Leaf
 } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { ObfuscatedEmail, ObfuscatedPhone } from './ObfuscatedContact'
@@ -27,6 +28,13 @@ import { StatusBadge } from './StatusBadge'
 import PhotoSubmissionForm from './PhotoSubmissionForm'
 import PhotoGalleryWrapper from './PhotoGalleryWrapper'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
+import { PRODUCE, type Produce } from '@/data/produce'
+
+// Helper to get produce items currently in season
+function getInSeasonProduce(): Produce[] {
+  const currentMonth = new Date().getMonth() + 1 // 1-12
+  return PRODUCE.filter(p => p.monthsInSeason.includes(currentMonth))
+}
 
 interface FarmPageClientProps {
   shop: FarmShop
@@ -347,6 +355,73 @@ export function FarmPageClient({
                 </motion.div>
               </motion.section>
             )}
+
+            {/* In Season Now Section */}
+            {(() => {
+              const inSeasonProduce = getInSeasonProduce()
+              if (inSeasonProduce.length === 0) return null
+              return (
+                <motion.section
+                  initial="initial"
+                  whileInView="animate"
+                  viewport={{ once: true, margin: "-100px" }}
+                  variants={fadeInUp}
+                  className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-3xl p-10 shadow-2xl border border-emerald-200 dark:border-emerald-800"
+                >
+                  <h2 className="text-3xl font-heading font-bold text-text-heading mb-4 flex items-center gap-3">
+                    <Leaf className="w-8 h-8 text-emerald-600" />
+                    In Season Now
+                  </h2>
+                  <p className="text-text-muted mb-8">
+                    Fresh seasonal produce you might find at local farm shops this month
+                  </p>
+                  <motion.div
+                    variants={staggerContainer}
+                    className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                  >
+                    {inSeasonProduce.slice(0, 4).map((produce) => (
+                      <Link
+                        key={produce.slug}
+                        href={`/seasonal/${produce.slug}`}
+                        className="group"
+                      >
+                        <motion.div
+                          variants={staggerItem}
+                          whileHover={{ scale: 1.03, y: -4 }}
+                          className="relative aspect-square rounded-2xl overflow-hidden bg-white dark:bg-gray-800 shadow-md border border-emerald-100 dark:border-emerald-800"
+                        >
+                          {produce.images[0] && (
+                            <img
+                              src={produce.images[0].src}
+                              alt={produce.images[0].alt}
+                              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                            />
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+                          <div className="absolute bottom-0 left-0 right-0 p-3">
+                            <span className="text-white font-semibold text-sm drop-shadow-lg">
+                              {produce.name}
+                            </span>
+                            {produce.peakMonths?.includes(new Date().getMonth() + 1) && (
+                              <span className="ml-2 px-2 py-0.5 bg-amber-400 text-amber-900 text-xs font-bold rounded-full">
+                                Peak
+                              </span>
+                            )}
+                          </div>
+                        </motion.div>
+                      </Link>
+                    ))}
+                  </motion.div>
+                  <Link
+                    href="/seasonal"
+                    className="inline-flex items-center gap-2 mt-6 text-emerald-700 dark:text-emerald-400 font-semibold hover:text-emerald-800 dark:hover:text-emerald-300 transition-colors"
+                  >
+                    View all seasonal produce
+                    <ArrowRight className="w-4 h-4" />
+                  </Link>
+                </motion.section>
+              )
+            })()}
 
             {/* Photo Submission Section */}
             <motion.section

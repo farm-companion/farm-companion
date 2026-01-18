@@ -514,8 +514,9 @@ export default function MapPage() {
                   </div>
                 </div>
                 
-                {/* Enhanced Action Buttons with Better Visual Hierarchy */}
-                <div className="flex items-center gap-3">
+                {/* Quick Filter Pills - Always Visible */}
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 -mb-1 scrollbar-hide">
+                  {/* Near Me */}
                   <LocationTracker
                     farms={farms}
                     onLocationUpdate={setUserLocation}
@@ -523,15 +524,57 @@ export default function MapPage() {
                     onZoomToLocation={zoomToLocation}
                     compact={true}
                   />
-                  
-                  {/* Quick Filter Toggle - Mobile-First */}
-                  <button 
-                    onClick={() => {/* TODO: Implement quick filters */}}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors"
+
+                  {/* Open Now Filter Pill */}
+                  <button
+                    onClick={() => {
+                      triggerHaptic('light')
+                      setFilters(prev => ({ ...prev, openNow: !prev.openNow }))
+                    }}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                      filters.openNow
+                        ? 'bg-emerald-500 text-white shadow-md'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                    }`}
                   >
-                    <span className="w-4 h-4 text-gray-600">⚡</span>
-                    <span className="text-xs font-medium text-gray-700">Quick</span>
+                    <span className={`w-2 h-2 rounded-full ${filters.openNow ? 'bg-white' : 'bg-emerald-500'}`} />
+                    Open Now
                   </button>
+
+                  {/* Category Quick Filters */}
+                  {['Farm Shop', 'Organic', 'PYO'].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => {
+                        triggerHaptic('light')
+                        setFilters(prev => ({
+                          ...prev,
+                          category: prev.category === cat ? undefined : cat
+                        }))
+                      }}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-xs font-semibold whitespace-nowrap transition-all duration-200 ${
+                        filters.category === cat
+                          ? 'bg-serum text-black shadow-md'
+                          : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700'
+                      }`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+
+                  {/* Clear Filters - Show when filters active */}
+                  {hasActiveFilters && (
+                    <button
+                      onClick={() => {
+                        triggerHaptic('medium')
+                        handleClearFilters()
+                      }}
+                      className="flex items-center gap-1 px-3 py-2 rounded-full text-xs font-semibold text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 whitespace-nowrap"
+                    >
+                      <span className="text-sm">✕</span>
+                      Clear
+                    </button>
+                  )}
                 </div>
               </div>
               
