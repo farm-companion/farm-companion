@@ -140,15 +140,14 @@ export function SearchBar({
     <div ref={containerRef} className={cn('relative', className)}>
       <div
         className={cn(
-          'flex items-center gap-2 rounded-lg border bg-white px-3 py-2',
+          'flex items-center gap-2 rounded-lg border bg-background-canvas px-3 py-2 h-12',
           'transition-all duration-200',
           isFocused
-            ? 'border-slate-900 ring-2 ring-slate-900 ring-offset-2 dark:border-slate-50 dark:ring-slate-300'
-            : 'border-slate-200 dark:border-slate-800',
-          'dark:bg-slate-950'
+            ? 'border-border-focus ring-2 ring-border-focus ring-offset-2'
+            : 'border-border-default'
         )}
       >
-        <Search className="h-5 w-5 shrink-0 text-slate-500 dark:text-slate-400" />
+        <Search className="h-5 w-5 shrink-0 text-text-muted" />
 
         <input
           ref={inputRef}
@@ -165,18 +164,18 @@ export function SearchBar({
           onBlur={() => setIsFocused(false)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
+          className="flex-1 bg-transparent text-sm outline-none placeholder:text-text-muted text-text-body"
         />
 
-        {loading && <Loader2 className="h-4 w-4 animate-spin text-slate-500" />}
+        {loading && <Loader2 className="h-4 w-4 animate-spin text-text-muted" />}
 
         {clearable && value && !loading && (
           <button
             onClick={handleClear}
-            className="rounded-full p-1 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="rounded-full p-1 hover:bg-background-surface transition-colors"
             aria-label="Clear search"
           >
-            <X className="h-4 w-4 text-slate-500 dark:text-slate-400" />
+            <X className="h-4 w-4 text-text-muted" />
           </button>
         )}
       </div>
@@ -185,9 +184,8 @@ export function SearchBar({
       {showSuggestions && hasSuggestions && (
         <div
           className={cn(
-            'absolute top-full z-50 mt-2 w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-lg',
-            'animate-in fade-in-0 zoom-in-95',
-            'dark:border-slate-800 dark:bg-slate-950'
+            'absolute top-full z-50 mt-2 w-full overflow-hidden rounded-lg border border-border-default bg-background-canvas shadow-premium',
+            'animate-in fade-in-0 zoom-in-95'
           )}
         >
           <div className="max-h-80 overflow-y-auto p-1">
@@ -196,8 +194,8 @@ export function SearchBar({
                 key={index}
                 onClick={() => handleSuggestionClick(suggestion)}
                 className={cn(
-                  'flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm',
-                  'hover:bg-slate-100 dark:hover:bg-slate-800',
+                  'flex w-full items-center justify-between gap-2 rounded-md px-3 h-12 text-left text-sm text-text-body',
+                  'hover:bg-background-surface',
                   'transition-colors'
                 )}
               >
@@ -206,7 +204,7 @@ export function SearchBar({
                   <span>{suggestion.label}</span>
                 </div>
                 {suggestion.count !== undefined && (
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                  <span className="text-xs text-text-muted">
                     {suggestion.count}
                   </span>
                 )}

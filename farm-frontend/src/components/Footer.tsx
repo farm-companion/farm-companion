@@ -101,7 +101,7 @@ export default function Footer() {
         {/* Mobile: Brand section (always visible) */}
         <div className="mb-8 space-y-4 md:hidden">
           <h3 className="font-heading font-bold text-text-heading flex items-center gap-2">
-            <Leaf className="h-5 w-5 text-serum" />
+            <Leaf className="h-5 w-5 text-brand-primary" />
             Farm Companion
           </h3>
           <p className="text-sm text-text-muted">

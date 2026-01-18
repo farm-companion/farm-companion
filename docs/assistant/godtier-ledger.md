@@ -20,11 +20,14 @@ Implement the FarmCompanion Product Audit end-to-end. Transform into seamless Ap
 - Verification: `pnpm --filter farm-frontend dev` then inspect /map, /counties/kent, /seasonal
 - Status: DONE
 
-**Slice 2** - Remaining component standardization
-- Header buttons already h-12, verify consistency
-- Footer and other shared components
-- Search components and filters
-- Status: TODO
+**Slice 2** - Remaining component standardization [DONE]
+- Footer: text-serum -> text-brand-primary
+- SearchBar: hardcoded slate colors -> semantic tokens, h-12 container
+- Button: default size md updated from h-10 to h-12 (48px touch target)
+- MapSearch: all inputs h-12, buttons h-12, semantic tokens for colors and focus rings
+- Acceptance: All interactive elements meet 48px minimum, consistent token usage
+- Verification: Inspect /map search, footer, general buttons across site
+- Status: DONE
 
 #### 1.2 Backend Prerequisites for Seasonal Integration
 

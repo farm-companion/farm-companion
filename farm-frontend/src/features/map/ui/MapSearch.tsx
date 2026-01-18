@@ -165,7 +165,7 @@ export default function MapSearch({
             placeholder="Search farms..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-7 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-serum focus:border-transparent outline-none"
+            className="w-full h-10 pl-7 pr-3 text-sm border border-border-default rounded-md focus:ring-2 focus:ring-border-focus focus:border-transparent outline-none bg-background-canvas text-text-body"
             aria-label="Search farms"
           />
           {query && (
@@ -182,10 +182,10 @@ export default function MapSearch({
         <button
           onClick={handleNearMe}
           disabled={isLocationLoading}
-          className={`px-3 py-2 rounded-md transition-colors flex items-center gap-1 text-xs ${
-            hasLocation 
-              ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-              : 'bg-serum text-white hover:bg-serum/90'
+          className={`h-10 px-3 rounded-md transition-colors flex items-center gap-1 text-xs ${
+            hasLocation
+              ? 'bg-success-light text-success-dark hover:bg-success'
+              : 'bg-brand-primary text-white hover:bg-brand-primary/90'
           } disabled:opacity-50`}
           title="Find farms near me"
         >
@@ -248,7 +248,7 @@ export default function MapSearch({
                 handleW3WSearch()
               }
             }}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 dark:border-gray-600"
+            className="w-full h-12 pl-10 pr-4 border border-border-default rounded-lg focus:ring-2 focus:ring-border-focus focus:border-transparent outline-none transition-all bg-background-canvas text-text-body placeholder-text-muted"
             aria-label={searchType === 'w3w' ? 'Enter what3words address' : 'Search farms'}
           />
           {query && (
@@ -266,7 +266,7 @@ export default function MapSearch({
           <button
             onClick={handleW3WSearch}
             disabled={isW3WLoading || !query}
-            className="px-4 py-3 rounded-lg transition-colors flex items-center gap-2 bg-serum text-white hover:bg-serum/90 disabled:opacity-50"
+            className="h-12 px-4 rounded-lg transition-colors flex items-center gap-2 bg-brand-primary text-white hover:bg-brand-primary/90 disabled:opacity-50"
             aria-label="Convert what3words address"
           >
             {isW3WLoading ? (
@@ -281,10 +281,10 @@ export default function MapSearch({
         <button
           onClick={handleNearMe}
           disabled={isLocationLoading}
-          className={`px-4 py-3 rounded-lg transition-colors flex items-center gap-2 ${
-            hasLocation 
-              ? 'bg-green-100 text-green-700 hover:bg-green-200' 
-              : 'bg-serum text-white hover:bg-serum/90'
+          className={`h-12 px-4 rounded-lg transition-colors flex items-center gap-2 ${
+            hasLocation
+              ? 'bg-success-light text-success-dark hover:bg-success'
+              : 'bg-brand-primary text-white hover:bg-brand-primary/90'
           } disabled:opacity-50`}
           aria-label="Find farms near me"
         >
@@ -338,7 +338,7 @@ export default function MapSearch({
           <Filter className="w-4 h-4" />
           <span className="hidden sm:inline">More Filters</span>
           {hasActiveFilters && (
-            <span className="w-2 h-2 bg-serum rounded-full" />
+            <span className="w-2 h-2 bg-brand-primary rounded-full" />
           )}
         </button>
         
@@ -364,7 +364,7 @@ export default function MapSearch({
               id="county-filter"
               value={filters.county || ''}
               onChange={(e) => handleFilterChange('county', e.target.value || undefined)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none"
+              className="w-full h-12 px-3 border border-border-default rounded-lg focus:ring-2 focus:ring-border-focus focus:border-transparent outline-none bg-background-canvas text-text-body"
             >
               <option value="">All counties</option>
               {counties.map(county => (
@@ -382,7 +382,7 @@ export default function MapSearch({
               id="category-filter"
               value={filters.category || ''}
               onChange={(e) => handleFilterChange('category', e.target.value || undefined)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none"
+              className="w-full h-12 px-3 border border-border-default rounded-lg focus:ring-2 focus:ring-border-focus focus:border-transparent outline-none bg-background-canvas text-text-body"
             >
               <option value="">All categories</option>
               {categories.map(category => (
@@ -397,12 +397,12 @@ export default function MapSearch({
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 mt-4">
           {filters.openNow && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-600 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-success-light text-success-dark rounded-full text-sm">
               <Clock className="w-3 h-3" />
               Open now
               <button
                 onClick={() => handleFilterChange('openNow', undefined)}
-                className="hover:bg-green-200 rounded-full p-0.5"
+                className="hover:bg-success rounded-full p-0.5 transition-colors"
                 aria-label="Remove open now filter"
               >
                 <X className="w-3 h-3" />
@@ -410,11 +410,11 @@ export default function MapSearch({
             </span>
           )}
           {filters.county && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-sm">
               {filters.county}
               <button
                 onClick={() => handleFilterChange('county', undefined)}
-                className="hover:bg-serum/20 rounded-full p-0.5"
+                className="hover:bg-brand-primary/20 rounded-full p-0.5 transition-colors"
                 aria-label={`Remove ${filters.county} filter`}
               >
                 <X className="w-3 h-3" />
@@ -422,11 +422,11 @@ export default function MapSearch({
             </span>
           )}
           {filters.category && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-sm">
               {filters.category}
               <button
                 onClick={() => handleFilterChange('category', undefined)}
-                className="hover:bg-serum/20 rounded-full p-0.5"
+                className="hover:bg-brand-primary/20 rounded-full p-0.5 transition-colors"
                 aria-label={`Remove ${filters.category} filter`}
               >
                 <X className="w-3 h-3" />
