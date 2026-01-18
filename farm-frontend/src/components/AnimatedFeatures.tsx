@@ -72,7 +72,7 @@ export function AnimatedFeatures() {
               className="text-center p-5 sm:p-6 rounded-lg bg-background-canvas border border-border-default"
             >
               <motion.div
-                whileHover={{ scale: 1.1, rotate: [0, -5, 5, 0] }}
+                whileHover={{ scale: 1.1 }}
                 transition={{ type: 'spring', stiffness: 300 }}
                 className={`w-14 h-14 sm:w-16 sm:h-16 ${feature.colorBg} rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4`}
               >

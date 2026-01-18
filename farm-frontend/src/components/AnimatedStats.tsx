@@ -64,7 +64,7 @@ export function AnimatedStats({ farmCount, countyCount }: AnimatedStatsProps) {
               className="text-center group"
             >
               <motion.div
-                whileHover={{ scale: 1.05, rotate: [0, -5, 5, 0] }}
+                whileHover={{ scale: 1.05 }}
                 transition={{ type: 'spring', stiffness: 300 }}
                 className={`w-14 h-14 sm:w-16 sm:h-16 ${stat.colorBg} rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4 group-hover:shadow-lg transition-shadow`}
               >

@@ -77,7 +77,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           })
         },
         (error) => {
-          console.error('Geolocation error:', error)
+          // Geolocation denied or unavailable - using fallback location
           setLocationDenied(true)
           // Fallback to London coordinates
           setUserLocation({ lat: 51.5074, lng: -0.1278 })
@@ -155,7 +155,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           setLocationDenied(false)
         },
         (error) => {
-          console.error('Geolocation error:', error)
+          // Geolocation denied or unavailable - using fallback location
         }
       )
     }
