@@ -8,6 +8,7 @@ import FarmAnalytics from '@/components/FarmAnalytics'
 import { getValidApprovedPhotosBySlug } from '@/lib/photos'
 import { FarmPageClient } from '@/components/FarmPageClient'
 import { getNearbyFarms } from '@/lib/queries/geospatial'
+import { calculateDistance } from '@/shared/lib/geo'
 
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
@@ -16,6 +17,28 @@ async function readFarms(): Promise<FarmShop[]> {
   const file = path.join(process.cwd(), 'data', 'farms.json')
   const raw = await fs.readFile(file, 'utf8')
   return JSON.parse(raw) as FarmShop[]
+}
+
+/**
+ * Find nearby farms from JSON data (fallback when database unavailable)
+ */
+function findNearbyFarmsFromJSON(
+  currentFarm: FarmShop,
+  allFarms: FarmShop[],
+  maxDistanceKm: number = 10,
+  limit: number = 4
+): FarmShop[] {
+  const { lat, lng } = currentFarm.location
+
+  return allFarms
+    .filter((farm) => farm.id !== currentFarm.id && farm.slug !== currentFarm.slug)
+    .map((farm) => ({
+      ...farm,
+      distance: calculateDistance(lat, lng, farm.location.lat, farm.location.lng)
+    }))
+    .filter((farm) => farm.distance <= maxDistanceKm)
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, limit)
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
@@ -68,8 +91,14 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   // Fetch approved photos for this farm (only those that exist in blob storage)
   const approvedPhotos = await getValidApprovedPhotosBySlug(slug)
 
-  // Find nearby farms using PostGIS (10km radius, max 4 farms)
-  const nearbyFarms = await getNearbyFarms(shop.id, 10, 4)
+  // Find nearby farms - try PostGIS first, fall back to JSON calculation
+  let nearbyFarms: FarmShop[] = []
+  try {
+    nearbyFarms = await getNearbyFarms(shop.id, 10, 4)
+  } catch {
+    // Database unavailable - fall back to JSON calculation
+    nearbyFarms = findNearbyFarmsFromJSON(shop, farms, 10, 4)
+  }
 
   const { name, location, contact, offerings, verified, hours } = shop
   const { cleanDescription, keywords } = processFarmDescription(shop.description || '')
