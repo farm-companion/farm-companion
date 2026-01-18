@@ -1,8 +1,8 @@
 @import '../styles/fonts.css';
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Tailwind v4 CSS-first configuration */
+@import "tailwindcss";
+@config "../../tailwind.config.js";
 
 /* ============================================================================
    MOBILE-FRIENDLY INTERACTIONS - NO PROTECTION
