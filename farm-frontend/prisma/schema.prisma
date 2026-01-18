@@ -60,6 +60,7 @@ model Farm {
   // Relationships
   categories FarmCategory[]
   products   Product[]
+  produce    FarmProduce[]
   images     Image[]
   reviews    Review[]
   events     Event[]
@@ -138,7 +139,7 @@ model FarmCategory {
 }
 
 // =============================================================================
-// PRODUCT MODEL
+// PRODUCT MODEL (Farm-specific products)
 // =============================================================================
 
 model Product {
@@ -163,6 +164,78 @@ model Product {
   @@index([seasonal])
   @@index([category])
   @@map("products")
+}
+
+// =============================================================================
+// PRODUCE MODEL (Global seasonal produce catalog)
+// =============================================================================
+// This is the global catalog of produce types (e.g., "Strawberries", "Asparagus")
+// Used for the "Find farms with X produce" feature
+
+model Produce {
+  id String @id @default(uuid())
+
+  // Basic info
+  name        String  @unique @db.VarChar(100) // e.g., "Strawberries"
+  slug        String  @unique @db.VarChar(100) // e.g., "strawberries"
+  description String? @db.Text
+  category    String  @db.VarChar(50) // e.g., "Fruit", "Vegetable", "Dairy"
+
+  // Seasonality (UK growing season)
+  seasonStart Int // Month number (1-12) when season starts
+  seasonEnd   Int // Month number (1-12) when season ends
+
+  // Display
+  icon        String? @db.VarChar(50) // Emoji or icon name
+  imageUrl    String? @db.VarChar(500)
+  displayOrder Int    @default(0)
+
+  // SEO link to seasonal page
+  seasonalPageSlug String? @db.VarChar(100) // e.g., "strawberries" -> /seasonal/strawberries
+
+  // Relationships
+  farms FarmProduce[]
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([seasonStart, seasonEnd])
+  @@index([slug])
+  @@map("produce")
+}
+
+// =============================================================================
+// FARM-PRODUCE JUNCTION (Which farms offer which produce)
+// =============================================================================
+
+model FarmProduce {
+  id String @id @default(uuid())
+
+  farmId    String
+  produceId String
+
+  farm    Farm    @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  produce Produce @relation(fields: [produceId], references: [id], onDelete: Cascade)
+
+  // Availability status
+  available Boolean @default(true)
+  isPYO     Boolean @default(false) // Pick Your Own
+
+  // Optional notes
+  notes String? @db.Text // e.g., "Limited quantities", "Organic only"
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([farmId, produceId])
+  @@index([farmId])
+  @@index([produceId])
+  @@index([available])
+  @@index([isPYO])
+  @@map("farm_produce")
 }
 
 // =============================================================================

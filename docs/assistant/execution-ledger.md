@@ -43,8 +43,8 @@
 
 ### Queue 8: Data integrity and schema foundation
 - [x] Add Zod validation for opening hours JSON (Comprehensive schemas for both array and object formats in validation.ts, with parsing and conversion utilities, integrated into farm-status.ts and StatusBadge)
-- [ ] Add Product model with seasonality fields
-- [ ] Add FarmProduct junction table
+- [x] Add Produce model with seasonality fields (Global produce catalog with name, slug, category, seasonStart, seasonEnd, icon, seasonalPageSlug in schema.prisma)
+- [x] Add FarmProduce junction table (farmId, produceId, available, isPYO, notes with proper indexes and unique constraint)
 - [ ] Seed initial seasonal produce data
 
 ### Queue 9: Seasonal location integration (North Star Journey)
@@ -80,6 +80,13 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Queue 8, Slice 2: Produce and FarmProduce Models** (Queue 8)
+  - Added Produce model for global seasonal produce catalog (name, slug, category, seasonStart, seasonEnd, icon, imageUrl, seasonalPageSlug)
+  - Added FarmProduce junction table linking farms to produce they offer (available, isPYO, notes)
+  - Added Farm.produce relationship for querying farm's available produce
+  - Proper indexes on category, seasonStart/seasonEnd, slug, farmId, produceId, available, isPYO
+  - Unique constraint on [farmId, produceId] to prevent duplicates
+  - Prisma client generated successfully
 - **Queue 8, Slice 1: Opening Hours Zod Validation** (Queue 8)
   - Added comprehensive Zod schemas in validation.ts for both array format ([{ day, open, close }]) and object format ({ [dayNum]: { open, close, closed? } })
   - Added TimeStringSchema validating HH:MM format plus "Closed" and "24 hours" special values
