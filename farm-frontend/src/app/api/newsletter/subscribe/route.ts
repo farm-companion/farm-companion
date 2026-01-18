@@ -7,8 +7,17 @@ import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy-initialize Resend to avoid build-time errors
+let resend: Resend | null = null
+function getResend(): Resend {
+  if (!resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY not configured')
+    }
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
 
 
 // reCAPTCHA verification
@@ -31,7 +40,7 @@ async function verifyRecaptcha(token: string): Promise<boolean> {
 // Send welcome email
 async function sendWelcomeEmail(email: string, name: string) {
   try {
-    await resend.emails.send({
+    await getResend().emails.send({
       from: 'Farm Companion <hello@farmcompanion.co.uk>',
       to: email,
       subject: '🎉 Welcome to Farm Companion!',

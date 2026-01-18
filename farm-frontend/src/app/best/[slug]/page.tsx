@@ -15,7 +15,11 @@ interface BestPageProps {
 }
 
 // Generate static params for all best-of lists
+// Returns empty array if DATABASE_URL unavailable (pages become dynamic)
 export async function generateStaticParams() {
+  if (!process.env.DATABASE_URL) {
+    return []
+  }
   return bestLists.map((list: { slug: string }) => ({
     slug: list.slug,
   }))

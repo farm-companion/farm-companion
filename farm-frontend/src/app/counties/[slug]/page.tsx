@@ -21,11 +21,19 @@ interface CountyPageProps {
 }
 
 // Generate static params for all counties at build time
+// Returns empty array if DATABASE_URL unavailable (pages become dynamic)
 export async function generateStaticParams() {
-  const counties = await getCachedAllCounties()
-  return counties.map((county: { slug: string }) => ({
-    slug: county.slug,
-  }))
+  if (!process.env.DATABASE_URL) {
+    return []
+  }
+  try {
+    const counties = await getCachedAllCounties()
+    return counties.map((county: { slug: string }) => ({
+      slug: county.slug,
+    }))
+  } catch {
+    return []
+  }
 }
 
 // Generate metadata for SEO

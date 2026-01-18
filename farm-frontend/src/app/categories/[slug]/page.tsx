@@ -20,11 +20,19 @@ interface CategoryPageProps {
 }
 
 // Generate static params for all categories at build time
+// Returns empty array if DATABASE_URL unavailable (pages become dynamic)
 export async function generateStaticParams() {
-  const categories = await getCachedAllCategories()
-  return categories.map((category: any) => ({
-    slug: category.slug,
-  }))
+  if (!process.env.DATABASE_URL) {
+    return []
+  }
+  try {
+    const categories = await getCachedAllCategories()
+    return categories.map((category: any) => ({
+      slug: category.slug,
+    }))
+  } catch {
+    return []
+  }
 }
 
 // Generate metadata for SEO
@@ -89,7 +97,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   })
 
   // Fetch category stats
-  const stats = await getCachedCategoryStats(slug)
+  const stats = await getCachedCategoryStats(slug) || { verified: 0, averageRating: 0, topCounties: [], total: 0 }
 
   // Fetch related categories
   const relatedCategories = await getCachedRelatedCategories(slug, 6)

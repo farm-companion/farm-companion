@@ -5,17 +5,44 @@ import { kv } from '@vercel/kv'
 import { Resend } from 'resend'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 
-// Using the centralized validation schema from input-validation.ts
+// Lazy-initialize services to avoid build-time errors
+let redis: Redis | null = null
+let limiter: Ratelimit | null = null
+let resend: Resend | null = null
 
-const redis = Redis.fromEnv()
-const limiter = new Ratelimit({ 
-  redis, 
-  limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
-})
+function getRedis(): Redis {
+  if (!redis) {
+    redis = Redis.fromEnv()
+  }
+  return redis
+}
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const TO = process.env.CONTACT_TO_EMAIL!
-const FROM = process.env.CONTACT_FROM_EMAIL!
+function getLimiter(): Ratelimit {
+  if (!limiter) {
+    limiter = new Ratelimit({
+      redis: getRedis(),
+      limiter: Ratelimit.slidingWindow(5, '10 m')
+    })
+  }
+  return limiter
+}
+
+function getResend(): Resend {
+  if (!resend) {
+    if (!process.env.RESEND_API_KEY) {
+      throw new Error('RESEND_API_KEY not configured')
+    }
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
+
+function getContactEmails() {
+  return {
+    TO: process.env.CONTACT_TO_EMAIL || '',
+    FROM: process.env.CONTACT_FROM_EMAIL || ''
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +61,7 @@ export async function POST(req: NextRequest) {
 
     // Rate limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '0.0.0.0'
-    const rate = await limiter.limit(`contact:${ip}`)
+    const rate = await getLimiter().limit(`contact:${ip}`)
     if (!rate.success) {
       return NextResponse.json(
         { error: 'Too many messages. Please try later.' }, 
@@ -89,11 +116,12 @@ export async function POST(req: NextRequest) {
     }
 
     // Send admin forward (don't fail the user if email fails)
+    const emails = getContactEmails()
     ;(async () => {
       try {
-        await resend.emails.send({
-          from: FROM,
-          to: TO,
+        await getResend().emails.send({
+          from: emails.FROM,
+          to: emails.TO,
           subject: `Contact: ${v.topic} — ${v.name}`,
           replyTo: v.email,
           text: [
@@ -113,8 +141,8 @@ export async function POST(req: NextRequest) {
     // Send user acknowledgement (non-blocking)
     ;(async () => {
       try {
-        await resend.emails.send({
-          from: FROM,
+        await getResend().emails.send({
+          from: emails.FROM,
           to: v.email,
           subject: 'We received your message — Farm Companion',
           text: `Hi ${v.name},\n\nThanks for contacting Farm Companion. We've received your message and will reply soon.\n\n— The Farm Companion team`,
