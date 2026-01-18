@@ -14,13 +14,15 @@ export const revalidate = 43200
 
 export const metadata: Metadata = {
   title: 'British Seasonal Produce Calendar | Farm Companion',
-  description: 'Explore all 12 months of British seasonal produce. Find the freshest local fruits and vegetables at farm shops near you, with detailed guides for every season.',
+  description:
+    'Explore all 12 months of British seasonal produce. Find the freshest local fruits and vegetables at farm shops near you, with detailed guides for every season.',
   alternates: {
     canonical: `${SITE_URL}/seasonal`,
   },
   openGraph: {
     title: 'British Seasonal Produce Calendar | Farm Companion',
-    description: 'Complete year-round guide to seasonal British produce. Discover what\'s fresh each month at UK farm shops.',
+    description:
+      "Complete year-round guide to seasonal British produce. Discover what's fresh each month at UK farm shops.",
     url: `${SITE_URL}/seasonal`,
     siteName: 'Farm Companion',
     images: [
@@ -54,24 +56,32 @@ function getSeasonalMetadata() {
   const monthName = now.toLocaleString('en-GB', { month: 'long' })
 
   // Enrich produce items with seasonal status
-  const enrichedProduce = PRODUCE.map(produce => {
+  const enrichedProduce = PRODUCE.map((produce) => {
     const isInSeason = produce.monthsInSeason.includes(currentMonth)
     const isPeakSeason = produce.peakMonths?.includes(currentMonth) || false
 
     // Calculate if coming soon (within 2 months)
     const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1
     const monthAfterNext = nextMonth === 12 ? 1 : nextMonth + 1
-    const isComingSoon = !isInSeason && (
-      produce.monthsInSeason.includes(nextMonth) ||
-      produce.monthsInSeason.includes(monthAfterNext)
-    )
+    const isComingSoon =
+      !isInSeason &&
+      (produce.monthsInSeason.includes(nextMonth) ||
+        produce.monthsInSeason.includes(monthAfterNext))
 
     // Determine primary season for color coding
     const seasonMap: Record<number, 'spring' | 'summer' | 'autumn' | 'winter'> = {
-      3: 'spring', 4: 'spring', 5: 'spring',
-      6: 'summer', 7: 'summer', 8: 'summer',
-      9: 'autumn', 10: 'autumn', 11: 'autumn',
-      12: 'winter', 1: 'winter', 2: 'winter',
+      3: 'spring',
+      4: 'spring',
+      5: 'spring',
+      6: 'summer',
+      7: 'summer',
+      8: 'summer',
+      9: 'autumn',
+      10: 'autumn',
+      11: 'autumn',
+      12: 'winter',
+      1: 'winter',
+      2: 'winter',
     }
 
     // Use peak month if available, otherwise first month in season
@@ -88,8 +98,8 @@ function getSeasonalMetadata() {
   })
 
   // Group by seasonal status
-  const inSeasonNow = enrichedProduce.filter(p => p.isInSeason)
-  const comingSoon = enrichedProduce.filter(p => p.isComingSoon)
+  const inSeasonNow = enrichedProduce.filter((p) => p.isInSeason)
+  const comingSoon = enrichedProduce.filter((p) => p.isComingSoon)
 
   return {
     currentMonth,
@@ -125,17 +135,17 @@ export default async function SeasonalPage() {
           name: produce.name,
           url: `${SITE_URL}/seasonal/${produce.slug}`,
           description: `British seasonal guide for ${produce.name}`,
-        }
-      }))
-    }
+        },
+      })),
+    },
   }
 
   return (
-    <main className="min-h-screen bg-[#FAF8F5]">
+    <main className="min-h-screen bg-background-canvas">
       <JsonLd data={seasonalJsonLd} />
 
       {/* Editorial Hero Section */}
-      <section className="relative h-[85vh] min-h-[700px] max-h-[900px] overflow-hidden">
+      <section className="relative h-[85vh] max-h-[900px] min-h-[700px] overflow-hidden">
         {/* Hero Image with Paper Texture */}
         <div className="absolute inset-0">
           <Image
@@ -165,47 +175,60 @@ export default async function SeasonalPage() {
         </div>
 
         {/* Hero Content */}
-        <div className="relative h-full flex items-center justify-center pt-24 pb-20 px-6">
-          <div className="text-center max-w-5xl mx-auto">
+        <div className="relative flex h-full items-center justify-center px-6 pb-20 pt-24">
+          <div className="mx-auto max-w-5xl text-center">
             {/* Editorial Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#A8E6CF] animate-pulse" />
-              <span className="text-white/90 text-sm font-['IBM_Plex_Sans_Condensed'] tracking-wide uppercase">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-sm">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-brand-primary" />
+              <span className="font-['IBM_Plex_Sans_Condensed'] text-sm uppercase tracking-wide text-white/90">
                 {monthName} {new Date().getFullYear()}
               </span>
             </div>
 
             {/* Hero Title - Clash Display */}
             <h1
-              className="text-5xl md:text-7xl lg:text-8xl font-semibold mb-6 leading-[1.15] tracking-[-0.02em] text-white drop-shadow-2xl"
-              style={{ fontFamily: 'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+              className="mb-6 text-5xl font-semibold leading-[1.15] tracking-[-0.02em] text-white drop-shadow-2xl md:text-7xl lg:text-8xl"
+              style={{
+                fontFamily:
+                  'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+              }}
             >
               British Seasonal
-              <span className="block text-[#A8E6CF] mt-2">Produce Calendar</span>
+              <span className="mt-2 block text-brand-primary">Produce Calendar</span>
             </h1>
 
             {/* Subtitle - Manrope */}
-            <p className="text-xl md:text-2xl text-white/85 mb-10 leading-relaxed max-w-3xl mx-auto font-['Manrope'] drop-shadow-lg">
+            <p className="mx-auto mb-10 max-w-3xl font-['Manrope'] text-xl leading-relaxed text-white/85 drop-shadow-lg md:text-2xl">
               Discover what's fresh every month of the year. From spring asparagus to winter kale,
               explore the full rhythm of British seasonal produce.
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col justify-center gap-4 sm:flex-row">
               <Link
                 href="#seasonal-calendar"
-                className="group bg-white text-[#1a3a2a] px-8 py-4 rounded-xl font-semibold font-['IBM_Plex_Sans_Condensed'] hover:bg-[#FAF8F5] transition-all duration-300 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:scale-105"
+                className="group inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-white px-8 font-['IBM_Plex_Sans_Condensed'] font-semibold text-text-heading shadow-premium-xl transition-[background-color,box-shadow] duration-150 hover:bg-background-canvas hover:shadow-premium-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-focus focus-visible:ring-offset-2 active:scale-[0.98]"
               >
                 Explore Calendar
-                <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                <svg
+                  className="h-5 w-5 transition-transform group-hover:translate-x-1"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 9l-7 7-7-7"
+                  />
                 </svg>
               </Link>
               <Link
                 href="/map"
-                className="bg-white/10 backdrop-blur-sm border-2 border-white/30 text-white px-8 py-4 rounded-xl font-semibold font-['IBM_Plex_Sans_Condensed'] hover:bg-white/20 transition-all duration-300 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border-2 border-white/30 bg-white/10 px-8 font-['IBM_Plex_Sans_Condensed'] font-semibold text-white shadow-premium-xl backdrop-blur-sm transition-[background-color,box-shadow] duration-150 hover:bg-white/20 hover:shadow-premium-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black active:scale-[0.98]"
               >
-                <MapPin className="w-5 h-5" />
+                <MapPin className="h-5 w-5" />
                 Find Farm Shops
               </Link>
             </div>
@@ -213,37 +236,54 @@ export default async function SeasonalPage() {
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2 text-white/60">
-          <span className="text-sm font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wider">Scroll to explore</span>
-          <svg className="w-6 h-6 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+        <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 flex-col items-center gap-2 text-white/60 lg:flex">
+          <span className="font-['IBM_Plex_Sans_Condensed'] text-sm uppercase tracking-wider">
+            Scroll to explore
+          </span>
+          <svg
+            className="h-6 w-6 animate-bounce"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 14l-7 7m0 0l-7-7m7 7V3"
+            />
           </svg>
         </div>
       </section>
 
       {/* Seasonal Calendar Section */}
-      <div id="seasonal-calendar" className="max-w-7xl mx-auto px-6 py-16 md:py-24">
+      <div id="seasonal-calendar" className="mx-auto max-w-7xl px-6 py-16 md:py-24">
         {/* Section Header */}
-        <div className="text-center mb-12 md:mb-16">
+        <div className="mb-12 text-center md:mb-16">
           <h2
-            className="text-4xl md:text-6xl font-semibold leading-[1.15] tracking-[-0.02em] text-[#1a3a2a] mb-4"
-            style={{ fontFamily: 'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+            className="mb-4 text-4xl font-semibold leading-[1.15] tracking-[-0.02em] text-text-heading md:text-6xl"
+            style={{
+              fontFamily:
+                'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            }}
           >
             The Full Calendar
           </h2>
-          <p className="text-lg md:text-xl text-[#2D3436]/70 max-w-2xl mx-auto font-['Manrope']">
+          <p className="mx-auto max-w-2xl font-['Manrope'] text-lg text-text-body md:text-xl">
             {inSeasonNow.length} items in season now • {allProduce.length} items year-round
           </p>
         </div>
 
         {/* Interactive Seasonal Grid */}
-        <Suspense fallback={
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(12)].map((_, i) => (
-              <div key={i} className="h-96 bg-white/50 rounded-2xl animate-pulse" />
-            ))}
-          </div>
-        }>
+        <Suspense
+          fallback={
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(12)].map((_, i) => (
+                <div key={i} className="h-96 animate-pulse rounded-2xl bg-white/50" />
+              ))}
+            </div>
+          }
+        >
           <SeasonalGrid
             allProduce={allProduce}
             currentMonth={currentMonth}
@@ -254,7 +294,7 @@ export default async function SeasonalPage() {
       </div>
 
       {/* CTA Section - Find Farm Shops */}
-      <section className="relative bg-[#1a3a2a] overflow-hidden">
+      <section className="bg-background-elevated relative overflow-hidden">
         {/* Background Pattern */}
         <div
           className="absolute inset-0 opacity-10"
@@ -266,22 +306,25 @@ export default async function SeasonalPage() {
         />
 
         {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 md:py-28 text-center">
+        <div className="relative z-10 mx-auto max-w-7xl px-6 py-20 text-center md:py-28">
           <h2
-            className="text-4xl md:text-6xl font-semibold leading-[1.15] tracking-[-0.02em] text-white mb-6"
-            style={{ fontFamily: 'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
+            className="mb-6 text-4xl font-semibold leading-[1.15] tracking-[-0.02em] text-white md:text-6xl"
+            style={{
+              fontFamily:
+                'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            }}
           >
             Find Fresh Seasonal Produce
           </h2>
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed font-['Manrope']">
-            Visit local farm shops to get the freshest seasonal produce at its peak flavor.
-            Support British farmers and taste the difference.
+          <p className="mx-auto mb-10 max-w-2xl font-['Manrope'] text-xl leading-relaxed text-white/80">
+            Visit local farm shops to get the freshest seasonal produce at its peak flavor. Support
+            British farmers and taste the difference.
           </p>
           <Link
             href="/map"
-            className="group inline-flex items-center justify-center gap-3 bg-white text-[#1a3a2a] px-10 py-5 rounded-xl font-semibold font-['IBM_Plex_Sans_Condensed'] hover:bg-[#FAF8F5] transition-all duration-300 shadow-2xl hover:shadow-white/25 hover:scale-105"
+            className="group inline-flex h-12 items-center justify-center gap-3 rounded-xl bg-white px-10 font-['IBM_Plex_Sans_Condensed'] font-semibold text-text-heading shadow-premium-xl transition-[background-color,transform,box-shadow] duration-150 hover:bg-background-canvas hover:shadow-premium-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black active:scale-[0.98]"
           >
-            <MapPin className="w-6 h-6 group-hover:scale-110 transition-transform" />
+            <MapPin className="h-6 w-6 transition-transform group-hover:scale-110" />
             Find Farm Shops Near You
           </Link>
         </div>
