@@ -1,10 +1,44 @@
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import fs from 'node:fs/promises'
+import path from 'node:path'
 import { PRODUCE } from '@/data/produce'
 import Link from 'next/link'
-import { MapPin, Clock, ExternalLink, Sprout, ArrowRight } from 'lucide-react'
+import { MapPin, Clock, ExternalLink, Sprout, ArrowRight, Store, Star, CheckCircle } from 'lucide-react'
 import ClientProduceImages, { ClientProduceImage } from '@/components/ClientProduceImages'
 import { SITE_URL } from '@/lib/site'
+import type { FarmShop } from '@/types/farm'
+
+async function getFeaturedFarms(produceName: string, limit: number = 3): Promise<FarmShop[]> {
+  try {
+    const file = path.join(process.cwd(), 'data', 'farms.json')
+    const raw = await fs.readFile(file, 'utf8')
+    const farms = JSON.parse(raw) as FarmShop[]
+
+    // Prioritize farms that might sell this produce (check offerings and description)
+    const searchTerm = produceName.toLowerCase()
+    const relevantFarms = farms.filter(f => {
+      const hasInOfferings = f.offerings?.some(o => o.toLowerCase().includes(searchTerm))
+      const hasInDescription = f.description?.toLowerCase().includes(searchTerm)
+      return hasInOfferings || hasInDescription
+    })
+
+    // If we have relevant farms, return those; otherwise return verified/highly-rated farms
+    if (relevantFarms.length >= limit) {
+      return relevantFarms.slice(0, limit)
+    }
+
+    // Fallback: get verified or highly rated farms
+    const fallbackFarms = farms
+      .filter(f => f.verified || (f.rating && f.rating >= 4.0))
+      .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+      .slice(0, limit - relevantFarms.length)
+
+    return [...relevantFarms, ...fallbackFarms].slice(0, limit)
+  } catch {
+    return []
+  }
+}
 
 // Revalidate daily
 export const revalidate = 86400
@@ -43,6 +77,9 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
   // Safe access to images
   const heroImage = p.images?.[0]
   const galleryImages = p.images?.slice(1) ?? []
+
+  // Get featured farms that might sell this produce
+  const featuredFarms = await getFeaturedFarms(p.name, 3)
 
   // JSON-LD (Product/Food with nutrition + season + BreadcrumbList)
   const jsonLd = [
@@ -202,6 +239,62 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
           maxImages={3}
         />
       </section>
+
+      {/* FARMS SELLING THIS */}
+      {featuredFarms.length > 0 && (
+        <section className="mt-8">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-text-heading flex items-center gap-2">
+              <Store className="w-5 h-5 text-serum" />
+              Farms selling {p.name.toLowerCase()}
+            </h2>
+            <Link
+              href={`/map?q=${encodeURIComponent(p.name)}`}
+              className="text-sm text-serum hover:text-serum/80 font-medium flex items-center gap-1 transition-colors"
+            >
+              View all on map
+              <ArrowRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="grid gap-4 sm:grid-cols-3">
+            {featuredFarms.map((farm) => (
+              <Link
+                key={farm.id}
+                href={`/shop/${farm.slug}`}
+                className="group rounded-2xl border border-border-default bg-background-canvas p-4 shadow-sm hover:shadow-md hover:border-serum/30 transition motion-reduce:transition-none"
+              >
+                <h3 className="font-semibold text-text-heading group-hover:text-serum transition-colors truncate mb-1">
+                  {farm.name}
+                </h3>
+                <p className="text-sm text-text-muted truncate mb-3">
+                  {farm.location.county}
+                </p>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {farm.verified && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-emerald-100 text-emerald-700">
+                      <CheckCircle className="w-3 h-3" />
+                      Verified
+                    </span>
+                  )}
+                  {farm.rating && farm.rating > 0 && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-amber-100 text-amber-700">
+                      <Star className="w-3 h-3 fill-amber-500" />
+                      {farm.rating.toFixed(1)}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+          <Link
+            href={`/map?q=${encodeURIComponent(p.name)}`}
+            className="mt-4 inline-flex items-center gap-2 text-sm text-text-muted hover:text-serum transition-colors"
+          >
+            <MapPin className="w-4 h-4" />
+            Search for more farms with {p.name.toLowerCase()}
+          </Link>
+        </section>
+      )}
 
       {/* INFO STRIPS */}
       <section className="mt-8 grid gap-4 md:grid-cols-3">

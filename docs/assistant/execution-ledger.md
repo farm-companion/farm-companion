@@ -51,13 +51,20 @@
 - [x] Slice 7: Add In Season Now section to farm profiles
 - [x] Slice 8: Add Nearby Farms section to farm profiles
 - [x] Slice 9: Add browse link from map county filter to county page
-- [ ] Slice 10: Add Farms selling this section to seasonal produce pages
+- [x] Slice 10: Add Farms selling this section to seasonal produce pages
 - [ ] Slice 11: Replace static JSON reads with Prisma for shop pages
 - [ ] Slice 12: Use PostGIS bbox query in farms API
 
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Slice 10: Add Farms selling this section to seasonal produce pages** (Queue 8)
+  - Added getFeaturedFarms helper to find farms related to produce
+  - Searches farm offerings and descriptions for produce name matches
+  - Falls back to verified/highly-rated farms if no direct matches
+  - Added "Farms selling [produce]" section with farm cards
+  - Each card shows name, county, verified badge, and rating
+  - Links to "View all on map" and "Search for more farms" CTAs
 - **Slice 9: Add browse link from map county filter to county page** (Queue 8)
   - Added Link and ExternalLink imports to MapSearch
   - Added "View all farms in [county]" link below county dropdown when county selected
