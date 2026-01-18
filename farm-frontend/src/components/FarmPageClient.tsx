@@ -29,6 +29,7 @@ import PhotoSubmissionForm from './PhotoSubmissionForm'
 import PhotoGalleryWrapper from './PhotoGalleryWrapper'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
 import { PRODUCE, type Produce } from '@/data/produce'
+import { formatDistance } from '@/shared/lib/geo'
 
 // Helper to get produce items currently in season
 function getInSeasonProduce(): Produce[] {
@@ -36,12 +37,16 @@ function getInSeasonProduce(): Produce[] {
   return PRODUCE.filter(p => p.monthsInSeason.includes(currentMonth))
 }
 
+// NearbyFarm uses the same type as FarmShop since distance is already optional
+type NearbyFarm = FarmShop
+
 interface FarmPageClientProps {
   shop: FarmShop
   cleanDescription: string
   directionsUrl: string
   issueUrl: string
   approvedPhotos: any[]
+  nearbyFarms?: NearbyFarm[]
 }
 
 export function FarmPageClient({
@@ -49,7 +54,8 @@ export function FarmPageClient({
   cleanDescription,
   directionsUrl,
   issueUrl,
-  approvedPhotos
+  approvedPhotos,
+  nearbyFarms = []
 }: FarmPageClientProps) {
   const { name, location, contact, offerings, verified, hours, rating, user_ratings_total } = shop
 
@@ -422,6 +428,70 @@ export function FarmPageClient({
                 </motion.section>
               )
             })()}
+
+            {/* Nearby Farms Section */}
+            {nearbyFarms.length > 0 && (
+              <motion.section
+                initial="initial"
+                whileInView="animate"
+                viewport={{ once: true, margin: "-100px" }}
+                variants={fadeInUp}
+                className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-10 shadow-2xl border border-border-default/30"
+              >
+                <h2 className="text-3xl font-heading font-bold text-text-heading mb-4 flex items-center gap-3">
+                  <MapPin className="w-8 h-8 text-serum" />
+                  Nearby Farms
+                </h2>
+                <p className="text-text-muted mb-8">
+                  Discover more farm shops in the area
+                </p>
+                <motion.div
+                  variants={staggerContainer}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-4"
+                >
+                  {nearbyFarms.map((farm) => (
+                    <Link
+                      key={farm.id}
+                      href={`/shop/${farm.slug}`}
+                      className="group"
+                    >
+                      <motion.div
+                        variants={staggerItem}
+                        whileHover={{ scale: 1.02, y: -2 }}
+                        className="flex items-center gap-4 p-4 rounded-2xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-all duration-300"
+                      >
+                        <div className="w-12 h-12 rounded-xl bg-serum/10 flex items-center justify-center flex-shrink-0">
+                          <MapPin className="w-6 h-6 text-serum" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-text-heading group-hover:text-serum transition-colors truncate">
+                            {farm.name}
+                          </h3>
+                          <p className="text-sm text-text-muted truncate">
+                            {farm.location.county}
+                          </p>
+                        </div>
+                        {farm.distance !== undefined && (
+                          <div className="flex-shrink-0 px-3 py-1 bg-serum/10 rounded-full">
+                            <span className="text-sm font-medium text-serum">
+                              {formatDistance(farm.distance)}
+                            </span>
+                          </div>
+                        )}
+                        <ArrowRight className="w-5 h-5 text-text-muted group-hover:text-serum transition-colors flex-shrink-0" />
+                      </motion.div>
+                    </Link>
+                  ))}
+                </motion.div>
+                <Link
+                  href={`/map?lat=${location.lat}&lng=${location.lng}&radius=15`}
+                  className="inline-flex items-center gap-2 mt-6 text-serum font-semibold hover:text-serum/80 transition-colors"
+                >
+                  View all on map
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </motion.section>
+            )}
 
             {/* Photo Submission Section */}
             <motion.section

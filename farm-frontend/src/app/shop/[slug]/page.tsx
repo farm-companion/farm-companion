@@ -7,6 +7,7 @@ import { processFarmDescription } from '@/lib/seo-utils'
 import FarmAnalytics from '@/components/FarmAnalytics'
 import { getValidApprovedPhotosBySlug } from '@/lib/photos'
 import { FarmPageClient } from '@/components/FarmPageClient'
+import { getNearbyFarms } from '@/lib/queries/geospatial'
 
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
@@ -66,6 +67,9 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
 
   // Fetch approved photos for this farm (only those that exist in blob storage)
   const approvedPhotos = await getValidApprovedPhotosBySlug(slug)
+
+  // Find nearby farms using PostGIS (10km radius, max 4 farms)
+  const nearbyFarms = await getNearbyFarms(shop.id, 10, 4)
 
   const { name, location, contact, offerings, verified, hours } = shop
   const { cleanDescription, keywords } = processFarmDescription(shop.description || '')
@@ -183,6 +187,7 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
         directionsUrl={directionsUrl}
         issueUrl={issueUrl}
         approvedPhotos={approvedPhotos}
+        nearbyFarms={nearbyFarms}
       />
     </main>
   )

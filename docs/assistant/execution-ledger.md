@@ -49,7 +49,7 @@
 - [x] Slice 5: Add actionable empty states to filtered views
 - [x] Slice 6: Enhance mobile bottom sheet with visible quick filters
 - [x] Slice 7: Add In Season Now section to farm profiles
-- [ ] Slice 8: Add Nearby Farms section to farm profiles
+- [x] Slice 8: Add Nearby Farms section to farm profiles
 - [ ] Slice 9: Add browse link from map county filter to county page
 - [ ] Slice 10: Add Farms selling this section to seasonal produce pages
 - [ ] Slice 11: Replace static JSON reads with Prisma for shop pages
@@ -58,6 +58,13 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Slice 8: Add Nearby Farms section to farm profiles** (Queue 8)
+  - Imported getNearbyFarms from PostGIS geospatial queries
+  - Fetches 4 nearby farms within 10km radius using database query
+  - Added NearbyFarm type and nearbyFarms prop to FarmPageClient
+  - Added Nearby Farms section with grid of farm cards
+  - Each card shows farm name, county, distance badge, and link to profile
+  - Includes "View all on map" link with pre-set location and radius
 - **Slice 7: Add In Season Now section to farm profiles** (Queue 8)
   - Added getInSeasonProduce() helper function using current month
   - Imported PRODUCE data and Leaf icon
