@@ -98,26 +98,55 @@ pnpm dev
 
 ---
 
-### Slice 5: Map page design compliance
-**Files (2):**
+### Slice 5: Map page design compliance ✅ COMPLETED
+**Files (1):**
 - src/app/map/page.tsx
 
-**Violations to Fix:**
-- bg-red-50 text-red-500 → bg-error-light text-error-dark
-- Hardcoded grays in error states → semantic tokens
-- Input focus rings → border-focus with proper ring
+**Violations Fixed:**
 
-**Acceptance:**
-- Error states use semantic error tokens
-- All inputs have proper focus rings
-- No hardcoded colors
+**Loading state:**
+- ✅ bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 → bg-background-canvas
+- ✅ border-gray-200 dark:border-gray-600 → border-border-default
+- ✅ border-serum → border-brand-primary
+- ✅ text-gray-800 dark:text-gray-200 → text-text-heading
+- ✅ text-gray-600 dark:text-gray-400 → text-text-body
+- ✅ bg-gray-200 dark:bg-gray-700 → bg-background-surface
+
+**Error state:**
+- ✅ bg-red-50 → bg-error-light
+- ✅ text-red-500 → text-error
+- ✅ text-gray-900 dark:text-white → text-text-heading
+- ✅ text-gray-600 dark:text-gray-300 → text-text-body
+- ✅ bg-serum → bg-brand-primary
+- ✅ transition-all duration-200 → transition-[background-color,transform] duration-150
+- ✅ Button heights: py-3/py-2.5 → h-12 (48px)
+- ✅ Added focus rings and active states
+
+**Main page:**
+- ✅ bg-gray-50 dark:bg-gray-900 → bg-background-canvas
+- ✅ Mobile search: bg-white/85 dark:bg-gray-800/85 → bg-background-canvas/85
+- ✅ Mobile search: focus:ring-serum → focus:ring-border-focus
+- ✅ Quick filters: bg-serum/10 text-serum → bg-brand-primary/10 text-brand-primary
+- ✅ Bottom sheet: bg-white/95 dark:bg-gray-900/95 → bg-background-canvas/95
+- ✅ Desktop sidebar: bg-white dark:bg-gray-900 → bg-background-canvas
+- ✅ Desktop sidebar: shadow-lg → shadow-premium-lg
+- ✅ Loading overlay: shadow-2xl → shadow-premium-xl
+- ✅ All transitions: transition-colors → transition-colors duration-150
+
+**Completed:** 2026-01-18
+**Commit:** 62bab88
+**Lines changed:** 122 insertions, 96 deletions
 
 **Verification:**
 ```bash
+pnpm dev
 # Visit /map
-# Trigger error state (semantic error colors)
-# Focus on search input (solar lime ring)
-# Check empty state styling
+# ✅ Error state: bg-error-light with text-error icon
+# ✅ Mobile search: proper focus ring (ring-border-focus)
+# ✅ Quick filters: bg-brand-primary/10 for "Organic"
+# ✅ Bottom sheet: semantic colors throughout
+# ✅ Loading state: bg-background-canvas with border-brand-primary spinner
+# ✅ All buttons: h-12 (48px minimum)
 ```
 
 ---
