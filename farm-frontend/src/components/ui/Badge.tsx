@@ -37,20 +37,20 @@ const badgeVariants = cva(
           'hover:bg-solar/90',
         ],
         success: [
-          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
-          'border border-green-200 dark:border-green-800',
+          'bg-success-light text-success-dark dark:bg-success-dark dark:text-success-light',
+          'border border-success',
         ],
         warning: [
-          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100',
-          'border border-yellow-200 dark:border-yellow-800',
+          'bg-warning-light text-warning-dark dark:bg-warning-dark dark:text-warning-light',
+          'border border-warning',
         ],
         error: [
-          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
-          'border border-red-200 dark:border-red-800',
+          'bg-error-light text-error-dark dark:bg-error-dark dark:text-error-light',
+          'border border-error',
         ],
         info: [
-          'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
-          'border border-blue-200 dark:border-blue-800',
+          'bg-info-light text-info-dark dark:bg-info-dark dark:text-info-light',
+          'border border-info',
         ],
         outline: [
           'bg-transparent text-text-body',
@@ -58,8 +58,8 @@ const badgeVariants = cva(
           'hover:bg-background-surface',
         ],
         verified: [
-          'bg-serum/10 text-serum',
-          'border border-serum/20',
+          'bg-brand-primary/10 text-brand-primary',
+          'border border-brand-primary/20',
         ],
       },
       size: {

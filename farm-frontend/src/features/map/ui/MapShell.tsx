@@ -40,6 +40,7 @@ interface MapShellProps {
 }
 
 // RAW SVG strings (not encoded) - will be encoded when building data: URLs
+// Note: #00C2B2 is brand-primary from design tokens
 const CLUSTER_SVGS = {
   small: `
     <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">

@@ -89,7 +89,7 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
       <div className="relative aspect-[4/3] overflow-hidden">
         {isLoading && (
           <div className="absolute inset-0 bg-background-canvas flex items-center justify-center">
-            <div className="w-6 h-6 border-2 border-serum border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
           </div>
         )}
         
@@ -114,7 +114,7 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="font-semibold text-text-heading group-hover:text-serum transition-colors">
+        <h3 className="font-semibold text-text-heading group-hover:text-brand-primary transition-colors">
           {produce.name}
         </h3>
         

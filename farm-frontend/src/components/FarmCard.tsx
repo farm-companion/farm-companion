@@ -40,9 +40,9 @@ export function FarmCard({
   }
 
   return (
-    <article 
+    <article
       className={`group rounded-2xl border border-border-default/40 bg-background-surface hover:shadow-premium transition-all duration-200 overflow-hidden ${
-        selected ? 'ring-2 ring-primary-500 ring-offset-0' : ''
+        selected ? 'ring-2 ring-brand-primary ring-offset-0' : ''
       }`}
     >
       <div className="flex gap-3 p-4">
@@ -65,7 +65,7 @@ export function FarmCard({
         
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-semibold text-text-heading group-hover:text-primary-600 transition-colors">
+          <h3 className="truncate font-semibold text-text-heading group-hover:text-brand-primary transition-colors">
             {farm.name}
           </h3>
           <p className="truncate text-sm text-text-muted">
@@ -75,7 +75,7 @@ export function FarmCard({
           {/* Badges */}
           <div className="mt-2 flex flex-wrap gap-1.5">
             {isVerified && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-success-light text-success-dark dark:bg-success-dark dark:text-success-light">
                 <CheckCircle className="h-3 w-3" />
                 Verified
               </span>
@@ -83,7 +83,7 @@ export function FarmCard({
             {/* Real-time status badge */}
             <StatusBadgeCompact openingHours={farm.hours} />
             {hasPhotos && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-700">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs rounded-full bg-info-light text-info-dark dark:bg-info-dark dark:text-info-light">
                 <Camera className="h-3 w-3" />
                 Photos
               </span>
@@ -95,20 +95,20 @@ export function FarmCard({
         <div className="flex flex-col gap-2">
           <button
             onClick={() => onSelect?.(farm)}
-            className="px-3 py-1.5 text-sm font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="h-12 px-3 text-sm font-medium rounded-md bg-brand-primary text-white hover:bg-brand-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
           >
             View
           </button>
           <button
             onClick={() => onDirections?.(farm)}
-            className="px-3 py-1.5 text-sm rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="h-12 px-3 text-sm rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
           >
             <Navigation className="h-4 w-4" />
           </button>
           {showCompare && (
             <button
               onClick={handleCompare}
-              className="px-3 py-1.5 text-sm rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className="h-12 px-3 text-sm rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
               title="Compare this farm"
             >
               <GitCompare className="h-4 w-4" />
