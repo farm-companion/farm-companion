@@ -37,6 +37,10 @@ interface NearbyFarmsProps {
  * NearbyFarms component displays farms near the user's location
  * Features: geolocation detection, distance calculation, fallback to popular location
  */
+// Default fallback location (London) and storage key
+const FALLBACK_LOCATION = { lat: 51.5074, lng: -0.1278 }
+const LOCATION_STORAGE_KEY = 'fc_last_location'
+
 export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   const router = useRouter()
   const [farms, setFarms] = useState<Farm[]>([])
@@ -66,21 +70,65 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     return degrees * (Math.PI / 180)
   }
 
-  // Request user location
+  // Request user location with smart fallback
   useEffect(() => {
-    if (navigator.geolocation) {
+    // Try to get cached location first for faster initial render
+    const getCachedLocation = () => {
+      try {
+        const cached = localStorage.getItem(LOCATION_STORAGE_KEY)
+        if (cached) {
+          const parsed = JSON.parse(cached)
+          if (parsed.lat && parsed.lng) return parsed
+        }
+      } catch {
+        // Ignore localStorage errors
+      }
+      return null
+    }
+
+    const useFallback = () => {
+      setLocationDenied(true)
+      const cached = getCachedLocation()
+      setUserLocation(cached || FALLBACK_LOCATION)
+    }
+
+    const requestLocation = async () => {
+      // Check if geolocation is available
+      if (!navigator.geolocation) {
+        useFallback()
+        return
+      }
+
+      // Check permission state first to avoid unnecessary prompts
+      if (navigator.permissions) {
+        try {
+          const permission = await navigator.permissions.query({ name: 'geolocation' })
+          if (permission.state === 'denied') {
+            useFallback()
+            return
+          }
+        } catch {
+          // Permissions API not fully supported, continue with request
+        }
+      }
+
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const location = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          })
+          }
+          setUserLocation(location)
+          // Cache for future visits
+          try {
+            localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(location))
+          } catch {
+            // Ignore localStorage errors
+          }
         },
-        (error) => {
-          console.error('Geolocation error:', error)
-          setLocationDenied(true)
-          // Fallback to London coordinates
-          setUserLocation({ lat: 51.5074, lng: -0.1278 })
+        () => {
+          // User declined or error occurred - this is expected, not an error
+          useFallback()
         },
         {
           enableHighAccuracy: false,
@@ -88,11 +136,9 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           maximumAge: 300000 // Cache for 5 minutes
         }
       )
-    } else {
-      setLocationDenied(true)
-      // Fallback to London coordinates
-      setUserLocation({ lat: 51.5074, lng: -0.1278 })
     }
+
+    requestLocation()
   }, [])
 
   // Fetch and sort farms by distance
@@ -148,14 +194,21 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
+          const location = {
             lat: position.coords.latitude,
             lng: position.coords.longitude
-          })
+          }
+          setUserLocation(location)
           setLocationDenied(false)
+          // Cache for future visits
+          try {
+            localStorage.setItem(LOCATION_STORAGE_KEY, JSON.stringify(location))
+          } catch {
+            // Ignore localStorage errors
+          }
         },
-        (error) => {
-          console.error('Geolocation error:', error)
+        () => {
+          // User declined again - silently ignore, button remains available
         }
       )
     }
