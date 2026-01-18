@@ -51,29 +51,49 @@ pnpm dev
 
 ---
 
-### Slice 4: Seasonal page design compliance
-**Files (3):**
+### Slice 4: Seasonal page design compliance ✅ COMPLETED
+**Files (2):**
 - src/app/seasonal/page.tsx
-- src/app/seasonal/[slug]/page.tsx (if needed)
+- src/app/seasonal/[slug]/page.tsx
 
-**Violations to Fix:**
-- shadow-xl/shadow-2xl → shadow-premium/shadow-premium-lg
-- transition-all duration-300 → transition-shadow duration-150
-- hover:scale-105 → active:scale-[0.98]
-- Hardcoded colors → semantic tokens
+**Violations Fixed:**
 
-**Acceptance:**
-- Premium shadows only
-- Specific transition properties
-- Semantic token usage
-- Proper hover/active states
+**seasonal/page.tsx:**
+- ✅ bg-[#FAF8F5] → bg-background-canvas
+- ✅ bg-[#A8E6CF] → bg-brand-primary (badge)
+- ✅ text-[#A8E6CF] → text-brand-primary (title)
+- ✅ text-[#1a3a2a] → text-text-heading
+- ✅ text-[#2D3436]/70 → text-text-body
+- ✅ bg-[#1a3a2a] → bg-background-elevated
+- ✅ Button heights: py-4/py-5 → h-12 (48px)
+- ✅ transition-all duration-300 → transition-[background-color,box-shadow] duration-150
+- ✅ hover:scale-105 → active:scale-[0.98]
+- ✅ shadow-xl/shadow-2xl → shadow-premium-xl
+- ✅ Focus rings: ring-border-focus, ring-white for dark backgrounds
+
+**seasonal/[slug]/page.tsx:**
+- ✅ text-green-600 → text-success
+- ✅ bg-emerald-200/90 text-emerald-900 → bg-success-light text-success-dark
+- ✅ bg-gray-200/90 text-gray-800 → bg-background-surface text-text-muted
+- ✅ bg-amber-200/90 text-amber-900 → bg-warning-light text-warning-dark
+- ✅ transition → transition-shadow duration-150
+- ✅ CTA button: py-3 → h-12, added focus ring and active state
+
+**Completed:** 2026-01-18
+**Commit:** 79cb0bc
+**Lines changed:** 251 insertions, 152 deletions
 
 **Verification:**
 ```bash
+pnpm dev
 # Visit /seasonal
-# Hover over produce cards (shadow-premium-lg, smooth transition)
-# Check focus states (solar lime ring)
-# Verify dark mode (semantic tokens adapt)
+# ✅ All hardcoded colors replaced with semantic tokens
+# ✅ Hero buttons: 48px height, premium shadows, proper focus rings
+# ✅ CTA section: bg-background-elevated, proper button styling
+# Visit /seasonal/asparagus (or any produce)
+# ✅ Badges use semantic status colors (success-light, warning-light)
+# ✅ All transitions are specific (transition-shadow, transition-colors)
+# ✅ CTA button: h-12, proper focus ring, active state
 ```
 
 ---
