@@ -121,6 +121,15 @@
   --obsidian: #1a1a1a;
   --header-h: 64px;   /* tweak to your real header */
   --search-h: 96px;   /* tweak to your real search block */
+
+  /* Seasonal color palette - Editorial British food magazine aesthetic */
+  --seasonal-cream: #FAF8F5;
+  --seasonal-forest: #1a3a2a;
+  --seasonal-charcoal: #2D3436;
+  --seasonal-spring: #A8E6CF;
+  --seasonal-summer: #FFD93D;
+  --seasonal-autumn: #DD6B55;
+  --seasonal-winter: #6C7A89;
 }
 
 /* ============================================================================

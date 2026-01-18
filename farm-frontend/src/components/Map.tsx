@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import { Loader } from '@googlemaps/js-api-loader'
+import { loadGoogle } from '@/lib/googleMaps'
 import type { FarmShop } from '@/types/farm'
 
 interface MapProps {
@@ -112,16 +112,11 @@ export default function Map({
   useEffect(() => {
     if (!mapRef.current || typeof window === 'undefined') return
 
-    const loader = new Loader({
-      apiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!,
-      version: 'weekly',
-      libraries: ['places', 'marker']
-    })
+    const mapElement = mapRef.current
+    loadGoogle().then(() => {
+      if (!mapElement) return
 
-    loader.load().then(() => {
-      if (!mapRef.current) return
-
-      const map = new google.maps.Map(mapRef.current, {
+      const map = new google.maps.Map(mapElement, {
         center,
         zoom,
         mapId: 'DEMO_MAP_ID',
