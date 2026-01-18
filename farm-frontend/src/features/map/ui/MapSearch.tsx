@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, Filter, X, Navigation, Loader2, Globe, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { Search, Filter, X, Navigation, Loader2, Globe, Clock, ExternalLink } from 'lucide-react'
 
 interface FilterState {
   county?: string
@@ -357,20 +358,29 @@ export default function MapSearch({
         <div id="filter-panel" className="space-y-4">
           {/* County Filter */}
           <div>
-            <label htmlFor="county-filter" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="county-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               County
             </label>
             <select
               id="county-filter"
               value={filters.county || ''}
               onChange={(e) => handleFilterChange('county', e.target.value || undefined)}
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none"
+              className="w-full px-3 py-2 border border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
             >
               <option value="">All counties</option>
               {counties.map(county => (
                 <option key={county} value={county}>{county}</option>
               ))}
             </select>
+            {filters.county && (
+              <Link
+                href={`/counties/${filters.county.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`}
+                className="mt-2 inline-flex items-center gap-1.5 text-sm text-serum hover:text-serum/80 transition-colors"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                View all farms in {filters.county}
+              </Link>
+            )}
           </div>
 
           {/* Category Filter */}
@@ -410,16 +420,25 @@ export default function MapSearch({
             </span>
           )}
           {filters.county && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
-              {filters.county}
-              <button
-                onClick={() => handleFilterChange('county', undefined)}
-                className="hover:bg-serum/20 rounded-full p-0.5"
-                aria-label={`Remove ${filters.county} filter`}
+            <div className="inline-flex items-center gap-2">
+              <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
+                {filters.county}
+                <button
+                  onClick={() => handleFilterChange('county', undefined)}
+                  className="hover:bg-serum/20 rounded-full p-0.5"
+                  aria-label={`Remove ${filters.county} filter`}
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+              <Link
+                href={`/counties/${filters.county.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`}
+                className="inline-flex items-center gap-1 px-3 py-1 text-serum hover:text-serum/80 text-sm font-medium transition-colors"
               >
-                <X className="w-3 h-3" />
-              </button>
-            </span>
+                Browse {filters.county}
+                <ExternalLink className="w-3 h-3" />
+              </Link>
+            </div>
           )}
           {filters.category && (
             <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
