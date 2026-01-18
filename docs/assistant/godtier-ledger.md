@@ -35,6 +35,8 @@ Implement the FarmCompanion Product Audit end-to-end. Transform into seamless Ap
 - Added eslint-plugin-tailwindcss for design token enforcement
 - Created .prettierrc.json with Tailwind-aware formatting
 - Updated eslint.config.mjs to enable Tailwind linting rules
+- Rewrote design guidelines to world-class Apple/Vercel/Linear quality
+- Added complete component patterns, accessibility standards, performance patterns
 - Acceptance: Linting catches hardcoded colors, class order auto-formats
 - Verification: Run `pnpm lint` and `pnpm prettier --write .`
 - Status: DONE
