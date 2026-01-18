@@ -17,13 +17,19 @@ from datetime import datetime
 import os
 from redis_storage import FarmStorage
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # Configuration
-DEEPSEEK_API_KEY = "sk-eeaef6be7d6b45318b0c849beb9c4ebb"
+DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY')
+if not DEEPSEEK_API_KEY:
+    raise ValueError("DEEPSEEK_API_KEY environment variable is required. Set it with: export DEEPSEEK_API_KEY='your-api-key'")
 DEEPSEEK_API_URL = "https://api.deepseek.com/v1/chat/completions"
 CSV_FILE = "data/farm_descriptions.csv"
 BATCH_SIZE = 20
