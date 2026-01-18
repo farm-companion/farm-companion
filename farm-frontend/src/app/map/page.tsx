@@ -378,28 +378,28 @@ export default function MapPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-background-canvas p-4">
         <div className="text-center max-w-sm mx-auto">
           <div className="relative mb-6">
-            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 bg-error-light rounded-full flex items-center justify-center mx-auto mb-4 shadow-premium">
+              <svg className="w-10 h-10 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Oops! Something went wrong</h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">{error}</p>
-          
+          <h1 className="text-xl font-semibold text-text-heading mb-3">Oops! Something went wrong</h1>
+          <p className="text-text-muted mb-6 text-sm leading-relaxed">{error}</p>
+
           <div className="space-y-3">
             <button
               onClick={() => window.location.reload()}
-              className="w-full px-6 py-3 bg-serum text-white font-medium rounded-xl hover:bg-serum/90 active:scale-95 transition-all duration-200 shadow-lg"
+              className="w-full min-h-[48px] px-6 py-3 bg-brand-primary text-white font-medium rounded-xl hover:bg-brand-primary/90 active:scale-95 transition-all duration-fast ease-gentle-spring shadow-premium"
             >
               Try Again
             </button>
             <button
               onClick={() => setError(null)}
-              className="w-full px-6 py-2.5 text-gray-600 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="w-full min-h-[44px] px-6 py-2.5 text-text-muted font-medium rounded-lg hover:bg-background-surface transition-all duration-fast ease-gentle-spring"
             >
               Go Back
             </button>
@@ -410,7 +410,7 @@ export default function MapPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background-canvas">
       {/* Mobile: Header removed for maximum map space */}
 
       {/* Main Content */}
@@ -443,47 +443,47 @@ export default function MapPage() {
 
         {/* Map and List Container */}
         <div className="relative h-[100svh] overflow-hidden">
-          {/* Mobile: Ultra-Compact Search Bar - Minimal Map Blocking */}
+          {/* Mobile: Premium Search Bar - Apple-style Design */}
           <div className="md:hidden absolute top-0 left-0 right-0 z-20 pointer-events-none">
-            <div className="px-3 pt-2 pb-1 pointer-events-auto">
-              {/* Ultra-compact search input - minimal height */}
+            <div className="px-3 pt-3 pb-2 pointer-events-auto">
+              {/* Premium search input with proper touch targets */}
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-text-muted w-4 h-4" />
                 <input
                   type="text"
                   placeholder="Search farms..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-2 py-1.5 bg-white/85 dark:bg-gray-800/85 backdrop-blur-sm border border-gray-200/40 dark:border-gray-600/40 rounded-lg text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-serum focus:border-transparent transition-all duration-200"
+                  className="w-full pl-10 pr-4 py-3 bg-background-surface/90 dark:bg-background-surface/90 backdrop-blur-md border border-border-default/50 rounded-xl text-sm text-text-body shadow-premium focus:outline-none focus:ring-2 focus:ring-brand-primary/50 focus:border-brand-primary transition-all duration-fast ease-gentle-spring"
                   aria-label="Search farms"
                 />
-                
-                {/* Minimal search indicator */}
+
+                {/* Search indicator with premium animation */}
                 {searchQuery && (
-                  <div className="absolute right-1.5 top-1/2 transform -translate-y-1/2">
-                    <div className="w-1 h-1 bg-serum rounded-full animate-pulse"></div>
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <div className="w-2 h-2 bg-brand-primary rounded-full animate-pulse"></div>
                   </div>
                 )}
               </div>
-              
-              {/* Ultra-compact quick filters - minimal space */}
+
+              {/* Quick filters with proper touch targets (min 44px) */}
               {!searchQuery && (
-                <div className="mt-1.5 flex items-center gap-1 overflow-x-auto">
-                  <button 
+                <div className="mt-2 flex items-center gap-2 overflow-x-auto pb-1">
+                  <button
                     onClick={() => setSearchQuery('organic')}
-                    className="px-1.5 py-0.5 bg-serum/10 text-serum text-xs font-medium rounded-md whitespace-nowrap border border-serum/20 hover:bg-serum/20 transition-colors"
+                    className="min-h-[36px] px-4 py-2 bg-brand-primary/10 text-brand-primary text-sm font-medium rounded-lg whitespace-nowrap border border-brand-primary/20 hover:bg-brand-primary/20 active:scale-95 transition-all duration-fast ease-gentle-spring"
                   >
                     Organic
                   </button>
-                  <button 
+                  <button
                     onClick={() => setSearchQuery('eggs')}
-                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="min-h-[36px] px-4 py-2 bg-background-surface text-text-body text-sm font-medium rounded-lg whitespace-nowrap border border-border-default hover:bg-background-canvas active:scale-95 transition-all duration-fast ease-gentle-spring"
                   >
                     Eggs
                   </button>
-                  <button 
+                  <button
                     onClick={() => setSearchQuery('vegetables')}
-                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="min-h-[36px] px-4 py-2 bg-background-surface text-text-body text-sm font-medium rounded-lg whitespace-nowrap border border-border-default hover:bg-background-canvas active:scale-95 transition-all duration-fast ease-gentle-spring"
                   >
                     Vegetables
                   </button>
@@ -523,20 +523,20 @@ export default function MapPage() {
               }}
               nonBlocking
             >
-              {/* Enhanced Bottom Sheet Header - Mobile-First Design */}
-              <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
+              {/* Premium Bottom Sheet Header - Apple-style Design */}
+              <div className="px-4 py-4 border-b border-border-default/50 bg-background-surface/95 backdrop-blur-md">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-serum rounded-full animate-pulse"></div>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <div className="w-2 h-2 bg-brand-primary rounded-full animate-pulse"></div>
+                      <span className="text-sm font-semibold text-text-heading">
                         {filteredFarms.length} farms nearby
                       </span>
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto mb-1"></div>
-                    <span className="text-xs text-gray-400 font-medium">Pull up</span>
+                    <div className="w-10 h-1 bg-border-default rounded-full mx-auto mb-1"></div>
+                    <span className="text-xs text-text-muted font-medium">Pull up</span>
                   </div>
                 </div>
                 
