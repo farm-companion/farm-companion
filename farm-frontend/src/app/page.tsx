@@ -129,8 +129,8 @@ export default async function HomePage() {
       {/* Animated Features Section */}
       <AnimatedFeatures />
 
-      {/* CTA Section with Stylish Parallax */}
-      <section className="relative py-20 md:py-28 lg:py-32 overflow-hidden">
+      {/* CTA Section with Premium Parallax */}
+      <section className="relative py-24 md:py-32 lg:py-40 overflow-hidden">
         {/* Multi-layer Parallax Background */}
         <div className="absolute inset-0">
           {/* Primary background with parallax */}
@@ -145,60 +145,57 @@ export default async function HomePage() {
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
-          
-          {/* Animated overlay gradients */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          
-          {/* Subtle animated texture */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.1),transparent_50%)] animate-pulse" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.05),transparent_50%)] animate-pulse" style={{ animationDelay: '1s' }} />
+
+          {/* Premium overlay gradients */}
+          <div className="absolute inset-0 bg-gradient-to-br from-neutral-900/40 via-transparent to-neutral-900/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-neutral-900/70 via-neutral-900/20 to-transparent" />
+
+          {/* Subtle animated accent */}
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(var(--brand-primary-rgb),0.15),transparent_50%)] animate-pulse" />
           </div>
         </div>
-        
-        {/* Content with enhanced styling */}
+
+        {/* Content with premium styling */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          {/* Animated icon */}
-          <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-full mb-6 sm:mb-8 border border-white/20 animate-bounce" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }}>
+          {/* Premium icon container */}
+          <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-xl rounded-2xl mb-8 sm:mb-10 border border-white/20 shadow-2xl">
             <MapPin className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
           </div>
 
-          {/* Enhanced typography with staggered animation */}
-          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 sm:mb-8 leading-tight text-white drop-shadow-2xl animate-fade-in">
+          {/* Premium typography */}
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 sm:mb-8 leading-tight text-white">
             Ready to
-            <span className="block text-serum drop-shadow-2xl animate-slide-up" style={{ animationDelay: '0.2s' }}>Explore?</span>
+            <span className="block text-brand-primary drop-shadow-lg">Explore?</span>
           </h2>
 
-          <p className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-12 text-white/95 drop-shadow-lg max-w-3xl mx-auto animate-fade-in px-4" style={{ animationDelay: '0.4s' }}>
+          <p className="text-lg sm:text-xl md:text-2xl mb-10 sm:mb-14 text-white/90 max-w-3xl mx-auto px-4">
             Start your journey to discover amazing local farm shops today.
           </p>
 
-          {/* Enhanced CTA button with hover effects */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <Link
-              href="/map"
-              className="group bg-serum text-black h-14 sm:h-16 px-8 sm:px-10 rounded-xl text-sm sm:text-base font-semibold hover:bg-serum/90 transition-all duration-300 inline-flex items-center justify-center gap-2 sm:gap-3 shadow-2xl hover:shadow-serum/25 hover:scale-105 active:scale-95 backdrop-blur-sm border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-serum focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              <MapPin className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
-              Find Farms Near You
-              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
+          {/* Premium CTA button */}
+          <Link
+            href="/map"
+            className="group inline-flex items-center justify-center gap-3 h-14 sm:h-16 px-8 sm:px-10 rounded-2xl text-base sm:text-lg font-semibold bg-gradient-to-br from-brand-primary to-brand-primary/90 text-white shadow-2xl shadow-brand-primary/30 hover:shadow-3xl hover:shadow-brand-primary/40 hover:scale-105 hover:-translate-y-1 active:scale-100 active:translate-y-0 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 focus-visible:ring-offset-neutral-900"
+          >
+            <MapPin className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
+            Find Farms Near You
+            <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </section>
 
 
 
       {/* Newsletter Section */}
-      <section className="py-12 md:py-16 section-lazy">
+      <section className="py-16 md:py-20 section-lazy">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <NewsletterSignup />
         </div>
       </section>
 
-      {/* SEO Content Section with Subtle Geometric Pattern */}
-      <section className="relative bg-background-canvas border-t border-border-default overflow-hidden section-lazy">
+      {/* SEO Content Section - Premium glassmorphism */}
+      <section className="relative bg-neutral-50 dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 overflow-hidden section-lazy">
         {/* Orange Grove Background Image */}
         <div className="absolute inset-0">
           <Image
@@ -212,83 +209,76 @@ export default async function HomePage() {
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
-          {/* Subtle overlay to ensure text readability */}
-          <div className="absolute inset-0 bg-background-canvas/85" />
-          {/* Additional subtle texture overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-background-canvas/20 via-transparent to-background-canvas/30" />
+          {/* Premium overlay */}
+          <div className="absolute inset-0 bg-white/90 dark:bg-neutral-900/90 backdrop-blur-sm" />
         </div>
-        
-        
-        
-        {/* Content Container with Enhanced Background */}
-        <div className="relative z-10 max-w-4xl mx-auto px-6 py-20">
-          {/* Special Background Card for Content */}
+
+        {/* Content Container - Premium card */}
+        <div className="relative z-10 max-w-4xl mx-auto px-6 py-24">
           <div className="relative">
-            {/* Solid white glass effect with window-like border */}
-            <div className="absolute inset-0 bg-white/60 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl border-4 border-white/70 dark:border-gray-700/70 shadow-2xl" style={{
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
-            }}></div>
-            
-            {/* Content with proper spacing */}
-            <div className="relative z-10 p-8 md:p-12">
+            {/* Premium glassmorphism card */}
+            <div className="absolute inset-0 bg-white/70 dark:bg-neutral-800/70 backdrop-blur-xl rounded-3xl border border-neutral-200/50 dark:border-neutral-700/50 shadow-2xl"></div>
+
+            {/* Content */}
+            <div className="relative z-10 p-8 md:p-12 lg:p-16">
               <div className="prose prose-lg max-w-none">
-                {/* Enhanced main heading with maximum contrast */}
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-4 animate-fade-in">
+                {/* Premium heading */}
+                <div className="text-center mb-14">
+                  <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 dark:text-white mb-4">
                     UK Farm Shops Directory
                   </h2>
-                  <div className="w-24 h-1 bg-gradient-to-r from-serum to-solar mx-auto rounded-full opacity-60 drop-shadow-sm"></div>
+                  <div className="w-20 h-1 bg-gradient-to-r from-brand-primary to-brand-primary/60 mx-auto rounded-full"></div>
                 </div>
-                
-                {/* Enhanced intro paragraph with maximum contrast */}
-                <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                  <p className="text-lg text-gray-900 dark:text-gray-100 mb-6 leading-relaxed font-medium">
-                    Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated 
-                    a directory of over <span className="font-bold text-serum">{farmCount}</span> authentic farm shops across <span className="font-bold text-serum">{countyCount}</span> counties, 
+
+                {/* Intro paragraph */}
+                <div className="text-center mb-16">
+                  <p className="text-lg text-neutral-700 dark:text-neutral-200 mb-6 leading-relaxed">
+                    Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated
+                    a directory of over <span className="font-bold text-brand-primary">{farmCount}</span> authentic farm shops across <span className="font-bold text-brand-primary">{countyCount}</span> counties,
                     helping you discover the freshest local produce and connect with real farmers.
                   </p>
                 </div>
-                
-                {/* Enhanced content sections with maximum contrast */}
-                <div className="space-y-12">
-                  <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                    <h3 className="text-xl font-heading font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
-                        <MapPin className="w-4 h-4 text-serum" />
+
+                {/* Content sections - Premium cards */}
+                <div className="space-y-8">
+                  <div className="p-6 bg-neutral-50/80 dark:bg-neutral-800/50 rounded-2xl border border-neutral-100 dark:border-neutral-700/50">
+                    <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-3">
+                      <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center">
+                        <MapPin className="w-5 h-5 text-brand-primary" />
                       </div>
                       Find Farm Shops Near You
                     </h3>
-                    <p className="text-gray-900 dark:text-gray-100 leading-relaxed font-medium">
-                      Search for farm shops near you to buy fresh vegetables, organic meat, artisanal cheese, 
-                      and homemade preserves. Our interactive map shows verified contact details, opening hours, 
+                    <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                      Search for farm shops near you to buy fresh vegetables, organic meat, artisanal cheese,
+                      and homemade preserves. Our interactive map shows verified contact details, opening hours,
                       and what each farm sells locally.
                     </p>
                   </div>
 
-                  <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-                    <h3 className="text-xl font-heading font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
-                        <Calendar className="w-4 h-4 text-serum" />
+                  <div className="p-6 bg-neutral-50/80 dark:bg-neutral-800/50 rounded-2xl border border-neutral-100 dark:border-neutral-700/50">
+                    <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-3">
+                      <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center">
+                        <Calendar className="w-5 h-5 text-brand-primary" />
                       </div>
                       Seasonal Produce Guides
                     </h3>
-                    <p className="text-gray-900 dark:text-gray-100 leading-relaxed font-medium">
-                      Buy seasonal UK fruit and vegetables at their peak flavour and nutritional value. 
-                      Our guides show what&apos;s in season each month, with tips on choosing, storing, 
+                    <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                      Buy seasonal UK fruit and vegetables at their peak flavour and nutritional value.
+                      Our guides show what&apos;s in season each month, with tips on choosing, storing,
                       and cooking the freshest local produce.
                     </p>
                   </div>
 
-                  <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                    <h3 className="text-xl font-heading font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
-                        <Heart className="w-4 h-4 text-serum" />
+                  <div className="p-6 bg-neutral-50/80 dark:bg-neutral-800/50 rounded-2xl border border-neutral-100 dark:border-neutral-700/50">
+                    <h3 className="text-xl font-semibold text-neutral-900 dark:text-white mb-4 flex items-center gap-3">
+                      <div className="w-10 h-10 bg-brand-primary/10 rounded-xl flex items-center justify-center">
+                        <Heart className="w-5 h-5 text-brand-primary" />
                       </div>
                       Support Local Farmers
                     </h3>
-                    <p className="text-gray-900 dark:text-gray-100 leading-relaxed font-medium">
-                      By choosing to shop at local farm shops, you&apos;re supporting British farmers and 
-                      contributing to sustainable, local food systems. You&apos;ll enjoy fresher produce, 
+                    <p className="text-neutral-600 dark:text-neutral-300 leading-relaxed">
+                      By choosing to shop at local farm shops, you&apos;re supporting British farmers and
+                      contributing to sustainable, local food systems. You&apos;ll enjoy fresher produce,
                       reduce food miles, and help maintain the UK&apos;s rich agricultural heritage.
                     </p>
                   </div>
