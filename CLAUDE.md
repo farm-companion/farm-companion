@@ -76,6 +76,42 @@ Queue 7: Farm pipeline hardening
 - retries and backoff
 - structured logging
 
+Queue 8: Data integrity and schema foundation
+- Add Zod validation for opening hours JSON (prevents inconsistent formats breaking Open Now logic)
+- Add Product model with seasonality fields (name, season_start, season_end, category)
+- Add FarmProduct junction table (farm_id, product_id, available, notes)
+- Seed initial seasonal produce data from existing seasonal pages content
+
+Queue 9: Seasonal location integration (North Star Journey)
+- Add map filter for produce type with season awareness
+- Update map API to accept produce filter parameter
+- Add "Find [produce] near me" CTAs on seasonal pages linking to filtered map
+- Show "In season now" badges on farm markers when filtered by produce
+
+Queue 10: Farm profile seasonal context
+- Add "What's in season here" section to farm profile pages
+- Query FarmProduct joined with Product to show current seasonal items
+- Link each produce item to its seasonal guide page
+- Add "Available now" vs "Coming soon" status based on season dates
+
+Queue 11: County to map integration
+- Add "View on map" CTA to county pages
+- Pass county bbox or centroid to map via URL params
+- Auto-focus map viewport to county bounds when navigating from county page
+- Preserve county context in breadcrumb on map view
+
+Queue 12: Cross-page journey scaffolding
+- Add persistent seasonal banner showing current peak produce
+- Add "Farms with this produce" section to seasonal pages
+- Add category to seasonal produce cross-links (e.g., PYO farms with strawberries)
+- Add recent/saved farms quick access component
+
+Queue 13: Viewport query caching
+- Implement geohash-based tile caching for bbox queries
+- Add cache invalidation on farm data updates
+- Add Redis cache layer for hot viewport tiles
+- Monitor cache hit rates and tune TTL
+
 ## Mandatory output format for each response
 1) Slice title and goal (one sentence)
 2) Ledger update (what moved to DONE, what remains next)

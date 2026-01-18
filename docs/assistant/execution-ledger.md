@@ -41,6 +41,42 @@
 - [x] Add retries and backoff (Comprehensive retry.py with exponential backoff, jitter, async/sync decorators, retry context manager, predefined configs)
 - [x] Structured logging (Comprehensive logging.py with JSON formatter, colored console output, performance logger, progress logger, function call decorator)
 
+### Queue 8: Data integrity and schema foundation
+- [ ] Add Zod validation for opening hours JSON
+- [ ] Add Product model with seasonality fields
+- [ ] Add FarmProduct junction table
+- [ ] Seed initial seasonal produce data
+
+### Queue 9: Seasonal location integration (North Star Journey)
+- [ ] Add map filter for produce type with season awareness
+- [ ] Update map API to accept produce filter parameter
+- [ ] Add "Find [produce] near me" CTAs on seasonal pages
+- [ ] Show "In season now" badges on farm markers
+
+### Queue 10: Farm profile seasonal context
+- [ ] Add "What's in season here" section to farm profiles
+- [ ] Query FarmProduct joined with Product for seasonal items
+- [ ] Link produce items to seasonal guide pages
+- [ ] Add "Available now" vs "Coming soon" status
+
+### Queue 11: County to map integration
+- [ ] Add "View on map" CTA to county pages
+- [ ] Pass county bbox/centroid to map via URL params
+- [ ] Auto-focus map viewport to county bounds
+- [ ] Preserve county context in breadcrumb
+
+### Queue 12: Cross-page journey scaffolding
+- [ ] Add persistent seasonal banner with peak produce
+- [ ] Add "Farms with this produce" section to seasonal pages
+- [ ] Add category to seasonal produce cross-links
+- [ ] Add recent/saved farms quick access component
+
+### Queue 13: Viewport query caching
+- [ ] Implement geohash-based tile caching for bbox queries
+- [ ] Add cache invalidation on farm data updates
+- [ ] Add Redis cache layer for hot viewport tiles
+- [ ] Monitor cache hit rates and tune TTL
+
 ## Completed Work
 
 ### 2026-01-17 (latest)
