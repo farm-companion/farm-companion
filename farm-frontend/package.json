@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "node scripts/fix-prisma-zeptomatch.js && patch-package"
+    "postinstall": "node scripts/fix-prisma-zeptomatch.js && patch-package",
+    "generate:produce-images": "tsx src/scripts/generate-produce-images.ts"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^1.16.10",
@@ -39,6 +40,7 @@
     "@vercel/blob": "^2.0.0",
     "@vercel/kv": "^1.0.0",
     "@vis.gl/react-google-maps": "^1.5.5",
+    "axios": "^1.7.9",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "embla-carousel-react": "^8.6.0",
@@ -70,6 +72,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "autoprefixer": "^10.4.21",
+    "dotenv": "^17.2.3",
     "eslint": "^9",
     "eslint-config-next": "16.1.3",
     "lighthouse": "^13.0.1",

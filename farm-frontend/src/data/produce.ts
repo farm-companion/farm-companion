@@ -22,7 +22,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'sweetcorn',
     name: 'Sweetcorn',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/1/main.webp', alt: 'Fresh UK sweetcorn on rustic wooden table' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/2/main.webp', alt: 'Golden sweetcorn kernels close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/3/main.webp', alt: 'Fresh sweetcorn cobs with husks' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/4/main.webp', alt: 'British sweetcorn harvest display' },
+    ],
     monthsInSeason: [7, 8, 9],            // Jul–Sep
     peakMonths: [8],
     nutritionPer100g: { kcal: 86, protein: 3.4, carbs: 19, sugars: 6.3, fiber: 2.7, fat: 1.2 },
@@ -66,7 +71,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'tomato',
     name: 'Tomatoes',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/1/main.webp', alt: 'Fresh vine-ripened British tomatoes' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/2/main.webp', alt: 'Heritage tomato varieties on wooden board' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/3/main.webp', alt: 'Bright red tomatoes with natural morning dew' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/4/main.webp', alt: 'Farm-fresh UK tomatoes close-up' },
+    ],
     monthsInSeason: [6, 7, 8, 9, 10],    // Jun–Oct
     peakMonths: [7, 8, 9],
     nutritionPer100g: { kcal: 18, protein: 0.9, carbs: 3.9, sugars: 2.6, fiber: 1.2, fat: 0.2 },
@@ -111,10 +121,10 @@ export const PRODUCE: Produce[] = [
     slug: 'strawberries',
     name: 'Strawberries',
     images: [
-      { src: '/images/produce/strawberries-fresh1.jpg', alt: 'Fresh ripe strawberries with natural texture and seeds' },
-      { src: '/images/produce/strawberries-fresh2.jpg', alt: 'Fresh ripe strawberry cut in half, showing its vibrant red exterior, visible seeds, and juicy, detailed interior' },
-      { src: '/images/produce/strawberries-fresh3.jpg', alt: 'Hands cupping fresh ripe strawberries with rustic plaid background, showing abundance and freshness' },
-      { src: '/images/produce/strawberries-fresh4.jpg', alt: 'Fresh ripe strawberries with rustic plaid background, showing abundance and freshness' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/1/main.webp', alt: 'Fresh British strawberries with morning dew' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/2/main.webp', alt: 'Ripe summer strawberries on natural linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/3/main.webp', alt: 'Hand-picked strawberries in rustic basket' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/4/main.webp', alt: 'Peak season strawberries close-up detail' },
     ],
     monthsInSeason: [5, 6, 7, 8],        // May–Aug
     peakMonths: [6, 7],
@@ -159,7 +169,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'blackberries',
     name: 'Blackberries',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/1/main.webp', alt: 'Fresh wild blackberries with morning dew' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/2/main.webp', alt: 'Ripe blackberries in summer harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/3/main.webp', alt: 'British blackberries macro detail' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/4/main.webp', alt: 'Plump blackberries on natural surface' },
+    ],
     monthsInSeason: [7, 8, 9],            // Jul–Sep
     peakMonths: [8],
     nutritionPer100g: { kcal: 43, protein: 1.4, carbs: 9.6, sugars: 4.9, fiber: 5.3, fat: 0.5 },
@@ -203,7 +218,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'runner-beans',
     name: 'Runner Beans',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/1/main.webp', alt: 'Fresh runner beans from British gardens' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/2/main.webp', alt: 'Vibrant green runner bean pods' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/3/main.webp', alt: 'Summer runner bean harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/4/main.webp', alt: 'Crisp runner beans on rustic table' },
+    ],
     monthsInSeason: [7, 8, 9, 10],       // Jul–Oct
     peakMonths: [8, 9],
     nutritionPer100g: { kcal: 31, protein: 1.8, carbs: 7.0, sugars: 1.4, fiber: 3.4, fat: 0.2 },
@@ -247,7 +267,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'plums',
     name: 'Plums',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/1/main.webp', alt: 'Fresh British plums in autumn harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/2/main.webp', alt: 'Ripe purple plums with natural bloom' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/3/main.webp', alt: 'Victoria plums on rustic wooden board' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/4/main.webp', alt: 'Sweet plums with warm afternoon light' },
+    ],
     monthsInSeason: [8, 9, 10],           // Aug–Oct
     peakMonths: [9],
     nutritionPer100g: { kcal: 46, protein: 0.7, carbs: 11.4, sugars: 9.9, fiber: 1.4, fat: 0.3 },
@@ -292,10 +317,10 @@ export const PRODUCE: Produce[] = [
     slug: 'apples',
     name: 'Apples',
     images: [
-      { src: '/images/produce/apples1.jpg', alt: 'Fresh red apples on a tree in autumn' },
-      { src: '/images/produce/apples2.jpg', alt: 'Assorted apples in a rustic basket' },
-      { src: '/images/produce/apples3.jpg', alt: 'Apple orchard in autumn with golden leaves' },
-      { src: '/images/produce/apples4.jpg', alt: 'Fresh apples arranged on rustic wooden surface' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/1/main.webp', alt: 'Fresh British apples in autumn orchard' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/2/main.webp', alt: 'Heritage apple varieties close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/3/main.webp', alt: 'Crisp eating apples on marble surface' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/4/main.webp', alt: 'Farm-fresh apples with rustic texture' },
     ],
     monthsInSeason: [9, 10, 11, 12],     // Sep–Dec
     peakMonths: [10, 11],
@@ -341,10 +366,10 @@ export const PRODUCE: Produce[] = [
     slug: 'pumpkins',
     name: 'Pumpkins',
     images: [
-      { src: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop', alt: 'Orange pumpkins in a field at harvest time' },
-      { src: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=800&h=600&fit=crop', alt: 'Pumpkin patch with ripe orange pumpkins' },
-      { src: 'https://images.unsplash.com/photo-1605296867304-46d5465a13f1?w=800&h=600&fit=crop', alt: 'Carved and whole pumpkins for Halloween' },
-      { src: 'https://images.unsplash.com/photo-1473093295043-cdd812d0e601?w=800&h=600&fit=crop', alt: 'Fresh pumpkins arranged on rustic wooden surface' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/1/main.webp', alt: 'Fresh British pumpkins on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/2/main.webp', alt: 'Orange pumpkins in autumn harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/3/main.webp', alt: 'Heritage pumpkin varieties display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/4/main.webp', alt: 'Farm pumpkins with golden hour light' },
     ],
     monthsInSeason: [9, 10, 11],         // Sep–Nov
     peakMonths: [10],
@@ -385,6 +410,202 @@ export const PRODUCE: Produce[] = [
       }
     ],
     aliases: ['pumpkin', 'squash', 'winter squash'],
+  },
+  {
+    slug: 'asparagus',
+    name: 'Asparagus',
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/1/main.webp', alt: 'Fresh British asparagus spears on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/2/main.webp', alt: 'Spring asparagus with tight green tips' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/3/main.webp', alt: 'UK asparagus season harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/4/main.webp', alt: 'Fresh asparagus spears close-up detail' },
+    ],
+    monthsInSeason: [4, 5, 6],           // Apr–Jun
+    peakMonths: [5],
+    nutritionPer100g: { kcal: 20, protein: 2.2, carbs: 3.9, sugars: 1.9, fiber: 2.1, fat: 0.1 },
+    selectionTips: [
+      'Choose firm spears with tight, compact tips.',
+      'Look for bright green or purple colour.',
+      'Avoid asparagus with slimy or mushy ends.',
+      'Stems should be straight and crisp.',
+    ],
+    storageTips: [
+      'Stand upright in water like flowers.',
+      'Cover tips with a damp cloth and refrigerate.',
+      'Best used within 2-3 days of purchase.',
+      'Can be blanched and frozen for later use.',
+    ],
+    prepIdeas: [
+      'Steam or griddle with butter and lemon.',
+      'Wrap in prosciutto and roast.',
+      'Add to spring risotto and pasta.',
+      'Make creamy asparagus soup.',
+    ],
+    recipeChips: [
+      {
+        title: 'Asparagus with Lemon Butter',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/simply-asparagus/',
+        description: 'Classic British asparagus with lemon and butter'
+      },
+      {
+        title: 'Asparagus Risotto',
+        url: 'https://www.bbcgoodfood.com/recipes/asparagus-risotto',
+        description: 'Creamy spring risotto with fresh asparagus'
+      },
+      {
+        title: 'Griddled Asparagus',
+        url: 'https://www.bbcgoodfood.com/recipes/griddled-asparagus-salad-soft-boiled-egg',
+        description: 'Charred asparagus salad with soft-boiled egg'
+      }
+    ],
+    aliases: ['asparagus spears', 'green asparagus', 'British asparagus'],
+  },
+  {
+    slug: 'kale',
+    name: 'Kale',
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/1/main.webp', alt: 'Fresh British kale leaves with selective focus' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/2/main.webp', alt: 'Dark green curly kale in golden hour light' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/3/main.webp', alt: 'Winter kale harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/4/main.webp', alt: 'Organic kale leaves macro detail' },
+    ],
+    monthsInSeason: [11, 12, 1, 2, 3, 4], // Nov–Apr
+    peakMonths: [1, 2],
+    nutritionPer100g: { kcal: 49, protein: 4.3, carbs: 9.0, sugars: 2.3, fiber: 2.0, fat: 0.9 },
+    selectionTips: [
+      'Choose dark green, crisp leaves.',
+      'Avoid yellowing or wilted leaves.',
+      'Smaller leaves are more tender.',
+      'Look for firm, moist stems.',
+    ],
+    storageTips: [
+      'Store unwashed in the refrigerator.',
+      'Keep in a plastic bag in the crisper drawer.',
+      'Use within 5-7 days for best quality.',
+      'Can be blanched and frozen.',
+    ],
+    prepIdeas: [
+      'Massage with olive oil for salads.',
+      'Add to soups and stews.',
+      'Make kale chips by baking.',
+      'Stir-fry with garlic and chilli.',
+    ],
+    recipeChips: [
+      {
+        title: 'Kale Caesar Salad',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/kale-caesar-salad/',
+        description: 'Healthy twist on the classic Caesar salad'
+      },
+      {
+        title: 'Kale and White Bean Soup',
+        url: 'https://www.bbcgoodfood.com/recipes/kale-white-bean-soup',
+        description: 'Hearty winter soup with kale and beans'
+      },
+      {
+        title: 'Crispy Kale Chips',
+        url: 'https://www.bbcgoodfood.com/recipes/kale-chips',
+        description: 'Healthy baked kale crisps with sea salt'
+      }
+    ],
+    aliases: ['curly kale', 'cavolo nero', 'lacinato kale'],
+  },
+  {
+    slug: 'leeks',
+    name: 'Leeks',
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/1/main.webp', alt: 'Fresh British leeks at farmers market' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/2/main.webp', alt: 'Winter leeks in wicker basket display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/3/main.webp', alt: 'Fresh leeks with white and green layers' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/4/main.webp', alt: 'UK grown leeks close-up detail' },
+    ],
+    monthsInSeason: [9, 10, 11, 12, 1, 2, 3, 4], // Sep–Apr
+    peakMonths: [11, 12, 1],
+    nutritionPer100g: { kcal: 61, protein: 1.5, carbs: 14.0, sugars: 3.9, fiber: 1.8, fat: 0.3 },
+    selectionTips: [
+      'Choose firm, straight leeks with crisp leaves.',
+      'Look for bright white and dark green colour.',
+      'Avoid leeks with yellowing or slimy leaves.',
+      'Smaller leeks are more tender.',
+    ],
+    storageTips: [
+      'Store in the refrigerator crisper drawer.',
+      'Keep in a plastic bag for up to 2 weeks.',
+      'Trim roots but keep them attached until use.',
+      'Can be blanched and frozen.',
+    ],
+    prepIdeas: [
+      'Braise with butter and herbs.',
+      'Add to soups and casseroles.',
+      'Make leek and potato soup.',
+      'Roast with olive oil and thyme.',
+    ],
+    recipeChips: [
+      {
+        title: 'Leek and Potato Soup',
+        url: 'https://www.bbcgoodfood.com/recipes/leek-potato-soup',
+        description: 'Classic British comfort soup'
+      },
+      {
+        title: 'Braised Leeks',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/braised-leeks/',
+        description: 'Tender leeks cooked in butter and stock'
+      },
+      {
+        title: 'Leek and Bacon Pasta',
+        url: 'https://www.bbcgoodfood.com/recipes/leek-bacon-pasta',
+        description: 'Creamy pasta with leeks and crispy bacon'
+      }
+    ],
+    aliases: ['leek', 'baby leeks', 'spring leeks'],
+  },
+  {
+    slug: 'purple-sprouting-broccoli',
+    name: 'Purple Sprouting Broccoli',
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/1/main.webp', alt: 'Fresh purple sprouting broccoli on rustic wooden table' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/2/main.webp', alt: 'Vibrant PSB with purple-green florets' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/3/main.webp', alt: 'British purple sprouting broccoli harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/4/main.webp', alt: 'Fresh PSB stems and florets close-up' },
+    ],
+    monthsInSeason: [1, 2, 3, 4],        // Jan–Apr
+    peakMonths: [2, 3],
+    nutritionPer100g: { kcal: 35, protein: 3.1, carbs: 7.2, sugars: 1.4, fiber: 3.0, fat: 0.4 },
+    selectionTips: [
+      'Choose firm stems with tight florets.',
+      'Look for vibrant purple-green colour.',
+      'Avoid yellowing or flowering heads.',
+      'Stems should be crisp and snap easily.',
+    ],
+    storageTips: [
+      'Store in the refrigerator crisper drawer.',
+      'Keep in a plastic bag for up to 5 days.',
+      'Use as soon as possible for best flavour.',
+      'Can be blanched and frozen.',
+    ],
+    prepIdeas: [
+      'Steam and serve with butter.',
+      'Char-grill with olive oil and lemon.',
+      'Add to stir-fries and pasta.',
+      'Roast with garlic and chilli flakes.',
+    ],
+    recipeChips: [
+      {
+        title: 'Charred Purple Sprouting Broccoli',
+        url: 'https://www.bbcgoodfood.com/recipes/charred-purple-sprouting-broccoli-lemon-anchovy-dressing',
+        description: 'Restaurant-style PSB with anchovy dressing'
+      },
+      {
+        title: 'PSB with Chilli and Garlic',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/purple-sprouting-broccoli-with-chilli-garlic/',
+        description: 'Quick and flavourful PSB side dish'
+      },
+      {
+        title: 'PSB and Pasta',
+        url: 'https://www.rivercottage.net/recipes/purple-sprouting-broccoli-pasta',
+        description: 'Spring pasta with purple sprouting broccoli'
+      }
+    ],
+    aliases: ['PSB', 'purple broccoli', 'sprouting broccoli'],
   },
 ]
 

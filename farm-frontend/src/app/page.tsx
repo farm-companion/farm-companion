@@ -10,7 +10,7 @@ import { CategoryGrid } from '@/components/CategoryGrid'
 import { AnimatedHero } from '@/components/AnimatedHero'
 import { AnimatedStats } from '@/components/AnimatedStats'
 import { AnimatedFeatures } from '@/components/AnimatedFeatures'
-import { SeasonalCarousel } from '@/components/SeasonalCarousel'
+import { SeasonalShowcase } from '@/components/SeasonalShowcase'
 import { NearbyFarms } from '@/components/NearbyFarms'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -114,8 +114,8 @@ export default async function HomePage() {
       {/* Animated Stats Section */}
       <AnimatedStats farmCount={farmCount} countyCount={countyCount} />
 
-      {/* Seasonal Carousel Section */}
-      <SeasonalCarousel />
+      {/* Seasonal Showcase Section */}
+      <SeasonalShowcase />
 
       {/* Featured Guides Section */}
       <FeaturedGuides />
@@ -130,7 +130,7 @@ export default async function HomePage() {
       <AnimatedFeatures />
 
       {/* CTA Section with Stylish Parallax */}
-      <section className="relative py-32 overflow-hidden">
+      <section className="relative py-20 md:py-28 lg:py-32 overflow-hidden">
         {/* Multi-layer Parallax Background */}
         <div className="absolute inset-0">
           {/* Primary background with parallax */}
@@ -158,31 +158,31 @@ export default async function HomePage() {
         </div>
         
         {/* Content with enhanced styling */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 text-center">
           {/* Animated icon */}
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-white/10 backdrop-blur-sm rounded-full mb-8 border border-white/20 animate-bounce" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }}>
-            <MapPin className="w-12 h-12 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-full mb-6 sm:mb-8 border border-white/20 animate-bounce" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }}>
+            <MapPin className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
           </div>
-          
+
           {/* Enhanced typography with staggered animation */}
-          <h2 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-8 leading-tight text-white drop-shadow-2xl animate-fade-in">
+          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 sm:mb-8 leading-tight text-white drop-shadow-2xl animate-fade-in">
             Ready to
             <span className="block text-serum drop-shadow-2xl animate-slide-up" style={{ animationDelay: '0.2s' }}>Explore?</span>
           </h2>
-          
-          <p className="text-xl md:text-2xl mb-12 text-white/95 drop-shadow-lg max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '0.4s' }}>
+
+          <p className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-12 text-white/95 drop-shadow-lg max-w-3xl mx-auto animate-fade-in px-4" style={{ animationDelay: '0.4s' }}>
             Start your journey to discover amazing local farm shops today.
           </p>
-          
+
           {/* Enhanced CTA button with hover effects */}
           <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
             <Link
               href="/map"
-              className="group bg-serum text-black px-10 py-5 rounded-xl font-semibold hover:bg-serum/90 transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-serum/25 hover:scale-105 backdrop-blur-sm border border-white/20"
+              className="group bg-serum text-black h-14 sm:h-16 px-8 sm:px-10 rounded-xl text-sm sm:text-base font-semibold hover:bg-serum/90 transition-all duration-300 inline-flex items-center justify-center gap-2 sm:gap-3 shadow-2xl hover:shadow-serum/25 hover:scale-105 active:scale-95 backdrop-blur-sm border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-serum focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
-              <MapPin className="w-6 h-6 transition-transform group-hover:scale-110" />
+              <MapPin className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
               Find Farms Near You
-              <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
+              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-1" />
             </Link>
           </div>
         </div>
@@ -191,8 +191,8 @@ export default async function HomePage() {
 
 
       {/* Newsletter Section */}
-      <section className="py-16 section-lazy">
-        <div className="max-w-4xl mx-auto px-6">
+      <section className="py-12 md:py-16 section-lazy">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <NewsletterSignup />
         </div>
       </section>

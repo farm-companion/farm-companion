@@ -118,3 +118,10 @@ env/
 
 # Local development
 *.log
+
+# Meilisearch database files
+*.mdb
+data.ms/
+
+# MCP configuration (may contain connection strings)
+.mcp.json

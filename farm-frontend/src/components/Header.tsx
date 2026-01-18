@@ -281,7 +281,8 @@ export default function Header() {
           <Link
             href="/add"
             className={cx(
-              'inline-flex h-10 items-center justify-center rounded-md border px-4 text-sm font-medium transition hover:opacity-90',
+              // Increased touch target to 48px height (was 40px)
+              'inline-flex h-12 items-center justify-center rounded-md border px-4 text-sm font-medium transition hover:opacity-90',
               inverted
                 ? 'border-white bg-white text-black hover:bg-gray-100'
                 : 'border-gray-900 bg-gray-900 text-white hover:bg-black dark:border-gray-100 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white'
@@ -299,14 +300,15 @@ export default function Header() {
             aria-expanded={open}
             aria-controls="mobile-menu"
             className={cx(
-              'inline-flex h-10 w-10 items-center justify-center rounded-md border transition hover:bg-gray-50 active:scale-95',
-              inverted 
-                ? 'border-white/30 text-white hover:bg-white/10' 
+              // Increased touch target to 48x48px (was 40x40px)
+              'inline-flex h-12 w-12 items-center justify-center rounded-md border transition hover:bg-gray-50 active:scale-95',
+              inverted
+                ? 'border-white/30 text-white hover:bg-white/10'
                 : 'border-gray-300 text-gray-900 hover:bg-gray-100 dark:text-white dark:border-gray-600 dark:hover:bg-gray-800'
             )}
             aria-label="Open menu"
           >
-            <Menu className={'h-5 w-5'} />
+            <Menu className={'h-6 w-6'} />
           </button>
         </div>
       </div>

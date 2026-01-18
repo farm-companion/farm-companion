@@ -1,7 +1,7 @@
 import './globals.css'
 
 import type { Metadata } from 'next'
-import { Manrope, IBM_Plex_Sans } from 'next/font/google'
+import { Manrope, IBM_Plex_Sans, Crimson_Pro } from 'next/font/google'
 import Script from 'next/script'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
@@ -10,6 +10,7 @@ import FooterWrapper from '@/components/FooterWrapper'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
 import { AriaLiveRegion } from '@/components/accessibility/AriaLiveRegion'
 import { SkipLinks } from '@/components/accessibility/SkipLinks'
+import { BottomNav } from '@/components/navigation/BottomNav'
 import { SITE_URL } from '@/lib/site'
 
 // Modern Swiss Minimalism Font Stack
@@ -30,6 +31,14 @@ const plexCondensed = IBM_Plex_Sans({
   display: 'swap',
   weight: ['400', '600'],
   variable: '--font-accent',
+})
+
+// Serif: Crimson Pro (editorial, magazine-style)
+const crimsonPro = Crimson_Pro({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '600', '700'],
+  variable: '--font-serif',
 })
 
 export const metadata: Metadata = {
@@ -128,7 +137,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${plexCondensed.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${plexCondensed.variable} ${crimsonPro.variable}`}>
       <head>
         {/* Site-wide structured data - optimized with next/script */}
         <Script
@@ -279,6 +288,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Page content */}
         <main id="main-content" className="flex-1" role="main">{children}</main>
+
+        {/* Mobile Bottom Navigation */}
+        <BottomNav />
 
         {/* Consent */}
         <ConsentBanner />

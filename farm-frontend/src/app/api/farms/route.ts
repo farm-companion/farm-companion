@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
 import type { FarmShop } from '@/types/farm'
 import { performanceMiddleware } from '@/lib/performance-middleware'
 import { CACHE_NAMESPACES, CACHE_TTL } from '@/lib/cache-manager'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/lib/prisma'
 
 interface FarmShopData {
   name: string
@@ -364,8 +362,6 @@ export async function POST(request: NextRequest) {
       { error: 'Failed to process farm submission' },
       { status: 500 }
     )
-  } finally {
-    await prisma.$disconnect()
   }
 }
 

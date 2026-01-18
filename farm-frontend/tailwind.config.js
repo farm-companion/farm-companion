@@ -8,14 +8,14 @@ module.exports = {
   darkMode: 'class',
   theme: {
     extend: {
-      // PuredgeOS Mobile-First Breakpoints
+      // Mobile-First Breakpoints (updated for true mobile-first)
       screens: {
-        'xs': '480px',    // Extra small devices
-        'sm': '640px',    // Small devices
-        'md': '768px',    // Medium devices
-        'lg': '1024px',   // Large devices
-        'xl': '1280px',   // Extra large devices
-        '2xl': '1536px',  // 2X large devices
+        'xs': '320px',    // iPhone SE
+        'sm': '375px',    // iPhone 13 (most common)
+        'md': '768px',    // Tablets
+        'lg': '1024px',   // Desktop
+        'xl': '1280px',   // Large desktop
+        '2xl': '1536px',  // Extra large
       },
       
       // PuredgeOS Brand Colors - Premium Quality
@@ -74,6 +74,7 @@ module.exports = {
         'primary': ['var(--font-primary)', 'system-ui', '-apple-system', 'sans-serif'],
         'body': ['var(--font-body)', 'system-ui', '-apple-system', 'sans-serif'],
         'accent': ['var(--font-accent)', 'system-ui', '-apple-system', 'sans-serif'],
+        'serif': ['var(--font-serif)', 'Georgia', 'Cambria', 'serif'],
         // Legacy aliases for backward compatibility
         'heading': ['var(--font-primary)', 'system-ui', '-apple-system', 'sans-serif'],
         // Clash Display specific classes
@@ -90,18 +91,18 @@ module.exports = {
         'bold': '700',
       },
       
-      // Enhanced font sizes for better readability (PuredgeOS Clarity First)
+      // Fluid Typography - Mobile-first responsive (clamp for smooth scaling)
       fontSize: {
-        'xs': ['0.875rem', { lineHeight: '1.5' }],      // 14px - was 12px
-        'sm': ['1rem', { lineHeight: '1.5' }],          // 16px - was 14px  
-        'base': ['1.125rem', { lineHeight: '1.6' }],    // 18px - was 16px
-        'lg': ['1.25rem', { lineHeight: '1.6' }],       // 20px - was 18px
-        'xl': ['1.5rem', { lineHeight: '1.5' }],        // 24px - was 20px
-        '2xl': ['1.875rem', { lineHeight: '1.4' }],     // 30px - was 24px
-        '3xl': ['2.25rem', { lineHeight: '1.3' }],      // 36px - was 30px
-        '4xl': ['3rem', { lineHeight: '1.2' }],         // 48px - was 36px
-        '5xl': ['3.75rem', { lineHeight: '1.1' }],      // 60px - was 48px
-        '6xl': ['4.5rem', { lineHeight: '1' }],         // 72px - was 60px
+        'xs': ['clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)', { lineHeight: '1.5' }],      // 12px -> 14px
+        'sm': ['clamp(0.875rem, 0.825rem + 0.25vw, 1rem)', { lineHeight: '1.5' }],       // 14px -> 16px
+        'base': ['clamp(1rem, 0.95rem + 0.25vw, 1.125rem)', { lineHeight: '1.6' }],      // 16px -> 18px
+        'lg': ['clamp(1.125rem, 1.05rem + 0.375vw, 1.25rem)', { lineHeight: '1.6' }],    // 18px -> 20px
+        'xl': ['clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem)', { lineHeight: '1.5' }],        // 20px -> 24px
+        '2xl': ['clamp(1.5rem, 1.35rem + 0.75vw, 2rem)', { lineHeight: '1.4' }],         // 24px -> 32px
+        '3xl': ['clamp(1.875rem, 1.65rem + 1.125vw, 2.5rem)', { lineHeight: '1.3' }],    // 30px -> 40px
+        '4xl': ['clamp(2.25rem, 1.95rem + 1.5vw, 3rem)', { lineHeight: '1.2' }],         // 36px -> 48px
+        '5xl': ['clamp(3rem, 2.5rem + 2.5vw, 4rem)', { lineHeight: '1.1' }],             // 48px -> 64px
+        '6xl': ['clamp(3.75rem, 3rem + 3.75vw, 5rem)', { lineHeight: '1' }],             // 60px -> 80px
       },
       
       // Mobile-first spacing scale (4px baseline)
@@ -113,12 +114,21 @@ module.exports = {
         '4': '16px',
         '5': '20px',
         '6': '24px',
+        '7': '28px',
         '8': '32px',
+        '9': '36px',
         '10': '40px',
-        '12': '48px',  // Minimum touch target
-        '16': '64px',
+        '11': '44px',   // iOS minimum touch target
+        '12': '48px',   // Our standard comfortable touch target
+        '14': '56px',   // Spacious touch target
+        '16': '64px',   // Generous touch target
         '20': '80px',
         '24': '96px',
+        '32': '128px',
+        '40': '160px',
+        '48': '192px',
+        '56': '224px',
+        '64': '256px',
       },
       
       // Mobile-first border radius - Premium feel
@@ -149,6 +159,27 @@ module.exports = {
         'premium-xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       },
       
+      // Touch-specific utilities
+      minWidth: {
+        'touch': '48px',      // Comfortable touch target
+        'touch-ios': '44px',  // iOS minimum
+        'touch-spacious': '56px',
+      },
+      minHeight: {
+        'touch': '48px',      // Comfortable touch target
+        'touch-ios': '44px',  // iOS minimum
+        'touch-spacious': '56px',
+      },
+
+      // Safe area insets (for iPhone notch)
+      padding: {
+        'safe': 'env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)',
+        'safe-top': 'env(safe-area-inset-top)',
+        'safe-bottom': 'env(safe-area-inset-bottom)',
+        'safe-left': 'env(safe-area-inset-left)',
+        'safe-right': 'env(safe-area-inset-right)',
+      },
+
       // Premium animations
       keyframes: {
         'fade-in': {
