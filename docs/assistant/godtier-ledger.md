@@ -43,6 +43,12 @@ Implement the FarmCompanion Product Audit end-to-end. Transform into seamless Ap
 
 #### 1.2 Backend Prerequisites for Seasonal Integration
 
+**PAUSE:** Design system must be enforced site-wide FIRST before continuing with backend work.
+
+**See:** docs/assistant/design-implementation-plan.md for full 16-slice execution plan.
+
+**Status:** Starting Phase 1 - Critical Pages
+
 **Slice 3** - Product-to-Farm relationship verification and completion
 - Verify Product model exists and has farmId, availableMonths
 - Add seed data or migration for sample products
