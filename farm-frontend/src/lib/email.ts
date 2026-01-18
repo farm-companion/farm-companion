@@ -6,7 +6,18 @@ import PhotoSubmissionReceiptEmail from '@/emails/PhotoSubmissionReceipt'
 // import PhotoApprovedEmail from '@/emails/PhotoApproved'
 // import PhotoRejectedEmail from '@/emails/PhotoRejected'
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
+// Lazy-initialized Resend client (avoids build-time errors when env var not available)
+let resendClient: Resend | null = null
+
+function getResendClient(): Resend {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY not configured')
+  }
+  if (!resendClient) {
+    resendClient = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resendClient
+}
 
 export type ReceiptInput = {
   to: string
@@ -55,7 +66,7 @@ export async function sendPhotoSubmissionReceipt(input: ReceiptInput) {
       authorEmail: input.authorEmail,
     })
 
-    const result = await resend.emails.send({
+    const result = await getResendClient().emails.send({
       from,
       to: input.to,
       ...(bcc ? { bcc } : {}),
@@ -263,7 +274,7 @@ export async function sendSubmissionAckEmail(opts: {
       </div>
     `
 
-    const result = await resend.emails.send({
+    const result = await getResendClient().emails.send({
       from,
       to: opts.to,
       ...(bcc ? { bcc } : {}),
