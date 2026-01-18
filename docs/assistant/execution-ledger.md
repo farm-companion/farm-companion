@@ -80,6 +80,15 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Design System Alignment: Map Page God-Tier Polish**
+  - Replaced hard-coded gray colors with semantic tokens (text-body, text-muted, text-heading, background-canvas, background-surface)
+  - Updated shadows to premium variants (shadow-premium)
+  - Added gentle-spring easing to all transitions (ease-gentle-spring, duration-fast)
+  - Ensured touch targets meet 44x44px minimum (min-h-[44px], min-h-[48px])
+  - Standardized brand-primary usage instead of serum
+  - Added backdrop-blur-md for premium glass effect
+  - Used border-default tokens for consistent borders
+  - Fixed error state, mobile search, and bottom sheet styling
 - **Queue 9, Slice 4: In Season Now Badges on Farm Markers** (Queue 9)
   - Added isInSeason helper function to MapMarkerPopover
   - Added seasonalBadge memo to check if farm has selected produce in season
