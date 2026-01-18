@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { MapPin, Navigation, Share2, Heart, X } from 'lucide-react'
+import { MapPin, Navigation, Share2, Heart, X, Leaf } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { calculateDistance, formatDistance } from '@/shared/lib/geo'
 
@@ -14,6 +14,7 @@ interface MapMarkerPopoverProps {
   onShare: (farm: FarmShop) => void
   userLocation: { latitude: number; longitude: number } | null
   position: { x: number; y: number }
+  searchQuery?: string
 }
 
 export default function MapMarkerPopover({
@@ -24,7 +25,8 @@ export default function MapMarkerPopover({
   onFavorite,
   onShare,
   userLocation,
-  position
+  position,
+  searchQuery
 }: MapMarkerPopoverProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
@@ -107,12 +109,23 @@ export default function MapMarkerPopover({
             <span>{farm.location.city || farm.location.address}</span>
           </div>
 
-          {/* Distance badge */}
-          {distance && (
-            <div className="inline-flex items-center gap-1 px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-xs font-medium mb-4">
-              {distance} away
-            </div>
-          )}
+          {/* Badges */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {/* Distance badge */}
+            {distance && (
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-xs font-medium">
+                {distance} away
+              </div>
+            )}
+
+            {/* In Season Now badge - shows when filtering by produce */}
+            {searchQuery && farm?.offerings?.some(o => o.toLowerCase().includes(searchQuery.toLowerCase())) && (
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-100 text-emerald-700 rounded-full text-xs font-medium">
+                <Leaf className="w-3 h-3" />
+                In Season Now
+              </div>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="flex gap-2">

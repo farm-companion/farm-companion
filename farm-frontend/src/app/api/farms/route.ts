@@ -200,6 +200,9 @@ async function farmsHandler(request: NextRequest) {
       updatedAt: farm.updatedAt.toISOString()
     }))
 
+    // Include cache info in dev mode for debugging
+    const isDev = process.env.NODE_ENV === 'development'
+
     return NextResponse.json({
       farms: transformedFarms,
       total,
@@ -211,7 +214,15 @@ async function farmsHandler(request: NextRequest) {
           .filter(c => c._count.farms > 0)
           .map(c => c.slug)
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
+      // Dev cache info for debugging
+      ...(isDev && bbox && {
+        _cache: {
+          key: `farms:bbox:${bbox}`,
+          ttl: 300,
+          note: 'bbox queries use tile caching via performanceMiddleware'
+        }
+      })
     }, {
       headers: {
         'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=3600',

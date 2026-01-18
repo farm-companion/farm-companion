@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Search } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
@@ -10,6 +11,8 @@ import BottomSheet from '@/components/BottomSheet'
 
 // Removed unused mobile-first components for cleaner imports
 import { useHaptic } from '@/components/HapticFeedback'
+import { RecentFarms } from '@/components/RecentFarms'
+import { useRecentFarms } from '@/hooks/useRecentFarms'
 import type { FarmShop } from '@/types/farm'
 
 // Debouncing hook to prevent excessive re-filtering
@@ -58,6 +61,7 @@ interface FilterState {
 }
 
 export default function MapPage() {
+  const searchParams = useSearchParams()
   const [farms, setFarms] = useState<FarmShop[]>([])
   const [filteredFarms, setFilteredFarms] = useState<FarmShop[]>([])
   const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null)
@@ -71,15 +75,55 @@ export default function MapPage() {
   const [bottomSheetHeight, setBottomSheetHeight] = useState(200)
   const [isDesktop, setIsDesktop] = useState(false)
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
+  const [hasFocusedOnCounty, setHasFocusedOnCounty] = useState(false)
 
   const locationWatchIdRef = useRef<number | null>(null)
   
   // Mobile-first features
   const { trigger: triggerHaptic } = useHaptic()
 
+  // Recent farms tracking
+  const { addRecentFarm } = useRecentFarms()
+
   // Debounced values to prevent excessive re-filtering
   const debouncedQuery = useDebounced(searchQuery, 150)
   const debouncedBounds = useDebounced(mapBounds, 150)
+
+  // Initialize from URL params
+  useEffect(() => {
+    const qParam = searchParams.get('q')
+    const countyParam = searchParams.get('county')
+
+    if (qParam) {
+      setSearchQuery(qParam)
+    }
+    if (countyParam) {
+      setFilters(prev => ({ ...prev, county: countyParam }))
+    }
+  }, [searchParams])
+
+  // Auto-focus map on county bounds when county filter is applied
+  useEffect(() => {
+    const countyParam = searchParams.get('county')
+    if (!countyParam || !mapInstance || farms.length === 0 || hasFocusedOnCounty) return
+
+    // Get farms in the specified county
+    const countyFarms = farms.filter(f =>
+      f.location.county.toLowerCase() === countyParam.toLowerCase()
+    )
+
+    if (countyFarms.length === 0) return
+
+    // Calculate bounds from county farms
+    const bounds = new google.maps.LatLngBounds()
+    countyFarms.forEach(farm => {
+      bounds.extend(new google.maps.LatLng(farm.location.lat, farm.location.lng))
+    })
+
+    // Add some padding and fit bounds
+    mapInstance.fitBounds(bounds, { top: 50, right: 50, bottom: 150, left: 50 })
+    setHasFocusedOnCounty(true)
+  }, [searchParams, mapInstance, farms, hasFocusedOnCounty])
 
   // Live location tracking callbacks
 
@@ -204,7 +248,7 @@ export default function MapPage() {
     }
 
     // 3) filters
-    if (filters.county) result = result.filter(f => f.location.county === filters.county)
+    if (filters.county) result = result.filter(f => f.location.county.toLowerCase() === filters.county.toLowerCase())
     if (filters.category) result = result.filter(f => f.offerings?.some(o => o === filters.category))
 
     if (filters.openNow) {
@@ -269,6 +313,18 @@ export default function MapPage() {
   // Handle farm selection
   const handleFarmSelect = useCallback((farmId: string) => {
     setSelectedFarmId(farmId)
+
+    // Track recently viewed farm
+    const farm = farms.find(f => f.id === farmId)
+    if (farm) {
+      addRecentFarm({
+        id: farm.id,
+        name: farm.name,
+        slug: farm.slug,
+        county: farm.location.county
+      })
+    }
+
     // Scroll to farm in list if on mobile
     if (window.innerWidth < 768) {
       // Mobile: scroll to farm in bottom sheet
@@ -277,7 +333,7 @@ export default function MapPage() {
         farmElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }
-  }, [])
+  }, [farms, addRecentFarm])
 
   // Handle map bounds change
   const handleBoundsChange = useCallback((bounds: google.maps.LatLngBounds) => {
@@ -508,14 +564,21 @@ export default function MapPage() {
           </div>
 
           {/* Desktop: Sidebar with Farm List */}
-          <div className="hidden md:block absolute right-0 top-0 bottom-0 w-96 bg-white dark:bg-gray-900 shadow-lg border-l border-gray-200 dark:border-gray-700">
+          <div className="hidden md:flex md:flex-col absolute right-0 top-0 bottom-0 w-96 bg-white dark:bg-gray-900 shadow-lg border-l border-gray-200 dark:border-gray-700">
+            {/* Recent Farms Section */}
+            <RecentFarms
+              onFarmClick={handleFarmSelect}
+              className="m-4 mb-0"
+            />
+
+            {/* Farm List */}
             <FarmList
               farms={filteredFarms}
               selectedFarmId={selectedFarmId}
               onFarmSelect={handleFarmSelect}
               userLocation={userLocation}
               formatDistance={formatDistance}
-              className="h-full"
+              className="flex-1 overflow-hidden"
             />
           </div>
         </div>
