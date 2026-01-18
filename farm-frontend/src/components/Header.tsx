@@ -70,7 +70,7 @@ function Brand({ inverted }: { inverted: boolean }) {
     <Link href="/" aria-label="Farm Companion — Home" className="group inline-flex items-center gap-3">
       <div
         className={cx(
-          'flex h-9 w-9 items-center justify-center rounded-lg shadow-sm transition',
+          'flex h-9 w-9 items-center justify-center rounded-lg shadow-premium transition-all duration-fast ease-gentle-spring',
           inverted ? 'bg-white' : 'bg-gradient-to-br from-serum to-serum/80'
         )}
       >
@@ -78,12 +78,12 @@ function Brand({ inverted }: { inverted: boolean }) {
       </div>
       <div className="leading-tight">
         <span className={cx(
-          'block text-base font-semibold', 
-          inverted ? 'text-white' : 'text-gray-900 dark:text-white'
+          'block text-base font-semibold',
+          inverted ? 'text-white' : 'text-text-heading'
         )}>Farm Companion</span>
         <span className={cx(
-          'hidden text-xs font-medium sm:block', 
-          inverted ? 'text-white/80' : 'text-gray-600 dark:text-gray-300'
+          'hidden text-xs font-medium sm:block',
+          inverted ? 'text-white/80' : 'text-text-muted'
         )}>Real food, real places</span>
       </div>
     </Link>
@@ -150,16 +150,16 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
         aria-modal="true"
         aria-labelledby={labelledBy}
         tabIndex={-1}
-        className="absolute inset-x-0 bottom-0 h-[88vh] max-h-[720px] rounded-t-2xl border border-white/10 dark:border-gray-700/30 bg-white dark:bg-gray-900 shadow-2xl outline-none motion-safe:animate-[sheetIn_.28s_cubic-bezier(0.2,0.8,0.2,1)]"
+        className="absolute inset-x-0 bottom-0 h-[88vh] max-h-[720px] rounded-t-2xl border border-border-default/30 bg-background-surface shadow-premium-xl outline-none motion-safe:animate-[sheetIn_.28s_cubic-bezier(0.2,0.8,0.2,1)]"
       >
         {/* FLEX COLUMN + SCROLL AREA */}
         <div className="mx-auto flex h-full max-w-screen-sm flex-col px-5 pt-4 pb-8">
           {/* header row */}
           <div className="mb-4 flex items-center justify-between">
-            <h2 id={labelledBy} className="text-base font-semibold text-gray-900 dark:text-white">Menu</h2>
+            <h2 id={labelledBy} className="text-base font-semibold text-text-heading">Menu</h2>
             <button
               onClick={onClose}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95"
+              className="inline-flex h-11 w-11 items-center justify-center rounded-md border border-border-default text-text-body hover:bg-background-canvas active:scale-95 transition-all duration-fast ease-gentle-spring"
               aria-label="Close menu"
             >
               <X className="h-5 w-5" />
@@ -170,34 +170,34 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
           <div className="-mr-2 grow overflow-y-auto overscroll-contain pr-1">
             <nav aria-label="Mobile navigation" className="space-y-2">
               <Link href="/map" onClick={onClose}
-                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                className="block rounded-xl border border-border-default bg-background-canvas p-4 text-text-heading min-h-touch transition-all duration-fast ease-gentle-spring hover:border-brand-primary/30 hover:shadow-premium active:scale-[0.99]">
                 Farm Map
-                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Find farm shops near you</p>
+                <p className="mt-1 text-sm text-text-muted">Find farm shops near you</p>
               </Link>
 
               <Link href="/seasonal" onClick={onClose}
-                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                className="block rounded-xl border border-border-default bg-background-canvas p-4 text-text-heading min-h-touch transition-all duration-fast ease-gentle-spring hover:border-brand-primary/30 hover:shadow-premium active:scale-[0.99]">
                 What&apos;s in Season
-                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Fresh produce calendar</p>
+                <p className="mt-1 text-sm text-text-muted">Fresh produce calendar</p>
               </Link>
 
               <Link href="/about" onClick={onClose}
-                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                className="block rounded-xl border border-border-default bg-background-canvas p-4 text-text-heading min-h-touch transition-all duration-fast ease-gentle-spring hover:border-brand-primary/30 hover:shadow-premium active:scale-[0.99]">
                 About
-                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Our story and mission</p>
+                <p className="mt-1 text-sm text-text-muted">Our story and mission</p>
               </Link>
 
               <Link href="/contact" onClick={onClose}
-                className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
+                className="block rounded-xl border border-border-default bg-background-canvas p-4 text-text-heading min-h-touch transition-all duration-fast ease-gentle-spring hover:border-brand-primary/30 hover:shadow-premium active:scale-[0.99]">
                 Feedback
-                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Share your thoughts</p>
+                <p className="mt-1 text-sm text-text-muted">Share your thoughts</p>
               </Link>
 
-              <div className="mt-6 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+              <div className="mt-6 rounded-xl border border-border-default p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">Theme</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">Light or dark mode</p>
+                    <p className="text-sm font-medium text-text-heading">Theme</p>
+                    <p className="text-xs text-text-muted">Light or dark mode</p>
                   </div>
                   <ThemeToggle />
                 </div>
@@ -205,7 +205,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
 
               <div className="mt-6">
                 <Link href="/add" onClick={onClose}
-                  className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-gray-900 bg-gray-900 text-white transition hover:bg-black active:scale-[.99] dark:border-white dark:bg-white dark:text-black">
+                  className="inline-flex h-12 w-full items-center justify-center rounded-xl bg-serum text-black font-medium transition-all duration-fast ease-gentle-spring hover:bg-serum/90 active:scale-[0.99] shadow-premium hover:shadow-premium-lg min-h-touch">
                   Add a Farm Shop
                 </Link>
               </div>
@@ -253,39 +253,38 @@ export default function Header() {
         className={cx(
           'mx-auto flex max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8',
           'h-14 sm:h-16',
-          // Surface states
+          // Surface states with design tokens
           scrolled
             ? inverted
               ? 'border-b border-white/10 bg-black/80 backdrop-blur supports-[backdrop-filter]:bg-black/70'
-              : 'border-b border-black/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90 dark:border-white/10 dark:bg-gray-900/95 dark:backdrop-blur dark:supports-[backdrop-filter]:bg-gray-900/90'
+              : 'border-b border-border-default/50 bg-background-surface/95 backdrop-blur supports-[backdrop-filter]:bg-background-surface/90'
             : inverted
               ? 'border-b border-transparent bg-black/30 backdrop-blur'
-              : 'border-b border-transparent bg-white/98 backdrop-blur dark:bg-gray-900/98'
+              : 'border-b border-transparent bg-background-surface/98 backdrop-blur'
         )}
       >
         <Brand inverted={inverted} />
 
         <nav aria-label="Primary" className="hidden items-center gap-4 md:flex">
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/map">
+          <Link className={cx('text-sm font-medium transition-colors duration-fast hover:opacity-80', inverted ? 'text-white' : 'text-text-heading')} href="/map">
             Map
           </Link>
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/seasonal">
+          <Link className={cx('text-sm font-medium transition-colors duration-fast hover:opacity-80', inverted ? 'text-white' : 'text-text-heading')} href="/seasonal">
             Seasonal
           </Link>
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/about">
+          <Link className={cx('text-sm font-medium transition-colors duration-fast hover:opacity-80', inverted ? 'text-white' : 'text-text-heading')} href="/about">
             About
           </Link>
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/contact">
+          <Link className={cx('text-sm font-medium transition-colors duration-fast hover:opacity-80', inverted ? 'text-white' : 'text-text-heading')} href="/contact">
             Feedback
           </Link>
           <Link
             href="/add"
             className={cx(
-              // Increased touch target to 48px height (was 40px)
-              'inline-flex h-12 items-center justify-center rounded-md border px-4 text-sm font-medium transition hover:opacity-90',
+              'inline-flex h-12 items-center justify-center rounded-md px-4 text-sm font-medium transition-all duration-fast ease-gentle-spring min-h-touch',
               inverted
-                ? 'border-white bg-white text-black hover:bg-gray-100'
-                : 'border-gray-900 bg-gray-900 text-white hover:bg-black dark:border-gray-100 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white'
+                ? 'bg-white text-black hover:bg-white/90 shadow-premium hover:shadow-premium-lg'
+                : 'bg-serum text-black hover:bg-serum/90 shadow-premium hover:shadow-premium-lg'
             )}
           >
             Add a Farm Shop
@@ -300,15 +299,14 @@ export default function Header() {
             aria-expanded={open}
             aria-controls="mobile-menu"
             className={cx(
-              // Increased touch target to 48x48px (was 40x40px)
-              'inline-flex h-12 w-12 items-center justify-center rounded-md border transition hover:bg-gray-50 active:scale-95',
+              'inline-flex h-12 w-12 items-center justify-center rounded-md border transition-all duration-fast ease-gentle-spring active:scale-95 min-h-touch min-w-touch',
               inverted
                 ? 'border-white/30 text-white hover:bg-white/10'
-                : 'border-gray-300 text-gray-900 hover:bg-gray-100 dark:text-white dark:border-gray-600 dark:hover:bg-gray-800'
+                : 'border-border-default text-text-heading hover:bg-background-canvas'
             )}
             aria-label="Open menu"
           >
-            <Menu className={'h-6 w-6'} />
+            <Menu className="h-6 w-6" />
           </button>
         </div>
       </div>
