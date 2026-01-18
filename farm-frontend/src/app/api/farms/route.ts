@@ -3,6 +3,7 @@ import type { FarmShop } from '@/types/farm'
 import { performanceMiddleware } from '@/lib/performance-middleware'
 import { CACHE_NAMESPACES, CACHE_TTL } from '@/lib/cache-manager'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 
 interface FarmShopData {
   name: string
@@ -41,6 +42,23 @@ interface FarmShopData {
   seasonal: string[]
   updatedAt: string
 }
+
+// Prisma query result type with all relations
+type FarmWithRelations = Prisma.FarmGetPayload<{
+  include: {
+    categories: {
+      include: {
+        category: {
+          select: {
+            name: true,
+            slug: true
+          }
+        }
+      }
+    }
+    images: true
+  }
+}>
 
 // Enhanced GET endpoint with filtering using Prisma
 async function farmsHandler(request: NextRequest) {
@@ -152,7 +170,7 @@ async function farmsHandler(request: NextRequest) {
     ])
 
     // Transform farms to match expected format
-    const transformedFarms = farms.map(farm => ({
+    const transformedFarms = farms.map((farm: FarmWithRelations) => ({
       id: farm.id,
       name: farm.name,
       slug: farm.slug,
