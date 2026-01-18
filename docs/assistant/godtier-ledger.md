@@ -29,6 +29,16 @@ Implement the FarmCompanion Product Audit end-to-end. Transform into seamless Ap
 - Verification: Inspect /map search, footer, general buttons across site
 - Status: DONE
 
+**Slice 2.5** - Design system enforcement tooling [DONE]
+- Created DESIGN_GUIDELINES.md with comprehensive Apple-level standards
+- Added prettier-plugin-tailwindcss for automatic class ordering
+- Added eslint-plugin-tailwindcss for design token enforcement
+- Created .prettierrc.json with Tailwind-aware formatting
+- Updated eslint.config.mjs to enable Tailwind linting rules
+- Acceptance: Linting catches hardcoded colors, class order auto-formats
+- Verification: Run `pnpm lint` and `pnpm prettier --write .`
+- Status: DONE
+
 #### 1.2 Backend Prerequisites for Seasonal Integration
 
 **Slice 3** - Product-to-Farm relationship verification and completion
