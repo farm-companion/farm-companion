@@ -4,8 +4,8 @@ import { ContactSchema, sanitizeText } from '@/lib/validation'
 import { rateLimiters, getClientIP } from '@/lib/rate-limit'
 import { checkCsrf, validateHoneypot, validateSubmissionTime, verifyTurnstile, validateContent, trackIPReputation, isIPBlocked } from '@/lib/security'
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend (use placeholder if not set for build)
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder')
 
 // Email sending function with Resend API
 async function sendEmail(to: string, subject: string, html: string, text: string) {

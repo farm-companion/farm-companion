@@ -1,7 +1,8 @@
 import './globals.css'
 
 import type { Metadata } from 'next'
-import { Manrope, IBM_Plex_Sans, Crimson_Pro } from 'next/font/google'
+// Temporarily disabled Google Fonts due to network restrictions in build environment
+// import { Manrope, IBM_Plex_Sans, Crimson_Pro } from 'next/font/google'
 import Script from 'next/script'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
@@ -17,29 +18,30 @@ import { SITE_URL } from '@/lib/site'
 // Primary: Clash Display (self-hosted via CSS @font-face)
 // Note: Clash Display is loaded via CSS in fonts.css, no need for Next.js font loader
 
+// Using system font fallbacks for build
 // Secondary: Manrope (geometric sans, ultra-readable)
-const manrope = Manrope({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-body',
-  weight: ['400', '500', '600', '700'],
-})
+// const manrope = Manrope({
+//   subsets: ['latin'],
+//   display: 'swap',
+//   variable: '--font-body',
+//   weight: ['400', '500', '600', '700'],
+// })
 
 // Accent: IBM Plex Sans Condensed (tight, functional)
-const plexCondensed = IBM_Plex_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '600'],
-  variable: '--font-accent',
-})
+// const plexCondensed = IBM_Plex_Sans({
+//   subsets: ['latin'],
+//   display: 'swap',
+//   weight: ['400', '600'],
+//   variable: '--font-accent',
+// })
 
 // Serif: Crimson Pro (editorial, magazine-style)
-const crimsonPro = Crimson_Pro({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '600', '700'],
-  variable: '--font-serif',
-})
+// const crimsonPro = Crimson_Pro({
+//   subsets: ['latin'],
+//   display: 'swap',
+//   weight: ['400', '600', '700'],
+//   variable: '--font-serif',
+// })
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -137,7 +139,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${plexCondensed.variable} ${crimsonPro.variable}`}>
+    <html lang="en" suppressHydrationWarning className="">{/* Font variables temporarily disabled for build */}
       <head>
         {/* Site-wide structured data - optimized with next/script */}
         <Script

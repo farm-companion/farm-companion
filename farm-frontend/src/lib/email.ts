@@ -6,7 +6,7 @@ import PhotoSubmissionReceiptEmail from '@/emails/PhotoSubmissionReceipt'
 // import PhotoApprovedEmail from '@/emails/PhotoApproved'
 // import PhotoRejectedEmail from '@/emails/PhotoRejected'
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
+const resend = new Resend(process.env.RESEND_API_KEY || 're_placeholder')
 
 export type ReceiptInput = {
   to: string

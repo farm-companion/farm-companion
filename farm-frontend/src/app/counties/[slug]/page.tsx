@@ -22,10 +22,15 @@ interface CountyPageProps {
 
 // Generate static params for all counties at build time
 export async function generateStaticParams() {
-  const counties = await getCachedAllCounties()
-  return counties.map((county: { slug: string }) => ({
-    slug: county.slug,
-  }))
+  try {
+    const counties = await getCachedAllCounties()
+    return counties.map((county: { slug: string }) => ({
+      slug: county.slug,
+    }))
+  } catch (error) {
+    console.warn('Database unavailable during build, skipping static generation for counties')
+    return []
+  }
 }
 
 // Generate metadata for SEO
