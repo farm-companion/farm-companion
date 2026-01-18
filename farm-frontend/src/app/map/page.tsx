@@ -5,7 +5,9 @@ import dynamic from 'next/dynamic'
 import { Search } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
 import { MapSearch, LocationTracker } from '@/features/map'
+import type { ProduceItem } from '@/features/map/ui/ProduceFilter'
 import FarmList from '@/components/FarmList'
+import { PRODUCE } from '@/data/produce'
 import BottomSheet from '@/components/BottomSheet'
 
 // Removed unused mobile-first components for cleaner imports
@@ -55,6 +57,7 @@ interface FilterState {
   county?: string
   category?: string
   openNow?: boolean
+  produce?: string
 }
 
 export default function MapPage() {
@@ -181,6 +184,36 @@ export default function MapPage() {
     })
   }, [])
 
+  // Convert PRODUCE data to ProduceItem format for filter
+  const produceItems: ProduceItem[] = useMemo(() => {
+    return PRODUCE.map(p => {
+      const months = [...p.monthsInSeason].sort((a, b) => a - b)
+      const hasWrap = months.includes(12) && months.includes(1)
+
+      let seasonStart = months[0]
+      let seasonEnd = months[months.length - 1]
+
+      if (hasWrap) {
+        // Find the gap in months sequence for wrap-around seasons
+        for (let i = 0; i < months.length - 1; i++) {
+          if (months[i + 1] - months[i] > 1) {
+            seasonStart = months[i + 1]
+            seasonEnd = months[i]
+            break
+          }
+        }
+      }
+
+      return {
+        slug: p.slug,
+        name: p.name,
+        seasonStart,
+        seasonEnd,
+        category: 'Produce'
+      }
+    })
+  }, [])
+
   // Filter and search farms
   const filteredAndSearchedFarms = useMemo(() => {
     // 1) derive distance (no mutation)
@@ -207,6 +240,19 @@ export default function MapPage() {
     if (filters.county) result = result.filter(f => f.location.county === filters.county)
     if (filters.category) result = result.filter(f => f.offerings?.some(o => o === filters.category))
 
+    // Produce filter - searches offerings and name for produce match
+    // This is a placeholder until FarmProduce data is populated
+    if (filters.produce) {
+      const produceItem = produceItems.find(p => p.slug === filters.produce)
+      if (produceItem) {
+        const searchTerm = produceItem.name.toLowerCase()
+        result = result.filter(f =>
+          f.name.toLowerCase().includes(searchTerm) ||
+          f.offerings?.some(o => o.toLowerCase().includes(searchTerm))
+        )
+      }
+    }
+
     if (filters.openNow) {
       result = result.filter(f => {
         if (!f.hours || !f.hours.length) return false
@@ -232,7 +278,7 @@ export default function MapPage() {
     if (userLocation) result = result.sort((a,b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
 
     return result
-  }, [farms, userLocation, debouncedQuery, filters, debouncedBounds])
+  }, [farms, userLocation, debouncedQuery, filters, debouncedBounds, produceItems])
 
   // Update filtered farms when the computed result changes
   useEffect(() => {
@@ -358,6 +404,7 @@ export default function MapPage() {
             onW3WCoordinates={handleW3WCoordinates}
             counties={counties}
             categories={categories}
+            produce={produceItems}
             isLocationLoading={isLocationLoading}
             hasLocation={userLocation !== null}
           />

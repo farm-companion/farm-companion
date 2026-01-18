@@ -48,7 +48,7 @@
 - [x] Seed initial seasonal produce data (12 UK seasonal items in prisma/seed-data/produce.ts, seed script in prisma/seed.ts, run with npm run db:seed)
 
 ### Queue 9: Seasonal location integration (North Star Journey)
-- [ ] Add map filter for produce type with season awareness
+- [x] Add map filter for produce type with season awareness
 - [ ] Update map API to accept produce filter parameter
 - [ ] Add "Find [produce] near me" CTAs on seasonal pages
 - [ ] Show "In season now" badges on farm markers
@@ -80,6 +80,17 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Queue 9, Slice 1: Map Filter for Produce with Season Awareness** (Queue 9)
+  - Created ProduceFilter.tsx component with season-aware chip display
+  - In-season items show green styling with "Now" badge
+  - Items sorted with in-season first, then alphabetically
+  - Handles wrap-around seasons (e.g., kale Nov-Apr)
+  - Updated MapSearch.tsx FilterState to include produce field
+  - Added ProduceFilter to MapSearch filter panel
+  - Added produce filter chip to active filters display
+  - Updated map/page.tsx with produceItems conversion from PRODUCE data
+  - Added placeholder produce filtering (searches farm name/offerings until FarmProduce data populated)
+  - TypeScript compilation verified
 - **Queue 8, Slice 3: Seasonal Produce Seed Data** (Queue 8)
   - Created prisma/seed-data/produce.ts with 12 UK seasonal produce items (asparagus, PSB, strawberries, tomatoes, sweetcorn, runner beans, blackberries, apples, plums, pumpkins, kale, leeks)
   - Created prisma/seed.ts seed script using upsert for idempotent seeding
