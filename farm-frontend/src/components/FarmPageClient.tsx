@@ -24,6 +24,7 @@ import { ObfuscatedEmail, ObfuscatedPhone } from './ObfuscatedContact'
 import { StatusBadge } from './StatusBadge'
 import PhotoSubmissionForm from './PhotoSubmissionForm'
 import PhotoGalleryWrapper from './PhotoGalleryWrapper'
+import { FarmSeasonalProduce } from './FarmSeasonalProduce'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
 
 interface FarmPageClientProps {
@@ -303,6 +304,11 @@ export function FarmPageClient({
                   ))}
                 </motion.div>
               </motion.section>
+            )}
+
+            {/* Seasonal Produce Section */}
+            {shop.produce && shop.produce.length > 0 && (
+              <FarmSeasonalProduce produce={shop.produce} farmName={name} />
             )}
 
             {/* Photo Submission Section */}

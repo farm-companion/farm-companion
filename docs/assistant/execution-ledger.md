@@ -54,10 +54,10 @@
 - [x] Show "In season now" badges on farm markers
 
 ### Queue 10: Farm profile seasonal context
-- [ ] Add "What's in season here" section to farm profiles
-- [ ] Query FarmProduct joined with Product for seasonal items
-- [ ] Link produce items to seasonal guide pages
-- [ ] Add "Available now" vs "Coming soon" status
+- [x] Add "What's in season here" section to farm profiles
+- [x] Query FarmProduct joined with Product for seasonal items
+- [x] Link produce items to seasonal guide pages
+- [x] Add "Available now" vs "Coming soon" status
 
 ### Queue 11: County to map integration
 - [ ] Add "View on map" CTA to county pages
@@ -80,6 +80,17 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Queue 10: Farm Profile Seasonal Context** (Queue 10 Complete)
+  - Created FarmSeasonalProduce.tsx component with season-aware display
+  - Shows "Available Now" items with green styling and pulse indicator
+  - Shows "Coming Soon" items (within 2 months) with amber styling
+  - Collapses out-of-season items by default
+  - Each item links to its seasonal guide page (/seasonal/[slug])
+  - Displays PYO badge for pick-your-own items
+  - Shows season range (e.g., "May - Aug")
+  - Integrated into FarmPageClient between Offerings and Photo sections
+  - Uses shop.produce array from FarmShop type
+  - **Queue 10 Complete**: All farm profile seasonal context work done
 - **Design System Alignment: Map Page God-Tier Polish**
   - Replaced hard-coded gray colors with semantic tokens (text-body, text-muted, text-heading, background-canvas, background-surface)
   - Updated shadows to premium variants (shadow-premium)
