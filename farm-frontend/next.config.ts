@@ -111,6 +111,8 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
     // Image sizes for responsive images
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Allowed quality values for image optimization
+    qualities: [75, 80, 85],
   },
   // Configure API routes for larger file uploads
   serverExternalPackages: [],

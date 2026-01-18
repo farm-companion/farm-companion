@@ -43,7 +43,12 @@
 
 ## Completed Work
 
-### 2026-01-17 (latest)
+### 2026-01-18 (latest)
+- **Fix Next.js image quality configuration** (Build warning fix)
+  - Added `qualities: [75, 80, 85]` to next.config.ts images configuration
+  - Eliminates warnings for main_header.jpg (quality 85), counties.jpg and oranges-background.jpg (quality 80)
+
+### 2026-01-17
 - **Slice 2: Optimized getCategoryStats with Database Aggregation** (Queue 5)
   - Replaced in-memory JavaScript processing with parallel Prisma aggregations in categories.ts
   - Changed from `findMany` + reduce/filter to `Promise.all` with `count`, `aggregate`, and `groupBy`
