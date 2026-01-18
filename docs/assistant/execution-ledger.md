@@ -51,7 +51,7 @@
 - [x] Add map filter for produce type with season awareness
 - [x] Update map API to accept produce filter parameter
 - [x] Add "Find [produce] near me" CTAs on seasonal pages
-- [ ] Show "In season now" badges on farm markers
+- [x] Show "In season now" badges on farm markers
 
 ### Queue 10: Farm profile seasonal context
 - [ ] Add "What's in season here" section to farm profiles
@@ -80,6 +80,15 @@
 ## Completed Work
 
 ### 2026-01-18 (latest)
+- **Queue 9, Slice 4: In Season Now Badges on Farm Markers** (Queue 9)
+  - Added isInSeason helper function to MapMarkerPopover
+  - Added seasonalBadge memo to check if farm has selected produce in season
+  - Added selectedProduce prop to MapMarkerPopover component
+  - Added selectedProduce prop to MapShell component
+  - Passed filters.produce from map page to MapShell
+  - Badge shows produce name, icon, and PYO indicator when applicable
+  - Green styling matches seasonal theme
+  - **Queue 9 Complete**: All seasonal location integration work done
 - **Queue 9, Slice 3: Find Produce Near Me CTAs** (Queue 9)
   - Updated seasonal page CTAs to use produce filter parameter (/map?produce=slug)
   - Changed "Find at farm shops" to "Find [produce] near me" with highlighted styling

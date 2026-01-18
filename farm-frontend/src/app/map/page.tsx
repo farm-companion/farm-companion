@@ -505,6 +505,7 @@ export default function MapPage() {
               isDesktop={isDesktop}
               onMapReady={setMapInstance}
               className="w-full h-full"
+              selectedProduce={filters.produce}
             />
           </div>
 

@@ -1,9 +1,21 @@
 'use client'
 
-import { useEffect } from 'react'
-import { MapPin, Navigation, Share2, Heart, X } from 'lucide-react'
-import type { FarmShop } from '@/types/farm'
+import { useEffect, useMemo } from 'react'
+import { MapPin, Navigation, Share2, Heart, X, Leaf } from 'lucide-react'
+import type { FarmShop, FarmProduce } from '@/types/farm'
 import { calculateDistance, formatDistance } from '@/shared/lib/geo'
+
+/**
+ * Check if produce is currently in season
+ * Handles wrap-around seasons (e.g., Nov-Apr for kale)
+ */
+function isInSeason(produce: FarmProduce, month: number): boolean {
+  if (produce.seasonStart <= produce.seasonEnd) {
+    return month >= produce.seasonStart && month <= produce.seasonEnd
+  }
+  // Wrap-around season (e.g., Nov-Apr)
+  return month >= produce.seasonStart || month <= produce.seasonEnd
+}
 
 interface MapMarkerPopoverProps {
   farm: FarmShop | null
@@ -14,6 +26,7 @@ interface MapMarkerPopoverProps {
   onShare: (farm: FarmShop) => void
   userLocation: { latitude: number; longitude: number } | null
   position: { x: number; y: number }
+  selectedProduce?: string // Produce slug being filtered
 }
 
 export default function MapMarkerPopover({
@@ -24,8 +37,26 @@ export default function MapMarkerPopover({
   onFavorite,
   onShare,
   userLocation,
-  position
+  position,
+  selectedProduce
 }: MapMarkerPopoverProps) {
+  // Check if farm has the selected produce in season
+  const seasonalBadge = useMemo(() => {
+    if (!selectedProduce || !farm?.produce?.length) return null
+
+    const currentMonth = new Date().getMonth() + 1
+    const matchingProduce = farm.produce.find(p => p.slug === selectedProduce)
+
+    if (matchingProduce && isInSeason(matchingProduce, currentMonth)) {
+      return {
+        name: matchingProduce.name,
+        icon: matchingProduce.icon,
+        isPYO: matchingProduce.isPYO
+      }
+    }
+    return null
+  }, [selectedProduce, farm?.produce])
+
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isVisible) {
@@ -107,12 +138,25 @@ export default function MapMarkerPopover({
             <span>{farm.location.city || farm.location.address}</span>
           </div>
 
-          {/* Distance badge */}
-          {distance && (
-            <div className="inline-flex items-center gap-1 px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-xs font-medium mb-4">
-              {distance} away
-            </div>
-          )}
+          {/* Badges row */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {/* Distance badge */}
+            {distance && (
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-xs font-medium">
+                {distance} away
+              </div>
+            )}
+
+            {/* In season badge */}
+            {seasonalBadge && (
+              <div className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
+                <Leaf className="w-3 h-3" />
+                {seasonalBadge.icon && <span>{seasonalBadge.icon}</span>}
+                {seasonalBadge.name} in season
+                {seasonalBadge.isPYO && <span className="ml-1 text-green-600 dark:text-green-300">(PYO)</span>}
+              </div>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="flex gap-2">
