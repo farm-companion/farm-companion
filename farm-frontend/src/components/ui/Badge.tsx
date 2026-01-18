@@ -18,57 +18,56 @@ const badgeVariants = cva(
   [
     'inline-flex items-center justify-center',
     'rounded-full font-medium',
-    'transition-all duration-200',
+    'transition-all duration-150',
     'whitespace-nowrap',
   ],
   {
     variants: {
       variant: {
         default: [
-          'bg-background-surface text-text-body',
-          'border border-border-default',
+          'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300',
+          'border border-neutral-200 dark:border-neutral-700',
         ],
         primary: [
-          'bg-brand-primary text-white',
-          'hover:bg-brand-primary/90',
+          'bg-brand-primary/10 text-brand-primary',
+          'border border-brand-primary/20',
         ],
         secondary: [
-          'bg-solar text-midnight',
-          'hover:bg-solar/90',
+          'bg-neutral-900 dark:bg-white text-white dark:text-neutral-900',
         ],
         success: [
-          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
-          'border border-green-200 dark:border-green-800',
+          'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400',
+          'border border-green-100 dark:border-green-800/50',
         ],
         warning: [
-          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100',
-          'border border-yellow-200 dark:border-yellow-800',
+          'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
+          'border border-amber-100 dark:border-amber-800/50',
         ],
         error: [
-          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
-          'border border-red-200 dark:border-red-800',
+          'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
+          'border border-red-100 dark:border-red-800/50',
         ],
         info: [
-          'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
-          'border border-blue-200 dark:border-blue-800',
+          'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400',
+          'border border-blue-100 dark:border-blue-800/50',
         ],
         outline: [
-          'bg-transparent text-text-body',
-          'border border-border-default',
-          'hover:bg-background-surface',
+          'bg-transparent text-neutral-700 dark:text-neutral-300',
+          'border border-neutral-200 dark:border-neutral-700',
+          'hover:bg-neutral-100 dark:hover:bg-neutral-800',
         ],
         verified: [
-          'bg-serum/10 text-serum',
-          'border border-serum/20',
+          'bg-brand-primary/10 text-brand-primary',
+          'border border-brand-primary/20',
         ],
       },
       size: {
-        sm: 'px-2 py-0.5 text-xs gap-1',
-        md: 'px-2.5 py-1 text-sm gap-1.5',
-        lg: 'px-3 py-1.5 text-base gap-2',
+        sm: 'px-2.5 py-0.5 text-xs gap-1',
+        md: 'px-3 py-1 text-sm gap-1.5',
+        lg: 'px-4 py-1.5 text-base gap-2',
       },
       interactive: {
-        true: 'cursor-pointer hover:shadow-md active:scale-95',
+        true: 'cursor-pointer hover:shadow-md hover:-translate-y-0.5 active:translate-y-0 active:scale-95',
         false: '',
       },
     },

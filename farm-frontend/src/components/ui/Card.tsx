@@ -21,20 +21,20 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     const variantClasses = {
-      default: 'bg-background-surface border border-border-default',
-      elevated: 'bg-background-canvas shadow-lg border border-border-default',
-      outlined: 'bg-background-canvas border-2 border-border-default',
+      default: 'bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800',
+      elevated: 'bg-white dark:bg-neutral-900 shadow-xl border border-neutral-200/50 dark:border-neutral-700/50',
+      outlined: 'bg-white/50 dark:bg-neutral-900/50 border-2 border-neutral-200 dark:border-neutral-700',
     };
 
     const interactiveClasses = interactive
-      ? 'cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1'
+      ? 'cursor-pointer transition-all duration-200 hover:shadow-xl hover:-translate-y-1 hover:border-brand-primary/30'
       : '';
 
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-lg p-6',
+          'rounded-2xl p-6',
           variantClasses[variant],
           interactiveClasses,
           className

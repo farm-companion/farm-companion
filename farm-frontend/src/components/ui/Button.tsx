@@ -6,40 +6,41 @@ import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
   [
-    'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'inline-flex items-center justify-center rounded-xl text-sm font-medium',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2',
     'disabled:pointer-events-none disabled:opacity-50',
-    'touch-target', // PuredgeOS minimum touch target
+    'transition-all duration-150',
   ],
   {
     variants: {
       variant: {
         primary: [
-          'bg-brand-primary text-white hover:bg-brand-primary/90',
-          'focus-visible:ring-brand-primary',
-          'active:scale-[0.98]',
-          'dark:bg-brand-primary dark:text-white',
+          'bg-gradient-to-br from-brand-primary to-brand-primary/90 text-white',
+          'shadow-md shadow-brand-primary/20',
+          'hover:shadow-lg hover:shadow-brand-primary/30 hover:-translate-y-0.5',
+          'active:translate-y-0 active:shadow-sm active:scale-[0.98]',
         ],
         secondary: [
-          'bg-background-surface text-text-body border border-border-default',
-          'hover:bg-border-default hover:text-text-heading',
-          'focus-visible:ring-brand-primary',
+          'bg-white dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200',
+          'border border-neutral-200 dark:border-neutral-700',
+          'hover:bg-neutral-100 dark:hover:bg-neutral-700 hover:border-brand-primary/30',
           'active:scale-[0.98]',
         ],
         tertiary: [
-          'bg-transparent text-brand-primary hover:bg-brand-primary/10',
-          'focus-visible:ring-brand-primary',
+          'bg-transparent text-brand-primary',
+          'hover:bg-brand-primary/10',
           'active:scale-[0.98]',
         ],
         danger: [
-          'bg-brand-danger text-white hover:bg-brand-danger/90',
-          'focus-visible:ring-brand-danger',
-          'active:scale-[0.98]',
+          'bg-gradient-to-br from-red-500 to-red-600 text-white',
+          'shadow-md shadow-red-500/20',
+          'hover:shadow-lg hover:shadow-red-500/30 hover:-translate-y-0.5',
+          'active:translate-y-0 active:shadow-sm active:scale-[0.98]',
         ],
       },
       size: {
-        sm: 'h-8 px-3 text-xs',
-        md: 'h-10 px-4 py-2',
+        sm: 'h-9 px-3.5 text-xs',
+        md: 'h-11 px-5 py-2.5',
         lg: 'h-12 px-6 text-base',
         xl: 'h-14 px-8 text-lg',
       },
