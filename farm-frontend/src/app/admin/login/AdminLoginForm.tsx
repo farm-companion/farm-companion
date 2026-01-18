@@ -13,15 +13,8 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
     const formData = new FormData(e.currentTarget)
     const email = formData.get('email') as string
     const password = formData.get('password') as string
-    
-    // Log what's being submitted
-    console.log('=== LOGIN DEBUG ===')
-    console.log('Email being submitted:', email)
-    console.log('Password length:', password.length)
-    console.log('Password preview:', password.substring(0, 4) + '...')
-    console.log('==================')
-    
-    setDebugInfo(`Submitting: ${email} (password length: ${password.length})`)
+
+    setDebugInfo(`Submitting login request...`)
     
     try {
       // First, test the authentication
@@ -32,8 +25,7 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
       
       if (testResponse.ok) {
         const testResult = await testResponse.json()
-        console.log('Auth test result:', testResult)
-        setDebugInfo(`Test: Email match: ${testResult.match.email}, Password match: ${testResult.match.password}`)
+        setDebugInfo(`Authenticating...`)
         
         // If test passes, proceed with actual login
         if (testResult.match.email && testResult.match.password) {
@@ -45,21 +37,16 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
           if (loginResponse.redirected) {
             window.location.href = loginResponse.url
           } else {
-            const result = await loginResponse.text()
-            console.log('Login response:', result)
-            setDebugInfo(`Login response: ${result}`)
+            setDebugInfo(`Login completed`)
           }
         } else {
-          setDebugInfo(`Authentication failed: Email match: ${testResult.match.email}, Password match: ${testResult.match.password}`)
+          setDebugInfo(`Authentication failed. Please check your credentials.`)
         }
       } else {
-        const testError = await testResponse.text()
-        console.log('Test error:', testError)
-        setDebugInfo(`Test error: ${testError}`)
+        setDebugInfo(`Authentication failed. Please try again.`)
       }
     } catch (error) {
-      console.error('Login error:', error)
-      setDebugInfo(`Error: ${error}`)
+      setDebugInfo(`An error occurred during login. Please try again.`)
     } finally {
       setIsSubmitting(false)
     }
