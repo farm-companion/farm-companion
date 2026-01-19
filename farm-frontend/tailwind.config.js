@@ -229,27 +229,11 @@ module.exports = {
         'safe-right': 'env(safe-area-inset-right)',
       },
 
-      // Premium animations
+      // Minimal animations - Apple philosophy: purposeful motion only
       keyframes: {
         'fade-in': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
-        },
-        'fade-in-up': {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        'scale-in': {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
-        },
-        'lift': {
-          '0%': { transform: 'translateY(0)' },
-          '100%': { transform: 'translateY(-2px)' },
-        },
-        'shimmer': {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
         },
         'accordion-down': {
           from: { height: '0' },
@@ -259,33 +243,12 @@ module.exports = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
-        'shake': {
-          '0%, 100%': { transform: 'translateX(0)' },
-          '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-8px)' },
-          '20%, 40%, 60%, 80%': { transform: 'translateX(8px)' },
-        },
-        'success-pop': {
-          '0%': { transform: 'scale(0)', opacity: '0' },
-          '50%': { transform: 'scale(1.2)' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        },
-        'gentle-pulse': {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.5' },
-        },
       },
 
       animation: {
         'fade-in': 'fade-in 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        'fade-in-up': 'fade-in-up 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        'scale-in': 'scale-in 150ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        'lift': 'lift 150ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        'shimmer': 'shimmer 2s linear infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'shake': 'shake 0.6s ease-in-out',
-        'success-pop': 'success-pop 0.5s ease-out',
-        'gentle-pulse': 'gentle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       
       // Premium background patterns
