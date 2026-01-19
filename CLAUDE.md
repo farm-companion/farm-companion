@@ -46,14 +46,6 @@ Follow GitHub's official workflow documentation as the authoritative source for 
 - Branch protection: https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-protected-branches
 - Commits: https://docs.github.com/en/pull-requests/committing-changes-to-your-project
 
-**Project-specific requirements**:
-- One slice = one commit = one PR = one merge cycle
-- Branch naming: claude/<descriptive-name>-<session-id>
-- Create PR immediately after pushing feature branch
-- User merges when ready (respects branch protection)
-- Never force push to main/master
-- Never skip branch protection rules
-
 ## Execution ledger
 Maintain a single source of truth:
 - docs/assistant/execution-ledger.md
