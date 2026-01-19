@@ -51,7 +51,7 @@
 - [x] Data already migrated to Supabase (1,299 farms, 35 categories confirmed in Prisma Studio)
 - [x] Remove JSON file dependencies from farm-data.ts (Slice 2: Replaced filesystem JSON reads with Prisma queries, transformed Farm model to FarmShop type, removed console.log statements)
 - [x] Add geospatial indexes to Prisma schema (Slice 3: Added composite location indexes [lat, lng, status] and [county, lat, lng], documented PostGIS upgrade path in POSTGIS_SETUP.md)
-- [ ] Database constraints and validation (Slice 4)
+- [x] Database constraints and validation (Slice 4: Added CHECK constraint documentation to schema for coordinates, ratings, and status enums; created ADD_CHECK_CONSTRAINTS.sql with 8 constraints; created CHECK_CONSTRAINTS.md with validation queries, cleanup scripts, and rollback commands)
 
 ### Queue 10: Backend Architecture Cleanup (God-Tier Transformation)
 - [ ] Replace console.log with structured logging (Slice 1)
