@@ -136,22 +136,45 @@ These use CSS custom properties for theme switching:
 
 ---
 
-### Fluid Typography Scale
+### Semantic Typography Scale (NEW - Queue 8, Slice 2)
 
-All font sizes use `clamp()` for responsive scaling:
+**Apple-style semantic naming.** Use these instead of arbitrary sizes:
 
-| Token | Mobile → Desktop | Line Height | Usage |
-|-------|------------------|-------------|-------|
-| `text-xs` | 12px → 14px | 1.5 | Small labels |
-| `text-sm` | 14px → 16px | 1.5 | Secondary text |
-| `text-base` | 16px → 18px | 1.6 | Body text |
-| `text-lg` | 18px → 20px | 1.6 | Large body |
-| `text-xl` | 20px → 24px | 1.5 | Small headings |
-| `text-2xl` | 24px → 32px | 1.4 | Headings |
-| `text-3xl` | 30px → 40px | 1.3 | Large headings |
-| `text-4xl` | 36px → 48px | 1.2 | Page titles |
-| `text-5xl` | 48px → 64px | 1.1 | Hero titles |
-| `text-6xl` | 60px → 80px | 1.0 | Extra large heroes |
+| Token | Mobile → Desktop | Line Height | Letter Spacing | Weight | Usage |
+|-------|------------------|-------------|----------------|--------|-------|
+| `text-display` | 48px → 64px | 1.1 | -0.02em | 700 | Hero text, landing pages |
+| `text-heading` | 24px → 32px | 1.3 | -0.01em | 600 | Page titles, section headers |
+| `text-body` | 16px → 18px | 1.6 | normal | 400 | Main content, paragraphs |
+| `text-caption` | 14px → 16px | 1.5 | normal | 400 | Supporting text, labels |
+| `text-small` | 12px → 14px | 1.5 | normal | 400 | Fine print, legal text |
+
+**Example:**
+```jsx
+<h1 className="text-display">Welcome to Farm Companion</h1>
+<h2 className="text-heading">Find Local Farm Shops</h2>
+<p className="text-body">Discover fresh, seasonal produce from over 1,300 UK farms.</p>
+<span className="text-caption">Updated daily</span>
+<small className="text-small">© 2026 Farm Companion</small>
+```
+
+---
+
+### Legacy Typography Scale (DEPRECATED)
+
+**⚠️ These will be removed in future versions.** Migrate to semantic scales above:
+
+| Old Token | New Token | Notes |
+|-----------|-----------|-------|
+| `text-xs` | `text-small` | Fine print |
+| `text-sm` | `text-caption` | Supporting text |
+| `text-base` | `text-body` | Main content |
+| `text-lg` | `text-body` | Use body for consistency |
+| `text-xl` | `text-heading` | Section headers |
+| `text-2xl` | `text-heading` | Page titles |
+| `text-3xl` | `text-heading` or `text-display` | Large headers |
+| `text-4xl` | `text-display` | Hero text |
+| `text-5xl` | `text-display` | Hero text |
+| `text-6xl` | `text-display` | Hero text |
 
 ---
 
@@ -309,8 +332,16 @@ If you find components using undefined tokens:
 
 ## Changelog
 
+### 2026-01-19 - Queue 8, Slice 2
+- **ADDED:** Semantic typography scale (display, heading, body, caption, small)
+- **CHANGED:** Font sizes now use semantic naming instead of arbitrary sizes
+- **DEPRECATED:** Legacy sizes (xs, sm, base, lg, xl, 2xl, etc.) - migrate to semantic scales
+- **IMPROVED:** Typography includes proper letter-spacing and font-weight defaults
+
 ### 2026-01-19 - Queue 8, Slice 1
 - **ADDED:** Primary color scale (50-900) mapped to serum brand color
+- **ADDED:** Secondary color scale (50-900) mapped to solar accent color
+- **ADDED:** Neutral color scale (50-900) for standardized grays
 - **FIXED:** Components can now use `primary-500`, `primary-600`, etc.
 - **DOCUMENTED:** Complete design token system
 
