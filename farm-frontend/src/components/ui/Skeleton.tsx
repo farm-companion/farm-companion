@@ -14,7 +14,7 @@ import { cn } from '@/lib/utils'
 const skeletonVariants = cva(
   [
     'animate-pulse',
-    'bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700',
+    'bg-gradient-to-r from-neutral-200 via-neutral-300 to-neutral-200 dark:from-neutral-700 dark:via-neutral-600 dark:to-neutral-700',
     'bg-[length:200%_100%]',
     'rounded',
   ],

@@ -57,17 +57,17 @@ export function EmptyState({
   return (
     <div className={emptyStateVariants({ size, className })}>
       {icon && (
-        <div className="mb-4 text-gray-400 dark:text-gray-600">
+        <div className="mb-4 text-text-muted">
           {icon}
         </div>
       )}
 
-      <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+      <h3 className="text-xl font-semibold text-text-heading mb-2">
         {title}
       </h3>
 
       {description && (
-        <p className="text-gray-600 dark:text-gray-400 max-w-md mb-6">
+        <p className="text-text-body max-w-md mb-6">
           {description}
         </p>
       )}
