@@ -1,37 +1,69 @@
 import type { FarmShop } from '@/types/farm'
+import { prisma } from '@/lib/prisma'
 
-// Server-side farm data loading (reads directly from JSON file)
+// Server-side farm data loading (reads from Supabase via Prisma)
 export async function getFarmData(): Promise<FarmShop[]> {
   try {
-    // Use dynamic import to avoid ESLint issues
-    const fs = await import('fs/promises')
-    const path = await import('path')
-    
-    // Read farm data directly from the JSON file
-    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
-    const farmsData = await fs.readFile(farmsPath, 'utf-8')
-    const farms = JSON.parse(farmsData)
-    
-    // Filter and validate farms
-    const validFarms = farms.filter((farm: FarmShop) => {
-      if (!farm.name || !farm.location?.address) return false
-      
-      // Validate coordinates if present
-      if (farm.location.lat && farm.location.lng) {
-        const { lat, lng } = farm.location
-        if (typeof lat !== 'number' || typeof lng !== 'number') return false
+    const farms = await prisma.farm.findMany({
+      where: {
+        status: 'active',
+      },
+      include: {
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        images: {
+          where: {
+            status: 'approved',
+            isHero: true,
+          },
+          take: 1,
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    })
+
+    // Transform Prisma Farm model to FarmShop type
+    const validFarms: FarmShop[] = farms
+      .filter((farm) => {
+        // Validate coordinates
+        const lat = Number(farm.latitude)
+        const lng = Number(farm.longitude)
+        if (!lat || !lng) return false
         if (lat < -90 || lat > 90 || lng < -180 || lng > 180) return false
         if (lat === 0 && lng === 0) return false
-      }
-      
-      return true
-    })
-    
-    console.log(`📊 Loaded ${validFarms.length} valid farms from JSON file`)
+        return true
+      })
+      .map((farm) => ({
+        id: farm.id,
+        name: farm.name,
+        slug: farm.slug,
+        description: farm.description || undefined,
+        location: {
+          lat: Number(farm.latitude),
+          lng: Number(farm.longitude),
+          address: farm.address,
+          city: farm.city || undefined,
+          county: farm.county,
+          postcode: farm.postcode,
+        },
+        contact: {
+          phone: farm.phone || undefined,
+          email: farm.email || undefined,
+          website: farm.website || undefined,
+        },
+        offerings: farm.categories.map((fc) => fc.category.name),
+        images: farm.images.length > 0 ? [farm.images[0].url] : undefined,
+        verified: farm.verified,
+      }))
+
     return validFarms
   } catch (error) {
-    console.error('Error loading farm data from JSON file:', error)
-    return []
+    throw new Error(`Failed to load farm data from database: ${error}`)
   }
 }
 
@@ -40,14 +72,13 @@ export async function getFarmStats() {
   try {
     const farms = await getFarmData()
     const counties = new Set(farms.map((farm: FarmShop) => farm.location?.county).filter(Boolean))
-    
+
     return {
       farmCount: farms.length,
       countyCount: counties.size
     }
   } catch (error) {
-    console.warn('Error getting farm stats:', error)
-    return { farmCount: 0, countyCount: 0 }
+    throw new Error(`Failed to get farm stats: ${error}`)
   }
 }
 
