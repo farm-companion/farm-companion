@@ -17,6 +17,11 @@ Study these exemplars when designing architecture, documentation, and user exper
 
 Apply their principles: clarity over cleverness, performance with pragmatism, polish in every interaction, comprehensive coverage, and deep linkage between layers.
 
+## Technical documentation
+Essential references for implementation:
+
+1. **Prisma Client** (https://www.prisma.io/docs/orm/prisma-client) - ORM documentation for database operations, queries, migrations, and schema management
+
 ## Hard constraints
 1) No broad repo scans, audits, or exploratory analysis. You already have local access. Go directly to the known areas.
 2) Preserve public URLs and route patterns. No SEO regressions. If a redirect is unavoidable it must be permanent and documented.
