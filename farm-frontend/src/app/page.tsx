@@ -13,6 +13,9 @@ import { AnimatedFeatures } from '@/components/AnimatedFeatures'
 import { SeasonalShowcase } from '@/components/SeasonalShowcase'
 import { NearbyFarms } from '@/components/NearbyFarms'
 
+// Force dynamic rendering - CategoryGrid uses Prisma via server-cache
+export const dynamic = 'force-dynamic'
+
 export async function generateMetadata(): Promise<Metadata> {
   return {
     title: 'Farm Companion — UK Farm Shops Directory',
