@@ -15,6 +15,9 @@ import { countyFAQs } from '@/data/county-faqs'
 // Revalidate every 6 hours
 export const revalidate = 21600
 
+// Allow dynamic rendering for paths not generated at build time
+export const dynamicParams = true
+
 interface CountyPageProps {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ category?: string; page?: string }>
@@ -22,10 +25,17 @@ interface CountyPageProps {
 
 // Generate static params for all counties at build time
 export async function generateStaticParams() {
-  const counties = await getCachedAllCounties()
-  return counties.map((county: { slug: string }) => ({
-    slug: county.slug,
-  }))
+  try {
+    const counties = await getCachedAllCounties()
+    return counties.map((county: { slug: string }) => ({
+      slug: county.slug,
+    }))
+  } catch (error) {
+    // Database may not be available during build - return empty array
+    // Pages will be generated on-demand at request time
+    console.warn('Could not generate static params for counties:', error)
+    return []
+  }
 }
 
 // Generate metadata for SEO

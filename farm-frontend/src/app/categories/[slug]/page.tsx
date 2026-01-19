@@ -19,12 +19,22 @@ interface CategoryPageProps {
   searchParams: Promise<{ county?: string; page?: string }>
 }
 
+// Allow dynamic rendering for paths not generated at build time
+export const dynamicParams = true
+
 // Generate static params for all categories at build time
 export async function generateStaticParams() {
-  const categories = await getCachedAllCategories()
-  return categories.map((category: any) => ({
-    slug: category.slug,
-  }))
+  try {
+    const categories = await getCachedAllCategories()
+    return categories.map((category: any) => ({
+      slug: category.slug,
+    }))
+  } catch (error) {
+    // Database may not be available during build - return empty array
+    // Pages will be generated on-demand at request time
+    console.warn('Could not generate static params for categories:', error)
+    return []
+  }
 }
 
 // Generate metadata for SEO
