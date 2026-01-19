@@ -6,7 +6,13 @@ import PhotoSubmissionReceiptEmail from '@/emails/PhotoSubmissionReceipt'
 // import PhotoApprovedEmail from '@/emails/PhotoApproved'
 // import PhotoRejectedEmail from '@/emails/PhotoRejected'
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
+// Lazy initialize Resend to avoid build-time errors
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY not configured')
+  }
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 export type ReceiptInput = {
   to: string
@@ -44,6 +50,7 @@ export async function sendPhotoSubmissionReceipt(input: ReceiptInput) {
   const subject = `Thanks — we received your photo for ${input.farmName}`
 
   try {
+    const resend = getResendClient()
     const react = PhotoSubmissionReceiptEmail({
       siteUrl,
       logoPath,
@@ -117,6 +124,7 @@ export async function sendPhotoApprovedEmail(opts: {
   const subject = `Your photo has been approved for ${opts.farmName}`
 
   try {
+    const resend = getResendClient()
     const react = PhotoApprovedEmail({
       siteUrl,
       logoPath,
@@ -185,6 +193,7 @@ export async function sendPhotoRejectedEmail(opts: {
   const subject = `Your photo for ${opts.farmName} needs some changes`
 
   try {
+    const resend = getResendClient()
     const react = PhotoRejectedEmail({
       siteUrl,
       logoPath,
@@ -251,6 +260,7 @@ export async function sendSubmissionAckEmail(opts: {
   const subject = `Farm Shop Submission Confirmed: ${opts.farmName}`
 
   try {
+    const resend = getResendClient()
     // Simple HTML email since we don't have a React template for this yet
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">

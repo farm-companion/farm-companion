@@ -1,7 +1,6 @@
 import './globals.css'
 
 import type { Metadata } from 'next'
-import { Manrope, IBM_Plex_Sans, Crimson_Pro } from 'next/font/google'
 import Script from 'next/script'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
@@ -14,32 +13,8 @@ import { BottomNav } from '@/components/navigation/BottomNav'
 import { SITE_URL } from '@/lib/site'
 
 // Modern Swiss Minimalism Font Stack
-// Primary: Clash Display (self-hosted via CSS @font-face)
-// Note: Clash Display is loaded via CSS in fonts.css, no need for Next.js font loader
-
-// Secondary: Manrope (geometric sans, ultra-readable)
-const manrope = Manrope({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-body',
-  weight: ['400', '500', '600', '700'],
-})
-
-// Accent: IBM Plex Sans Condensed (tight, functional)
-const plexCondensed = IBM_Plex_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '600'],
-  variable: '--font-accent',
-})
-
-// Serif: Crimson Pro (editorial, magazine-style)
-const crimsonPro = Crimson_Pro({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '600', '700'],
-  variable: '--font-serif',
-})
+// Primary: Clash Display (self-hosted via CSS @font-face in fonts.css)
+// Fallback to system fonts for build compatibility
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -137,7 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${plexCondensed.variable} ${crimsonPro.variable}`}>
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Site-wide structured data - optimized with next/script */}
         <Script
@@ -197,8 +172,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
         
         {/* Preconnect to critical domains for performance - optimized network tree */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://maps.googleapis.com" />
         <link rel="preconnect" href="https://maps.gstatic.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />

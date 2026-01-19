@@ -7,15 +7,28 @@ import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/i
 
 // Using the centralized validation schema from input-validation.ts
 
-const redis = Redis.fromEnv()
-const limiter = new Ratelimit({ 
-  redis, 
-  limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
-})
+// Lazy initialization to avoid build-time errors
+function getRedisClient() {
+  return Redis.fromEnv()
+}
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-const TO = process.env.CONTACT_TO_EMAIL!
-const FROM = process.env.CONTACT_FROM_EMAIL!
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY not configured')
+  }
+  return new Resend(process.env.RESEND_API_KEY)
+}
+
+function getRateLimiter() {
+  const redis = getRedisClient()
+  return new Ratelimit({
+    redis,
+    limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
+  })
+}
+
+const TO = process.env.CONTACT_TO_EMAIL || 'hello@farmcompanion.co.uk'
+const FROM = process.env.CONTACT_FROM_EMAIL || 'noreply@farmcompanion.co.uk'
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,6 +47,7 @@ export async function POST(req: NextRequest) {
 
     // Rate limiting
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '0.0.0.0'
+    const limiter = getRateLimiter()
     const rate = await limiter.limit(`contact:${ip}`)
     if (!rate.success) {
       return NextResponse.json(
@@ -91,6 +105,7 @@ export async function POST(req: NextRequest) {
     // Send admin forward (don't fail the user if email fails)
     ;(async () => {
       try {
+        const resend = getResendClient()
         await resend.emails.send({
           from: FROM,
           to: TO,
@@ -113,6 +128,7 @@ export async function POST(req: NextRequest) {
     // Send user acknowledgement (non-blocking)
     ;(async () => {
       try {
+        const resend = getResendClient()
         await resend.emails.send({
           from: FROM,
           to: v.email,

@@ -4,8 +4,13 @@ import { ContactSchema, sanitizeText } from '@/lib/validation'
 import { rateLimiters, getClientIP } from '@/lib/rate-limit'
 import { checkCsrf, validateHoneypot, validateSubmissionTime, verifyTurnstile, validateContent, trackIPReputation, isIPBlocked } from '@/lib/security'
 
-// Initialize Resend
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialize Resend to avoid build-time errors
+function getResendClient() {
+  if (!process.env.RESEND_API_KEY) {
+    throw new Error('RESEND_API_KEY not configured')
+  }
+  return new Resend(process.env.RESEND_API_KEY)
+}
 
 // Email sending function with Resend API
 async function sendEmail(to: string, subject: string, html: string, text: string) {
@@ -15,6 +20,7 @@ async function sendEmail(to: string, subject: string, html: string, text: string
       throw new Error('Email service not configured')
     }
 
+    const resend = getResendClient()
     const result = await resend.emails.send({
       from: 'Farm Companion <hello@farmcompanion.co.uk>',
       to: [to],
