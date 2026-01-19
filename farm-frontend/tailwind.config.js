@@ -47,6 +47,36 @@ module.exports = {
           900: '#002624',  // Darkest
         },
 
+        // Secondary color scale (mapped to solar accent color)
+        // Used for accent elements, CTAs, highlights
+        secondary: {
+          50: '#FEFFF0',   // Lightest tint
+          100: '#FDFFDB',  // Very light
+          200: '#F9FFB7',  // Light
+          300: '#E8FF7F',  // Medium light
+          400: '#DDFF67',  // Medium
+          500: '#D4FF4F',  // DEFAULT (solar brand color)
+          600: '#AACC3F',  // Medium dark
+          700: '#80992F',  // Dark
+          800: '#55661F',  // Very dark
+          900: '#2B3310',  // Darkest
+        },
+
+        // Neutral gray scale (for components)
+        // Replaces hardcoded gray-{n} with semantic neutral-{n}
+        neutral: {
+          50: '#FAFAFA',   // Lightest
+          100: '#F5F5F5',  // Very light
+          200: '#E5E5E5',  // Light backgrounds
+          300: '#D4D4D4',  // Light borders
+          400: '#A3A3A3',  // Muted text/icons
+          500: '#737373',  // Medium text
+          600: '#525252',  // Body text
+          700: '#404040',  // Dark text
+          800: '#262626',  // Very dark text
+          900: '#171717',  // Darkest
+        },
+
         // Semantic feedback colors (god-tier design system)
         success: {
           light: '#D1FAE5',
