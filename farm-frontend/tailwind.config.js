@@ -159,30 +159,25 @@ module.exports = {
         '6xl': ['clamp(3.75rem, 3rem + 3.75vw, 5rem)', { lineHeight: '1' }],             // Use 'display'
       },
       
-      // Mobile-first spacing scale (4px baseline)
+      // 8px baseline grid system - Apple Design Guidelines
+      // All spacing values are multiples of 8 for consistent rhythm
       spacing: {
-        '0': '0px',
-        '1': '4px',
-        '2': '8px',
-        '3': '12px',
-        '4': '16px',
-        '5': '20px',
-        '6': '24px',
-        '7': '28px',
-        '8': '32px',
-        '9': '36px',
-        '10': '40px',
-        '11': '44px',   // iOS minimum touch target
-        '12': '48px',   // Our standard comfortable touch target
-        '14': '56px',   // Spacious touch target
-        '16': '64px',   // Generous touch target
-        '20': '80px',
-        '24': '96px',
-        '32': '128px',
-        '40': '160px',
-        '48': '192px',
-        '56': '224px',
-        '64': '256px',
+        '0': '0px',       // None
+        '1': '8px',       // 1 unit - Micro spacing
+        '2': '16px',      // 2 units - Tight spacing
+        '3': '24px',      // 3 units - Comfortable spacing
+        '4': '32px',      // 4 units - Section spacing
+        '5': '40px',      // 5 units - Component spacing
+        '6': '48px',      // 6 units - Touch target / comfortable spacing
+        '7': '56px',      // 7 units - Spacious touch target
+        '8': '64px',      // 8 units - Generous spacing
+        '10': '80px',     // 10 units - Large spacing
+        '12': '96px',     // 12 units - Section breaks
+        '16': '128px',    // 16 units - Major sections
+        '20': '160px',    // 20 units - Page sections
+        '24': '192px',    // 24 units - Hero spacing
+        '28': '224px',    // 28 units - Extra large
+        '32': '256px',    // 32 units - Maximum spacing
       },
       
       // Mobile-first border radius - Premium feel
