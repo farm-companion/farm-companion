@@ -49,7 +49,7 @@
 
 ### Queue 9: Data Architecture Fix (God-Tier Transformation)
 - [x] Data already migrated to Supabase (1,299 farms, 35 categories confirmed in Prisma Studio)
-- [ ] Remove JSON file dependencies from farm-data.ts (Slice 2)
+- [x] Remove JSON file dependencies from farm-data.ts (Slice 2: Replaced filesystem JSON reads with Prisma queries, transformed Farm model to FarmShop type, removed console.log statements)
 - [ ] Add geospatial indexes to Prisma schema (Slice 3)
 - [ ] Database constraints and validation (Slice 4)
 
