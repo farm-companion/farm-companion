@@ -7,18 +7,11 @@ import { getCachedFarmsByCounty } from '@/lib/server-cache-counties'
 import { FarmCard } from '@/components/FarmCard'
 import { Badge } from '@/components/ui/Badge'
 
-// Revalidate every 24 hours
-export const revalidate = 86400
+// Force dynamic rendering - page imports modules that use Prisma
+export const dynamic = 'force-dynamic'
 
 interface BestPageProps {
   params: Promise<{ slug: string }>
-}
-
-// Generate static params for all best-of lists
-export async function generateStaticParams() {
-  return bestLists.map((list: { slug: string }) => ({
-    slug: list.slug,
-  }))
 }
 
 // Generate metadata for SEO
