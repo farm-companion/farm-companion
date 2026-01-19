@@ -242,6 +242,10 @@ All spacing follows an 8px baseline grid for consistent visual rhythm. This matc
 
 ## Animation
 
+### Philosophy: Purposeful Motion Only (Apple Design)
+
+Animations are minimal and purposeful. Removed 70% of competing animations to achieve Apple-level restraint.
+
 ### Duration
 
 | Token | Time | Usage |
@@ -257,10 +261,30 @@ All spacing follows an 8px baseline grid for consistent visual rhythm. This matc
 |-------|-------|-------|
 | `ease-gentle-spring` | cubic-bezier(0.2, 0.8, 0.2, 1) | Smooth, natural motion |
 
+### Available Animations (Minimal Set)
+
+| Animation | Usage |
+|-----------|-------|
+| `animate-fade-in` | Simple fade transitions (250ms) |
+| `animate-accordion-down` | Radix UI accordion expand |
+| `animate-accordion-up` | Radix UI accordion collapse |
+
+**Removed animations** (70% reduction):
+- fade-in-up, scale-in, lift, shimmer, shake, success-pop, gentle-pulse
+
+**Why minimal?**
+- Follows Apple's philosophy: motion should be purposeful, not decorative
+- Reduces visual noise and improves performance
+- Improves accessibility (respects prefers-reduced-motion)
+
 **Example:**
 ```jsx
-<div className="transition-all duration-base ease-gentle-spring hover:scale-105">
-  Smooth hover effect
+<div className="animate-fade-in">
+  Simple, purposeful fade-in
+</div>
+
+<div className="transition-opacity duration-base ease-gentle-spring hover:opacity-80">
+  Subtle hover effect without animation
 </div>
 ```
 
@@ -334,6 +358,8 @@ If you find components using undefined tokens:
 <div className="bg-[#00C2B2]">     {/* ❌ Use bg-primary-500 */}
 <div className="p-[13px]">         {/* ❌ Use p-2 (16px) or p-3 (24px) */}
 <div className="space-y-5">        {/* ❌ Use space-y-4 (32px) or space-y-6 (48px) */}
+<div className="animate-shimmer">  {/* ❌ Removed - use animate-fade-in */}
+<div className="animate-shake">    {/* ❌ Removed - use subtle opacity transition */}
 ```
 
 **After:**
@@ -342,11 +368,20 @@ If you find components using undefined tokens:
 <div className="bg-primary-500">   {/* ✅ Semantic token */}
 <div className="p-3">              {/* ✅ 8px baseline grid (24px) */}
 <div className="space-y-4">        {/* ✅ 8px baseline grid (32px) */}
+<div className="animate-fade-in">  {/* ✅ Minimal, purposeful animation */}
+<div className="transition-opacity duration-fast"> {/* ✅ Subtle feedback */}
 ```
 
 ---
 
 ## Changelog
+
+### 2026-01-19 - Queue 8, Slice 4
+- **REMOVED:** 7 competing animations (70% reduction): fade-in-up, scale-in, lift, shimmer, shake, success-pop, gentle-pulse
+- **KEPT:** 3 essential animations: fade-in, accordion-down, accordion-up
+- **PHILOSOPHY:** Aligned with Apple's purposeful motion principle
+- **BENEFIT:** Reduced visual noise, improved performance, better accessibility
+- **MIGRATION:** Replace removed animations with animate-fade-in or subtle transitions
 
 ### 2026-01-19 - Queue 8, Slice 3
 - **CHANGED:** Spacing system migrated from 4px to 8px baseline grid
