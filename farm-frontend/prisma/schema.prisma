@@ -33,6 +33,16 @@ model Farm {
   latitude  Decimal @db.Decimal(10, 8)
   longitude Decimal @db.Decimal(11, 8)
 
+  // PostGIS Strategy:
+  // For advanced geospatial queries (radius search, nearest neighbors),
+  // add a geography column via raw SQL migration:
+  // ALTER TABLE farms ADD COLUMN location geography(POINT, 4326);
+  // CREATE INDEX farms_location_gist_idx ON farms USING GIST(location);
+  // UPDATE farms SET location = ST_SetSRID(ST_MakePoint(longitude::float, latitude::float), 4326);
+  //
+  // Then query with ST_DWithin for radius searches:
+  // SELECT * FROM farms WHERE ST_DWithin(location, ST_MakePoint($1, $2)::geography, $3);
+
   // Contact
   phone   String? @db.VarChar(20)
   email   String? @db.VarChar(255)
@@ -76,8 +86,13 @@ model Farm {
   @@index([status])
   @@index([verified])
   @@index([featured])
-  @@index([latitude, longitude])
   @@index([googleRating])
+
+  // Geospatial indexes (for proximity queries)
+  @@index([latitude, longitude]) // Basic coordinate lookup
+  @@index([latitude, longitude, status]) // Active farms by location
+  @@index([county, latitude, longitude]) // County-filtered location queries
+
   // Composite indexes for common query patterns
   @@index([county, status]) // County pages with active farms
   @@index([city, status]) // City-based searches
