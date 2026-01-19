@@ -32,6 +32,21 @@ module.exports = {
         'brand-accent': '#D4FF4F',
         'brand-danger': '#FF5A5F',
 
+        // Primary color scale (mapped to serum brand color)
+        // Used by components as primary-500, primary-600, etc.
+        primary: {
+          50: '#E6F9F7',   // Lightest tint
+          100: '#CCF3EF',  // Very light
+          200: '#99E7DF',  // Light
+          300: '#66DBCF',  // Medium light
+          400: '#33CFBF',  // Medium
+          500: '#00C2B2',  // DEFAULT (serum brand color)
+          600: '#009B8F',  // Medium dark
+          700: '#00746B',  // Dark
+          800: '#004D48',  // Very dark
+          900: '#002624',  // Darkest
+        },
+
         // Semantic feedback colors (god-tier design system)
         success: {
           light: '#D1FAE5',
