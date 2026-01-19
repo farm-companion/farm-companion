@@ -180,26 +180,40 @@ These use CSS custom properties for theme switching:
 
 ## Spacing
 
-### 4px Baseline Grid
+### 8px Baseline Grid (Apple Design Guidelines)
 
-All spacing follows a 4px baseline for vertical rhythm:
+All spacing follows an 8px baseline grid for consistent visual rhythm. This matches Apple's design system and ensures precise alignment across all screen sizes.
 
-| Token | Size | Touch Target |
-|-------|------|--------------|
-| `1` | 4px | |
-| `2` | 8px | |
-| `3` | 12px | |
-| `4` | 16px | |
-| `6` | 24px | |
-| `8` | 32px | |
-| `11` | 44px | iOS minimum touch |
-| `12` | 48px | **Standard touch target** |
-| `14` | 56px | Spacious touch |
+| Token | Size | Usage |
+|-------|------|-------|
+| `0` | 0px | None |
+| `1` | 8px | Micro spacing (icons, badges) |
+| `2` | 16px | Tight spacing (form labels) |
+| `3` | 24px | Comfortable spacing (card padding) |
+| `4` | 32px | Section spacing (list items) |
+| `5` | 40px | Component spacing |
+| `6` | 48px | **Touch target / comfortable spacing** |
+| `7` | 56px | Spacious touch target |
+| `8` | 64px | Generous spacing |
+| `10` | 80px | Large spacing |
+| `12` | 96px | Section breaks |
+| `16` | 128px | Major sections |
+| `20` | 160px | Page sections |
+| `24` | 192px | Hero spacing |
+| `28` | 224px | Extra large |
+| `32` | 256px | Maximum spacing |
+
+**Why 8px?**
+- Aligns with Apple's HIG (Human Interface Guidelines)
+- Ensures consistent rhythm across breakpoints
+- All values scale predictably (8, 16, 24, 32, 40, 48...)
+- Reduces decision fatigue with clear increments
 
 **Example:**
 ```jsx
-<button className="px-6 py-3">Standard padding</button>
-<div className="space-y-4">Consistent vertical rhythm</div>
+<button className="px-6 py-3">48px x 24px padding (6 x 3 units)</button>
+<div className="space-y-4">32px vertical rhythm (4 units)</div>
+<section className="py-12">96px section spacing (12 units)</section>
 ```
 
 ---
@@ -318,19 +332,28 @@ If you find components using undefined tokens:
 ```jsx
 <div className="ring-primary-500"> {/* ✅ Now defined! */}
 <div className="bg-[#00C2B2]">     {/* ❌ Use bg-primary-500 */}
-<div className="p-[13px]">         {/* ❌ Use p-3 (12px) or p-4 (16px) */}
+<div className="p-[13px]">         {/* ❌ Use p-2 (16px) or p-3 (24px) */}
+<div className="space-y-5">        {/* ❌ Use space-y-4 (32px) or space-y-6 (48px) */}
 ```
 
 **After:**
 ```jsx
 <div className="ring-primary-500"> {/* ✅ Uses design system */}
 <div className="bg-primary-500">   {/* ✅ Semantic token */}
-<div className="p-4">              {/* ✅ 4px baseline grid */}
+<div className="p-3">              {/* ✅ 8px baseline grid (24px) */}
+<div className="space-y-4">        {/* ✅ 8px baseline grid (32px) */}
 ```
 
 ---
 
 ## Changelog
+
+### 2026-01-19 - Queue 8, Slice 3
+- **CHANGED:** Spacing system migrated from 4px to 8px baseline grid
+- **ALIGNED:** Spacing now follows Apple Human Interface Guidelines
+- **IMPROVED:** All spacing values are multiples of 8 for consistent rhythm
+- **UPDATED:** Spacing tokens: 1=8px, 2=16px, 3=24px, 4=32px, 5=40px, 6=48px, etc.
+- **WHY:** Reduces decision fatigue, ensures predictable scaling, matches industry best practices
 
 ### 2026-01-19 - Queue 8, Slice 2
 - **ADDED:** Semantic typography scale (display, heading, body, caption, small)
