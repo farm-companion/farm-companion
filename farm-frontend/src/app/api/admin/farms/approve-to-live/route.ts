@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
       id: farm.id,
       name: farm.name,
       slug: farm.slug,
+      status: 'active' as const,
       location: {
         lat: farm.location.lat || 54.5, // UK fallback
         lng: farm.location.lng || -2.5,

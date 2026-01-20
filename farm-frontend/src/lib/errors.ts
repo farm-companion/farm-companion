@@ -133,6 +133,9 @@ export const errors = {
 
   notFound: (resource: string) => new AppError(`${resource} not found`, ErrorType.NOT_FOUND, 404),
 
+  conflict: (message: string, details?: Record<string, any>) =>
+    new AppError(message, ErrorType.VALIDATION, 409, details),
+
   rateLimit: (message: string = 'Too many requests. Please try again later.') =>
     new AppError(message, ErrorType.RATE_LIMIT, 429),
 
@@ -141,6 +144,9 @@ export const errors = {
 
   database: (message: string, details?: Record<string, any>) =>
     new AppError(message, ErrorType.DATABASE, 503, details),
+
+  configuration: (message: string, details?: Record<string, any>) =>
+    new AppError(message, ErrorType.INTERNAL, 500, details),
 
   internal: (message: string = 'Internal server error', details?: Record<string, any>) =>
     new AppError(message, ErrorType.INTERNAL, 500, details),

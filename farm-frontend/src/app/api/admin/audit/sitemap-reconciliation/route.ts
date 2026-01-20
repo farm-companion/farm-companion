@@ -146,7 +146,7 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
               urls.push(`${baseUrl}/shop/${farm.slug}`)
             }
           } catch (error) {
-            moduleLogger.warn('Error reading farm file', { file }, error as Error)
+            moduleLogger.error('Error reading farm file', { file }, error as Error)
           }
         }
       }
@@ -168,7 +168,7 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
               urls.push(`${baseUrl}/shop/${farm.slug}`)
             }
           } catch (error) {
-            moduleLogger.warn('Error reading farm file', { file }, error as Error)
+            moduleLogger.error('Error reading farm file', { file }, error as Error)
           }
         }
       }
@@ -195,7 +195,7 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
       const { PRODUCE } = await import('@/data/produce')
       urls.push(...PRODUCE.map(produce => `${baseUrl}/seasonal/${produce.slug}`))
     } catch (error) {
-      moduleLogger.warn('Could not load produce data', {}, error as Error)
+      moduleLogger.error('Could not load produce data', {}, error as Error)
     }
 
     // Add county pages (extract from farms)
@@ -226,7 +226,7 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
         }
       }
     } catch (error) {
-      moduleLogger.warn('Could not process farms for county pages', {}, error as Error)
+      moduleLogger.error('Could not process farms for county pages', {}, error as Error)
     }
 
     urls.push(...Array.from(counties).map(county => `${baseUrl}/counties/${county}`))
@@ -278,7 +278,7 @@ async function extractUrlsFromSitemaps(): Promise<string[]> {
           moduleLogger.warn('Could not access sitemap chunk', { chunkUrl })
         }
       } catch (error) {
-        moduleLogger.warn('Error processing sitemap chunk', { chunkUrl }, error as Error)
+        moduleLogger.error('Error processing sitemap chunk', { chunkUrl }, error as Error)
       }
     }
 

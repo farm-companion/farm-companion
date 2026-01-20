@@ -84,7 +84,7 @@ export async function GET() {
         counties: status.statistics.counties
       })
     } catch (error) {
-      logger.warn('Could not load farm statistics', {}, error as Error)
+      logger.error('Could not load farm statistics', {}, error as Error)
     }
 
     // Load produce statistics
@@ -95,7 +95,7 @@ export async function GET() {
         producePages: status.statistics.producePages
       })
     } catch (error) {
-      logger.warn('Could not load produce statistics', {}, error as Error)
+      logger.error('Could not load produce statistics', {}, error as Error)
     }
 
     // Check sitemap chunks
@@ -136,7 +136,7 @@ export async function GET() {
         logger.info('Main sitemap checked', { lastModified })
       }
     } catch (error) {
-      logger.warn('Could not check main sitemap', {}, error as Error)
+      logger.error('Could not check main sitemap', {}, error as Error)
     }
 
     logger.info('Bing indexing status generated successfully', {

@@ -64,7 +64,7 @@ export async function POST(req: Request) {
     if (!parse.success) {
       await trackIPReputation(ip, 'failure')
       throw errors.validation('Invalid data provided', {
-        errors: parse.error.errors,
+        errors: parse.error.issues,
       })
     }
 
@@ -209,7 +209,7 @@ export async function POST(req: Request) {
         // Process image: resize, convert to WebP, strip EXIF and metadata
         processedImage = await img
           .rotate() // Auto-rotate based on EXIF
-          .resize(1800, null, {
+          .resize(1800, undefined, {
             withoutEnlargement: true,
             fit: 'inside'
           })

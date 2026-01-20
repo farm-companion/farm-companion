@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
               farmName = farm.name || farm.title || photo.farmSlug
             }
           } catch (err) {
-            moduleLogger.warn('Could not fetch farm name for email', {
+            moduleLogger.error('Could not fetch farm name for email', {
               farmSlug: photo.farmSlug
             }, err as Error)
           }

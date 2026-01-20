@@ -51,10 +51,10 @@ export async function POST(request: NextRequest) {
       await trackIPReputation(ip, 'failure')
       logger.warn('Contact form validation failed', {
         ip,
-        errors: parse.error.errors
+        errors: parse.error.issues
       })
       throw errors.validation('Invalid data provided', {
-        errors: parse.error.errors,
+        errors: parse.error.issues,
       })
     }
 

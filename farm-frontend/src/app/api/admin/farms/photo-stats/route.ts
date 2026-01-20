@@ -3,7 +3,6 @@ import { ensureConnection } from '@/lib/redis'
 import { getCurrentUser } from '@/lib/auth'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
-import type { RedisClientType } from '@redis/client'
 
 export async function GET(request: NextRequest) {
   const logger = createRouteLogger('api/admin/farms/photo-stats', request)
@@ -35,7 +34,7 @@ export async function GET(request: NextRequest) {
   }
 }
 
-async function getFarmPhotoStats(client: RedisClientType, farmSlug: string, logger: ReturnType<typeof createRouteLogger>) {
+async function getFarmPhotoStats(client: Awaited<ReturnType<typeof ensureConnection>>, farmSlug: string, logger: ReturnType<typeof createRouteLogger>) {
   try {
     // Batch fetch photo counts using pipeline
     const statsPipeline = client.pipeline()
@@ -67,7 +66,7 @@ async function getFarmPhotoStats(client: RedisClientType, farmSlug: string, logg
 
     // Process photo data
     const approvedPhotos = photoResults
-      .map((result, index) => {
+      .map((result: any, index: number) => {
         const [err, photoData] = result
         if (err || !photoData || typeof photoData !== 'object' || Object.keys(photoData).length === 0) {
           return null
@@ -85,15 +84,15 @@ async function getFarmPhotoStats(client: RedisClientType, farmSlug: string, logg
       })
       .filter(Boolean)
 
-    const validPhotos = approvedPhotos.sort((a, b) => b!.approvedAt - a!.approvedAt)
+    const validPhotos = approvedPhotos.sort((a: any, b: any) => b!.approvedAt - a!.approvedAt)
 
     // Calculate upload frequency
     const now = Date.now()
     const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
-    const recentUploads = validPhotos.filter((photo) => photo!.approvedAt > thirtyDaysAgo).length
+    const recentUploads = validPhotos.filter((photo: any) => photo!.approvedAt > thirtyDaysAgo).length
 
     // Get upload history (last 10 uploads)
-    const uploadHistory = validPhotos.slice(0, 10).map((photo) => ({
+    const uploadHistory = validPhotos.slice(0, 10).map((photo: any) => ({
       id: photo!.id,
       caption: photo!.caption,
       authorName: photo!.authorName,
@@ -137,7 +136,7 @@ interface FarmStats {
   total: number
 }
 
-async function getAllFarmsPhotoStats(client: RedisClientType, logger: ReturnType<typeof createRouteLogger>) {
+async function getAllFarmsPhotoStats(client: Awaited<ReturnType<typeof ensureConnection>>, logger: ReturnType<typeof createRouteLogger>) {
   try {
     // Get all farm keys
     const farmKeys = await client.keys('farm:*:photos:*')

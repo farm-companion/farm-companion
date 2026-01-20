@@ -15,7 +15,7 @@ const limiter = new Ratelimit({
   limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
 })
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+const resend = new Resend(process.env.RESEND_API_KEY || 'placeholder_key_for_build')
 const TO = process.env.CONTACT_TO_EMAIL!
 const FROM = process.env.CONTACT_FROM_EMAIL!
 

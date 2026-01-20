@@ -1,10 +1,16 @@
 /* Modern Swiss Minimalism Font Stack - @font-face Declarations */
 
+/* Load Google Fonts at runtime (not build time) to avoid 403 errors during build */
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&display=swap');
+
 /* Fallbacks first — will render immediately */
 :root {
   --font-primary: "Clash Display", "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
-  --font-accent: "IBM Plex Sans Condensed", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-accent: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-serif: "Crimson Pro", Georgia, "Times New Roman", serif;
 }
 
 /* Self-hosted Clash Display - Complete Font Family */

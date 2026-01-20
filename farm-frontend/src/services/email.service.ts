@@ -6,7 +6,8 @@
 import { Resend } from 'resend'
 import { createRouteLogger } from '@/lib/logger'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Initialize Resend with API key or placeholder for build time
+const resend = new Resend(process.env.RESEND_API_KEY || 'placeholder_key_for_build')
 
 const FROM_EMAIL = 'Farm Companion <hello@farmcompanion.co.uk>'
 const REPLY_TO_EMAIL = 'hello@farmcompanion.co.uk'
@@ -32,19 +33,22 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
   }
 
   try {
-    const result = await resend.emails.send({
+    const emailPayload: any = {
       from: FROM_EMAIL,
       to: [options.to],
       subject: options.subject,
-      html: options.html,
-      text: options.text,
       replyTo: options.replyTo || REPLY_TO_EMAIL,
-    })
+    }
+
+    if (options.html) emailPayload.html = options.html
+    if (options.text) emailPayload.text = options.text
+
+    const result = await resend.emails.send(emailPayload)
 
     logger.info('Email sent successfully', {
       to: options.to,
       subject: options.subject,
-      resultId: result.id,
+      resultId: (result as any).id || (result as any).data?.id,
     })
   } catch (error) {
     logger.error('Email sending failed', { to: options.to, subject: options.subject }, error as Error)

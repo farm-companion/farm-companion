@@ -44,7 +44,8 @@ export async function GET(req: NextRequest) {
 
       logger.info('Database integrity check completed', {
         schema,
-        recordsChecked: integrity.totalRecords,
+        valid: integrity.valid,
+        errorsCount: integrity.errors.length,
         orphanedIndexes: integrity.orphanedIndexes?.length || 0
       })
 
