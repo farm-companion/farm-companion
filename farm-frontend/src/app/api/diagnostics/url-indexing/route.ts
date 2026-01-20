@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { notifyBingOfUrl } from '@/lib/bing-notifications'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 /**
  * URL Indexing Diagnostic Tool
- * 
+ *
  * This endpoint performs comprehensive diagnostics for URL indexing issues.
  * Follows the three-step verification process:
  * 1. Check URL accessibility to Bingbot (200 status, no geoblocking)
@@ -11,23 +13,30 @@ import { notifyBingOfUrl } from '@/lib/bing-notifications'
  * 3. Submit URL via IndexNow and provide monitoring guidance
  */
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/diagnostics/url-indexing', request)
+
   try {
+    logger.info('Processing URL indexing diagnostics request')
+
     const { url } = await request.json()
-    
+
     if (!url || typeof url !== 'string') {
-      return NextResponse.json(
-        { error: 'URL is required and must be a string' },
-        { status: 400 }
-      )
+      logger.warn('Invalid URL provided in diagnostics request', {
+        hasUrl: !!url,
+        urlType: typeof url
+      })
+      throw errors.validation('URL is required and must be a string')
     }
+
+    logger.info('Running URL indexing diagnostics', { url })
 
     const diagnostics = {
       url,
       timestamp: new Date().toISOString(),
       steps: {
-        step1: await checkUrlAccessibility(url),
-        step2: await checkSitemapPresence(url),
-        step3: await submitToIndexNow(url),
+        step1: await checkUrlAccessibility(url, logger),
+        step2: await checkSitemapPresence(url, logger),
+        step3: await submitToIndexNow(url, logger),
       },
       recommendations: [] as string[],
       status: 'unknown' as 'pass' | 'fail' | 'warning' | 'unknown',
@@ -36,25 +45,24 @@ export async function POST(request: NextRequest) {
     // Analyze results and provide recommendations
     analyzeResults(diagnostics)
 
+    logger.info('URL indexing diagnostics completed', {
+      url,
+      status: diagnostics.status,
+      stepsCompleted: Object.keys(diagnostics.steps).length
+    })
+
     return NextResponse.json(diagnostics)
 
   } catch (error) {
-    console.error('Error in URL indexing diagnostics:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to perform diagnostics',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/diagnostics/url-indexing')
   }
 }
 
 /**
  * Step 1: Check URL accessibility to Bingbot
  */
-async function checkUrlAccessibility(url: string) {
+async function checkUrlAccessibility(url: string, logger: ReturnType<typeof createRouteLogger>) {
+  logger.info('Checking URL accessibility', { url })
   const result = {
     status: 'unknown' as 'pass' | 'fail' | 'warning',
     details: {
@@ -95,17 +103,32 @@ async function checkUrlAccessibility(url: string) {
     if (response.status === 200) {
       result.status = 'pass'
       result.details.accessible = true
+      logger.info('URL accessibility check passed', {
+        url,
+        httpStatus: response.status,
+        responseTime: result.details.responseTime
+      })
     } else if (response.status >= 300 && response.status < 400) {
       result.status = 'warning'
       result.details.error = `URL redirects (${response.status}) - may affect indexing`
+      logger.warn('URL redirects detected', {
+        url,
+        httpStatus: response.status,
+        location: result.details.redirects[0]
+      })
     } else if (response.status >= 400) {
       result.status = 'fail'
       result.details.error = `URL returns error status: ${response.status}`
+      logger.warn('URL accessibility check failed', {
+        url,
+        httpStatus: response.status
+      })
     }
 
   } catch (error) {
     result.status = 'fail'
     result.details.error = error instanceof Error ? error.message : 'Network error'
+    logger.error('URL accessibility check error', { url }, error as Error)
   }
 
   return result
@@ -114,7 +137,8 @@ async function checkUrlAccessibility(url: string) {
 /**
  * Step 2: Check if URL appears in sitemap
  */
-async function checkSitemapPresence(url: string) {
+async function checkSitemapPresence(url: string, logger: ReturnType<typeof createRouteLogger>) {
+  logger.info('Checking sitemap presence', { url })
   const result = {
     status: 'unknown' as 'pass' | 'fail' | 'warning',
     details: {
@@ -178,11 +202,20 @@ async function checkSitemapPresence(url: string) {
     if (!result.details.inMainSitemap && !result.details.inChildSitemap) {
       result.status = 'fail'
       result.details.error = 'URL not found in any sitemap'
+      logger.warn('URL not found in sitemap', { url })
+    } else {
+      logger.info('URL found in sitemap', {
+        url,
+        sitemapUrl: result.details.sitemapUrl,
+        inMainSitemap: result.details.inMainSitemap,
+        inChildSitemap: result.details.inChildSitemap
+      })
     }
 
   } catch (error) {
     result.status = 'fail'
     result.details.error = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('Sitemap presence check error', { url }, error as Error)
   }
 
   return result
@@ -191,7 +224,8 @@ async function checkSitemapPresence(url: string) {
 /**
  * Step 3: Submit URL to IndexNow
  */
-async function submitToIndexNow(url: string) {
+async function submitToIndexNow(url: string, logger: ReturnType<typeof createRouteLogger>) {
+  logger.info('Submitting URL to IndexNow', { url })
   const result = {
     status: 'unknown' as 'pass' | 'fail' | 'warning',
     details: {
@@ -215,6 +249,7 @@ async function submitToIndexNow(url: string) {
         'Monitor crawl logs for bingbot activity',
         'Use URL Inspection tool to verify indexing progress',
       ]
+      logger.info('IndexNow submission successful', { url })
     } else {
       result.status = 'fail'
       result.details.error = submissionResult.error || 'Unknown submission error'
@@ -224,6 +259,10 @@ async function submitToIndexNow(url: string) {
         'Check Bing IndexNow documentation for error codes',
         'Consider manual submission via Bing Webmaster Tools',
       ]
+      logger.warn('IndexNow submission failed', {
+        url,
+        error: submissionResult.error
+      })
     }
 
   } catch (error) {
@@ -235,6 +274,7 @@ async function submitToIndexNow(url: string) {
       'Verify network connectivity to Bing IndexNow API',
       'Consider manual submission via Bing Webmaster Tools',
     ]
+    logger.error('IndexNow submission error', { url }, error as Error)
   }
 
   return result

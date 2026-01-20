@@ -1,22 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 export async function POST(req: NextRequest) {
+  const logger = createRouteLogger('api/debug/test-upload', req)
+
   try {
+    logger.info('Processing test upload request')
+
     const formData = await req.formData()
     const file = formData.get('file') as File
-    
+
     if (!file) {
-      return NextResponse.json({
-        error: 'missing-file',
-        message: 'No file provided'
-      }, { status: 400 })
+      logger.warn('No file provided in test upload request')
+      throw errors.validation('No file provided')
     }
 
     // Create a test pathname
     const pathname = `test-upload/${Date.now()}-${file.name}`
 
-    console.log('Test upload:', {
+    logger.info('Starting test upload', {
       fileName: file.name,
       fileSize: file.size,
       contentType: file.type,
@@ -29,7 +33,11 @@ export async function POST(req: NextRequest) {
       addRandomSuffix: false
     })
 
-    console.log('Upload successful:', blob.url)
+    logger.info('Test upload successful', {
+      url: blob.url,
+      pathname,
+      fileName: file.name
+    })
 
     return NextResponse.json({
       ok: true,
@@ -38,10 +46,6 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Test upload error:', error)
-    return NextResponse.json({
-      error: 'upload-failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return handleApiError(error, 'api/debug/test-upload')
   }
 }
