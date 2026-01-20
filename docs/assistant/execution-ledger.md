@@ -52,7 +52,8 @@
 - [x] Typography migration (Slice 2f) - Admin photos page migrated to semantic typography (30 replacements)
 - [x] Typography migration (Slice 2g) - Admin dashboard page migrated to semantic typography (24 replacements)
 - [x] Typography migration (Slice 2h) - Admin documentation page migrated to semantic typography (114 replacements)
-- [ ] Typography migration (Slice 2i-z) - Remaining 704 legacy instances across 990 files (admin pages, forms, lists, cards, etc)
+- [x] Typography migration (Slice 2i) - Admin produce page migrated to semantic typography (24 replacements)
+- [ ] Typography migration (Slice 2j-z) - Remaining 680 legacy instances across 989 files (admin pages, forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -237,6 +238,16 @@
   - High-visibility admin reference documentation with 10 major sections
   - Files changed: 1 page, 114 typography replacements
   - Remaining: 704 legacy instances across 990 files for future slices
+- **Queue 8, Slice 2i: Admin Produce Page Typography Migration** (COMPLETE)
+  - Migrated admin/produce/page.tsx to semantic typography
+  - text-heading for page title, section headings, stat titles, and stat values
+  - text-body for buttons (back, upload, view)
+  - text-caption for descriptions, error messages, and produce details
+  - text-small for status badges (Peak, In Season)
+  - Removed 24 legacy responsive text size modifiers (238 line file)
+  - Admin interface for seasonal produce image management
+  - Files changed: 1 page, 24 typography replacements
+  - Remaining: 680 legacy instances across 989 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
