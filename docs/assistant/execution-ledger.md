@@ -70,7 +70,8 @@
 - [x] Standardize admin/photos/approve/route (3-in-1: eliminated 7 console statements, 3 inline errors)
 - [x] Standardize newsletter/subscribe/route (3-in-1: eliminated 5 console statements, 7 inline errors)
 - [x] Standardize contact/submit/route (3-in-1: eliminated 4 console statements, 8 inline errors)
-- [ ] Standardize error handling in batch 1 (3 remaining routes: farms/submit, claims, consent)
+- [x] Standardize farms/submit/route (3-in-1: eliminated 2 console statements, 10 inline errors)
+- [ ] Standardize error handling in batch 1 (2 remaining routes: claims, consent)
 - [ ] Standardize error handling in batch 2 (10 routes)
 - [ ] Standardize error handling in batch 3 (10 routes)
 - [ ] Standardize error handling in batch 4 (10 routes)
@@ -83,6 +84,7 @@
 - [x] Remove console.log from admin photo routes (admin/photos/reject 1 statement, admin/photos/remove 1 statement, admin/photos/approve 7 statements)
 - [x] Remove console.log from newsletter/subscribe route (5 statements eliminated)
 - [x] Remove console.log from contact/submit route (4 statements eliminated)
+- [x] Remove console.log from farms/submit route (2 statements eliminated)
 - [ ] Remove console.log from high-volume offenders batch 1c (admin/audit/sitemap-reconciliation 23 statements - file too large, deferred)
 - [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements)
 - [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
@@ -105,6 +107,7 @@
 - [x] Add structured logging to admin/photos/approve/route
 - [x] Add structured logging to newsletter/subscribe/route
 - [x] Add structured logging to contact/submit/route
+- [x] Add structured logging to farms/submit/route
 - [ ] Add structured logging to all admin routes (17+ routes remaining)
 - [ ] Add structured logging to all photo routes (10+ routes)
 - [ ] Add structured logging to all farm routes (10+ routes)
@@ -172,6 +175,14 @@
   - All contact form operations logged with proper context (ip, id, name, email, topic)
   - Kill switch, origin check, rate limiting, validation, spam checks all have detailed logging
   - KV storage and email operations have success/failure logging with proper context
+- **Queue 12-17: Farm Submission Route 3-in-1 Cleanup** (COMPLETE)
+  - Refactored api/farms/submit/route.ts (167 → 190 lines)
+  - Added structured logging: Replaced 2 console statements with logger.info/warn/error and moduleLogger for helpers
+  - Standardized error handling: Replaced 10 inline error responses with throw + error factories
+  - Created module-level logger for async acknowledgement email operation
+  - All farm submission operations logged with proper context (ip, id, name, county, postcode)
+  - Kill switch, rate limiting, validation, spam checks, database operations all have detailed logging
+  - Database constraint violations and validation errors handled with proper context (field, constraint)
 
 ### 2026-01-19 (God-Tier Transformation Begins)
 - **Queue 8, Slice 1: Design Token Consolidation (COMPREHENSIVE)** (COMPLETE - REDONE)
