@@ -30,7 +30,10 @@ model Farm {
   city      String? @db.VarChar(100)
   county    String  @db.VarChar(100)
   postcode  String  @db.VarChar(10)
+  // Coordinates with valid geographic bounds
+  // CHECK constraint: latitude >= -90 AND latitude <= 90
   latitude  Decimal @db.Decimal(10, 8)
+  // CHECK constraint: longitude >= -180 AND longitude <= 180
   longitude Decimal @db.Decimal(11, 8)
 
   // PostGIS Strategy:
@@ -50,13 +53,16 @@ model Farm {
 
   // Google Places Integration
   googlePlaceId      String?  @db.VarChar(255)
+  // CHECK constraint: googleRating >= 0.0 AND googleRating <= 5.0
   googleRating       Decimal? @db.Decimal(2, 1)
   googleReviewsCount Int      @default(0)
 
   // Metadata
   verified Boolean @default(false)
   featured Boolean @default(false)
-  status   String  @default("active") @db.VarChar(20) // active, pending, suspended
+  // Valid values: 'active', 'pending', 'suspended'
+  // CHECK constraint: status IN ('active', 'pending', 'suspended')
+  status   String  @default("active") @db.VarChar(20)
 
   // Opening Hours (stored as JSON)
   openingHours Json?
@@ -87,12 +93,10 @@ model Farm {
   @@index([verified])
   @@index([featured])
   @@index([googleRating])
-
   // Geospatial indexes (for proximity queries)
   @@index([latitude, longitude]) // Basic coordinate lookup
   @@index([latitude, longitude, status]) // Active farms by location
   @@index([county, latitude, longitude]) // County-filtered location queries
-
   // Composite indexes for common query patterns
   @@index([county, status]) // County pages with active farms
   @@index([city, status]) // City-based searches
@@ -198,8 +202,11 @@ model Image {
   displayOrder Int     @default(0)
 
   // Metadata
-  uploadedBy String @db.VarChar(50) // 'owner', 'admin', 'user'
-  status     String @default("pending") @db.VarChar(20) // pending, approved, rejected
+  // Valid uploadedBy values: 'owner', 'admin', 'user'
+  uploadedBy String @db.VarChar(50)
+  // Valid values: 'pending', 'approved', 'rejected'
+  // CHECK constraint: status IN ('pending', 'approved', 'rejected')
+  status     String @default("pending") @db.VarChar(20)
 
   // Timestamps
   createdAt  DateTime  @default(now())
@@ -233,14 +240,17 @@ model Review {
   authorEmail String? @db.VarChar(255)
 
   // Review content
-  rating  Int // 1-5
+  // CHECK constraint: rating >= 1 AND rating <= 5
+  rating  Int
   title   String? @db.VarChar(255)
   content String  @db.Text
 
   // Metadata
   helpfulCount     Int     @default(0)
   verifiedPurchase Boolean @default(false)
-  status           String  @default("pending") @db.VarChar(20) // pending, approved, rejected
+  // Valid values: 'pending', 'approved', 'rejected'
+  // CHECK constraint: status IN ('pending', 'approved', 'rejected')
+  status           String  @default("pending") @db.VarChar(20)
 
   // Timestamps
   createdAt  DateTime  @default(now())
@@ -278,7 +288,9 @@ model BlogPost {
   tags     String[]
 
   // Publishing
-  status      String    @default("draft") @db.VarChar(20) // draft, published, archived
+  // Valid values: 'draft', 'published', 'archived'
+  // CHECK constraint: status IN ('draft', 'published', 'archived')
+  status      String    @default("draft") @db.VarChar(20)
   publishedAt DateTime?
 
   // SEO
