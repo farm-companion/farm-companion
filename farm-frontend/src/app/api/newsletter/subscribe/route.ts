@@ -6,6 +6,7 @@ import { Resend } from 'resend'
 import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
+import { createRouteLogger } from '@/lib/logger'
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -13,23 +14,27 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 // reCAPTCHA verification
 async function verifyRecaptcha(token: string): Promise<boolean> {
+  const logger = createRouteLogger('api/newsletter/recaptcha')
+
   try {
     const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`
     })
-    
+
     const data = await response.json()
     return data.success && data.score > 0.5
   } catch (error) {
-    console.error('reCAPTCHA verification failed:', error)
+    logger.error('reCAPTCHA verification failed', {}, error as Error)
     return false
   }
 }
 
 // Send welcome email
 async function sendWelcomeEmail(email: string, name: string) {
+  const logger = createRouteLogger('api/newsletter/welcome')
+
   try {
     await resend.emails.send({
       from: 'Farm Companion <hello@farmcompanion.co.uk>',
@@ -114,23 +119,27 @@ async function sendWelcomeEmail(email: string, name: string) {
         </html>
       `
     })
-    
+
     return true
   } catch (error) {
-    console.error('Failed to send welcome email:', error)
+    logger.error('Failed to send welcome email', { email }, error as Error)
     return false
   }
 }
 
 // Store subscription (in production, use database)
 async function storeSubscription(email: string, name: string, source?: string) {
+  const logger = createRouteLogger('api/newsletter/store')
+
   // TODO: Implement database storage
   // For now, just log the subscription
-  console.log('New subscription:', { email, name, source, timestamp: new Date().toISOString() })
+  logger.info('New subscription (placeholder)', { email, name, source, timestamp: new Date().toISOString() })
   return true
 }
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/newsletter/subscribe', request)
+
   try {
     // CSRF protection
     if (!checkCsrf(request)) {
@@ -205,26 +214,28 @@ export async function POST(request: NextRequest) {
       /^mail@/i,
       /^webmaster@/i
     ]
-    
+
     if (suspiciousPatterns.some(pattern => pattern.test(email))) {
-      console.warn('Suspicious email pattern detected:', email)
+      logger.warn('Suspicious email pattern detected (monitoring only)', { email })
       // Don't block, but log for monitoring
     }
-    
+
     // Store subscription
     await storeSubscription(email, name, source)
-    
+
     // Send welcome email
     const emailSent = await sendWelcomeEmail(email, name)
-    
+
+    logger.info('Newsletter subscription successful', { email, emailSent })
+
     return NextResponse.json({
       success: true,
       message: 'Successfully subscribed to Farm Companion newsletter!',
       emailSent
     })
-    
+
   } catch (error) {
-    console.error('Newsletter subscription error:', error)
+    logger.error('Newsletter subscription error', {}, error as Error)
     return NextResponse.json(
       { error: 'Failed to process subscription. Please try again.' },
       { status: 500 }
