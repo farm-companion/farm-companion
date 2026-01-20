@@ -136,44 +136,48 @@ module.exports = {
         'bold': '700',
       },
       
-      // Fluid Typography - Mobile-first responsive (clamp for smooth scaling)
+      // Semantic Typography System - Apple-style clarity
+      // 5 semantic scales replace 12 arbitrary sizes
       fontSize: {
-        'xs': ['clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)', { lineHeight: '1.5' }],      // 12px -> 14px
-        'sm': ['clamp(0.875rem, 0.825rem + 0.25vw, 1rem)', { lineHeight: '1.5' }],       // 14px -> 16px
-        'base': ['clamp(1rem, 0.95rem + 0.25vw, 1.125rem)', { lineHeight: '1.6' }],      // 16px -> 18px
-        'lg': ['clamp(1.125rem, 1.05rem + 0.375vw, 1.25rem)', { lineHeight: '1.6' }],    // 18px -> 20px
-        'xl': ['clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem)', { lineHeight: '1.5' }],        // 20px -> 24px
-        '2xl': ['clamp(1.5rem, 1.35rem + 0.75vw, 2rem)', { lineHeight: '1.4' }],         // 24px -> 32px
-        '3xl': ['clamp(1.875rem, 1.65rem + 1.125vw, 2.5rem)', { lineHeight: '1.3' }],    // 30px -> 40px
-        '4xl': ['clamp(2.25rem, 1.95rem + 1.5vw, 3rem)', { lineHeight: '1.2' }],         // 36px -> 48px
-        '5xl': ['clamp(3rem, 2.5rem + 2.5vw, 4rem)', { lineHeight: '1.1' }],             // 48px -> 64px
-        '6xl': ['clamp(3.75rem, 3rem + 3.75vw, 5rem)', { lineHeight: '1' }],             // 60px -> 80px
+        // Semantic scales (USE THESE)
+        'display': ['clamp(3rem, 2.5rem + 2.5vw, 4rem)', { lineHeight: '1.1', letterSpacing: '-0.02em', fontWeight: '700' }],     // Hero text: 48px -> 64px
+        'heading': ['clamp(1.5rem, 1.35rem + 0.75vw, 2rem)', { lineHeight: '1.3', letterSpacing: '-0.01em', fontWeight: '600' }], // Page titles: 24px -> 32px
+        'body': ['clamp(1rem, 0.95rem + 0.25vw, 1.125rem)', { lineHeight: '1.6' }],                                                // Main content: 16px -> 18px
+        'caption': ['clamp(0.875rem, 0.825rem + 0.25vw, 1rem)', { lineHeight: '1.5' }],                                            // Supporting text: 14px -> 16px
+        'small': ['clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)', { lineHeight: '1.5' }],                                             // Fine print: 12px -> 14px
+
+        // Legacy sizes (DEPRECATED - migrate to semantic scales above)
+        'xs': ['clamp(0.75rem, 0.7rem + 0.25vw, 0.875rem)', { lineHeight: '1.5' }],      // Use 'small' instead
+        'sm': ['clamp(0.875rem, 0.825rem + 0.25vw, 1rem)', { lineHeight: '1.5' }],       // Use 'caption' instead
+        'base': ['clamp(1rem, 0.95rem + 0.25vw, 1.125rem)', { lineHeight: '1.6' }],      // Use 'body' instead
+        'lg': ['clamp(1.125rem, 1.05rem + 0.375vw, 1.25rem)', { lineHeight: '1.6' }],    // Use 'body' or 'heading'
+        'xl': ['clamp(1.25rem, 1.15rem + 0.5vw, 1.5rem)', { lineHeight: '1.5' }],        // Use 'heading'
+        '2xl': ['clamp(1.5rem, 1.35rem + 0.75vw, 2rem)', { lineHeight: '1.4' }],         // Use 'heading'
+        '3xl': ['clamp(1.875rem, 1.65rem + 1.125vw, 2.5rem)', { lineHeight: '1.3' }],    // Use 'heading' or 'display'
+        '4xl': ['clamp(2.25rem, 1.95rem + 1.5vw, 3rem)', { lineHeight: '1.2' }],         // Use 'display'
+        '5xl': ['clamp(3rem, 2.5rem + 2.5vw, 4rem)', { lineHeight: '1.1' }],             // Use 'display'
+        '6xl': ['clamp(3.75rem, 3rem + 3.75vw, 5rem)', { lineHeight: '1' }],             // Use 'display'
       },
       
-      // Mobile-first spacing scale (4px baseline)
+      // 8px baseline grid system - Apple Design Guidelines
+      // All spacing values are multiples of 8 for consistent rhythm
       spacing: {
-        '0': '0px',
-        '1': '4px',
-        '2': '8px',
-        '3': '12px',
-        '4': '16px',
-        '5': '20px',
-        '6': '24px',
-        '7': '28px',
-        '8': '32px',
-        '9': '36px',
-        '10': '40px',
-        '11': '44px',   // iOS minimum touch target
-        '12': '48px',   // Our standard comfortable touch target
-        '14': '56px',   // Spacious touch target
-        '16': '64px',   // Generous touch target
-        '20': '80px',
-        '24': '96px',
-        '32': '128px',
-        '40': '160px',
-        '48': '192px',
-        '56': '224px',
-        '64': '256px',
+        '0': '0px',       // None
+        '1': '8px',       // 1 unit - Micro spacing
+        '2': '16px',      // 2 units - Tight spacing
+        '3': '24px',      // 3 units - Comfortable spacing
+        '4': '32px',      // 4 units - Section spacing
+        '5': '40px',      // 5 units - Component spacing
+        '6': '48px',      // 6 units - Touch target / comfortable spacing
+        '7': '56px',      // 7 units - Spacious touch target
+        '8': '64px',      // 8 units - Generous spacing
+        '10': '80px',     // 10 units - Large spacing
+        '12': '96px',     // 12 units - Section breaks
+        '16': '128px',    // 16 units - Major sections
+        '20': '160px',    // 20 units - Page sections
+        '24': '192px',    // 24 units - Hero spacing
+        '28': '224px',    // 28 units - Extra large
+        '32': '256px',    // 32 units - Maximum spacing
       },
       
       // Mobile-first border radius - Premium feel
@@ -225,27 +229,11 @@ module.exports = {
         'safe-right': 'env(safe-area-inset-right)',
       },
 
-      // Premium animations
+      // Minimal animations - Apple philosophy: purposeful motion only
       keyframes: {
         'fade-in': {
           '0%': { opacity: '0' },
           '100%': { opacity: '1' },
-        },
-        'fade-in-up': {
-          '0%': { opacity: '0', transform: 'translateY(20px)' },
-          '100%': { opacity: '1', transform: 'translateY(0)' },
-        },
-        'scale-in': {
-          '0%': { opacity: '0', transform: 'scale(0.95)' },
-          '100%': { opacity: '1', transform: 'scale(1)' },
-        },
-        'lift': {
-          '0%': { transform: 'translateY(0)' },
-          '100%': { transform: 'translateY(-2px)' },
-        },
-        'shimmer': {
-          '0%': { backgroundPosition: '-200% 0' },
-          '100%': { backgroundPosition: '200% 0' },
         },
         'accordion-down': {
           from: { height: '0' },
@@ -255,33 +243,12 @@ module.exports = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
-        'shake': {
-          '0%, 100%': { transform: 'translateX(0)' },
-          '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-8px)' },
-          '20%, 40%, 60%, 80%': { transform: 'translateX(8px)' },
-        },
-        'success-pop': {
-          '0%': { transform: 'scale(0)', opacity: '0' },
-          '50%': { transform: 'scale(1.2)' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        },
-        'gentle-pulse': {
-          '0%, 100%': { opacity: '1' },
-          '50%': { opacity: '0.5' },
-        },
       },
 
       animation: {
         'fade-in': 'fade-in 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        'fade-in-up': 'fade-in-up 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        'scale-in': 'scale-in 150ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        'lift': 'lift 150ms cubic-bezier(0.2, 0.8, 0.2, 1)',
-        'shimmer': 'shimmer 2s linear infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
-        'shake': 'shake 0.6s ease-in-out',
-        'success-pop': 'success-pop 0.5s ease-out',
-        'gentle-pulse': 'gentle-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
       },
       
       // Premium background patterns

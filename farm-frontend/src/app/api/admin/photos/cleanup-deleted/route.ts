@@ -5,6 +5,25 @@ import { getCurrentUser } from '@/lib/auth'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
 
+/**
+ * Batch process items with controlled concurrency
+ */
+async function batchProcess<T, R>(
+  items: T[],
+  processor: (item: T) => Promise<R>,
+  batchSize: number = 20
+): Promise<R[]> {
+  const results: R[] = []
+
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize)
+    const batchResults = await Promise.all(batch.map(processor))
+    results.push(...batchResults)
+  }
+
+  return results
+}
+
 export async function POST(request: NextRequest) {
   const logger = createRouteLogger('api/admin/photos/cleanup-deleted', request)
 
@@ -23,76 +42,117 @@ export async function POST(request: NextRequest) {
     // Get all pending photo IDs
     const pendingIds = await client.lRange('moderation:queue', 0, -1)
 
-    // Get all approved photo IDs from all farms
+    // Get all approved photo IDs from all farms using pipeline
     const farmKeys = await client.keys('farm:*:photos:approved')
-    const allApprovedIds = []
 
+    logger.info('Fetching approved photos from farms', {
+      farmCount: farmKeys.length,
+      pendingCount: pendingIds.length
+    })
+
+    // Batch fetch all approved photo IDs using pipeline
+    const pipeline = client.pipeline()
     for (const farmKey of farmKeys) {
-      const approvedIds = await client.sMembers(farmKey)
-      allApprovedIds.push(...approvedIds)
+      pipeline.sMembers(farmKey)
+    }
+    const farmResults = await pipeline.exec()
+
+    // Flatten approved IDs from pipeline results
+    const allApprovedIds: string[] = []
+    if (farmResults) {
+      for (const [err, ids] of farmResults) {
+        if (!err && Array.isArray(ids)) {
+          allApprovedIds.push(...ids)
+        }
+      }
     }
 
     const allPhotoIds = [...pendingIds, ...allApprovedIds]
-    const deletedPhotos = []
 
-    logger.info('Starting deleted photo detection', {
+    logger.info('Fetching photo metadata', {
       totalPhotos: allPhotoIds.length,
       pendingCount: pendingIds.length,
-      approvedCount: allApprovedIds.length,
-      farmKeysCount: farmKeys.length
+      approvedCount: allApprovedIds.length
     })
 
-    // Check each photo
+    // Batch fetch all photo metadata using pipeline
+    const photoPipeline = client.pipeline()
     for (const photoId of allPhotoIds) {
-      try {
-        const photoData = await client.hGetAll(`photo:${photoId}`)
-        if (!photoData || !photoData.url) continue
+      photoPipeline.hGetAll(`photo:${photoId}`)
+    }
+    const photoResults = await photoPipeline.exec()
 
-        // Extract pathname from URL
-        const url = photoData.url
-        const pathname = url.replace('https://blob.vercel-storage.com/', '')
-
-        // Check if file exists in blob storage
-        try {
-          await head(pathname)
-          logger.info('Photo exists in blob storage', { photoId })
-        } catch {
-          logger.warn('Photo deleted from blob storage', { photoId, url })
-          deletedPhotos.push({
-            id: photoId,
-            url: photoData.url,
-            farmSlug: photoData.farmSlug,
-            status: photoData.status
-          })
+    // Build photo data map
+    const photoDataMap: Record<string, any> = {}
+    if (photoResults) {
+      for (let i = 0; i < photoResults.length; i++) {
+        const [err, data] = photoResults[i]
+        if (!err && data && typeof data === 'object' && Object.keys(data).length > 0) {
+          photoDataMap[allPhotoIds[i]] = data
         }
-      } catch (error) {
-        logger.error('Error checking photo', { photoId }, error as Error)
       }
     }
+
+    logger.info('Checking blob storage existence', {
+      photosWithMetadata: Object.keys(photoDataMap).length
+    })
+
+    // Check blob storage existence with controlled concurrency (20 at a time)
+    const photosToCheck = Object.entries(photoDataMap)
+      .filter(([_, data]) => data.url)
+      .map(([id, data]) => ({ id, data }))
+
+    const blobCheckResults = await batchProcess(
+      photosToCheck,
+      async ({ id, data }) => {
+        try {
+          const pathname = data.url.replace('https://blob.vercel-storage.com/', '')
+          await head(pathname)
+          return { id, exists: true, data }
+        } catch {
+          return { id, exists: false, data }
+        }
+      },
+      20 // Check 20 blobs concurrently
+    )
+
+    // Find deleted photos
+    const deletedPhotos = blobCheckResults
+      .filter(result => !result.exists)
+      .map(result => ({
+        id: result.id,
+        url: result.data.url,
+        farmSlug: result.data.farmSlug,
+        status: result.data.status,
+      }))
 
     logger.info('Deleted photo detection completed', {
-      deletedCount: deletedPhotos.length
+      checked: allPhotoIds.length,
+      deleted: deletedPhotos.length
     })
 
-    // Remove photos that were deleted from blob storage
-    for (const photo of deletedPhotos) {
-      try {
-        // Remove from moderation queue
-        await client.lRem('moderation:queue', 0, photo.id)
-
-        // Remove from approved photos
-        if (photo.farmSlug) {
-          await client.sRem(`farm:${photo.farmSlug}:photos:approved`, photo.id)
-        }
-
-        // Delete photo metadata
-        await client.del(`photo:${photo.id}`)
-
-        logger.info('Removed deleted photo', { photoId: photo.id, url: photo.url })
-      } catch (error) {
-        logger.error('Error removing photo', { photoId: photo.id }, error as Error)
-      }
+    if (deletedPhotos.length === 0) {
+      logger.info('No deleted photos found')
+      return NextResponse.json({
+        success: true,
+        checked: allPhotoIds.length,
+        deleted: 0,
+        removed: 0,
+        deletedPhotos: [],
+      })
     }
+
+    // Remove deleted photos using pipeline for atomic operations
+    const deletionPipeline = client.pipeline()
+    for (const photo of deletedPhotos) {
+      deletionPipeline.lRem('moderation:queue', 0, photo.id)
+      if (photo.farmSlug) {
+        deletionPipeline.sRem(`farm:${photo.farmSlug}:photos:approved`, photo.id)
+      }
+      deletionPipeline.del(`photo:${photo.id}`)
+    }
+
+    await deletionPipeline.exec()
 
     logger.info('Deleted photos cleanup completed', {
       checked: allPhotoIds.length,
@@ -105,9 +165,8 @@ export async function POST(request: NextRequest) {
       checked: allPhotoIds.length,
       deleted: deletedPhotos.length,
       removed: deletedPhotos.length,
-      deletedPhotos
+      deletedPhotos,
     })
-
   } catch (error) {
     return handleApiError(error, 'api/admin/photos/cleanup-deleted')
   }

@@ -136,47 +136,84 @@ These use CSS custom properties for theme switching:
 
 ---
 
-### Fluid Typography Scale
+### Semantic Typography Scale (NEW - Queue 8, Slice 2)
 
-All font sizes use `clamp()` for responsive scaling:
+**Apple-style semantic naming.** Use these instead of arbitrary sizes:
 
-| Token | Mobile → Desktop | Line Height | Usage |
-|-------|------------------|-------------|-------|
-| `text-xs` | 12px → 14px | 1.5 | Small labels |
-| `text-sm` | 14px → 16px | 1.5 | Secondary text |
-| `text-base` | 16px → 18px | 1.6 | Body text |
-| `text-lg` | 18px → 20px | 1.6 | Large body |
-| `text-xl` | 20px → 24px | 1.5 | Small headings |
-| `text-2xl` | 24px → 32px | 1.4 | Headings |
-| `text-3xl` | 30px → 40px | 1.3 | Large headings |
-| `text-4xl` | 36px → 48px | 1.2 | Page titles |
-| `text-5xl` | 48px → 64px | 1.1 | Hero titles |
-| `text-6xl` | 60px → 80px | 1.0 | Extra large heroes |
+| Token | Mobile → Desktop | Line Height | Letter Spacing | Weight | Usage |
+|-------|------------------|-------------|----------------|--------|-------|
+| `text-display` | 48px → 64px | 1.1 | -0.02em | 700 | Hero text, landing pages |
+| `text-heading` | 24px → 32px | 1.3 | -0.01em | 600 | Page titles, section headers |
+| `text-body` | 16px → 18px | 1.6 | normal | 400 | Main content, paragraphs |
+| `text-caption` | 14px → 16px | 1.5 | normal | 400 | Supporting text, labels |
+| `text-small` | 12px → 14px | 1.5 | normal | 400 | Fine print, legal text |
+
+**Example:**
+```jsx
+<h1 className="text-display">Welcome to Farm Companion</h1>
+<h2 className="text-heading">Find Local Farm Shops</h2>
+<p className="text-body">Discover fresh, seasonal produce from over 1,300 UK farms.</p>
+<span className="text-caption">Updated daily</span>
+<small className="text-small">© 2026 Farm Companion</small>
+```
+
+---
+
+### Legacy Typography Scale (DEPRECATED)
+
+**⚠️ These will be removed in future versions.** Migrate to semantic scales above:
+
+| Old Token | New Token | Notes |
+|-----------|-----------|-------|
+| `text-xs` | `text-small` | Fine print |
+| `text-sm` | `text-caption` | Supporting text |
+| `text-base` | `text-body` | Main content |
+| `text-lg` | `text-body` | Use body for consistency |
+| `text-xl` | `text-heading` | Section headers |
+| `text-2xl` | `text-heading` | Page titles |
+| `text-3xl` | `text-heading` or `text-display` | Large headers |
+| `text-4xl` | `text-display` | Hero text |
+| `text-5xl` | `text-display` | Hero text |
+| `text-6xl` | `text-display` | Hero text |
 
 ---
 
 ## Spacing
 
-### 4px Baseline Grid
+### 8px Baseline Grid (Apple Design Guidelines)
 
-All spacing follows a 4px baseline for vertical rhythm:
+All spacing follows an 8px baseline grid for consistent visual rhythm. This matches Apple's design system and ensures precise alignment across all screen sizes.
 
-| Token | Size | Touch Target |
-|-------|------|--------------|
-| `1` | 4px | |
-| `2` | 8px | |
-| `3` | 12px | |
-| `4` | 16px | |
-| `6` | 24px | |
-| `8` | 32px | |
-| `11` | 44px | iOS minimum touch |
-| `12` | 48px | **Standard touch target** |
-| `14` | 56px | Spacious touch |
+| Token | Size | Usage |
+|-------|------|-------|
+| `0` | 0px | None |
+| `1` | 8px | Micro spacing (icons, badges) |
+| `2` | 16px | Tight spacing (form labels) |
+| `3` | 24px | Comfortable spacing (card padding) |
+| `4` | 32px | Section spacing (list items) |
+| `5` | 40px | Component spacing |
+| `6` | 48px | **Touch target / comfortable spacing** |
+| `7` | 56px | Spacious touch target |
+| `8` | 64px | Generous spacing |
+| `10` | 80px | Large spacing |
+| `12` | 96px | Section breaks |
+| `16` | 128px | Major sections |
+| `20` | 160px | Page sections |
+| `24` | 192px | Hero spacing |
+| `28` | 224px | Extra large |
+| `32` | 256px | Maximum spacing |
+
+**Why 8px?**
+- Aligns with Apple's HIG (Human Interface Guidelines)
+- Ensures consistent rhythm across breakpoints
+- All values scale predictably (8, 16, 24, 32, 40, 48...)
+- Reduces decision fatigue with clear increments
 
 **Example:**
 ```jsx
-<button className="px-6 py-3">Standard padding</button>
-<div className="space-y-4">Consistent vertical rhythm</div>
+<button className="px-6 py-3">48px x 24px padding (6 x 3 units)</button>
+<div className="space-y-4">32px vertical rhythm (4 units)</div>
+<section className="py-12">96px section spacing (12 units)</section>
 ```
 
 ---
@@ -205,6 +242,10 @@ All spacing follows a 4px baseline for vertical rhythm:
 
 ## Animation
 
+### Philosophy: Purposeful Motion Only (Apple Design)
+
+Animations are minimal and purposeful. Removed 70% of competing animations to achieve Apple-level restraint.
+
 ### Duration
 
 | Token | Time | Usage |
@@ -220,10 +261,30 @@ All spacing follows a 4px baseline for vertical rhythm:
 |-------|-------|-------|
 | `ease-gentle-spring` | cubic-bezier(0.2, 0.8, 0.2, 1) | Smooth, natural motion |
 
+### Available Animations (Minimal Set)
+
+| Animation | Usage |
+|-----------|-------|
+| `animate-fade-in` | Simple fade transitions (250ms) |
+| `animate-accordion-down` | Radix UI accordion expand |
+| `animate-accordion-up` | Radix UI accordion collapse |
+
+**Removed animations** (70% reduction):
+- fade-in-up, scale-in, lift, shimmer, shake, success-pop, gentle-pulse
+
+**Why minimal?**
+- Follows Apple's philosophy: motion should be purposeful, not decorative
+- Reduces visual noise and improves performance
+- Improves accessibility (respects prefers-reduced-motion)
+
 **Example:**
 ```jsx
-<div className="transition-all duration-base ease-gentle-spring hover:scale-105">
-  Smooth hover effect
+<div className="animate-fade-in">
+  Simple, purposeful fade-in
+</div>
+
+<div className="transition-opacity duration-base ease-gentle-spring hover:opacity-80">
+  Subtle hover effect without animation
 </div>
 ```
 
@@ -295,22 +356,50 @@ If you find components using undefined tokens:
 ```jsx
 <div className="ring-primary-500"> {/* ✅ Now defined! */}
 <div className="bg-[#00C2B2]">     {/* ❌ Use bg-primary-500 */}
-<div className="p-[13px]">         {/* ❌ Use p-3 (12px) or p-4 (16px) */}
+<div className="p-[13px]">         {/* ❌ Use p-2 (16px) or p-3 (24px) */}
+<div className="space-y-5">        {/* ❌ Use space-y-4 (32px) or space-y-6 (48px) */}
+<div className="animate-shimmer">  {/* ❌ Removed - use animate-fade-in */}
+<div className="animate-shake">    {/* ❌ Removed - use subtle opacity transition */}
 ```
 
 **After:**
 ```jsx
 <div className="ring-primary-500"> {/* ✅ Uses design system */}
 <div className="bg-primary-500">   {/* ✅ Semantic token */}
-<div className="p-4">              {/* ✅ 4px baseline grid */}
+<div className="p-3">              {/* ✅ 8px baseline grid (24px) */}
+<div className="space-y-4">        {/* ✅ 8px baseline grid (32px) */}
+<div className="animate-fade-in">  {/* ✅ Minimal, purposeful animation */}
+<div className="transition-opacity duration-fast"> {/* ✅ Subtle feedback */}
 ```
 
 ---
 
 ## Changelog
 
+### 2026-01-19 - Queue 8, Slice 4
+- **REMOVED:** 7 competing animations (70% reduction): fade-in-up, scale-in, lift, shimmer, shake, success-pop, gentle-pulse
+- **KEPT:** 3 essential animations: fade-in, accordion-down, accordion-up
+- **PHILOSOPHY:** Aligned with Apple's purposeful motion principle
+- **BENEFIT:** Reduced visual noise, improved performance, better accessibility
+- **MIGRATION:** Replace removed animations with animate-fade-in or subtle transitions
+
+### 2026-01-19 - Queue 8, Slice 3
+- **CHANGED:** Spacing system migrated from 4px to 8px baseline grid
+- **ALIGNED:** Spacing now follows Apple Human Interface Guidelines
+- **IMPROVED:** All spacing values are multiples of 8 for consistent rhythm
+- **UPDATED:** Spacing tokens: 1=8px, 2=16px, 3=24px, 4=32px, 5=40px, 6=48px, etc.
+- **WHY:** Reduces decision fatigue, ensures predictable scaling, matches industry best practices
+
+### 2026-01-19 - Queue 8, Slice 2
+- **ADDED:** Semantic typography scale (display, heading, body, caption, small)
+- **CHANGED:** Font sizes now use semantic naming instead of arbitrary sizes
+- **DEPRECATED:** Legacy sizes (xs, sm, base, lg, xl, 2xl, etc.) - migrate to semantic scales
+- **IMPROVED:** Typography includes proper letter-spacing and font-weight defaults
+
 ### 2026-01-19 - Queue 8, Slice 1
 - **ADDED:** Primary color scale (50-900) mapped to serum brand color
+- **ADDED:** Secondary color scale (50-900) mapped to solar accent color
+- **ADDED:** Neutral color scale (50-900) for standardized grays
 - **FIXED:** Components can now use `primary-500`, `primary-600`, etc.
 - **DOCUMENTED:** Complete design token system
 

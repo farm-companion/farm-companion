@@ -37,10 +37,19 @@ export async function GET(request: NextRequest) {
 
 async function getFarmPhotoStats(client: RedisClientType, farmSlug: string, logger: ReturnType<typeof createRouteLogger>) {
   try {
-    // Get photo counts for different statuses
-    const pendingCount = await client.sCard(`farm:${farmSlug}:photos:pending`)
-    const approvedCount = await client.sCard(`farm:${farmSlug}:photos:approved`)
-    const rejectedCount = await client.sCard(`farm:${farmSlug}:photos:rejected`)
+    // Batch fetch photo counts using pipeline
+    const statsPipeline = client.pipeline()
+    statsPipeline.sCard(`farm:${farmSlug}:photos:pending`)
+    statsPipeline.sCard(`farm:${farmSlug}:photos:approved`)
+    statsPipeline.sCard(`farm:${farmSlug}:photos:rejected`)
+    statsPipeline.sMembers(`farm:${farmSlug}:photos:approved`)
+
+    const [pendingResult, approvedResult, rejectedResult, approvedIdsResult] = await statsPipeline.exec()
+
+    const pendingCount = pendingResult?.[1] || 0
+    const approvedCount = approvedResult?.[1] || 0
+    const rejectedCount = rejectedResult?.[1] || 0
+    const approvedPhotoIds = (approvedIdsResult?.[1] as string[]) || []
 
     logger.info('Retrieved photo counts for farm', {
       farmSlug,
@@ -49,47 +58,47 @@ async function getFarmPhotoStats(client: RedisClientType, farmSlug: string, logg
       rejectedCount
     })
 
-    // Get all approved photo IDs for this farm
-    const approvedPhotoIds = await client.sMembers(`farm:${farmSlug}:photos:approved`)
+    // Batch fetch photo metadata using pipeline
+    const photoPipeline = client.pipeline()
+    for (const id of approvedPhotoIds) {
+      photoPipeline.hGetAll(`photo:${id}`)
+    }
+    const photoResults = await photoPipeline.exec()
 
-    // Get detailed info for approved photos
-    const approvedPhotos = await Promise.all(
-      approvedPhotoIds.map(async (id: string) => {
-        try {
-          const photoData = await client.hGetAll(`photo:${id}`)
-          if (photoData && Object.keys(photoData).length > 0) {
-            return {
-              id,
-              caption: photoData.caption,
-              authorName: photoData.authorName,
-              authorEmail: photoData.authorEmail,
-              createdAt: parseInt(photoData.createdAt || '0'),
-              approvedAt: parseInt(photoData.approvedAt || '0'),
-              url: photoData.url
-            }
-          }
-          return null
-        } catch (error) {
-          logger.error('Error fetching photo data', { photoId: id, farmSlug }, error as Error)
+    // Process photo data
+    const approvedPhotos = photoResults
+      .map((result, index) => {
+        const [err, photoData] = result
+        if (err || !photoData || typeof photoData !== 'object' || Object.keys(photoData).length === 0) {
           return null
         }
-      })
-    )
 
-    const validPhotos = approvedPhotos.filter(Boolean).sort((a, b) => b!.approvedAt - a!.approvedAt)
+        return {
+          id: approvedPhotoIds[index],
+          caption: photoData.caption,
+          authorName: photoData.authorName,
+          authorEmail: photoData.authorEmail,
+          createdAt: parseInt(photoData.createdAt || '0'),
+          approvedAt: parseInt(photoData.approvedAt || '0'),
+          url: photoData.url,
+        }
+      })
+      .filter(Boolean)
+
+    const validPhotos = approvedPhotos.sort((a, b) => b!.approvedAt - a!.approvedAt)
 
     // Calculate upload frequency
     const now = Date.now()
-    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000)
-    const recentUploads = validPhotos.filter(photo => photo!.approvedAt > thirtyDaysAgo).length
+    const thirtyDaysAgo = now - 30 * 24 * 60 * 60 * 1000
+    const recentUploads = validPhotos.filter((photo) => photo!.approvedAt > thirtyDaysAgo).length
 
     // Get upload history (last 10 uploads)
-    const uploadHistory = validPhotos.slice(0, 10).map(photo => ({
+    const uploadHistory = validPhotos.slice(0, 10).map((photo) => ({
       id: photo!.id,
       caption: photo!.caption,
       authorName: photo!.authorName,
       approvedAt: photo!.approvedAt,
-      date: new Date(photo!.approvedAt).toISOString()
+      date: new Date(photo!.approvedAt).toISOString(),
     }))
 
     logger.info('Farm photo stats compiled successfully', {
@@ -108,12 +117,12 @@ async function getFarmPhotoStats(client: RedisClientType, farmSlug: string, logg
         quota: {
           current: approvedCount || 0,
           max: 5,
-          remaining: Math.max(0, 5 - (approvedCount || 0))
+          remaining: Math.max(0, 5 - (approvedCount || 0)),
         },
         recentUploads,
-        uploadHistory
+        uploadHistory,
       },
-      photos: validPhotos
+      photos: validPhotos,
     })
   } catch (error) {
     logger.error('Error getting stats for farm', { farmSlug }, error as Error)
@@ -137,11 +146,23 @@ async function getAllFarmsPhotoStats(client: RedisClientType, logger: ReturnType
       farmKeysCount: farmKeys.length
     })
 
+    // Batch fetch all counts using pipeline
+    const pipeline = client.pipeline()
+    for (const key of farmKeys) {
+      pipeline.sCard(key)
+    }
+    const results = await pipeline.exec()
+
+    // Process results and build farm stats
     const farmStats: Record<string, FarmStats> = {}
     const farmSlugs = new Set<string>()
 
-    // Process each farm
-    for (const key of farmKeys) {
+    for (let i = 0; i < farmKeys.length; i++) {
+      const key = farmKeys[i]
+      const [err, count] = results[i]
+
+      if (err) continue
+
       const parts = key.split(':')
       if (parts.length >= 3) {
         const farmSlug = parts[1]
@@ -154,11 +175,10 @@ async function getAllFarmsPhotoStats(client: RedisClientType, logger: ReturnType
             pending: 0,
             approved: 0,
             rejected: 0,
-            total: 0
+            total: 0,
           }
         }
 
-        const count = await client.sCard(key)
         farmStats[farmSlug][photoType] = count || 0
         farmStats[farmSlug].total += count || 0
       }
@@ -173,7 +193,7 @@ async function getAllFarmsPhotoStats(client: RedisClientType, logger: ReturnType
       totalRejected: 0,
       farmsAtQuota: 0,
       farmsWithPending: 0,
-      averagePhotosPerFarm: 0
+      averagePhotosPerFarm: 0,
     }
 
     Object.values(farmStats).forEach((stats) => {
@@ -191,7 +211,9 @@ async function getAllFarmsPhotoStats(client: RedisClientType, logger: ReturnType
       }
     })
 
-    summary.averagePhotosPerFarm = summary.totalFarms > 0 ? summary.totalPhotos / summary.totalFarms : 0
+    if (farmSlugs.size > 0) {
+      summary.averagePhotosPerFarm = Math.round((summary.totalPhotos / farmSlugs.size) * 10) / 10
+    }
 
     logger.info('All farms photo stats compiled successfully', {
       totalFarms: summary.totalFarms,
@@ -223,9 +245,9 @@ async function getAllFarmsPhotoStats(client: RedisClientType, logger: ReturnType
         quota: {
           current: stats.approved,
           max: 5,
-          remaining: Math.max(0, 5 - stats.approved)
-        }
-      }))
+          remaining: Math.max(0, 5 - stats.approved),
+        },
+      })),
     })
   } catch (error) {
     logger.error('Error getting all farms stats', {}, error as Error)

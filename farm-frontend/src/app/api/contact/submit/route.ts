@@ -10,8 +10,8 @@ import { errors, handleApiError } from '@/lib/errors'
 // Using the centralized validation schema from input-validation.ts
 
 const redis = Redis.fromEnv()
-const limiter = new Ratelimit({ 
-  redis, 
+const limiter = new Ratelimit({
+  redis,
   limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
 })
 
