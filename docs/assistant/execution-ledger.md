@@ -72,7 +72,8 @@
 - [x] Standardize contact/submit/route (3-in-1: eliminated 4 console statements, 8 inline errors)
 - [x] Standardize farms/submit/route (3-in-1: eliminated 2 console statements, 10 inline errors)
 - [x] Standardize claims/route (3-in-1: eliminated 3 console statements, 6 inline errors, 2 any types)
-- [ ] Standardize error handling in batch 1 (1 remaining route: consent)
+- [x] Standardize consent/route (3-in-1: eliminated 2 console statements, 7 inline errors for POST and GET handlers)
+- [x] Standardize error handling in batch 1 COMPLETE (10 routes: upload, photos/upload-url, admin/photos/reject, admin/photos/remove, admin/photos/approve, newsletter/subscribe, contact/submit, farms/submit, claims, consent)
 - [ ] Standardize error handling in batch 2 (10 routes)
 - [ ] Standardize error handling in batch 3 (10 routes)
 - [ ] Standardize error handling in batch 4 (10 routes)
@@ -87,6 +88,7 @@
 - [x] Remove console.log from contact/submit route (4 statements eliminated)
 - [x] Remove console.log from farms/submit route (2 statements eliminated)
 - [x] Remove console.log from claims route (3 statements eliminated)
+- [x] Remove console.log from consent route (2 statements eliminated - POST and GET handlers)
 - [ ] Remove console.log from high-volume offenders batch 1c (admin/audit/sitemap-reconciliation 23 statements - file too large, deferred)
 - [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements)
 - [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
@@ -112,6 +114,7 @@
 - [x] Add structured logging to contact/submit/route
 - [x] Add structured logging to farms/submit/route
 - [x] Add structured logging to claims/route
+- [x] Add structured logging to consent/route
 - [ ] Add structured logging to all admin routes (17+ routes remaining)
 - [ ] Add structured logging to all photo routes (10+ routes)
 - [ ] Add structured logging to all farm routes (10+ routes)
@@ -196,6 +199,19 @@
   - All claim submission operations logged with proper context (ip, claimId, shopName, claimType)
   - CSRF protection, rate limiting, validation, spam checks, file operations all have detailed logging
   - Honeypot and submission timing checks preserved with warnings
+- **Queue 12-17: Consent Route 3-in-1 Cleanup** (COMPLETE)
+  - Refactored api/consent/route.ts (136 → 148 lines)
+  - Added structured logging: Replaced 2 console statements (POST and GET handlers) with logger.info/warn/error
+  - Standardized error handling: Replaced 7 inline error responses with throw + error factories
+  - Both POST and GET handlers now have comprehensive logging
+  - POST: IP blocking, rate limiting, CSRF protection, validation, cookie setting all logged with context (ip, ads, analytics)
+  - GET: IP blocking, consent retrieval, cookie parsing, default fallbacks all logged with context (ip, consent)
+  - All operations logged with proper context including consent preferences
+- **Queue 12 Batch 1 Complete: 10 Routes Standardized** (COMPLETE)
+  - Completed first batch of forensic cleanup with 3-in-1 pattern applied to all routes
+  - Total: 55 console statements eliminated, 69 inline errors replaced, 3 any types fixed
+  - All routes now use structured logging with proper context (ip, request-specific data)
+  - All routes now use standardized error handling (errors.ts + handleApiError)
 
 ### 2026-01-19 (God-Tier Transformation Begins)
 - **Queue 8, Slice 1: Design Token Consolidation (COMPREHENSIVE)** (COMPLETE - REDONE)
