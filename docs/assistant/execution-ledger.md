@@ -71,7 +71,8 @@
 - [x] Standardize newsletter/subscribe/route (3-in-1: eliminated 5 console statements, 7 inline errors)
 - [x] Standardize contact/submit/route (3-in-1: eliminated 4 console statements, 8 inline errors)
 - [x] Standardize farms/submit/route (3-in-1: eliminated 2 console statements, 10 inline errors)
-- [ ] Standardize error handling in batch 1 (2 remaining routes: claims, consent)
+- [x] Standardize claims/route (3-in-1: eliminated 3 console statements, 6 inline errors, 2 any types)
+- [ ] Standardize error handling in batch 1 (1 remaining route: consent)
 - [ ] Standardize error handling in batch 2 (10 routes)
 - [ ] Standardize error handling in batch 3 (10 routes)
 - [ ] Standardize error handling in batch 4 (10 routes)
@@ -85,6 +86,7 @@
 - [x] Remove console.log from newsletter/subscribe route (5 statements eliminated)
 - [x] Remove console.log from contact/submit route (4 statements eliminated)
 - [x] Remove console.log from farms/submit route (2 statements eliminated)
+- [x] Remove console.log from claims route (3 statements eliminated)
 - [ ] Remove console.log from high-volume offenders batch 1c (admin/audit/sitemap-reconciliation 23 statements - file too large, deferred)
 - [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements)
 - [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
@@ -92,7 +94,8 @@
 
 ### Queue 16: Type Safety Improvements (FORENSIC DISCOVERY - 31 any types)
 - [x] Replace any types in upload/route (1 instance - Sharp interface created)
-- [ ] Replace any types in upload/route, claims/route, admin/farms/photo-stats/route (5 remaining instances)
+- [x] Replace any types in claims/route (2 instances - ClaimData interface created)
+- [ ] Replace any types in admin/farms/photo-stats/route (4 remaining instances)
 - [ ] Replace any types in farms/route, farms-cached/route, admin/farms/route (4 instances)
 - [ ] Replace any types in search/route, selftest routes, monitoring/bing-status (4 instances)
 - [ ] Replace any types in performance/dashboard (6 instances)
@@ -108,6 +111,7 @@
 - [x] Add structured logging to newsletter/subscribe/route
 - [x] Add structured logging to contact/submit/route
 - [x] Add structured logging to farms/submit/route
+- [x] Add structured logging to claims/route
 - [ ] Add structured logging to all admin routes (17+ routes remaining)
 - [ ] Add structured logging to all photo routes (10+ routes)
 - [ ] Add structured logging to all farm routes (10+ routes)
@@ -183,6 +187,15 @@
   - All farm submission operations logged with proper context (ip, id, name, county, postcode)
   - Kill switch, rate limiting, validation, spam checks, database operations all have detailed logging
   - Database constraint violations and validation errors handled with proper context (field, constraint)
+- **Queue 12-17: Claims Route 3-in-1 Cleanup** (COMPLETE)
+  - Refactored api/claims/route.ts (127 → 167 lines)
+  - Added structured logging: Replaced 3 console statements with logger.info/warn/error and moduleLogger for helpers
+  - Standardized error handling: Replaced 6 inline error responses with throw + error factories
+  - Fixed type safety: Created ClaimData interface, replaced 2 any types (sendNotificationEmail, sendConfirmationEmail)
+  - Created module-level logger for email notification operations
+  - All claim submission operations logged with proper context (ip, claimId, shopName, claimType)
+  - CSRF protection, rate limiting, validation, spam checks, file operations all have detailed logging
+  - Honeypot and submission timing checks preserved with warnings
 
 ### 2026-01-19 (God-Tier Transformation Begins)
 - **Queue 8, Slice 1: Design Token Consolidation (COMPREHENSIVE)** (COMPLETE - REDONE)
