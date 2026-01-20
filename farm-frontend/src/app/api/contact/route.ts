@@ -12,6 +12,7 @@ import {
 } from '@/lib/security'
 import { createRouteLogger } from '@/lib/logger'
 import { processContactForm } from '@/services/contact.service'
+import { errors, handleApiError } from '@/lib/errors'
 
 export async function POST(request: NextRequest) {
   const logger = createRouteLogger('api/contact', request)
@@ -21,20 +22,20 @@ export async function POST(request: NextRequest) {
     // Check if IP is blocked
     if (await isIPBlocked(ip)) {
       await trackIPReputation(ip, 'failure')
-      return NextResponse.json({ error: 'Access denied' }, { status: 403 })
+      throw errors.authorization('Access denied')
     }
 
     // Apply rate limiting
     const rateLimit = await rateLimiters.contact.consume(ip)
     if (!rateLimit) {
       await trackIPReputation(ip, 'failure')
-      return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 })
+      throw errors.rateLimit()
     }
 
     // CSRF protection
     if (!checkCsrf(request)) {
       await trackIPReputation(ip, 'failure')
-      return NextResponse.json({ error: 'Invalid request origin' }, { status: 403 })
+      throw errors.authorization('Invalid request origin')
     }
 
     const body = await request.json().catch(() => ({}))
@@ -43,27 +44,29 @@ export async function POST(request: NextRequest) {
     const parse = ContactSchema.safeParse(body)
     if (!parse.success) {
       await trackIPReputation(ip, 'failure')
-      return NextResponse.json({ error: 'Invalid data provided' }, { status: 400 })
+      throw errors.validation('Invalid data provided', {
+        errors: parse.error.errors,
+      })
     }
 
     const data = parse.data
 
-    // Spam checks
+    // Spam checks (silent discard for spam)
     if (!validateHoneypot(data.hp)) {
       await trackIPReputation(ip, 'spam')
-      return NextResponse.json({ ok: true }) // Silent discard
+      return NextResponse.json({ ok: true })
     }
 
     if (!validateSubmissionTime(data.t)) {
       await trackIPReputation(ip, 'spam')
-      return NextResponse.json({ ok: true }) // Silent discard
+      return NextResponse.json({ ok: true })
     }
 
     // Content validation
     const contentValidation = await validateContent(data.message)
     if (!contentValidation.valid) {
       await trackIPReputation(ip, 'spam')
-      return NextResponse.json({ error: 'Invalid content detected' }, { status: 400 })
+      throw errors.validation('Invalid content detected')
     }
 
     // Optional: verify Cloudflare Turnstile
@@ -71,7 +74,7 @@ export async function POST(request: NextRequest) {
       const turnstileValid = await verifyTurnstile(data.token, ip)
       if (!turnstileValid) {
         await trackIPReputation(ip, 'spam')
-        return NextResponse.json({ error: 'Bot check failed' }, { status: 400 })
+        throw errors.validation('Bot check failed')
       }
     }
 
@@ -93,8 +96,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ message: 'Message sent successfully' }, { status: 200 })
   } catch (error) {
-    logger.error('Contact form error', { ip }, error as Error)
     await trackIPReputation(ip, 'failure')
-    return NextResponse.json({ error: 'Internal server error. Please try again later.' }, { status: 500 })
+    return handleApiError(error, 'api/contact', { ip })
   }
 }
