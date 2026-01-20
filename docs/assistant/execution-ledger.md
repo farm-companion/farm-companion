@@ -74,7 +74,10 @@
 - [x] Standardize claims/route (3-in-1: eliminated 3 console statements, 6 inline errors, 2 any types)
 - [x] Standardize consent/route (3-in-1: eliminated 2 console statements, 7 inline errors for POST and GET handlers)
 - [x] Standardize error handling in batch 1 COMPLETE (10 routes: upload, photos/upload-url, admin/photos/reject, admin/photos/remove, admin/photos/approve, newsletter/subscribe, contact/submit, farms/submit, claims, consent)
-- [ ] Standardize error handling in batch 2 (10 routes)
+- [x] Standardize admin/login/route (3-in-1: eliminated 8 console statements)
+- [x] Standardize admin/logout/route (3-in-1: eliminated 1 console statement)
+- [x] Standardize admin/database-integrity/route (3-in-1: eliminated 2 console statements, 8 inline errors for GET and POST handlers)
+- [ ] Standardize error handling in batch 2 (remaining routes)
 - [ ] Standardize error handling in batch 3 (10 routes)
 - [ ] Standardize error handling in batch 4 (10 routes)
 - [ ] Standardize error handling in batch 5 (10 routes)
@@ -89,6 +92,8 @@
 - [x] Remove console.log from farms/submit route (2 statements eliminated)
 - [x] Remove console.log from claims route (3 statements eliminated)
 - [x] Remove console.log from consent route (2 statements eliminated - POST and GET handlers)
+- [x] Remove console.log from admin auth routes (admin/login 8 statements, admin/logout 1 statement)
+- [x] Remove console.log from admin/database-integrity route (2 statements eliminated - GET and POST handlers)
 - [ ] Remove console.log from high-volume offenders batch 1c (admin/audit/sitemap-reconciliation 23 statements - file too large, deferred)
 - [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements)
 - [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
@@ -115,7 +120,10 @@
 - [x] Add structured logging to farms/submit/route
 - [x] Add structured logging to claims/route
 - [x] Add structured logging to consent/route
-- [ ] Add structured logging to all admin routes (17+ routes remaining)
+- [x] Add structured logging to admin/login/route
+- [x] Add structured logging to admin/logout/route
+- [x] Add structured logging to admin/database-integrity/route
+- [ ] Add structured logging to all admin routes (14+ routes remaining)
 - [ ] Add structured logging to all photo routes (10+ routes)
 - [ ] Add structured logging to all farm routes (10+ routes)
 - [ ] Add structured logging to all diagnostic/monitoring routes (10+ routes)
