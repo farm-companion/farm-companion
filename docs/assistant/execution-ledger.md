@@ -53,7 +53,8 @@
 - [x] Typography migration (Slice 2g) - Admin dashboard page migrated to semantic typography (24 replacements)
 - [x] Typography migration (Slice 2h) - Admin documentation page migrated to semantic typography (114 replacements)
 - [x] Typography migration (Slice 2i) - Admin produce page migrated to semantic typography (24 replacements)
-- [ ] Typography migration (Slice 2j-z) - Remaining 680 legacy instances across 989 files (admin pages, forms, lists, cards, etc)
+- [x] Typography migration (Slice 2j) - Admin claims page migrated to semantic typography (15 replacements)
+- [ ] Typography migration (Slice 2k-z) - Remaining 665 legacy instances across 988 files (forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -248,6 +249,17 @@
   - Admin interface for seasonal produce image management
   - Files changed: 1 page, 24 typography replacements
   - Remaining: 680 legacy instances across 989 files for future slices
+- **Queue 8, Slice 2j: Admin Claims Page Typography Migration** (COMPLETE)
+  - Migrated admin/claims/page.tsx to semantic typography
+  - text-display for page title
+  - text-heading for section headings and claim shop names
+  - text-body for buttons (view shop, approve, reject) and links
+  - text-caption for labels, descriptions, metadata, and verification details
+  - text-small for status badges and claim ID
+  - Removed 15 legacy responsive text size modifiers (174 line file)
+  - Admin interface for farm shop ownership claims management
+  - Files changed: 1 page, 15 typography replacements
+  - Remaining: 665 legacy instances across 988 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
