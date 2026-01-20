@@ -59,6 +59,54 @@
 - [x] Fix N+1 queries in admin routes (Slice 3: Optimized Redis pipeline usage in 3 critical admin routes - cleanup-deleted (N+N+3N to 3 pipelines), cleanup-broken (N+N+3N to 3 pipelines), photo-stats (N+N to 2 pipelines); added batchProcess helper for concurrent blob checks; reduced from potentially 1000+ sequential calls to <10 batched operations)
 - [x] Error handling standardization (Slice 4: Created errors.ts with AppError class, error factories, handleApiError utility; standardized error responses with consistent format, error codes, timestamps; updated 2 API routes - contact and feedback - to use throw pattern with error factories instead of inline error responses)
 
+### Queue 11: Farm-Pipeline Security Vulnerabilities (FORENSIC DISCOVERY - CRITICAL)
+- [ ] Fix Next.js RCE vulnerability (CRITICAL: GHSA-9qr9-h5gf-34mp, affects Next.js 15.5.0-15.5.6, remote code execution via React flight protocol)
+- [ ] Fix node-tar path traversal (HIGH: GHSA-8qq5-rm4j-mr97, tar <=7.5.2, arbitrary file overwrite via path sanitization bypass)
+- [ ] Fix js-yaml prototype pollution (MODERATE: GHSA-mh29-5h37-fv8m, js-yaml 4.0.0-4.1.0, prototype pollution in merge operator)
+- [ ] Add undici override to farm-pipeline (LOW: GHSA-g9mf-h72j-4rw9, undici <6.23.0, already fixed in farm-frontend but missing in farm-pipeline)
+- [ ] Verify all vulnerabilities resolved with npm audit
+
+### Queue 12: Error Handling Standardization (FORENSIC DISCOVERY - 61 routes remaining)
+- [ ] Standardize error handling in batch 1 (10 routes: newsletter/subscribe, contact/submit, admin/photos/approve, admin/photos/reject, admin/photos/remove, farms/submit, claims, consent, upload, photos/upload-url)
+- [ ] Standardize error handling in batch 2 (10 routes: admin/farms/photo-stats, admin/audit/sitemap-reconciliation, admin/database-integrity, admin/farms/[id]/review, admin/farms/approve-to-live, admin/farms/route, admin/migrate-farms, bing/ping, bing/submit, indexnow)
+- [ ] Standardize error handling in batch 3 (10 routes: cron/bing-sitemap-ping, debug/approved-photos, debug/redis-photo, log-error, log-http-error, search, monitoring/bing-status, performance/dashboard, diagnostics/url-indexing, diagnostics/indexnow-errors)
+- [ ] Standardize error handling in batch 4 (10 routes: diagnostics/bot-blocking, newsletter/unsubscribe, photos/finalize, photos/deletion-requests, admin/photos/cleanup-deleted, admin/photos/cleanup-broken, farms-cached, farms/route, categories/route, counties/route)
+- [ ] Standardize error handling in batch 5 (10 routes: admin/test-auth, cron routes, remaining debug routes, remaining admin routes)
+- [ ] Standardize error handling in batch 6 (11 remaining routes)
+
+### Queue 13: Console.log Elimination (FORENSIC DISCOVERY - 94 statements across 48 routes)
+- [ ] Remove console.log from high-volume offenders batch 1 (upload/route 23 statements, photos/upload-url 9 statements, admin/audit/sitemap-reconciliation 23 statements)
+- [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements, admin/photos/approve 8 statements)
+- [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
+- [ ] Remove console.log from remaining 39 routes (batch cleanup)
+
+### Queue 14: Service Layer Extraction (FORENSIC DISCOVERY - 30+ routes)
+- [ ] Extract photo management service (8 routes: admin/photos/approve, admin/photos/reject, admin/photos/remove, admin/photos/cleanup-deleted, admin/photos/cleanup-broken, photos/finalize, photos/upload-url, photos/deletion-requests)
+- [ ] Extract farm management service (5 routes: farms/submit, farms/route, admin/farms/approve-to-live, admin/farms/[id]/review, admin/farms/route)
+- [ ] Extract SEO/indexing service (3 routes: bing/ping, bing/submit, indexnow)
+- [ ] Extract audit/diagnostics service (remaining complex routes)
+
+### Queue 15: Redis N+1 Pattern Audit (FORENSIC DISCOVERY - 15 routes remaining)
+- [ ] Audit and fix Redis N+1 in photos/upload-url (sequential Redis calls in loop)
+- [ ] Audit and fix Redis N+1 in admin/photos/approve (Promise.all with individual hGetAll, should use pipeline)
+- [ ] Audit and fix Redis N+1 in admin/photos/reject (individual Redis operations)
+- [ ] Audit and fix Redis N+1 in remaining 12 Redis-using routes
+
+### Queue 16: Type Safety Improvements (FORENSIC DISCOVERY - 31 any types)
+- [ ] Replace any types in upload/route, claims/route, admin/farms/photo-stats/route (6 instances)
+- [ ] Replace any types in farms/route, farms-cached/route, admin/farms/route (4 instances)
+- [ ] Replace any types in search/route, selftest routes, monitoring/bing-status (4 instances)
+- [ ] Replace any types in performance/dashboard (6 instances)
+- [ ] Replace any types in diagnostics routes (6 instances)
+- [ ] Replace remaining any types in admin routes (5 instances)
+
+### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
+- [ ] Add structured logging to all admin routes (20+ routes)
+- [ ] Add structured logging to all photo routes (10+ routes)
+- [ ] Add structured logging to all farm routes (10+ routes)
+- [ ] Add structured logging to all diagnostic/monitoring routes (10+ routes)
+- [ ] Add structured logging to remaining routes (9+ routes)
+
 ## Completed Work
 
 ### 2026-01-19 (God-Tier Transformation - Continues)
