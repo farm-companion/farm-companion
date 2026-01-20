@@ -70,11 +70,11 @@ export function AnimatedStats({ farmCount, countyCount }: AnimatedStatsProps) {
               >
                 <stat.icon className={`w-7 h-7 sm:w-8 sm:h-8 ${stat.colorText}`} />
               </motion.div>
-              <div className={`text-2xl sm:text-3xl md:text-4xl font-heading font-bold ${stat.colorText} mb-1 sm:mb-2`}>
+              <div className={`text-display font-heading font-bold ${stat.colorText} mb-1 sm:mb-2`}>
                 {stat.value}
               </div>
-              <div className="text-sm sm:text-base md:text-lg font-semibold text-text-heading mb-1">{stat.label}</div>
-              <div className="text-xs sm:text-sm text-text-muted px-2">{stat.description}</div>
+              <div className="text-body font-semibold text-text-heading mb-1">{stat.label}</div>
+              <div className="text-caption text-text-muted px-2">{stat.description}</div>
             </motion.div>
           ))}
         </motion.div>
