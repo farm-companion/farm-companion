@@ -49,7 +49,9 @@
 - [x] Typography migration (Slice 2c) - Claim page migrated to semantic typography (35 replacements)
 - [x] Typography migration (Slice 2d) - Add (farm submission) page migrated to semantic typography (46 replacements)
 - [x] Typography migration (Slice 2e) - About page migrated to semantic typography (29 replacements)
-- [ ] Typography migration (Slice 2f-z) - Remaining 872 legacy instances across 993 files (admin pages, forms, lists, cards, etc)
+- [x] Typography migration (Slice 2f) - Admin photos page migrated to semantic typography (30 replacements)
+- [x] Typography migration (Slice 2g) - Admin dashboard page migrated to semantic typography (24 replacements)
+- [ ] Typography migration (Slice 2h-z) - Remaining 818 legacy instances across 991 files (admin pages, forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -204,6 +206,25 @@
   - Clarified CLAUDE.md = HOW to work, TASKMASTER_PLAN.md = WHAT to build
   - Updated primary objective and default behavior references
   - Marked Queues 1-7 as completed foundations
+- **Queue 8, Slice 2f: Admin Photos Page Typography Migration** (COMPLETE)
+  - Migrated admin/photos/page.tsx to semantic typography
+  - text-heading for page title and stat numbers
+  - text-body for button text and actionable elements
+  - text-caption for labels, helper text, and status indicators
+  - text-small for badges, metadata, and inline links
+  - Removed 30 legacy responsive text size modifiers (491 line file)
+  - High-visibility admin interface for photo moderation workflow
+  - Files changed: 1 page, 30 typography replacements
+  - Remaining: 842 legacy instances across 992 files for future slices
+- **Queue 8, Slice 2g: Admin Dashboard Typography Migration** (COMPLETE)
+  - Migrated admin/page.tsx to semantic typography
+  - text-heading for page title and card titles
+  - text-caption for user email and card descriptions
+  - text-body for buttons and navigation links
+  - Removed 24 legacy responsive text size modifiers (244 line file)
+  - High-visibility admin interface (main dashboard with 6 navigation cards)
+  - Files changed: 1 page, 24 typography replacements
+  - Remaining: 818 legacy instances across 991 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
