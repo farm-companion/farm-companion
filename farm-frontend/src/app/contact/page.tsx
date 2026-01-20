@@ -40,14 +40,14 @@ export default function ContactPage() {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
               <ArrowRight className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+            <h1 className="text-display font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Share Your
               <span className="block text-serum drop-shadow-lg">Feedback</span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-heading text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Have a question, suggestion, or need help? We&apos;d love to hear from you.
             </p>
-            <p className="text-lg text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-body text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Get in touch with our team for support, feedback, or to report any issues.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -76,7 +76,7 @@ export default function ContactPage() {
           <div className="grid gap-8 lg:grid-cols-2">
             {/* Contact Form */}
             <div id="contact-form" className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl shadow-2xl border border-border-default/30 p-8">
-              <h2 className="text-2xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+              <h2 className="text-heading font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
                 <span className="w-2 h-2 bg-serum rounded-full"></span>
                 Send us a message
               </h2>
@@ -85,10 +85,10 @@ export default function ContactPage() {
                 <ContactForm />
               ) : (
                 <div className="rounded-lg border p-4 bg-amber-50 text-amber-800 border-amber-200">
-                  <p className="text-sm">
+                  <p className="text-caption">
                     The contact form is temporarily unavailable. Please email{' '}
-                    <a 
-                      className="underline font-medium" 
+                    <a
+                      className="underline font-medium"
                       href={`mailto:${process.env.CONTACT_TO_EMAIL || 'support@farmcompanion.co.uk'}`}
                     >
                       {process.env.CONTACT_TO_EMAIL || 'support@farmcompanion.co.uk'}
@@ -102,7 +102,7 @@ export default function ContactPage() {
             {/* Contact Information */}
             <div id="contact-info" className="space-y-6">
               <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl shadow-2xl border border-border-default/30 p-8">
-                <h2 className="text-2xl font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
+                <h2 className="text-heading font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
                   <span className="w-2 h-2 bg-serum rounded-full"></span>
                   Other ways to reach us
                 </h2>
@@ -137,14 +137,14 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-medium text-text-heading mb-1">Report Issues</h3>
-                      <p className="text-sm text-text-muted mb-2">
+                      <p className="text-caption text-text-muted mb-2">
                         Found an error in our data or have a technical issue?
                       </p>
                       <a 
                         href="https://github.com/farm-companion/farm-frontend/issues/new?title=Issue%20Report&labels=bug&template=bug_report.yml" 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-text-link hover:underline text-sm transition-colors"
+                        className="text-text-link hover:underline text-caption transition-colors"
                       >
                         Report on GitHub →
                       </a>
@@ -161,12 +161,12 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-medium text-text-heading mb-1">Farm Shop Owners</h3>
-                      <p className="text-sm text-text-muted mb-2">
+                      <p className="text-caption text-text-muted mb-2">
                         Need to update your listing or claim ownership?
                       </p>
                       <Link 
                         href="/claim" 
-                        className="text-text-link hover:underline text-sm transition-colors"
+                        className="text-text-link hover:underline text-caption transition-colors"
                       >
                         Claim Your Listing →
                       </Link>
@@ -186,7 +186,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <h3 className="font-medium text-text-heading mb-1">Response Time</h3>
-                    <p className="text-sm text-text-muted">
+                    <p className="text-caption text-text-muted">
                       We typically respond within 24-48 hours during business days.
                     </p>
                   </div>
