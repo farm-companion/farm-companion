@@ -62,6 +62,39 @@
 ### Queue 11: Farm-Pipeline Security Vulnerabilities (FORENSIC DISCOVERY - CRITICAL)
 - [x] Fix all 5 security vulnerabilities via npm audit fix (Removed stale dependencies from farm-pipeline: Next.js 15.5.0 CRITICAL RCE, tar <=7.5.2 HIGH path traversal, js-yaml 4.0.0 MODERATE prototype pollution, undici <6.23.0 LOW decompression, @vercel/blob vulnerable dependency)
 
+### Queue 12: Error Handling Standardization (FORENSIC DISCOVERY - 61 routes remaining)
+- [x] Standardize upload/route (3-in-1: structured logging + error handling + console.log removal, eliminated 19 console statements, 20+ inline errors, 1 any type)
+- [ ] Standardize error handling in batch 1 (9 remaining routes: newsletter/subscribe, contact/submit, admin/photos/approve, admin/photos/reject, admin/photos/remove, farms/submit, claims, consent, photos/upload-url)
+- [ ] Standardize error handling in batch 2 (10 routes)
+- [ ] Standardize error handling in batch 3 (10 routes)
+- [ ] Standardize error handling in batch 4 (10 routes)
+- [ ] Standardize error handling in batch 5 (10 routes)
+- [ ] Standardize error handling in batch 6 (11 remaining routes)
+
+### Queue 13: Console.log Elimination (FORENSIC DISCOVERY - 94 statements across 48 routes)
+- [x] Remove console.log from high-volume offenders batch 1a (upload/route 19 statements eliminated)
+- [ ] Remove console.log from high-volume offenders batch 1b (photos/upload-url 9 statements, admin/audit/sitemap-reconciliation 23 statements)
+- [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements, admin/photos/approve 8 statements)
+- [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
+- [ ] Remove console.log from remaining 39 routes (batch cleanup)
+
+### Queue 16: Type Safety Improvements (FORENSIC DISCOVERY - 31 any types)
+- [x] Replace any types in upload/route (1 instance - Sharp interface created)
+- [ ] Replace any types in upload/route, claims/route, admin/farms/photo-stats/route (5 remaining instances)
+- [ ] Replace any types in farms/route, farms-cached/route, admin/farms/route (4 instances)
+- [ ] Replace any types in search/route, selftest routes, monitoring/bing-status (4 instances)
+- [ ] Replace any types in performance/dashboard (6 instances)
+- [ ] Replace any types in diagnostics routes (6 instances)
+- [ ] Replace remaining any types in admin routes (5 instances)
+
+### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
+- [x] Add structured logging to upload/route
+- [ ] Add structured logging to all admin routes (20+ routes)
+- [ ] Add structured logging to all photo routes (10+ routes)
+- [ ] Add structured logging to all farm routes (10+ routes)
+- [ ] Add structured logging to all diagnostic/monitoring routes (10+ routes)
+- [ ] Add structured logging to remaining routes (8+ routes)
+
 ## Completed Work
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
@@ -83,6 +116,14 @@
   - Fixed LOW @vercel/blob vulnerable dependency chain
   - Verified with `npm audit`: 0 vulnerabilities found
   - Files changed: farm-pipeline/package-lock.json (removed 6341 lines of stale dependencies)
+- **Queue 12-17: First 3-in-1 Forensic Cleanup (upload/route)** (COMPLETE)
+  - Refactored api/upload/route.ts (321 lines) with comprehensive cleanup pattern
+  - Added structured logging: Replaced 19 console statements with logger.info/warn/error
+  - Standardized error handling: Replaced 20+ inline error responses with throw + error factories
+  - Fixed type safety: Created proper Sharp interface, eliminated 1 any type
+  - Added proper error re-throwing for AppError instances in nested try-catch
+  - All security logging now has proper context (ip, file details, dimensions)
+  - Files changed: api/upload/route.ts (297 → 321 lines, added imports and types)
 
 ### 2026-01-19 (God-Tier Transformation Begins)
 - **Queue 8, Slice 1: Design Token Consolidation (COMPREHENSIVE)** (COMPLETE - REDONE)
