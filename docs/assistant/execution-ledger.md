@@ -65,7 +65,9 @@
 ### Queue 12: Error Handling Standardization (FORENSIC DISCOVERY - 61 routes remaining)
 - [x] Standardize upload/route (3-in-1: structured logging + error handling + console.log removal, eliminated 19 console statements, 20+ inline errors, 1 any type)
 - [x] Standardize photos/upload-url/route (3-in-1: eliminated 11 console statements, 5 inline errors)
-- [ ] Standardize error handling in batch 1 (8 remaining routes: newsletter/subscribe, contact/submit, admin/photos/approve, admin/photos/reject, admin/photos/remove, farms/submit, claims, consent)
+- [x] Standardize admin/photos/reject/route (3-in-1: eliminated 1 console statement, 3 inline errors)
+- [x] Standardize admin/photos/remove/route (3-in-1: eliminated 1 console statement, 3 inline errors)
+- [ ] Standardize error handling in batch 1 (6 remaining routes: newsletter/subscribe, contact/submit, admin/photos/approve, farms/submit, claims, consent)
 - [ ] Standardize error handling in batch 2 (10 routes)
 - [ ] Standardize error handling in batch 3 (10 routes)
 - [ ] Standardize error handling in batch 4 (10 routes)
@@ -75,6 +77,7 @@
 ### Queue 13: Console.log Elimination (FORENSIC DISCOVERY - 94 statements across 48 routes)
 - [x] Remove console.log from high-volume offenders batch 1a (upload/route 19 statements eliminated)
 - [x] Remove console.log from high-volume offenders batch 1b (photos/upload-url 11 statements eliminated)
+- [x] Remove console.log from admin photo routes (admin/photos/reject 1 statement, admin/photos/remove 1 statement)
 - [ ] Remove console.log from high-volume offenders batch 1c (admin/audit/sitemap-reconciliation 23 statements - file too large, deferred)
 - [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements, admin/photos/approve 8 statements)
 - [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
@@ -92,7 +95,9 @@
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
 - [x] Add structured logging to upload/route
 - [x] Add structured logging to photos/upload-url/route
-- [ ] Add structured logging to all admin routes (20+ routes)
+- [x] Add structured logging to admin/photos/reject/route
+- [x] Add structured logging to admin/photos/remove/route
+- [ ] Add structured logging to all admin routes (18+ routes remaining)
 - [ ] Add structured logging to all photo routes (10+ routes)
 - [ ] Add structured logging to all farm routes (10+ routes)
 - [ ] Add structured logging to all diagnostic/monitoring routes (10+ routes)
