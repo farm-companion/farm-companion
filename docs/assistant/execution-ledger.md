@@ -47,7 +47,8 @@
 - [x] Typography migration (Slice 2a) - Homepage components (AnimatedHero, AnimatedFeatures, AnimatedStats) migrated to semantic typography
 - [x] Typography migration (Slice 2b) - Submission success page migrated to semantic typography (36 replacements)
 - [x] Typography migration (Slice 2c) - Claim page migrated to semantic typography (35 replacements)
-- [ ] Typography migration (Slice 2d-z) - Remaining 947 legacy instances across 995 files (admin pages, forms, lists, cards, etc)
+- [x] Typography migration (Slice 2d) - Add (farm submission) page migrated to semantic typography (46 replacements)
+- [ ] Typography migration (Slice 2e-z) - Remaining 901 legacy instances across 994 files (about page, admin pages, forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -176,6 +177,17 @@
   - High-visibility user-facing page (farm shop claim workflow)
   - Files changed: 1 page, 35 typography replacements
   - Remaining: 947 legacy instances across 995 files for future slices
+- **Queue 8, Slice 2d: Add (Farm Submission) Page Typography Migration** (COMPLETE)
+  - Migrated add/page.tsx to semantic typography
+  - text-display for hero title and section headings
+  - text-heading for subsection headings and feature titles
+  - text-body for description text, buttons
+  - text-caption for form labels, error messages, time inputs
+  - text-small for badges and code preview
+  - Removed 46 legacy responsive text size modifiers (894 line file)
+  - High-visibility user-facing page (farm shop submission form)
+  - Files changed: 1 page, 46 typography replacements
+  - Remaining: 901 legacy instances across 994 files for future slices
 - **CLAUDE.md Integration** (COMPLETE)
   - Integrated TASKMASTER_PLAN.md into CLAUDE.md document hierarchy
   - Clarified CLAUDE.md = HOW to work, TASKMASTER_PLAN.md = WHAT to build
