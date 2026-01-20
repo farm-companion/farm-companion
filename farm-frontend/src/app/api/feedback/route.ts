@@ -3,6 +3,7 @@ import { Resend } from 'resend'
 import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
+import { createRouteLogger } from '@/lib/logger'
 
 
 
@@ -11,9 +12,11 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 
 // Email sending function with Resend API
 async function sendEmail(to: string, subject: string, html: string, text: string) {
+  const logger = createRouteLogger('api/feedback/email')
+
   try {
     if (!process.env.RESEND_API_KEY) {
-      console.error('RESEND_API_KEY not configured')
+      logger.error('RESEND_API_KEY not configured')
       throw new Error('Email service not configured')
     }
 
@@ -26,10 +29,10 @@ async function sendEmail(to: string, subject: string, html: string, text: string
       replyTo: 'hello@farmcompanion.co.uk'
     })
 
-    console.log('Email sent successfully:', result)
+    logger.info('Email sent successfully', { to, subject, resultId: result.id })
     return result
   } catch (error) {
-    console.error('Email sending failed:', error)
+    logger.error('Email sending failed', { to, subject }, error as Error)
     throw error
   }
 }
@@ -40,6 +43,8 @@ function generateFeedbackId(): string {
 }
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/feedback', request)
+
   try {
     // CSRF protection
     if (!checkCsrf(request)) {
@@ -102,12 +107,10 @@ export async function POST(request: NextRequest) {
 
     // Store feedback in database (placeholder)
     // TODO: Implement database storage
-    console.log('Storing feedback:', {
+    logger.info('Storing feedback (placeholder)', {
       id: feedbackId,
-      name,
       email,
       subject,
-      message,
       timestamp,
       status: 'pending'
     })
@@ -383,8 +386,10 @@ The UK's premium guide to real food, real people, and real places.
       adminEmailText
     )
 
+    logger.info('Feedback submitted successfully', { feedbackId })
+
     return NextResponse.json(
-      { 
+      {
         message: 'Feedback submitted successfully',
         feedbackId,
         timestamp
@@ -393,7 +398,7 @@ The UK's premium guide to real food, real people, and real places.
     )
 
   } catch (error) {
-    console.error('Feedback submission error:', error)
+    logger.error('Feedback submission error', {}, error as Error)
     return NextResponse.json(
       { error: 'Internal server error. Please try again later.' },
       { status: 500 }

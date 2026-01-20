@@ -3,15 +3,18 @@ import { Resend } from 'resend'
 import { ContactSchema, sanitizeText } from '@/lib/validation'
 import { rateLimiters, getClientIP } from '@/lib/rate-limit'
 import { checkCsrf, validateHoneypot, validateSubmissionTime, verifyTurnstile, validateContent, trackIPReputation, isIPBlocked } from '@/lib/security'
+import { createRouteLogger } from '@/lib/logger'
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 // Email sending function with Resend API
 async function sendEmail(to: string, subject: string, html: string, text: string) {
+  const logger = createRouteLogger('api/contact/email')
+
   try {
     if (!process.env.RESEND_API_KEY) {
-      console.error('RESEND_API_KEY not configured')
+      logger.error('RESEND_API_KEY not configured')
       throw new Error('Email service not configured')
     }
 
@@ -24,17 +27,18 @@ async function sendEmail(to: string, subject: string, html: string, text: string
       replyTo: 'hello@farmcompanion.co.uk'
     })
 
-    console.log('Email sent successfully:', result)
+    logger.info('Email sent successfully', { to, subject, resultId: result.id })
     return result
   } catch (error) {
-    console.error('Email sending failed:', error)
+    logger.error('Email sending failed', { to, subject }, error as Error)
     throw error
   }
 }
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/contact', request)
   const ip = getClientIP(request)
-  
+
   try {
     // Check if IP is blocked
     if (await isIPBlocked(ip)) {
@@ -385,12 +389,14 @@ The UK's premium guide to real food, real people, and real places.
     // Track successful submission
     await trackIPReputation(ip, 'success')
 
+    logger.info('Contact form submitted successfully', { ip })
+
     return NextResponse.json(
       { message: 'Message sent successfully' },
       { status: 200 }
     )
   } catch (error) {
-    console.error('Contact form error:', error)
+    logger.error('Contact form error', { ip }, error as Error)
     await trackIPReputation(ip, 'failure')
     return NextResponse.json(
       { error: 'Internal server error. Please try again later.' },

@@ -4,6 +4,7 @@ import { Redis } from '@upstash/redis'
 import { kv } from '@vercel/kv'
 import { Resend } from 'resend'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
+import { createRouteLogger } from '@/lib/logger'
 
 // Using the centralized validation schema from input-validation.ts
 
@@ -18,6 +19,8 @@ const TO = process.env.CONTACT_TO_EMAIL!
 const FROM = process.env.CONTACT_FROM_EMAIL!
 
 export async function POST(req: NextRequest) {
+  const logger = createRouteLogger('api/contact/submit', req)
+
   try {
     // Kill-switch check
     if (process.env.CONTACT_FORM_ENABLED !== 'true') {
@@ -75,17 +78,17 @@ export async function POST(req: NextRequest) {
 
     // Store message (optional but helpful)
     try {
-      await kv.hset(`contact:${id}`, { 
-        id, 
-        createdAt, 
-        ip, 
-        ...v, 
-        status: 'received' 
+      await kv.hset(`contact:${id}`, {
+        id,
+        createdAt,
+        ip,
+        ...v,
+        status: 'received'
       })
       await kv.lpush('contact:inbox', id)
     } catch (e) {
       // non-fatal
-      console.error('kv store failed', e)
+      logger.warn('KV store failed (non-fatal)', { id, ip }, e as Error)
     }
 
     // Send admin forward (don't fail the user if email fails)
@@ -106,7 +109,7 @@ export async function POST(req: NextRequest) {
           ].join('\n')
         })
       } catch (e) {
-        console.error('admin email failed', e)
+        logger.error('Admin email failed (non-blocking)', { id, topic: v.topic }, e as Error)
       }
     })()
 
@@ -120,14 +123,16 @@ export async function POST(req: NextRequest) {
           text: `Hi ${v.name},\n\nThanks for contacting Farm Companion. We've received your message and will reply soon.\n\n— The Farm Companion team`,
         })
       } catch (e) {
-        console.error('ack email failed', e)
+        logger.error('Acknowledgment email failed (non-blocking)', { id, to: v.email }, e as Error)
       }
     })()
 
+    logger.info('Contact form submitted successfully', { id, ip })
+
     return NextResponse.json({ ok: true, id }, { status: 201 })
   } catch (error) {
-    console.error('Contact form error:', error)
-    
+    logger.error('Contact form error', { ip }, error as Error)
+
     // Handle validation errors
     if (error instanceof ValidationError) {
       return NextResponse.json(
@@ -135,9 +140,9 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    
+
     return NextResponse.json(
-      { error: 'Failed to send message' }, 
+      { error: 'Failed to send message' },
       { status: 500 }
     )
   }
