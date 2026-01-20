@@ -2,22 +2,29 @@ import { NextRequest, NextResponse } from 'next/server'
 import { ensureConnection } from '@/lib/redis'
 // import { sendPhotoRejectedEmail } from '@/lib/email'
 import { revalidatePath } from 'next/cache'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 export async function POST(req: NextRequest) {
+  const logger = createRouteLogger('api/admin/photos/reject', req)
+
   try {
     const { searchParams } = new URL(req.url)
     const photoId = searchParams.get('id')
 
     if (!photoId) {
-      return NextResponse.json({ error: 'Missing photo ID' }, { status: 400 })
+      throw errors.validation('Missing photo ID')
     }
+
+    logger.info('Processing photo rejection', { photoId })
 
     const client = await ensureConnection()
 
     // Get photo data
     const photoData = await client.hGetAll(`photo:${photoId}`)
     if (!photoData || Object.keys(photoData).length === 0) {
-      return NextResponse.json({ error: 'Photo not found' }, { status: 404 })
+      logger.warn('Photo not found', { photoId })
+      throw errors.notFound('Photo')
     }
 
     // Convert Redis hash to object
@@ -26,13 +33,15 @@ export async function POST(req: NextRequest) {
       photo[key] = String(value)
     }
 
+    logger.info('Rejecting photo', { photoId, farmSlug: photo.farmSlug })
+
     // Update photo status to rejected
     await client.hSet(`photo:${photoId}`, 'status', 'rejected')
     await client.hSet(`photo:${photoId}`, 'rejectedAt', Date.now().toString())
 
     // Remove from pending photos
     await client.sRem(`farm:${photo.farmSlug}:photos:pending`, photoId)
-    
+
     // Add to global rejected photos list
     await client.lPush('photos:rejected', photoId)
 
@@ -41,6 +50,12 @@ export async function POST(req: NextRequest) {
 
     // Revalidate the farm page
     revalidatePath(`/shop/${photo.farmSlug}`)
+
+    logger.info('Photo rejected successfully', {
+      photoId,
+      farmSlug: photo.farmSlug,
+      authorEmail: photo.authorEmail
+    })
 
     // TODO: Send rejection email when PhotoRejected template is implemented
     // if (photo.authorEmail) {
@@ -57,7 +72,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
 
   } catch (error) {
-    console.error('Error rejecting photo:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleApiError(error, 'api/admin/photos/reject')
   }
 }

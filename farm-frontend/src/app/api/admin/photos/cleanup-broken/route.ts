@@ -1,7 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { ensureConnection } from '@/lib/redis'
 import { head } from '@vercel/blob'
+import { getCurrentUser } from '@/lib/auth'
 import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 /**
  * Batch process items with controlled concurrency
@@ -22,10 +24,19 @@ async function batchProcess<T, R>(
   return results
 }
 
-export async function POST() {
-  const logger = createRouteLogger('admin/photos/cleanup-broken')
+export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/admin/photos/cleanup-broken', request)
 
   try {
+    logger.info('Processing broken photos cleanup request')
+
+    // Require authentication
+    const user = await getCurrentUser()
+    if (!user) {
+      logger.warn('Unauthorized broken photos cleanup attempt')
+      throw errors.authorization('Unauthorized')
+    }
+
     const client = await ensureConnection()
 
     // Get all pending photo IDs
@@ -34,7 +45,10 @@ export async function POST() {
     // Get all approved photo IDs from all farms
     const farmKeys = await client.keys('farm:*:photos:approved')
 
-    logger.info('Fetching approved photos from farms', { farmCount: farmKeys.length })
+    logger.info('Fetching approved photos from farms', {
+      farmCount: farmKeys.length,
+      pendingCount: pendingIds.length
+    })
 
     // Batch fetch all approved photo IDs using pipeline
     const pipeline = client.pipeline()
@@ -55,7 +69,11 @@ export async function POST() {
 
     const allPhotoIds = [...pendingIds, ...allApprovedIds]
 
-    logger.info('Fetching photo metadata', { photoCount: allPhotoIds.length })
+    logger.info('Fetching photo metadata', {
+      totalPhotos: allPhotoIds.length,
+      pendingCount: pendingIds.length,
+      approvedCount: allApprovedIds.length
+    })
 
     // Batch fetch all photo metadata using pipeline
     const photoPipeline = client.pipeline()
@@ -108,12 +126,13 @@ export async function POST() {
         status: result.data.status,
       }))
 
-    logger.info('Found broken photos', {
+    logger.info('Broken photo detection completed', {
       checked: allPhotoIds.length,
       broken: brokenPhotos.length
     })
 
     if (brokenPhotos.length === 0) {
+      logger.info('No broken photos found')
       return NextResponse.json({
         success: true,
         checked: allPhotoIds.length,
@@ -135,7 +154,11 @@ export async function POST() {
 
     await deletionPipeline.exec()
 
-    logger.info('Cleanup completed', { removed: brokenPhotos.length })
+    logger.info('Broken photos cleanup completed', {
+      checked: allPhotoIds.length,
+      broken: brokenPhotos.length,
+      removed: brokenPhotos.length
+    })
 
     return NextResponse.json({
       success: true,
@@ -145,12 +168,6 @@ export async function POST() {
       brokenPhotos,
     })
   } catch (error) {
-    logger.error('Cleanup error', {}, error as Error)
-    return NextResponse.json(
-      {
-        error: error instanceof Error ? error.message : 'Unknown error',
-      },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/admin/photos/cleanup-broken')
   }
 }

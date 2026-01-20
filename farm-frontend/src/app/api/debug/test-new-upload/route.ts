@@ -1,25 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { buildObjectKey } from '@/lib/blob'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 export async function POST(req: NextRequest) {
+  const logger = createRouteLogger('api/debug/test-new-upload', req)
+
   try {
+    logger.info('Processing test new upload request')
+
     const formData = await req.formData()
     const file = formData.get('file') as File
-    
+
     if (!file) {
-      return NextResponse.json({
-        error: 'missing-file',
-        message: 'No file provided'
-      }, { status: 400 })
+      logger.warn('No file provided in test new upload request')
+      throw errors.validation('No file provided')
     }
 
     // Test the new buildObjectKey function
     const testFarmSlug = 'test-farm'
     const testPhotoId = 'test-photo-123'
     const objectKey = buildObjectKey(testFarmSlug, testPhotoId, file.type)
-    
-    console.log('Test upload:', {
+
+    logger.info('Starting test new upload with buildObjectKey', {
       fileName: file.name,
       fileSize: file.size,
       contentType: file.type,
@@ -32,7 +36,11 @@ export async function POST(req: NextRequest) {
       addRandomSuffix: false
     })
 
-    console.log('Upload successful:', blob.url)
+    logger.info('Test new upload successful', {
+      url: blob.url,
+      objectKey,
+      contentType: file.type
+    })
 
     return NextResponse.json({
       ok: true,
@@ -42,10 +50,6 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Test upload error:', error)
-    return NextResponse.json({
-      error: 'upload-failed',
-      message: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return handleApiError(error, 'api/debug/test-new-upload')
   }
 }

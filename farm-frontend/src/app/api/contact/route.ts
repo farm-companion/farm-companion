@@ -19,9 +19,12 @@ export async function POST(request: NextRequest) {
   const ip = getClientIP(request)
 
   try {
+    logger.info('Processing contact form submission', { ip })
+
     // Check if IP is blocked
     if (await isIPBlocked(ip)) {
       await trackIPReputation(ip, 'failure')
+      logger.warn('Blocked IP attempted contact submission', { ip })
       throw errors.authorization('Access denied')
     }
 
@@ -29,12 +32,14 @@ export async function POST(request: NextRequest) {
     const rateLimit = await rateLimiters.contact.consume(ip)
     if (!rateLimit) {
       await trackIPReputation(ip, 'failure')
-      throw errors.rateLimit()
+      logger.warn('Rate limit exceeded for contact submission', { ip })
+      throw errors.rateLimit('Too many requests. Please try again later.')
     }
 
     // CSRF protection
     if (!checkCsrf(request)) {
       await trackIPReputation(ip, 'failure')
+      logger.warn('CSRF check failed for contact submission', { ip })
       throw errors.authorization('Invalid request origin')
     }
 
@@ -44,6 +49,10 @@ export async function POST(request: NextRequest) {
     const parse = ContactSchema.safeParse(body)
     if (!parse.success) {
       await trackIPReputation(ip, 'failure')
+      logger.warn('Contact form validation failed', {
+        ip,
+        errors: parse.error.errors
+      })
       throw errors.validation('Invalid data provided', {
         errors: parse.error.errors,
       })
@@ -54,11 +63,13 @@ export async function POST(request: NextRequest) {
     // Spam checks (silent discard for spam)
     if (!validateHoneypot(data.hp)) {
       await trackIPReputation(ip, 'spam')
+      logger.warn('Honeypot triggered, silent discard', { ip })
       return NextResponse.json({ ok: true })
     }
 
     if (!validateSubmissionTime(data.t)) {
       await trackIPReputation(ip, 'spam')
+      logger.warn('Submission time validation failed, silent discard', { ip })
       return NextResponse.json({ ok: true })
     }
 
@@ -66,6 +77,10 @@ export async function POST(request: NextRequest) {
     const contentValidation = await validateContent(data.message)
     if (!contentValidation.valid) {
       await trackIPReputation(ip, 'spam')
+      logger.warn('Content validation failed', {
+        ip,
+        reason: contentValidation.reason
+      })
       throw errors.validation('Invalid content detected')
     }
 
@@ -74,6 +89,7 @@ export async function POST(request: NextRequest) {
       const turnstileValid = await verifyTurnstile(data.token, ip)
       if (!turnstileValid) {
         await trackIPReputation(ip, 'spam')
+        logger.warn('Turnstile verification failed', { ip })
         throw errors.validation('Bot check failed')
       }
     }
@@ -92,7 +108,11 @@ export async function POST(request: NextRequest) {
     // Track successful submission
     await trackIPReputation(ip, 'success')
 
-    logger.info('Contact form submitted successfully', { ip })
+    logger.info('Contact form submission completed successfully', {
+      ip,
+      senderEmail: sanitizedData.email,
+      subject: sanitizedData.subject
+    })
 
     return NextResponse.json({ message: 'Message sent successfully' }, { status: 200 })
   } catch (error) {

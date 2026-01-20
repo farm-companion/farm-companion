@@ -4,26 +4,53 @@ import path from 'path'
 import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
+// Module logger for helper functions
+const moduleLogger = createRouteLogger('api/claims')
+
+// Type for claim data
+interface ClaimData {
+  id: string
+  shopName: string
+  claimantName: string
+  claimantEmail: string
+  claimantPhone?: string
+  claimType: string
+  shopAddress: string
+  submittedAt: string
+  status: 'pending' | 'approved' | 'rejected'
+  reviewedAt: string | null
+  reviewedBy: string | null
+  reviewNotes: string | null
+  [key: string]: unknown
+}
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/claims', request)
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
+
   try {
+    logger.info('Processing claim submission', { ip })
+
     // CSRF protection
     if (!checkCsrf(request)) {
-      return NextResponse.json({ error: 'CSRF protection failed' }, { status: 400 })
+      logger.warn('CSRF protection failed', { ip })
+      throw errors.authorization('CSRF protection failed')
     }
 
     // Rate limiting
     const rl = createRateLimiter({ keyPrefix: 'claims', limit: 3, windowSec: 3600 })
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
     if (!await rl.consume(ip)) {
-      return NextResponse.json({ error: 'Too many claim submissions. Please wait before submitting again.' }, { status: 429 })
+      logger.warn('Rate limit exceeded for claim submission', { ip })
+      throw errors.rateLimit('Too many claim submissions. Please wait before submitting again.')
     }
 
     // Parse and validate JSON
     const body = await request.json().catch(() => null)
     if (!body) {
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+      throw errors.validation('Invalid JSON in request body')
     }
 
     // Validate input using comprehensive validation
@@ -35,32 +62,35 @@ export async function POST(request: NextRequest) {
       })
     } catch (error) {
       if (error instanceof InputValidationError) {
-        return NextResponse.json(
-          { 
-            error: 'Validation failed', 
-            message: error.message,
-            field: error.field
-          }, 
-          { status: 422 }
-        )
+        logger.warn('Validation failed for claim submission', {
+          ip,
+          field: error.field,
+          message: error.message
+        })
+        throw errors.validation(error.message, { field: error.field })
       }
-      return NextResponse.json(
-        { error: 'Invalid input data' }, 
-        { status: 400 }
-      )
+      throw errors.validation('Invalid input data')
     }
+
+    logger.info('Claim data validated', {
+      ip,
+      shopName: claimData.shopName,
+      claimType: claimData.claimType
+    })
 
     // Anti-spam checks
     if (claimData.hp) {
+      logger.warn('Honeypot triggered in claim submission', { ip })
       return NextResponse.json({ ok: true }) // honeypot triggered
     }
-    
+
     if (Date.now() - claimData.t < 1500) {
+      logger.warn('Claim submission filled too quickly (possible bot)', { ip })
       return NextResponse.json({ ok: true }) // too fast submission
     }
 
     // Add metadata
-    const claim = {
+    const claim: ClaimData = {
       ...claimData,
       id: `claim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       submittedAt: new Date().toISOString(),
@@ -78,31 +108,41 @@ export async function POST(request: NextRequest) {
     const claimFile = path.join(claimsDir, `${claim.id}.json`)
     await fs.writeFile(claimFile, JSON.stringify(claim, null, 2))
 
+    logger.info('Claim saved to file', {
+      ip,
+      claimId: claim.id,
+      shopName: claim.shopName,
+      claimFile
+    })
+
     // Send notification email (if configured)
     await sendNotificationEmail(claim)
 
     // Send confirmation email to claimant
     await sendConfirmationEmail(claim)
 
-    return NextResponse.json({ 
-      success: true, 
+    logger.info('Claim submission completed successfully', {
+      ip,
       claimId: claim.id,
-      message: 'Claim submitted successfully' 
+      shopName: claim.shopName,
+      claimType: claim.claimType
+    })
+
+    return NextResponse.json({
+      success: true,
+      claimId: claim.id,
+      message: 'Claim submitted successfully'
     })
 
   } catch (error) {
-    console.error('Error processing claim:', error)
-    return NextResponse.json(
-      'Internal server error',
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/claims', { ip })
   }
 }
 
-async function sendNotificationEmail(claim: any) {
+async function sendNotificationEmail(claim: ClaimData) {
   // This would integrate with your email service (SendGrid, AWS SES, etc.)
   // For now, we'll just log it
-  console.log('📧 CLAIM NOTIFICATION:', {
+  moduleLogger.info('Claim notification email queued', {
     to: 'claims@farmcompanion.co.uk',
     subject: `New Claim: ${claim.shopName}`,
     claimId: claim.id,
@@ -114,9 +154,9 @@ async function sendNotificationEmail(claim: any) {
   })
 }
 
-async function sendConfirmationEmail(claim: any) {
+async function sendConfirmationEmail(claim: ClaimData) {
   // This would send a confirmation email to the claimant
-  console.log('📧 CLAIM CONFIRMATION:', {
+  moduleLogger.info('Claim confirmation email queued', {
     to: claim.claimantEmail,
     from: 'hello@farmcompanion.co.uk',
     subject: `Claim Submitted: ${claim.shopName}`,

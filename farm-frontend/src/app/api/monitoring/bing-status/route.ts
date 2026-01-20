@@ -1,10 +1,18 @@
 import { NextResponse } from 'next/server'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
+
+interface Farm {
+  location?: {
+    county?: string
+  }
+}
 
 /**
  * Bing Indexing Status Dashboard
- * 
+ *
  * Provides comprehensive status information about the Bing indexing system:
  * - Recent indexing activity
  * - Sitemap statistics
@@ -12,7 +20,10 @@ import path from 'node:path'
  * - Configuration status
  */
 export async function GET() {
+  const logger = createRouteLogger('api/monitoring/bing-status')
+
   try {
+    logger.info('Generating Bing indexing status')
     const status = {
       timestamp: new Date().toISOString(),
       system: {
@@ -62,22 +73,29 @@ export async function GET() {
       
       // Count unique counties
       const counties = new Set<string>()
-      farms.forEach((farm: any) => {
+      farms.forEach((farm: Farm) => {
         if (farm?.location?.county) {
           counties.add(farm.location.county)
         }
       })
       status.statistics.counties = counties.size
+      logger.info('Farm statistics loaded', {
+        farms: status.statistics.farms,
+        counties: status.statistics.counties
+      })
     } catch (error) {
-      console.warn('Could not load farm statistics:', error)
+      logger.warn('Could not load farm statistics', {}, error as Error)
     }
 
     // Load produce statistics
     try {
       const { PRODUCE } = await import('@/data/produce')
       status.statistics.producePages = PRODUCE.length
+      logger.info('Produce statistics loaded', {
+        producePages: status.statistics.producePages
+      })
     } catch (error) {
-      console.warn('Could not load produce statistics:', error)
+      logger.warn('Could not load produce statistics', {}, error as Error)
     }
 
     // Check sitemap chunks
@@ -115,14 +133,20 @@ export async function GET() {
       if (sitemapResponse.ok) {
         const lastModified = sitemapResponse.headers.get('last-modified')
         status.sitemap.lastGenerated = lastModified
+        logger.info('Main sitemap checked', { lastModified })
       }
     } catch (error) {
-      console.warn('Could not check main sitemap:', error)
+      logger.warn('Could not check main sitemap', {}, error as Error)
     }
+
+    logger.info('Bing indexing status generated successfully', {
+      totalUrls: status.sitemap.totalUrls,
+      chunksChecked: status.sitemap.chunks.length
+    })
 
     // Add health check link
     const healthCheckUrl = 'https://www.farmcompanion.co.uk/api/health/bing-indexnow'
-    
+
     return NextResponse.json({
       ...status,
       links: {
@@ -140,14 +164,6 @@ export async function GET() {
     })
 
   } catch (error) {
-    console.error('Error generating Bing status:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to generate status',
-        timestamp: new Date().toISOString(),
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/monitoring/bing-status')
   }
 }

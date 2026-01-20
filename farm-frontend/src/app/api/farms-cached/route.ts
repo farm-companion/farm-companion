@@ -21,8 +21,11 @@ import {
   STATIC_CACHE_OPTIONS,
 } from '@/lib/cache-strategy'
 import { prisma } from '@/lib/prisma'
+import { createRouteLogger } from '@/lib/logger'
+import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/farms-cached', request)
   const searchParams = request.nextUrl.searchParams
 
   const county = searchParams.get('county')
@@ -47,15 +50,23 @@ export async function GET(request: NextRequest) {
   const cacheOptions = isStaticQuery ? STATIC_CACHE_OPTIONS : DYNAMIC_CACHE_OPTIONS
 
   try {
+    logger.info('Processing farms cached request', {
+      county,
+      category,
+      limit,
+      offset,
+      isStaticQuery
+    })
+
     // Fetch with multi-tier caching
     const data = await getCachedWithStrategy(
       'farms',
       cacheKey,
       async () => {
         // This fetcher only runs on cache miss
-        console.log(`⚠️  Cache miss: ${cacheKey}`)
+        logger.info('Cache miss for farms query', { cacheKey })
 
-        const where: any = { status: 'active' }
+        const where: Prisma.FarmWhereInput = { status: 'active' }
 
         if (county) where.county = county
         if (category) {
@@ -98,10 +109,21 @@ export async function GET(request: NextRequest) {
       }
     )
 
+    logger.info('Farms cached request completed', {
+      farmsCount: data.farms.length,
+      total: data.pagination.total,
+      cacheKey
+    })
+
     // Return with optimal HTTP cache headers
     return createCachedResponse(data, cacheOptions)
   } catch (error) {
-    console.error('Error fetching farms:', error)
+    logger.error('Error fetching farms', {
+      county,
+      category,
+      limit,
+      offset
+    }, error as Error)
 
     return createCachedResponse(
       { error: 'Failed to fetch farms' },

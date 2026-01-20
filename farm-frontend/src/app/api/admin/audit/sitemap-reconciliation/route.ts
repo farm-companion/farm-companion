@@ -3,10 +3,15 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { getCurrentUser } from '@/lib/auth'
 import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-tracker'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
+
+// Module logger for helper functions
+const moduleLogger = createRouteLogger('api/admin/audit/sitemap-reconciliation')
 
 /**
  * Quarterly Sitemap Reconciliation Audit
- * 
+ *
  * This endpoint performs a comprehensive audit of sitemap vs database URLs:
  * 1. Exports all farm URLs from database
  * 2. Compares against URLs in all sitemap chunks
@@ -14,14 +19,19 @@ import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-
  * 4. Submits missing URLs to IndexNow in batches
  */
 export async function POST() {
+  const logger = createRouteLogger('api/admin/audit/sitemap-reconciliation')
+
   try {
     // Require authentication
     const user = await getCurrentUser()
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      logger.warn('Unauthorized access attempt to sitemap reconciliation audit')
+      throw errors.authorization('Unauthorized')
     }
 
-    console.log('🔍 Starting quarterly sitemap reconciliation audit...')
+    logger.info('Starting quarterly sitemap reconciliation audit', {
+      performedBy: user.email
+    })
 
     const audit = {
       timestamp: new Date().toISOString(),
@@ -44,19 +54,23 @@ export async function POST() {
     }
 
     // Step 1: Export all farm URLs from database
-    console.log('📊 Step 1: Exporting farm URLs from database...')
+    logger.info('Step 1: Exporting farm URLs from database')
     const databaseUrls = await exportFarmUrlsFromDatabase()
     audit.results.databaseUrls = databaseUrls
     audit.summary.totalDatabaseUrls = databaseUrls.length
 
+    logger.info('Step 1 completed', { totalDatabaseUrls: databaseUrls.length })
+
     // Step 2: Extract URLs from all sitemap chunks
-    console.log('🗺️ Step 2: Extracting URLs from sitemap chunks...')
+    logger.info('Step 2: Extracting URLs from sitemap chunks')
     const sitemapUrls = await extractUrlsFromSitemaps()
     audit.results.sitemapUrls = sitemapUrls
     audit.summary.totalSitemapUrls = sitemapUrls.length
 
+    logger.info('Step 2 completed', { totalSitemapUrls: sitemapUrls.length })
+
     // Step 3: Compare and identify drift
-    console.log('🔍 Step 3: Comparing database vs sitemap URLs...')
+    logger.info('Step 3: Comparing database vs sitemap URLs')
     const comparison = compareUrlSets(databaseUrls, sitemapUrls)
     audit.results.missingUrls = comparison.missing
     audit.results.extraUrls = comparison.extra
@@ -64,19 +78,36 @@ export async function POST() {
     audit.summary.extraCount = comparison.extra.length
     audit.summary.driftDetected = comparison.missing.length > 0 || comparison.extra.length > 0
 
+    logger.info('Step 3 completed', {
+      missingCount: comparison.missing.length,
+      extraCount: comparison.extra.length,
+      driftDetected: audit.summary.driftDetected
+    })
+
     // Step 4: Submit missing URLs to IndexNow in batches
     if (comparison.missing.length > 0) {
-      console.log(`📤 Step 4: Submitting ${comparison.missing.length} missing URLs to IndexNow...`)
-      const submissionResult = await submitMissingUrlsToIndexNow(comparison.missing)
+      logger.info('Step 4: Submitting missing URLs to IndexNow', {
+        missingUrlsCount: comparison.missing.length
+      })
+      const submissionResult = await submitMissingUrlsToIndexNow(comparison.missing, logger)
       audit.results.notificationsSent = submissionResult.notificationsSent
       audit.results.errors.push(...submissionResult.errors)
+
+      logger.info('Step 4 completed', {
+        notificationsSent: submissionResult.notificationsSent,
+        errorsCount: submissionResult.errors.length
+      })
     } else {
-      console.log('✅ Step 4: No missing URLs found - sitemap is up to date!')
+      logger.info('Step 4: No missing URLs found - sitemap is up to date')
     }
 
     // Generate summary
     const summary = generateAuditSummary(audit)
-    console.log('📋 Audit Summary:', summary)
+    logger.info('Audit completed', {
+      summary,
+      driftDetected: audit.summary.driftDetected,
+      totalChecks: 4
+    })
 
     return NextResponse.json({
       success: true,
@@ -86,15 +117,7 @@ export async function POST() {
     })
 
   } catch (error) {
-    console.error('Error in sitemap reconciliation audit:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to perform sitemap reconciliation audit',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/admin/audit/sitemap-reconciliation')
   }
 }
 
@@ -123,13 +146,13 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
               urls.push(`${baseUrl}/shop/${farm.slug}`)
             }
           } catch (error) {
-            console.warn(`Error reading farm file ${file}:`, error)
+            moduleLogger.warn('Error reading farm file', { file }, error as Error)
           }
         }
       }
     } catch {
-      console.warn('Live farms directory not found, checking main farms directory...')
-      
+      moduleLogger.warn('Live farms directory not found, checking main farms directory')
+
       // Fallback to main farms directory
       const farmsDir = path.join(process.cwd(), 'data', 'farms')
       const files = await fs.readdir(farmsDir)
@@ -145,7 +168,7 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
               urls.push(`${baseUrl}/shop/${farm.slug}`)
             }
           } catch (error) {
-            console.warn(`Error reading farm file ${file}:`, error)
+            moduleLogger.warn('Error reading farm file', { file }, error as Error)
           }
         }
       }
@@ -172,7 +195,7 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
       const { PRODUCE } = await import('@/data/produce')
       urls.push(...PRODUCE.map(produce => `${baseUrl}/seasonal/${produce.slug}`))
     } catch (error) {
-      console.warn('Could not load produce data:', error)
+      moduleLogger.warn('Could not load produce data', {}, error as Error)
     }
 
     // Add county pages (extract from farms)
@@ -203,13 +226,13 @@ async function exportFarmUrlsFromDatabase(): Promise<string[]> {
         }
       }
     } catch (error) {
-      console.warn('Could not process farms for county pages:', error)
+      moduleLogger.warn('Could not process farms for county pages', {}, error as Error)
     }
 
     urls.push(...Array.from(counties).map(county => `${baseUrl}/counties/${county}`))
 
   } catch (error) {
-    console.error('Error exporting farm URLs from database:', error)
+    moduleLogger.error('Error exporting farm URLs from database', {}, error as Error)
   }
 
   return [...new Set(urls)].sort() // Remove duplicates and sort
@@ -252,15 +275,15 @@ async function extractUrlsFromSitemaps(): Promise<string[]> {
             urls.push(...urlMatches.map(m => m.replace(/<\/?loc>/g, '')))
           }
         } else {
-          console.warn(`Could not access sitemap chunk: ${chunkUrl}`)
+          moduleLogger.warn('Could not access sitemap chunk', { chunkUrl })
         }
       } catch (error) {
-        console.warn(`Error processing sitemap chunk ${chunkUrl}:`, error)
+        moduleLogger.warn('Error processing sitemap chunk', { chunkUrl }, error as Error)
       }
     }
 
   } catch (error) {
-    console.error('Error extracting URLs from sitemaps:', error)
+    moduleLogger.error('Error extracting URLs from sitemaps', {}, error as Error)
   }
 
   return [...new Set(urls)].sort() // Remove duplicates and sort
@@ -282,7 +305,10 @@ function compareUrlSets(databaseUrls: string[], sitemapUrls: string[]) {
 /**
  * Submit missing URLs to IndexNow in batches
  */
-async function submitMissingUrlsToIndexNow(missingUrls: string[]): Promise<{
+async function submitMissingUrlsToIndexNow(
+  missingUrls: string[],
+  logger: ReturnType<typeof createRouteLogger>
+): Promise<{
   notificationsSent: number
   errors: string[]
 }> {
@@ -297,8 +323,20 @@ async function submitMissingUrlsToIndexNow(missingUrls: string[]): Promise<{
     batches.push(missingUrls.slice(i, i + batchSize))
   }
 
+  logger.info('Processing URL batches for IndexNow submission', {
+    totalUrls: missingUrls.length,
+    batchSize,
+    totalBatches: batches.length
+  })
+
   for (const batch of batches) {
     try {
+      logger.info('Processing batch', {
+        batchNumber: batches.indexOf(batch) + 1,
+        totalBatches: batches.length,
+        urlsInBatch: batch.length
+      })
+
       // Create content change events for each URL
       const changeEvents = batch.map(url => {
         // Determine change type based on URL pattern

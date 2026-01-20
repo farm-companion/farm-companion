@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { searchFarms, getFarmSuggestions } from '@/lib/meilisearch'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
 
 /**
  * GET /api/search
@@ -17,7 +19,10 @@ import { searchFarms, getFarmSuggestions } from '@/lib/meilisearch'
  * - suggest: return autocomplete suggestions only
  */
 export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/search', request)
+
   try {
+    logger.info('Processing search request')
     const searchParams = request.nextUrl.searchParams
 
     const query = searchParams.get('q') || ''
@@ -32,7 +37,13 @@ export async function GET(request: NextRequest) {
 
     // Return suggestions for autocomplete
     if (suggest) {
+      logger.info('Fetching search suggestions', { query, limit: 5 })
       const suggestions = await getFarmSuggestions(query, 5)
+
+      logger.info('Search suggestions fetched', {
+        query,
+        suggestionsCount: suggestions.length
+      })
 
       return NextResponse.json({
         suggestions: suggestions.map(hit => ({
@@ -53,6 +64,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Full search
+    logger.info('Performing full search', {
+      query,
+      county,
+      city,
+      category,
+      verified,
+      limit,
+      offset
+    })
+
     const results = await searchFarms(query, {
       county,
       city,
@@ -61,6 +82,13 @@ export async function GET(request: NextRequest) {
       limit,
       offset,
       sort
+    })
+
+    logger.info('Search completed', {
+      query,
+      hitsCount: results.hits.length,
+      estimatedTotalHits: results.estimatedTotalHits,
+      processingTimeMs: results.processingTimeMs
     })
 
     return NextResponse.json({
@@ -77,12 +105,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-  } catch (error: any) {
-    console.error('Search error:', error)
-
-    return NextResponse.json(
-      { error: 'Search failed', message: error.message },
-      { status: 500 }
-    )
+  } catch (error) {
+    return handleApiError(error, 'api/search')
   }
 }

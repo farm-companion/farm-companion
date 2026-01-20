@@ -3,38 +3,77 @@ import fs from 'fs/promises'
 import path from 'path'
 import { getCurrentUser } from '@/lib/auth'
 import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-tracker'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
+
+interface Farm {
+  id: string
+  name: string
+  slug: string
+  location: {
+    lat?: number
+    lng?: number
+    address: string
+    county: string
+    postcode: string
+  }
+  contact: {
+    email?: string
+    phone?: string
+  }
+  hours?: unknown[]
+  offerings?: unknown[]
+  story: string
+  images?: unknown[]
+  seasonal?: unknown[]
+  status: string
+  submittedAt?: string
+  approvedAt?: string
+  approvedBy?: string
+}
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/admin/farms/approve-to-live', request)
+
   try {
+    logger.info('Processing farm approve-to-live request')
+
     // Require authentication
     const user = await getCurrentUser()
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      logger.warn('Unauthorized farm approve-to-live attempt')
+      throw errors.authorization('Unauthorized')
     }
 
     const { farmId } = await request.json()
 
+    if (!farmId) {
+      logger.warn('Missing farmId in request')
+      throw errors.validation('farmId is required')
+    }
+
+    logger.info('Reading approved farm submission', { farmId })
+
     // Read the approved farm submission
     const farmsDir = path.join(process.cwd(), 'data', 'farms')
     const farmFile = path.join(farmsDir, `${farmId}.json`)
-    
-    let farm
+
+    let farm: Farm
     try {
       const content = await fs.readFile(farmFile, 'utf-8')
       farm = JSON.parse(content)
     } catch {
-      return NextResponse.json(
-        { error: 'Farm submission not found' },
-        { status: 404 }
-      )
+      logger.warn('Farm submission not found', { farmId, farmFile })
+      throw errors.notFound('Farm submission')
     }
 
     // Verify farm is approved
     if (farm.status !== 'approved') {
-      return NextResponse.json(
-        { error: 'Farm must be approved before moving to live directory' },
-        { status: 400 }
-      )
+      logger.warn('Farm not in approved status', {
+        farmId,
+        currentStatus: farm.status
+      })
+      throw errors.validation('Farm must be approved before moving to live directory')
     }
 
     // Transform farm data to match live directory format
@@ -84,8 +123,14 @@ export async function POST(request: NextRequest) {
     }
     await fs.writeFile(farmFile, JSON.stringify(updatedSubmission, null, 2))
 
+    logger.info('Farm moved to live directory successfully', {
+      farmId: farm.id,
+      farmName: farm.name,
+      farmSlug: liveFarm.slug
+    })
+
     // Send notification to farm contact
-    await sendLiveNotification(liveFarm)
+    await sendLiveNotification(liveFarm, logger)
 
     // Track content change and notify Bing IndexNow (fire-and-forget)
     ;(async () => {
@@ -96,44 +141,45 @@ export async function POST(request: NextRequest) {
           undefined,
           liveFarm.location.county
         )
-        
+
         const result = await trackContentChange(changeEvent)
         if (result.success) {
-          console.log(`🚀 Content change tracked: ${result.notificationsSent} Bing notifications sent`)
+          logger.info('Content change tracked for farm publish', {
+            farmId: farm.id,
+            notificationsSent: result.notificationsSent
+          })
         } else {
-          console.warn(`⚠️ Content change tracking failed: ${result.errors.join(', ')}`)
+          logger.warn('Content change tracking failed', {
+            farmId: farm.id,
+            errors: result.errors
+          })
         }
       } catch (error) {
-        console.error('Error tracking content change:', error)
+        logger.error('Error tracking content change', { farmId: farm.id }, error as Error)
         // Don't fail the main operation if content change tracking fails
       }
     })()
 
-    return NextResponse.json({ 
-      success: true, 
+    return NextResponse.json({
+      success: true,
       message: `Farm ${farm.name} moved to live directory successfully`,
       farmId: farm.id
     })
 
   } catch (error) {
-    console.error('Error moving farm to live directory:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/admin/farms/approve-to-live')
   }
 }
 
-async function sendLiveNotification(farm: any) {
+async function sendLiveNotification(farm: Farm, logger: ReturnType<typeof createRouteLogger>) {
   if (farm.contact.email) {
-    console.log('📧 FARM LIVE NOTIFICATION:', {
-      to: farm.contact.email,
-      from: 'hello@farmcompanion.co.uk',
-      subject: `Your Farm is Now Live: ${farm.name}`,
+    logger.info('Farm live notification prepared', {
       farmId: farm.id,
       farmName: farm.name,
-      farmUrl: `https://www.farmcompanion.co.uk/shop/${farm.slug}`,
-      message: `Great news! Your farm shop "${farm.name}" is now live on Farm Companion. You can view your listing at: https://www.farmcompanion.co.uk/shop/${farm.slug}`
+      farmSlug: farm.slug,
+      contactEmail: farm.contact.email,
+      farmUrl: `https://www.farmcompanion.co.uk/shop/${farm.slug}`
     })
+    // TODO: Implement actual email sending when email service is configured
   }
 }

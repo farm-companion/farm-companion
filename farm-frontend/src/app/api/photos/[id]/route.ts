@@ -2,13 +2,15 @@
 // PuredgeOS 3.0 Compliant Photo Management
 
 import { NextRequest, NextResponse } from 'next/server'
-import { 
-  getPhotoSubmission, 
+import {
+  getPhotoSubmission,
   updatePhotoStatus,
   requestPhotoDeletion,
   reviewDeletionRequest,
   recoverDeletedPhoto
 } from '@/lib/photo-storage'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -22,35 +24,37 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const logger = createRouteLogger('api/photos/[id]', request)
+
   try {
     const { id: photoId } = await params
-    
+
+    logger.info('Fetching photo details', { photoId })
+
     // Validate photo ID format
     if (!photoId || !photoId.startsWith('photo_')) {
-      return NextResponse.json(
-        { error: 'Invalid photo ID' },
-        { status: 400, headers: corsHeaders }
-      )
+      logger.warn('Invalid photo ID format', { photoId })
+      throw errors.validation('Invalid photo ID')
     }
     
     // Get photo submission
     const submission = await getPhotoSubmission(photoId)
-    
+
     if (!submission) {
-      return NextResponse.json(
-        { error: 'Photo not found' },
-        { status: 404, headers: corsHeaders }
-      )
+      logger.warn('Photo not found', { photoId })
+      throw errors.notFound('Photo')
     }
-    
+
+    logger.info('Photo details fetched successfully', { photoId })
+
     return NextResponse.json(submission, { headers: corsHeaders })
-    
+
   } catch (error) {
-    console.error('Error fetching photo:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500, headers: corsHeaders }
-    )
+    const response = handleApiError(error, 'api/photos/[id]')
+    // Add CORS headers to error response
+    const headers = new Headers(response.headers)
+    Object.entries(corsHeaders).forEach(([key, value]) => headers.set(key, value))
+    return new NextResponse(response.body, { status: response.status, headers })
   }
 }
 
@@ -59,16 +63,18 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const logger = createRouteLogger('api/photos/[id]', request)
+
   try {
     const { id: photoId } = await params
     const body = await request.json()
-    
+
+    logger.info('Processing photo update', { photoId, action: body.action })
+
     // Validate photo ID format
     if (!photoId || !photoId.startsWith('photo_')) {
-      return NextResponse.json(
-        { error: 'Invalid photo ID' },
-        { status: 400, headers: corsHeaders }
-      )
+      logger.warn('Invalid photo ID format in PATCH', { photoId })
+      throw errors.validation('Invalid photo ID')
     }
     
     // Handle different PATCH operations
@@ -136,17 +142,13 @@ export async function PATCH(
       // Standard status update (approve/reject)
       // Validate required fields
       if (!body.status || !['approved', 'rejected'].includes(body.status)) {
-        return NextResponse.json(
-          { error: 'Invalid status. Must be "approved" or "rejected"' },
-          { status: 400, headers: corsHeaders }
-        )
+        logger.warn('Invalid status in photo update', { photoId, status: body.status })
+        throw errors.validation('Invalid status. Must be "approved" or "rejected"')
       }
-      
+
       if (!body.reviewedBy) {
-        return NextResponse.json(
-          { error: 'Reviewer information is required' },
-          { status: 400, headers: corsHeaders }
-        )
+        logger.warn('Missing reviewer information', { photoId })
+        throw errors.validation('Reviewer information is required')
       }
       
       // Update photo status
@@ -158,26 +160,29 @@ export async function PATCH(
           rejectionReason: body.rejectionReason
         }
       )
-      
+
       if (!success) {
-        return NextResponse.json(
-          { error: 'Photo not found' },
-          { status: 404, headers: corsHeaders }
-        )
+        logger.warn('Photo not found for status update', { photoId })
+        throw errors.notFound('Photo')
       }
-      
+
+      logger.info('Photo status updated successfully', {
+        photoId,
+        status: body.status,
+        reviewedBy: body.reviewedBy
+      })
+
       return NextResponse.json({
         success: true,
         message: `Photo ${body.status} successfully`
       }, { headers: corsHeaders })
     }
-    
+
   } catch (error) {
-    console.error('Error updating photo:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500, headers: corsHeaders }
-    )
+    const response = handleApiError(error, 'api/photos/[id]')
+    const headers = new Headers(response.headers)
+    Object.entries(corsHeaders).forEach(([key, value]) => headers.set(key, value))
+    return new NextResponse(response.body, { status: response.status, headers })
   }
 }
 
@@ -186,24 +191,24 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const logger = createRouteLogger('api/photos/[id]', request)
+
   try {
     const { id: photoId } = await params
-    
+
+    logger.info('Processing photo deletion', { photoId })
+
     // Validate photo ID format
     if (!photoId || !photoId.startsWith('photo_')) {
-      return NextResponse.json(
-        { error: 'Invalid photo ID' },
-        { status: 400, headers: corsHeaders }
-      )
+      logger.warn('Invalid photo ID format in DELETE', { photoId })
+      throw errors.validation('Invalid photo ID')
     }
     
     // Get submission before deletion
     const submission = await getPhotoSubmission(photoId)
     if (!submission) {
-      return NextResponse.json(
-        { error: 'Photo not found' },
-        { status: 404, headers: corsHeaders }
-      )
+      logger.warn('Photo not found for deletion', { photoId })
+      throw errors.notFound('Photo')
     }
     
     // For immediate deletion (admin only), we'll use the deletion request system
@@ -237,18 +242,19 @@ export async function DELETE(
       )
     }
     
+    logger.info('Photo deleted successfully', { photoId })
+
     return NextResponse.json({
       success: true,
       message: 'Photo deleted successfully',
       photoId
     }, { headers: corsHeaders })
-    
+
   } catch (error) {
-    console.error('Error deleting photo:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500, headers: corsHeaders }
-    )
+    const response = handleApiError(error, 'api/photos/[id]')
+    const headers = new Headers(response.headers)
+    Object.entries(corsHeaders).forEach(([key, value]) => headers.set(key, value))
+    return new NextResponse(response.body, { status: response.status, headers })
   }
 }
 

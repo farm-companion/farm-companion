@@ -1,28 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
 
 /**
  * IndexNow Error Diagnostic Tool
- * 
+ *
  * This endpoint diagnoses IndexNow POST errors by checking three critical areas:
  * 1. Public key file accessibility and matching
  * 2. Host validation in JSON payload
  * 3. URL list validation and rate limiting
  */
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/diagnostics/indexnow-errors', request)
+
   try {
+    logger.info('Processing IndexNow error diagnostics request')
+
     const { errorResponse, submittedUrl } = await request.json()
-    
+
+    logger.info('Running IndexNow diagnostics', {
+      hasErrorResponse: !!errorResponse,
+      submittedUrl
+    })
+
     const diagnostics = {
       timestamp: new Date().toISOString(),
       errorResponse: errorResponse || 'No error response provided',
       submittedUrl: submittedUrl || 'No URL provided',
       checks: {
-        publicKeyFile: await checkPublicKeyFile(),
-        hostValidation: await checkHostValidation(),
-        urlListValidation: await checkUrlListValidation(submittedUrl),
-        rateLimiting: await checkRateLimiting(),
+        publicKeyFile: await checkPublicKeyFile(logger),
+        hostValidation: await checkHostValidation(logger),
+        urlListValidation: await checkUrlListValidation(submittedUrl, logger),
+        rateLimiting: await checkRateLimiting(logger),
       },
       recommendations: [] as string[],
       status: 'unknown' as 'pass' | 'fail' | 'warning' | 'unknown',
@@ -31,25 +42,23 @@ export async function POST(request: NextRequest) {
     // Analyze results and provide recommendations
     analyzeIndexNowResults(diagnostics)
 
+    logger.info('IndexNow error diagnostics completed', {
+      status: diagnostics.status,
+      checksCompleted: Object.keys(diagnostics.checks).length
+    })
+
     return NextResponse.json(diagnostics)
 
   } catch (error) {
-    console.error('Error in IndexNow diagnostics:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to perform IndexNow diagnostics',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/diagnostics/indexnow-errors')
   }
 }
 
 /**
  * Check 1: Public key file accessibility and matching
  */
-async function checkPublicKeyFile() {
+async function checkPublicKeyFile(logger: ReturnType<typeof createRouteLogger>) {
+  logger.info('Checking public key file accessibility')
   const result = {
     status: 'unknown' as 'pass' | 'fail' | 'warning',
     details: {
@@ -69,12 +78,15 @@ async function checkPublicKeyFile() {
     if (!bingIndexNowKey) {
       result.status = 'fail'
       result.details.error = 'BING_INDEXNOW_KEY environment variable not configured'
+      logger.warn('BING_INDEXNOW_KEY not configured')
       return result
     }
 
     result.details.keyConfigured = true
     result.details.keyValue = bingIndexNowKey
     result.details.fileUrl = `https://www.farmcompanion.co.uk/${bingIndexNowKey}.txt`
+
+    logger.info('Public key configured', { fileUrl: result.details.fileUrl })
 
     // Check if key file exists in public directory
     try {
@@ -95,25 +107,30 @@ async function checkPublicKeyFile() {
         const fileContent = await fileResponse.text()
         result.details.fileAccessible = true
         result.details.fileMatches = fileContent.trim() === bingIndexNowKey
-        
+
         if (result.details.fileMatches) {
           result.status = 'pass'
+          logger.info('Public key file check passed', { fileUrl: result.details.fileUrl })
         } else {
           result.status = 'fail'
           result.details.error = 'File content does not match BING_INDEXNOW_KEY'
+          logger.warn('Public key file content mismatch')
         }
       } else {
         result.status = 'fail'
         result.details.error = `Key file not accessible via HTTP: ${fileResponse.status}`
+        logger.warn('Public key file not accessible via HTTP', { status: fileResponse.status })
       }
     } catch (error) {
       result.status = 'fail'
       result.details.error = `Cannot access key file via HTTP: ${error instanceof Error ? error.message : 'Unknown error'}`
+      logger.error('Failed to access public key file via HTTP', {}, error as Error)
     }
 
   } catch (error) {
     result.status = 'fail'
     result.details.error = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('Public key file check failed', {}, error as Error)
   }
 
   return result
@@ -122,7 +139,8 @@ async function checkPublicKeyFile() {
 /**
  * Check 2: Host validation in JSON payload
  */
-async function checkHostValidation() {
+async function checkHostValidation(logger: ReturnType<typeof createRouteLogger>) {
+  logger.info('Checking host validation')
   const result = {
     status: 'unknown' as 'pass' | 'fail' | 'warning',
     details: {
@@ -142,14 +160,23 @@ async function checkHostValidation() {
     if (result.details.payloadHost === result.details.configuredHost) {
       result.status = 'pass'
       result.details.hostsMatch = true
+      logger.info('Host validation passed', {
+        configuredHost: result.details.configuredHost,
+        payloadHost: result.details.payloadHost
+      })
     } else {
       result.status = 'fail'
       result.details.error = `Host mismatch: payload uses '${result.details.payloadHost}' but should be '${result.details.configuredHost}'`
+      logger.warn('Host validation failed', {
+        configuredHost: result.details.configuredHost,
+        payloadHost: result.details.payloadHost
+      })
     }
 
   } catch (error) {
     result.status = 'fail'
     result.details.error = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('Host validation check failed', {}, error as Error)
   }
 
   return result
@@ -158,7 +185,8 @@ async function checkHostValidation() {
 /**
  * Check 3: URL list validation
  */
-async function checkUrlListValidation(submittedUrl?: string) {
+async function checkUrlListValidation(submittedUrl: string | undefined, logger: ReturnType<typeof createRouteLogger>) {
+  logger.info('Checking URL list validation', { hasSubmittedUrl: !!submittedUrl })
   const result = {
     status: 'unknown' as 'pass' | 'fail' | 'warning',
     details: {
@@ -191,18 +219,22 @@ async function checkUrlListValidation(submittedUrl?: string) {
       // Check if URL is for the correct host
       if (url.host === 'www.farmcompanion.co.uk') {
         result.status = 'pass'
+        logger.info('URL validation passed', { url: submittedUrl, host: url.host })
       } else {
         result.status = 'fail'
         result.details.error = `URL host '${url.host}' does not match expected host 'www.farmcompanion.co.uk'`
+        logger.warn('URL host mismatch', { url: submittedUrl, host: url.host })
       }
     } catch {
       result.status = 'fail'
       result.details.error = 'Invalid URL format'
+      logger.warn('Invalid URL format', { url: submittedUrl })
     }
 
   } catch (error) {
     result.status = 'fail'
     result.details.error = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('URL validation check failed', {}, error as Error)
   }
 
   return result
@@ -211,7 +243,8 @@ async function checkUrlListValidation(submittedUrl?: string) {
 /**
  * Check 4: Rate limiting analysis
  */
-async function checkRateLimiting() {
+async function checkRateLimiting(logger: ReturnType<typeof createRouteLogger>) {
+  logger.info('Checking rate limiting')
   const result = {
     status: 'unknown' as 'pass' | 'fail' | 'warning',
     details: {
@@ -233,10 +266,12 @@ async function checkRateLimiting() {
     ]
 
     result.status = 'pass'
+    logger.info('Rate limiting check completed')
 
   } catch (error) {
     result.status = 'fail'
     result.details.error = error instanceof Error ? error.message : 'Unknown error'
+    logger.error('Rate limiting check failed', {}, error as Error)
   }
 
   return result

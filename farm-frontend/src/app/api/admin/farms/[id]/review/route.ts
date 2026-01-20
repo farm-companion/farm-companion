@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import redis from '@/lib/redis'
 import { getCurrentUser } from '@/lib/auth'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
+
+// Module logger for helper functions
+const moduleLogger = createRouteLogger('api/admin/farms/review')
 
 interface ReviewAction {
   action: 'approve' | 'reject' | 'request_changes'
@@ -8,43 +13,63 @@ interface ReviewAction {
   reviewedBy: string
 }
 
+interface FarmSubmission {
+  id: string
+  name: string
+  contact: {
+    email?: string
+  }
+  status?: string
+  reviewedAt?: string
+  reviewedBy?: string
+  reviewNotes?: string | null
+  approvedAt?: string
+  approvedBy?: string
+}
+
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const logger = createRouteLogger('api/admin/farms/review', request)
+
   try {
     // Require authentication
     const user = await getCurrentUser()
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      logger.warn('Unauthorized access attempt to farm review')
+      throw errors.authorization('Unauthorized')
     }
 
     const { action, notes, reviewedBy }: ReviewAction = await request.json()
     const { id: farmId } = await params
 
+    logger.info('Processing farm review', {
+      farmId,
+      action,
+      reviewedBy,
+      hasNotes: !!notes
+    })
+
     // Validate action
     if (!['approve', 'reject', 'request_changes'].includes(action)) {
-      return NextResponse.json(
-        { error: 'Invalid action' },
-        { status: 400 }
-      )
+      logger.warn('Invalid review action provided', { action })
+      throw errors.validation('Invalid action')
     }
 
     // Get the farm submission from Redis
     const farmStr = await redis.hget('farm_submissions', farmId)
-    
+
     if (!farmStr) {
-      return NextResponse.json(
-        { error: 'Farm submission not found' },
-        { status: 404 }
-      )
+      logger.warn('Farm submission not found in Redis', { farmId })
+      throw errors.notFound('Farm submission')
     }
 
-    const farm = JSON.parse(String(farmStr))
+    const farm: FarmSubmission = JSON.parse(String(farmStr))
 
     // Update farm status
     const now = new Date().toISOString()
-    const updatedFarm = {
+    const updatedFarm: FarmSubmission = {
       ...farm,
       status: action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'changes_requested',
       reviewedAt: now,
@@ -56,32 +81,41 @@ export async function POST(
       })
     }
 
+    logger.info('Updating farm status in Redis', {
+      farmId,
+      farmName: farm.name,
+      newStatus: updatedFarm.status
+    })
+
     // Save updated farm back to Redis
     await redis.hset('farm_submissions', farmId, JSON.stringify(updatedFarm))
 
     // Send appropriate email notifications
     await sendReviewNotification(updatedFarm, action, notes)
 
-    return NextResponse.json({ 
-      success: true, 
-      message: `Farm ${action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'changes requested'} successfully` 
+    logger.info('Farm review completed successfully', {
+      farmId,
+      farmName: farm.name,
+      action,
+      reviewedBy
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: `Farm ${action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'changes requested'} successfully`
     })
 
   } catch (error) {
-    console.error('Error reviewing farm submission:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/admin/farms/review')
   }
 }
 
-async function sendReviewNotification(farm: any, action: string, notes?: string) {
+async function sendReviewNotification(farm: FarmSubmission, action: string, notes?: string) {
   const actionText = action === 'approve' ? 'approved' : action === 'reject' ? 'rejected' : 'changes requested'
-  
+
   // Send notification to farm contact if email provided
   if (farm.contact.email) {
-    console.log('📧 FARM REVIEW NOTIFICATION:', {
+    moduleLogger.info('Farm review notification prepared', {
       to: farm.contact.email,
       from: 'hello@farmcompanion.co.uk',
       subject: `Farm Shop Review Update: ${farm.name}`,
@@ -90,8 +124,8 @@ async function sendReviewNotification(farm: any, action: string, notes?: string)
       action: actionText,
       notes: notes || 'No additional notes provided',
       message: `Your farm shop submission "${farm.name}" has been ${actionText}. ${
-        action === 'approve' 
-          ? 'Your farm is now live on our directory!' 
+        action === 'approve'
+          ? 'Your farm is now live on our directory!'
           : action === 'reject'
           ? 'Unfortunately, we cannot add your farm to our directory at this time.'
           : 'Please review the requested changes and resubmit.'
@@ -100,7 +134,7 @@ async function sendReviewNotification(farm: any, action: string, notes?: string)
   }
 
   // Send admin notification
-  console.log('📧 ADMIN REVIEW NOTIFICATION:', {
+  moduleLogger.info('Admin review notification prepared', {
     to: 'hello@farmcompanion.co.uk',
     subject: `Farm Review Completed: ${farm.name}`,
     farmId: farm.id,

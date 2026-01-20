@@ -5,12 +5,13 @@ import { kv } from '@vercel/kv'
 import { Resend } from 'resend'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 // Using the centralized validation schema from input-validation.ts
 
 const redis = Redis.fromEnv()
-const limiter = new Ratelimit({ 
-  redis, 
+const limiter = new Ratelimit({
+  redis,
   limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
 })
 
@@ -18,13 +19,20 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 const TO = process.env.CONTACT_TO_EMAIL!
 const FROM = process.env.CONTACT_FROM_EMAIL!
 
+// Module logger for helper functions
+const moduleLogger = createRouteLogger('api/contact/submit')
+
 export async function POST(req: NextRequest) {
   const logger = createRouteLogger('api/contact/submit', req)
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '0.0.0.0'
 
   try {
+    logger.info('Processing contact form submission', { ip })
+
     // Kill-switch check
     if (process.env.CONTACT_FORM_ENABLED !== 'true') {
-      return NextResponse.json({ error: 'Contact form disabled' }, { status: 503 })
+      logger.warn('Contact form disabled via kill switch', { ip })
+      throw errors.validation('Contact form is currently disabled')
     }
 
     // Basic origin check (same-origin POST)
@@ -32,25 +40,23 @@ export async function POST(req: NextRequest) {
     const host = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.farmcompanion.co.uk'
     if (!origin.startsWith(host)) {
       // Soften to 403 if you embed elsewhere
-      // return NextResponse.json({ error: 'Bad origin' }, { status: 403 })
+      logger.warn('Origin check failed (allowing for now)', { ip, origin, host })
+      // throw errors.authorization('Invalid request origin')
     }
 
     // Rate limiting
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || '0.0.0.0'
     const rate = await limiter.limit(`contact:${ip}`)
     if (!rate.success) {
-      return NextResponse.json(
-        { error: 'Too many messages. Please try later.' }, 
-        { status: 429 }
-      )
+      logger.warn('Rate limit exceeded for contact form', { ip })
+      throw errors.rateLimit('Too many messages. Please try later.')
     }
 
     // Parse and validate JSON
     let data: unknown
-    try { 
-      data = await req.json() 
-    } catch { 
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }) 
+    try {
+      data = await req.json()
+    } catch {
+      throw errors.validation('Invalid JSON in request body')
     }
 
     // Validate and sanitize input
@@ -59,18 +65,28 @@ export async function POST(req: NextRequest) {
       data,
       { sanitize: true, strict: true }
     )
-    
+
+    logger.info('Contact form data validated', {
+      ip,
+      name: v.name,
+      email: v.email,
+      topic: v.topic
+    })
+
     // Anti-spam checks
     if (!v.consent) {
-      return NextResponse.json({ error: 'Consent required' }, { status: 400 })
+      logger.warn('Consent not provided', { ip })
+      throw errors.validation('Consent is required to submit the form')
     }
-    
+
     if (v._hp) {
-      return NextResponse.json({ error: 'Spam detected' }, { status: 400 })
+      logger.warn('Honeypot triggered in contact form', { ip })
+      throw errors.validation('Spam detected')
     }
-    
+
     if ((v.ttf ?? 0) < 1500) {
-      return NextResponse.json({ error: 'Form filled too quickly' }, { status: 400 })
+      logger.warn('Form filled too quickly (possible bot)', { ip, ttf: v.ttf })
+      throw errors.validation('Form filled too quickly')
     }
 
     const id = crypto.randomUUID()
@@ -86,9 +102,10 @@ export async function POST(req: NextRequest) {
         status: 'received'
       })
       await kv.lpush('contact:inbox', id)
+      logger.info('Contact message stored in KV', { ip, id })
     } catch (e) {
       // non-fatal
-      logger.warn('KV store failed (non-fatal)', { id, ip }, e as Error)
+      moduleLogger.error('Failed to store contact message in KV', { ip, id }, e as Error)
     }
 
     // Send admin forward (don't fail the user if email fails)
@@ -108,8 +125,9 @@ export async function POST(req: NextRequest) {
             v.message
           ].join('\n')
         })
+        moduleLogger.info('Admin notification email sent', { ip, id, topic: v.topic })
       } catch (e) {
-        logger.error('Admin email failed (non-blocking)', { id, topic: v.topic }, e as Error)
+        moduleLogger.error('Failed to send admin notification email', { ip, id }, e as Error)
       }
     })()
 
@@ -122,28 +140,32 @@ export async function POST(req: NextRequest) {
           subject: 'We received your message — Farm Companion',
           text: `Hi ${v.name},\n\nThanks for contacting Farm Companion. We've received your message and will reply soon.\n\n— The Farm Companion team`,
         })
+        moduleLogger.info('Acknowledgement email sent to user', { ip, id, email: v.email })
       } catch (e) {
-        logger.error('Acknowledgment email failed (non-blocking)', { id, to: v.email }, e as Error)
+        moduleLogger.error('Failed to send acknowledgement email', { ip, id, email: v.email }, e as Error)
       }
     })()
 
-    logger.info('Contact form submitted successfully', { id, ip })
+    logger.info('Contact form submission completed successfully', {
+      ip,
+      id,
+      name: v.name,
+      email: v.email,
+      topic: v.topic
+    })
 
     return NextResponse.json({ ok: true, id }, { status: 201 })
   } catch (error) {
-    logger.error('Contact form error', { ip }, error as Error)
-
     // Handle validation errors
     if (error instanceof ValidationError) {
-      return NextResponse.json(
-        { error: `Validation error: ${error.message}`, field: error.field },
-        { status: 400 }
-      )
+      logger.warn('Validation error in contact form', {
+        ip,
+        field: error.field,
+        message: error.message
+      })
+      throw errors.validation(error.message, { field: error.field })
     }
 
-    return NextResponse.json(
-      { error: 'Failed to send message' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/contact/submit', { ip })
   }
 }

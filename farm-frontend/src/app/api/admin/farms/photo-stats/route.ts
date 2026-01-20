@@ -1,30 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureConnection } from '@/lib/redis'
+import { getCurrentUser } from '@/lib/auth'
 import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
+import type { RedisClientType } from '@redis/client'
 
-export async function GET(req: NextRequest) {
-  const logger = createRouteLogger('admin/farms/photo-stats', req)
+export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/admin/farms/photo-stats', request)
 
   try {
-    const { searchParams } = new URL(req.url)
+    logger.info('Processing farm photo stats request')
+
+    // Require authentication
+    const user = await getCurrentUser()
+    if (!user) {
+      logger.warn('Unauthorized farm photo stats request')
+      throw errors.authorization('Unauthorized')
+    }
+
+    const { searchParams } = new URL(request.url)
     const farmSlug = searchParams.get('farmSlug')
 
     const client = await ensureConnection()
 
     if (farmSlug) {
-      // Get stats for specific farm
+      logger.info('Fetching photo stats for specific farm', { farmSlug })
       return await getFarmPhotoStats(client, farmSlug, logger)
     } else {
-      // Get stats for all farms
+      logger.info('Fetching photo stats for all farms')
       return await getAllFarmsPhotoStats(client, logger)
     }
   } catch (error) {
-    logger.error('Error getting farm photo stats', {}, error as Error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleApiError(error, 'api/admin/farms/photo-stats')
   }
 }
 
-async function getFarmPhotoStats(client: any, farmSlug: string, logger: any) {
+async function getFarmPhotoStats(client: RedisClientType, farmSlug: string, logger: ReturnType<typeof createRouteLogger>) {
   try {
     // Batch fetch photo counts using pipeline
     const statsPipeline = client.pipeline()
@@ -39,6 +50,13 @@ async function getFarmPhotoStats(client: any, farmSlug: string, logger: any) {
     const approvedCount = approvedResult?.[1] || 0
     const rejectedCount = rejectedResult?.[1] || 0
     const approvedPhotoIds = (approvedIdsResult?.[1] as string[]) || []
+
+    logger.info('Retrieved photo counts for farm', {
+      farmSlug,
+      pendingCount,
+      approvedCount,
+      rejectedCount
+    })
 
     // Batch fetch photo metadata using pipeline
     const photoPipeline = client.pipeline()
@@ -83,7 +101,11 @@ async function getFarmPhotoStats(client: any, farmSlug: string, logger: any) {
       date: new Date(photo!.approvedAt).toISOString(),
     }))
 
-    logger.info('Farm photo stats retrieved', { farmSlug, photoCount: validPhotos.length })
+    logger.info('Farm photo stats compiled successfully', {
+      farmSlug,
+      totalPhotos: validPhotos.length,
+      recentUploads
+    })
 
     return NextResponse.json({
       farmSlug,
@@ -103,17 +125,26 @@ async function getFarmPhotoStats(client: any, farmSlug: string, logger: any) {
       photos: validPhotos,
     })
   } catch (error) {
-    logger.error('Error getting farm stats', { farmSlug }, error as Error)
-    return NextResponse.json({ error: 'Farm not found' }, { status: 404 })
+    logger.error('Error getting stats for farm', { farmSlug }, error as Error)
+    throw errors.notFound('Farm')
   }
 }
 
-async function getAllFarmsPhotoStats(client: any, logger: any) {
+interface FarmStats {
+  pending: number
+  approved: number
+  rejected: number
+  total: number
+}
+
+async function getAllFarmsPhotoStats(client: RedisClientType, logger: ReturnType<typeof createRouteLogger>) {
   try {
     // Get all farm keys
     const farmKeys = await client.keys('farm:*:photos:*')
 
-    logger.info('Fetching stats for all farms', { keyCount: farmKeys.length })
+    logger.info('Retrieved farm keys for stats aggregation', {
+      farmKeysCount: farmKeys.length
+    })
 
     // Batch fetch all counts using pipeline
     const pipeline = client.pipeline()
@@ -123,8 +154,8 @@ async function getAllFarmsPhotoStats(client: any, logger: any) {
     const results = await pipeline.exec()
 
     // Process results and build farm stats
-    const farmStats: Record<string, any> = {}
-    const farmSlugs = new Set()
+    const farmStats: Record<string, FarmStats> = {}
+    const farmSlugs = new Set<string>()
 
     for (let i = 0; i < farmKeys.length; i++) {
       const key = farmKeys[i]
@@ -135,7 +166,7 @@ async function getAllFarmsPhotoStats(client: any, logger: any) {
       const parts = key.split(':')
       if (parts.length >= 3) {
         const farmSlug = parts[1]
-        const photoType = parts[3] // approved, pending, rejected
+        const photoType = parts[3] as 'approved' | 'pending' | 'rejected'
 
         farmSlugs.add(farmSlug)
 
@@ -165,7 +196,7 @@ async function getAllFarmsPhotoStats(client: any, logger: any) {
       averagePhotosPerFarm: 0,
     }
 
-    Object.values(farmStats).forEach((stats: any) => {
+    Object.values(farmStats).forEach((stats) => {
       summary.totalPhotos += stats.total
       summary.totalPending += stats.pending
       summary.totalApproved += stats.approved
@@ -184,15 +215,32 @@ async function getAllFarmsPhotoStats(client: any, logger: any) {
       summary.averagePhotosPerFarm = Math.round((summary.totalPhotos / farmSlugs.size) * 10) / 10
     }
 
-    logger.info('All farms stats retrieved', {
-      farmCount: farmSlugs.size,
+    logger.info('All farms photo stats compiled successfully', {
+      totalFarms: summary.totalFarms,
       totalPhotos: summary.totalPhotos,
+      farmsAtQuota: summary.farmsAtQuota,
+      farmsWithPending: summary.farmsWithPending
     })
+
+    // Get top farms by photo count
+    const topFarms = Object.entries(farmStats)
+      .map(([slug, stats]) => ({
+        slug,
+        ...stats,
+        quota: {
+          current: stats.approved,
+          max: 5,
+          remaining: Math.max(0, 5 - stats.approved)
+        }
+      }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 10)
 
     return NextResponse.json({
       summary,
-      farms: Object.entries(farmStats).map(([slug, stats]) => ({
-        farmSlug: slug,
+      topFarms,
+      allFarms: Object.entries(farmStats).map(([slug, stats]) => ({
+        slug,
         ...stats,
         quota: {
           current: stats.approved,
@@ -203,6 +251,6 @@ async function getAllFarmsPhotoStats(client: any, logger: any) {
     })
   } catch (error) {
     logger.error('Error getting all farms stats', {}, error as Error)
-    return NextResponse.json({ error: 'Failed to fetch stats' }, { status: 500 })
+    throw errors.database('Failed to retrieve farm stats')
   }
 }

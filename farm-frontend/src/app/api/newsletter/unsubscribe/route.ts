@@ -3,6 +3,8 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 // Validation schema
 const unsubscribeSchema = z.object({
@@ -11,54 +13,67 @@ const unsubscribeSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/newsletter/unsubscribe', request)
+
   try {
+    logger.info('Processing newsletter unsubscribe request (POST)')
+
     const body = await request.json()
-    
+
     // Validate input
     const validation = unsubscribeSchema.safeParse(body)
     if (!validation.success) {
-      return NextResponse.json(
-        { error: 'Invalid email address' },
-        { status: 400 }
-      )
+      logger.warn('Invalid email in unsubscribe request', {
+        errors: validation.error.errors
+      })
+      throw errors.validation('Invalid email address')
     }
-    
+
     const { email } = validation.data
-    
+
     // TODO: Implement actual unsubscribe logic with database
     // For now, just log the unsubscribe request
-    console.log('Unsubscribe request:', { email, timestamp: new Date().toISOString() })
-    
+    logger.info('Unsubscribe request received', {
+      email,
+      timestamp: new Date().toISOString()
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Successfully unsubscribed from Farm Companion newsletter.'
     })
-    
+
   } catch (error) {
-    console.error('Unsubscribe error:', error)
-    return NextResponse.json(
-      { error: 'Failed to process unsubscribe request.' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/newsletter/unsubscribe')
   }
 }
 
 export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const email = searchParams.get('email')
-  
-  if (!email) {
-    return NextResponse.json(
-      { error: 'Email parameter is required' },
-      { status: 400 }
-    )
+  const logger = createRouteLogger('api/newsletter/unsubscribe', request)
+
+  try {
+    logger.info('Processing newsletter unsubscribe request (GET)')
+
+    const { searchParams } = new URL(request.url)
+    const email = searchParams.get('email')
+
+    if (!email) {
+      logger.warn('Missing email parameter in GET unsubscribe request')
+      throw errors.validation('Email parameter is required')
+    }
+
+    // TODO: Implement actual unsubscribe logic
+    logger.info('Unsubscribe via GET', {
+      email,
+      timestamp: new Date().toISOString()
+    })
+
+    return NextResponse.json({
+      success: true,
+      message: 'Successfully unsubscribed from Farm Companion newsletter.'
+    })
+
+  } catch (error) {
+    return handleApiError(error, 'api/newsletter/unsubscribe')
   }
-  
-  // TODO: Implement actual unsubscribe logic
-  console.log('Unsubscribe via GET:', { email, timestamp: new Date().toISOString() })
-  
-  return NextResponse.json({
-    success: true,
-    message: 'Successfully unsubscribed from Farm Companion newsletter.'
-  })
 }

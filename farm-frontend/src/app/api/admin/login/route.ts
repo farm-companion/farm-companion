@@ -1,39 +1,56 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { authenticateAdmin } from '@/lib/auth'
+import { createRouteLogger } from '@/lib/logger'
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/admin/login', request)
+
   try {
-    console.log('Login API called')
-    
+    logger.info('Processing admin login request')
+
     const formData = await request.formData()
     const email = formData.get('email') as string
     const password = formData.get('password') as string
 
-    console.log('Form data received:', { email, password: password ? '[REDACTED]' : 'undefined' })
+    logger.info('Login form data received', {
+      email,
+      hasPassword: !!password
+    })
 
     // Validate input
     if (!email || !password) {
-      console.log('Missing credentials:', { hasEmail: !!email, hasPassword: !!password })
+      logger.warn('Missing login credentials', {
+        hasEmail: !!email,
+        hasPassword: !!password
+      })
       return NextResponse.redirect(new URL('/admin/login?error=missing-credentials', request.url))
     }
 
     // Authenticate user
-    console.log('Calling authenticateAdmin...')
+    logger.info('Attempting admin authentication', { email })
     const result = await authenticateAdmin(email, password)
-    console.log('Authentication result:', { success: result.success, error: result.error })
+
+    logger.info('Admin authentication result', {
+      email,
+      success: result.success,
+      error: result.error
+    })
 
     if (result.success) {
-      console.log('Authentication successful, redirecting to admin dashboard')
+      logger.info('Admin authentication successful, redirecting to dashboard', { email })
       // Redirect to admin dashboard on success
       return NextResponse.redirect(new URL('/admin', request.url))
     } else {
-      console.log('Authentication failed, redirecting back to login with error')
+      logger.warn('Admin authentication failed', {
+        email,
+        error: result.error
+      })
       // Redirect back to login with error
       return NextResponse.redirect(new URL(`/admin/login?error=invalid-credentials`, request.url))
     }
 
   } catch (error) {
-    console.error('Login API error:', error)
+    logger.error('Admin login error', {}, error as Error)
     return NextResponse.redirect(new URL('/admin/login?error=server-error', request.url))
   }
 }

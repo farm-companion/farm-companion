@@ -1,27 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getCurrentUser } from '@/lib/auth'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/admin/test-auth', request)
+
   try {
+    logger.info('Processing admin auth test request')
+
+    // Require authentication to use this test endpoint
+    const user = await getCurrentUser()
+    if (!user) {
+      logger.warn('Unauthorized auth test attempt')
+      throw errors.authorization('Unauthorized')
+    }
+
     const formData = await request.formData()
     const email = formData.get('email') as string
     const password = formData.get('password') as string
+
+    if (!email || !password) {
+      logger.warn('Missing credentials in auth test')
+      throw errors.validation('Email and password are required')
+    }
 
     // Get the expected credentials (trimmed)
     const expectedEmail = (process.env.ADMIN_EMAIL || 'admin@farmcompanion.co.uk').trim()
     const expectedPassword = (process.env.ADMIN_PASSWORD || 'admin123').trim()
 
-    // Log everything for debugging
-    console.log('=== AUTH TEST ===')
-    console.log('Submitted email:', email)
-    console.log('Expected email:', expectedEmail)
-    console.log('Email match:', email.trim() === expectedEmail)
-    console.log('Submitted password length:', password.length)
-    console.log('Expected password length:', expectedPassword.length)
-    console.log('Password match:', password.trim() === expectedPassword)
-    console.log('Environment variables:')
-    console.log('- ADMIN_EMAIL:', process.env.ADMIN_EMAIL || 'NOT SET')
-    console.log('- ADMIN_PASSWORD:', process.env.ADMIN_PASSWORD ? '[SET]' : '[NOT SET]')
-    console.log('==================')
+    const emailMatch = email.trim() === expectedEmail
+    const passwordMatch = password.trim() === expectedPassword
+
+    logger.info('Auth test comparison completed', {
+      emailMatch,
+      passwordMatch,
+      submittedEmailLength: email.length,
+      expectedEmailLength: expectedEmail.length,
+      submittedPasswordLength: password.length,
+      expectedPasswordLength: expectedPassword.length,
+      adminEmailSet: !!process.env.ADMIN_EMAIL,
+      adminPasswordSet: !!process.env.ADMIN_PASSWORD
+    })
 
     return NextResponse.json({
       success: true,
@@ -36,8 +56,8 @@ export async function POST(request: NextRequest) {
         passwordPreview: expectedPassword.substring(0, 4) + '...'
       },
       match: {
-        email: email.trim() === expectedEmail,
-        password: password.trim() === expectedPassword
+        email: emailMatch,
+        password: passwordMatch
       },
       environment: {
         adminEmailSet: !!process.env.ADMIN_EMAIL,
@@ -45,10 +65,6 @@ export async function POST(request: NextRequest) {
       }
     })
   } catch (error) {
-    console.error('Auth test error:', error)
-    return NextResponse.json({ 
-      success: false, 
-      error: 'Test failed' 
-    }, { status: 500 })
+    return handleApiError(error, 'api/admin/test-auth')
   }
 }

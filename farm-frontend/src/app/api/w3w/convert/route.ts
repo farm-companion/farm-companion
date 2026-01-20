@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 interface W3WResponse {
   coordinates: {
@@ -18,34 +20,33 @@ interface W3WError {
 }
 
 export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/w3w/convert', request)
+
   try {
+    logger.info('Processing what3words conversion request')
+
     const { searchParams } = new URL(request.url)
     const words = searchParams.get('words')
 
     if (!words) {
-      return NextResponse.json(
-        { error: 'Words parameter is required' },
-        { status: 400 }
-      )
+      logger.warn('Missing words parameter in what3words request')
+      throw errors.validation('Words parameter is required')
     }
 
     // Validate words format (3 words separated by dots or spaces)
     const wordsRegex = /^[a-z]+\.[a-z]+\.[a-z]+$/
     if (!wordsRegex.test(words)) {
-      return NextResponse.json(
-        { error: 'Invalid what3words format. Use format: word1.word2.word3' },
-        { status: 400 }
-      )
+      logger.warn('Invalid what3words format', { words })
+      throw errors.validation('Invalid what3words format. Use format: word1.word2.word3')
     }
 
     const apiKey = process.env.W3W_API_KEY
     if (!apiKey) {
-      console.error('W3W_API_KEY not found in environment variables')
-      return NextResponse.json(
-        { error: 'what3words API key not configured' },
-        { status: 500 }
-      )
+      logger.error('W3W_API_KEY not found in environment variables')
+      throw errors.configuration('what3words API key not configured')
     }
+
+    logger.info('Converting what3words address', { words })
 
     // Call what3words API
     const response = await fetch(
@@ -60,15 +61,26 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorData: W3WError = await response.json()
-      console.error('what3words API error:', errorData)
-      
-      return NextResponse.json(
-        { error: errorData.error?.message || 'Failed to convert what3words address' },
-        { status: response.status }
-      )
+      logger.error('what3words API error', {
+        words,
+        status: response.status,
+        errorCode: errorData.error?.code,
+        errorMessage: errorData.error?.message
+      })
+
+      throw errors.externalApi('what3words', {
+        message: errorData.error?.message || 'Failed to convert what3words address',
+        statusCode: response.status
+      })
     }
 
     const data: W3WResponse = await response.json()
+
+    logger.info('what3words conversion successful', {
+      words,
+      coordinates: data.coordinates,
+      language: data.language
+    })
 
     return NextResponse.json({
       coordinates: data.coordinates,
@@ -78,10 +90,6 @@ export async function GET(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('what3words conversion error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/w3w/convert')
   }
 }

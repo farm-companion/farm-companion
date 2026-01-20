@@ -8,23 +8,28 @@ import { errors, handleApiError } from '@/lib/errors'
 
 export async function POST(request: NextRequest) {
   const logger = createRouteLogger('api/feedback', request)
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
 
   try {
+    logger.info('Processing feedback submission', { ip })
+
     // CSRF protection
     if (!checkCsrf(request)) {
+      logger.warn('CSRF protection failed', { ip })
       throw errors.authorization('CSRF protection failed')
     }
 
     // Rate limiting
     const rl = createRateLimiter({ keyPrefix: 'feedback', limit: 10, windowSec: 3600 })
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
     if (!(await rl.consume(ip))) {
+      logger.warn('Rate limit exceeded for feedback', { ip })
       throw errors.rateLimit('Too many submissions. Please wait before submitting again.')
     }
 
     // Parse and validate JSON
     const body = await request.json().catch(() => null)
     if (!body) {
+      logger.warn('Invalid JSON in feedback request', { ip })
       throw errors.validation('Invalid JSON')
     }
 
@@ -64,7 +69,13 @@ export async function POST(request: NextRequest) {
       message,
     })
 
-    logger.info('Feedback submitted successfully', { feedbackId: result.feedbackId })
+    logger.info('Feedback submitted successfully', {
+      feedbackId: result.feedbackId,
+      name,
+      email,
+      subject,
+      ip
+    })
 
     return NextResponse.json(
       {
@@ -75,6 +86,6 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
-    return handleApiError(error, 'api/feedback')
+    return handleApiError(error, 'api/feedback', { ip })
   }
 }

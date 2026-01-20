@@ -1,10 +1,20 @@
 import { NextResponse } from 'next/server'
 import { getFarmData } from '@/lib/farm-data'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
 
 export async function GET() {
+  const logger = createRouteLogger('api/farms/data')
+
   try {
+    logger.info('Fetching farm data')
+
     const farms = await getFarmData()
-    
+
+    logger.info('Farm data fetched successfully', {
+      total: farms.length
+    })
+
     return NextResponse.json({
       farms,
       total: farms.length,
@@ -16,10 +26,6 @@ export async function GET() {
       }
     })
   } catch (error) {
-    console.error('Error serving farm data:', error)
-    return NextResponse.json(
-      { error: 'Failed to load farm data' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/farms/data')
   }
 }
