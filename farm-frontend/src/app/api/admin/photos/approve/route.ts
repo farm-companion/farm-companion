@@ -3,22 +3,29 @@ import { ensureConnection } from '@/lib/redis'
 // import { sendPhotoApprovedEmail } from '@/lib/email'
 import { revalidatePath } from 'next/cache'
 import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-tracker'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 export async function POST(req: NextRequest) {
+  const logger = createRouteLogger('api/admin/photos/approve', req)
+
   try {
     const { searchParams } = new URL(req.url)
     const photoId = searchParams.get('id')
 
     if (!photoId) {
-      return NextResponse.json({ error: 'Missing photo ID' }, { status: 400 })
+      throw errors.validation('Missing photo ID')
     }
+
+    logger.info('Processing photo approval', { photoId })
 
     const client = await ensureConnection()
 
     // Get photo data
     const photoData = await client.hGetAll(`photo:${photoId}`)
     if (!photoData || Object.keys(photoData).length === 0) {
-      return NextResponse.json({ error: 'Photo not found' }, { status: 404 })
+      logger.warn('Photo not found', { photoId })
+      throw errors.notFound('Photo')
     }
 
     // Convert Redis hash to object
@@ -26,6 +33,11 @@ export async function POST(req: NextRequest) {
     for (const [key, value] of Object.entries(photoData)) {
       photo[key] = String(value)
     }
+
+    logger.info('Checking photo approval quota', {
+      photoId,
+      farmSlug: photo.farmSlug
+    })
 
     // Check current approved photo count for this farm
     const approvedPhotoIds = await client.sMembers(`farm:${photo.farmSlug}:photos:approved`)
@@ -37,8 +49,13 @@ export async function POST(req: NextRequest) {
 
     // If farm has reached the limit, replace the oldest photo
     if (currentCount >= maxPhotos) {
-      console.log(`Farm ${photo.farmSlug} has ${currentCount} photos, replacing oldest...`)
-      
+      logger.info('Farm reached photo limit, replacing oldest photo', {
+        photoId,
+        farmSlug: photo.farmSlug,
+        currentCount,
+        maxPhotos
+      })
+
       // Get all approved photos for this farm with their creation dates
       const approvedPhotos = await Promise.all(
         approvedPhotoIds.map(async (id: string) => {
@@ -53,7 +70,10 @@ export async function POST(req: NextRequest) {
             }
             return null
           } catch (error) {
-            console.error(`Error fetching photo ${id} data:`, error)
+            logger.error('Failed to fetch photo data for replacement check', {
+              photoId,
+              replacementCandidateId: id
+            }, error as Error)
             return null
           }
         })
@@ -67,9 +87,14 @@ export async function POST(req: NextRequest) {
         const oldestPhoto = validPhotos[0]!
         replacedPhotoId = oldestPhoto.id
         replacedPhotoData = oldestPhoto.data
-        
-        console.log(`Replacing oldest photo ${replacedPhotoId} (created: ${new Date(oldestPhoto.createdAt).toISOString()})`)
-        
+
+        logger.info('Replacing oldest photo', {
+          photoId,
+          farmSlug: photo.farmSlug,
+          replacedPhotoId,
+          createdAt: new Date(oldestPhoto.createdAt).toISOString()
+        })
+
         // Remove the oldest photo from approved set
         await client.sRem(`farm:${photo.farmSlug}:photos:approved`, replacedPhotoId)
         
@@ -108,6 +133,12 @@ export async function POST(req: NextRequest) {
     // Revalidate the farm page
     revalidatePath(`/shop/${photo.farmSlug}`)
 
+    logger.info('Photo approved successfully', {
+      photoId,
+      farmSlug: photo.farmSlug,
+      replacedPhotoId
+    })
+
     // Track content change and notify Bing IndexNow (fire-and-forget)
     ;(async () => {
       try {
@@ -115,15 +146,26 @@ export async function POST(req: NextRequest) {
           'photo_approval',
           photo.farmSlug
         )
-        
+
         const result = await trackContentChange(changeEvent)
         if (result.success) {
-          console.log(`🚀 Content change tracked (photo approved): ${result.notificationsSent} Bing notifications sent`)
+          logger.info('Content change tracked for photo approval', {
+            photoId,
+            farmSlug: photo.farmSlug,
+            notificationsSent: result.notificationsSent
+          })
         } else {
-          console.warn(`⚠️ Content change tracking failed: ${result.errors.join(', ')}`)
+          logger.warn('Content change tracking failed', {
+            photoId,
+            farmSlug: photo.farmSlug,
+            errors: result.errors
+          })
         }
       } catch (error) {
-        console.error('Error tracking content change:', error)
+        logger.error('Error tracking content change', {
+          photoId,
+          farmSlug: photo.farmSlug
+        }, error as Error)
         // Don't fail the main operation if content change tracking fails
       }
     })()
@@ -154,7 +196,6 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error approving photo:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    return handleApiError(error, 'api/admin/photos/approve')
   }
 }

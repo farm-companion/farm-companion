@@ -67,7 +67,8 @@
 - [x] Standardize photos/upload-url/route (3-in-1: eliminated 11 console statements, 5 inline errors)
 - [x] Standardize admin/photos/reject/route (3-in-1: eliminated 1 console statement, 3 inline errors)
 - [x] Standardize admin/photos/remove/route (3-in-1: eliminated 1 console statement, 3 inline errors)
-- [ ] Standardize error handling in batch 1 (6 remaining routes: newsletter/subscribe, contact/submit, admin/photos/approve, farms/submit, claims, consent)
+- [x] Standardize admin/photos/approve/route (3-in-1: eliminated 7 console statements, 3 inline errors)
+- [ ] Standardize error handling in batch 1 (5 remaining routes: newsletter/subscribe, contact/submit, farms/submit, claims, consent)
 - [ ] Standardize error handling in batch 2 (10 routes)
 - [ ] Standardize error handling in batch 3 (10 routes)
 - [ ] Standardize error handling in batch 4 (10 routes)
@@ -77,9 +78,9 @@
 ### Queue 13: Console.log Elimination (FORENSIC DISCOVERY - 94 statements across 48 routes)
 - [x] Remove console.log from high-volume offenders batch 1a (upload/route 19 statements eliminated)
 - [x] Remove console.log from high-volume offenders batch 1b (photos/upload-url 11 statements eliminated)
-- [x] Remove console.log from admin photo routes (admin/photos/reject 1 statement, admin/photos/remove 1 statement)
+- [x] Remove console.log from admin photo routes (admin/photos/reject 1 statement, admin/photos/remove 1 statement, admin/photos/approve 7 statements)
 - [ ] Remove console.log from high-volume offenders batch 1c (admin/audit/sitemap-reconciliation 23 statements - file too large, deferred)
-- [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements, admin/photos/approve 8 statements)
+- [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements)
 - [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
 - [ ] Remove console.log from remaining 39 routes (batch cleanup)
 
@@ -97,7 +98,8 @@
 - [x] Add structured logging to photos/upload-url/route
 - [x] Add structured logging to admin/photos/reject/route
 - [x] Add structured logging to admin/photos/remove/route
-- [ ] Add structured logging to all admin routes (18+ routes remaining)
+- [x] Add structured logging to admin/photos/approve/route
+- [ ] Add structured logging to all admin routes (17+ routes remaining)
 - [ ] Add structured logging to all photo routes (10+ routes)
 - [ ] Add structured logging to all farm routes (10+ routes)
 - [ ] Add structured logging to all diagnostic/monitoring routes (10+ routes)
@@ -139,6 +141,15 @@
   - All operations now logged with proper context (ip, farmSlug, photoId, quota details)
   - Rate limiting and quota checks have detailed logging with structured data
   - Files changed: api/photos/upload-url/route.ts (124 → 142 lines)
+- **Queue 12-17: Admin Photo Moderation Routes 3-in-1 Cleanup** (COMPLETE)
+  - Refactored api/admin/photos/reject/route.ts (63 → 77 lines)
+  - Refactored api/admin/photos/remove/route.ts (44 → 57 lines)
+  - Refactored api/admin/photos/approve/route.ts (161 → 202 lines)
+  - Added structured logging: Replaced 9 console statements total (1+1+7) with logger.info/warn/error
+  - Standardized error handling: Replaced 9 inline error responses total (3+3+3) with throw + error factories
+  - All moderation operations now logged with proper context (photoId, farmSlug, authorEmail, replacedPhotoId)
+  - Photo approval logic includes detailed logging for quota checks and photo replacement workflow
+  - Content change tracking has structured logging with notification counts and error details
 
 ### 2026-01-19 (God-Tier Transformation Begins)
 - **Queue 8, Slice 1: Design Token Consolidation (COMPREHENSIVE)** (COMPLETE - REDONE)
