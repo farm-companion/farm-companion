@@ -1,13 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/log-error', request)
+
   try {
+    logger.info('Processing error log request')
+
     const errorData = await request.json()
-    
+
     // Basic validation
     if (!errorData.message || !errorData.timestamp) {
-      return NextResponse.json({ error: 'Invalid error data' }, { status: 400 })
+      logger.warn('Invalid error data received', {
+        hasMessage: !!errorData.message,
+        hasTimestamp: !!errorData.timestamp
+      })
+      throw errors.validation('Invalid error data')
     }
 
     // Only log in production
@@ -26,21 +36,24 @@ export async function POST(request: NextRequest) {
         }
 
         await kv.set(errorKey, sanitizedError, { ex: 86400 }) // Expire after 24 hours
-        
+
         // Increment error counter
         await kv.incr('error:count')
-        
-        // Log to console for immediate visibility
-        console.error('Error logged:', sanitizedError)
+
+        logger.info('Error logged to KV', {
+          errorKey,
+          message: sanitizedError.message,
+          url: sanitizedError.url,
+          timestamp: sanitizedError.timestamp
+        })
       } catch (kvError) {
-        console.error('Failed to log error to KV:', kvError)
+        logger.error('Failed to log error to KV', {}, kvError as Error)
         // Don't fail the request if KV logging fails
       }
     }
 
     return NextResponse.json({ ok: true })
   } catch (error) {
-    console.error('Error logging endpoint failed:', error)
-    return NextResponse.json({ error: 'Failed to log error' }, { status: 500 })
+    return handleApiError(error, 'api/log-error')
   }
 }
