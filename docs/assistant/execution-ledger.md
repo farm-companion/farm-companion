@@ -55,7 +55,7 @@
 
 ### Queue 10: Backend Architecture Cleanup (God-Tier Transformation)
 - [x] Replace console.log with structured logging (Slice 1: Created logger.ts with JSON/readable formatting, log levels, request context; updated 4 API routes - contact, contact/submit, feedback, newsletter/subscribe)
-- [ ] Extract service layer from API routes (Slice 2)
+- [x] Extract service layer from API routes (Slice 2: Created 4 service modules - email.service.ts (unified email sending), contact.service.ts (form processing), newsletter.service.ts (subscriptions), feedback.service.ts (feedback handling); refactored 3 API routes reducing code from 1041 to 285 lines total)
 - [ ] Fix N+1 queries in admin routes (Slice 3)
 - [ ] Error handling standardization (Slice 4)
 
