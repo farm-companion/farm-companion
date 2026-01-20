@@ -3,20 +3,22 @@ import { v4 as uuidv4 } from 'uuid'
 import { ensureConnection } from '@/lib/redis'
 import { buildObjectKey, createUploadUrl } from '@/lib/blob'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 export async function POST(req: NextRequest) {
+  const logger = createRouteLogger('api/photos/upload-url', req)
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+
   try {
-    console.log('upload-url route called')
-    
+    logger.info('Processing photo upload URL request', { ip })
+
     // Parse and validate request body
     let body: unknown
     try {
       body = await req.json()
     } catch {
-      return NextResponse.json({
-        error: 'invalid-json',
-        message: 'Invalid JSON in request body'
-      }, { status: 400 })
+      throw errors.validation('Invalid JSON in request body')
     }
 
     // Validate and sanitize input
@@ -28,43 +30,56 @@ export async function POST(req: NextRequest) {
 
     const { farmSlug, fileName, contentType, fileSize, mode, replacePhotoId } = validatedData
 
-    console.log('Request body:', { farmSlug, fileName, contentType, fileSize, mode, replacePhotoId })
+    logger.info('Request validated', {
+      ip,
+      farmSlug,
+      fileName,
+      contentType,
+      fileSize,
+      mode,
+      replacePhotoId
+    })
 
-    console.log('Starting Redis operations...')
-    
     // Rate limiting
-    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
     const rlKey = `ratelimit:photos:reserve:${ip}`
-    
+
     try {
       const client = await ensureConnection()
-      console.log('Redis connected, checking rate limit...')
-      
+      logger.info('Redis connected, checking rate limit', { ip })
+
       const hits = await client.incr(rlKey)
       if (hits === 1) await client.expire(rlKey, 60)
-      if (Number(hits) > 5) return NextResponse.json({ error: 'rate-limited' }, { status: 429 })
+      if (Number(hits) > 5) {
+        throw errors.rateLimit('Too many photo upload requests')
+      }
 
-      console.log('Rate limit check passed, checking quota...')
+      logger.info('Rate limit check passed, checking quota', { ip, farmSlug })
 
-      // simple quota: 5 approved photos per farm unless replacing
+      // Simple quota: 5 approved photos per farm unless replacing
       const quotaKey = `quota:farm:${farmSlug}:photos`
       const currentCount = await client.get(quotaKey) || '0'
       const quota = mode === 'replace' ? 5 : 5 // same quota for now
 
       if (Number(currentCount) >= quota && mode !== 'replace') {
-        return NextResponse.json({
-          error: 'quota-exceeded',
-          message: 'Photo quota exceeded for this farm'
-        }, { status: 429 })
+        throw errors.validation('Photo quota exceeded for this farm', {
+          currentCount: Number(currentCount),
+          quota,
+          farmSlug
+        })
       }
 
-      console.log('Quota check passed, generating photo ID...')
+      logger.info('Quota check passed, generating photo ID', {
+        ip,
+        farmSlug,
+        currentCount: Number(currentCount),
+        quota
+      })
 
       // Generate photo ID
       const photoId = replacePhotoId || uuidv4()
       const objectKey = buildObjectKey(farmSlug, photoId, contentType)
 
-      console.log('Creating upload URL...')
+      logger.info('Creating upload URL', { ip, photoId, objectKey })
 
       // Create upload URL
       const { uploadUrl } = await createUploadUrl({
@@ -73,7 +88,7 @@ export async function POST(req: NextRequest) {
         contentLength: fileSize
       })
 
-      console.log('Upload URL created, creating lease...')
+      logger.info('Upload URL created, creating lease', { ip, photoId })
 
       // Create lease record
       const lease = {
@@ -91,7 +106,12 @@ export async function POST(req: NextRequest) {
       // Store lease in Redis
       await client.setEx(`lease:${photoId}`, 600, JSON.stringify(lease)) // 10 minutes TTL
 
-      console.log('Lease stored, returning response...')
+      logger.info('Lease stored successfully', {
+        ip,
+        photoId,
+        farmSlug,
+        expiresIn: '10 minutes'
+      })
 
       return NextResponse.json({
         ok: true,
@@ -100,25 +120,23 @@ export async function POST(req: NextRequest) {
         objectKey
       })
     } catch (redisError) {
-      console.error('Redis error:', redisError)
-      throw new Error(`Redis operation failed: ${redisError instanceof Error ? redisError.message : 'Unknown error'}`)
+      logger.error('Redis operation failed', { ip, farmSlug }, redisError as Error)
+      throw errors.database('Redis operation failed', {
+        operation: 'photo upload URL generation'
+      })
     }
 
   } catch (error) {
-    console.error('Error in upload-url route:', error)
-    
     // Handle validation errors
     if (error instanceof ValidationError) {
-      return NextResponse.json({
-        error: 'validation-error',
-        message: error.message,
-        field: error.field
-      }, { status: 400 })
+      logger.warn('Validation error', {
+        ip,
+        field: error.field,
+        message: error.message
+      })
+      throw errors.validation(error.message, { field: error.field })
     }
-    
-    return NextResponse.json({
-      error: 'internal-server-error',
-      message: error instanceof Error ? error.message : 'An unexpected error occurred'
-    }, { status: 500 })
+
+    return handleApiError(error, 'api/photos/upload-url', { ip })
   }
 }

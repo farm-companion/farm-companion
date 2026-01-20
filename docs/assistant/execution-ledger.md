@@ -64,7 +64,8 @@
 
 ### Queue 12: Error Handling Standardization (FORENSIC DISCOVERY - 61 routes remaining)
 - [x] Standardize upload/route (3-in-1: structured logging + error handling + console.log removal, eliminated 19 console statements, 20+ inline errors, 1 any type)
-- [ ] Standardize error handling in batch 1 (9 remaining routes: newsletter/subscribe, contact/submit, admin/photos/approve, admin/photos/reject, admin/photos/remove, farms/submit, claims, consent, photos/upload-url)
+- [x] Standardize photos/upload-url/route (3-in-1: eliminated 11 console statements, 5 inline errors)
+- [ ] Standardize error handling in batch 1 (8 remaining routes: newsletter/subscribe, contact/submit, admin/photos/approve, admin/photos/reject, admin/photos/remove, farms/submit, claims, consent)
 - [ ] Standardize error handling in batch 2 (10 routes)
 - [ ] Standardize error handling in batch 3 (10 routes)
 - [ ] Standardize error handling in batch 4 (10 routes)
@@ -73,7 +74,8 @@
 
 ### Queue 13: Console.log Elimination (FORENSIC DISCOVERY - 94 statements across 48 routes)
 - [x] Remove console.log from high-volume offenders batch 1a (upload/route 19 statements eliminated)
-- [ ] Remove console.log from high-volume offenders batch 1b (photos/upload-url 9 statements, admin/audit/sitemap-reconciliation 23 statements)
+- [x] Remove console.log from high-volume offenders batch 1b (photos/upload-url 11 statements eliminated)
+- [ ] Remove console.log from high-volume offenders batch 1c (admin/audit/sitemap-reconciliation 23 statements - file too large, deferred)
 - [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements, admin/photos/approve 8 statements)
 - [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
 - [ ] Remove console.log from remaining 39 routes (batch cleanup)
@@ -89,6 +91,7 @@
 
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
 - [x] Add structured logging to upload/route
+- [x] Add structured logging to photos/upload-url/route
 - [ ] Add structured logging to all admin routes (20+ routes)
 - [ ] Add structured logging to all photo routes (10+ routes)
 - [ ] Add structured logging to all farm routes (10+ routes)
@@ -124,6 +127,13 @@
   - Added proper error re-throwing for AppError instances in nested try-catch
   - All security logging now has proper context (ip, file details, dimensions)
   - Files changed: api/upload/route.ts (297 → 321 lines, added imports and types)
+- **Queue 12-17: Second 3-in-1 Forensic Cleanup (photos/upload-url)** (COMPLETE)
+  - Refactored api/photos/upload-url/route.ts with comprehensive cleanup pattern
+  - Added structured logging: Replaced 11 console statements with logger.info/warn/error
+  - Standardized error handling: Replaced 5 inline error responses with throw + error factories
+  - All operations now logged with proper context (ip, farmSlug, photoId, quota details)
+  - Rate limiting and quota checks have detailed logging with structured data
+  - Files changed: api/photos/upload-url/route.ts (124 → 142 lines)
 
 ### 2026-01-19 (God-Tier Transformation Begins)
 - **Queue 8, Slice 1: Design Token Consolidation (COMPREHENSIVE)** (COMPLETE - REDONE)
