@@ -4,18 +4,25 @@ import { getBlobInfo } from '@/lib/blob'
 import { sendPhotoSubmissionReceipt } from '@/lib/email'
 import { createRecord, ValidationError as DBValidationError, ConstraintViolationError } from '@/lib/database-constraints'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
+
+// Module logger for helper functions
+const moduleLogger = createRouteLogger('api/photos/finalize')
 
 export async function POST(req: NextRequest) {
+  const logger = createRouteLogger('api/photos/finalize', req)
+
   try {
+    logger.info('Processing photo finalization request')
+
     // Parse and validate request body
     let body: unknown
     try {
       body = await req.json()
     } catch {
-      return NextResponse.json({
-        error: 'invalid-json',
-        message: 'Invalid JSON in request body'
-      }, { status: 400 })
+      logger.warn('Invalid JSON in request body')
+      throw errors.validation('Invalid JSON in request body')
     }
 
     // Validate and sanitize input
@@ -32,28 +39,24 @@ export async function POST(req: NextRequest) {
     // Get and validate lease
     const leaseData = await client.get(`lease:${leaseId}`)
     if (!leaseData) {
-      return NextResponse.json({
-        error: 'lease-not-found',
-        message: 'Upload lease not found or expired'
-      }, { status: 404 })
+      logger.warn('Upload lease not found or expired', { leaseId })
+      throw errors.notFound('Upload lease')
     }
 
     const lease = JSON.parse(String(leaseData))
     if (lease.objectKey !== objectKey) {
-      return NextResponse.json({
-        error: 'lease-mismatch',
-        message: 'Lease object key mismatch'
-      }, { status: 400 })
+      logger.warn('Lease object key mismatch', { leaseId, objectKey })
+      throw errors.validation('Lease object key mismatch')
     }
 
     // Verify blob exists and get the correct URL
     const blobInfo = await getBlobInfo(objectKey)
     if (!blobInfo) {
-      return NextResponse.json({
-        error: 'blob-not-found',
-        message: 'Uploaded file not found'
-      }, { status: 404 })
+      logger.warn('Uploaded file not found', { objectKey })
+      throw errors.notFound('Uploaded file')
     }
+
+    logger.info('Photo validated', { photoId: lease.id, farmSlug: lease.farmSlug })
 
     // Create photo object with the correct blob URL
     const photo = {
@@ -67,6 +70,8 @@ export async function POST(req: NextRequest) {
       status: 'pending'
     }
 
+    logger.info('Creating photo record', { photoId: photo.id, farmSlug: photo.farmSlug })
+
     // Use database constraints system for atomic operation
     await createRecord('photos', {
       id: photo.id,
@@ -78,15 +83,21 @@ export async function POST(req: NextRequest) {
       createdAt: photo.createdAt.toString(),
       status: photo.status
     }, photo.id)
-    
+
     // Add to farm's pending photos
     await client.sAdd(`farm:${photo.farmSlug}:photos:pending`, photo.id)
-    
+
     // Add to moderation queue
     await client.lPush('moderation:queue', photo.id)
-    
+
     // Remove lease
     await client.del(`lease:${leaseId}`)
+
+    logger.info('Photo finalized successfully', {
+      photoId: photo.id,
+      farmSlug: photo.farmSlug,
+      status: photo.status
+    })
 
     // 🔔 Fire-and-forget email (don't fail the API if email fails)
     ;(async () => {
@@ -100,7 +111,9 @@ export async function POST(req: NextRequest) {
               farmName = farm.name || farm.title || photo.farmSlug
             }
           } catch (err) {
-            console.warn('Could not fetch farm name for email', { farmSlug: photo.farmSlug, error: err })
+            moduleLogger.warn('Could not fetch farm name for email', {
+              farmSlug: photo.farmSlug
+            }, err as Error)
           }
 
           await sendPhotoSubmissionReceipt({
@@ -112,53 +125,54 @@ export async function POST(req: NextRequest) {
             authorEmail: photo.authorEmail,
             photoUrl: photo.url,
           })
+          moduleLogger.info('Photo submission receipt sent', {
+            photoId: photo.id,
+            authorEmail: photo.authorEmail
+          })
         }
       } catch (err) {
-        console.error('Email send failed (non-fatal):', {
-          error: err instanceof Error ? err.message : 'Unknown error',
+        moduleLogger.error('Email send failed (non-fatal)', {
           photoId: photo.id,
           farmSlug: photo.farmSlug,
           authorEmail: photo.authorEmail
-        })
+        }, err as Error)
       }
     })()
 
-    return NextResponse.json({ 
-      ok: true, 
-      status: photo.status, 
-      photoId: photo.id, 
-      previewUrl: photo.url 
+    return NextResponse.json({
+      ok: true,
+      status: photo.status,
+      photoId: photo.id,
+      previewUrl: photo.url
     })
 
   } catch (error) {
-    console.error('Error in finalize route:', error)
-    
     // Handle input validation errors
     if (error instanceof ValidationError) {
-      return NextResponse.json(
-        { error: `Input validation error: ${error.message}`, field: error.field },
-        { status: 400 }
-      )
+      logger.warn('Input validation error', {
+        field: error.field,
+        message: error.message
+      })
+      throw errors.validation(error.message, { field: error.field })
     }
-    
+
     // Handle database validation errors
     if (error instanceof DBValidationError) {
-      return NextResponse.json(
-        { error: `Database validation error: ${error.message}`, field: error.field },
-        { status: 400 }
-      )
+      logger.warn('Database validation error', {
+        field: error.field,
+        message: error.message
+      })
+      throw errors.validation(error.message, { field: error.field })
     }
-    
+
     if (error instanceof ConstraintViolationError) {
-      return NextResponse.json(
-        { error: `Constraint violation: ${error.message}`, field: error.constraint },
-        { status: 409 }
-      )
+      logger.warn('Constraint violation error', {
+        constraint: error.constraint,
+        message: error.message
+      })
+      throw errors.conflict(error.message)
     }
-    
-    return NextResponse.json({
-      error: 'internal-server-error',
-      message: 'An unexpected error occurred'
-    }, { status: 500 })
+
+    return handleApiError(error, 'api/photos/finalize')
   }
 }
