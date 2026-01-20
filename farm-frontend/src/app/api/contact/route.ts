@@ -3,18 +3,22 @@ import { Resend } from 'resend'
 import { ContactSchema, sanitizeText } from '@/lib/validation'
 import { rateLimiters, getClientIP } from '@/lib/rate-limit'
 import { checkCsrf, validateHoneypot, validateSubmissionTime, verifyTurnstile, validateContent, trackIPReputation, isIPBlocked } from '@/lib/security'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+const moduleLogger = createRouteLogger('api/contact')
+
 // Email sending function with Resend API
 async function sendEmail(to: string, subject: string, html: string, text: string) {
-  try {
-    if (!process.env.RESEND_API_KEY) {
-      console.error('RESEND_API_KEY not configured')
-      throw new Error('Email service not configured')
-    }
+  if (!process.env.RESEND_API_KEY) {
+    moduleLogger.error('RESEND_API_KEY not configured')
+    throw errors.configuration('Email service not configured')
+  }
 
+  try {
     const result = await resend.emails.send({
       from: 'Farm Companion <hello@farmcompanion.co.uk>',
       to: [to],
@@ -24,68 +28,72 @@ async function sendEmail(to: string, subject: string, html: string, text: string
       replyTo: 'hello@farmcompanion.co.uk'
     })
 
-    console.log('Email sent successfully:', result)
+    moduleLogger.info('Email sent successfully', {
+      to,
+      subject,
+      messageId: result.id
+    })
     return result
   } catch (error) {
-    console.error('Email sending failed:', error)
+    moduleLogger.error('Email sending failed', { to, subject }, error as Error)
     throw error
   }
 }
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/contact', request)
   const ip = getClientIP(request)
-  
+
   try {
+    logger.info('Processing contact form submission', { ip })
+
     // Check if IP is blocked
     if (await isIPBlocked(ip)) {
       await trackIPReputation(ip, 'failure')
-      return NextResponse.json(
-        { error: 'Access denied' },
-        { status: 403 }
-      )
+      logger.warn('Blocked IP attempted contact submission', { ip })
+      throw errors.authorization('Access denied')
     }
 
     // Apply rate limiting
     const rateLimit = await rateLimiters.contact.consume(ip)
     if (!rateLimit) {
       await trackIPReputation(ip, 'failure')
-      return NextResponse.json(
-        { error: 'Too many requests. Please try again later.' },
-        { status: 429 }
-      )
+      logger.warn('Rate limit exceeded for contact submission', { ip })
+      throw errors.rateLimit('Too many requests. Please try again later.')
     }
 
     // CSRF protection
     if (!checkCsrf(request)) {
       await trackIPReputation(ip, 'failure')
-      return NextResponse.json(
-        { error: 'Invalid request origin' },
-        { status: 403 }
-      )
+      logger.warn('CSRF check failed for contact submission', { ip })
+      throw errors.authorization('Invalid request origin')
     }
 
     const body = await request.json().catch(() => ({}))
-    
+
     // Validate input with Zod
     const parse = ContactSchema.safeParse(body)
     if (!parse.success) {
       await trackIPReputation(ip, 'failure')
-      return NextResponse.json(
-        { error: 'Invalid data provided' },
-        { status: 400 }
-      )
+      logger.warn('Contact form validation failed', {
+        ip,
+        errors: parse.error.errors
+      })
+      throw errors.validation('Invalid data provided')
     }
-    
+
     const data = parse.data
 
     // Spam checks
     if (!validateHoneypot(data.hp)) {
       await trackIPReputation(ip, 'spam')
+      logger.warn('Honeypot triggered, silent discard', { ip })
       return NextResponse.json({ ok: true }) // Silent discard
     }
 
     if (!validateSubmissionTime(data.t)) {
       await trackIPReputation(ip, 'spam')
+      logger.warn('Submission time validation failed, silent discard', { ip })
       return NextResponse.json({ ok: true }) // Silent discard
     }
 
@@ -93,10 +101,11 @@ export async function POST(request: NextRequest) {
     const contentValidation = await validateContent(data.message)
     if (!contentValidation.valid) {
       await trackIPReputation(ip, 'spam')
-      return NextResponse.json(
-        { error: 'Invalid content detected' },
-        { status: 400 }
-      )
+      logger.warn('Content validation failed', {
+        ip,
+        reason: contentValidation.reason
+      })
+      throw errors.validation('Invalid content detected')
     }
 
     // Optional: verify Cloudflare Turnstile
@@ -104,10 +113,8 @@ export async function POST(request: NextRequest) {
       const turnstileValid = await verifyTurnstile(data.token, ip)
       if (!turnstileValid) {
         await trackIPReputation(ip, 'spam')
-        return NextResponse.json(
-          { error: 'Bot check failed' },
-          { status: 400 }
-        )
+        logger.warn('Turnstile verification failed', { ip })
+        throw errors.validation('Bot check failed')
       }
     }
 
@@ -385,16 +392,18 @@ The UK's premium guide to real food, real people, and real places.
     // Track successful submission
     await trackIPReputation(ip, 'success')
 
+    logger.info('Contact form submission completed successfully', {
+      ip,
+      senderEmail: sanitizedData.email,
+      subject: sanitizedData.subject
+    })
+
     return NextResponse.json(
       { message: 'Message sent successfully' },
       { status: 200 }
     )
   } catch (error) {
-    console.error('Contact form error:', error)
     await trackIPReputation(ip, 'failure')
-    return NextResponse.json(
-      { error: 'Internal server error. Please try again later.' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/contact', { ip })
   }
 }
