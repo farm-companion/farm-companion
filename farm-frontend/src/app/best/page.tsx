@@ -47,7 +47,7 @@ export default function BestGuidesPage() {
       {/* Breadcrumbs */}
       <div className="border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
             <Link href="/" className="hover:text-brand-primary transition-colors">
               Home
             </Link>
@@ -61,10 +61,10 @@ export default function BestGuidesPage() {
       <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
+            <h1 className="text-display font-bold text-slate-900 dark:text-white mb-4">
               Best Farm Guides
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-heading text-slate-600 dark:text-slate-400 mb-6">
               Discover our expertly curated guides to the finest farms, farm shops, and agricultural
               experiences across the UK. From organic producers to pick your own farms, we&apos;ve
               handpicked the best destinations for every interest.
@@ -86,7 +86,7 @@ export default function BestGuidesPage() {
           {/* Featured Guides */}
           {featuredLists.length > 0 && (
             <section className="mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-6">
+              <h2 className="text-display font-bold text-slate-900 dark:text-white mb-6">
                 Featured Guides
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -101,13 +101,13 @@ export default function BestGuidesPage() {
                         Editor&apos;s Choice
                       </Badge>
                     </div>
-                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
+                    <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
                       {list.title}
                     </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
+                    <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
                       {list.intro}
                     </p>
-                    <div className="flex items-center justify-between text-xs text-slate-500">
+                    <div className="flex items-center justify-between text-small text-slate-500">
                       <span>
                         Updated: {new Date(list.updateDate).toLocaleDateString('en-GB', {
                           day: 'numeric',
@@ -128,7 +128,7 @@ export default function BestGuidesPage() {
           {/* All Guides */}
           {regularLists.length > 0 && (
             <section>
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-6">
+              <h2 className="text-display font-bold text-slate-900 dark:text-white mb-6">
                 All Guides
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -138,13 +138,13 @@ export default function BestGuidesPage() {
                     href={`/best/${list.slug}`}
                     className="group bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 transition-all hover:shadow-lg hover:border-brand-primary"
                   >
-                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
+                    <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
                       {list.title}
                     </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
+                    <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
                       {list.intro}
                     </p>
-                    <div className="flex items-center justify-between text-xs text-slate-500">
+                    <div className="flex items-center justify-between text-small text-slate-500">
                       <span>
                         Updated: {new Date(list.updateDate).toLocaleDateString('en-GB', {
                           day: 'numeric',
@@ -164,7 +164,7 @@ export default function BestGuidesPage() {
 
           {/* Browse Other Ways */}
           <section className="mt-12 bg-slate-100 dark:bg-slate-800 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 text-center">
+            <h2 className="text-display font-bold text-slate-900 dark:text-white mb-4 text-center">
               Browse Farms Other Ways
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
@@ -172,11 +172,11 @@ export default function BestGuidesPage() {
                 href="/categories"
                 className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-md hover:border-brand-primary"
               >
-                <div className="text-3xl mb-2">🏪</div>
+                <div className="text-display mb-2">🏪</div>
                 <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
                   By Category
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-caption text-slate-600 dark:text-slate-400">
                   Browse by farm type
                 </p>
               </Link>
@@ -185,11 +185,11 @@ export default function BestGuidesPage() {
                 href="/counties"
                 className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-md hover:border-brand-primary"
               >
-                <div className="text-3xl mb-2">📍</div>
+                <div className="text-display mb-2">📍</div>
                 <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
                   By Location
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-caption text-slate-600 dark:text-slate-400">
                   Find farms in your county
                 </p>
               </Link>
@@ -198,11 +198,11 @@ export default function BestGuidesPage() {
                 href="/map"
                 className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-md hover:border-brand-primary"
               >
-                <div className="text-3xl mb-2">🗺️</div>
+                <div className="text-display mb-2">🗺️</div>
                 <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
                   Map View
                 </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">
+                <p className="text-caption text-slate-600 dark:text-slate-400">
                   Explore farms on a map
                 </p>
               </Link>
