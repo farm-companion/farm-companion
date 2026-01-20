@@ -3,8 +3,11 @@ import { Resend } from 'resend'
 import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
-
+// Module logger for helper functions
+const moduleLogger = createRouteLogger('api/feedback')
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
@@ -13,8 +16,8 @@ const resend = new Resend(process.env.RESEND_API_KEY)
 async function sendEmail(to: string, subject: string, html: string, text: string) {
   try {
     if (!process.env.RESEND_API_KEY) {
-      console.error('RESEND_API_KEY not configured')
-      throw new Error('Email service not configured')
+      moduleLogger.error('RESEND_API_KEY not configured')
+      throw errors.configuration('Email service not configured')
     }
 
     const result = await resend.emails.send({
@@ -26,10 +29,14 @@ async function sendEmail(to: string, subject: string, html: string, text: string
       replyTo: 'hello@farmcompanion.co.uk'
     })
 
-    console.log('Email sent successfully:', result)
+    moduleLogger.info('Email sent successfully', {
+      to,
+      subject,
+      messageId: result.id
+    })
     return result
   } catch (error) {
-    console.error('Email sending failed:', error)
+    moduleLogger.error('Email sending failed', { to, subject }, error as Error)
     throw error
   }
 }
@@ -40,23 +47,30 @@ function generateFeedbackId(): string {
 }
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/feedback', request)
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
+
   try {
+    logger.info('Processing feedback submission', { ip })
+
     // CSRF protection
     if (!checkCsrf(request)) {
-      return NextResponse.json({ error: 'CSRF protection failed' }, { status: 400 })
+      logger.warn('CSRF protection failed', { ip })
+      throw errors.authorization('CSRF protection failed')
     }
 
     // Rate limiting
     const rl = createRateLimiter({ keyPrefix: 'feedback', limit: 10, windowSec: 3600 })
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
     if (!await rl.consume(ip)) {
-      return NextResponse.json({ error: 'Too many submissions. Please wait before submitting again.' }, { status: 429 })
+      logger.warn('Rate limit exceeded for feedback', { ip })
+      throw errors.rateLimit('Too many submissions. Please wait before submitting again.')
     }
 
     // Parse and validate JSON
     const body = await request.json().catch(() => null)
     if (!body) {
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+      logger.warn('Invalid JSON in feedback request', { ip })
+      throw errors.validation('Invalid JSON')
     }
     
     // Validate input using comprehensive validation
@@ -100,16 +114,14 @@ export async function POST(request: NextRequest) {
     const feedbackId = generateFeedbackId()
     const timestamp = new Date().toISOString()
 
-    // Store feedback in database (placeholder)
-    // TODO: Implement database storage
-    console.log('Storing feedback:', {
+    logger.info('Storing feedback', {
       id: feedbackId,
       name,
       email,
       subject,
-      message,
       timestamp,
-      status: 'pending'
+      status: 'pending',
+      ip
     })
 
     // Send confirmation email to user with enhanced PuredgeOS 3.0 styling
@@ -383,8 +395,16 @@ The UK's premium guide to real food, real people, and real places.
       adminEmailText
     )
 
+    logger.info('Feedback submitted successfully', {
+      feedbackId,
+      name,
+      email,
+      subject,
+      ip
+    })
+
     return NextResponse.json(
-      { 
+      {
         message: 'Feedback submitted successfully',
         feedbackId,
         timestamp
@@ -393,10 +413,6 @@ The UK's premium guide to real food, real people, and real places.
     )
 
   } catch (error) {
-    console.error('Feedback submission error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error. Please try again later.' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/feedback', { ip })
   }
 }
