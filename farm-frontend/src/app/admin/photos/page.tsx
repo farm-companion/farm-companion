@@ -79,10 +79,10 @@ export default async function AdminPhotosPage() {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center gap-4">
               <div>
-                <h1 className="text-2xl font-heading font-bold text-text-heading">
+                <h1 className="text-heading font-heading font-bold text-text-heading">
                   Photo Management
                 </h1>
-                <p className="text-sm text-text-muted">
+                <p className="text-caption text-text-muted">
                   Review and manage photo submissions • {validPhotos.length} pending
                 </p>
               </div>
@@ -94,14 +94,14 @@ export default async function AdminPhotosPage() {
             <div className="flex gap-3">
               <Link
                 href="/admin/photos/approved"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-serum text-white rounded-lg hover:bg-serum/90 transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-serum text-white rounded-lg hover:bg-serum/90 transition-colors text-body font-medium"
               >
                 <CheckCircle className="w-4 h-4" />
                 Approved Photos
               </Link>
               <Link
                 href="/admin"
-                className="inline-flex items-center gap-2 px-4 py-2 bg-background-surface border border-border-default text-text-body rounded-lg hover:bg-border-default/50 transition-colors text-sm font-medium"
+                className="inline-flex items-center gap-2 px-4 py-2 bg-background-surface border border-border-default text-text-body rounded-lg hover:bg-border-default/50 transition-colors text-body font-medium"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Dashboard
@@ -109,7 +109,7 @@ export default async function AdminPhotosPage() {
               <form action="/api/admin/logout" method="POST">
                 <button
                   type="submit"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-body font-medium"
                 >
                   Sign Out
                 </button>
@@ -126,8 +126,8 @@ export default async function AdminPhotosPage() {
           <div className="bg-background-surface border border-border-default/30 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-text-muted">Pending Review</p>
-                <p className="text-2xl font-bold text-text-heading">{validPhotos.length}</p>
+                <p className="text-caption font-medium text-text-muted">Pending Review</p>
+                <p className="text-heading font-bold text-text-heading">{validPhotos.length}</p>
               </div>
               <div className="p-2 bg-yellow-100 rounded-lg">
                 <Clock className="w-6 h-6 text-yellow-600" />
@@ -138,8 +138,8 @@ export default async function AdminPhotosPage() {
           <div className="bg-background-surface border border-border-default/30 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-text-muted">Approved Today</p>
-                <p className="text-2xl font-bold text-text-heading">{farmStats.approvedToday}</p>
+                <p className="text-caption font-medium text-text-muted">Approved Today</p>
+                <p className="text-heading font-bold text-text-heading">{farmStats.approvedToday}</p>
               </div>
               <div className="p-2 bg-green-100 rounded-lg">
                 <CheckCircle className="w-6 h-6 text-green-600" />
@@ -150,8 +150,8 @@ export default async function AdminPhotosPage() {
           <div className="bg-background-surface border border-border-default/30 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-text-muted">Rejected Today</p>
-                <p className="text-2xl font-bold text-text-heading">{farmStats.rejectedToday}</p>
+                <p className="text-caption font-medium text-text-muted">Rejected Today</p>
+                <p className="text-heading font-bold text-text-heading">{farmStats.rejectedToday}</p>
               </div>
               <div className="p-2 bg-red-100 rounded-lg">
                 <XCircle className="w-6 h-6 text-red-600" />
@@ -162,8 +162,8 @@ export default async function AdminPhotosPage() {
           <div className="bg-background-surface border border-border-default/30 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-text-muted">Active Farms</p>
-                <p className="text-2xl font-bold text-text-heading">{farmStats.activeFarms}</p>
+                <p className="text-caption font-medium text-text-muted">Active Farms</p>
+                <p className="text-heading font-bold text-text-heading">{farmStats.activeFarms}</p>
               </div>
               <div className="p-2 bg-serum/10 rounded-lg">
                 <Upload className="w-6 h-6 text-serum" />
@@ -179,12 +179,12 @@ export default async function AdminPhotosPage() {
               <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
               <div>
                 <h3 className="font-medium text-amber-800 mb-1">Photo Quota Warnings</h3>
-                <p className="text-sm text-amber-700 mb-2">
+                <p className="text-caption text-amber-700 mb-2">
                   The following farms have reached their 5-photo limit. Approving new photos will require replacing existing ones:
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {farmQuotas.quotaExceededFarms.map((farm) => (
-                    <span key={farm.slug} className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-xs font-medium">
+                    <span key={farm.slug} className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-small font-medium">
                       {farm.slug} ({farm.currentCount}/5)
                     </span>
                   ))}
@@ -233,7 +233,7 @@ export default async function AdminPhotosPage() {
             <div className="mx-auto w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="text-lg font-semibold text-text-heading mb-2">All caught up!</h3>
+            <h3 className="text-heading font-semibold text-text-heading mb-2">All caught up!</h3>
             <p className="text-text-muted mb-6">
               No photos are currently pending review. Check back later for new submissions.
             </p>
@@ -260,11 +260,11 @@ export default async function AdminPhotosPage() {
                         {photo.farmSlug}
                       </h3>
                       <div className="flex items-center gap-1">
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-small font-medium">
                           Pending
                         </span>
                         {isQuotaExceeded && (
-                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">
+                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-small font-medium">
                             Quota Full
                           </span>
                         )}
@@ -276,12 +276,12 @@ export default async function AdminPhotosPage() {
                     
                     {/* Quota Status */}
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center gap-1 text-xs text-text-muted">
+                      <div className="flex items-center gap-1 text-small text-text-muted">
                         <Upload className="w-3 h-3" />
                         <span>{farmQuota.currentCount}/{farmQuota.maxCount} photos</span>
                       </div>
                       {isQuotaExceeded && (
-                        <div className="flex items-center gap-1 text-xs text-red-600">
+                        <div className="flex items-center gap-1 text-small text-red-600">
                           <AlertCircle className="w-3 h-3" />
                           <span>Approval requires replacement</span>
                         </div>
@@ -321,7 +321,7 @@ export default async function AdminPhotosPage() {
                       <form action={`/api/admin/photos/approve?id=${photo.id}`} method="POST" className="flex-1">
                         <button 
                           type="submit"
-                          className={`w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors text-sm font-medium ${
+                          className={`w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors text-body font-medium ${
                             isQuotaExceeded 
                               ? 'bg-amber-600 text-white hover:bg-amber-700 focus:ring-amber-500' 
                               : 'bg-green-600 text-white hover:bg-green-700 focus:ring-green-500'
@@ -336,7 +336,7 @@ export default async function AdminPhotosPage() {
                       <form action={`/api/admin/photos/reject?id=${photo.id}`} method="POST" className="flex-1">
                         <button 
                           type="submit"
-                          className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors text-sm font-medium"
+                          className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors text-body font-medium"
                         >
                           <XCircle className="w-4 h-4" />
                           Reject
@@ -346,15 +346,15 @@ export default async function AdminPhotosPage() {
                     
                     {/* Secondary Actions */}
                     <div className="flex gap-2">
-                      <button className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 border border-border-default text-text-body rounded-lg hover:bg-border-default/50 transition-colors text-sm">
+                      <button className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 border border-border-default text-text-body rounded-lg hover:bg-border-default/50 transition-colors text-body">
                         <Eye className="w-4 h-4" />
                         Preview
                       </button>
-                      <button className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 border border-border-default text-text-body rounded-lg hover:bg-border-default/50 transition-colors text-sm">
+                      <button className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 border border-border-default text-text-body rounded-lg hover:bg-border-default/50 transition-colors text-body">
                         <Download className="w-4 h-4" />
                         Download
                       </button>
-                      <button className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 border border-border-default text-text-body rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors text-sm">
+                      <button className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 border border-border-default text-text-body rounded-lg hover:bg-red-50 hover:border-red-200 transition-colors text-body">
                         <Trash2 className="w-4 h-4 text-red-500" />
                         Delete
                       </button>
@@ -364,7 +364,7 @@ export default async function AdminPhotosPage() {
                     <div className="pt-2 border-t border-border-default/30">
                       <Link
                         href={`/shop/${photo.farmSlug}`}
-                        className="inline-flex items-center gap-2 text-xs text-serum hover:text-serum/80 transition-colors"
+                        className="inline-flex items-center gap-2 text-small text-serum hover:text-serum/80 transition-colors"
                       >
                         <Eye className="w-3 h-3" />
                         View farm photos ({farmQuota.currentCount} current)
