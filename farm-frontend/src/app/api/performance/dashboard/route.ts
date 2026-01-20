@@ -3,9 +3,32 @@ import { apiMiddleware } from '@/lib/api-middleware'
 import { performanceMonitor } from '@/lib/performance-monitor'
 import { cacheManager } from '@/lib/cache-manager'
 import { getMemoryUsage, getCPUUsage } from '@/lib/performance-monitor'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
+
+interface PerformanceSummary {
+  avgResponseTime: number
+  errorRate: number
+  topSlowRoutes: Array<{ route: string }>
+}
+
+interface WebVitalsSummary {
+  lcp: { p95: number }
+  fid: { p95: number }
+  cls: { p95: number }
+}
+
+interface CacheStats {
+  hitRate: number
+  hits: number
+  misses: number
+}
 
 async function performanceDashboardHandler() {
+  const logger = createRouteLogger('api/performance/dashboard')
+
   try {
+    logger.info('Generating performance dashboard')
     // Get performance metrics
     const performanceSummary = await performanceMonitor.getPerformanceSummary(24)
     const webVitalsSummary = await performanceMonitor.getWebVitalsSummary(24)
@@ -31,7 +54,14 @@ async function performanceDashboardHandler() {
     
     // Get recommendations
     const recommendations = generateRecommendations(performanceSummary, webVitalsSummary, cacheStats)
-    
+
+    logger.info('Performance dashboard generated successfully', {
+      overallScore,
+      performanceScore,
+      cacheScore,
+      recommendationsCount: recommendations.length
+    })
+
     return NextResponse.json({
       timestamp: new Date().toISOString(),
       overallScore,
@@ -48,18 +78,14 @@ async function performanceDashboardHandler() {
       recommendations
     })
   } catch (error) {
-    console.error('Performance dashboard error:', error)
-    return NextResponse.json(
-      { error: 'Failed to generate performance dashboard' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/performance/dashboard')
   }
 }
 
 // Calculate performance score (0-100)
 function calculatePerformanceScore(
-  performanceSummary: any,
-  webVitalsSummary: any
+  performanceSummary: PerformanceSummary,
+  webVitalsSummary: WebVitalsSummary
 ): number {
   let score = 100
   
@@ -100,7 +126,7 @@ function calculatePerformanceScore(
 }
 
 // Calculate cache score (0-100)
-function calculateCacheScore(cacheStats: any): number {
+function calculateCacheScore(cacheStats: CacheStats): number {
   let score = 100
   
   // Deduct points for low hit rate
@@ -120,9 +146,9 @@ function calculateCacheScore(cacheStats: any): number {
 
 // Generate performance recommendations
 function generateRecommendations(
-  performanceSummary: any,
-  webVitalsSummary: any,
-  cacheStats: any
+  performanceSummary: PerformanceSummary,
+  webVitalsSummary: WebVitalsSummary,
+  cacheStats: CacheStats
 ): string[] {
   const recommendations: string[] = []
   

@@ -1,20 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
 
 /**
  * Bot Activity Monitoring Endpoint
- * 
+ *
  * Tracks and reports on search engine bot activity.
  * This endpoint can be called by monitoring systems to check bot accessibility.
  */
 export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/monitoring/bot-activity', request)
+
   try {
     const userAgent = request.headers.get('user-agent') || ''
-    const ip = request.headers.get('x-forwarded-for') || 
-               request.headers.get('x-real-ip') || 
+    const ip = request.headers.get('x-forwarded-for') ||
+               request.headers.get('x-real-ip') ||
                'unknown'
-    
+
     const timestamp = new Date().toISOString()
-    
+
     // Identify bot type
     let botType = 'unknown'
     if (userAgent.includes('bingbot')) {
@@ -27,8 +31,8 @@ export async function GET(request: NextRequest) {
       botType = 'other-crawler'
     }
 
-    // Log bot activity (in production, this would go to a proper logging system)
-    console.log(`🤖 Bot Activity: ${botType} from ${ip} at ${timestamp}`, {
+    // Log bot activity
+    logger.info('Bot activity detected', {
       userAgent,
       ip,
       timestamp,
@@ -59,17 +63,15 @@ export async function GET(request: NextRequest) {
       )
     }
 
+    logger.info('Bot activity response generated', {
+      botType,
+      status: 'accessible'
+    })
+
     return NextResponse.json(response)
 
   } catch (error) {
-    console.error('Error in bot activity monitoring:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to process bot activity',
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/monitoring/bot-activity')
   }
 }
 
