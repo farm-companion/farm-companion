@@ -68,7 +68,8 @@
 - [x] Standardize admin/photos/reject/route (3-in-1: eliminated 1 console statement, 3 inline errors)
 - [x] Standardize admin/photos/remove/route (3-in-1: eliminated 1 console statement, 3 inline errors)
 - [x] Standardize admin/photos/approve/route (3-in-1: eliminated 7 console statements, 3 inline errors)
-- [ ] Standardize error handling in batch 1 (5 remaining routes: newsletter/subscribe, contact/submit, farms/submit, claims, consent)
+- [x] Standardize newsletter/subscribe/route (3-in-1: eliminated 5 console statements, 7 inline errors)
+- [ ] Standardize error handling in batch 1 (4 remaining routes: contact/submit, farms/submit, claims, consent)
 - [ ] Standardize error handling in batch 2 (10 routes)
 - [ ] Standardize error handling in batch 3 (10 routes)
 - [ ] Standardize error handling in batch 4 (10 routes)
@@ -79,6 +80,7 @@
 - [x] Remove console.log from high-volume offenders batch 1a (upload/route 19 statements eliminated)
 - [x] Remove console.log from high-volume offenders batch 1b (photos/upload-url 11 statements eliminated)
 - [x] Remove console.log from admin photo routes (admin/photos/reject 1 statement, admin/photos/remove 1 statement, admin/photos/approve 7 statements)
+- [x] Remove console.log from newsletter/subscribe route (5 statements eliminated)
 - [ ] Remove console.log from high-volume offenders batch 1c (admin/audit/sitemap-reconciliation 23 statements - file too large, deferred)
 - [ ] Remove console.log from high-volume offenders batch 2 (admin/test-auth 11 statements, cron/bing-sitemap-ping 7 statements)
 - [ ] Remove console.log from high-volume offenders batch 3 (admin/migrate-farms 10 statements, consent 2 statements, newsletter/unsubscribe 3 statements)
@@ -99,6 +101,7 @@
 - [x] Add structured logging to admin/photos/reject/route
 - [x] Add structured logging to admin/photos/remove/route
 - [x] Add structured logging to admin/photos/approve/route
+- [x] Add structured logging to newsletter/subscribe/route
 - [ ] Add structured logging to all admin routes (17+ routes remaining)
 - [ ] Add structured logging to all photo routes (10+ routes)
 - [ ] Add structured logging to all farm routes (10+ routes)
@@ -150,6 +153,14 @@
   - All moderation operations now logged with proper context (photoId, farmSlug, authorEmail, replacedPhotoId)
   - Photo approval logic includes detailed logging for quota checks and photo replacement workflow
   - Content change tracking has structured logging with notification counts and error details
+- **Queue 12-17: Newsletter Subscription Route 3-in-1 Cleanup** (COMPLETE)
+  - Refactored api/newsletter/subscribe/route.ts (234 → 259 lines)
+  - Added structured logging: Replaced 5 console statements with logger.info/warn/error and moduleLogger for helpers
+  - Standardized error handling: Replaced 7 inline error responses with throw + error factories
+  - Created module-level logger for helper functions (verifyRecaptcha, sendWelcomeEmail, storeSubscription)
+  - All subscription operations logged with proper context (ip, email, name, source)
+  - CSRF protection, rate limiting, validation, reCAPTCHA, spam checks all have detailed logging
+  - Honeypot and submission timing checks preserved with silent discards plus warnings
 
 ### 2026-01-19 (God-Tier Transformation Begins)
 - **Queue 8, Slice 1: Design Token Consolidation (COMPREHENSIVE)** (COMPLETE - REDONE)

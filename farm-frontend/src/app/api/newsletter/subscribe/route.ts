@@ -6,10 +6,14 @@ import { Resend } from 'resend'
 import createRateLimiter from '@/lib/rate-limit'
 import { checkCsrf } from '@/lib/csrf'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
 // Initialize Resend
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+// Module logger for helper functions
+const moduleLogger = createRouteLogger('api/newsletter/subscribe')
 
 // reCAPTCHA verification
 async function verifyRecaptcha(token: string): Promise<boolean> {
@@ -19,11 +23,11 @@ async function verifyRecaptcha(token: string): Promise<boolean> {
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: `secret=${process.env.RECAPTCHA_SECRET_KEY}&response=${token}`
     })
-    
+
     const data = await response.json()
     return data.success && data.score > 0.5
   } catch (error) {
-    console.error('reCAPTCHA verification failed:', error)
+    moduleLogger.error('reCAPTCHA verification failed', {}, error as Error)
     return false
   }
 }
@@ -114,10 +118,11 @@ async function sendWelcomeEmail(email: string, name: string) {
         </html>
       `
     })
-    
+
+    moduleLogger.info('Welcome email sent successfully', { email, name })
     return true
   } catch (error) {
-    console.error('Failed to send welcome email:', error)
+    moduleLogger.error('Failed to send welcome email', { email, name }, error as Error)
     return false
   }
 }
@@ -126,31 +131,39 @@ async function sendWelcomeEmail(email: string, name: string) {
 async function storeSubscription(email: string, name: string, source?: string) {
   // TODO: Implement database storage
   // For now, just log the subscription
-  console.log('New subscription:', { email, name, source, timestamp: new Date().toISOString() })
+  moduleLogger.info('New newsletter subscription', {
+    email,
+    name,
+    source,
+    timestamp: new Date().toISOString()
+  })
   return true
 }
 
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/newsletter/subscribe', request)
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
+
   try {
+    logger.info('Processing newsletter subscription request', { ip })
+
     // CSRF protection
     if (!checkCsrf(request)) {
-      return NextResponse.json({ error: 'CSRF protection failed' }, { status: 400 })
+      logger.warn('CSRF protection failed', { ip })
+      throw errors.authorization('CSRF protection failed')
     }
 
     // Rate limiting
     const rl = createRateLimiter({ keyPrefix: 'newsletter', limit: 5, windowSec: 3600 })
-    const ip = request.headers.get('x-forwarded-for')?.split(',')[0] || 'anon'
     if (!await rl.consume(ip)) {
-      return NextResponse.json(
-        { error: 'Too many subscription attempts. Please try again later.' },
-        { status: 429 }
-      )
+      logger.warn('Rate limit exceeded for newsletter subscription', { ip })
+      throw errors.rateLimit('Too many subscription attempts. Please try again later.')
     }
 
     // Parse and validate JSON
     const body = await request.json().catch(() => null)
     if (!body) {
-      return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
+      throw errors.validation('Invalid JSON in request body')
     }
     
     // Validate input using comprehensive validation
@@ -162,38 +175,35 @@ export async function POST(request: NextRequest) {
       })
     } catch (error) {
       if (error instanceof InputValidationError) {
-        return NextResponse.json(
-          { 
-            error: 'Validation failed', 
-            message: error.message,
-            field: error.field
-          }, 
-          { status: 422 }
-        )
+        logger.warn('Validation failed for newsletter subscription', {
+          ip,
+          field: error.field,
+          message: error.message
+        })
+        throw errors.validation(error.message, { field: error.field })
       }
-      return NextResponse.json(
-        { error: 'Invalid input data' }, 
-        { status: 400 }
-      )
+      throw errors.validation('Invalid input data')
     }
-    
+
     const { email, name, recaptchaToken, source, hp, t } = subscriptionData
+
+    logger.info('Validating subscription request', { ip, email, source })
 
     // Anti-spam checks
     if (hp) {
+      logger.warn('Honeypot triggered for newsletter subscription', { ip })
       return NextResponse.json({ ok: true }) // honeypot triggered
     }
-    
+
     if (Date.now() - t < 1500) {
+      logger.warn('Submission too fast (possible bot)', { ip })
       return NextResponse.json({ ok: true }) // too fast submission
     }
-    
+
     // reCAPTCHA verification (if token provided)
     if (recaptchaToken && !(await verifyRecaptcha(recaptchaToken))) {
-      return NextResponse.json(
-        { error: 'Security verification failed. Please try again.' },
-        { status: 400 }
-      )
+      logger.warn('reCAPTCHA verification failed', { ip, email })
+      throw errors.validation('Security verification failed. Please try again.')
     }
     
     // Additional bot protection checks
@@ -205,30 +215,34 @@ export async function POST(request: NextRequest) {
       /^mail@/i,
       /^webmaster@/i
     ]
-    
+
     if (suspiciousPatterns.some(pattern => pattern.test(email))) {
-      console.warn('Suspicious email pattern detected:', email)
+      logger.warn('Suspicious email pattern detected', { ip, email })
       // Don't block, but log for monitoring
     }
-    
+
     // Store subscription
     await storeSubscription(email, name, source)
-    
+
     // Send welcome email
     const emailSent = await sendWelcomeEmail(email, name)
-    
+
+    logger.info('Newsletter subscription completed successfully', {
+      ip,
+      email,
+      name,
+      source,
+      emailSent
+    })
+
     return NextResponse.json({
       success: true,
       message: 'Successfully subscribed to Farm Companion newsletter!',
       emailSent
     })
-    
+
   } catch (error) {
-    console.error('Newsletter subscription error:', error)
-    return NextResponse.json(
-      { error: 'Failed to process subscription. Please try again.' },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/newsletter/subscribe', { ip })
   }
 }
 
