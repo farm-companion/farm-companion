@@ -1,7 +1,23 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
+import { createRouteLogger } from '@/lib/logger'
 
-export async function GET() {
-  const report: Record<string, any> = { ok: true, checks: [] }
+interface HealthCheck {
+  name: string
+  ok: boolean
+  err?: string
+}
+
+interface HealthReport {
+  ok: boolean
+  checks: HealthCheck[]
+}
+
+export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/contact/selftest', request)
+
+  logger.info('Processing contact form health check')
+
+  const report: HealthReport = { ok: true, checks: [] }
 
   // Redis/Upstash
   try {
@@ -9,9 +25,11 @@ export async function GET() {
     const redis = Redis.fromEnv()
     await redis.ping()
     report.checks.push({ name: 'redis', ok: true })
-  } catch (e: any) {
+  } catch (e: unknown) {
     report.ok = false
-    report.checks.push({ name: 'redis', ok: false, err: String(e) })
+    const errorMessage = e instanceof Error ? e.message : String(e)
+    report.checks.push({ name: 'redis', ok: false, err: errorMessage })
+    logger.warn('Redis health check failed', { error: errorMessage })
   }
 
   // Resend env presence only (no send)
@@ -23,9 +41,14 @@ export async function GET() {
   report.checks.push({ name: 'captcha_env', ok: !!(process.env.TURNSTILE_SECRET_KEY) })
 
   // Contact form enabled flag
-  report.checks.push({ 
-    name: 'contact_form_enabled', 
-    ok: process.env.CONTACT_FORM_ENABLED === 'true' 
+  report.checks.push({
+    name: 'contact_form_enabled',
+    ok: process.env.CONTACT_FORM_ENABLED === 'true'
+  })
+
+  logger.info('Contact form health check completed', {
+    overallStatus: report.ok,
+    checksCount: report.checks.length
   })
 
   return NextResponse.json(report, { status: report.ok ? 200 : 500 })
