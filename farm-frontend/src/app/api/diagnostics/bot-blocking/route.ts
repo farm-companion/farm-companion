@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
 
 /**
  * Bot Blocking Diagnostic Tool
- * 
+ *
  * This endpoint detects and diagnoses bot blocking issues by:
  * 1. Testing bot accessibility with different user agents
  * 2. Checking for CDN/firewall challenges
@@ -10,18 +12,24 @@ import { NextRequest, NextResponse } from 'next/server'
  * 4. Providing resolution recommendations
  */
 export async function POST(request: NextRequest) {
+  const logger = createRouteLogger('api/diagnostics/bot-blocking', request)
+
   try {
+    logger.info('Processing bot blocking diagnostics request')
+
     const { testUrl = 'https://www.farmcompanion.co.uk/' } = await request.json()
-    
+
+    logger.info('Running bot blocking tests', { testUrl })
+
     const diagnostics = {
       testUrl,
       timestamp: new Date().toISOString(),
       tests: {
-        bingbotAccess: await testBotAccess(testUrl, 'bingbot'),
-        msnbotAccess: await testBotAccess(testUrl, 'msnbot'),
-        googlebotAccess: await testBotAccess(testUrl, 'googlebot'),
-        regularUserAccess: await testBotAccess(testUrl, 'regular'),
-        challengeDetection: await detectChallenges(testUrl),
+        bingbotAccess: await testBotAccess(testUrl, 'bingbot', logger),
+        msnbotAccess: await testBotAccess(testUrl, 'msnbot', logger),
+        googlebotAccess: await testBotAccess(testUrl, 'googlebot', logger),
+        regularUserAccess: await testBotAccess(testUrl, 'regular', logger),
+        challengeDetection: await detectChallenges(testUrl, logger),
       },
       analysis: {
         blockingDetected: false,
@@ -35,25 +43,23 @@ export async function POST(request: NextRequest) {
     // Analyze results and provide recommendations
     analyzeBotBlockingResults(diagnostics)
 
+    logger.info('Bot blocking diagnostics completed', {
+      status: diagnostics.status,
+      blockingDetected: diagnostics.analysis.blockingDetected,
+      affectedBots: diagnostics.analysis.affectedBots
+    })
+
     return NextResponse.json(diagnostics)
 
   } catch (error) {
-    console.error('Error in bot blocking diagnostics:', error)
-    return NextResponse.json(
-      { 
-        error: 'Failed to perform bot blocking diagnostics',
-        details: error instanceof Error ? error.message : 'Unknown error',
-        timestamp: new Date().toISOString()
-      },
-      { status: 500 }
-    )
+    return handleApiError(error, 'api/diagnostics/bot-blocking')
   }
 }
 
 /**
  * Test bot access with specific user agent
  */
-async function testBotAccess(url: string, botType: string) {
+async function testBotAccess(url: string, botType: string, logger: ReturnType<typeof createRouteLogger>) {
   const userAgents = {
     bingbot: 'Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)',
     msnbot: 'Mozilla/5.0 (compatible; msnbot/2.0b; +http://search.msn.com/msnbot.htm)',
@@ -77,8 +83,10 @@ async function testBotAccess(url: string, botType: string) {
   }
 
   try {
+    logger.info('Testing bot access', { botType, url })
+
     const startTime = Date.now()
-    
+
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -92,6 +100,12 @@ async function testBotAccess(url: string, botType: string) {
 
     result.details.responseTime = Date.now() - startTime
     result.details.httpStatus = response.status
+
+    logger.info('Bot access test completed', {
+      botType,
+      httpStatus: result.details.httpStatus,
+      responseTime: result.details.responseTime
+    })
 
     // Capture important headers
     const importantHeaders = [
@@ -150,7 +164,8 @@ async function testBotAccess(url: string, botType: string) {
 /**
  * Detect specific types of challenges
  */
-async function detectChallenges(url: string) {
+async function detectChallenges(url: string, logger: ReturnType<typeof createRouteLogger>) {
+  logger.info('Detecting bot challenges', { url })
   const result = {
     status: 'unknown' as 'pass' | 'fail' | 'warning',
     details: {
@@ -212,9 +227,15 @@ async function detectChallenges(url: string) {
       result.status = 'pass'
     }
 
-  } catch {
+    logger.info('Challenge detection completed', {
+      status: result.status,
+      challengeTypes: result.details.challengeTypes
+    })
+
+  } catch (error) {
     result.status = 'fail'
     result.details.recommendations.push('Check network connectivity and server status')
+    logger.error('Challenge detection failed', {}, error as Error)
   }
 
   return result
