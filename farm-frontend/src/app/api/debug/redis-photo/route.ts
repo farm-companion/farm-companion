@@ -1,23 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureConnection } from '@/lib/redis'
+import { createRouteLogger } from '@/lib/logger'
+import { errors, handleApiError } from '@/lib/errors'
 
-export async function GET(req: NextRequest) {
+export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/debug/redis-photo', request)
+
   try {
-    const { searchParams } = new URL(req.url)
+    logger.info('Processing Redis photo debug request')
+
+    const { searchParams } = new URL(request.url)
     const photoId = searchParams.get('id')
-    
+
     if (!photoId) {
-      return NextResponse.json({ error: 'Missing photo ID parameter' }, { status: 400 })
+      logger.warn('Missing photo ID parameter in debug request')
+      throw errors.validation('Missing photo ID parameter')
     }
 
     const client = await ensureConnection()
-    
+
+    logger.info('Fetching photo data from Redis', { photoId })
+
     // Get the photo data
     const photoData = await client.hGetAll(`photo:${photoId}`)
-    
+
     // Also check if it's in the moderation queue
     const queuePosition = await client.lPos('moderation:queue', photoId)
-    
+
+    logger.info('Redis photo debug request completed', {
+      photoId,
+      hasData: !!photoData && Object.keys(photoData).length > 0,
+      inQueue: queuePosition !== null,
+      queuePosition
+    })
+
     return NextResponse.json({
       photoId,
       photoData,
@@ -30,9 +46,6 @@ export async function GET(req: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Debug error:', error)
-    return NextResponse.json({
-      error: error instanceof Error ? error.message : 'Unknown error'
-    }, { status: 500 })
+    return handleApiError(error, 'api/debug/redis-photo')
   }
 }
