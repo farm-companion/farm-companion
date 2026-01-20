@@ -55,7 +55,8 @@
 - [x] Typography migration (Slice 2i) - Admin produce page migrated to semantic typography (24 replacements)
 - [x] Typography migration (Slice 2j) - Admin claims page migrated to semantic typography (15 replacements)
 - [x] Typography migration (Slice 2k) - Best guides page migrated to semantic typography (21 replacements)
-- [ ] Typography migration (Slice 2l-z) - Remaining 644 legacy instances across 987 files (forms, lists, cards, etc)
+- [x] Typography migration (Slice 2l) - Contact page migrated to semantic typography (12 replacements)
+- [ ] Typography migration (Slice 2m-z) - Remaining 632 legacy instances across 986 files (forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -271,6 +272,17 @@
   - High-visibility curated farm guides and best lists page
   - Files changed: 1 page, 21 typography replacements
   - Remaining: 644 legacy instances across 987 files for future slices
+
+- **Queue 8, Slice 2l: Contact Page Typography Migration** (COMPLETE)
+  - Migrated contact/page.tsx to semantic typography
+  - text-display for hero title
+  - text-heading for hero subtitle and section headings (Send us a message, Other ways to reach us)
+  - text-body for secondary hero description
+  - text-caption for form unavailable message, helper text descriptions, and link text
+  - Removed 12 legacy responsive text size modifiers (202 line file)
+  - High-visibility contact form and contact information page
+  - Files changed: 1 page, 12 typography replacements
+  - Remaining: 632 legacy instances across 986 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
