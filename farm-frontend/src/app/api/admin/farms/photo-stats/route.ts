@@ -138,8 +138,19 @@ interface FarmStats {
 
 async function getAllFarmsPhotoStats(client: Awaited<ReturnType<typeof ensureConnection>>, logger: ReturnType<typeof createRouteLogger>) {
   try {
-    // Get all farm keys
-    const farmKeys = await client.keys('farm:*:photos:*')
+    // Get all farm keys using SCAN (non-blocking alternative to KEYS)
+    // SCAN is production-safe unlike KEYS which blocks the Redis server
+    const farmKeys: string[] = []
+    let cursor = 0
+
+    do {
+      const result = await client.scan(cursor, {
+        MATCH: 'farm:*:photos:*',
+        COUNT: 100
+      })
+      cursor = result.cursor
+      farmKeys.push(...result.keys)
+    } while (cursor !== 0)
 
     logger.info('Retrieved farm keys for stats aggregation', {
       farmKeysCount: farmKeys.length
