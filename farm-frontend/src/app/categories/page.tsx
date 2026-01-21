@@ -49,7 +49,7 @@ export default async function CategoriesPage() {
       {/* Breadcrumbs */}
       <div className="border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
             <Link href="/" className="hover:text-brand-primary transition-colors">
               Home
             </Link>
@@ -63,10 +63,10 @@ export default async function CategoriesPage() {
       <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
+            <h1 className="text-display font-bold text-slate-900 dark:text-white mb-4">
               Farm Categories
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-heading text-slate-600 dark:text-slate-400 mb-6">
               Explore {categories.length} categories of farms, producers, and agricultural
               businesses across the UK
             </p>
@@ -81,7 +81,7 @@ export default async function CategoriesPage() {
         {/* Primary Categories */}
         {primaryCategories.length > 0 && (
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            <h2 className="text-heading font-bold text-slate-900 dark:text-white mb-6">
               Popular Categories
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -95,7 +95,7 @@ export default async function CategoriesPage() {
         {/* Specialized Categories */}
         {specializedCategories.length > 0 && (
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            <h2 className="text-heading font-bold text-slate-900 dark:text-white mb-6">
               Specialized & Seasonal
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -109,7 +109,7 @@ export default async function CategoriesPage() {
         {/* Other Categories */}
         {otherCategories.length > 0 && (
           <section>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            <h2 className="text-heading font-bold text-slate-900 dark:text-white mb-6">
               Products & Practices
             </h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -133,25 +133,25 @@ function CategoryCard({ category }: { category: any }) {
     >
       {/* Icon */}
       {category.icon && (
-        <div className="text-4xl md:text-5xl mb-3 transform transition-transform group-hover:scale-110">
+        <div className="text-display mb-3 transform transition-transform group-hover:scale-110">
           {category.icon}
         </div>
       )}
 
       {/* Category Name */}
-      <h3 className="font-semibold text-slate-900 dark:text-white mb-2 text-sm md:text-base">
+      <h3 className="font-semibold text-slate-900 dark:text-white mb-2 text-heading">
         {category.name}
       </h3>
 
       {/* Description */}
       {category.description && (
-        <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
+        <p className="text-caption text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
           {category.description}
         </p>
       )}
 
       {/* Farm Count Badge */}
-      <Badge variant="outline" size="sm" className="text-xs">
+      <Badge variant="outline" size="sm" className="text-small">
         {category.farmCount} {category.farmCount === 1 ? 'Farm' : 'Farms'}
       </Badge>
 
