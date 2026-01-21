@@ -116,14 +116,14 @@ export default async function CountiesPage() {
             <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
               <MapPin className="w-10 h-10 text-white" />
             </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+            <h1 className="text-display font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Farm Shops by
               <span className="block text-serum drop-shadow-lg">County</span>
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-heading text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Discover authentic farm shops organized by county across the UK.
             </p>
-            <p className="text-lg text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-body text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Find local producers and fresh food in your area.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -162,10 +162,10 @@ export default async function CountiesPage() {
               className="bg-background-surface border border-border-default rounded-lg p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-semibold text-text-heading">
+                <h2 className="text-heading font-semibold text-text-heading">
                   {county}
                 </h2>
-                <span className="text-sm text-text-muted bg-background-canvas px-2 py-1 rounded-full">
+                <span className="text-caption text-text-muted bg-background-canvas px-2 py-1 rounded-full">
                   {countyFarms.length}
                 </span>
               </div>
@@ -175,14 +175,14 @@ export default async function CountiesPage() {
                   <Link
                     key={farm.id}
                     href={`/shop/${farm.slug}`}
-                    className="block text-sm text-text-body hover:text-text-heading transition-colors"
+                    className="block text-caption text-text-body hover:text-text-heading transition-colors"
                   >
                     {farm.name}
                   </Link>
                 ))}
                 
                 {countyFarms.length > 3 && (
-                  <p className="text-xs text-text-muted">
+                  <p className="text-small text-text-muted">
                     +{countyFarms.length - 3} more farm shops
                   </p>
                 )}
@@ -191,7 +191,7 @@ export default async function CountiesPage() {
               <div className="mt-4 pt-4 border-t border-border-default">
                 <Link
                   href={`/counties/${county.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="text-sm text-brand-primary hover:text-brand-primary/80 transition-colors"
+                  className="text-caption text-brand-primary hover:text-brand-primary/80 transition-colors"
                 >
                   View all in {county} →
                 </Link>
