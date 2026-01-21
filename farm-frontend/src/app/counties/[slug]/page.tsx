@@ -167,7 +167,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
       {/* Breadcrumbs */}
       <div className="border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
             <Link href="/" className="hover:text-brand-primary transition-colors">
               Home
             </Link>
@@ -186,12 +186,12 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="max-w-3xl">
             {/* County Name */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
+            <h1 className="text-display font-bold text-slate-900 dark:text-white mb-4">
               Farms & Producers in {countyName}
             </h1>
 
             {/* Description */}
-            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-heading text-slate-600 dark:text-slate-400 mb-6">
               Discover {total} local farm shops, pick your own farms, organic producers, and
               agricultural businesses in {countyName}. Support local farmers and enjoy fresh,
               locally-sourced produce.
@@ -236,18 +236,18 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
                       <Link
                         key={county.slug}
                         href={`/counties/${county.slug}`}
-                        className="block px-3 py-2 rounded-md text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="block px-3 py-2 rounded-md text-caption text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                       >
                         <div className="flex items-center justify-between">
                           <span>{county.name}</span>
-                          <span className="text-xs text-slate-500">({county.farmCount})</span>
+                          <span className="text-small text-slate-500">({county.farmCount})</span>
                         </div>
                       </Link>
                     ))}
                   </div>
                   <Link
                     href="/counties"
-                    className="block mt-4 text-sm text-brand-primary hover:underline text-center"
+                    className="block mt-4 text-caption text-brand-primary hover:underline text-center"
                   >
                     View all counties →
                   </Link>
@@ -260,7 +260,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
           <main className="lg:col-span-3">
             {/* Results Header */}
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              <h2 className="text-heading font-bold text-slate-900 dark:text-white mb-2">
                 {category ? `Farms in ${countyName}` : `All Farms in ${countyName}`}
               </h2>
               <p className="text-slate-600 dark:text-slate-400">
@@ -318,7 +318,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-lg text-slate-600 dark:text-slate-400 mb-4">
+                <p className="text-heading text-slate-600 dark:text-slate-400 mb-4">
                   No farms found in {countyName}
                   {category && ' with the selected category'}.
                 </p>
@@ -338,7 +338,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
         {/* FAQ Section */}
         {countyFAQs.length > 0 && (
           <section className="mt-12 max-w-4xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-8 text-center">
+            <h2 className="text-display font-bold text-slate-900 dark:text-white mb-8 text-center">
               Frequently Asked Questions
             </h2>
             <div className="space-y-6">
@@ -347,7 +347,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
                   key={index}
                   className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6"
                 >
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
+                  <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-3">
                     {faq.question}
                   </h3>
                   <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
