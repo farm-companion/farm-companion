@@ -70,10 +70,10 @@ export default function ConsentBanner() {
 
                 {/* Text content */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-heading text-lg font-semibold text-obsidian dark:text-sandstone mb-1">
+                  <h3 className="font-heading text-heading font-semibold text-obsidian dark:text-sandstone mb-1">
                     Privacy & Cookies
                   </h3>
-                  <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 mb-4">
+                  <p className="text-caption leading-relaxed text-gray-600 dark:text-gray-300 mb-4">
                     We use essential cookies to run this site and optional analytics to improve your experience. 
                     Your privacy is important to us.
                   </p>
@@ -83,7 +83,7 @@ export default function ConsentBanner() {
                     {/* Accept button - Primary action */}
                     <button
                       onClick={() => handleConsent('granted')}
-                      className="inline-flex items-center gap-2 rounded-lg bg-serum px-4 py-2.5 text-sm font-medium text-midnight transition-all duration-200 hover:bg-serum/90 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-serum/50 focus:ring-offset-2 dark:focus:ring-offset-obsidian"
+                      className="inline-flex items-center gap-2 rounded-lg bg-serum px-4 py-2.5 text-caption font-medium text-midnight transition-all duration-200 hover:bg-serum/90 hover:shadow-lg hover:scale-105 focus:outline-none focus:ring-2 focus:ring-serum/50 focus:ring-offset-2 dark:focus:ring-offset-obsidian"
                     >
                       Accept All
                     </button>
@@ -91,7 +91,7 @@ export default function ConsentBanner() {
                     {/* Decline button - Secondary action */}
                     <button
                       onClick={() => handleConsent('denied')}
-                      className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-offset-obsidian"
+                      className="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-caption font-medium text-gray-700 transition-all duration-200 hover:bg-gray-50 hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500/50 focus:ring-offset-2 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 dark:focus:ring-offset-obsidian"
                     >
                       Decline
                     </button>
@@ -99,7 +99,7 @@ export default function ConsentBanner() {
                     {/* Settings link */}
                     <a
                       href="/privacy"
-                      className="inline-flex items-center gap-1.5 text-sm text-serum hover:text-serum/80 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-serum/50 focus:ring-offset-2 rounded px-2 py-1 dark:focus:ring-offset-obsidian"
+                      className="inline-flex items-center gap-1.5 text-caption text-serum hover:text-serum/80 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-serum/50 focus:ring-offset-2 rounded px-2 py-1 dark:focus:ring-offset-obsidian"
                     >
                       <Settings className="h-4 w-4" />
                       Settings

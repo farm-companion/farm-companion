@@ -24,31 +24,31 @@ export function CountyStats({ stats, countyName }: CountyStatsProps) {
         <h2 className="font-semibold text-slate-900 dark:text-white mb-4">Quick Stats</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="text-2xl font-bold text-brand-primary">{stats.total}</div>
-            <div className="text-sm text-slate-600 dark:text-slate-400">Total Farms</div>
+            <div className="text-display font-bold text-brand-primary">{stats.total}</div>
+            <div className="text-caption text-slate-600 dark:text-slate-400">Total Farms</div>
           </div>
           {stats.verified > 0 && (
             <div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <div className="text-display font-bold text-green-600 dark:text-green-400">
                 {stats.verified}
               </div>
-              <div className="text-sm text-slate-600 dark:text-slate-400">Verified</div>
+              <div className="text-caption text-slate-600 dark:text-slate-400">Verified</div>
             </div>
           )}
           {stats.featured > 0 && (
             <div>
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              <div className="text-display font-bold text-purple-600 dark:text-purple-400">
                 {stats.featured}
               </div>
-              <div className="text-sm text-slate-600 dark:text-slate-400">Featured</div>
+              <div className="text-caption text-slate-600 dark:text-slate-400">Featured</div>
             </div>
           )}
           {stats.averageRating > 0 && (
             <div>
-              <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+              <div className="text-display font-bold text-amber-600 dark:text-amber-400">
                 {stats.averageRating.toFixed(1)}
               </div>
-              <div className="text-sm text-slate-600 dark:text-slate-400">Avg Rating</div>
+              <div className="text-caption text-slate-600 dark:text-slate-400">Avg Rating</div>
             </div>
           )}
         </div>
@@ -78,7 +78,7 @@ export function CountyStats({ stats, countyName }: CountyStatsProps) {
           </div>
           <Link
             href="/categories"
-            className="block mt-4 text-sm text-brand-primary hover:underline text-center"
+            className="block mt-4 text-caption text-brand-primary hover:underline text-center"
           >
             View all categories →
           </Link>
