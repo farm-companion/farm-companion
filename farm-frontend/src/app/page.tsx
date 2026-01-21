@@ -165,12 +165,12 @@ export default async function HomePage() {
           </div>
 
           {/* Enhanced typography with staggered animation */}
-          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 sm:mb-8 leading-tight text-white drop-shadow-2xl animate-fade-in">
+          <h2 className="text-display sm:text-display md:text-display lg:text-display font-heading font-bold mb-6 sm:mb-8 leading-tight text-white drop-shadow-2xl animate-fade-in">
             Ready to
             <span className="block text-serum drop-shadow-2xl animate-slide-up" style={{ animationDelay: '0.2s' }}>Explore?</span>
           </h2>
 
-          <p className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-12 text-white/95 drop-shadow-lg max-w-3xl mx-auto animate-fade-in px-4" style={{ animationDelay: '0.4s' }}>
+          <p className="text-heading sm:text-heading md:text-display mb-8 sm:mb-12 text-white/95 drop-shadow-lg max-w-3xl mx-auto animate-fade-in px-4" style={{ animationDelay: '0.4s' }}>
             Start your journey to discover amazing local farm shops today.
           </p>
 
@@ -178,7 +178,7 @@ export default async function HomePage() {
           <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
             <Link
               href="/map"
-              className="group bg-serum text-black h-14 sm:h-16 px-8 sm:px-10 rounded-xl text-sm sm:text-base font-semibold hover:bg-serum/90 transition-all duration-300 inline-flex items-center justify-center gap-2 sm:gap-3 shadow-2xl hover:shadow-serum/25 hover:scale-105 active:scale-95 backdrop-blur-sm border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-serum focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              className="group bg-serum text-black h-14 sm:h-16 px-8 sm:px-10 rounded-xl text-caption sm:text-base font-semibold hover:bg-serum/90 transition-all duration-300 inline-flex items-center justify-center gap-2 sm:gap-3 shadow-2xl hover:shadow-serum/25 hover:scale-105 active:scale-95 backdrop-blur-sm border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-serum focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               <MapPin className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
               Find Farms Near You
@@ -234,7 +234,7 @@ export default async function HomePage() {
               <div className="prose prose-lg max-w-none">
                 {/* Enhanced main heading with maximum contrast */}
                 <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-heading font-bold text-gray-900 dark:text-white mb-4 animate-fade-in">
+                  <h2 className="text-display md:text-display font-heading font-bold text-gray-900 dark:text-white mb-4 animate-fade-in">
                     UK Farm Shops Directory
                   </h2>
                   <div className="w-24 h-1 bg-gradient-to-r from-serum to-solar mx-auto rounded-full opacity-60 drop-shadow-sm"></div>
@@ -242,7 +242,7 @@ export default async function HomePage() {
                 
                 {/* Enhanced intro paragraph with maximum contrast */}
                 <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                  <p className="text-lg text-gray-900 dark:text-gray-100 mb-6 leading-relaxed font-medium">
+                  <p className="text-heading text-gray-900 dark:text-gray-100 mb-6 leading-relaxed font-medium">
                     Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated 
                     a directory of over <span className="font-bold text-serum">{farmCount}</span> authentic farm shops across <span className="font-bold text-serum">{countyCount}</span> counties, 
                     helping you discover the freshest local produce and connect with real farmers.
@@ -252,7 +252,7 @@ export default async function HomePage() {
                 {/* Enhanced content sections with maximum contrast */}
                 <div className="space-y-12">
                   <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                    <h3 className="text-xl font-heading font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                    <h3 className="text-heading font-heading font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
                       <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
                         <MapPin className="w-4 h-4 text-serum" />
                       </div>
@@ -266,7 +266,7 @@ export default async function HomePage() {
                   </div>
 
                   <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-                    <h3 className="text-xl font-heading font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                    <h3 className="text-heading font-heading font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
                       <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
                         <Calendar className="w-4 h-4 text-serum" />
                       </div>
@@ -280,7 +280,7 @@ export default async function HomePage() {
                   </div>
 
                   <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                    <h3 className="text-xl font-heading font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
+                    <h3 className="text-heading font-heading font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-3">
                       <div className="w-8 h-8 bg-serum/10 rounded-full flex items-center justify-center shadow-sm">
                         <Heart className="w-4 h-4 text-serum" />
                       </div>

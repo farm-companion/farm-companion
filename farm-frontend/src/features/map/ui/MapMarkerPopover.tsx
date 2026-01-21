@@ -97,19 +97,19 @@ export default function MapMarkerPopover({
         {/* Content */}
         <div className="p-4">
           {/* Farm name */}
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1 pr-6">
+          <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-1 pr-6">
             {farm.name}
           </h3>
 
           {/* Location */}
-          <div className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400 mb-3">
+          <div className="flex items-start gap-2 text-caption text-slate-600 dark:text-slate-400 mb-3">
             <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
             <span>{farm.location.city || farm.location.address}</span>
           </div>
 
           {/* Distance badge */}
           {distance && (
-            <div className="inline-flex items-center gap-1 px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-xs font-medium mb-4">
+            <div className="inline-flex items-center gap-1 px-2 py-1 bg-brand-primary/10 text-brand-primary rounded-full text-captionall font-medium mb-4">
               {distance} away
             </div>
           )}
@@ -118,7 +118,7 @@ export default function MapMarkerPopover({
           <div className="flex gap-2">
             <button
               onClick={() => onNavigate(farm)}
-              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors text-sm font-medium"
+              className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-brand-primary text-white rounded-lg hover:bg-brand-primary/90 transition-colors text-caption font-medium"
             >
               <Navigation className="w-4 h-4" />
               Directions

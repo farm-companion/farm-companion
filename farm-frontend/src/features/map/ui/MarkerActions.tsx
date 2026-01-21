@@ -106,17 +106,17 @@ export default function MarkerActions({
         <div className="px-6 pb-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+              <h3 className="text-heading font-semibold text-gray-900 dark:text-white mb-1">
                 {farm.name}
               </h3>
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300 mb-2">
+              <div className="flex items-center text-caption text-gray-600 dark:text-gray-300 mb-2">
                 <MapPin className="w-4 h-4 mr-1 flex-shrink-0" />
                 <span className="truncate">
                   {farm.location.address}, {farm.location.city}
                 </span>
               </div>
               {distance && (
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-caption text-gray-500 dark:text-gray-400">
                   {distance} away
                 </div>
               )}
@@ -159,7 +159,7 @@ export default function MarkerActions({
           <div className="space-y-3">
             {/* Contact Info */}
             {farm.contact?.phone && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+              <div className="flex items-center text-caption text-gray-600 dark:text-gray-300">
                 <Phone className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                 <span>{farm.contact.phone}</span>
               </div>
@@ -167,7 +167,7 @@ export default function MarkerActions({
             
             {/* Website */}
             {farm.contact?.website && (
-              <div className="flex items-center text-sm text-gray-600 dark:text-gray-300">
+              <div className="flex items-center text-caption text-gray-600 dark:text-gray-300">
                 <Globe className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500" />
                 <a 
                   href={farm.contact.website} 
@@ -182,12 +182,12 @@ export default function MarkerActions({
             
             {/* Hours */}
             {farm.hours && farm.hours.length > 0 && (
-              <div className="flex items-start text-sm text-gray-600 dark:text-gray-300">
+              <div className="flex items-start text-caption text-gray-600 dark:text-gray-300">
                 <Clock className="w-4 h-4 mr-3 text-gray-400 dark:text-gray-500 mt-0.5" />
                 <div>
                   <div className="font-medium mb-1">Opening Hours</div>
                   {farm.hours.map((hour, index) => (
-                    <div key={index} className="text-xs">
+                    <div key={index} className="text-captionall">
                       {hour.day}: {hour.open === '24 hours' ? '24 hours' : `${hour.open} - ${hour.close}`}
                     </div>
                   ))}

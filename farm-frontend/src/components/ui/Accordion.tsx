@@ -24,9 +24,9 @@ const accordionTriggerVariants = cva(
   {
     variants: {
       size: {
-        sm: 'text-sm py-3',
+        sm: 'text-caption py-3',
         md: 'text-base py-4',
-        lg: 'text-lg py-5'
+        lg: 'text-heading py-5'
       }
     },
     defaultVariants: {
@@ -87,7 +87,7 @@ const AccordionContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <AccordionPrimitive.Content
     ref={ref}
-    className="overflow-hidden text-sm transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
+    className="overflow-hidden text-caption transition-all data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down"
     {...props}
   >
     <div className={'pb-4 pt-0 ' + (className || '')}>{children}</div>

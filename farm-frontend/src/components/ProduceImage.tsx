@@ -75,10 +75,10 @@ export function ProduceGallery({ images, produceName, className = '' }: ProduceG
         <div className="aspect-video bg-background-surface border border-border-default rounded-lg flex items-center justify-center">
           <div className="text-center">
             <div className="w-12 h-12 bg-background-canvas rounded-full mx-auto mb-2 flex items-center justify-center border border-border-default">
-              <span className="text-xl">🌱</span>
+              <span className="text-heading">🌱</span>
             </div>
-            <p className="text-sm text-text-muted font-medium">{produceName}</p>
-            <p className="text-xs text-text-muted mt-1">No images available</p>
+            <p className="text-caption text-text-muted font-medium">{produceName}</p>
+            <p className="text-captionall text-text-muted mt-1">No images available</p>
           </div>
         </div>
       </div>

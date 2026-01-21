@@ -75,11 +75,11 @@ export default async function ApprovedPhotosPage() {
                 >
                   <ArrowLeft className="w-5 h-5 text-text-muted" />
                 </Link>
-                <h1 className="text-3xl font-heading font-bold text-text-heading">
+                <h1 className="text-display font-heading font-bold text-text-heading">
                   Approved Photos
                 </h1>
               </div>
-              <p className="text-text-muted text-lg">
+              <p className="text-text-muted text-heading">
                 {validPhotos.length} photos have been approved and are live on farm pages
               </p>
             </div>
@@ -99,7 +99,7 @@ export default async function ApprovedPhotosPage() {
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <CheckCircle className="w-8 h-8 text-green-600" />
             </div>
-            <h3 className="text-xl font-semibold text-text-heading mb-2">No approved photos yet</h3>
+            <h3 className="text-heading font-semibold text-text-heading mb-2">No approved photos yet</h3>
             <p className="text-text-muted">
               Approved photos will appear here once you start reviewing submissions.
             </p>
@@ -122,7 +122,7 @@ export default async function ApprovedPhotosPage() {
                     alt={photo.caption || 'Approved farm photo'}
                   />
                   <div className="absolute top-3 right-3">
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-captionall font-medium">
                       Approved
                     </span>
                   </div>
@@ -135,12 +135,12 @@ export default async function ApprovedPhotosPage() {
                   </h3>
                   
                   {photo.caption && (
-                    <p className="text-text-muted text-sm mb-4 italic">
+                    <p className="text-text-muted text-caption mb-4 italic">
                       &quot;{photo.caption}&quot;
                     </p>
                   )}
 
-                  <div className="space-y-2 text-sm">
+                  <div className="space-y-2 text-caption">
                     <div className="flex items-center gap-2 text-text-muted">
                       <User className="w-4 h-4" />
                       <span>{photo.authorName || 'Anonymous'}</span>
@@ -155,7 +155,7 @@ export default async function ApprovedPhotosPage() {
                   <div className="flex gap-2 mt-4 pt-4 border-t border-border-default/30">
                     <Link
                       href={`/shop/${photo.farmSlug}`}
-                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-serum text-white rounded-lg hover:bg-serum/90 transition-colors text-sm"
+                      className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-serum text-white rounded-lg hover:bg-serum/90 transition-colors text-caption"
                     >
                       <Eye className="w-4 h-4" />
                       View Live

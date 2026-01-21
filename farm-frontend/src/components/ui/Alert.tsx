@@ -49,9 +49,9 @@ const alertVariants = cva(
         ],
       },
       size: {
-        sm: 'text-sm p-3',
+        sm: 'text-caption p-3',
         md: 'text-base p-4',
-        lg: 'text-lg p-5',
+        lg: 'text-heading p-5',
       },
     },
     defaultVariants: {
@@ -160,7 +160,7 @@ const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
                 <h5 className="font-semibold leading-tight">{title}</h5>
               )}
               {children && (
-                <div className={cn('leading-relaxed', title && 'text-sm')}>
+                <div className={cn('leading-relaxed', title && 'text-caption')}>
                   {children}
                 </div>
               )}
@@ -223,7 +223,7 @@ export const AlertDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn('text-sm leading-relaxed', className)}
+    className={cn('text-caption leading-relaxed', className)}
     {...props}
   />
 ))

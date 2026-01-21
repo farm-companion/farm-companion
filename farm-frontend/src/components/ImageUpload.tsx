@@ -102,10 +102,10 @@ export default function ImageUpload({ onImagesChange, maxImages = 5, className =
 
   return (
     <div className={`space-y-4 ${className}`}>
-      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label className="block text-caption font-medium text-gray-700 dark:text-gray-300">
         Shop Photos (optional)
       </label>
-      <p className="text-xs text-gray-600 dark:text-gray-400">
+      <p className="text-captionall text-gray-600 dark:text-gray-400">
         Add photos of your farm shop to help customers find you. 
         Maximum {maxImages} images, 5MB each. JPG, PNG, or WebP format.
       </p>
@@ -145,7 +145,7 @@ export default function ImageUpload({ onImagesChange, maxImages = 5, className =
             />
           </svg>
           
-          <div className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="text-caption text-gray-600 dark:text-gray-400">
             {uploading ? (
               <span>Uploading...</span>
             ) : (
@@ -162,7 +162,7 @@ export default function ImageUpload({ onImagesChange, maxImages = 5, className =
             )}
           </div>
           
-          <p className="text-xs text-gray-500 dark:text-gray-500">
+          <p className="text-captionall text-gray-500 dark:text-gray-500">
             PNG, JPG, WebP up to 5MB
           </p>
         </div>
@@ -171,7 +171,7 @@ export default function ImageUpload({ onImagesChange, maxImages = 5, className =
       {/* Image Preview */}
       {selectedImages.length > 0 && (
         <div className="mt-4">
-          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <h4 className="text-caption font-medium text-gray-700 dark:text-gray-300 mb-2">
             Selected Images ({selectedImages.length}/{maxImages})
           </h4>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -191,7 +191,7 @@ export default function ImageUpload({ onImagesChange, maxImages = 5, className =
                     setSelectedImages(newImages)
                     onImagesChange(newImages)
                   }}
-                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs hover:bg-red-600 transition-colors"
+                  className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-captionall hover:bg-red-600 transition-colors"
                 >
                   ×
                 </button>

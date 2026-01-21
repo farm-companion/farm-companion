@@ -172,11 +172,11 @@ export function SeasonalCarousel({ className = '' }: SeasonalCarouselProps) {
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Sparkles className="w-6 h-6 text-brand-accent" />
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-display md:text-display font-bold text-gray-900 dark:text-white">
               In Season Now
             </h2>
           </div>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-heading text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Discover what's fresh and available at local farms this month
           </p>
         </div>
@@ -219,19 +219,19 @@ export function SeasonalCarousel({ className = '' }: SeasonalCarouselProps) {
                     transition={{ delay: 0.2, duration: 0.5 }}
                     className="max-w-xl"
                   >
-                    <span className="inline-block px-3 py-1 bg-brand-accent text-obsidian text-sm font-semibold rounded-full mb-4">
+                    <span className="inline-block px-3 py-1 bg-brand-accent text-obsidian text-caption font-semibold rounded-full mb-4">
                       {seasonalItems[currentIndex].month}
                     </span>
 
-                    <h3 className="text-3xl md:text-5xl font-bold text-white mb-4">
+                    <h3 className="text-display md:text-display font-bold text-white mb-4">
                       {seasonalItems[currentIndex].name}
                     </h3>
 
-                    <p className="text-white/90 text-lg mb-2">
+                    <p className="text-white/90 text-heading mb-2">
                       {seasonalItems[currentIndex].description}
                     </p>
 
-                    <p className="text-white/70 text-sm mb-6">
+                    <p className="text-white/70 text-caption mb-6">
                       Available at {seasonalItems[currentIndex].farmCount} farms
                     </p>
 

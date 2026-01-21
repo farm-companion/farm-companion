@@ -1013,8 +1013,8 @@ export default function MapShell({
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Map Unavailable</h3>
-          <p className="text-sm text-gray-600 mb-4">{error}</p>
+          <h3 className="text-heading font-semibold text-gray-900 mb-2">Map Unavailable</h3>
+          <p className="text-caption text-gray-600 mb-4">{error}</p>
           
           {/* Fallback: Show farm list instead */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 max-w-md mx-auto">
@@ -1023,19 +1023,19 @@ export default function MapShell({
               {farms.slice(0, 10).map((farm) => (
                 <div key={farm.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
                   <div>
-                    <div className="font-medium text-sm text-gray-900">{farm.name}</div>
-                    <div className="text-xs text-gray-600">{farm.location.city}, {farm.location.county}</div>
+                    <div className="font-medium text-caption text-gray-900">{farm.name}</div>
+                    <div className="text-captionall text-gray-600">{farm.location.city}, {farm.location.county}</div>
                   </div>
                   <button
                     onClick={() => onFarmSelect?.(farm.id)}
-                    className="text-xs bg-serum text-black px-2 py-1 rounded hover:bg-serum/90 transition-colors"
+                    className="text-captionall bg-serum text-black px-2 py-1 rounded hover:bg-serum/90 transition-colors"
                   >
                     View
                   </button>
                 </div>
               ))}
               {farms.length > 10 && (
-                <div className="text-xs text-gray-500 text-center pt-2">
+                <div className="text-captionall text-gray-500 text-center pt-2">
                   +{farms.length - 10} more farms available
                 </div>
               )}
@@ -1059,7 +1059,7 @@ export default function MapShell({
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 pointer-events-none">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-2"></div>
-            <p className="text-sm text-gray-600">Loading map...</p>
+            <p className="text-caption text-gray-600">Loading map...</p>
           </div>
         </div>
       )}

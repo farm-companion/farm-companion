@@ -86,7 +86,7 @@ export default async function AdminPhotosPage() {
                   Review and manage photo submissions • {validPhotos.length} pending
                 </p>
               </div>
-              <div className="flex items-center gap-2 text-sm text-text-muted">
+              <div className="flex items-center gap-2 text-caption text-text-muted">
                 <BarChart3 className="w-4 h-4" />
                 <span>{farmStats.totalFarms} farms • {farmStats.totalPhotos} total photos</span>
               </div>
@@ -184,7 +184,7 @@ export default async function AdminPhotosPage() {
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {farmQuotas.quotaExceededFarms.map((farm) => (
-                    <span key={farm.slug} className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-small font-medium">
+                    <span key={farm.slug} className="inline-flex items-center gap-1 px-2 py-1 bg-amber-100 text-amber-800 rounded-md text-captionall font-medium">
                       {farm.slug} ({farm.currentCount}/5)
                     </span>
                   ))}
@@ -260,11 +260,11 @@ export default async function AdminPhotosPage() {
                         {photo.farmSlug}
                       </h3>
                       <div className="flex items-center gap-1">
-                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-small font-medium">
+                        <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-captionall font-medium">
                           Pending
                         </span>
                         {isQuotaExceeded && (
-                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-small font-medium">
+                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded-full text-captionall font-medium">
                             Quota Full
                           </span>
                         )}
@@ -276,12 +276,12 @@ export default async function AdminPhotosPage() {
                     
                     {/* Quota Status */}
                     <div className="flex items-center gap-2 mb-2">
-                      <div className="flex items-center gap-1 text-small text-text-muted">
+                      <div className="flex items-center gap-1 text-captionall text-text-muted">
                         <Upload className="w-3 h-3" />
                         <span>{farmQuota.currentCount}/{farmQuota.maxCount} photos</span>
                       </div>
                       {isQuotaExceeded && (
-                        <div className="flex items-center gap-1 text-small text-red-600">
+                        <div className="flex items-center gap-1 text-captionall text-red-600">
                           <AlertCircle className="w-3 h-3" />
                           <span>Approval requires replacement</span>
                         </div>
@@ -289,7 +289,7 @@ export default async function AdminPhotosPage() {
                     </div>
                     
                     {photo.caption && (
-                      <p className="text-sm text-text-muted italic line-clamp-2">
+                      <p className="text-caption text-text-muted italic line-clamp-2">
                         &quot;{photo.caption}&quot;
                       </p>
                     )}
@@ -307,11 +307,11 @@ export default async function AdminPhotosPage() {
 
                   {/* Photo Details */}
                   <div className="p-4 space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-text-muted">
+                    <div className="flex items-center gap-2 text-caption text-text-muted">
                       <User className="w-4 h-4" />
                       <span>{photo.authorName || 'Anonymous'}</span>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-text-muted">
+                    <div className="flex items-center gap-2 text-caption text-text-muted">
                       <Calendar className="w-4 h-4" />
                       <span>{new Date(Number(photo.createdAt)).toLocaleDateString()}</span>
                     </div>
@@ -364,7 +364,7 @@ export default async function AdminPhotosPage() {
                     <div className="pt-2 border-t border-border-default/30">
                       <Link
                         href={`/shop/${photo.farmSlug}`}
-                        className="inline-flex items-center gap-2 text-small text-serum hover:text-serum/80 transition-colors"
+                        className="inline-flex items-center gap-2 text-captionall text-serum hover:text-serum/80 transition-colors"
                       >
                         <Eye className="w-3 h-3" />
                         View farm photos ({farmQuota.currentCount} current)
