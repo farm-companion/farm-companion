@@ -135,7 +135,7 @@ export default async function BestPage({ params }: BestPageProps) {
       {/* Breadcrumbs */}
       <div className="border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
             <Link href="/" className="hover:text-brand-primary transition-colors">
               Home
             </Link>
@@ -155,18 +155,18 @@ export default async function BestPage({ params }: BestPageProps) {
           <div className="max-w-4xl mx-auto">
             {/* Category Icon (if available) */}
             {categoryInfo?.icon && (
-              <div className="text-6xl mb-4" aria-hidden="true">
+              <div className="text-display mb-4" aria-hidden="true">
                 {categoryInfo.icon}
               </div>
             )}
 
             {/* Heading */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
+            <h1 className="text-display font-bold text-slate-900 dark:text-white mb-4">
               {list.heading}
             </h1>
 
             {/* Intro */}
-            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-heading text-slate-600 dark:text-slate-400 mb-6">
               {list.intro}
             </p>
 
@@ -180,7 +180,7 @@ export default async function BestPage({ params }: BestPageProps) {
                   Editor&apos;s Choice
                 </Badge>
               )}
-              <span className="text-sm text-slate-500">
+              <span className="text-caption text-slate-500">
                 Updated: {new Date(list.updateDate).toLocaleDateString('en-GB', {
                   day: 'numeric',
                   month: 'long',
@@ -202,7 +202,7 @@ export default async function BestPage({ params }: BestPageProps) {
           {/* Featured Farms Section */}
           {farms.length > 0 && (
             <section className="mb-12">
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">
+              <h2 className="text-heading font-bold text-slate-900 dark:text-white mb-6">
                 Featured {list.title}
               </h2>
               <p className="text-slate-600 dark:text-slate-400 mb-8">
@@ -245,7 +245,7 @@ export default async function BestPage({ params }: BestPageProps) {
           {/* FAQ Section */}
           {list.faqs && list.faqs.length > 0 && (
             <section className="mb-12">
-              <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-6">
+              <h2 className="text-heading font-bold text-slate-900 dark:text-white mb-6">
                 Frequently Asked Questions
               </h2>
               <div className="space-y-6">
@@ -254,7 +254,7 @@ export default async function BestPage({ params }: BestPageProps) {
                     key={index}
                     className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6"
                   >
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
+                    <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-3">
                       {faq.question}
                     </h3>
                     <p className="text-slate-600 dark:text-slate-400">{faq.answer}</p>
@@ -266,7 +266,7 @@ export default async function BestPage({ params }: BestPageProps) {
 
           {/* Related Lists */}
           <section>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            <h2 className="text-heading font-bold text-slate-900 dark:text-white mb-6">
               More Curated Lists
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -279,10 +279,10 @@ export default async function BestPage({ params }: BestPageProps) {
                     href={`/best/${relatedList.slug}`}
                     className="group bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 transition-all hover:shadow-lg hover:border-brand-primary"
                   >
-                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
+                    <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
                       {relatedList.title}
                     </h3>
-                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2">
+                    <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-2">
                       {relatedList.intro}
                     </p>
                   </Link>
