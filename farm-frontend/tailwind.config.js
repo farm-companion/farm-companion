@@ -161,23 +161,37 @@ module.exports = {
       
       // 8px baseline grid system - Apple Design Guidelines
       // All spacing values are multiples of 8 for consistent rhythm
+      // ENFORCED: Use these values for all padding, margin, gap spacing
+      // Arbitrary values like p-[15px] violate the system - use p-2 (16px) or p-3 (24px) instead
       spacing: {
         '0': '0px',       // None
+        '0.5': '4px',     // 0.5 unit - Sub-pixel (rare, use sparingly)
         '1': '8px',       // 1 unit - Micro spacing
+        '1.5': '12px',    // 1.5 units - Fine spacing
         '2': '16px',      // 2 units - Tight spacing
+        '2.5': '20px',    // 2.5 units - Compact spacing
         '3': '24px',      // 3 units - Comfortable spacing
+        '3.5': '28px',    // 3.5 units - Relaxed spacing
         '4': '32px',      // 4 units - Section spacing
         '5': '40px',      // 5 units - Component spacing
         '6': '48px',      // 6 units - Touch target / comfortable spacing
         '7': '56px',      // 7 units - Spacious touch target
         '8': '64px',      // 8 units - Generous spacing
+        '9': '72px',      // 9 units - Expanded spacing
         '10': '80px',     // 10 units - Large spacing
         '12': '96px',     // 12 units - Section breaks
+        '14': '112px',    // 14 units - Large section
+        '15': '120px',    // 15 units - Component container
         '16': '128px',    // 16 units - Major sections
+        '18': '144px',    // 18 units - Spacious section
         '20': '160px',    // 20 units - Page sections
         '24': '192px',    // 24 units - Hero spacing
         '28': '224px',    // 28 units - Extra large
         '32': '256px',    // 32 units - Maximum spacing
+        '40': '320px',    // 40 units - Ultra-wide
+        '48': '384px',    // 48 units - Full-width
+        '56': '448px',    // 56 units - Extra full-width
+        '64': '512px',    // 64 units - Maximum container
       },
       
       // Mobile-first border radius - Premium feel
