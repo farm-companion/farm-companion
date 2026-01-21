@@ -62,7 +62,8 @@
 - [x] Typography migration (Slice 2p) - Privacy page migrated to semantic typography (19 replacements)
 - [x] Typography migration (Slice 2q) - Terms page migrated to semantic typography (11 replacements)
 - [x] Typography migration (Slice 2r) - Counties page migrated to semantic typography (8 replacements)
-- [ ] Typography migration (Slice 2s-z) - Remaining 565 legacy instances across 980 files (forms, lists, cards, etc)
+- [x] Typography migration (Slice 2s) - County detail page migrated to semantic typography (10 replacements)
+- [ ] Typography migration (Slice 2t-z) - Remaining 555 legacy instances across 979 files (forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -353,6 +354,17 @@
   - High-visibility geographic directory page with county-based farm listings
   - Files changed: 1 page, 8 typography replacements
   - Remaining: 565 legacy instances across 980 files for future slices
+
+- **Queue 8, Slice 2s: County Detail Page Typography Migration** (COMPLETE)
+  - Migrated counties/[slug]/page.tsx to semantic typography
+  - text-display for hero title and FAQ section heading
+  - text-heading for hero description, results header, empty state message, and FAQ questions
+  - text-caption for breadcrumb and related county links
+  - text-small for farm count in related counties
+  - Removed 10 legacy responsive text size modifiers (365 line file)
+  - High-visibility geographic detail pages with county farm listings, stats, and FAQs
+  - Files changed: 1 page, 10 typography replacements
+  - Remaining: 555 legacy instances across 979 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
