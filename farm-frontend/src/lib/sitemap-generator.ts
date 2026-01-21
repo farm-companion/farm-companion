@@ -5,8 +5,7 @@
  * Each chunk stays well below 1,000 URLs and 50MB uncompressed.
  */
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
+import { prisma } from '@/lib/prisma'
 import { PRODUCE } from '@/data/produce'
 import { SITE_URL } from '@/lib/site'
 
@@ -101,12 +100,25 @@ export async function generateSitemapChunks(): Promise<{
     })
   }
 
-  // Load farms data
+  // Load farms data from database
   let farms: FarmShop[] = []
   try {
-    const file = path.join(process.cwd(), 'data', 'farms.json')
-    const raw = await fs.readFile(file, 'utf-8')
-    farms = JSON.parse(raw) as FarmShop[]
+    const farmsFromDb = await prisma.farm.findMany({
+      where: { status: 'active' },
+      select: {
+        slug: true,
+        name: true,
+        county: true,
+        updatedAt: true,
+      },
+    })
+
+    farms = farmsFromDb.map(farm => ({
+      slug: farm.slug,
+      name: farm.name,
+      location: { county: farm.county },
+      updatedAt: farm.updatedAt.toISOString(),
+    }))
   } catch (error) {
     console.warn('Could not load farms data for sitemap:', error)
   }

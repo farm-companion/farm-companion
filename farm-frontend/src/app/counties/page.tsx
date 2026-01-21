@@ -1,5 +1,3 @@
-import { promises as fs } from 'fs'
-import path from 'path'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
@@ -7,6 +5,7 @@ import { FarmShop } from '@/types/farm'
 import { SITE_URL } from '@/lib/site'
 import CountiesSearch from '@/components/CountiesSearch'
 import BackToTop from '@/components/BackToTop'
+import { prisma } from '@/lib/prisma'
 
 import type { Metadata } from 'next'
 
@@ -48,12 +47,70 @@ export const metadata: Metadata = {
   },
 }
 
-// Load farm data with error handling
+// Load farm data from database
 async function getFarms(): Promise<FarmShop[]> {
   try {
-    const dataPath = path.join(process.cwd(), 'data', 'farms.json')
-    const data = await fs.readFile(dataPath, 'utf-8')
-    return JSON.parse(data)
+    const farms = await prisma.farm.findMany({
+      where: { status: 'active' },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        description: true,
+        address: true,
+        city: true,
+        county: true,
+        postcode: true,
+        latitude: true,
+        longitude: true,
+        phone: true,
+        email: true,
+        website: true,
+        verified: true,
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        images: {
+          where: {
+            status: 'approved',
+            isHero: true,
+          },
+          take: 1,
+          select: {
+            url: true,
+          },
+        },
+      },
+      orderBy: {
+        name: 'asc',
+      },
+    })
+
+    // Transform to FarmShop type
+    return farms.map((farm) => ({
+      id: farm.id,
+      name: farm.name,
+      slug: farm.slug,
+      description: farm.description || undefined,
+      location: {
+        lat: Number(farm.latitude),
+        lng: Number(farm.longitude),
+        address: farm.address,
+        city: farm.city || undefined,
+        county: farm.county,
+        postcode: farm.postcode,
+      },
+      contact: {
+        phone: farm.phone || undefined,
+        email: farm.email || undefined,
+        website: farm.website || undefined,
+      },
+      offerings: farm.categories.map((fc) => fc.category.name),
+      images: farm.images.length > 0 ? [farm.images[0].url] : undefined,
+      verified: farm.verified,
+    }))
   } catch (error) {
     console.error('Error loading farm data:', error)
     return []

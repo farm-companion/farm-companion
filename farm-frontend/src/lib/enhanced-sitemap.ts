@@ -1,8 +1,7 @@
 // Enhanced Sitemap Generator with SEO Optimization
 // PuredgeOS 3.0 Compliant Sitemap Management
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
+import { prisma } from '@/lib/prisma'
 import { SITE_URL } from './site'
 import { PRODUCE } from '@/data/produce'
 
@@ -121,20 +120,38 @@ export function generateStaticPagesSitemap(): SitemapEntry[] {
 // Generate farm shops sitemap
 export async function generateFarmShopsSitemap(): Promise<SitemapEntry[]> {
   try {
-    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
-    const farmsData = await fs.readFile(farmsPath, 'utf-8')
-    const farms = JSON.parse(farmsData)
+    const farms = await prisma.farm.findMany({
+      where: { status: 'active' },
+      select: {
+        slug: true,
+        name: true,
+        county: true,
+        latitude: true,
+        longitude: true,
+        updatedAt: true,
+        images: {
+          where: {
+            status: 'approved',
+            isHero: true,
+          },
+          take: 1,
+          select: {
+            url: true,
+          },
+        },
+      },
+    })
 
-    return farms.map((farm: any) => ({
+    return farms.map((farm) => ({
       url: `/shop/${farm.slug}`,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
-      lastModified: farm.updatedAt ? new Date(farm.updatedAt) : new Date(),
-      images: farm.images?.map((img: any) => ({
+      lastModified: farm.updatedAt,
+      images: farm.images?.map((img) => ({
         url: img.url,
-        caption: img.alt || `${farm.name} - Farm Shop`,
-        title: `${farm.name} - Farm Shop in ${farm.location.county}`,
-        geoLocation: `${farm.location.lat}, ${farm.location.lng}`
+        caption: `${farm.name} - Farm Shop`,
+        title: `${farm.name} - Farm Shop in ${farm.county}`,
+        geoLocation: `${farm.latitude}, ${farm.longitude}`
       })) || []
     }))
   } catch (error) {
@@ -161,12 +178,16 @@ export function generateSeasonalProduceSitemap(): SitemapEntry[] {
 // Generate county pages sitemap
 export async function generateCountyPagesSitemap(): Promise<SitemapEntry[]> {
   try {
-    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
-    const farmsData = await fs.readFile(farmsPath, 'utf-8')
-    const farms = JSON.parse(farmsData)
+    const farms = await prisma.farm.findMany({
+      where: { status: 'active' },
+      select: {
+        county: true,
+      },
+      distinct: ['county'],
+    })
 
     // Get unique counties
-    const counties = [...new Set(farms.map((farm: any) => farm.location.county).filter(Boolean))] as string[]
+    const counties = farms.map(farm => farm.county).filter(Boolean)
 
     return counties.map((county: string) => ({
       url: `/counties/${encodeURIComponent(county.toLowerCase().replace(/\s+/g, '-'))}`,

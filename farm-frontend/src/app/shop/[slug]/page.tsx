@@ -1,20 +1,74 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import type { FarmShop } from '@/types/farm'
 import { processFarmDescription } from '@/lib/seo-utils'
 import FarmAnalytics from '@/components/FarmAnalytics'
 import { getValidApprovedPhotosBySlug } from '@/lib/photos'
 import { FarmPageClient } from '@/components/FarmPageClient'
+import { prisma } from '@/lib/prisma'
 
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
 
 async function readFarms(): Promise<FarmShop[]> {
-  const file = path.join(process.cwd(), 'data', 'farms.json')
-  const raw = await fs.readFile(file, 'utf8')
-  return JSON.parse(raw) as FarmShop[]
+  const farms = await prisma.farm.findMany({
+    where: { status: 'active' },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      description: true,
+      address: true,
+      city: true,
+      county: true,
+      postcode: true,
+      latitude: true,
+      longitude: true,
+      phone: true,
+      email: true,
+      website: true,
+      verified: true,
+      categories: {
+        include: {
+          category: true,
+        },
+      },
+      images: {
+        where: {
+          status: 'approved',
+          isHero: true,
+        },
+        take: 1,
+        select: {
+          url: true,
+        },
+      },
+    },
+  })
+
+  // Transform to FarmShop type
+  return farms.map((farm) => ({
+    id: farm.id,
+    name: farm.name,
+    slug: farm.slug,
+    description: farm.description || undefined,
+    location: {
+      lat: Number(farm.latitude),
+      lng: Number(farm.longitude),
+      address: farm.address,
+      city: farm.city || undefined,
+      county: farm.county,
+      postcode: farm.postcode,
+    },
+    contact: {
+      phone: farm.phone || undefined,
+      email: farm.email || undefined,
+      website: farm.website || undefined,
+    },
+    offerings: farm.categories.map((fc) => fc.category.name),
+    images: farm.images.length > 0 ? [farm.images[0].url] : undefined,
+    verified: farm.verified,
+  }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {

@@ -1,8 +1,7 @@
 import { NextResponse } from 'next/server'
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import { createRouteLogger } from '@/lib/logger'
 import { handleApiError } from '@/lib/errors'
+import { prisma } from '@/lib/prisma'
 
 interface Farm {
   location?: {
@@ -63,22 +62,22 @@ export async function GET() {
       },
     }
 
-    // Load farm statistics
+    // Load farm statistics from database
     try {
-      const farmsFile = path.join(process.cwd(), 'data', 'farms.json')
-      const farmsData = await fs.readFile(farmsFile, 'utf-8')
-      const farms = JSON.parse(farmsData)
-      
-      status.statistics.farms = farms.length
-      
-      // Count unique counties
-      const counties = new Set<string>()
-      farms.forEach((farm: Farm) => {
-        if (farm?.location?.county) {
-          counties.add(farm.location.county)
-        }
+      const farmsCount = await prisma.farm.count({
+        where: { status: 'active' }
       })
-      status.statistics.counties = counties.size
+
+      status.statistics.farms = farmsCount
+
+      // Count unique counties
+      const countiesResult = await prisma.farm.findMany({
+        where: { status: 'active' },
+        select: { county: true },
+        distinct: ['county'],
+      })
+
+      status.statistics.counties = countiesResult.length
       logger.info('Farm statistics loaded', {
         farms: status.statistics.farms,
         counties: status.statistics.counties
