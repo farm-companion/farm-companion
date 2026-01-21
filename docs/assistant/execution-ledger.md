@@ -56,7 +56,8 @@
 - [x] Typography migration (Slice 2j) - Admin claims page migrated to semantic typography (15 replacements)
 - [x] Typography migration (Slice 2k) - Best guides page migrated to semantic typography (21 replacements)
 - [x] Typography migration (Slice 2l) - Contact page migrated to semantic typography (12 replacements)
-- [ ] Typography migration (Slice 2m-z) - Remaining 632 legacy instances across 986 files (forms, lists, cards, etc)
+- [x] Typography migration (Slice 2m) - Categories page migrated to semantic typography (10 replacements)
+- [ ] Typography migration (Slice 2n-z) - Remaining 622 legacy instances across 985 files (forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -283,6 +284,17 @@
   - High-visibility contact form and contact information page
   - Files changed: 1 page, 12 typography replacements
   - Remaining: 632 legacy instances across 986 files for future slices
+
+- **Queue 8, Slice 2m: Categories Page Typography Migration** (COMPLETE)
+  - Migrated categories/page.tsx to semantic typography
+  - text-display for hero title and category icons
+  - text-heading for hero description, section headings (Popular Categories, Specialized & Seasonal, Products & Practices), and category names
+  - text-caption for breadcrumb and category descriptions
+  - text-small for farm count badge
+  - Removed 10 legacy responsive text size modifiers (172 line file)
+  - High-visibility categories directory and navigation page
+  - Files changed: 1 page, 10 typography replacements
+  - Remaining: 622 legacy instances across 985 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
