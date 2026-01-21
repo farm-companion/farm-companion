@@ -59,7 +59,8 @@
 - [x] Typography migration (Slice 2m) - Categories page migrated to semantic typography (10 replacements)
 - [x] Typography migration (Slice 2n) - Compare page migrated to semantic typography (7 replacements)
 - [x] Typography migration (Slice 2o) - Category detail page migrated to semantic typography (12 replacements)
-- [ ] Typography migration (Slice 2p-z) - Remaining 603 legacy instances across 983 files (forms, lists, cards, etc)
+- [x] Typography migration (Slice 2p) - Privacy page migrated to semantic typography (19 replacements)
+- [ ] Typography migration (Slice 2q-z) - Remaining 584 legacy instances across 982 files (forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -318,6 +319,16 @@
   - High-visibility category detail pages with farm listings, filters, and FAQs
   - Files changed: 1 page, 12 typography replacements
   - Remaining: 603 legacy instances across 983 files for future slices
+
+- **Queue 8, Slice 2p: Privacy Page Typography Migration** (COMPLETE)
+  - Migrated privacy/page.tsx to semantic typography
+  - text-display for main h1 heading (Privacy Policy)
+  - text-heading for all h2 section headings (Who we are, What we collect, How we use your data, Lawful bases, Sharing, Cookies & consent, International transfers, Security, Data retention, Your rights, Contact)
+  - text-caption for navigation links, muted text, table cells, and footer
+  - Removed 19 legacy responsive text size modifiers (191 line file)
+  - High-visibility legal compliance page with GDPR information
+  - Files changed: 1 page, 19 typography replacements
+  - Remaining: 584 legacy instances across 982 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
