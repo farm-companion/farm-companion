@@ -69,7 +69,8 @@
 - [x] Typography migration (Slice 2w) - Best guides detail page migrated to semantic typography (11 replacements)
 - [x] Typography migration (Slice 2x) - ClaimForm component migrated to semantic typography (25 replacements)
 - [x] Typography migration (Slice 2y) - CategoryGrid component migrated to semantic typography (10 replacements)
-- [ ] Typography migration (Slice 2z+) - Remaining 467 legacy instances across 973 files (cards, lists, etc)
+- [x] Typography migration (Slice 2z) - ApiProduceImage component migrated to semantic typography (6 replacements)
+- [ ] Typography migration (Slice 3+) - Remaining 461 legacy instances across 972 files (cards, lists, forms, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
