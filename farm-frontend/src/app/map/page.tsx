@@ -32,8 +32,8 @@ const MapShellWithNoSSR = dynamic(() => import('@/features/map/ui/MapShell'), {
           <div className="w-12 h-12 border-3 border-gray-200 dark:border-gray-600 rounded-full mx-auto"></div>
           <div className="absolute inset-0 w-12 h-12 border-3 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
-        <h3 className="text-base font-semibold text-gray-800 dark:text-gray-200 mb-1">Loading Map</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">Preparing your farm discovery experience...</p>
+        <h3 className="text-heading font-semibold text-gray-800 dark:text-gray-200 mb-1">Loading Map</h3>
+        <p className="text-caption text-gray-600 dark:text-gray-400">Preparing your farm discovery experience...</p>
         
         {/* Map skeleton */}
         <div className="mt-6 w-32 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto relative overflow-hidden">
@@ -321,8 +321,8 @@ export default function MapPage() {
               </svg>
             </div>
           </div>
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">Oops! Something went wrong</h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6 text-sm leading-relaxed">{error}</p>
+          <h1 className="text-heading font-semibold text-gray-900 dark:text-white mb-3">Oops! Something went wrong</h1>
+          <p className="text-gray-600 dark:text-gray-300 mb-6 text-caption leading-relaxed">{error}</p>
           
           <div className="space-y-3">
             <button
@@ -387,7 +387,7 @@ export default function MapPage() {
                   placeholder="Search farms..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-2 py-1.5 bg-white/85 dark:bg-gray-800/85 backdrop-blur-sm border border-gray-200/40 dark:border-gray-600/40 rounded-lg text-xs shadow-sm focus:outline-none focus:ring-1 focus:ring-serum focus:border-transparent transition-all duration-200"
+                  className="w-full pl-8 pr-2 py-1.5 bg-white/85 dark:bg-gray-800/85 backdrop-blur-sm border border-gray-200/40 dark:border-gray-600/40 rounded-lg text-captionall shadow-sm focus:outline-none focus:ring-1 focus:ring-serum focus:border-transparent transition-all duration-200"
                   aria-label="Search farms"
                 />
                 
@@ -404,19 +404,19 @@ export default function MapPage() {
                 <div className="mt-1.5 flex items-center gap-1 overflow-x-auto">
                   <button 
                     onClick={() => setSearchQuery('organic')}
-                    className="px-1.5 py-0.5 bg-serum/10 text-serum text-xs font-medium rounded-md whitespace-nowrap border border-serum/20 hover:bg-serum/20 transition-colors"
+                    className="px-1.5 py-0.5 bg-serum/10 text-serum text-captionall font-medium rounded-md whitespace-nowrap border border-serum/20 hover:bg-serum/20 transition-colors"
                   >
                     Organic
                   </button>
                   <button 
                     onClick={() => setSearchQuery('eggs')}
-                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-captionall font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Eggs
                   </button>
                   <button 
                     onClick={() => setSearchQuery('vegetables')}
-                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-xs font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-captionall font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     Vegetables
                   </button>
@@ -461,14 +461,14 @@ export default function MapPage() {
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 bg-serum rounded-full animate-pulse"></div>
-                      <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                      <span className="text-caption font-semibold text-gray-900 dark:text-white">
                         {filteredFarms.length} farms nearby
                       </span>
                     </div>
                   </div>
                   <div className="text-center">
                     <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto mb-1"></div>
-                    <span className="text-xs text-gray-400 font-medium">Pull up</span>
+                    <span className="text-captionall text-gray-400 font-medium">Pull up</span>
                   </div>
                 </div>
                 
@@ -488,7 +488,7 @@ export default function MapPage() {
                     className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors"
                   >
                     <span className="w-4 h-4 text-gray-600">⚡</span>
-                    <span className="text-xs font-medium text-gray-700">Quick</span>
+                    <span className="text-captionall font-medium text-gray-700">Quick</span>
                   </button>
                 </div>
               </div>
@@ -529,8 +529,8 @@ export default function MapPage() {
               <div className="w-16 h-16 border-4 border-gray-100 dark:border-gray-600 rounded-full mx-auto"></div>
               <div className="absolute inset-0 w-16 h-16 border-4 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Loading Farms</h3>
-            <p className="text-gray-600 dark:text-gray-300 text-sm">Finding local farm shops near you...</p>
+            <h3 className="text-heading font-semibold text-gray-900 dark:text-white mb-2">Loading Farms</h3>
+            <p className="text-gray-600 dark:text-gray-300 text-caption">Finding local farm shops near you...</p>
             
             {/* Progress indicator */}
             <div className="mt-6 w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
