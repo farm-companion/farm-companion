@@ -31,9 +31,9 @@ model Farm {
   county    String  @db.VarChar(100)
   postcode  String  @db.VarChar(10)
   // Coordinates with valid geographic bounds
-  // CHECK constraint: latitude >= -90 AND latitude <= 90
+  // CHECK constraint (migration 20260121185119): latitude >= -90 AND latitude <= 90
   latitude  Decimal @db.Decimal(10, 8)
-  // CHECK constraint: longitude >= -180 AND longitude <= 180
+  // CHECK constraint (migration 20260121185119): longitude >= -180 AND longitude <= 180
   longitude Decimal @db.Decimal(11, 8)
 
   // PostGIS Strategy:
@@ -53,7 +53,7 @@ model Farm {
 
   // Google Places Integration
   googlePlaceId      String?  @db.VarChar(255)
-  // CHECK constraint: googleRating >= 0.0 AND googleRating <= 5.0
+  // CHECK constraint (migration 20260121185119): googleRating >= 0.0 AND googleRating <= 5.0
   googleRating       Decimal? @db.Decimal(2, 1)
   googleReviewsCount Int      @default(0)
 
@@ -61,7 +61,7 @@ model Farm {
   verified Boolean @default(false)
   featured Boolean @default(false)
   // Valid values: 'active', 'pending', 'suspended'
-  // CHECK constraint: status IN ('active', 'pending', 'suspended')
+  // CHECK constraint (migration 20260121185119): status IN ('active', 'pending', 'suspended')
   status   String  @default("active") @db.VarChar(20)
 
   // Opening Hours (stored as JSON)
@@ -205,7 +205,7 @@ model Image {
   // Valid uploadedBy values: 'owner', 'admin', 'user'
   uploadedBy String @db.VarChar(50)
   // Valid values: 'pending', 'approved', 'rejected'
-  // CHECK constraint: status IN ('pending', 'approved', 'rejected')
+  // CHECK constraint (migration 20260121185119): status IN ('pending', 'approved', 'rejected')
   status     String @default("pending") @db.VarChar(20)
 
   // Timestamps
@@ -240,7 +240,7 @@ model Review {
   authorEmail String? @db.VarChar(255)
 
   // Review content
-  // CHECK constraint: rating >= 1 AND rating <= 5
+  // CHECK constraint (migration 20260121185119): rating >= 1 AND rating <= 5
   rating  Int
   title   String? @db.VarChar(255)
   content String  @db.Text
@@ -249,7 +249,7 @@ model Review {
   helpfulCount     Int     @default(0)
   verifiedPurchase Boolean @default(false)
   // Valid values: 'pending', 'approved', 'rejected'
-  // CHECK constraint: status IN ('pending', 'approved', 'rejected')
+  // CHECK constraint (migration 20260121185119): status IN ('pending', 'approved', 'rejected')
   status           String  @default("pending") @db.VarChar(20)
 
   // Timestamps
@@ -289,7 +289,7 @@ model BlogPost {
 
   // Publishing
   // Valid values: 'draft', 'published', 'archived'
-  // CHECK constraint: status IN ('draft', 'published', 'archived')
+  // CHECK constraint (migration 20260121185119): status IN ('draft', 'published', 'archived')
   status      String    @default("draft") @db.VarChar(20)
   publishedAt DateTime?
 

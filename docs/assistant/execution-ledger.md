@@ -87,7 +87,7 @@
 - [x] Data already migrated to Supabase (1,299 farms, 35 categories confirmed in Prisma Studio)
 - [x] Remove JSON file dependencies from farm-data.ts (Slice 2) - Replaced all JSON file reads with Prisma queries in 7 files (sitemap-generator.ts, farm-data-server.ts, enhanced-sitemap.ts, counties/page.tsx, claim/[slug]/page.tsx, shop/[slug]/page.tsx, api/monitoring/bing-status/route.ts), deleted orphaned data/farms.json (2.4M) and data/farms/ directory
 - [x] Add geospatial indexes to Prisma schema (Already exists: lat/lng, lat/lng/status, county/lat/lng indexes verified in schema.prisma lines 97-99)
-- [ ] Database constraints and validation (Slice 4)
+- [x] Database constraints and validation (Slice 4) - Created Prisma migration 20260121185119_add_check_constraints with 8 CHECK constraints (coordinate bounds, rating bounds, status enums), created validation scripts (TypeScript and SQL), updated schema comments, comprehensive README with pre-migration validation, application, and rollback procedures
 
 ### Queue 10: Backend Architecture Cleanup (God-Tier Transformation)
 - [ ] Replace console.log with structured logging (Slice 1)
@@ -529,7 +529,7 @@
   - Verified PostGIS fully implemented with spatial indexes
 - **Queue 5 Complete**: All backend optimizations verified and complete
 
-### 2026-01-21 (Queue 9 Slice 2 - Data Architecture Cleanup)
+### 2026-01-21 (Queue 9 - Data Architecture Transformation)
 - **Queue 9, Slice 2: Remove JSON File Dependencies** (COMPLETE)
   - Replaced JSON file reads with Prisma database queries in 7 critical files
   - sitemap-generator.ts: Replaced fs.readFile with prisma.farm.findMany for sitemap generation
@@ -544,6 +544,20 @@
   - Zero JSON file dependencies remain in active codebase
   - Scripts in scripts/ directory still reference JSON for historical migration purposes (safe to keep)
   - Files changed: 7 active source files, 2 orphaned data files deleted
+- **Queue 9, Slice 4: Database Constraints and Validation** (COMPLETE)
+  - Created Prisma migration 20260121185119_add_check_constraints with 8 CHECK constraints
+  - Farm constraints: latitude bounds (-90 to 90), longitude bounds (-180 to 180), googleRating bounds (0.0 to 5.0 or NULL), status enum (active/pending/suspended)
+  - Image constraints: status enum (pending/approved/rejected)
+  - Review constraints: rating bounds (1 to 5), status enum (pending/approved/rejected)
+  - BlogPost constraints: status enum (draft/published/archived)
+  - Created validate-constraints.ts TypeScript validation script with detailed issue reporting
+  - Created validate-constraints.sql SQL validation script for direct database checks
+  - Created comprehensive migration README with pre-migration validation, application steps, verification queries, rollback procedures
+  - Updated schema.prisma comments to reference migration 20260121185119 for all CHECK constraints
+  - Defense in depth: constraints enforce data integrity even if application validation is bypassed
+  - Multi-client safety: protects data when accessed via SQL tools, admin panels, or direct database access
+  - Files created: migration.sql, README.md, validate-constraints.ts, validate-constraints.sql
+  - Files updated: schema.prisma (8 constraint comments updated)
 
 ### 2026-01-17 (continued)
 - Removed final 2 debug console.log statements from MapSearch.tsx (lines 81, 104)
