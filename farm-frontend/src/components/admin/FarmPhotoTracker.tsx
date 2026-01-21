@@ -138,7 +138,7 @@ export default function FarmPhotoTracker({
               <h3 className="font-semibold text-text-heading">
                 {farmSlug ? `${farmSlug} Photo Stats` : 'Farm Photo Statistics'}
               </h3>
-              <p className="text-sm text-text-muted">
+              <p className="text-caption text-text-muted">
                 Photo upload tracking and quota management
               </p>
             </div>
@@ -160,32 +160,32 @@ export default function FarmPhotoTracker({
             <div className="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mx-auto mb-2">
               <CheckCircle className="w-6 h-6 text-green-600" />
             </div>
-            <p className="text-2xl font-bold text-text-heading">{stats.stats.approved}</p>
-            <p className="text-xs text-text-muted">Approved</p>
+            <p className="text-display font-bold text-text-heading">{stats.stats.approved}</p>
+            <p className="text-captionall text-text-muted">Approved</p>
           </div>
           
           <div className="text-center">
             <div className="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-lg mx-auto mb-2">
               <Clock className="w-6 h-6 text-yellow-600" />
             </div>
-            <p className="text-2xl font-bold text-text-heading">{stats.stats.pending}</p>
-            <p className="text-xs text-text-muted">Pending</p>
+            <p className="text-display font-bold text-text-heading">{stats.stats.pending}</p>
+            <p className="text-captionall text-text-muted">Pending</p>
           </div>
           
           <div className="text-center">
             <div className="flex items-center justify-center w-12 h-12 bg-red-100 rounded-lg mx-auto mb-2">
               <XCircle className="w-6 h-6 text-red-600" />
             </div>
-            <p className="text-2xl font-bold text-text-heading">{stats.stats.rejected}</p>
-            <p className="text-xs text-text-muted">Rejected</p>
+            <p className="text-display font-bold text-text-heading">{stats.stats.rejected}</p>
+            <p className="text-captionall text-text-muted">Rejected</p>
           </div>
           
           <div className="text-center">
             <div className="flex items-center justify-center w-12 h-12 bg-serum/10 rounded-lg mx-auto mb-2">
               <Upload className="w-6 h-6 text-serum" />
             </div>
-            <p className="text-2xl font-bold text-text-heading">{stats.stats.total}</p>
-            <p className="text-xs text-text-muted">Total</p>
+            <p className="text-display font-bold text-text-heading">{stats.stats.total}</p>
+            <p className="text-captionall text-text-muted">Total</p>
           </div>
         </div>
 
@@ -193,7 +193,7 @@ export default function FarmPhotoTracker({
         <div className="mb-6">
           <div className="flex items-center justify-between mb-2">
             <h4 className="font-medium text-text-heading">Photo Quota</h4>
-            <span className={`text-sm font-medium ${
+            <span className={`text-caption font-medium ${
               isQuotaFull ? 'text-red-600' : 'text-text-muted'
             }`}>
               {quota.current}/{quota.max}
@@ -213,7 +213,7 @@ export default function FarmPhotoTracker({
             />
           </div>
           
-          <div className="flex items-center justify-between text-xs text-text-muted">
+          <div className="flex items-center justify-between text-captionall text-text-muted">
             <span>
               {quota.remaining > 0 
                 ? `${quota.remaining} slots remaining`
@@ -237,10 +237,10 @@ export default function FarmPhotoTracker({
               {stats.stats.uploadHistory.slice(0, 5).map((upload) => (
                 <div key={upload.id} className="flex items-center justify-between p-3 bg-background-canvas rounded-lg">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-text-heading truncate">
+                    <p className="text-caption font-medium text-text-heading truncate">
                       {upload.caption || 'No caption'}
                     </p>
-                    <p className="text-xs text-text-muted">
+                    <p className="text-captionall text-text-muted">
                       by {upload.authorName} • {new Date(upload.date).toLocaleDateString()}
                     </p>
                   </div>
@@ -261,7 +261,7 @@ export default function FarmPhotoTracker({
         <div className="flex gap-2 mt-6 pt-6 border-t border-border-default/30">
           <Link
             href={`/admin/photos${farmSlug ? `?farm=${farmSlug}` : ''}`}
-            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-serum text-white rounded-lg hover:bg-serum/90 transition-colors text-sm font-medium"
+            className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-serum text-white rounded-lg hover:bg-serum/90 transition-colors text-caption font-medium"
           >
             <Eye className="w-4 h-4" />
             Manage Photos
@@ -270,7 +270,7 @@ export default function FarmPhotoTracker({
           {farmSlug && (
             <Link
               href={`/shop/${farmSlug}`}
-              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 border border-border-default text-text-body rounded-lg hover:bg-border-default/50 transition-colors text-sm"
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 border border-border-default text-text-body rounded-lg hover:bg-border-default/50 transition-colors text-caption"
             >
               <ExternalLink className="w-4 h-4" />
               View Farm

@@ -92,7 +92,7 @@ export function Pagination({
     <div className={cn('flex items-center justify-between gap-4', className)}>
       {/* Info text */}
       {totalItems && pageSize && (
-        <div className="text-sm text-slate-500 dark:text-slate-400">
+        <div className="text-caption text-slate-500 dark:text-slate-400">
           Showing {Math.min((currentPage - 1) * pageSize + 1, totalItems)} to{' '}
           {Math.min(currentPage * pageSize, totalItems)} of {totalItems} results
         </div>
@@ -107,7 +107,7 @@ export function Pagination({
             disabled={!canGoPrevious}
             className={cn(
               'inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200',
-              'bg-white text-sm font-medium transition-colors',
+              'bg-white text-caption font-medium transition-colors',
               'hover:bg-slate-100 hover:text-slate-900',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950',
               'disabled:pointer-events-none disabled:opacity-50',
@@ -126,7 +126,7 @@ export function Pagination({
           disabled={!canGoPrevious}
           className={cn(
             'inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200',
-            'bg-white text-sm font-medium transition-colors',
+            'bg-white text-caption font-medium transition-colors',
             'hover:bg-slate-100 hover:text-slate-900',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950',
             'disabled:pointer-events-none disabled:opacity-50',
@@ -155,7 +155,7 @@ export function Pagination({
                   onClick={() => onPageChange(page)}
                   className={cn(
                     'inline-flex h-9 min-w-[2.25rem] items-center justify-center rounded-md border',
-                    'px-3 text-sm font-medium transition-colors',
+                    'px-3 text-caption font-medium transition-colors',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950',
                     page === currentPage
                       ? 'border-slate-900 bg-slate-900 text-slate-50 dark:border-slate-50 dark:bg-slate-50 dark:text-slate-900'
@@ -177,7 +177,7 @@ export function Pagination({
           disabled={!canGoNext}
           className={cn(
             'inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200',
-            'bg-white text-sm font-medium transition-colors',
+            'bg-white text-caption font-medium transition-colors',
             'hover:bg-slate-100 hover:text-slate-900',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950',
             'disabled:pointer-events-none disabled:opacity-50',
@@ -196,7 +196,7 @@ export function Pagination({
             disabled={!canGoNext}
             className={cn(
               'inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-200',
-              'bg-white text-sm font-medium transition-colors',
+              'bg-white text-caption font-medium transition-colors',
               'hover:bg-slate-100 hover:text-slate-900',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950',
               'disabled:pointer-events-none disabled:opacity-50',
@@ -213,12 +213,12 @@ export function Pagination({
       {/* Page size selector */}
       {onPageSizeChange && pageSize && (
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-500 dark:text-slate-400">Show</span>
+          <span className="text-caption text-slate-500 dark:text-slate-400">Show</span>
           <select
             value={pageSize}
             onChange={(e) => onPageSizeChange(Number(e.target.value))}
             className={cn(
-              'h-9 rounded-md border border-slate-200 bg-white px-2 text-sm',
+              'h-9 rounded-md border border-slate-200 bg-white px-2 text-caption',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950',
               'dark:border-slate-800 dark:bg-slate-950'
             )}
@@ -229,7 +229,7 @@ export function Pagination({
               </option>
             ))}
           </select>
-          <span className="text-sm text-slate-500 dark:text-slate-400">per page</span>
+          <span className="text-caption text-slate-500 dark:text-slate-400">per page</span>
         </div>
       )}
     </div>
