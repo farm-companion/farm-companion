@@ -124,13 +124,13 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
           <div className="absolute bottom-4 left-5 right-5 flex items-center justify-between gap-4">
-            <h1 className="text-white text-3xl font-semibold">{p.name}</h1>
+            <h1 className="text-white text-display font-semibold">{p.name}</h1>
             <div className="flex gap-2">
-              <span className={`px-3 py-1 rounded-full text-sm font-semibold ${inSeason ? 'bg-emerald-200/90 text-emerald-900' : 'bg-gray-200/90 text-gray-800'}`}>
+              <span className={`px-3 py-1 rounded-full text-caption font-semibold ${inSeason ? 'bg-emerald-200/90 text-emerald-900' : 'bg-gray-200/90 text-gray-800'}`}>
                 {inSeason ? 'In Season Now' : 'Out of Season'}
               </span>
               {isPeak && (
-                <span className="px-3 py-1 rounded-full text-sm font-semibold bg-amber-200/90 text-amber-900 animate-pulse">
+                <span className="px-3 py-1 rounded-full text-caption font-semibold bg-amber-200/90 text-amber-900 animate-pulse">
                   Best This Month
                 </span>
               )}
@@ -165,7 +165,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
 
       {/* SEASONALITY BAR */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold text-text-heading">Seasonality</h2>
+        <h2 className="text-heading font-semibold text-text-heading">Seasonality</h2>
         <div className="mt-3 grid grid-cols-12 gap-2">
           {Array.from({ length: 12 }, (_, i) => {
             const month = i + 1
@@ -176,7 +176,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
               <div key={month} className="text-center">
                 <div
                   className={[
-                    'h-8 rounded-lg border text-xs flex items-center justify-center',
+                    'h-8 rounded-lg border text-small flex items-center justify-center',
                     active ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary' : 'bg-background-surface border-border-default text-text-muted',
                     peak ? 'ring-2 ring-brand-primary/40' : '',
                     now ? 'outline outline-2 outline-offset-2 outline-brand-primary/60' : '',
@@ -193,7 +193,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
 
       {/* GALLERY */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-4 text-text-heading">Gallery</h2>
+        <h2 className="text-heading font-semibold mb-4 text-text-heading">Gallery</h2>
         <ClientProduceImages
           produceSlug={p.slug}
           produceName={p.name}
@@ -208,7 +208,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
         {p.selectionTips?.length ? (
           <div className="rounded-2xl border border-border-default bg-background-canvas p-4 shadow-sm hover:shadow-md transition motion-reduce:transition-none">
             <h3 className="font-semibold text-text-heading">How to Choose</h3>
-            <ul className="mt-2 list-disc pl-5 space-y-1 text-sm text-text-muted">
+            <ul className="mt-2 list-disc pl-5 space-y-1 text-caption text-text-muted">
               {p.selectionTips.map((t, i) => <li key={i}>{t}</li>)}
             </ul>
           </div>
@@ -217,7 +217,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
         {p.storageTips?.length ? (
           <div className="rounded-2xl border border-border-default bg-background-canvas p-4 shadow-sm hover:shadow-md transition motion-reduce:transition-none">
             <h3 className="font-semibold text-text-heading">Storage Tips</h3>
-            <ul className="mt-2 list-disc pl-5 space-y-1 text-sm text-text-muted">
+            <ul className="mt-2 list-disc pl-5 space-y-1 text-caption text-text-muted">
               {p.storageTips.map((t, i) => <li key={i}>{t}</li>)}
             </ul>
           </div>
@@ -226,7 +226,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
         {p.prepIdeas?.length ? (
           <div className="rounded-2xl border border-border-default bg-background-canvas p-4 shadow-sm hover:shadow-md transition motion-reduce:transition-none">
             <h3 className="font-semibold text-text-heading">Prep & Use</h3>
-            <ul className="mt-2 list-disc pl-5 space-y-1 text-sm text-text-muted">
+            <ul className="mt-2 list-disc pl-5 space-y-1 text-caption text-text-muted">
               {p.prepIdeas.map((t, i) => <li key={i}>{t}</li>)}
             </ul>
           </div>
@@ -236,9 +236,9 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
       {/* NUTRITION */}
       {p.nutritionPer100g && (
         <section className="mt-8">
-          <h2 className="text-xl font-semibold text-text-heading">Nutrition (per 100g)</h2>
+          <h2 className="text-heading font-semibold text-text-heading">Nutrition (per 100g)</h2>
           <div className="mt-3 overflow-x-auto">
-            <table className="min-w-[420px] w-full text-sm border border-border-default rounded-xl overflow-hidden bg-background-canvas">
+            <table className="min-w-[420px] w-full text-caption border border-border-default rounded-xl overflow-hidden bg-background-canvas">
               <tbody>
                 {Object.entries(p.nutritionPer100g).map(([k,v]) => (
                   <tr key={k} className="border-b border-border-default last:border-b-0">
@@ -255,7 +255,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
       {/* RECIPE CHIPS */}
       {p.recipeChips && p.recipeChips.length > 0 && (
         <section className="mt-8">
-          <h2 className="text-xl font-semibold mb-4 text-text-heading">Recipe Inspiration</h2>
+          <h2 className="text-heading font-semibold mb-4 text-text-heading">Recipe Inspiration</h2>
           <div className="grid gap-3 sm:grid-cols-3">
             {p.recipeChips.map((recipe, index) => (
               <a
@@ -268,18 +268,18 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
                 <h3 className="font-semibold text-text-heading group-hover:text-brand-primary transition-colors mb-2">
                   {recipe.title}
                 </h3>
-                <p className="text-sm text-text-muted mb-3">
+                <p className="text-caption text-text-muted mb-3">
                   {recipe.description}
                 </p>
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-text-muted">External recipe</span>
+                  <span className="text-small text-text-muted">External recipe</span>
                   <ExternalLink className="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" />
                 </div>
               </a>
             ))}
           </div>
           <div className="mt-4 p-3 bg-brand-primary/10 rounded-lg border border-brand-primary/20">
-            <p className="text-xs text-brand-primary">
+            <p className="text-small text-brand-primary">
               <strong>Content Policy:</strong> All recipe links are family-friendly and non-alcoholic. 
               We focus on fresh, healthy, family-appropriate recipes only.
             </p>
@@ -289,7 +289,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
 
       {/* Related Produce */}
       <section className="mt-10">
-        <h2 className="text-xl font-semibold mb-4 text-text-heading">Related Produce</h2>
+        <h2 className="text-heading font-semibold mb-4 text-text-heading">Related Produce</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           <Link
             href="/seasonal"
@@ -298,11 +298,11 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
                           <h3 className="font-semibold text-text-heading group-hover:text-brand-primary transition-colors mb-2">
                 Seasonal Guide
               </h3>
-              <p className="text-sm text-text-muted mb-3">
+              <p className="text-caption text-text-muted mb-3">
                 Discover what&apos;s in season now and find the freshest local produce.
               </p>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-text-muted">View all produce</span>
+              <span className="text-small text-text-muted">View all produce</span>
               <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" />
             </div>
           </Link>
@@ -314,11 +314,11 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
             <h3 className="font-semibold text-text-heading group-hover:text-brand-primary transition-colors mb-2">
               Farm Shop Map
             </h3>
-            <p className="text-sm text-text-muted mb-3">
+            <p className="text-caption text-text-muted mb-3">
               Find farm shops near you with fresh local produce and seasonal offerings.
             </p>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-text-muted">Explore map</span>
+              <span className="text-small text-text-muted">Explore map</span>
               <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" />
             </div>
           </Link>
@@ -330,11 +330,11 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
             <h3 className="font-semibold text-text-heading group-hover:text-brand-primary transition-colors mb-2">
               Farm Directory
             </h3>
-            <p className="text-sm text-text-muted mb-3">
+            <p className="text-caption text-text-muted mb-3">
               Browse our comprehensive directory of UK farm shops and local producers.
             </p>
             <div className="flex items-center justify-between">
-              <span className="text-xs text-text-muted">View directory</span>
+              <span className="text-small text-text-muted">View directory</span>
               <ArrowRight className="w-4 h-4 text-text-muted group-hover:text-brand-primary transition-colors" />
             </div>
           </Link>
