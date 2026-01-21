@@ -19,10 +19,10 @@ export function FeaturedGuides() {
           <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-brand-primary/10 rounded-full mb-3 sm:mb-4">
             <BookOpen className="w-7 h-7 sm:w-8 sm:h-8 text-brand-primary" />
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-text-heading mb-3 md:mb-4">
+          <h2 className="text-display sm:text-display md:text-display font-heading font-bold text-text-heading mb-3 md:mb-4">
             Curated Farm Guides
           </h2>
-          <p className="text-base sm:text-lg text-text-muted max-w-2xl mx-auto px-4">
+          <p className="text-base sm:text-heading text-text-muted max-w-2xl mx-auto px-4">
             Expert recommendations and comprehensive guides to help you discover the best farms across the UK
           </p>
         </div>
@@ -45,17 +45,17 @@ export function FeaturedGuides() {
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white mb-2 sm:mb-3 group-hover:text-brand-primary transition-colors leading-tight">
+                <h3 className="text-heading sm:text-heading font-semibold text-slate-900 dark:text-white mb-2 sm:mb-3 group-hover:text-brand-primary transition-colors leading-tight">
                   {guide.title}
                 </h3>
 
                 {/* Intro */}
-                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-3 sm:mb-4">
+                <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-3 sm:mb-4">
                   {guide.intro}
                 </p>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between text-xs sm:text-sm text-slate-500">
+                <div className="flex items-center justify-between text-captionall sm:text-caption text-slate-500">
                   <span>
                     {guide.faqs?.length || 0} {guide.faqs?.length === 1 ? 'FAQ' : 'FAQs'}
                   </span>
@@ -76,7 +76,7 @@ export function FeaturedGuides() {
         <div className="text-center">
           <Link
             href="/best"
-            className="inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-6 sm:px-8 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-lg text-sm sm:text-base font-medium transition-all hover:border-brand-primary hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-6 sm:px-8 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-lg text-caption sm:text-base font-medium transition-all hover:border-brand-primary hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
           >
             View All Guides
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />

@@ -21,7 +21,7 @@ export function EmptyState({ title, description, icon, action }: EmptyStateProps
       <div className="mx-auto w-16 h-16 bg-background-surface rounded-full flex items-center justify-center mb-4">
         {icon || <Search className="w-8 h-8 text-text-muted" />}
       </div>
-      <h3 className="text-lg font-semibold text-text-heading mb-2">{title}</h3>
+      <h3 className="text-heading font-semibold text-text-heading mb-2">{title}</h3>
       <p className="text-text-muted mb-4 max-w-sm mx-auto">{description}</p>
       {action && <div className="flex justify-center">{action}</div>}
     </div>
@@ -43,7 +43,7 @@ export function LoadingState({ message = 'Loading...', size = 'md' }: LoadingSta
   return (
     <div className="flex flex-col items-center justify-center py-8">
       <div className={`${sizeClasses[size]} animate-spin rounded-full border-2 border-serum border-t-transparent mb-3`} />
-      <p className="text-text-muted text-sm">{message}</p>
+      <p className="text-text-muted text-caption">{message}</p>
     </div>
   )
 }
@@ -64,7 +64,7 @@ export function NetworkError({ onRetry, message = 'Network connection issue' }: 
       {onRetry && (
         <button
           onClick={onRetry}
-          className="bg-serum text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-serum/90 transition-colors"
+          className="bg-serum text-white px-4 py-2 rounded-lg text-caption font-medium hover:bg-serum/90 transition-colors"
         >
           Try Again
         </button>
@@ -91,14 +91,14 @@ export function GeolocationDenied({ onRetry }: GeolocationDeniedProps) {
         {onRetry && (
           <button
             onClick={onRetry}
-            className="w-full bg-serum text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-serum/90 transition-colors"
+            className="w-full bg-serum text-white px-4 py-2 rounded-lg text-caption font-medium hover:bg-serum/90 transition-colors"
           >
             Try Again
           </button>
         )}
         <button
           onClick={() => window.location.reload()}
-          className="w-full bg-background-canvas text-text-heading px-4 py-2 rounded-lg text-sm font-medium hover:bg-background-canvas/80 transition-colors border border-border-default"
+          className="w-full bg-background-canvas text-text-heading px-4 py-2 rounded-lg text-caption font-medium hover:bg-background-canvas/80 transition-colors border border-border-default"
         >
           Reload Page
         </button>
@@ -128,7 +128,7 @@ export function NoResults({ searchTerm, onClearSearch }: NoResultsProps) {
       {onClearSearch && (
         <button
           onClick={onClearSearch}
-          className="bg-background-canvas text-text-heading px-4 py-2 rounded-lg text-sm font-medium hover:bg-background-canvas/80 transition-colors border border-border-default"
+          className="bg-background-canvas text-text-heading px-4 py-2 rounded-lg text-caption font-medium hover:bg-background-canvas/80 transition-colors border border-border-default"
         >
           Clear Search
         </button>
@@ -147,7 +147,7 @@ export function MaintenanceMode({ estimatedTime }: MaintenanceModeProps) {
       <div className="mx-auto w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
         <Clock className="w-8 h-8 text-amber-600" />
       </div>
-      <h3 className="text-lg font-semibold text-text-heading mb-2">Under Maintenance</h3>
+      <h3 className="text-heading font-semibold text-text-heading mb-2">Under Maintenance</h3>
       <p className="text-text-muted mb-4">
         We&apos;re currently updating our farm shop directory to bring you better service.
         {estimatedTime && ` Estimated completion: ${estimatedTime}`}
@@ -156,7 +156,7 @@ export function MaintenanceMode({ estimatedTime }: MaintenanceModeProps) {
         <div className="flex items-start gap-3">
           <Info className="w-5 h-5 text-text-muted mt-0.5 flex-shrink-0" />
           <div className="text-left">
-            <p className="text-sm text-text-muted">
+            <p className="text-caption text-text-muted">
               You can still browse our existing farm shop listings, but new submissions and updates are temporarily paused.
             </p>
           </div>
@@ -182,7 +182,7 @@ export function RateLimitExceeded({ retryAfter }: RateLimitExceededProps) {
         {retryAfter && ` You can retry in ${retryAfter} seconds.`}
       </p>
       <div className="bg-background-surface rounded-lg p-4 border border-border-default/30">
-        <p className="text-sm text-text-muted">
+        <p className="text-caption text-text-muted">
           This helps us provide a better experience for all users.
         </p>
       </div>
