@@ -170,14 +170,14 @@ export default async function SeasonalPage() {
             {/* Editorial Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
               <span className="w-2 h-2 rounded-full bg-[#A8E6CF] animate-pulse" />
-              <span className="text-white/90 text-sm font-['IBM_Plex_Sans_Condensed'] tracking-wide uppercase">
+              <span className="text-white/90 text-caption font-['IBM_Plex_Sans_Condensed'] tracking-wide uppercase">
                 {monthName} {new Date().getFullYear()}
               </span>
             </div>
 
             {/* Hero Title - Clash Display */}
             <h1
-              className="text-5xl md:text-7xl lg:text-8xl font-semibold mb-6 leading-[1.15] tracking-[-0.02em] text-white drop-shadow-2xl"
+              className="text-display font-semibold mb-6 leading-[1.15] tracking-[-0.02em] text-white drop-shadow-2xl"
               style={{ fontFamily: 'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
             >
               British Seasonal
@@ -185,7 +185,7 @@ export default async function SeasonalPage() {
             </h1>
 
             {/* Subtitle - Manrope */}
-            <p className="text-xl md:text-2xl text-white/85 mb-10 leading-relaxed max-w-3xl mx-auto font-['Manrope'] drop-shadow-lg">
+            <p className="text-heading text-white/85 mb-10 leading-relaxed max-w-3xl mx-auto font-['Manrope'] drop-shadow-lg">
               Discover what's fresh every month of the year. From spring asparagus to winter kale,
               explore the full rhythm of British seasonal produce.
             </p>
@@ -214,7 +214,7 @@ export default async function SeasonalPage() {
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2 text-white/60">
-          <span className="text-sm font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wider">Scroll to explore</span>
+          <span className="text-caption font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wider">Scroll to explore</span>
           <svg className="w-6 h-6 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
@@ -226,12 +226,12 @@ export default async function SeasonalPage() {
         {/* Section Header */}
         <div className="text-center mb-12 md:mb-16">
           <h2
-            className="text-4xl md:text-6xl font-semibold leading-[1.15] tracking-[-0.02em] text-[#1a3a2a] mb-4"
+            className="text-display font-semibold leading-[1.15] tracking-[-0.02em] text-[#1a3a2a] mb-4"
             style={{ fontFamily: 'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
           >
             The Full Calendar
           </h2>
-          <p className="text-lg md:text-xl text-[#2D3436]/70 max-w-2xl mx-auto font-['Manrope']">
+          <p className="text-heading text-[#2D3436]/70 max-w-2xl mx-auto font-['Manrope']">
             {inSeasonNow.length} items in season now • {allProduce.length} items year-round
           </p>
         </div>
@@ -268,12 +268,12 @@ export default async function SeasonalPage() {
         {/* Content */}
         <div className="relative z-10 max-w-7xl mx-auto px-6 py-20 md:py-28 text-center">
           <h2
-            className="text-4xl md:text-6xl font-semibold leading-[1.15] tracking-[-0.02em] text-white mb-6"
+            className="text-display font-semibold leading-[1.15] tracking-[-0.02em] text-white mb-6"
             style={{ fontFamily: 'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
           >
             Find Fresh Seasonal Produce
           </h2>
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed font-['Manrope']">
+          <p className="text-heading text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed font-['Manrope']">
             Visit local farm shops to get the freshest seasonal produce at its peak flavor.
             Support British farmers and taste the difference.
           </p>
