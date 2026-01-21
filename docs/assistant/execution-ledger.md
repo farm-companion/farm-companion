@@ -76,7 +76,8 @@
 - [x] Typography migration (Slice 3d) - Batch migrated 6 components to semantic typography (61 replacements: FarmList, FarmListRow, FarmPageClient, FarmPhotoGallery, FeaturedGuides, GracefulFallbacks)
 - [x] Typography migration (Slice 3e) - Batch migrated 6 files to semantic typography (130 replacements: FarmReviewInterface, produce stats page, ContactForm, SeasonalGrid, PhotoViewer, SeasonalShowcase)
 - [x] Typography migration (Slice 3f) - Batch migrated 6 files to semantic typography (79 replacements: ClusterPreview, AdminLoginForm, PhotoSubmissionForm, produce upload page, MapSearch, LocationTracker)
-- [ ] Typography migration (Slice 3g+) - Remaining ~166 legacy instances across ~944 files (misc components, utilities, etc)
+- [x] Typography migration (Slice 3g) - Batch migrated 6 files to semantic typography (78 replacements: FarmPhotoTracker, PhotoDeletionRequest, MobileMenu, admin login page, Pagination, HeroSearch)
+- [ ] Typography migration (Slice 3h+) - Remaining ~88 legacy instances across ~938 files (misc components, utilities, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
