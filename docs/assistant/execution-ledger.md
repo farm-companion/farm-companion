@@ -72,7 +72,8 @@
 - [x] Typography migration (Slice 2z) - ApiProduceImage component migrated to semantic typography (6 replacements)
 - [x] Typography migration (Slice 3a) - AdminPhotoDisplay component migrated to semantic typography (4 replacements)
 - [x] Typography migration (Slice 3b) - Batch migrated 5 components to semantic typography (25 replacements: ClientMonthSelector, ConsentBanner, CountiesSearch, CountyStats, DirectoryHeader)
-- [ ] Typography migration (Slice 3c+) - Remaining 432 legacy instances across 966 files (cards, lists, forms, etc)
+- [x] Typography migration (Slice 3c) - Batch migrated 4 components to semantic typography (32 replacements: FarmCard, FarmImageUpload, Footer, Header)
+- [ ] Typography migration (Slice 3d+) - Remaining 400 legacy instances across 962 files (cards, lists, forms, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
