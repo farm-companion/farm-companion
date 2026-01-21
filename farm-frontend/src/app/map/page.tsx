@@ -37,7 +37,7 @@ const MapShellWithNoSSR = dynamic(() => import('@/features/map/ui/MapShell'), {
         
         {/* Map skeleton */}
         <div className="mt-6 w-32 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
         </div>
       </div>
     </div>
@@ -394,7 +394,7 @@ export default function MapPage() {
                 {/* Minimal search indicator */}
                 {searchQuery && (
                   <div className="absolute right-1.5 top-1/2 transform -translate-y-1/2">
-                    <div className="w-1 h-1 bg-serum rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-serum rounded-full"></div>
                   </div>
                 )}
               </div>
@@ -460,7 +460,7 @@ export default function MapPage() {
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-serum rounded-full animate-pulse"></div>
+                      <div className="w-2 h-2 bg-serum rounded-full"></div>
                       <span className="text-caption font-semibold text-gray-900 dark:text-white">
                         {filteredFarms.length} farms nearby
                       </span>
@@ -534,7 +534,7 @@ export default function MapPage() {
             
             {/* Progress indicator */}
             <div className="mt-6 w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-serum h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+              <div className="bg-serum h-2 rounded-full" style={{width: '60%'}}></div>
             </div>
           </div>
         </div>

@@ -66,7 +66,7 @@ export default function TransitionIndicator({
           
           {/* Inner pulse */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-8 h-8 bg-serum/20 rounded-full animate-pulse"></div>
+            <div className="w-8 h-8 bg-serum/20 rounded-full animate-spin"></div>
           </div>
         </div>
       </div>

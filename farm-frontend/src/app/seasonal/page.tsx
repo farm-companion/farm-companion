@@ -169,7 +169,7 @@ export default async function SeasonalPage() {
           <div className="text-center max-w-5xl mx-auto">
             {/* Editorial Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
-              <span className="w-2 h-2 rounded-full bg-[#A8E6CF] animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#A8E6CF]" />
               <span className="text-white/90 text-caption font-['IBM_Plex_Sans_Condensed'] tracking-wide uppercase">
                 {monthName} {new Date().getFullYear()}
               </span>

@@ -291,14 +291,14 @@ export default function AddFarmPage() {
       {/* Enhanced Hero Section - PuredgeOS 3.0 Premium */}
       <section className="relative overflow-hidden bg-gradient-to-br from-background-surface via-background-canvas to-background-surface">
         {/* Sophisticated animated background patterns */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.04),transparent_50%)] animate-pulse" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.03),transparent_50%)] animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute inset-0 bg-[radial-gradient(circle at 30% 20%, rgba(0,194,178,0.04), transparent 50%)" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle at 30% 20%, rgba(0,194,178,0.04), transparent 50%)" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,31,35,0.02),transparent_70%)]" />
         
         {/* Floating accent elements */}
         <div className="absolute top-20 left-10 w-2 h-2 bg-serum rounded-full opacity-60 animate-bounce" style={{ animationDelay: '0.5s' }} />
         <div className="absolute top-32 right-20 w-1 h-1 bg-solar rounded-full opacity-40 animate-ping" style={{ animationDelay: '1.5s' }} />
-        <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-50 animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-50" />
         
         {/* Hero Image Header */}
         <div data-header-invert className="relative w-full h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden">

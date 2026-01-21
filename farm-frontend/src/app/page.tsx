@@ -152,8 +152,8 @@ export default async function HomePage() {
           
           {/* Subtle animated texture */}
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.1),transparent_50%)] animate-pulse" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.05),transparent_50%)] animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute inset-0 bg-[radial-gradient(circle at 30% 20%, rgba(0,194,178,0.04), transparent 50%)" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle at 30% 20%, rgba(0,194,178,0.04), transparent 50%)" />
           </div>
         </div>
         

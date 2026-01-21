@@ -130,7 +130,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
                 {inSeason ? 'In Season Now' : 'Out of Season'}
               </span>
               {isPeak && (
-                <span className="px-3 py-1 rounded-full text-caption font-semibold bg-amber-200/90 text-amber-900 animate-pulse">
+                <span className="px-3 py-1 rounded-full text-caption font-semibold bg-amber-200/90 text-amber-900">
                   Best This Month
                 </span>
               )}

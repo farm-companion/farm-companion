@@ -124,7 +124,7 @@ export default function SeasonalGrid({
               {selectedMonth === 0 ? 'In Season Now' : `In Season - ${MONTHS[selectedMonth].label}`}
             </h3>
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A8E6CF]/20 border border-[#A8E6CF]">
-              <span className="w-2 h-2 rounded-full bg-[#A8E6CF] animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#A8E6CF]" />
               <span className="text-captionall font-['IBM_Plex_Sans_Condensed'] font-medium text-[#1a3a2a]">
                 {inSeasonItems.length}
               </span>
@@ -238,7 +238,7 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
           {/* Seasonal Badge */}
           {produce.isInSeasonForMonth && (
             <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-sm shadow-lg">
-              <span className="w-2 h-2 rounded-full bg-[#A8E6CF] animate-pulse" />
+              <span className="w-2 h-2 rounded-full bg-[#A8E6CF]" />
               <span className="text-captionall font-['IBM_Plex_Sans_Condensed'] font-semibold text-[#1a3a2a]">
                 IN SEASON
               </span>
