@@ -65,7 +65,8 @@
 - [x] Typography migration (Slice 2s) - County detail page migrated to semantic typography (10 replacements)
 - [x] Typography migration (Slice 2t) - Seasonal page migrated to semantic typography (8 replacements)
 - [x] Typography migration (Slice 2u) - Map page migrated to semantic typography (12 replacements)
-- [ ] Typography migration (Slice 2v-z) - Remaining 535 legacy instances across 977 files (forms, lists, cards, etc)
+- [x] Typography migration (Slice 2v) - Seasonal detail page migrated to semantic typography (22 replacements)
+- [ ] Typography migration (Slice 2w-z) - Remaining 513 legacy instances across 976 files (forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
