@@ -67,7 +67,8 @@
 - [x] Typography migration (Slice 2u) - Map page migrated to semantic typography (12 replacements)
 - [x] Typography migration (Slice 2v) - Seasonal detail page migrated to semantic typography (22 replacements)
 - [x] Typography migration (Slice 2w) - Best guides detail page migrated to semantic typography (11 replacements)
-- [ ] Typography migration (Slice 2x-z) - Remaining 502 legacy instances across 975 files (forms, lists, cards, etc)
+- [x] Typography migration (Slice 2x) - ClaimForm component migrated to semantic typography (25 replacements)
+- [ ] Typography migration (Slice 2y-z) - Remaining 477 legacy instances across 974 files (lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
