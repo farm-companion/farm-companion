@@ -291,7 +291,7 @@ export default function PhotoSubmissionForm({
         <div className="inline-flex items-center justify-center w-12 h-12 bg-serum/10 rounded-full">
           <Camera className="w-6 h-6 text-serum" />
         </div>
-        <h2 className="text-xl font-semibold text-text-heading">
+        <h2 className="text-heading font-semibold text-text-heading">
           Share a Photo
         </h2>
         <p className="text-text-body">
@@ -322,7 +322,7 @@ export default function PhotoSubmissionForm({
               <p className="text-text-body font-medium">
                 Click to select or drag and drop
               </p>
-              <p className="text-sm text-text-muted mt-1">
+              <p className="text-caption text-text-muted mt-1">
                 JPEG, PNG, WebP • Max 5MB • Min {MIN_W}×{MIN_H}px
               </p>
             </div>
@@ -370,11 +370,11 @@ export default function PhotoSubmissionForm({
             {/* File Info */}
             <div className="p-4">
               <p className="font-medium text-text-heading">{uploadState.file.name}</p>
-              <p className="text-sm text-text-muted">
+              <p className="text-caption text-text-muted">
                 {(uploadState.file.size / 1024 / 1024).toFixed(1)} MB
               </p>
               {uploadState.error && (
-                <p className="text-sm text-red-600 mt-2">{uploadState.error}</p>
+                <p className="text-caption text-red-600 mt-2">{uploadState.error}</p>
               )}
             </div>
           </div>
@@ -385,7 +385,7 @@ export default function PhotoSubmissionForm({
       {uploadState && !uploadState.uploaded && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-text-heading mb-2">
+            <label className="block text-caption font-medium text-text-heading mb-2">
               Caption (optional)
             </label>
             <textarea
@@ -396,13 +396,13 @@ export default function PhotoSubmissionForm({
               rows={3}
               maxLength={500}
             />
-            <p className="text-xs text-text-muted mt-1">
+            <p className="text-captionall text-text-muted mt-1">
               {caption.length}/500 characters
             </p>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-text-heading mb-2">
+            <label className="block text-caption font-medium text-text-heading mb-2">
               Your Email (optional)
             </label>
             <input
@@ -413,7 +413,7 @@ export default function PhotoSubmissionForm({
               className="w-full px-3 py-2 border border-border-default rounded-lg focus:ring-2 focus:ring-serum/20 focus:border-serum transition-colors"
               maxLength={200}
             />
-            <p className="text-xs text-text-muted mt-1">
+            <p className="text-captionall text-text-muted mt-1">
               We&apos;ll notify you when your photo is approved
             </p>
           </div>
@@ -427,7 +427,7 @@ export default function PhotoSubmissionForm({
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
             <div>
               <h4 className="font-medium text-red-800 mb-1">Upload Error</h4>
-              <p className="text-sm text-red-700">{submitError}</p>
+              <p className="text-caption text-red-700">{submitError}</p>
             </div>
           </div>
         </div>
@@ -440,7 +440,7 @@ export default function PhotoSubmissionForm({
             <CheckCircle className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
             <div>
               <h4 className="font-medium text-green-800 mb-1">Photo Submitted!</h4>
-              <p className="text-sm text-green-700">
+              <p className="text-caption text-green-700">
                 Your photo will be reviewed and added to the farm shop page soon.
               </p>
             </div>
@@ -472,7 +472,7 @@ export default function PhotoSubmissionForm({
           <AlertCircle className="w-5 h-5 text-serum mt-0.5 flex-shrink-0" />
           <div>
             <h4 className="font-medium text-text-heading mb-1">Photo Guidelines</h4>
-            <ul className="text-sm text-text-body space-y-1">
+            <ul className="text-caption text-text-body space-y-1">
               <li>• Show your produce, farm shop, or farm activities</li>
               <li>• Photos will be reviewed before being added to the page</li>
               <li>• Supported formats: JPEG, PNG, WebP (max 5MB, min {MIN_W}×{MIN_H}px)</li>
@@ -486,7 +486,7 @@ export default function PhotoSubmissionForm({
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-heading font-semibold text-gray-900 dark:text-white">
                 Gallery Full - Replace a Photo
               </h3>
               <button
@@ -513,16 +513,16 @@ export default function PhotoSubmissionForm({
                     className="w-16 h-16 object-cover rounded"
                   />
                   <div className="flex-1">
-                    <p className="text-sm text-gray-900 dark:text-white font-medium">
+                    <p className="text-caption text-gray-900 dark:text-white font-medium">
                       {photo.caption || 'No caption'}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-captionall text-gray-500 dark:text-gray-400">
                       ID: {photo.id}
                     </p>
                   </div>
                   <button
                     onClick={() => handleReplacePhoto(photo.id)}
-                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm font-medium"
+                    className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-caption font-medium"
                   >
                     Replace This
                   </button>

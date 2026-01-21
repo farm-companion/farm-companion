@@ -146,15 +146,15 @@ export default function ClusterPreview({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <div className="w-12 h-12 bg-serum rounded-full flex items-center justify-center text-white font-bold text-lg">
+                <div className="w-12 h-12 bg-serum rounded-full flex items-center justify-center text-white font-bold text-heading">
                   {farms.length}
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                  <h3 className="text-heading font-semibold text-gray-900 dark:text-white">
                     {farms.length} {farms.length === 1 ? 'Farm' : 'Farms'}
                   </h3>
                   {distanceFromUser && (
-                    <p className="text-sm text-gray-600">
+                    <p className="text-caption text-gray-600">
                       {distanceFromUser} from you
                     </p>
                   )}
@@ -162,7 +162,7 @@ export default function ClusterPreview({
               </div>
 
               {/* Cluster Area Info */}
-              <div className="text-sm text-gray-600">
+              <div className="text-caption text-gray-600">
                 <MapPin className="w-4 h-4 inline mr-1" />
                 Cluster area • ~{Math.round(clusterInfo?.radius || 0)}m radius
               </div>
@@ -182,7 +182,7 @@ export default function ClusterPreview({
               className="flex flex-col items-center p-3 bg-serum text-black rounded-xl font-medium hover:bg-serum/90 transition-colors"
             >
               <ZoomIn className="w-5 h-5 mb-1" />
-              <span className="text-xs">Zoom In</span>
+              <span className="text-captionall">Zoom In</span>
             </button>
             
             {/* Show All Farms */}
@@ -194,7 +194,7 @@ export default function ClusterPreview({
               className="flex flex-col items-center p-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
             >
               <List className="w-5 h-5 mb-1" />
-              <span className="text-xs">List View</span>
+              <span className="text-captionall">List View</span>
             </button>
             
             {/* Navigate to Area */}
@@ -209,7 +209,7 @@ export default function ClusterPreview({
               className="flex flex-col items-center p-3 bg-blue-100 text-blue-700 rounded-xl font-medium hover:bg-blue-200 transition-colors"
             >
               <Navigation className="w-5 h-5 mb-1" />
-              <span className="text-xs">Navigate</span>
+              <span className="text-captionall">Navigate</span>
             </button>
           </div>
 
@@ -220,22 +220,22 @@ export default function ClusterPreview({
               {farms.slice(0, 5).map((farm, index) => (
                 <div key={farm.id || index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                    <div className="font-medium text-caption text-gray-900 dark:text-white truncate">
                       {farm.name}
                     </div>
-                    <div className="text-xs text-gray-600 truncate">
+                    <div className="text-captionall text-gray-600 truncate">
                       {farm.location.address}, {farm.location.city}
                     </div>
                   </div>
                   {userLocation && (
-                    <div className="text-xs text-gray-500 ml-2">
+                    <div className="text-captionall text-gray-500 ml-2">
                       {getDistanceFromUser(farm.location.lat, farm.location.lng)}
                     </div>
                   )}
                 </div>
               ))}
               {farms.length > 5 && (
-                <div className="text-center text-xs text-gray-500 py-2">
+                <div className="text-center text-captionall text-gray-500 py-2">
                   +{farms.length - 5} more farms
                 </div>
               )}
@@ -244,8 +244,8 @@ export default function ClusterPreview({
 
           {/* Cluster Statistics */}
           <div className="bg-gray-50 rounded-lg p-3">
-            <div className="text-xs text-gray-600 mb-2">Cluster Information</div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="text-captionall text-gray-600 mb-2">Cluster Information</div>
+            <div className="grid grid-cols-2 gap-4 text-caption">
               <div>
                 <span className="text-gray-500">Total Farms:</span>
                 <span className="ml-2 font-medium">{farms.length}</span>

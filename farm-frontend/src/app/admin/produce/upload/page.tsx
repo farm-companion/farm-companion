@@ -112,17 +112,17 @@ export default function AdminProduceUploadPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-display font-bold text-gray-900 dark:text-white">
                 Upload Produce Images
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-caption text-gray-600 dark:text-gray-400">
                 Add new images to the seasonal produce system
               </p>
             </div>
             <div className="flex gap-3">
               <Link
                 href="/admin/produce"
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-caption font-medium transition-colors"
               >
                 Back to Produce
               </Link>
@@ -155,12 +155,12 @@ export default function AdminProduceUploadPage() {
                   )}
                 </div>
                 <div className="ml-3">
-                  <h3 className={`text-sm font-medium ${
+                  <h3 className={`text-caption font-medium ${
                     uploadResult.success ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200'
                   }`}>
                     {uploadResult.success ? 'Upload Successful' : 'Upload Failed'}
                   </h3>
-                  <div className={`mt-2 text-sm ${
+                  <div className={`mt-2 text-caption ${
                     uploadResult.success ? 'text-green-700 dark:text-green-300' : 'text-red-700 dark:text-red-300'
                   }`}>
                     <p>{uploadResult.message}</p>
@@ -180,7 +180,7 @@ export default function AdminProduceUploadPage() {
           {/* Upload Form */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+              <h2 className="text-heading font-medium text-gray-900 dark:text-white">
                 Upload Produce Images
               </h2>
             </div>
@@ -189,7 +189,7 @@ export default function AdminProduceUploadPage() {
                 
                 {/* Produce Selection */}
                 <div>
-                  <label htmlFor="produce" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="produce" className="block text-caption font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Select Produce *
                   </label>
                   <select
@@ -210,7 +210,7 @@ export default function AdminProduceUploadPage() {
 
                 {/* Month Selection */}
                 <div>
-                  <label htmlFor="month" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="month" className="block text-caption font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Month *
                   </label>
                   <select
@@ -230,7 +230,7 @@ export default function AdminProduceUploadPage() {
 
                 {/* Alt Text */}
                 <div>
-                  <label htmlFor="altText" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label htmlFor="altText" className="block text-caption font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Alt Text *
                   </label>
                   <input
@@ -253,14 +253,14 @@ export default function AdminProduceUploadPage() {
                     onChange={(e) => setIsPrimary(e.target.checked)}
                     className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="isPrimary" className="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                  <label htmlFor="isPrimary" className="ml-2 block text-caption text-gray-700 dark:text-gray-300">
                     Set as primary image
                   </label>
                 </div>
 
                 {/* Image Upload */}
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  <label className="block text-caption font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Upload Images *
                   </label>
                   <ImageUpload
@@ -275,7 +275,7 @@ export default function AdminProduceUploadPage() {
                   <button
                     type="submit"
                     disabled={isUploading}
-                    className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-6 py-2 rounded-md text-sm font-medium transition-colors flex items-center"
+                    className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white px-6 py-2 rounded-md text-caption font-medium transition-colors flex items-center"
                   >
                     {isUploading ? (
                       <>

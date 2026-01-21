@@ -236,7 +236,7 @@ export default function LocationTracker({
         <button
           onClick={onZoomToLocation || getCurrentLocation}
           disabled={isLoading || permission === 'denied'}
-          className="flex items-center justify-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+          className="flex items-center justify-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-captionall"
           title={isLoading ? 'Getting Location...' : userLocation ? 'Zoom to Location' : 'Get Location'}
         >
           <MapPin className="w-3 h-3" />
@@ -247,7 +247,7 @@ export default function LocationTracker({
           <button
             onClick={startTracking}
             disabled={permission === 'denied'}
-            className="flex items-center justify-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+            className="flex items-center justify-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-captionall"
             title="Start tracking location"
           >
             <Wifi className="w-3 h-3" />
@@ -256,7 +256,7 @@ export default function LocationTracker({
         ) : (
           <button
             onClick={stopTracking}
-            className="flex items-center justify-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors text-xs"
+            className="flex items-center justify-center gap-1 px-2 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors text-captionall"
             title="Stop tracking location"
           >
             <WifiOff className="w-3 h-3" />
@@ -275,16 +275,16 @@ export default function LocationTracker({
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
           <div className="flex items-center gap-2 mb-2">
             <MapPin className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-800">Your Location</span>
+            <span className="text-caption font-medium text-blue-800">Your Location</span>
             {userLocation.isTracking && (
               <div className="flex items-center gap-1">
                 <Wifi className="w-3 h-3 text-green-600" />
-                <span className="text-xs text-green-600">Live</span>
+                <span className="text-captionall text-green-600">Live</span>
               </div>
             )}
           </div>
           
-          <div className="text-xs text-blue-700 space-y-1">
+          <div className="text-captionall text-blue-700 space-y-1">
             <div>Accuracy: ±{Math.round(userLocation.accuracy)}m</div>
             {userLocation.nearestFarm && (
               <div className="flex items-center gap-1">
@@ -301,7 +301,7 @@ export default function LocationTracker({
         <button
           onClick={onZoomToLocation || getCurrentLocation}
           disabled={isLoading || permission === 'denied'}
-          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+          className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-caption"
         >
           <MapPin className="w-4 h-4" />
           {isLoading ? 'Getting Location...' : userLocation ? 'Zoom to Location' : 'Get Location'}
@@ -311,7 +311,7 @@ export default function LocationTracker({
           <button
             onClick={startTracking}
             disabled={permission === 'denied'}
-            className="flex items-center justify-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+            className="flex items-center justify-center gap-2 px-3 py-2 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-caption"
           >
             <Wifi className="w-4 h-4" />
             Track
@@ -319,7 +319,7 @@ export default function LocationTracker({
         ) : (
           <button
             onClick={stopTracking}
-            className="flex items-center justify-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-sm"
+            className="flex items-center justify-center gap-2 px-3 py-2 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition-colors text-caption"
           >
             <WifiOff className="w-4 h-4" />
             Stop
@@ -330,7 +330,7 @@ export default function LocationTracker({
       {/* Permission Status */}
       {permission === 'denied' && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-          <div className="text-sm text-red-800">
+          <div className="text-caption text-red-800">
             Location access denied. Please enable location services in your browser settings.
           </div>
         </div>

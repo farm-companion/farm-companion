@@ -165,7 +165,7 @@ export default function MapSearch({
             placeholder="Search farms..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            className="w-full pl-7 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-serum focus:border-transparent outline-none"
+            className="w-full pl-7 pr-3 py-2 text-caption border border-gray-200 rounded-md focus:ring-1 focus:ring-serum focus:border-transparent outline-none"
             aria-label="Search farms"
           />
           {query && (
@@ -182,7 +182,7 @@ export default function MapSearch({
         <button
           onClick={handleNearMe}
           disabled={isLocationLoading}
-          className={`px-3 py-2 rounded-md transition-colors flex items-center gap-1 text-xs ${
+          className={`px-3 py-2 rounded-md transition-colors flex items-center gap-1 text-captionall ${
             hasLocation 
               ? 'bg-green-100 text-green-700 hover:bg-green-200' 
               : 'bg-serum text-white hover:bg-serum/90'
@@ -206,7 +206,7 @@ export default function MapSearch({
       <div className="flex mb-4 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
         <button
           onClick={() => handleSearchTypeChange('text')}
-          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+          className={`flex-1 py-2 px-3 rounded-md text-caption font-medium transition-colors ${
             searchType === 'text' 
               ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
@@ -217,7 +217,7 @@ export default function MapSearch({
         </button>
         <button
           onClick={() => handleSearchTypeChange('w3w')}
-          className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+          className={`flex-1 py-2 px-3 rounded-md text-caption font-medium transition-colors ${
             searchType === 'w3w' 
               ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
               : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
@@ -304,7 +304,7 @@ export default function MapSearch({
         <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
           <div className="flex items-start gap-2">
             <Globe className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-800 dark:text-blue-200">
+            <div className="text-caption text-blue-800 dark:text-blue-200">
               <p className="font-medium mb-1">what3words Address</p>
               <p>Enter a 3-word address like &ldquo;filled.count.soap&rdquo; to find the exact location.</p>
             </div>
@@ -345,7 +345,7 @@ export default function MapSearch({
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            className="text-caption text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
           >
             Clear all
           </button>
@@ -357,7 +357,7 @@ export default function MapSearch({
         <div id="filter-panel" className="space-y-4">
           {/* County Filter */}
           <div>
-            <label htmlFor="county-filter" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="county-filter" className="block text-caption font-medium text-gray-700 mb-2">
               County
             </label>
             <select
@@ -375,7 +375,7 @@ export default function MapSearch({
 
           {/* Category Filter */}
           <div>
-            <label htmlFor="category-filter" className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="category-filter" className="block text-caption font-medium text-gray-700 mb-2">
               Category
             </label>
             <select
@@ -397,7 +397,7 @@ export default function MapSearch({
       {hasActiveFilters && (
         <div className="flex flex-wrap gap-2 mt-4">
           {filters.openNow && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-600 rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-600 rounded-full text-caption">
               <Clock className="w-3 h-3" />
               Open now
               <button
@@ -410,7 +410,7 @@ export default function MapSearch({
             </span>
           )}
           {filters.county && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-caption">
               {filters.county}
               <button
                 onClick={() => handleFilterChange('county', undefined)}
@@ -422,7 +422,7 @@ export default function MapSearch({
             </span>
           )}
           {filters.category && (
-            <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-sm">
+            <span className="inline-flex items-center gap-1 px-3 py-1 bg-serum/10 text-serum rounded-full text-caption">
               {filters.category}
               <button
                 onClick={() => handleFilterChange('category', undefined)}
