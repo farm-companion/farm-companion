@@ -57,7 +57,8 @@
 - [x] Typography migration (Slice 2k) - Best guides page migrated to semantic typography (21 replacements)
 - [x] Typography migration (Slice 2l) - Contact page migrated to semantic typography (12 replacements)
 - [x] Typography migration (Slice 2m) - Categories page migrated to semantic typography (10 replacements)
-- [ ] Typography migration (Slice 2n-z) - Remaining 622 legacy instances across 985 files (forms, lists, cards, etc)
+- [x] Typography migration (Slice 2n) - Compare page migrated to semantic typography (7 replacements)
+- [ ] Typography migration (Slice 2o-z) - Remaining 615 legacy instances across 984 files (forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -295,6 +296,17 @@
   - High-visibility categories directory and navigation page
   - Files changed: 1 page, 10 typography replacements
   - Remaining: 622 legacy instances across 985 files for future slices
+
+- **Queue 8, Slice 2n: Compare Page Typography Migration** (COMPLETE)
+  - Migrated compare/page.tsx to semantic typography
+  - text-display for hero titles (empty state and with farms)
+  - text-heading for farm name headings
+  - text-caption for location text and comparison metric labels and values
+  - text-small for verified badge
+  - Removed 7 legacy responsive text size modifiers (245 line file)
+  - High-visibility farm comparison tool page
+  - Files changed: 1 page, 7 typography replacements
+  - Remaining: 615 legacy instances across 984 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
