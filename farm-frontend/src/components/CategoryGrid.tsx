@@ -20,10 +20,10 @@ export async function CategoryGrid({ limit = 12, featured = false }: CategoryGri
       <div className="container mx-auto px-4 sm:px-6">
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-10">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3 md:mb-4">
+          <h2 className="text-display font-bold text-slate-900 dark:text-white mb-3 md:mb-4">
             Browse by Category
           </h2>
-          <p className="text-base sm:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto px-4">
+          <p className="text-heading text-slate-600 dark:text-slate-400 max-w-2xl mx-auto px-4">
             Discover local farms, producers, and agricultural businesses across the UK
           </p>
         </div>
@@ -38,18 +38,18 @@ export async function CategoryGrid({ limit = 12, featured = false }: CategoryGri
             >
               {/* Icon */}
               {category.icon && (
-                <div className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3 transform transition-transform group-hover:scale-110">
+                <div className="text-display mb-2 sm:mb-3 transform transition-transform group-hover:scale-110">
                   {category.icon}
                 </div>
               )}
 
               {/* Category Name */}
-              <h3 className="font-semibold text-slate-900 dark:text-white mb-1 sm:mb-2 text-sm sm:text-base leading-tight">
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-1 sm:mb-2 text-heading leading-tight">
                 {category.name}
               </h3>
 
               {/* Farm Count Badge */}
-              <Badge variant="outline" size="sm" className="text-xs">
+              <Badge variant="outline" size="sm" className="text-small">
                 {category.farmCount} {category.farmCount === 1 ? 'Farm' : 'Farms'}
               </Badge>
 
@@ -77,7 +77,7 @@ export async function CategoryGrid({ limit = 12, featured = false }: CategoryGri
         <div className="text-center mt-8 md:mt-10">
           <Link
             href="/categories"
-            className="inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-6 sm:px-8 bg-brand-primary text-white rounded-lg text-sm sm:text-base font-medium transition-all hover:bg-brand-primary/90 hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-6 sm:px-8 bg-brand-primary text-white rounded-lg text-caption font-medium transition-all hover:bg-brand-primary/90 hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
           >
             View All Categories
             <svg
