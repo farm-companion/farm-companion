@@ -60,7 +60,8 @@
 - [x] Typography migration (Slice 2n) - Compare page migrated to semantic typography (7 replacements)
 - [x] Typography migration (Slice 2o) - Category detail page migrated to semantic typography (12 replacements)
 - [x] Typography migration (Slice 2p) - Privacy page migrated to semantic typography (19 replacements)
-- [ ] Typography migration (Slice 2q-z) - Remaining 584 legacy instances across 982 files (forms, lists, cards, etc)
+- [x] Typography migration (Slice 2q) - Terms page migrated to semantic typography (11 replacements)
+- [ ] Typography migration (Slice 2r-z) - Remaining 573 legacy instances across 981 files (forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -329,6 +330,16 @@
   - High-visibility legal compliance page with GDPR information
   - Files changed: 1 page, 19 typography replacements
   - Remaining: 584 legacy instances across 982 files for future slices
+
+- **Queue 8, Slice 2q: Terms Page Typography Migration** (COMPLETE)
+  - Migrated terms/page.tsx to semantic typography
+  - text-display for main h1 heading (Terms of Service)
+  - text-heading for all h2 section headings (Who we are, Use of the site, Accuracy of information, User submissions, Third-party links & advertising, Privacy, Availability, Liability, Governing law)
+  - text-caption for footer effective date
+  - Removed 11 legacy responsive text size modifiers (128 line file)
+  - High-visibility legal compliance page with terms and conditions
+  - Files changed: 1 page, 11 typography replacements
+  - Remaining: 573 legacy instances across 981 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
