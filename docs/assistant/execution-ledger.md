@@ -63,7 +63,8 @@
 - [x] Typography migration (Slice 2q) - Terms page migrated to semantic typography (11 replacements)
 - [x] Typography migration (Slice 2r) - Counties page migrated to semantic typography (8 replacements)
 - [x] Typography migration (Slice 2s) - County detail page migrated to semantic typography (10 replacements)
-- [ ] Typography migration (Slice 2t-z) - Remaining 555 legacy instances across 979 files (forms, lists, cards, etc)
+- [x] Typography migration (Slice 2t) - Seasonal page migrated to semantic typography (8 replacements)
+- [ ] Typography migration (Slice 2u-z) - Remaining 547 legacy instances across 978 files (forms, lists, cards, etc)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -365,6 +366,16 @@
   - High-visibility geographic detail pages with county farm listings, stats, and FAQs
   - Files changed: 1 page, 10 typography replacements
   - Remaining: 555 legacy instances across 979 files for future slices
+
+- **Queue 8, Slice 2t: Seasonal Page Typography Migration** (COMPLETE)
+  - Migrated seasonal/page.tsx to semantic typography
+  - text-display for hero title, section heading "The Full Calendar", and CTA heading
+  - text-heading for hero subtitle, items in season description, and CTA description
+  - text-caption for editorial badge and scroll indicator
+  - Removed 8 legacy responsive text size modifiers (292 line file)
+  - High-visibility seasonal produce calendar with hero, interactive grid, and CTA
+  - Files changed: 1 page, 8 typography replacements
+  - Remaining: 547 legacy instances across 978 files for future slices
 
 ### 2026-01-20 (Forensic Investigation & Security Fixes)
 - **Forensic Investigation Report** (COMPLETE)
