@@ -582,6 +582,15 @@
   - Build sequence: prisma generate → fix-prisma-zeptomatch → patch-package
   - Commit: e1cff27 - "fix: Add prisma generate to postinstall for Vercel builds"
   - Files changed: 1 file (package.json)
+- **CRITICAL FIX: Vercel Build Failure - Database Connection** (COMPLETE)
+  - ISSUE: Build failing with "Can't reach database server" during static page generation
+  - ROOT CAUSE: Pages using generateStaticParams trying to fetch data at build time, Supabase pooler unreliable from build environment
+  - FIX: Removed generateStaticParams, forced dynamic rendering on 8 pages/layouts
+  - Pages now render on-demand (not at build time), no database needed during build
+  - Trade-off: Slightly slower first request but more reliable builds, data always fresh
+  - Pages affected: homepage, categories index/detail, counties index/detail, best, shop, map layout
+  - Commit: 0f0dfce - "fix: Force dynamic rendering to resolve Vercel build database errors"
+  - Files changed: 8 files (19 insertions, 32 deletions)
 
 ### 2026-01-21 (Queue 9 - Data Architecture Transformation)
 - **Queue 9, Slice 2: Remove JSON File Dependencies** (COMPLETE)
