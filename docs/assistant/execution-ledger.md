@@ -565,7 +565,7 @@
   - Expected 40-60% LCP improvement on homepage
   - Commit: f026fbf - "feat: Migrate homepage to use god-tier HeroImage component"
   - Files changed: 1 file modified (5 insertions, 16 deletions)
-- **CRITICAL FIX: Vercel Deployment Issue** (COMPLETE)
+- **CRITICAL FIX: Vercel Deployment Issue - Missing Images** (COMPLETE)
   - ISSUE: Site not loading in Vercel due to missing optimized images
   - ROOT CAUSE: .gitignore line 79 "public" ignored farm-frontend/public/ directory
   - FIX: Disabled Gatsby-specific public ignore, added 72 optimized images to git
@@ -574,6 +574,14 @@
   - HeroImage component will work correctly in production
   - Commit: bd960db - "fix: Add optimized images to git for Vercel deployment (CRITICAL)"
   - Files changed: 73 files (72 images + .gitignore)
+- **CRITICAL FIX: Vercel Build Failure - Prisma Client** (COMPLETE)
+  - ISSUE: Vercel build failing with "Module '@prisma/client' has no exported member 'Prisma'"
+  - ROOT CAUSE: Prisma client not being generated before TypeScript compilation
+  - FIX: Added 'prisma generate' to postinstall script in package.json
+  - Ensures Prisma client is generated during pnpm install on Vercel
+  - Build sequence: prisma generate → fix-prisma-zeptomatch → patch-package
+  - Commit: e1cff27 - "fix: Add prisma generate to postinstall for Vercel builds"
+  - Files changed: 1 file (package.json)
 
 ### 2026-01-21 (Queue 9 - Data Architecture Transformation)
 - **Queue 9, Slice 2: Remove JSON File Dependencies** (COMPLETE)
