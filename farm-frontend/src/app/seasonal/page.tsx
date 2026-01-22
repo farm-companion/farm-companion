@@ -1,13 +1,14 @@
 import { Suspense } from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 
 import { PRODUCE } from '@/data/produce'
 import SeasonalGrid from '@/components/SeasonalGrid'
 import { MapPin } from 'lucide-react'
 import { SITE_URL } from '@/lib/site'
 import JsonLd from '@/components/JsonLd'
+import { HeroImage } from '@/components/HeroImage'
+import { HERO_IMAGES } from '@/lib/images'
 
 // Revalidate every 12 hours for seasonal data
 export const revalidate = 43200
@@ -136,21 +137,8 @@ export default async function SeasonalPage() {
 
       {/* Editorial Hero Section */}
       <section className="relative h-[85vh] min-h-[700px] max-h-[900px] overflow-hidden">
-        {/* Hero Image with Paper Texture */}
-        <div className="absolute inset-0">
-          <Image
-            src="/seasonal-header.jpg"
-            alt="Artfully arranged British seasonal produce including heirloom tomatoes, fresh strawberries, and vibrant leafy greens on rustic wooden table"
-            fill
-            className="object-cover object-center"
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            quality={90}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-          />
-
+        {/* God-Tier Optimized Hero Image */}
+        <HeroImage image={HERO_IMAGES.seasonal} overlay="none">
           {/* Gradient overlays for editorial depth */}
           <div className="absolute inset-0 bg-gradient-to-br from-[#1a3a2a]/50 via-black/30 to-[#2D3436]/50" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
@@ -162,7 +150,7 @@ export default async function SeasonalPage() {
               backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
             }}
           />
-        </div>
+        </HeroImage>
 
         {/* Hero Content */}
         <div className="relative h-full flex items-center justify-center pt-24 pb-20 px-6">
