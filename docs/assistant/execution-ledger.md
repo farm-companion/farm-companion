@@ -555,6 +555,16 @@
   - Features: Progressive enhancement (AVIF → WebP → JPG), responsive sizing, priority loading, accessibility-optimized
   - Commit: 6d873c3 - "feat: Add god-tier image optimization infrastructure (Phase 2 Performance)"
   - Files changed: 6 files created, 1,664 insertions
+- **Homepage Hero Image Migration** (COMPLETE)
+  - Migrated AnimatedHero.tsx to use HeroImage component with HERO_IMAGES.homepage
+  - Replaced manual Next.js Image setup with centralized configuration
+  - Preserved all custom overlay gradients (no visual changes)
+  - 86% bandwidth savings on homepage hero (1.5M → 213K WebP desktop, 79K-105K mobile)
+  - Optimized blur placeholder (529 bytes) for instant perceived load
+  - Progressive image format support (AVIF → WebP → JPG automatic negotiation)
+  - Expected 40-60% LCP improvement on homepage
+  - Commit: f026fbf - "feat: Migrate homepage to use god-tier HeroImage component"
+  - Files changed: 1 file modified (5 insertions, 16 deletions)
 
 ### 2026-01-21 (Queue 9 - Data Architecture Transformation)
 - **Queue 9, Slice 2: Remove JSON File Dependencies** (COMPLETE)
