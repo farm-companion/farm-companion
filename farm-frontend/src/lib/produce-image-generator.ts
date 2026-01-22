@@ -11,6 +11,7 @@ interface ProduceImageOptions {
   height?: number
   styleHint?: string
   seed?: number
+  month?: number // 1-12 for seasonal context
 }
 
 export class ProduceImageGenerator {
@@ -35,7 +36,8 @@ export class ProduceImageGenerator {
       const width = options.width ?? 1600
       const height = options.height ?? 900
       const seed = options.seed ?? this.hashString(slug)
-      const prompt = this.createProducePrompt(produceName, options.styleHint)
+      const month = options.month
+      const prompt = this.createProducePrompt(produceName, options.styleHint, month)
 
       console.log(`🎨 Prompt: "${prompt.substring(0, 100)}..."`)
 
@@ -64,8 +66,22 @@ export class ProduceImageGenerator {
   /**
    * Create editorial food photography prompts for produce
    */
-  private createProducePrompt(produceName: string, styleHint?: string): string {
+  private createProducePrompt(produceName: string, styleHint?: string, month?: number): string {
     const hash = this.hashString(produceName)
+
+    // Seasonal context based on month
+    let seasonalContext = ''
+    if (month) {
+      const season = this.getSeasonName(month)
+      const seasonalDescriptors: Record<string, string[]> = {
+        spring: ['fresh spring harvest', 'bright spring colors', 'early season freshness'],
+        summer: ['peak summer harvest', 'vibrant summer colors', 'sun-ripened'],
+        autumn: ['autumn harvest', 'rich autumn tones', 'seasonal abundance'],
+        winter: ['winter harvest', 'hearty winter produce', 'cold season fresh']
+      }
+      const descriptors = seasonalDescriptors[season]
+      seasonalContext = descriptors[hash % descriptors.length]
+    }
 
     // Editorial photography styles for variety
     const styles = [
@@ -108,6 +124,7 @@ export class ProduceImageGenerator {
 
     const parts = [
       `Fresh UK ${produceName}`,
+      seasonalContext,
       'high-end food photography',
       selectedStyle,
       selectedLighting,
@@ -124,18 +141,29 @@ export class ProduceImageGenerator {
   }
 
   /**
+   * Get season name from month number
+   */
+  private getSeasonName(month: number): 'spring' | 'summer' | 'autumn' | 'winter' {
+    if (month >= 3 && month <= 5) return 'spring'
+    if (month >= 6 && month <= 8) return 'summer'
+    if (month >= 9 && month <= 11) return 'autumn'
+    return 'winter'
+  }
+
+  /**
    * Generate multiple variations for a produce item
    */
   async generateVariations(
     produceName: string,
     slug: string,
-    count: number = 4
+    count: number = 4,
+    month?: number
   ): Promise<Buffer[]> {
     const buffers: Buffer[] = []
 
     for (let i = 0; i < count; i++) {
       const seed = this.hashString(slug) + i * 9973
-      const buffer = await this.generateProduceImage(produceName, slug, { seed })
+      const buffer = await this.generateProduceImage(produceName, slug, { seed, month })
 
       if (buffer) {
         buffers.push(buffer)

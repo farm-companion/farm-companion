@@ -20,6 +20,7 @@ config({ path: resolve(process.cwd(), '.env') })
 
 import { PRODUCE } from '../data/produce'
 import { ProduceImageGenerator } from '../lib/produce-image-generator'
+import { imageQualityValidator } from '../lib/image-quality-validator'
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { produceImageExists } from '../lib/produce-blob'
@@ -31,6 +32,8 @@ interface Options {
   count?: number
   force?: boolean
   upload?: boolean
+  month?: number
+  validate?: boolean
 }
 
 interface GeneratedImage {
@@ -40,17 +43,21 @@ interface GeneratedImage {
 
 function parseArgs(): Options {
   const args = process.argv.slice(2)
-  const options: Options = { count: 4, upload: false }
+  const options: Options = { count: 4, upload: false, validate: true }
 
   for (const arg of args) {
     if (arg.startsWith('--produce=')) {
       options.produce = arg.split('=')[1]
     } else if (arg.startsWith('--count=')) {
       options.count = parseInt(arg.split('=')[1], 10)
+    } else if (arg.startsWith('--month=')) {
+      options.month = parseInt(arg.split('=')[1], 10)
     } else if (arg === '--force') {
       options.force = true
     } else if (arg === '--upload') {
       options.upload = true
+    } else if (arg === '--no-validate') {
+      options.validate = false
     }
   }
 
@@ -104,11 +111,12 @@ async function generateImages() {
       }
 
       // Generate variations
-      console.log(`🎨 Generating ${options.count} variations...`)
+      console.log(`🎨 Generating ${options.count} variations${options.month ? ` (month ${options.month})` : ''}...`)
       const buffers = await generator.generateVariations(
         produce.name,
         produce.slug,
-        options.count
+        options.count,
+        options.month
       )
 
       if (buffers.length === 0) {
@@ -118,6 +126,29 @@ async function generateImages() {
       }
 
       console.log(`✅ Generated ${buffers.length} image buffers`)
+
+      // Validate image quality
+      if (options.validate) {
+        console.log(`🔍 Validating image quality...`)
+        const qualityResults = await imageQualityValidator.validateBatch(buffers)
+        const summary = imageQualityValidator.getBatchSummary(qualityResults)
+
+        console.log(`   Pass rate: ${summary.passRate.toFixed(1)}%`)
+        console.log(`   Avg confidence: ${summary.avgConfidence.toFixed(1)}%`)
+
+        // Show warnings for failed validations
+        qualityResults.forEach((result, i) => {
+          if (!result.passed) {
+            console.warn(`   ⚠️  Image ${i + 1} failed: ${result.errors.join(', ')}`)
+          } else if (result.warnings.length > 0) {
+            console.warn(`   ⚠️  Image ${i + 1} warnings: ${result.warnings.join(', ')}`)
+          }
+        })
+
+        if (summary.passRate < 100) {
+          console.warn(`   ${summary.failed} images failed quality checks`)
+        }
+      }
 
       // Upload or save images
       if (options.upload) {
