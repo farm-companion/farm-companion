@@ -3,6 +3,9 @@ import Link from 'next/link'
 import { getCachedAllCategories } from '@/lib/server-cache-categories'
 import { Badge } from '@/components/ui/Badge'
 
+// Force dynamic rendering to avoid database connection issues during build
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'Farm Categories | Farm Companion',
   description:

@@ -1,6 +1,9 @@
 import type { Metadata } from 'next'
 import { getFarmStats } from '@/lib/farm-data'
 
+// Force dynamic rendering to avoid database connection issues during build
+export const dynamic = 'force-dynamic'
+
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://www.farmcompanion.co.uk'
 const mapUrl = `${siteUrl}/map`
 

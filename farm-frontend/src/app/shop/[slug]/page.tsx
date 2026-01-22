@@ -7,8 +7,8 @@ import { getValidApprovedPhotosBySlug } from '@/lib/photos'
 import { FarmPageClient } from '@/components/FarmPageClient'
 import { prisma } from '@/lib/prisma'
 
-// Revalidate every 6 hours for fresh farm data
-export const revalidate = 21600
+// Force dynamic rendering to avoid database connection issues during build
+export const dynamic = 'force-dynamic'
 
 async function readFarms(): Promise<FarmShop[]> {
   const farms = await prisma.farm.findMany({

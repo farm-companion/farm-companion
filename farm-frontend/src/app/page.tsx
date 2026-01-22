@@ -55,8 +55,8 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-// Enable ISR for better TTFB performance
-export const revalidate = 3600 // Revalidate every hour
+// Force dynamic rendering to avoid database connection issues during build
+export const dynamic = 'force-dynamic'
 
 export default async function HomePage() {
   const { farmCount, countyCount } = await getFarmStatsServer()

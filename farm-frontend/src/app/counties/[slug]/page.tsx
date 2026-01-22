@@ -12,20 +12,12 @@ import { Badge } from '@/components/ui/Badge'
 import { CountyStats } from '@/components/CountyStats'
 import { countyFAQs } from '@/data/county-faqs'
 
-// Revalidate every 6 hours
-export const revalidate = 21600
+// Force dynamic rendering to avoid database connection issues during build
+export const dynamic = 'force-dynamic'
 
 interface CountyPageProps {
   params: Promise<{ slug: string }>
   searchParams: Promise<{ category?: string; page?: string }>
-}
-
-// Generate static params for all counties at build time
-export async function generateStaticParams() {
-  const counties = await getCachedAllCounties()
-  return counties.map((county: { slug: string }) => ({
-    slug: county.slug,
-  }))
 }
 
 // Generate metadata for SEO
