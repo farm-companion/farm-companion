@@ -2,9 +2,10 @@
 
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
+import { HeroImage } from '@/components/HeroImage'
+import { HERO_IMAGES } from '@/lib/images'
 
 interface AnimatedHeroProps {
   countyCount: number
@@ -16,27 +17,15 @@ export function AnimatedHero({ countyCount }: AnimatedHeroProps) {
       data-header-invert
       className="relative h-[75vh] min-h-[600px] md:h-[80vh] md:min-h-[700px] lg:h-screen lg:min-h-[800px] lg:max-h-[1000px] overflow-hidden"
     >
-      {/* Background Image with Professional Handling */}
-      <div className="absolute inset-0">
-        <Image
-          src="/main_header.jpg"
-          alt="Colorful display of fresh vegetables, fruits, and flowers arranged in baskets at a UK farm shop, showcasing the variety of local produce available"
-          fill
-          className="object-cover object-center"
-          priority
-          fetchPriority="high"
-          sizes="100vw"
-          quality={85}
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-        />
+      {/* Background Image with God-Tier Optimization */}
+      <HeroImage image={HERO_IMAGES.homepage} overlay="none">
         {/* Professional Overlay Gradient */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
         {/* Subtle texture overlay for depth */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_70%)]" />
-      </div>
+      </HeroImage>
 
       {/* Content Overlay */}
       <div className="relative h-full flex items-center justify-center pt-16 pb-16 md:pt-20 md:pb-20">
