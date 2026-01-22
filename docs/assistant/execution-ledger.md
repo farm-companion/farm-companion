@@ -565,6 +565,15 @@
   - Expected 40-60% LCP improvement on homepage
   - Commit: f026fbf - "feat: Migrate homepage to use god-tier HeroImage component"
   - Files changed: 1 file modified (5 insertions, 16 deletions)
+- **CRITICAL FIX: Vercel Deployment Issue** (COMPLETE)
+  - ISSUE: Site not loading in Vercel due to missing optimized images
+  - ROOT CAUSE: .gitignore line 79 "public" ignored farm-frontend/public/ directory
+  - FIX: Disabled Gatsby-specific public ignore, added 72 optimized images to git
+  - Added all AVIF, WebP, and optimized JPG files (~22MB total)
+  - Vercel will now include optimized images in deployment
+  - HeroImage component will work correctly in production
+  - Commit: bd960db - "fix: Add optimized images to git for Vercel deployment (CRITICAL)"
+  - Files changed: 73 files (72 images + .gitignore)
 
 ### 2026-01-21 (Queue 9 - Data Architecture Transformation)
 - **Queue 9, Slice 2: Remove JSON File Dependencies** (COMPLETE)
