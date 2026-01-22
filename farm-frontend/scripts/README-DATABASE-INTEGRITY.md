@@ -1,6 +1,18 @@
 # Database Integrity Check
 
-Comprehensive validation script for Farm Companion's Supabase/Prisma database.
+Comprehensive validation script for Farm Companion's Supabase/PostgreSQL database.
+
+## Two Versions Available
+
+1. **`check-database-integrity-sql.ts`** (Recommended) - Pure SQL using `pg` (node-postgres)
+   - No Prisma dependencies
+   - Faster and more efficient
+   - Direct PostgreSQL connection
+
+2. **`check-database-integrity.ts`** - Uses Prisma ORM
+   - Requires Prisma Client
+   - Type-safe queries
+   - Good for development
 
 ## What It Checks
 
@@ -53,7 +65,14 @@ Comprehensive validation script for Farm Companion's Supabase/Prisma database.
 ## Usage
 
 ### Prerequisites
-1. Set `DATABASE_URL` environment variable:
+
+1. **Install pg dependency** (for SQL version):
+   ```bash
+   cd farm-frontend
+   pnpm add -D pg @types/node
+   ```
+
+2. Set `DATABASE_URL` environment variable:
    ```bash
    export DATABASE_URL="postgresql://user:password@host:5432/database"
    ```
@@ -63,6 +82,14 @@ Comprehensive validation script for Farm Companion's Supabase/Prisma database.
    ```
 
 ### Run the Check
+
+**Option 1: SQL Version (Recommended)**
+```bash
+cd farm-frontend
+npx tsx scripts/check-database-integrity-sql.ts
+```
+
+**Option 2: Prisma Version**
 ```bash
 cd farm-frontend
 npx tsx scripts/check-database-integrity.ts

@@ -1,21 +1,14 @@
 #!/usr/bin/env tsx
 /**
- * Database Integrity Check Script
+ * Database Integrity Check Script (Pure SQL)
  *
- * Comprehensive validation of Supabase/Prisma database integrity:
- * - Orphaned photos (photos referencing non-existent farms)
- * - Invalid coordinates (outside UK bounds)
- * - Duplicate slugs
- * - Constraint violations (rating bounds, status enums)
- * - Missing required fields
- * - Geospatial index verification
+ * Direct PostgreSQL connection for comprehensive validation without Prisma.
+ * Validates data integrity across farms, images, and relationships.
  *
- * Usage: tsx scripts/check-database-integrity.ts
+ * Usage: DATABASE_URL="postgresql://..." tsx scripts/check-database-integrity-sql.ts
  */
 
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { Client } from 'pg'
 
 interface IntegrityIssue {
   severity: 'critical' | 'warning' | 'info'
@@ -36,47 +29,45 @@ function logIssue(issue: IntegrityIssue) {
   }
 }
 
-async function checkOrphanedPhotos() {
+async function checkOrphanedPhotos(client: Client) {
   console.log('\n🔍 Checking for orphaned photos...')
 
-  // Find photos with farmId that doesn't exist in farms table
-  // Note: Schema has onDelete: Cascade, so orphans shouldn't exist, but good to verify
-  const orphanedPhotos = await prisma.$queryRaw<Array<{id: string, farmId: string, status: string}>>`
+  const result = await client.query(`
     SELECT p.id, p."farmId", p.status
-    FROM "images" p
-    LEFT JOIN "farms" f ON p."farmId" = f.id
+    FROM images p
+    LEFT JOIN farms f ON p."farmId" = f.id
     WHERE f.id IS NULL
-  `
+  `)
 
-  if (orphanedPhotos.length > 0) {
+  if (result.rows.length > 0) {
     logIssue({
       severity: 'critical',
       category: 'Orphaned Photos',
-      message: `Found ${orphanedPhotos.length} photos referencing non-existent farms`,
-      details: { count: orphanedPhotos.length, sample: orphanedPhotos.slice(0, 5) }
+      message: `Found ${result.rows.length} photos referencing non-existent farms`,
+      details: { count: result.rows.length, sample: result.rows.slice(0, 5) }
     })
   } else {
     console.log('✅ No orphaned photos found')
   }
 }
 
-async function checkDuplicateSlugs() {
+async function checkDuplicateSlugs(client: Client) {
   console.log('\n🔍 Checking for duplicate farm slugs...')
 
-  const duplicateSlugs = await prisma.$queryRaw<Array<{slug: string, count: bigint}>>`
+  const result = await client.query(`
     SELECT slug, COUNT(*) as count
-    FROM "farms"
+    FROM farms
     GROUP BY slug
     HAVING COUNT(*) > 1
-  `
+  `)
 
-  if (duplicateSlugs.length > 0) {
-    for (const dup of duplicateSlugs) {
+  if (result.rows.length > 0) {
+    for (const dup of result.rows) {
       logIssue({
         severity: 'critical',
         category: 'Duplicate Slugs',
         message: `Duplicate slug found: ${dup.slug}`,
-        details: { slug: dup.slug, count: Number(dup.count) }
+        details: { slug: dup.slug, count: parseInt(dup.count) }
       })
     }
   } else {
@@ -84,35 +75,24 @@ async function checkDuplicateSlugs() {
   }
 }
 
-async function checkCoordinateBounds() {
+async function checkCoordinateBounds(client: Client) {
   console.log('\n🔍 Checking coordinate bounds (UK: lat 49-61, lng -8-2)...')
 
-  const invalidCoordinates = await prisma.farm.findMany({
-    where: {
-      OR: [
-        { latitude: { lt: 49 } },
-        { latitude: { gt: 61 } },
-        { longitude: { lt: -8 } },
-        { longitude: { gt: 2 } },
-      ]
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      latitude: true,
-      longitude: true
-    }
-  })
+  const result = await client.query(`
+    SELECT id, name, slug, latitude, longitude
+    FROM farms
+    WHERE latitude < 49 OR latitude > 61
+       OR longitude < -8 OR longitude > 2
+  `)
 
-  if (invalidCoordinates.length > 0) {
-    for (const farm of invalidCoordinates) {
+  if (result.rows.length > 0) {
+    for (const farm of result.rows) {
       logIssue({
         severity: 'critical',
         category: 'Invalid Coordinates',
         message: `Farm "${farm.name}" has coordinates outside UK bounds`,
         recordId: farm.id,
-        details: { slug: farm.slug, lat: farm.latitude, lng: farm.longitude }
+        details: { slug: farm.slug, lat: parseFloat(farm.latitude), lng: parseFloat(farm.longitude) }
       })
     }
   } else {
@@ -120,35 +100,24 @@ async function checkCoordinateBounds() {
   }
 }
 
-async function checkRatingBounds() {
+async function checkRatingBounds(client: Client) {
   console.log('\n🔍 Checking Google rating bounds (0.0-5.0)...')
 
-  const invalidRatings = await prisma.farm.findMany({
-    where: {
-      googleRating: {
-        not: null,
-        OR: [
-          { lt: 0.0 },
-          { gt: 5.0 }
-        ]
-      }
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      googleRating: true
-    }
-  })
+  const result = await client.query(`
+    SELECT id, name, slug, "googleRating"
+    FROM farms
+    WHERE "googleRating" IS NOT NULL
+      AND ("googleRating" < 0.0 OR "googleRating" > 5.0)
+  `)
 
-  if (invalidRatings.length > 0) {
-    for (const farm of invalidRatings) {
+  if (result.rows.length > 0) {
+    for (const farm of result.rows) {
       logIssue({
         severity: 'warning',
         category: 'Invalid Rating',
         message: `Farm "${farm.name}" has invalid Google rating`,
         recordId: farm.id,
-        details: { slug: farm.slug, rating: farm.googleRating }
+        details: { slug: farm.slug, rating: parseFloat(farm.googleRating) }
       })
     }
   } else {
@@ -156,32 +125,20 @@ async function checkRatingBounds() {
   }
 }
 
-async function checkRequiredFields() {
+async function checkRequiredFields(client: Client) {
   console.log('\n🔍 Checking required fields (name, latitude, longitude, county)...')
 
-  const missingFields = await prisma.farm.findMany({
-    where: {
-      OR: [
-        { name: null },
-        { name: '' },
-        { latitude: null },
-        { longitude: null },
-        { county: null },
-        { county: '' }
-      ]
-    },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      latitude: true,
-      longitude: true,
-      county: true
-    }
-  })
+  const result = await client.query(`
+    SELECT id, name, slug, latitude, longitude, county
+    FROM farms
+    WHERE name IS NULL OR name = ''
+       OR latitude IS NULL
+       OR longitude IS NULL
+       OR county IS NULL OR county = ''
+  `)
 
-  if (missingFields.length > 0) {
-    for (const farm of missingFields) {
+  if (result.rows.length > 0) {
+    for (const farm of result.rows) {
       const missing: string[] = []
       if (!farm.name) missing.push('name')
       if (!farm.latitude) missing.push('latitude')
@@ -201,17 +158,17 @@ async function checkRequiredFields() {
   }
 }
 
-async function checkStatusEnum() {
+async function checkStatusEnum(client: Client) {
   console.log('\n🔍 Checking farm status enum (active, pending, suspended)...')
 
-  const invalidStatus = await prisma.$queryRaw<Array<{id: string, name: string, status: string}>>`
+  const result = await client.query(`
     SELECT id, name, status
-    FROM "farms"
+    FROM farms
     WHERE status NOT IN ('active', 'pending', 'suspended')
-  `
+  `)
 
-  if (invalidStatus.length > 0) {
-    for (const farm of invalidStatus) {
+  if (result.rows.length > 0) {
+    for (const farm of result.rows) {
       logIssue({
         severity: 'critical',
         category: 'Invalid Status',
@@ -225,17 +182,17 @@ async function checkStatusEnum() {
   }
 }
 
-async function checkPhotoStatus() {
+async function checkPhotoStatus(client: Client) {
   console.log('\n🔍 Checking photo status enum (pending, approved, rejected)...')
 
-  const invalidPhotoStatus = await prisma.$queryRaw<Array<{id: string, farmId: string, status: string}>>`
+  const result = await client.query(`
     SELECT id, "farmId", status
-    FROM "images"
+    FROM images
     WHERE status NOT IN ('pending', 'approved', 'rejected')
-  `
+  `)
 
-  if (invalidPhotoStatus.length > 0) {
-    for (const photo of invalidPhotoStatus) {
+  if (result.rows.length > 0) {
+    for (const photo of result.rows) {
       logIssue({
         severity: 'critical',
         category: 'Invalid Photo Status',
@@ -249,32 +206,27 @@ async function checkPhotoStatus() {
   }
 }
 
-async function checkDatabaseStats() {
+async function checkDatabaseStats(client: Client) {
   console.log('\n📊 Database Statistics...')
 
-  const [
-    totalFarms,
-    activeFarms,
-    pendingFarms,
-    suspendedFarms,
-    totalPhotos,
-    approvedPhotos,
-    pendingPhotos,
-    rejectedPhotos,
-    verifiedFarms,
-    featuredFarms
-  ] = await Promise.all([
-    prisma.farm.count(),
-    prisma.farm.count({ where: { status: 'active' } }),
-    prisma.farm.count({ where: { status: 'pending' } }),
-    prisma.farm.count({ where: { status: 'suspended' } }),
-    prisma.image.count(),
-    prisma.image.count({ where: { status: 'approved' } }),
-    prisma.image.count({ where: { status: 'pending' } }),
-    prisma.image.count({ where: { status: 'rejected' } }),
-    prisma.farm.count({ where: { verified: true } }),
-    prisma.farm.count({ where: { featured: true } })
+  const statsQueries = await Promise.all([
+    client.query(`SELECT COUNT(*) as count FROM farms`),
+    client.query(`SELECT COUNT(*) as count FROM farms WHERE status = 'active'`),
+    client.query(`SELECT COUNT(*) as count FROM farms WHERE status = 'pending'`),
+    client.query(`SELECT COUNT(*) as count FROM farms WHERE status = 'suspended'`),
+    client.query(`SELECT COUNT(*) as count FROM images`),
+    client.query(`SELECT COUNT(*) as count FROM images WHERE status = 'approved'`),
+    client.query(`SELECT COUNT(*) as count FROM images WHERE status = 'pending'`),
+    client.query(`SELECT COUNT(*) as count FROM images WHERE status = 'rejected'`),
+    client.query(`SELECT COUNT(*) as count FROM farms WHERE verified = true`),
+    client.query(`SELECT COUNT(*) as count FROM farms WHERE featured = true`)
   ])
+
+  const [
+    totalFarms, activeFarms, pendingFarms, suspendedFarms,
+    totalPhotos, approvedPhotos, pendingPhotos, rejectedPhotos,
+    verifiedFarms, featuredFarms
+  ] = statsQueries.map(r => parseInt(r.rows[0].count))
 
   console.log('✅ Database Summary:')
   console.log(`   Farms: ${totalFarms} total (${activeFarms} active, ${pendingFarms} pending, ${suspendedFarms} suspended)`)
@@ -283,14 +235,10 @@ async function checkDatabaseStats() {
   console.log(`   Photos: ${totalPhotos} total (${approvedPhotos} approved, ${pendingPhotos} pending, ${rejectedPhotos} rejected)`)
 }
 
-async function checkGeospatialIndexes() {
-  console.log('\n🔍 Verifying geospatial indexes exist in schema...')
+async function checkGeospatialIndexes(client: Client) {
+  console.log('\n🔍 Verifying geospatial indexes exist in database...')
 
-  // Query Prisma schema indexes (this checks if indexes are defined, not if they exist in DB)
-  // In production, you'd query the actual database indexes with:
-  // SELECT * FROM pg_indexes WHERE tablename = 'farms' AND indexname LIKE '%lat%'
-
-  const indexQuery = await prisma.$queryRaw<Array<{indexname: string}>>`
+  const result = await client.query(`
     SELECT indexname
     FROM pg_indexes
     WHERE tablename = 'farms'
@@ -300,38 +248,51 @@ async function checkGeospatialIndexes() {
       indexname LIKE '%lat%' OR
       indexname LIKE '%lng%'
     )
-  `
+  `)
 
-  if (indexQuery.length >= 3) {
-    console.log(`✅ Found ${indexQuery.length} geospatial indexes:`)
-    for (const idx of indexQuery) {
+  if (result.rows.length >= 3) {
+    console.log(`✅ Found ${result.rows.length} geospatial indexes:`)
+    for (const idx of result.rows) {
       console.log(`   - ${idx.indexname}`)
     }
   } else {
     logIssue({
       severity: 'warning',
       category: 'Missing Indexes',
-      message: `Expected at least 3 geospatial indexes, found ${indexQuery.length}`,
-      details: { found: indexQuery }
+      message: `Expected at least 3 geospatial indexes, found ${result.rows.length}`,
+      details: { found: result.rows }
     })
   }
 }
 
 async function main() {
-  console.log('🚀 Farm Companion Database Integrity Check')
+  console.log('🚀 Farm Companion Database Integrity Check (Pure SQL)')
   console.log('=' .repeat(60))
 
+  const databaseUrl = process.env.DATABASE_URL
+  if (!databaseUrl) {
+    console.error('❌ DATABASE_URL environment variable is required')
+    console.error('\nUsage:')
+    console.error('  DATABASE_URL="postgresql://..." tsx scripts/check-database-integrity-sql.ts')
+    process.exit(1)
+  }
+
+  const client = new Client({ connectionString: databaseUrl })
+
   try {
+    await client.connect()
+    console.log('✅ Connected to database')
+
     // Run all checks
-    await checkDatabaseStats()
-    await checkOrphanedPhotos()
-    await checkDuplicateSlugs()
-    await checkCoordinateBounds()
-    await checkRatingBounds()
-    await checkRequiredFields()
-    await checkStatusEnum()
-    await checkPhotoStatus()
-    await checkGeospatialIndexes()
+    await checkDatabaseStats(client)
+    await checkOrphanedPhotos(client)
+    await checkDuplicateSlugs(client)
+    await checkCoordinateBounds(client)
+    await checkRatingBounds(client)
+    await checkRequiredFields(client)
+    await checkStatusEnum(client)
+    await checkPhotoStatus(client)
+    await checkGeospatialIndexes(client)
 
     // Summary
     console.log('\n' + '='.repeat(60))
@@ -376,7 +337,7 @@ async function main() {
     console.error('❌ Error running integrity check:', error)
     process.exit(1)
   } finally {
-    await prisma.$disconnect()
+    await client.end()
   }
 }
 
