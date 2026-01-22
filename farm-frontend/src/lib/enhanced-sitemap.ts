@@ -4,6 +4,9 @@
 import { prisma } from '@/lib/prisma'
 import { SITE_URL } from './site'
 import { PRODUCE } from '@/data/produce'
+import { createRouteLogger } from './logger'
+
+const logger = createRouteLogger('sitemap-generator')
 
 export interface SitemapEntry {
   url: string
@@ -155,7 +158,9 @@ export async function generateFarmShopsSitemap(): Promise<SitemapEntry[]> {
       })) || []
     }))
   } catch (error) {
-    console.error('Error generating farm shops sitemap:', error)
+    logger.warn('Database unavailable for farm shops sitemap generation, returning empty array', {
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
     return []
   }
 }
@@ -196,7 +201,9 @@ export async function generateCountyPagesSitemap(): Promise<SitemapEntry[]> {
       lastModified: new Date()
     }))
   } catch (error) {
-    console.error('Error generating county pages sitemap:', error)
+    logger.warn('Database unavailable for county pages sitemap generation, returning empty array', {
+      error: error instanceof Error ? error.message : 'Unknown error'
+    })
     return []
   }
 }
