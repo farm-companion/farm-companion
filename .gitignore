@@ -76,7 +76,7 @@ dist
 
 # Gatsby files
 .cache/
-public
+# Note: 'public' removed - was incorrectly ignoring farm-frontend/public assets
 
 # Storybook build outputs
 .out
