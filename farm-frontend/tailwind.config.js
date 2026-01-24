@@ -239,11 +239,17 @@ module.exports = {
         'border-focus': 'var(--border-focus)',
       },
       
-      // Modern Swiss Minimalism Typography - Awwwards-grade clarity
+      // Tri-Typeface Strategy - Instrument Hierarchy
       fontFamily: {
+        // Clash Display: Brand & Headlines (bold, industrial)
         'primary': ['var(--font-primary)', 'system-ui', '-apple-system', 'sans-serif'],
+        // Manrope: Body & Content (modern, geometric, maximum legibility)
         'body': ['var(--font-body)', 'system-ui', '-apple-system', 'sans-serif'],
+        // IBM Plex Sans Condensed: UI Labels & Buttons (tight, functional)
         'accent': ['var(--font-accent)', 'system-ui', '-apple-system', 'sans-serif'],
+        // IBM Plex Mono: Data & Metrics (technical, precise, tabular figures)
+        'mono': ['var(--font-mono)', 'SF Mono', 'Monaco', 'Inconsolata', 'monospace'],
+        // Crimson Pro: Editorial serif
         'serif': ['var(--font-serif)', 'Georgia', 'Cambria', 'serif'],
         // Legacy aliases for backward compatibility
         'heading': ['var(--font-primary)', 'system-ui', '-apple-system', 'sans-serif'],
