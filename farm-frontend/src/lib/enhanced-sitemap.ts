@@ -1,10 +1,12 @@
 // Enhanced Sitemap Generator with SEO Optimization
 // PuredgeOS 3.0 Compliant Sitemap Management
 
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import { SITE_URL } from './site'
 import { PRODUCE } from '@/data/produce'
+import { getFarmData } from '@/lib/farm-data'
+import { logger } from '@/lib/logger'
+
+const sitemapLogger = logger.child({ route: 'lib/enhanced-sitemap' })
 
 export interface SitemapEntry {
   url: string
@@ -121,24 +123,22 @@ export function generateStaticPagesSitemap(): SitemapEntry[] {
 // Generate farm shops sitemap
 export async function generateFarmShopsSitemap(): Promise<SitemapEntry[]> {
   try {
-    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
-    const farmsData = await fs.readFile(farmsPath, 'utf-8')
-    const farms = JSON.parse(farmsData)
+    const farms = await getFarmData()
 
-    return farms.map((farm: any) => ({
+    return farms.map((farm) => ({
       url: `/shop/${farm.slug}`,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
-      lastModified: farm.updatedAt ? new Date(farm.updatedAt) : new Date(),
-      images: farm.images?.map((img: any) => ({
-        url: img.url,
-        caption: img.alt || `${farm.name} - Farm Shop`,
+      lastModified: new Date(),
+      images: farm.images?.map((imgUrl) => ({
+        url: imgUrl,
+        caption: `${farm.name} - Farm Shop`,
         title: `${farm.name} - Farm Shop in ${farm.location.county}`,
         geoLocation: `${farm.location.lat}, ${farm.location.lng}`
       })) || []
     }))
   } catch (error) {
-    console.error('Error generating farm shops sitemap:', error)
+    sitemapLogger.error('Error generating farm shops sitemap', {}, error as Error)
     return []
   }
 }
@@ -161,12 +161,10 @@ export function generateSeasonalProduceSitemap(): SitemapEntry[] {
 // Generate county pages sitemap
 export async function generateCountyPagesSitemap(): Promise<SitemapEntry[]> {
   try {
-    const farmsPath = path.join(process.cwd(), 'data', 'farms.json')
-    const farmsData = await fs.readFile(farmsPath, 'utf-8')
-    const farms = JSON.parse(farmsData)
+    const farms = await getFarmData()
 
     // Get unique counties
-    const counties = [...new Set(farms.map((farm: any) => farm.location.county).filter(Boolean))] as string[]
+    const counties = [...new Set(farms.map((farm) => farm.location.county).filter(Boolean))] as string[]
 
     return counties.map((county: string) => ({
       url: `/counties/${encodeURIComponent(county.toLowerCase().replace(/\s+/g, '-'))}`,
@@ -175,7 +173,7 @@ export async function generateCountyPagesSitemap(): Promise<SitemapEntry[]> {
       lastModified: new Date()
     }))
   } catch (error) {
-    console.error('Error generating county pages sitemap:', error)
+    sitemapLogger.error('Error generating county pages sitemap', {}, error as Error)
     return []
   }
 }

@@ -1,5 +1,8 @@
 // src/lib/redis.ts
 import { createClient } from 'redis';
+import { logger } from '@/lib/logger'
+
+const redisLogger = logger.child({ route: 'lib/redis' })
 
 // Create Redis client
 const redis = createClient({
@@ -33,10 +36,10 @@ async function ensureConnection() {
       // Connect if not already connected
       await redis.connect();
       isConnected = true;
-      console.log('Redis Client Connected');
+      redisLogger.info('Redis Client Connected');
       return redis;
     } catch (error) {
-      console.error('Redis connection error:', error);
+      redisLogger.error('Redis connection error', {}, error as Error);
       
       // If already connected, don't throw
       if (error instanceof Error && 
@@ -60,18 +63,18 @@ async function ensureConnection() {
 
 // Handle connection events
 redis.on('error', (err) => {
-  console.error('Redis Client Error:', err);
+  redisLogger.error('Redis Client Error', {}, err as Error);
   isConnected = false;
   connectionPromise = null;
 });
 
 redis.on('connect', () => {
-  console.log('Redis Client Connected');
+  redisLogger.info('Redis Client Connected');
   isConnected = true;
 });
 
 redis.on('disconnect', () => {
-  console.log('Redis Client Disconnected');
+  redisLogger.info('Redis Client Disconnected');
   isConnected = false;
   connectionPromise = null;
 });

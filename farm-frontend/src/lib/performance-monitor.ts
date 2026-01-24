@@ -2,6 +2,9 @@
 // PuredgeOS 3.0 Compliant Performance Monitoring
 
 import { kv } from '@vercel/kv'
+import { logger } from '@/lib/logger'
+
+const perfLogger = logger.child({ route: 'lib/performance-monitor' })
 
 export interface PerformanceMetrics {
   route: string
@@ -129,7 +132,7 @@ export class PerformanceMonitor {
         await this.updateAggregatedStats(metrics)
       }
     } catch (error) {
-      console.error('Failed to flush performance metrics:', error)
+      perfLogger.error('Failed to flush performance metrics', {}, error as Error)
     }
   }
 
@@ -154,7 +157,7 @@ export class PerformanceMonitor {
         await kv.expire(bucketKey, 3600)
       }
     } catch (error) {
-      console.error('Failed to flush Web Vitals metrics:', error)
+      perfLogger.error('Failed to flush Web Vitals metrics', {}, error as Error)
     }
   }
 
@@ -179,7 +182,7 @@ export class PerformanceMonitor {
         await kv.expire(bucketKey, 3600)
       }
     } catch (error) {
-      console.error('Failed to flush cache metrics:', error)
+      perfLogger.error('Failed to flush cache metrics', {}, error as Error)
     }
   }
 
@@ -204,7 +207,7 @@ export class PerformanceMonitor {
         await kv.expire(bucketKey, 3600)
       }
     } catch (error) {
-      console.error('Failed to flush database metrics:', error)
+      perfLogger.error('Failed to flush database metrics', {}, error as Error)
     }
   }
 
@@ -247,7 +250,7 @@ export class PerformanceMonitor {
         await kv.setex(statsKey, 86400, JSON.stringify(statsData)) // 24 hour TTL
       }
     } catch (error) {
-      console.error('Failed to update aggregated stats:', error)
+      perfLogger.error('Failed to update aggregated stats', {}, error as Error)
     }
   }
 
@@ -335,7 +338,7 @@ export class PerformanceMonitor {
         topErrorRoutes
       }
     } catch (error) {
-      console.error('Failed to get performance summary:', error)
+      perfLogger.error('Failed to get performance summary', { hours }, error as Error)
       return {
         totalRequests: 0,
         avgResponseTime: 0,
@@ -435,7 +438,7 @@ export class PerformanceMonitor {
         }
       }
     } catch (error) {
-      console.error('Failed to get Web Vitals summary:', error)
+      perfLogger.error('Failed to get Web Vitals summary', { hours }, error as Error)
       return {
         lcp: { p50: 0, p75: 0, p95: 0 },
         fid: { p50: 0, p75: 0, p95: 0 },

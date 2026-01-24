@@ -1,9 +1,7 @@
-import type { FarmShop } from '@/types/farm'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import ClaimForm from '@/components/ClaimForm'
+import { getFarmBySlug } from '@/lib/farm-data'
 
 export const dynamic = 'force-dynamic'
 
@@ -17,14 +15,13 @@ export const metadata = {
 
 export default async function ClaimPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const farms = await readFarms()
-  const shop = farms.find((f) => f.slug === slug)
-  
+  const shop = await getFarmBySlug(slug)
+
   if (!shop) return notFound()
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-8">
-      <Link href={`/shop/${slug}`} className="text-sm underline hover:no-underline">
+      <Link href={`/shop/${slug}`} className="text-caption underline hover:no-underline">
         ← Back to {shop.name}
       </Link>
 
@@ -40,10 +37,4 @@ export default async function ClaimPage({ params }: { params: Promise<{ slug: st
       </div>
     </main>
   )
-}
-
-async function readFarms(): Promise<FarmShop[]> {
-  const file = path.join(process.cwd(), 'data', 'farms.json')
-  const raw = await fs.readFile(file, 'utf8')
-  return JSON.parse(raw) as FarmShop[]
 }

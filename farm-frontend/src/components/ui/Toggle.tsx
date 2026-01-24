@@ -67,7 +67,7 @@ export function Toggle({
             <label
               htmlFor={toggleId}
               className={cn(
-                'text-sm font-medium leading-none',
+                'text-caption font-medium leading-none',
                 'peer-disabled:cursor-not-allowed peer-disabled:opacity-70',
                 'cursor-pointer'
               )}
@@ -76,7 +76,7 @@ export function Toggle({
             </label>
           )}
           {description && (
-            <p className="text-sm text-slate-500 dark:text-slate-400">{description}</p>
+            <p className="text-caption text-slate-500 dark:text-slate-400">{description}</p>
           )}
         </div>
       )}

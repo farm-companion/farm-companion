@@ -82,11 +82,11 @@ export default function ContactForm() {
   if (status === 'success') {
     return (
       <div className="rounded-lg border p-6 bg-green-50 border-green-200">
-        <h2 className="text-lg font-semibold text-green-900 mb-2">Thanks—message sent!</h2>
-        <p className="text-green-800 text-sm mb-4">
+        <h2 className="text-body font-semibold text-green-900 mb-2">Thanks—message sent!</h2>
+        <p className="text-green-800 text-caption mb-4">
           We&apos;ll reply to <span className="font-mono">your email</span> soon. You&apos;ll also receive an acknowledgement.
         </p>
-        <div className="text-xs text-green-700">
+        <div className="text-small text-green-700">
           We typically respond within 24-48 hours during business days.
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function ContactForm() {
       />
 
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-text-body mb-2">
+        <label htmlFor="name" className="block text-caption font-medium text-text-body mb-2">
           Name *
         </label>
         <input 
@@ -115,7 +115,7 @@ export default function ContactForm() {
           name="name" 
           type="text"
           required
-          className={`w-full rounded-lg border px-4 py-3 text-sm bg-background-surface text-text-body
+          className={`w-full rounded-lg border px-4 py-3 text-caption bg-background-surface text-text-body
                      focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
                      placeholder-text-muted ${
                        errors.name ? 'border-red-500' : 'border-border-default'
@@ -125,12 +125,12 @@ export default function ContactForm() {
           aria-describedby={errors.name ? 'err-name' : undefined}
         />
         {errors.name && (
-          <p id="err-name" className="mt-1 text-sm text-red-600">{errors.name}</p>
+          <p id="err-name" className="mt-1 text-caption text-red-600">{errors.name}</p>
         )}
       </div>
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-text-body mb-2">
+        <label htmlFor="email" className="block text-caption font-medium text-text-body mb-2">
           Email *
         </label>
         <input 
@@ -138,7 +138,7 @@ export default function ContactForm() {
           name="email" 
           type="email" 
           required
-          className={`w-full rounded-lg border px-4 py-3 text-sm bg-background-surface text-text-body
+          className={`w-full rounded-lg border px-4 py-3 text-caption bg-background-surface text-text-body
                      focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
                      placeholder-text-muted ${
                        errors.email ? 'border-red-500' : 'border-border-default'
@@ -148,18 +148,18 @@ export default function ContactForm() {
           aria-describedby={errors.email ? 'err-email' : undefined}
         />
         {errors.email && (
-          <p id="err-email" className="mt-1 text-sm text-red-600">{errors.email}</p>
+          <p id="err-email" className="mt-1 text-caption text-red-600">{errors.email}</p>
         )}
       </div>
 
       <div>
-        <label htmlFor="topic" className="block text-sm font-medium text-text-body mb-2">
+        <label htmlFor="topic" className="block text-caption font-medium text-text-body mb-2">
           Topic *
         </label>
         <select 
           id="topic" 
           name="topic" 
-          className="w-full rounded-lg border border-border-default px-4 py-3 text-sm bg-background-surface text-text-body
+          className="w-full rounded-lg border border-border-default px-4 py-3 text-caption bg-background-surface text-text-body
                      focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
         >
           <option value="general">General</option>
@@ -170,7 +170,7 @@ export default function ContactForm() {
       </div>
 
       <div>
-        <label htmlFor="message" className="block text-sm font-medium text-text-body mb-2">
+        <label htmlFor="message" className="block text-caption font-medium text-text-body mb-2">
           Message *
         </label>
         <textarea 
@@ -178,7 +178,7 @@ export default function ContactForm() {
           name="message" 
           rows={6}
           required
-          className={`w-full rounded-lg border px-4 py-3 text-sm bg-background-surface text-text-body
+          className={`w-full rounded-lg border px-4 py-3 text-caption bg-background-surface text-text-body
                      focus:border-brand-primary focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2
                      placeholder-text-muted ${
                        errors.message ? 'border-red-500' : 'border-border-default'
@@ -188,7 +188,7 @@ export default function ContactForm() {
           aria-describedby={errors.message ? 'err-message' : undefined}
         />
         {errors.message && (
-          <p id="err-message" className="mt-1 text-sm text-red-600">{errors.message}</p>
+          <p id="err-message" className="mt-1 text-caption text-red-600">{errors.message}</p>
         )}
       </div>
 
@@ -201,7 +201,7 @@ export default function ContactForm() {
           className="mt-1 rounded border-border-default text-brand-primary focus:ring-brand-primary"
           aria-invalid={!!errors.consent}
         />
-        <label htmlFor="consent" className="text-sm text-text-body">
+        <label htmlFor="consent" className="text-caption text-text-body">
           I&apos;ve read the{' '}
           <a 
             className="underline text-brand-primary hover:text-brand-primary/80" 
@@ -215,12 +215,12 @@ export default function ContactForm() {
         </label>
       </div>
       {errors.consent && (
-        <p className="text-sm text-red-600">{errors.consent}</p>
+        <p className="text-caption text-red-600">{errors.consent}</p>
       )}
 
       {status === 'error' && (
         <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-800">{serverMsg}</p>
+          <p className="text-caption text-red-800">{serverMsg}</p>
         </div>
       )}
 

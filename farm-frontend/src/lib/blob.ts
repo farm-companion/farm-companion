@@ -1,5 +1,8 @@
 // src/lib/blob.ts
 import { head, put } from '@vercel/blob'
+import { logger } from '@/lib/logger'
+
+const blobUtilLogger = logger.child({ route: 'lib/blob' })
 
 export function buildObjectKey(farmSlug: string, photoId: string, contentType?: string) {
   // Determine file extension from content type
@@ -26,7 +29,7 @@ export function fixPhotoUrl(url: string): string {
     const extensions = ['webp', 'jpg', 'png', 'jpeg']
     for (const ext of extensions) {
       const fixedUrl = url.replace('/main', `/main.${ext}`)
-      console.log(`Trying fixed URL: ${fixedUrl}`)
+      blobUtilLogger.debug('Trying fixed URL', { fixedUrl })
       // Note: We can't actually test the URL here, but we can return the most likely one
       if (ext === 'webp') return fixedUrl // Default to webp
     }
@@ -39,7 +42,7 @@ export async function uploadToBlob(file: File, pathname: string): Promise<{ url:
     const blob = await put(pathname, file, { access: 'public', addRandomSuffix: false })
     return { url: blob.url }
   } catch (error) {
-    console.error('Blob upload error:', error)
+    blobUtilLogger.error('Blob upload error', { pathname }, error as Error)
     throw new Error('Failed to upload to blob storage')
   }
 }
@@ -51,11 +54,11 @@ export async function createUploadUrl(opts: {
 }): Promise<{ uploadUrl: string }> {
   try {
     // Return the upload endpoint URL - the data will be sent in the form body
-    return { 
+    return {
       uploadUrl: `/api/photos/upload-blob`
     }
   } catch (error) {
-    console.error('Error creating upload URL:', error)
+    blobUtilLogger.error('Error creating upload URL', { pathname: opts.pathname }, error as Error)
     throw new Error('Failed to create upload URL')
   }
 }

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
     // Validate input
     let subscriptionData
     try {
-      subscriptionData = await validateAndSanitize(ValidationSchemas.newsletterForm, body, {
+      subscriptionData = await validateAndSanitize(ValidationSchemas.newsletterSubscription, body, {
         sanitize: true,
         strict: false,
       })

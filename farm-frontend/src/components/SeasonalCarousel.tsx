@@ -176,7 +176,7 @@ export function SeasonalCarousel({ className = '' }: SeasonalCarouselProps) {
               In Season Now
             </h2>
           </div>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-body text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Discover what's fresh and available at local farms this month
           </p>
         </div>
@@ -219,7 +219,7 @@ export function SeasonalCarousel({ className = '' }: SeasonalCarouselProps) {
                     transition={{ delay: 0.2, duration: 0.5 }}
                     className="max-w-xl"
                   >
-                    <span className="inline-block px-3 py-1 bg-brand-accent text-obsidian text-sm font-semibold rounded-full mb-4">
+                    <span className="inline-block px-3 py-1 bg-brand-accent text-obsidian text-caption font-semibold rounded-full mb-4">
                       {seasonalItems[currentIndex].month}
                     </span>
 
@@ -227,11 +227,11 @@ export function SeasonalCarousel({ className = '' }: SeasonalCarouselProps) {
                       {seasonalItems[currentIndex].name}
                     </h3>
 
-                    <p className="text-white/90 text-lg mb-2">
+                    <p className="text-white/90 text-body mb-2">
                       {seasonalItems[currentIndex].description}
                     </p>
 
-                    <p className="text-white/70 text-sm mb-6">
+                    <p className="text-white/70 text-caption mb-6">
                       Available at {seasonalItems[currentIndex].farmCount} farms
                     </p>
 

@@ -63,9 +63,9 @@ const badgeVariants = cva(
         ],
       },
       size: {
-        sm: 'px-2 py-0.5 text-xs gap-1',
-        md: 'px-2.5 py-1 text-sm gap-1.5',
-        lg: 'px-3 py-1.5 text-base gap-2',
+        sm: 'px-2 py-0.5 text-small gap-1',
+        md: 'px-2.5 py-1 text-caption gap-1.5',
+        lg: 'px-3 py-1.5 text-body gap-2',
       },
       interactive: {
         true: 'cursor-pointer hover:shadow-md active:scale-95',

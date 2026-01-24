@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 
 const buttonVariants = cva(
   [
-    'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors',
+    'inline-flex items-center justify-center rounded-md text-caption font-medium transition-colors',
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     'disabled:pointer-events-none disabled:opacity-50',
     'touch-target', // PuredgeOS minimum touch target
@@ -38,10 +38,10 @@ const buttonVariants = cva(
         ],
       },
       size: {
-        sm: 'h-8 px-3 text-xs',
+        sm: 'h-8 px-3 text-small',
         md: 'h-10 px-4 py-2',
-        lg: 'h-12 px-6 text-base',
-        xl: 'h-14 px-8 text-lg',
+        lg: 'h-12 px-6 text-body',
+        xl: 'h-14 px-8 text-body',
       },
     },
     defaultVariants: {

@@ -141,11 +141,11 @@ function ComparePageContent() {
               <div className="p-6">
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <h2 className="text-xl font-semibold mb-1">{farm.name}</h2>
-                    <p className="text-sm text-text-muted">{farm.location.city}, {farm.location.county}</p>
+                    <h2 className="text-heading font-semibold mb-1">{farm.name}</h2>
+                    <p className="text-caption text-text-muted">{farm.location.city}, {farm.location.county}</p>
                   </div>
                   {farm.verified && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-success-light text-success-dark font-medium">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-small bg-success-light text-success-dark font-medium">
                       ✓ Verified
                     </span>
                   )}
@@ -222,8 +222,8 @@ function ComparePageContent() {
 function ComparisonMetric({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between items-center py-2 border-b border-slate-100">
-      <span className="text-sm font-medium text-text-muted">{label}</span>
-      <span className="text-sm font-semibold">{value}</span>
+      <span className="text-caption font-medium text-text-muted">{label}</span>
+      <span className="text-caption font-semibold">{value}</span>
     </div>
   )
 }

@@ -45,17 +45,17 @@ export function FarmPageClient({
 
   return (
     <>
-      {/* Enhanced Hero Section - PuredgeOS 3.0 Premium with Animations */}
+      {/* Enhanced Hero Section - PuredgeOS 3.0 Premium */}
       <section className="relative overflow-hidden bg-gradient-to-br from-background-surface via-background-canvas to-background-surface">
-        {/* Sophisticated animated background patterns */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.04),transparent_50%)] animate-pulse" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.03),transparent_50%)] animate-pulse" style={{ animationDelay: '1s' }} />
+        {/* Static background patterns - animations removed for performance */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.04),transparent_50%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.03),transparent_50%)]" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,31,35,0.02),transparent_70%)]" />
 
-        {/* Floating accent elements */}
-        <div className="absolute top-20 left-10 w-2 h-2 bg-serum rounded-full opacity-60 animate-bounce" style={{ animationDelay: '0.5s' }} />
-        <div className="absolute top-32 right-20 w-1 h-1 bg-solar rounded-full opacity-40 animate-ping" style={{ animationDelay: '1.5s' }} />
-        <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-50 animate-pulse" style={{ animationDelay: '2s' }} />
+        {/* Static accent elements - animations removed for performance */}
+        <div className="absolute top-20 left-10 w-2 h-2 bg-serum rounded-full opacity-40" />
+        <div className="absolute top-32 right-20 w-1 h-1 bg-solar rounded-full opacity-30" />
+        <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-35" />
 
         <div className="relative max-w-7xl mx-auto px-6 py-16">
           {/* Enhanced Navigation */}
@@ -67,7 +67,7 @@ export function FarmPageClient({
           >
             <Link
               href="/map"
-              className="inline-flex items-center gap-3 text-sm text-text-muted hover:text-serum transition-all duration-300 group bg-background-surface/50 backdrop-blur-sm px-4 py-2 rounded-full border border-border-default/30 hover:border-serum/50"
+              className="inline-flex items-center gap-3 text-caption text-text-muted hover:text-serum transition-all duration-300 group bg-background-surface/50 backdrop-blur-sm px-4 py-2 rounded-full border border-border-default/30 hover:border-serum/50"
             >
               <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
               Back to map
@@ -89,12 +89,12 @@ export function FarmPageClient({
               {verified && (
                 <div className="flex items-center gap-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 px-6 py-3 rounded-full border border-emerald-200 dark:border-emerald-800 shadow-lg backdrop-blur-sm">
                   <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">Verified Farm Shop</span>
+                  <span className="text-caption font-semibold text-emerald-700 dark:text-emerald-300">Verified Farm Shop</span>
                   <Sparkles className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
                 </div>
               )}
               {/* Real-time Status Badge */}
-              <StatusBadge openingHours={hours} className="text-base px-6 py-3 shadow-lg" />
+              <StatusBadge openingHours={hours} className="text-body px-6 py-3 shadow-lg" />
             </motion.div>
 
             {/* Enhanced typography with premium styling */}
@@ -110,7 +110,7 @@ export function FarmPageClient({
             {/* Enhanced location display */}
             <motion.div
               variants={fadeInUp}
-              className="flex items-center justify-center gap-3 text-xl text-text-muted mb-12"
+              className="flex items-center justify-center gap-3 text-heading text-text-muted mb-12"
             >
               <div className="p-2 bg-background-surface/50 backdrop-blur-sm rounded-full border border-border-default/30">
                 <MapPin className="w-6 h-6 text-serum" />
@@ -129,7 +129,7 @@ export function FarmPageClient({
                 rel="noreferrer"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.98 }}
-                className="group bg-gradient-to-r from-serum to-teal-500 text-black px-10 py-5 rounded-2xl font-bold text-lg hover:from-teal-500 hover:to-serum transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-3xl"
+                className="group bg-gradient-to-r from-serum to-teal-500 text-black px-10 py-5 rounded-2xl font-bold text-body hover:from-teal-500 hover:to-serum transition-all duration-300 inline-flex items-center justify-center gap-3 shadow-2xl hover:shadow-3xl"
               >
                 <Navigation className="w-6 h-6 transition-transform group-hover:scale-110" />
                 Get Directions
@@ -138,7 +138,7 @@ export function FarmPageClient({
               <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.98 }}>
                 <Link
                   href={`/claim/${shop.slug}`}
-                  className="group border-2 border-serum text-serum dark:text-serum px-10 py-5 rounded-2xl font-bold text-lg hover:bg-serum hover:text-black dark:hover:bg-serum dark:hover:text-black transition-all duration-300 inline-flex items-center justify-center gap-3 backdrop-blur-sm bg-background-surface/30 hover:shadow-xl"
+                  className="group border-2 border-serum text-serum dark:text-serum px-10 py-5 rounded-2xl font-bold text-body hover:bg-serum hover:text-black dark:hover:bg-serum dark:hover:text-black transition-all duration-300 inline-flex items-center justify-center gap-3 backdrop-blur-sm bg-background-surface/30 hover:shadow-xl"
                 >
                   <Heart className="w-6 h-6 transition-transform group-hover:scale-110" />
                   Claim This Shop
@@ -164,7 +164,7 @@ export function FarmPageClient({
                 <Camera className="w-8 h-8 text-serum" />
                 Gallery
               </h2>
-              <p className="text-text-muted text-lg">Discover the beauty of {name}</p>
+              <p className="text-text-muted text-body">Discover the beauty of {name}</p>
             </motion.div>
             <motion.div
               initial="initial"
@@ -201,7 +201,7 @@ export function FarmPageClient({
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                       <div className="absolute bottom-4 left-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
                         <div className="bg-background-surface/90 backdrop-blur-sm rounded-xl p-3">
-                          <p className="text-sm font-medium text-text-heading">Photo {index + 1}</p>
+                          <p className="text-caption font-medium text-text-heading">Photo {index + 1}</p>
                         </div>
                       </div>
                     </div>
@@ -253,8 +253,8 @@ export function FarmPageClient({
                       key={index}
                       className={`text-text-muted leading-relaxed ${
                         index === 0
-                          ? 'text-xl font-medium text-text-heading mb-8 leading-tight'
-                          : 'text-lg mb-6'
+                          ? 'text-heading font-medium text-text-heading mb-8 leading-tight'
+                          : 'text-body mb-6'
                       }`}
                     >
                       {paragraph}
@@ -265,7 +265,7 @@ export function FarmPageClient({
                 <div className="mt-12 pt-8 border-t border-border-default/50">
                   <div className="flex items-center gap-4 p-6 bg-gradient-to-r from-serum/10 to-teal-500/10 rounded-2xl border border-serum/20">
                     <div className="w-3 h-3 bg-serum rounded-full animate-pulse" />
-                    <p className="text-lg font-medium text-text-heading italic">
+                    <p className="text-body font-medium text-text-heading italic">
                       Visit us to experience authentic local produce and traditional farming values.
                     </p>
                   </div>
@@ -298,7 +298,7 @@ export function FarmPageClient({
                       className="group flex items-center gap-3 p-4 rounded-2xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-all duration-300"
                     >
                       <div className="w-3 h-3 bg-serum rounded-full group-hover:scale-125 transition-transform duration-300" />
-                      <span className="text-sm font-semibold text-text-body group-hover:text-serum transition-colors">{offering}</span>
+                      <span className="text-caption font-semibold text-text-body group-hover:text-serum transition-colors">{offering}</span>
                     </motion.div>
                   ))}
                 </motion.div>
@@ -321,7 +321,7 @@ export function FarmPageClient({
                       Add Photos
                     </h2>
                     <div className="flex items-center gap-3">
-                      <span className="text-lg text-text-muted group-open:hidden">Share your experience</span>
+                      <span className="text-body text-text-muted group-open:hidden">Share your experience</span>
                       <div className="w-8 h-8 bg-background-canvas rounded-full flex items-center justify-center border border-border-default/30 group-hover:border-serum/50 transition-colors">
                         <span className="text-text-muted group-open:hidden">▼</span>
                         <span className="text-text-muted hidden group-open:inline">▲</span>
@@ -330,7 +330,7 @@ export function FarmPageClient({
                   </div>
                 </summary>
                 <div className="mt-10 pt-8 border-t border-border-default/50">
-                  <p className="text-text-muted text-lg mb-8">
+                  <p className="text-text-muted text-body mb-8">
                     Help other visitors by sharing photos of this farm shop.
                     Your photos will be reviewed before being added to the page.
                   </p>
@@ -356,7 +356,7 @@ export function FarmPageClient({
               variants={staggerItem}
               className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 shadow-2xl border border-border-default/30"
             >
-              <h3 className="text-xl font-heading font-bold text-text-heading mb-6 flex items-center gap-3">
+              <h3 className="text-heading font-heading font-bold text-text-heading mb-6 flex items-center gap-3">
                 <Phone className="w-6 h-6 text-serum" />
                 Contact Information
               </h3>
@@ -375,7 +375,7 @@ export function FarmPageClient({
                     className="group flex items-center gap-4 p-4 rounded-2xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-all duration-300 transform hover:scale-105"
                   >
                     <Globe className="w-6 h-6 text-serum" />
-                    <span className="text-sm font-semibold text-text-body group-hover:text-serum transition-colors">
+                    <span className="text-caption font-semibold text-text-body group-hover:text-serum transition-colors">
                       Visit Website
                     </span>
                     <ExternalLink className="w-5 h-5 text-text-muted ml-auto group-hover:text-serum transition-colors" />
@@ -390,15 +390,15 @@ export function FarmPageClient({
                 variants={staggerItem}
                 className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 shadow-2xl border border-border-default/30"
               >
-                <h3 className="text-xl font-heading font-bold text-text-heading mb-6 flex items-center gap-3">
+                <h3 className="text-heading font-heading font-bold text-text-heading mb-6 flex items-center gap-3">
                   <Clock className="w-6 h-6 text-serum" />
                   Opening Hours
                 </h3>
                 <div className="space-y-3">
                   {hours.map((hour) => (
                     <div key={hour.day} className="flex justify-between items-center py-3 border-b border-border-default/30 last:border-b-0">
-                      <span className="text-sm font-semibold text-text-body">{hour.day}</span>
-                      <span className="text-sm text-text-muted font-medium">
+                      <span className="text-caption font-semibold text-text-body">{hour.day}</span>
+                      <span className="text-caption text-text-muted font-medium">
                         {hour.open} - {hour.close}
                       </span>
                     </div>
@@ -412,7 +412,7 @@ export function FarmPageClient({
               variants={staggerItem}
               className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 shadow-2xl border border-border-default/30"
             >
-              <h3 className="text-xl font-heading font-bold text-text-heading mb-6 flex items-center gap-3">
+              <h3 className="text-heading font-heading font-bold text-text-heading mb-6 flex items-center gap-3">
                 <Navigation className="w-6 h-6 text-serum" />
                 Explore More
               </h3>
@@ -423,7 +423,7 @@ export function FarmPageClient({
                     className="group flex items-center gap-4 p-4 rounded-2xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-all duration-300 transform hover:scale-105"
                   >
                     <MapPin className="w-6 h-6 text-serum" />
-                    <span className="text-sm font-semibold text-text-body group-hover:text-serum transition-colors">
+                    <span className="text-caption font-semibold text-text-body group-hover:text-serum transition-colors">
                       More in {location.county}
                     </span>
                     <ArrowRight className="w-5 h-5 text-text-muted ml-auto group-hover:text-serum transition-colors" />
@@ -434,7 +434,7 @@ export function FarmPageClient({
                   className="group flex items-center gap-4 p-4 rounded-2xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-all duration-300 transform hover:scale-105"
                 >
                   <Map className="w-6 h-6 text-serum" />
-                  <span className="text-sm font-semibold text-text-body group-hover:text-serum transition-colors">
+                  <span className="text-caption font-semibold text-text-body group-hover:text-serum transition-colors">
                     View on Map
                   </span>
                   <ArrowRight className="w-5 h-5 text-text-muted ml-auto group-hover:text-serum transition-colors" />
@@ -444,7 +444,7 @@ export function FarmPageClient({
                   className="group flex items-center gap-4 p-4 rounded-2xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-all duration-300 transform hover:scale-105"
                 >
                   <MapPin className="w-6 h-6 text-serum" />
-                  <span className="text-sm font-semibold text-text-body group-hover:text-serum transition-colors">
+                  <span className="text-caption font-semibold text-text-body group-hover:text-serum transition-colors">
                     Nearby Farms
                   </span>
                   <ArrowRight className="w-5 h-5 text-text-muted ml-auto group-hover:text-serum transition-colors" />
@@ -454,7 +454,7 @@ export function FarmPageClient({
                   className="group flex items-center gap-4 p-4 rounded-2xl bg-background-canvas border border-border-default/30 hover:border-serum/50 transition-all duration-300 transform hover:scale-105"
                 >
                   <Calendar className="w-6 h-6 text-serum" />
-                  <span className="text-sm font-semibold text-text-body group-hover:text-serum transition-colors">
+                  <span className="text-caption font-semibold text-text-body group-hover:text-serum transition-colors">
                     What&apos;s in Season
                   </span>
                   <ArrowRight className="w-5 h-5 text-text-muted ml-auto group-hover:text-serum transition-colors" />
@@ -468,7 +468,7 @@ export function FarmPageClient({
       {/* Footer */}
       <footer className="bg-gradient-to-b from-background-surface to-background-canvas border-t border-border-default">
         <div className="max-w-6xl mx-auto px-6 py-12">
-          <p className="text-sm text-text-muted text-center">
+          <p className="text-caption text-text-muted text-center">
             Spot an issue with this listing?{' '}
             <a
               className="underline hover:no-underline hover:text-serum transition-colors font-medium"

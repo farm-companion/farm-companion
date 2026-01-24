@@ -83,7 +83,7 @@ export default function SeasonalGrid({
     <div className="space-y-12">
       {/* Month Selector */}
       <div className="flex flex-col items-center gap-4">
-        <h3 className="text-sm font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wider text-[#2D3436]/60">
+        <h3 className="text-caption font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wider text-[#2D3436]/60">
           Filter by Month
         </h3>
         <div className="flex flex-wrap justify-center gap-2 max-w-5xl mx-auto">
@@ -92,7 +92,7 @@ export default function SeasonalGrid({
               key={month.value}
               onClick={() => setSelectedMonth(month.value)}
               className={`
-                px-4 py-2 rounded-full font-['IBM_Plex_Sans_Condensed'] font-medium text-sm
+                px-4 py-2 rounded-full font-['IBM_Plex_Sans_Condensed'] font-medium text-caption
                 transition-all duration-300 hover:scale-105
                 ${selectedMonth === month.value
                   ? 'bg-[#1a3a2a] text-white shadow-lg'
@@ -105,7 +105,7 @@ export default function SeasonalGrid({
             </button>
           ))}
         </div>
-        <p className="text-sm text-[#2D3436]/60 font-['Manrope']">
+        <p className="text-caption text-[#2D3436]/60 font-['Manrope']">
           {selectedMonth === 0
             ? `Showing all ${gridItems.length} items`
             : `${gridItems.length} items available in ${MONTHS[selectedMonth].label}`
@@ -125,7 +125,7 @@ export default function SeasonalGrid({
             </h3>
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#A8E6CF]/20 border border-[#A8E6CF]">
               <span className="w-2 h-2 rounded-full bg-[#A8E6CF] animate-pulse" />
-              <span className="text-xs font-['IBM_Plex_Sans_Condensed'] font-medium text-[#1a3a2a]">
+              <span className="text-small font-['IBM_Plex_Sans_Condensed'] font-medium text-[#1a3a2a]">
                 {inSeasonItems.length}
               </span>
             </span>
@@ -145,7 +145,7 @@ export default function SeasonalGrid({
               Coming Soon
             </h3>
             <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#6C7A89]/20 border border-[#6C7A89]">
-              <span className="text-xs font-['IBM_Plex_Sans_Condensed'] font-medium text-[#2D3436]">
+              <span className="text-small font-['IBM_Plex_Sans_Condensed'] font-medium text-[#2D3436]">
                 {comingSoonItems.length}
               </span>
             </span>
@@ -157,7 +157,7 @@ export default function SeasonalGrid({
       {/* Other Items Section (when filtering by month) */}
       {selectedMonth !== 0 && otherItems.length === 0 && gridItems.length === 0 && (
         <div className="text-center py-16">
-          <p className="text-xl text-[#2D3436]/60 font-['Manrope']">
+          <p className="text-heading text-[#2D3436]/60 font-['Manrope']">
             No produce in season during {MONTHS[selectedMonth].label}
           </p>
         </div>
@@ -239,7 +239,7 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
           {produce.isInSeasonForMonth && (
             <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/95 backdrop-blur-sm shadow-lg">
               <span className="w-2 h-2 rounded-full bg-[#A8E6CF] animate-pulse" />
-              <span className="text-xs font-['IBM_Plex_Sans_Condensed'] font-semibold text-[#1a3a2a]">
+              <span className="text-small font-['IBM_Plex_Sans_Condensed'] font-semibold text-[#1a3a2a]">
                 IN SEASON
               </span>
             </div>
@@ -250,7 +250,7 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
               <svg className="w-3 h-3 text-[#1a3a2a]" fill="currentColor" viewBox="0 0 20 20">
                 <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
               </svg>
-              <span className="text-xs font-['IBM_Plex_Sans_Condensed'] font-semibold text-[#1a3a2a]">
+              <span className="text-small font-['IBM_Plex_Sans_Condensed'] font-semibold text-[#1a3a2a]">
                 PEAK
               </span>
             </div>
@@ -258,7 +258,7 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
 
           {produce.isComingSoon && !produce.isInSeasonForMonth && (
             <div className="absolute top-4 right-4 px-3 py-1.5 rounded-full bg-[#6C7A89] text-white shadow-lg">
-              <span className="text-xs font-['IBM_Plex_Sans_Condensed'] font-semibold">
+              <span className="text-small font-['IBM_Plex_Sans_Condensed'] font-semibold">
                 COMING SOON
               </span>
             </div>
@@ -279,13 +279,13 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
           </h4>
 
           {/* Month Range */}
-          <p className="text-sm text-[#2D3436]/60 font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wide mb-3">
+          <p className="text-caption text-[#2D3436]/60 font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wide mb-3">
             {monthRange}
           </p>
 
           {/* Selection Tips Preview */}
           {produce.selectionTips && produce.selectionTips.length > 0 && (
-            <p className="text-sm text-[#2D3436]/70 font-['Manrope'] leading-relaxed line-clamp-2">
+            <p className="text-caption text-[#2D3436]/70 font-['Manrope'] leading-relaxed line-clamp-2">
               {produce.selectionTips[0]}
             </p>
           )}
@@ -293,11 +293,11 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
           {/* Nutrition Highlight (if available) */}
           {produce.nutritionPer100g && (
             <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#FAF8F5] text-xs font-['IBM_Plex_Sans_Condensed'] text-[#2D3436]/70">
+              <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#FAF8F5] text-small font-['IBM_Plex_Sans_Condensed'] text-[#2D3436]/70">
                 {produce.nutritionPer100g.kcal} kcal
               </span>
               {produce.nutritionPer100g.protein > 0 && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#FAF8F5] text-xs font-['IBM_Plex_Sans_Condensed'] text-[#2D3436]/70">
+                <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#FAF8F5] text-small font-['IBM_Plex_Sans_Condensed'] text-[#2D3436]/70">
                   {produce.nutritionPer100g.protein}g protein
                 </span>
               )}

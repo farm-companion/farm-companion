@@ -1,4 +1,7 @@
 import { MeiliSearch } from 'meilisearch'
+import { logger } from '@/lib/logger'
+
+const searchLogger = logger.child({ route: 'lib/meilisearch' })
 
 /**
  * Meilisearch client for farm search
@@ -37,7 +40,7 @@ export async function getFarmsIndex() {
     return index
   } catch (error) {
     // Create index if it doesn't exist
-    console.log('Creating farms index...')
+    searchLogger.info('Creating farms index')
     await meili.createIndex(FARMS_INDEX, { primaryKey: 'id' })
     const index = meili.index(FARMS_INDEX)
 
@@ -116,7 +119,7 @@ export async function getFarmsIndex() {
       }
     })
 
-    console.log('✅ Farms index configured')
+    searchLogger.info('Farms index configured')
     return index
   }
 }

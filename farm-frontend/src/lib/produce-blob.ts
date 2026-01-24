@@ -1,6 +1,9 @@
 // src/lib/produce-blob.ts
 import { head, put, del } from '@vercel/blob'
 import sharp from 'sharp'
+import { logger } from '@/lib/logger'
+
+const blobLogger = logger.child({ route: 'lib/produce-blob' })
 
 /**
  * Build object key for produce images in Vercel Blob
@@ -41,12 +44,12 @@ export async function uploadProduceImage(
   }
 ): Promise<{ url: string; pathname: string }> {
   try {
-    console.log(`📤 Processing image for ${slug} variation ${variationId}...`)
+    blobLogger.info('Processing produce image', { slug, variationId })
 
     // Process image with Sharp
     const processedBuffer = await processProduceImage(buffer)
 
-    console.log(`✅ Processed: ${buffer.length} bytes → ${processedBuffer.length} bytes`)
+    blobLogger.debug('Image processed', { slug, originalBytes: buffer.length, processedBytes: processedBuffer.length })
 
     // Build pathname
     const pathname = buildProduceObjectKey(slug, variationId)
@@ -60,14 +63,14 @@ export async function uploadProduceImage(
       ...(metadata?.allowOverwrite && { allowOverwrite: true })
     })
 
-    console.log(`✅ Uploaded to blob: ${blob.url}`)
+    blobLogger.info('Uploaded to blob', { slug, variationId, url: blob.url })
 
     return {
       url: blob.url,
       pathname
     }
   } catch (error) {
-    console.error(`❌ Blob upload failed for ${slug}/${variationId}:`, error)
+    blobLogger.error('Blob upload failed', { slug, variationId }, error as Error)
     throw new Error(`Failed to upload produce image: ${error instanceof Error ? error.message : 'unknown error'}`)
   }
 }
@@ -114,10 +117,10 @@ export async function deleteProduceImage(
   try {
     const pathname = buildProduceObjectKey(slug, variationId)
     await del(pathname)
-    console.log(`🗑️  Deleted: ${pathname}`)
+    blobLogger.info('Deleted produce image', { slug, variationId, pathname })
     return true
   } catch (error) {
-    console.error(`❌ Delete failed for ${slug}/${variationId}:`, error)
+    blobLogger.error('Delete failed', { slug, variationId }, error as Error)
     return false
   }
 }
@@ -153,7 +156,7 @@ export async function uploadProduceVariations(
         await new Promise(resolve => setTimeout(resolve, 500))
       }
     } catch (error) {
-      console.error(`⚠️  Failed to upload variation ${variationId}:`, error)
+      blobLogger.error('Failed to upload variation', { slug, variationId }, error as Error)
       // Continue with other variations
     }
   }

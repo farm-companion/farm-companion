@@ -123,10 +123,10 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
+            <h3 className="text-caption font-medium text-green-800 dark:text-green-200">
               Claim Submitted Successfully!
             </h3>
-            <div className="mt-2 text-sm text-green-700 dark:text-green-300">
+            <div className="mt-2 text-caption text-green-700 dark:text-green-300">
               <p>Thank you for your claim. We&apos;ll review your submission and contact you within 2-3 business days.</p>
               <p className="mt-2">You&apos;ll receive a confirmation email from hello@farmcompanion.co.uk shortly.</p>
             </div>
@@ -135,7 +135,7 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
         <div className="mt-4">
           <Link 
             href={`/shop/${shop.slug}`}
-            className="text-sm font-medium text-green-800 hover:text-green-900 dark:text-green-200 dark:hover:text-green-100"
+            className="text-caption font-medium text-green-800 hover:text-green-900 dark:text-green-200 dark:hover:text-green-100"
           >
             ← Back to {shop.name}
           </Link>
@@ -148,8 +148,8 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Shop Information */}
       <div className="rounded-lg border bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Shop Information</h3>
-        <div className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+        <h3 className="text-body font-medium text-gray-900 dark:text-gray-100">Shop Information</h3>
+        <div className="mt-2 text-caption text-gray-600 dark:text-gray-400">
           <p><strong>Name:</strong> {shop.name}</p>
           <p><strong>Address:</strong> {shop.location.address}, {shop.location.county} {shop.location.postcode}</p>
           <p><strong>URL:</strong> {formData.shopUrl}</p>
@@ -158,11 +158,11 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
 
       {/* Claimant Details */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Your Details</h3>
+        <h3 className="text-body font-medium text-gray-900 dark:text-gray-100">Your Details</h3>
         
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="claimantName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="claimantName" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
               Full Name *
             </label>
             <input
@@ -176,7 +176,7 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
           </div>
 
           <div>
-            <label htmlFor="claimantRole" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="claimantRole" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
               Your Role
             </label>
             <select
@@ -197,7 +197,7 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
-            <label htmlFor="claimantEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="claimantEmail" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
               Email Address *
             </label>
             <input
@@ -211,7 +211,7 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
           </div>
 
           <div>
-            <label htmlFor="claimantPhone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label htmlFor="claimantPhone" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
               Phone Number
             </label>
             <input
@@ -227,7 +227,7 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
 
       {/* Claim Type */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Claim Type</h3>
+        <h3 className="text-body font-medium text-gray-900 dark:text-gray-100">Claim Type</h3>
         
         <div className="space-y-3">
           {[
@@ -246,10 +246,10 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
                 className="mt-1 h-4 w-4 text-[#00C2B2] focus:ring-[#00C2B2] dark:focus:ring-[#D4FF4F]"
               />
               <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <div className="text-caption font-medium text-gray-900 dark:text-gray-100">
                   {option.label}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-caption text-gray-500 dark:text-gray-400">
                   {option.description}
                 </div>
               </div>
@@ -261,7 +261,7 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
       {/* Corrections */}
       {(formData.claimType === 'correction' || formData.claimType === 'management') && (
         <div>
-          <label htmlFor="corrections" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="corrections" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
             What information needs to be corrected or updated?
           </label>
           <textarea
@@ -277,8 +277,8 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
 
       {/* Verification Method */}
       <div className="space-y-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Verification</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400">
+        <h3 className="text-body font-medium text-gray-900 dark:text-gray-100">Verification</h3>
+        <p className="text-caption text-gray-600 dark:text-gray-400">
           How would you like us to verify your claim? We may need to contact you to confirm your identity.
         </p>
         
@@ -298,10 +298,10 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
                 className="mt-1 h-4 w-4 text-[#00C2B2] focus:ring-[#00C2B2] dark:focus:ring-[#D4FF4F]"
               />
               <div className="flex-1">
-                <div className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                <div className="text-caption font-medium text-gray-900 dark:text-gray-100">
                   {option.label}
                 </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
+                <div className="text-caption text-gray-500 dark:text-gray-400">
                   {option.description}
                 </div>
               </div>
@@ -310,7 +310,7 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
         </div>
 
         <div>
-          <label htmlFor="verificationDetails" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="verificationDetails" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
             Additional verification details
           </label>
           <textarea
@@ -326,7 +326,7 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
 
       {/* Additional Information */}
       <div>
-        <label htmlFor="additionalInfo" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="additionalInfo" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
           Additional Information
         </label>
         <textarea
@@ -348,7 +348,7 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
             onChange={(e) => handleInputChange('consent', e.target.checked)}
             className="mt-1 h-4 w-4 text-[#00C2B2] focus:ring-[#00C2B2] dark:focus:ring-[#D4FF4F]"
           />
-          <div className="text-sm text-gray-700 dark:text-gray-300">
+          <div className="text-caption text-gray-700 dark:text-gray-300">
             <span className="font-medium">I consent to Farm Companion contacting me</span> about this claim. 
             I understand that my information will be used solely for the purpose of verifying and processing this claim.
           </div>
@@ -365,10 +365,10 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+              <h3 className="text-caption font-medium text-red-800 dark:text-red-200">
                 Error
               </h3>
-              <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+              <div className="mt-2 text-caption text-red-700 dark:text-red-300">
                 {errorMessage}
               </div>
             </div>
@@ -380,14 +380,14 @@ export default function ClaimForm({ shop }: ClaimFormProps) {
       <div className="flex justify-end space-x-3">
         <Link
           href={`/shop/${shop.slug}`}
-          className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C2B2] focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
+          className="rounded-md border border-gray-300 px-4 py-2 text-caption font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#00C2B2] focus:ring-offset-2 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
         >
           Cancel
         </Link>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-md bg-[#00C2B2] px-4 py-2 text-sm font-medium text-[#121D2B] shadow-sm hover:bg-[#00B2A2] focus:outline-none focus:ring-2 focus:ring-[#00C2B2] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-md bg-[#00C2B2] px-4 py-2 text-caption font-medium text-[#121D2B] shadow-sm hover:bg-[#00B2A2] focus:outline-none focus:ring-2 focus:ring-[#00C2B2] focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSubmitting ? 'Submitting...' : 'Submit Claim'}
         </button>

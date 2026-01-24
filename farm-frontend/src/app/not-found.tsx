@@ -166,13 +166,13 @@ export default function NotFound() {
                 <div className="text-brand-primary mb-4 group-hover:text-brand-primary transition-colors">
                   {destination.icon}
                 </div>
-                <h3 className="text-xl font-bold text-text-heading mb-2 group-hover:text-brand-primary transition-colors">
+                <h3 className="text-heading font-bold text-text-heading mb-2 group-hover:text-brand-primary transition-colors">
                   {destination.title}
                 </h3>
                 <p className="text-text-muted">
                   {destination.description}
                 </p>
-                <div className="mt-4 text-brand-primary text-sm font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
+                <div className="mt-4 text-brand-primary text-caption font-medium flex items-center gap-1 group-hover:gap-2 transition-all">
                   Explore now
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />

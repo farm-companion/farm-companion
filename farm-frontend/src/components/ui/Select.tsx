@@ -91,7 +91,7 @@ export function Select({
     >
       <SelectPrimitive.Trigger
         className={cn(
-          'flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-sm',
+          'flex h-10 w-full items-center justify-between rounded-md border border-slate-200 bg-white px-3 py-2 text-caption',
           'placeholder:text-slate-500',
           'focus:outline-none focus:ring-2 focus:ring-slate-950 focus:ring-offset-2',
           'disabled:cursor-not-allowed disabled:opacity-50',
@@ -128,7 +128,7 @@ export function Select({
                 placeholder="Search..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="flex h-8 w-full rounded-md bg-transparent text-sm outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-slate-400"
+                className="flex h-8 w-full rounded-md bg-transparent text-caption outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-50 dark:placeholder:text-slate-400"
                 onClick={(e) => e.stopPropagation()}
               />
             </div>
@@ -136,7 +136,7 @@ export function Select({
 
           <SelectPrimitive.Viewport className="p-1">
             {filteredOptions.length === 0 ? (
-              <div className="py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+              <div className="py-6 text-center text-caption text-slate-500 dark:text-slate-400">
                 No results found
               </div>
             ) : (
@@ -146,7 +146,7 @@ export function Select({
                   value={option.value}
                   disabled={option.disabled}
                   className={cn(
-                    'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none',
+                    'relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-caption outline-none',
                     'focus:bg-slate-100 focus:text-slate-900',
                     'data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
                     'dark:focus:bg-slate-800 dark:focus:text-slate-50'

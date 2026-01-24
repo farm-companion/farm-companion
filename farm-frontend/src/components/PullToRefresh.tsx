@@ -134,7 +134,7 @@ export default function PullToRefresh({
               transform: isRefreshing ? 'rotate(0deg)' : `rotate(${iconRotation}deg)`
             }}
           />
-          <span className="text-sm text-text-muted">
+          <span className="text-caption text-text-muted">
             {isRefreshing ? 'Refreshing...' : 'Pull to refresh'}
           </span>
         </div>

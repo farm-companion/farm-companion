@@ -63,7 +63,7 @@ export default function FarmList({
         <div className="flex items-start justify-between mb-2">
           <div className="flex-1 min-w-0">
             <h3 className="font-semibold text-gray-900 dark:text-white truncate">{farm.name}</h3>
-            <div className="flex items-center gap-1 text-sm text-gray-600 mt-1">
+            <div className="flex items-center gap-1 text-caption text-gray-600 mt-1">
               <MapPin className="w-3 h-3 flex-shrink-0" />
               <span className="truncate">
                 {farm.location.address}, {farm.location.county}
@@ -74,7 +74,7 @@ export default function FarmList({
           <div className="flex flex-col items-end gap-1">
             {/* Opening Status */}
             {openingStatus && (
-              <div className={`flex items-center gap-1 text-xs px-2 py-1 rounded-full ${
+              <div className={`flex items-center gap-1 text-small px-2 py-1 rounded-full ${
                 openingStatus.isOpen 
                   ? 'bg-green-50 text-green-600' 
                   : 'bg-gray-50 text-gray-600'
@@ -88,7 +88,7 @@ export default function FarmList({
             
             {/* Verified Badge */}
             {farm.verified && (
-              <div className="flex items-center gap-1 text-xs text-green-600 bg-green-50 px-2 py-1 rounded-full">
+              <div className="flex items-center gap-1 text-small text-green-600 bg-green-50 px-2 py-1 rounded-full">
                 <Star className="w-3 h-3" />
                 <span className="hidden sm:inline">Verified</span>
               </div>
@@ -96,7 +96,7 @@ export default function FarmList({
             
             {/* Distance Badge */}
             {hasDistance && (
-              <div className="flex items-center gap-1 text-xs text-serum bg-serum/10 px-2 py-1 rounded-full">
+              <div className="flex items-center gap-1 text-small text-serum bg-serum/10 px-2 py-1 rounded-full">
                 <Navigation className="w-3 h-3" />
                 <span>{formatDistance(farm.distance!)}</span>
               </div>
@@ -112,13 +112,13 @@ export default function FarmList({
               {farm.offerings.slice(0, 3).map((offering, idx) => (
                 <span
                   key={idx}
-                  className="inline-block px-2 py-1 bg-serum/10 text-serum text-xs rounded-full"
+                  className="inline-block px-2 py-1 bg-serum/10 text-serum text-small rounded-full"
                 >
                   {offering}
                 </span>
               ))}
               {farm.offerings.length > 3 && (
-                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
+                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-small rounded-full">
                   +{farm.offerings.length - 3} more
                 </span>
               )}
@@ -127,7 +127,7 @@ export default function FarmList({
 
           {/* Contact Info */}
           {hasContact && (
-            <div className="flex items-center gap-4 text-sm text-gray-600">
+            <div className="flex items-center gap-4 text-caption text-gray-600">
               {farm.contact?.phone && (
                 <div className="flex items-center gap-1">
                   <Phone className="w-3 h-3" />
@@ -151,7 +151,7 @@ export default function FarmList({
 
           {/* Opening Hours */}
           {hasHours && farm.hours && (
-            <div className="flex items-start gap-1 text-sm text-gray-600">
+            <div className="flex items-start gap-1 text-caption text-gray-600">
               <Clock className="w-3 h-3 mt-0.5 flex-shrink-0" />
               <div className="min-w-0">
                 {openingStatus && !openingStatus.isOpen && openingStatus.nextOpening && (
@@ -174,7 +174,7 @@ export default function FarmList({
           {/* Description (expanded view) */}
           {isExpanded && farm.description && (
             <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <p className="text-caption text-gray-700 leading-relaxed">
                 {farm.description}
               </p>
             </div>
@@ -183,7 +183,7 @@ export default function FarmList({
 
         {/* Distance indicator (if available) */}
         {hasDistance && (
-          <div className="mt-2 text-xs text-gray-500 flex items-center gap-1">
+          <div className="mt-2 text-small text-gray-500 flex items-center gap-1">
             <Navigation className="w-3 h-3" />
             <span>{formatDistance(farm.distance!)} away</span>
           </div>
@@ -200,7 +200,7 @@ export default function FarmList({
   const EmptyState = useCallback(() => (
     <div className="flex flex-col items-center justify-center py-12 text-center">
       <MapPin className="w-12 h-12 text-gray-300 mb-4" />
-      <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No farms found</h3>
+      <h3 className="text-body font-medium text-gray-900 dark:text-white mb-2">No farms found</h3>
       <p className="text-gray-600 max-w-sm">
         Try adjusting your search or filters to find farm shops in your area.
       </p>

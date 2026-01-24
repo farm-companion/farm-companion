@@ -2,6 +2,45 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createRouteLogger } from '@/lib/logger'
 import { handleApiError } from '@/lib/errors'
 
+// Bot access test result type
+interface BotAccessResult {
+  status: 'pass' | 'fail' | 'warning' | 'unknown'
+  botType: string
+  details: Record<string, unknown>
+}
+
+// Challenge detection result type
+interface ChallengeResult {
+  status: 'pass' | 'fail' | 'warning' | 'unknown'
+  details: {
+    cloudflareChallenge?: boolean
+    wafBlocking?: boolean
+    rateLimiting?: boolean
+    geoblocking?: boolean
+    [key: string]: unknown
+  }
+}
+
+// Full diagnostics result type
+interface BotBlockingDiagnostics {
+  testUrl: string
+  timestamp: string
+  tests: {
+    bingbotAccess: BotAccessResult
+    msnbotAccess: BotAccessResult
+    googlebotAccess: BotAccessResult
+    regularUserAccess: BotAccessResult
+    challengeDetection: ChallengeResult
+  }
+  analysis: {
+    blockingDetected: boolean
+    blockingType: string | null
+    affectedBots: string[]
+    recommendations: string[]
+  }
+  status: 'pass' | 'fail' | 'warning' | 'unknown'
+}
+
 /**
  * Bot Blocking Diagnostic Tool
  *
@@ -244,7 +283,7 @@ async function detectChallenges(url: string, logger: ReturnType<typeof createRou
 /**
  * Analyze bot blocking results and provide recommendations
  */
-function analyzeBotBlockingResults(diagnostics: any) {
+function analyzeBotBlockingResults(diagnostics: BotBlockingDiagnostics) {
   const { tests, analysis } = diagnostics
   const recommendations: string[] = []
 

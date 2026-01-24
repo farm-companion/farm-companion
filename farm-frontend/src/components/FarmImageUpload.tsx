@@ -326,13 +326,13 @@ export default function FarmImageUpload({
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold text-text-heading mb-2">
+            <h3 className="text-body font-semibold text-text-heading mb-2">
               Upload Farm Images
             </h3>
             <p className="text-text-body mb-4">
               Drag and drop up to {maxImages} images here, or click to browse
             </p>
-            <p className="text-sm text-text-muted">
+            <p className="text-caption text-text-muted">
               Supported formats: JPEG, PNG, WebP (max 5MB each, min {MIN_W}×{MIN_H}px)
             </p>
           </div>
@@ -346,7 +346,7 @@ export default function FarmImageUpload({
             <AlertCircle className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
             <div>
               <h4 className="font-medium text-red-800 mb-1">Upload Errors</h4>
-              <ul className="text-sm text-red-700 space-y-1">
+              <ul className="text-caption text-red-700 space-y-1">
                 {errors.map((error, index) => (
                   <li key={index}>• {error}</li>
                 ))}
@@ -360,7 +360,7 @@ export default function FarmImageUpload({
       {images.length > 0 && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-text-heading">
+            <h3 className="text-body font-semibold text-text-heading">
               Selected Images ({images.length}/{maxImages})
             </h3>
             {images.length > 0 && (
@@ -428,17 +428,17 @@ export default function FarmImageUpload({
                 
                 {/* File Info */}
                 <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3">
-                  <p className="text-white text-xs font-medium truncate">
+                  <p className="text-white text-small font-medium truncate">
                     {image.file.name}
                   </p>
-                  <p className="text-white/80 text-xs">
+                  <p className="text-white/80 text-small">
                     {(image.file.size / 1024 / 1024).toFixed(1)} MB
                   </p>
                 </div>
                 
                 {/* Error Message */}
                 {image.error && (
-                  <div className="absolute bottom-0 left-0 right-0 bg-red-600 text-white text-xs p-2">
+                  <div className="absolute bottom-0 left-0 right-0 bg-red-600 text-white text-small p-2">
                     {image.error}
                   </div>
                 )}
@@ -453,7 +453,7 @@ export default function FarmImageUpload({
                 <Loader2 className="w-5 h-5 text-serum animate-spin" />
                 <div>
                   <p className="font-medium text-text-heading">Uploading images...</p>
-                  <p className="text-sm text-text-muted">
+                  <p className="text-caption text-text-muted">
                     Please wait while we process your images
                   </p>
                 </div>
@@ -489,7 +489,7 @@ export default function FarmImageUpload({
           <ImageIcon className="w-5 h-5 text-serum mt-0.5 flex-shrink-0" />
           <div>
             <h4 className="font-medium text-text-heading mb-1">Image Guidelines</h4>
-            <ul className="text-sm text-text-body space-y-1">
+            <ul className="text-caption text-text-body space-y-1">
               <li>• Upload up to {maxImages} high-quality images of your farm</li>
               <li>• Show your produce, farm shop, or farm activities</li>
               <li>• Images will be reviewed before being added to your listing</li>

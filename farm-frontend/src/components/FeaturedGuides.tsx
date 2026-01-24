@@ -22,7 +22,7 @@ export function FeaturedGuides() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-text-heading mb-3 md:mb-4">
             Curated Farm Guides
           </h2>
-          <p className="text-base sm:text-lg text-text-muted max-w-2xl mx-auto px-4">
+          <p className="text-body sm:text-lg text-text-muted max-w-2xl mx-auto px-4">
             Expert recommendations and comprehensive guides to help you discover the best farms across the UK
           </p>
         </div>
@@ -50,12 +50,12 @@ export function FeaturedGuides() {
                 </h3>
 
                 {/* Intro */}
-                <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-3 mb-3 sm:mb-4">
+                <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-3 sm:mb-4">
                   {guide.intro}
                 </p>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between text-xs sm:text-sm text-slate-500">
+                <div className="flex items-center justify-between text-xs sm:text-caption text-slate-500">
                   <span>
                     {guide.faqs?.length || 0} {guide.faqs?.length === 1 ? 'FAQ' : 'FAQs'}
                   </span>
@@ -76,7 +76,7 @@ export function FeaturedGuides() {
         <div className="text-center">
           <Link
             href="/best"
-            className="inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-6 sm:px-8 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-lg text-sm sm:text-base font-medium transition-all hover:border-brand-primary hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+            className="inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-6 sm:px-8 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-lg text-caption sm:text-body font-medium transition-all hover:border-brand-primary hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
           >
             View All Guides
             <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />

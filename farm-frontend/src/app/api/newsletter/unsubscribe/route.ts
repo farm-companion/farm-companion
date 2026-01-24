@@ -24,7 +24,7 @@ export async function POST(request: NextRequest) {
     const validation = unsubscribeSchema.safeParse(body)
     if (!validation.success) {
       logger.warn('Invalid email in unsubscribe request', {
-        errors: validation.error.errors
+        errors: validation.error.issues
       })
       throw errors.validation('Invalid email address')
     }

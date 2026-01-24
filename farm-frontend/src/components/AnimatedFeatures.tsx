@@ -47,7 +47,7 @@ export function AnimatedFeatures() {
           </motion.h2>
           <motion.p
             variants={fadeInUp}
-            className="text-base sm:text-lg text-text-muted max-w-2xl mx-auto px-4"
+            className="text-body sm:text-lg text-text-muted max-w-2xl mx-auto px-4"
           >
             Experience the difference of truly fresh, local produce from family-run farms across the UK.
           </motion.p>
@@ -81,7 +81,7 @@ export function AnimatedFeatures() {
               <h3 className="text-lg sm:text-xl font-heading font-semibold text-text-heading mb-2">
                 {feature.title}
               </h3>
-              <p className="text-sm sm:text-base text-text-muted">
+              <p className="text-caption text-text-muted">
                 {feature.description}
               </p>
             </motion.div>

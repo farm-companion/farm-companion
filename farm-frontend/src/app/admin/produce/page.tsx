@@ -42,20 +42,20 @@ export default async function AdminProducePage() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Produce Management
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-caption text-gray-600 dark:text-gray-400">
                 Manage seasonal produce images and content
               </p>
             </div>
             <div className="flex gap-3">
               <Link
                 href="/admin"
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-caption font-medium transition-colors"
               >
                 Back to Admin
               </Link>
               <Link
                 href="/admin/produce/upload"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md text-caption font-medium transition-colors"
               >
                 Upload Images
               </Link>
@@ -78,10 +78,10 @@ export default async function AdminProducePage() {
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+                  <h3 className="text-caption font-medium text-red-800 dark:text-red-200">
                     Integration Issue
                   </h3>
-                  <div className="mt-2 text-sm text-red-700 dark:text-red-300">
+                  <div className="mt-2 text-caption text-red-700 dark:text-red-300">
                     <ul className="list-disc pl-5 space-y-1">
                       {integrationStatus.errors.map((error, index) => (
                         <li key={index}>{error}</li>
@@ -96,23 +96,23 @@ export default async function AdminProducePage() {
           {/* Statistics */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Produce</h3>
+              <h3 className="text-body font-semibold text-gray-900 dark:text-white">Total Produce</h3>
               <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{produce.length}</p>
             </div>
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Images</h3>
+              <h3 className="text-body font-semibold text-gray-900 dark:text-white">Total Images</h3>
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {stats?.totalImages || 0}
               </p>
             </div>
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Storage Used</h3>
+              <h3 className="text-body font-semibold text-gray-900 dark:text-white">Storage Used</h3>
               <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
                 {stats ? `${(stats.storageUsed / 1024 / 1024).toFixed(1)} MB` : '0 MB'}
               </p>
             </div>
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Current Month</h3>
+              <h3 className="text-body font-semibold text-gray-900 dark:text-white">Current Month</h3>
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{currentMonthName}</p>
             </div>
           </div>
@@ -120,7 +120,7 @@ export default async function AdminProducePage() {
           {/* Produce Grid */}
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
             <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-              <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+              <h2 className="text-body font-medium text-gray-900 dark:text-white">
                 All Produce Items
               </h2>
             </div>
@@ -137,19 +137,19 @@ export default async function AdminProducePage() {
                         <h3 className="font-semibold text-gray-900 dark:text-white">{item.name}</h3>
                         <div className="flex gap-1">
                           {isPeak && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-small font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                               Peak
                             </span>
                           )}
                           {isInSeason && !isPeak && (
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                            <span className="inline-flex items-center px-2 py-1 rounded-full text-small font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                               In Season
                             </span>
                           )}
                         </div>
                       </div>
                       
-                      <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div className="space-y-2 text-caption text-gray-600 dark:text-gray-400">
                         <p>Images: {imageCount}</p>
                         <p>Season: {item.monthsInSeason?.map(m => getMonthName(m).slice(0, 3)).join(', ')}</p>
                         {item.peakMonths && item.peakMonths.length > 0 && (
@@ -160,13 +160,13 @@ export default async function AdminProducePage() {
                       <div className="mt-4 flex gap-2">
                         <Link
                           href={`/admin/produce/upload?produce=${item.slug}`}
-                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors text-center"
+                          className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded text-caption font-medium transition-colors text-center"
                         >
                           Upload Images
                         </Link>
                         <Link
                           href={`/seasonal/${item.slug}`}
-                          className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-sm font-medium transition-colors"
+                          className="bg-gray-600 hover:bg-gray-700 text-white px-3 py-2 rounded text-caption font-medium transition-colors"
                           target="_blank"
                         >
                           View
@@ -181,7 +181,7 @@ export default async function AdminProducePage() {
 
           {/* Quick Actions */}
           <div className="mt-8 bg-white dark:bg-gray-800 shadow rounded-lg p-6">
-            <h2 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Quick Actions</h2>
+            <h2 className="text-body font-medium text-gray-900 dark:text-white mb-4">Quick Actions</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <Link
                 href="/admin/produce/upload"
@@ -194,7 +194,7 @@ export default async function AdminProducePage() {
                 </div>
                 <div className="ml-4">
                   <h3 className="font-medium text-gray-900 dark:text-white">Upload Images</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">Add new produce images</p>
+                  <p className="text-caption text-gray-500 dark:text-gray-400">Add new produce images</p>
                 </div>
               </Link>
               
@@ -209,7 +209,7 @@ export default async function AdminProducePage() {
                 </div>
                 <div className="ml-4">
                   <h3 className="font-medium text-gray-900 dark:text-white">View Statistics</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">System usage and analytics</p>
+                  <p className="text-caption text-gray-500 dark:text-gray-400">System usage and analytics</p>
                 </div>
               </Link>
               
@@ -226,7 +226,7 @@ export default async function AdminProducePage() {
                 </div>
                 <div className="ml-4">
                   <h3 className="font-medium text-gray-900 dark:text-white">Preview Site</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">View seasonal produce page</p>
+                  <p className="text-caption text-gray-500 dark:text-gray-400">View seasonal produce page</p>
                 </div>
               </Link>
             </div>

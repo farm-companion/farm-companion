@@ -159,7 +159,7 @@ export default function QuickActions({ farm, className = '', variant = 'full' }:
       {/* Address Copy Button */}
       <button
         onClick={handleCopyAddress}
-        className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all duration-200 text-sm"
+        className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gray-50 text-gray-600 hover:bg-gray-100 transition-all duration-200 text-caption"
         aria-label="Copy address to clipboard"
       >
         {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}

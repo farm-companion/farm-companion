@@ -107,22 +107,22 @@ class Logger {
   /**
    * Log debug message (development only)
    */
-  debug(message: string, context?: LogContext): void {
-    this.write('debug', message, context)
+  debug(message: string, context?: LogContext, error?: Error): void {
+    this.write('debug', message, context, error)
   }
 
   /**
    * Log info message
    */
-  info(message: string, context?: LogContext): void {
-    this.write('info', message, context)
+  info(message: string, context?: LogContext, error?: Error): void {
+    this.write('info', message, context, error)
   }
 
   /**
    * Log warning message
    */
-  warn(message: string, context?: LogContext): void {
-    this.write('warn', message, context)
+  warn(message: string, context?: LogContext, error?: Error): void {
+    this.write('warn', message, context, error)
   }
 
   /**

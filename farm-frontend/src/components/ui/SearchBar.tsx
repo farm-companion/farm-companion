@@ -165,7 +165,7 @@ export function SearchBar({
           onBlur={() => setIsFocused(false)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
+          className="flex-1 bg-transparent text-caption outline-none placeholder:text-slate-500 dark:placeholder:text-slate-400"
         />
 
         {loading && <Loader2 className="h-4 w-4 animate-spin text-slate-500" />}
@@ -196,7 +196,7 @@ export function SearchBar({
                 key={index}
                 onClick={() => handleSuggestionClick(suggestion)}
                 className={cn(
-                  'flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-sm',
+                  'flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left text-caption',
                   'hover:bg-slate-100 dark:hover:bg-slate-800',
                   'transition-colors'
                 )}
@@ -206,7 +206,7 @@ export function SearchBar({
                   <span>{suggestion.label}</span>
                 </div>
                 {suggestion.count !== undefined && (
-                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                  <span className="text-small text-slate-500 dark:text-slate-400">
                     {suggestion.count}
                   </span>
                 )}

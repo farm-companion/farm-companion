@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight, Leaf, Calendar, Heart, TrendingUp, Award, Clock } from 'lucide-react'
 import NewsletterSignup from '@/components/NewsletterSignup'
-import { getFarmStatsServer } from '@/lib/farm-data-server'
+import { getFarmStats } from '@/lib/farm-data'
 import { SITE_URL } from '@/lib/site'
 import { FeaturedGuides } from '@/components/FeaturedGuides'
 import { CategoryGrid } from '@/components/CategoryGrid'
@@ -59,7 +59,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 3600 // Revalidate every hour
 
 export default async function HomePage() {
-  const { farmCount, countyCount } = await getFarmStatsServer()
+  const { farmCount, countyCount } = await getFarmStats()
 
   return (
     <div className="min-h-screen bg-background-canvas">
@@ -150,17 +150,17 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/40" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           
-          {/* Subtle animated texture */}
+          {/* Static texture - animations removed for performance */}
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.1),transparent_50%)] animate-pulse" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.05),transparent_50%)] animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.1),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.05),transparent_50%)]" />
           </div>
         </div>
-        
+
         {/* Content with enhanced styling */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          {/* Animated icon */}
-          <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-full mb-6 sm:mb-8 border border-white/20 animate-bounce" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }}>
+          {/* Icon - static for performance */}
+          <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-full mb-6 sm:mb-8 border border-white/20">
             <MapPin className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
           </div>
 
@@ -170,7 +170,7 @@ export default async function HomePage() {
             <span className="block text-serum drop-shadow-2xl animate-slide-up" style={{ animationDelay: '0.2s' }}>Explore?</span>
           </h2>
 
-          <p className="text-lg sm:text-xl md:text-2xl mb-8 sm:mb-12 text-white/95 drop-shadow-lg max-w-3xl mx-auto animate-fade-in px-4" style={{ animationDelay: '0.4s' }}>
+          <p className="text-body sm:text-heading md:text-2xl mb-8 sm:mb-12 text-white/95 drop-shadow-lg max-w-3xl mx-auto animate-fade-in px-4" style={{ animationDelay: '0.4s' }}>
             Start your journey to discover amazing local farm shops today.
           </p>
 
@@ -178,7 +178,7 @@ export default async function HomePage() {
           <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
             <Link
               href="/map"
-              className="group bg-serum text-black h-14 sm:h-16 px-8 sm:px-10 rounded-xl text-sm sm:text-base font-semibold hover:bg-serum/90 transition-all duration-300 inline-flex items-center justify-center gap-2 sm:gap-3 shadow-2xl hover:shadow-serum/25 hover:scale-105 active:scale-95 backdrop-blur-sm border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-serum focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              className="group bg-serum text-black h-14 sm:h-16 px-8 sm:px-10 rounded-xl text-caption sm:text-body font-semibold hover:bg-serum/90 transition-all duration-300 inline-flex items-center justify-center gap-2 sm:gap-3 shadow-2xl hover:shadow-serum/25 hover:scale-105 active:scale-95 backdrop-blur-sm border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-serum focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               <MapPin className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
               Find Farms Near You
@@ -242,7 +242,7 @@ export default async function HomePage() {
                 
                 {/* Enhanced intro paragraph with maximum contrast */}
                 <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                  <p className="text-lg text-gray-900 dark:text-gray-100 mb-6 leading-relaxed font-medium">
+                  <p className="text-body text-gray-900 dark:text-gray-100 mb-6 leading-relaxed font-medium">
                     Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated 
                     a directory of over <span className="font-bold text-serum">{farmCount}</span> authentic farm shops across <span className="font-bold text-serum">{countyCount}</span> counties, 
                     helping you discover the freshest local produce and connect with real farmers.

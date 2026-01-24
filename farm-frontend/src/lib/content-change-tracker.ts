@@ -1,12 +1,15 @@
 /**
  * Content Change Tracker
- * 
+ *
  * This module handles all content changes that should trigger Bing IndexNow notifications.
  * Implements the operational policy: any publish, unpublish, slug change, or canonical
  * change triggers /api/bing/submit for changed URLs and their parent category pages.
  */
 
 import { notifyBingOfUrl, notifyBingOfUrls } from './bing-notifications'
+import { logger } from '@/lib/logger'
+
+const trackerLogger = logger.child({ route: 'lib/content-change-tracker' })
 
 export type ContentChangeType = 
   | 'publish'
@@ -48,13 +51,13 @@ export async function trackContentChange(event: ContentChangeEvent): Promise<{
       throw new Error('Content change tracking is server-side only and cannot be called from the browser')
     }
 
-    console.log(`📝 Tracking content change: ${event.type} for ${event.url}`)
+    trackerLogger.info('Tracking content change', { type: event.type, url: event.url })
 
     // Determine which URLs need to be notified
     const urlsToNotify = await determineUrlsToNotify(event)
-    
+
     if (urlsToNotify.length === 0) {
-      console.log('⚠️ No URLs to notify for this content change')
+      trackerLogger.warn('No URLs to notify for this content change', { type: event.type })
       return { success: true, notificationsSent: 0, errors: [] }
     }
 
@@ -68,11 +71,11 @@ export async function trackContentChange(event: ContentChangeEvent): Promise<{
       if (failedResults.length > 0) {
         errors.push(...failedResults.map(r => `${r.url}: ${r.error}`))
       }
-      
-      console.log(`✅ Content change tracking completed: ${notificationsSent} notifications sent`)
+
+      trackerLogger.info('Content change tracking completed', { notificationsSent, failedCount: failedResults.length })
     } else {
       errors.push('Failed to send notifications to Bing')
-      console.error('❌ Content change tracking failed:', result)
+      trackerLogger.error('Content change tracking failed', { result })
     }
 
     return { success: result.success, notificationsSent, errors }
@@ -80,7 +83,7 @@ export async function trackContentChange(event: ContentChangeEvent): Promise<{
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
     errors.push(errorMessage)
-    console.error('❌ Error in content change tracking:', error)
+    trackerLogger.error('Error in content change tracking', { type: event.type }, error as Error)
     return { success: false, notificationsSent, errors }
   }
 }
@@ -136,14 +139,14 @@ async function determineUrlsToNotify(event: ContentChangeEvent): Promise<string[
       break
 
     default:
-      console.warn(`Unknown content change type: ${event.type}`)
+      trackerLogger.warn('Unknown content change type', { type: event.type })
       urls.push(event.url)
   }
 
   // Remove duplicates and filter out invalid URLs
   const uniqueUrls = [...new Set(urls)].filter(url => isValidUrl(url))
-  
-  console.log(`📋 URLs to notify: ${uniqueUrls.join(', ')}`)
+
+  trackerLogger.debug('URLs to notify', { urls: uniqueUrls })
   return uniqueUrls
 }
 

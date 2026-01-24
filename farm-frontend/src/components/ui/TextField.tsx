@@ -43,7 +43,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         {label && (
           <label
             htmlFor={inputId}
-            className="block text-sm font-medium text-text-heading"
+            className="block text-caption font-medium text-text-heading"
           >
             {label}
             {required && (
@@ -100,7 +100,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         {hasError && (
           <p
             id={errorId}
-            className="text-sm text-brand-danger"
+            className="text-caption text-brand-danger"
             role="alert"
           >
             {error}
@@ -108,7 +108,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         )}
 
         {helperText && !hasError && (
-          <p id={helperId} className="text-sm text-text-muted">
+          <p id={helperId} className="text-caption text-text-muted">
             {helperText}
           </p>
         )}

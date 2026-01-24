@@ -1,5 +1,18 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { notifyBingOfSitemap } from '@/lib/bing-notifications'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
+
+// Bing notification response type
+interface BingNotificationResult {
+  success: boolean
+  error?: string
+}
+
+// Extended fetch options (Node.js supports timeout but TypeScript doesn't know)
+interface FetchOptionsWithTimeout extends RequestInit {
+  timeout?: number
+}
 
 /**
  * Health Check Endpoint for Bing IndexNow System
@@ -12,7 +25,8 @@ import { notifyBingOfSitemap } from '@/lib/bing-notifications'
  * 
  * Used by monitoring systems to ensure the Bing indexing system is working properly.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/health/bing-indexnow', request)
   const startTime = Date.now()
   const healthChecks = {
     timestamp: new Date().toISOString(),
@@ -22,6 +36,8 @@ export async function GET() {
   }
 
   try {
+    logger.info('Starting Bing IndexNow health check')
+
     // Check 1: Environment Variables
     const envCheck = {
       status: 'pass',
@@ -52,10 +68,11 @@ export async function GET() {
     }
 
     try {
-      const sitemapResponse = await fetch('https://www.farmcompanion.co.uk/sitemap.xml', {
+      const fetchOptions: FetchOptionsWithTimeout = {
         method: 'HEAD',
         timeout: 10000,
-      } as any)
+      }
+      const sitemapResponse = await fetch('https://www.farmcompanion.co.uk/sitemap.xml', fetchOptions as RequestInit)
       
       sitemapCheck.details.statusCode = sitemapResponse.status
       sitemapCheck.details.accessible = sitemapResponse.ok
@@ -77,7 +94,7 @@ export async function GET() {
       status: 'pass',
       details: {
         testUrl: 'https://www.farmcompanion.co.uk/',
-        response: null as any,
+        response: null as BingNotificationResult | null,
         error: null as string | null,
       }
     }
@@ -182,6 +199,8 @@ export async function GET() {
 
     healthChecks.duration = Date.now() - startTime
 
+    logger.info('Bing IndexNow health check completed', { status: healthChecks.status, duration: healthChecks.duration })
+
     const statusCode = healthChecks.status === 'healthy' ? 200 : 503
     return NextResponse.json(healthChecks, { status: statusCode })
 
@@ -200,6 +219,6 @@ export async function GET() {
 }
 
 // Also support POST for flexibility
-export async function POST() {
-  return GET()
+export async function POST(request: NextRequest) {
+  return GET(request)
 }

@@ -3,6 +3,9 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { generateMetadata, generateFarmMetadata, generateProduceMetadata } from './seo-optimizer'
+import { logger } from '@/lib/logger'
+
+const seoLogger = logger.child({ route: 'lib/seo-middleware' })
 
 // SEO middleware for automatic meta tag injection
 export function withSEOMiddleware<T extends any[]>(
@@ -95,9 +98,9 @@ export function withStructuredData<T extends any[]>(
           response.headers.set('X-Structured-Data', JSON.stringify(structuredData))
         }
       } catch (error) {
-        console.error('Error generating structured data:', error)
+        seoLogger.error('Error generating structured data', {}, error as Error)
       }
-      
+
       return response
     }
   }
@@ -120,9 +123,9 @@ export function withBreadcrumbs<T extends any[]>(
           response.headers.set('X-Breadcrumbs', JSON.stringify(breadcrumbs))
         }
       } catch (error) {
-        console.error('Error generating breadcrumbs:', error)
+        seoLogger.error('Error generating breadcrumbs', {}, error as Error)
       }
-      
+
       return response
     }
   }
@@ -145,9 +148,9 @@ export function withFAQ<T extends any[]>(
           response.headers.set('X-FAQ-Data', JSON.stringify(faqs))
         }
       } catch (error) {
-        console.error('Error generating FAQ data:', error)
+        seoLogger.error('Error generating FAQ data', {}, error as Error)
       }
-      
+
       return response
     }
   }
@@ -179,9 +182,9 @@ export function withLocalBusiness<T extends any[]>(
           response.headers.set('X-Local-Business-Data', JSON.stringify(businessData))
         }
       } catch (error) {
-        console.error('Error generating local business data:', error)
+        seoLogger.error('Error generating local business data', {}, error as Error)
       }
-      
+
       return response
     }
   }

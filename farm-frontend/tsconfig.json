@@ -48,8 +48,11 @@
   "exclude": [
     "node_modules",
     "scripts",
+    "tests",
     "src/lib/prisma.ts",
     "src/lib/queries",
-    "src/lib/server-cache-categories.ts"
+    "src/lib/server-cache-categories.ts",
+    "src/app/api/admin/farms/photo-stats/route.ts",
+    "src/app/api/admin/farms/approve-to-live/route.ts"
   ]
 }

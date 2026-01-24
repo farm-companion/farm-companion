@@ -29,7 +29,7 @@ function AdminLoginContent() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-white">
             Admin Access
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-center text-caption text-gray-600 dark:text-gray-400">
             Sign in to access the Farm Companion admin panel
           </p>
         </div>
@@ -39,7 +39,7 @@ function AdminLoginContent() {
         <div className="text-center">
           <Link 
             href="/" 
-            className="text-sm text-brand-primary hover:text-brand-primary/80 transition-colors"
+            className="text-caption text-brand-primary hover:text-brand-primary/80 transition-colors"
           >
             ← Back to Farm Companion
           </Link>
@@ -61,14 +61,14 @@ function AdminLoginForm({ errorMessage }: { errorMessage: string | null }) {
               </svg>
             </div>
             <div className="ml-3">
-              <p className="text-sm text-red-800 dark:text-red-200">{errorMessage}</p>
+              <p className="text-caption text-red-800 dark:text-red-200">{errorMessage}</p>
             </div>
           </div>
         </div>
       )}
 
       <div>
-        <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="email" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
           Email Address
         </label>
         <input
@@ -83,7 +83,7 @@ function AdminLoginForm({ errorMessage }: { errorMessage: string | null }) {
       </div>
 
       <div>
-        <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+        <label htmlFor="password" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
           Password
         </label>
         <input
@@ -100,7 +100,7 @@ function AdminLoginForm({ errorMessage }: { errorMessage: string | null }) {
       <div>
         <button
           type="submit"
-          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-primary hover:bg-brand-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors"
+          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-caption font-medium rounded-md text-white bg-brand-primary hover:bg-brand-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors"
         >
           Sign in to Admin Panel
         </button>
@@ -114,7 +114,7 @@ function AdminLoginForm({ errorMessage }: { errorMessage: string | null }) {
             </svg>
           </div>
           <div className="ml-3">
-            <p className="text-sm text-yellow-800 dark:text-yellow-200">
+            <p className="text-caption text-yellow-800 dark:text-yellow-200">
               <strong>Security Notice:</strong> This is a restricted admin area. Unauthorized access attempts will be logged.
             </p>
           </div>

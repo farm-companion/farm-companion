@@ -29,6 +29,8 @@ export enum ErrorType {
   EXTERNAL_API = 'EXTERNAL_API_ERROR',
   DATABASE = 'DATABASE_ERROR',
   INTERNAL = 'INTERNAL_ERROR',
+  CONFLICT = 'CONFLICT_ERROR',
+  CONFIGURATION = 'CONFIGURATION_ERROR',
 }
 
 /**
@@ -59,6 +61,8 @@ function getStatusCodeForErrorType(type: ErrorType): number {
     [ErrorType.EXTERNAL_API]: 502,
     [ErrorType.DATABASE]: 503,
     [ErrorType.INTERNAL]: 500,
+    [ErrorType.CONFLICT]: 409,
+    [ErrorType.CONFIGURATION]: 500,
   }
 
   return statusMap[type] || 500
@@ -144,6 +148,12 @@ export const errors = {
 
   internal: (message: string = 'Internal server error', details?: Record<string, any>) =>
     new AppError(message, ErrorType.INTERNAL, 500, details),
+
+  conflict: (message: string, details?: Record<string, any>) =>
+    new AppError(message, ErrorType.CONFLICT, 409, details),
+
+  configuration: (message: string, details?: Record<string, any>) =>
+    new AppError(message, ErrorType.CONFIGURATION, 500, details),
 }
 
 /**

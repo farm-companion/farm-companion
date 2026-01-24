@@ -89,7 +89,7 @@ export default function AboutPage() {
             <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               The UK&apos;s premium guide to real food, real people, and real places.
             </p>
-            <p className="text-lg text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-body text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               We help you find trusted farm shops near you—fast, clear, and without the clutter.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -122,7 +122,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-text-heading font-heading">
               What we do
             </h2>
-            <p className="text-lg text-text-body leading-relaxed">
+            <p className="text-body text-text-body leading-relaxed">
               Farm Companion makes it easy to discover farm shops that sell fresh, seasonal food.
               Search by place, browse a clean map, and open beautiful, simple profiles with the
               essentials: address, opening hours, what they sell, and how to get there.
@@ -161,12 +161,12 @@ export default function AboutPage() {
             <div className="space-y-6">
               <div className="flex items-center space-x-3">
                 <div className="w-3 h-3 bg-serum rounded-full"></div>
-                <span className="text-sm font-medium text-text-muted">Live Map</span>
+                <span className="text-caption font-medium text-text-muted">Live Map</span>
               </div>
               <div className="h-48 bg-gradient-to-br from-serum/20 to-solar/20 rounded-lg flex items-center justify-center">
                 <MapPin className="w-12 h-12 text-serum/60" />
               </div>
-              <p className="text-sm text-text-muted text-center">
+              <p className="text-caption text-text-muted text-center">
                 Interactive map showing nearby farm shops
               </p>
             </div>
@@ -185,28 +185,28 @@ export default function AboutPage() {
               <Leaf className="w-6 h-6 text-serum" />
             </div>
             <h3 className="font-semibold text-text-heading mb-2">Made for farm food</h3>
-            <p className="text-text-body text-sm">Everything is tailored to farm shops, not generic businesses.</p>
+            <p className="text-text-body text-caption">Everything is tailored to farm shops, not generic businesses.</p>
           </div>
           <div className="bg-background-surface rounded-xl p-6 border border-border-default hover:border-serum/30 transition-colors duration-300">
             <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-4">
               <Star className="w-6 h-6 text-serum" />
             </div>
             <h3 className="font-semibold text-text-heading mb-2">Clean and fast</h3>
-            <p className="text-text-body text-sm">No endless lists; just a clear map and concise cards.</p>
+            <p className="text-text-body text-caption">No endless lists; just a clear map and concise cards.</p>
           </div>
           <div className="bg-background-surface rounded-xl p-6 border border-border-default hover:border-serum/30 transition-colors duration-300">
             <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-4">
               <Shield className="w-6 h-6 text-serum" />
             </div>
             <h3 className="font-semibold text-text-heading mb-2">Honest ranking</h3>
-            <p className="text-text-body text-sm">We prioritise verified, complete listings—not ad spend.</p>
+            <p className="text-text-body text-caption">We prioritise verified, complete listings—not ad spend.</p>
           </div>
           <div className="bg-background-surface rounded-xl p-6 border border-border-default hover:border-serum/30 transition-colors duration-300">
             <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-4">
               <MapPin className="w-6 h-6 text-serum" />
             </div>
             <h3 className="font-semibold text-text-heading mb-2">Open maps</h3>
-            <p className="text-text-body text-sm">We use open, privacy-friendly maps (no Google tracking).</p>
+            <p className="text-text-body text-caption">We use open, privacy-friendly maps (no Google tracking).</p>
           </div>
         </div>
       </section>
@@ -265,7 +265,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-text-heading font-heading mb-4">
             Trust & verification
           </h2>
-          <p className="text-lg text-text-body">Every shop shows a simple trust status:</p>
+          <p className="text-body text-text-body">Every shop shows a simple trust status:</p>
         </div>
         <div className="grid md:grid-cols-3 gap-6 relative z-10">
           <div className="text-center">
@@ -273,25 +273,25 @@ export default function AboutPage() {
               <Check className="w-8 h-8 text-green-600" />
             </div>
             <h3 className="font-semibold text-text-heading mb-2">Owner-confirmed</h3>
-            <p className="text-text-body text-sm">The owner reviewed and confirmed the details.</p>
+            <p className="text-text-body text-caption">The owner reviewed and confirmed the details.</p>
           </div>
           <div className="text-center">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="w-8 h-8 text-blue-600" />
             </div>
             <h3 className="font-semibold text-text-heading mb-2">Publicly verified</h3>
-            <p className="text-text-body text-sm">Cross-checked against reputable public sources.</p>
+            <p className="text-text-body text-caption">Cross-checked against reputable public sources.</p>
           </div>
           <div className="text-center">
             <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <Clock className="w-8 h-8 text-yellow-600" />
             </div>
             <h3 className="font-semibold text-text-heading mb-2">Under review</h3>
-            <p className="text-text-body text-sm">We&apos;re checking; basic details are available meanwhile.</p>
+            <p className="text-text-body text-caption">We&apos;re checking; basic details are available meanwhile.</p>
           </div>
         </div>
         <div className="text-center mt-8 relative z-10">
-          <p className="text-sm text-text-muted">
+          <p className="text-caption text-text-muted">
             See something wrong? Use the &ldquo;Suggest an update&rdquo; link on any shop page.
           </p>
         </div>
@@ -304,7 +304,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-text-heading font-heading mb-4">
               Seasonal food, simply
             </h2>
-            <p className="text-lg text-text-body max-w-2xl mx-auto">
+            <p className="text-body text-text-body max-w-2xl mx-auto">
               Use our seasonal calendar to see what&apos;s great right now—then filter the map to find
               shops that stock it. Planning a weekend? Build a short list and print your &ldquo;farm run&rdquo;.
             </p>
@@ -337,7 +337,7 @@ export default function AboutPage() {
             <h2 className="text-3xl font-bold text-text-heading font-heading mb-4">
               Own a farm shop?
             </h2>
-            <p className="text-lg text-text-body max-w-2xl mx-auto">
+            <p className="text-body text-text-body max-w-2xl mx-auto">
               You can claim or add your listing for free. Highlight what makes you special and keep
               your details fresh. We also offer a premium highlight option for extra visibility.
             </p>
@@ -361,11 +361,11 @@ export default function AboutPage() {
             Privacy & ads
           </h2>
           <div className="max-w-2xl mx-auto text-center">
-            <p className="text-lg text-text-body mb-4">
+            <p className="text-body text-text-body mb-4">
               We show <strong>light, respectful ads</strong> to cover costs. Ads only load after you give consent.
               We don&apos;t sell personal data. You can change your cookie choices any time.
             </p>
-            <p className="text-sm text-text-muted">
+            <p className="text-caption text-text-muted">
               Read our <Link href="/privacy" className="text-text-link hover:underline font-medium">Privacy Policy</Link> and <Link href="/terms" className="text-text-link hover:underline font-medium">Terms</Link>.
             </p>
           </div>
@@ -442,7 +442,7 @@ export default function AboutPage() {
           <h2 className="text-3xl font-bold text-text-heading font-heading mb-4">
             Contact
           </h2>
-          <p className="text-lg text-text-body mb-4">
+          <p className="text-body text-text-body mb-4">
             Suggestions or corrections? Email us at{' '}
             <a 
               className="text-text-link hover:underline font-medium" 
@@ -473,7 +473,7 @@ export default function AboutPage() {
             <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
           </Link>
         </div>
-        <p className="text-sm text-text-muted">
+        <p className="text-caption text-text-muted">
           Made with care for local food • Open source
         </p>
       </footer>

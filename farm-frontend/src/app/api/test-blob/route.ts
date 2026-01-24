@@ -1,25 +1,29 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createUploadUrl } from '@/lib/blob'
-import { apiMiddleware } from '@/lib/api-middleware'
-import { withRetry } from '@/lib/error-handler'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
 
-async function testBlobHandler() {
-  // Use retry logic for external service calls
-  const result = await withRetry(async () => {
+export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/test-blob', request)
+
+  try {
+    logger.info('Processing Vercel Blob connection test')
+
     const { uploadUrl } = await createUploadUrl({
       pathname: 'test/test-image.jpg',
       contentType: 'image/jpeg',
       contentLength: 1000
     })
-    return uploadUrl
-  }, 3, 1000)
-  
-  return NextResponse.json({ 
-    success: true, 
-    message: 'Vercel Blob is working',
-    uploadUrl: result ? 'URL generated' : 'No URL',
-    timestamp: new Date().toISOString()
-  })
-}
 
-export const GET = apiMiddleware.basic(testBlobHandler)
+    logger.info('Vercel Blob connection test successful')
+
+    return NextResponse.json({
+      success: true,
+      message: 'Vercel Blob is working',
+      uploadUrl: uploadUrl ? 'URL generated' : 'No URL',
+      timestamp: new Date().toISOString()
+    })
+  } catch (error) {
+    return handleApiError(error, 'api/test-blob')
+  }
+}

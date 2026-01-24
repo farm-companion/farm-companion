@@ -31,7 +31,7 @@ function CountySection({ county, farms }: { county: string; farms: FarmShop[] })
         <h3 className="text-2xl font-heading font-semibold text-text-heading dark:text-white">
           {county}
         </h3>
-        <span className="text-sm text-text-muted dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
+        <span className="text-caption text-text-muted dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
           {farms.length} farm{farms.length !== 1 ? 's' : ''}
         </span>
       </motion.div>
@@ -94,7 +94,7 @@ export default function ShopPageClient({ farms, stats }: ShopPageClientProps) {
               </motion.h1>
               <motion.p
                 variants={fadeInUp}
-                className="text-xl md:text-2xl text-text-muted dark:text-gray-300 max-w-3xl mx-auto mb-8"
+                className="text-heading md:text-2xl text-text-muted dark:text-gray-300 max-w-3xl mx-auto mb-8"
               >
                 Browse {stats.farmCount}+ UK farm shops by county. Find fresh local produce,
                 buy seasonal fruit and vegetables, and discover authentic farm experiences near you.
@@ -179,7 +179,7 @@ export default function ShopPageClient({ farms, stats }: ShopPageClientProps) {
               <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading dark:text-white mb-4">
                 Browse by County
               </h2>
-              <p className="text-lg text-text-muted dark:text-gray-300 max-w-2xl mx-auto">
+              <p className="text-body text-text-muted dark:text-gray-300 max-w-2xl mx-auto">
                 Find farm shops in your area with our comprehensive county-by-county directory.
               </p>
             </motion.div>
@@ -203,7 +203,7 @@ export default function ShopPageClient({ farms, stats }: ShopPageClientProps) {
                 <div className="text-gray-400 mb-4">
                   <MapPin className="w-16 h-16 mx-auto" />
                 </div>
-                <h3 className="text-xl font-semibold text-text-heading dark:text-white mb-2">
+                <h3 className="text-heading font-semibold text-text-heading dark:text-white mb-2">
                   No farm shops found
                 </h3>
                 <p className="text-text-muted dark:text-gray-400">

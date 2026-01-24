@@ -112,13 +112,13 @@ export function Rating({
       <div className="flex items-center gap-0.5">{stars}</div>
 
       {value > 0 && (
-        <span className="ml-1 text-sm font-medium text-slate-900 dark:text-slate-50">
+        <span className="ml-1 text-caption font-medium text-slate-900 dark:text-slate-50">
           {value.toFixed(1)}
         </span>
       )}
 
       {count !== undefined && (
-        <span className="ml-1 text-sm text-slate-500 dark:text-slate-400">({count})</span>
+        <span className="ml-1 text-caption text-slate-500 dark:text-slate-400">({count})</span>
       )}
     </div>
   )

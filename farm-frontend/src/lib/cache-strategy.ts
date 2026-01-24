@@ -15,6 +15,9 @@
 
 import { NextResponse } from 'next/server'
 import { cacheManager, CACHE_TTL, type CacheOptions } from './cache-manager'
+import { logger } from '@/lib/logger'
+
+const cacheStrategyLogger = logger.child({ route: 'lib/cache-strategy' })
 
 // ===========================================================================
 // IN-MEMORY CACHE (L1)
@@ -207,7 +210,7 @@ function generateETag(data: any): string {
  * Should be called on application startup or periodically
  */
 export async function warmCache() {
-  console.log('🔥 Warming cache...')
+  cacheStrategyLogger.info('Starting cache warming')
 
   const warmingTasks = [
     // Warm top categories
@@ -218,7 +221,7 @@ export async function warmCache() {
         ttl: CACHE_TTL.LONG,
         tags: ['categories'],
       })
-      console.log(`  ✓ Cached top ${categories.length} categories`)
+      cacheStrategyLogger.info('Cached top categories', { count: categories.length })
     },
 
     // Warm top counties
@@ -229,7 +232,7 @@ export async function warmCache() {
         ttl: CACHE_TTL.LONG,
         tags: ['counties'],
       })
-      console.log(`  ✓ Cached top ${counties.length} counties`)
+      cacheStrategyLogger.info('Cached top counties', { count: counties.length })
     },
 
     // Warm featured farms
@@ -247,7 +250,7 @@ export async function warmCache() {
         ttl: CACHE_TTL.MEDIUM,
         tags: ['farms', 'featured'],
       })
-      console.log(`  ✓ Cached ${featured.length} featured farms`)
+      cacheStrategyLogger.info('Cached featured farms', { count: featured.length })
     },
 
     // Warm total farm count
@@ -258,7 +261,7 @@ export async function warmCache() {
         ttl: CACHE_TTL.LONG,
         tags: ['stats'],
       })
-      console.log(`  ✓ Cached total farm count: ${count}`)
+      cacheStrategyLogger.info('Cached total farm count', { count })
     },
   ]
 
@@ -268,7 +271,7 @@ export async function warmCache() {
   const successful = results.filter((r) => r.status === 'fulfilled').length
   const failed = results.filter((r) => r.status === 'rejected').length
 
-  console.log(`\n🔥 Cache warming complete: ${successful} successful, ${failed} failed`)
+  cacheStrategyLogger.info('Cache warming complete', { successful, failed })
 }
 
 // ===========================================================================
@@ -300,7 +303,7 @@ export async function invalidateFarmCaches(farmId?: string) {
   // Clear L1 memory cache
   memoryCache.clear()
 
-  console.log(`✓ Invalidated farm caches${farmId ? ` for farm ${farmId}` : ''}`)
+  cacheStrategyLogger.info('Invalidated farm caches', { farmId: farmId || 'all' })
 }
 
 /**
@@ -319,7 +322,7 @@ export async function invalidateCategoryCaches(categoryId?: string) {
   await Promise.all(tasks)
   memoryCache.clear()
 
-  console.log(`✓ Invalidated category caches${categoryId ? ` for category ${categoryId}` : ''}`)
+  cacheStrategyLogger.info('Invalidated category caches', { categoryId: categoryId || 'all' })
 }
 
 /**
@@ -337,7 +340,7 @@ export async function invalidateCountyCaches(county?: string) {
   await Promise.all(tasks)
   memoryCache.clear()
 
-  console.log(`✓ Invalidated county caches${county ? ` for ${county}` : ''}`)
+  cacheStrategyLogger.info('Invalidated county caches', { county: county || 'all' })
 }
 
 // ===========================================================================
@@ -374,7 +377,7 @@ export async function clearAllCaches() {
     cacheManager.clearNamespace('search'),
   ])
 
-  console.log('✓ Cleared all caches')
+  cacheStrategyLogger.info('Cleared all caches')
 }
 
 // ===========================================================================

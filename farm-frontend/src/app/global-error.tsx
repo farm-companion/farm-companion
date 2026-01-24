@@ -56,10 +56,10 @@ export default function GlobalError({
             {/* Error Details (development only) */}
             {process.env.NODE_ENV === 'development' && (
               <details className="mb-6 text-left">
-                <summary className="cursor-pointer text-sm text-text-muted hover:text-text-heading">
+                <summary className="cursor-pointer text-caption text-text-muted hover:text-text-heading">
                   Error Details
                 </summary>
-                <pre className="mt-2 p-3 bg-background-surface rounded text-xs text-text-muted overflow-auto">
+                <pre className="mt-2 p-3 bg-background-surface rounded text-small text-text-muted overflow-auto">
                   {error.message}
                   {error.stack && `\n\n${error.stack}`}
                 </pre>
@@ -86,7 +86,7 @@ export default function GlobalError({
             </div>
 
             {/* Contact Info */}
-            <p className="mt-6 text-sm text-text-muted">
+            <p className="mt-6 text-caption text-text-muted">
               If this problem persists, please{' '}
               <Link href="/contact" className="text-serum hover:underline">
                 contact us

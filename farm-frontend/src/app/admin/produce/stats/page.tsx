@@ -34,14 +34,14 @@ export default async function AdminProduceStatsPage() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Produce Statistics
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-caption text-gray-600 dark:text-gray-400">
                 System usage and analytics for produce images
               </p>
             </div>
             <div className="flex gap-3">
               <Link
                 href="/admin/produce"
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-caption font-medium transition-colors"
               >
                 Back to Produce
               </Link>
@@ -63,10 +63,10 @@ export default async function AdminProduceStatsPage() {
                   </svg>
                 </div>
                 <div className="ml-3">
-                  <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                  <h3 className="text-caption font-medium text-yellow-800 dark:text-yellow-200">
                     No Data Available
                   </h3>
-                  <div className="mt-2 text-sm text-yellow-700 dark:text-yellow-300">
+                  <div className="mt-2 text-caption text-yellow-700 dark:text-yellow-300">
                     <p>Statistics are not available. This could mean the produce-images system is not running or there are no images uploaded yet.</p>
                   </div>
                 </div>
@@ -77,22 +77,22 @@ export default async function AdminProduceStatsPage() {
               {/* Overview Statistics */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Images</h3>
+                  <h3 className="text-body font-semibold text-gray-900 dark:text-white">Total Images</h3>
                   <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stats.totalImages}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Storage Used</h3>
+                  <h3 className="text-body font-semibold text-gray-900 dark:text-white">Storage Used</h3>
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {(stats.storageUsed / 1024 / 1024).toFixed(1)} MB
                   </p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Total Produce</h3>
+                  <h3 className="text-body font-semibold text-gray-900 dark:text-white">Total Produce</h3>
                   <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">{produce.length}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Last Upload</h3>
-                  <p className="text-sm font-bold text-purple-600 dark:text-purple-400">
+                  <h3 className="text-body font-semibold text-gray-900 dark:text-white">Last Upload</h3>
+                  <p className="text-caption font-bold text-purple-600 dark:text-purple-400">
                     {new Date(stats.lastUpload).toLocaleDateString()}
                   </p>
                 </div>
@@ -101,7 +101,7 @@ export default async function AdminProduceStatsPage() {
               {/* Images by Month */}
               <div className="bg-white dark:bg-gray-800 shadow rounded-lg mb-8">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                  <h2 className="text-body font-medium text-gray-900 dark:text-white">
                     Images by Month
                   </h2>
                 </div>
@@ -126,13 +126,13 @@ export default async function AdminProduceStatsPage() {
                             }`}>
                               {count}
                             </div>
-                            <div className={`text-sm ${
+                            <div className={`text-caption ${
                               isCurrentMonth ? 'text-indigo-800 dark:text-indigo-200' : 'text-gray-600 dark:text-gray-400'
                             }`}>
                               {getMonthName(month).slice(0, 3)}
                             </div>
                             {isCurrentMonth && (
-                              <div className="text-xs text-indigo-600 dark:text-indigo-400 font-medium mt-1">
+                              <div className="text-small text-indigo-600 dark:text-indigo-400 font-medium mt-1">
                                 Current
                               </div>
                             )}
@@ -147,7 +147,7 @@ export default async function AdminProduceStatsPage() {
               {/* Images by Produce */}
               <div className="bg-white dark:bg-gray-800 shadow rounded-lg">
                 <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-                  <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                  <h2 className="text-body font-medium text-gray-900 dark:text-white">
                     Images by Produce
                   </h2>
                 </div>
@@ -165,16 +165,16 @@ export default async function AdminProduceStatsPage() {
                               <h3 className="font-medium text-gray-900 dark:text-white">{item.name}</h3>
                               <div className="flex items-center space-x-2 mt-1">
                                 {isPeak && (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-small font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
                                     Peak
                                   </span>
                                 )}
                                 {isInSeason && !isPeak && (
-                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-small font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                     In Season
                                   </span>
                                 )}
-                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                <span className="text-caption text-gray-500 dark:text-gray-400">
                                   {item.monthsInSeason?.map(m => getMonthName(m).slice(0, 3)).join(', ')}
                                 </span>
                               </div>
@@ -182,7 +182,7 @@ export default async function AdminProduceStatsPage() {
                           </div>
                           <div className="text-right">
                             <div className="text-2xl font-bold text-gray-900 dark:text-white">{count}</div>
-                            <div className="text-sm text-gray-500 dark:text-gray-400">images</div>
+                            <div className="text-caption text-gray-500 dark:text-gray-400">images</div>
                           </div>
                         </div>
                       )

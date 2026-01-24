@@ -1,20 +1,23 @@
 /**
  * Bing IndexNow notification utilities
- * 
- * ⚠️  SERVER-SIDE ONLY - NEVER CALL FROM CLIENT COMPONENTS ⚠️
- * 
+ *
+ * SERVER-SIDE ONLY - NEVER CALL FROM CLIENT COMPONENTS
+ *
  * These functions contain sensitive tokens and should only be called from:
  * - API routes
  * - Server components
  * - Vercel cron jobs
  * - Server-side functions
- * 
+ *
  * Never import or call these functions from:
  * - Client components (marked with 'use client')
  * - Browser-side JavaScript
  * - Frontend React components
  */
 
+import { logger } from '@/lib/logger'
+
+const bingLogger = logger.child({ route: 'lib/bing-notifications' })
 const HOST = 'www.farmcompanion.co.uk'
 
 /**
@@ -43,7 +46,7 @@ export async function notifyBingOfUrl(url: string): Promise<{ success: boolean; 
 
     const internalToken = process.env.INDEXNOW_INTERNAL_TOKEN
     if (!internalToken) {
-      console.warn('INDEXNOW_INTERNAL_TOKEN not configured - skipping Bing notification')
+      bingLogger.warn('INDEXNOW_INTERNAL_TOKEN not configured - skipping Bing notification')
       return { success: false, error: 'IndexNow token not configured' }
     }
 
@@ -59,14 +62,14 @@ export async function notifyBingOfUrl(url: string): Promise<{ success: boolean; 
     const result = await response.json()
 
     if (result.ok) {
-      console.log(`✅ Bing notified of URL: ${fullUrl}`)
+      bingLogger.info('Bing notified of URL', { url: fullUrl })
       return { success: true }
     } else {
-      console.error(`❌ Bing notification failed for ${fullUrl}:`, result)
+      bingLogger.error('Bing notification failed', { url: fullUrl, result })
       return { success: false, error: result.error || 'Unknown error' }
     }
   } catch (error) {
-    console.error('Error notifying Bing:', error)
+    bingLogger.error('Error notifying Bing', { url }, error as Error)
     return { success: false, error: 'Network error' }
   }
 }
@@ -122,7 +125,7 @@ export async function notifyBingOfSitemap(): Promise<{ success: boolean; error?:
   try {
     const internalToken = process.env.INDEXNOW_INTERNAL_TOKEN
     if (!internalToken) {
-      console.warn('INDEXNOW_INTERNAL_TOKEN not configured - skipping Bing sitemap notification')
+      bingLogger.warn('INDEXNOW_INTERNAL_TOKEN not configured - skipping Bing sitemap notification')
       return { success: false, error: 'IndexNow token not configured' }
     }
 
@@ -136,14 +139,14 @@ export async function notifyBingOfSitemap(): Promise<{ success: boolean; error?:
     const result = await response.json()
 
     if (result.ok) {
-      console.log('✅ Bing notified of sitemap changes')
+      bingLogger.info('Bing notified of sitemap changes')
       return { success: true }
     } else {
-      console.error('❌ Bing sitemap notification failed:', result)
+      bingLogger.error('Bing sitemap notification failed', { result })
       return { success: false, error: result.error || 'Unknown error' }
     }
   } catch (error) {
-    console.error('Error notifying Bing of sitemap:', error)
+    bingLogger.error('Error notifying Bing of sitemap', {}, error as Error)
     return { success: false, error: 'Network error' }
   }
 }

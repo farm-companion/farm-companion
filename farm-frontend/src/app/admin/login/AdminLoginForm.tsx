@@ -76,10 +76,10 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800 dark:text-red-200">
+              <h3 className="text-caption font-medium text-red-800 dark:text-red-200">
                 Login Error
               </h3>
-              <p className="mt-1 text-sm text-red-700 dark:text-red-300">
+              <p className="mt-1 text-caption text-red-700 dark:text-red-300">
                 {errorMessage}
               </p>
             </div>
@@ -96,10 +96,10 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+              <h3 className="text-caption font-medium text-blue-800 dark:text-blue-200">
                 Debug Info
               </h3>
-              <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+              <p className="mt-1 text-caption text-blue-700 dark:text-blue-300">
                 {debugInfo}
               </p>
             </div>
@@ -109,7 +109,7 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
 
       <div className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="email" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
             Email Address
           </label>
           <input
@@ -125,7 +125,7 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
         </div>
         
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label htmlFor="password" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
             Password
           </label>
           <input
@@ -144,7 +144,7 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-brand-primary hover:bg-brand-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors disabled:opacity-50"
+          className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-caption font-medium rounded-md text-white bg-brand-primary hover:bg-brand-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-colors disabled:opacity-50"
         >
           <span className="absolute left-0 inset-y-0 flex items-center pl-3">
             <svg className="h-5 w-5 text-brand-primary/80 group-hover:text-brand-primary/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -163,10 +163,10 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800 dark:text-blue-200">
+            <h3 className="text-caption font-medium text-blue-800 dark:text-blue-200">
               Admin Credentials
             </h3>
-            <p className="mt-1 text-sm text-blue-700 dark:text-blue-300">
+            <p className="mt-1 text-caption text-blue-700 dark:text-blue-300">
               Email: <strong>hello@farmcompanion.co.uk</strong><br/>
               Password: <strong>mifxa2-ziwdyc-vEbkov</strong>
             </p>
@@ -182,10 +182,10 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+            <h3 className="text-caption font-medium text-yellow-800 dark:text-yellow-200">
               Admin Access Only
             </h3>
-            <p className="mt-1 text-sm text-yellow-700 dark:text-yellow-300">
+            <p className="mt-1 text-caption text-yellow-700 dark:text-yellow-300">
               This area is restricted to authorized administrators only. 
               Unauthorized access attempts will be logged.
             </p>

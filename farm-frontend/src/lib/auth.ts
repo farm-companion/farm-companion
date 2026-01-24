@@ -4,6 +4,10 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
 import crypto from 'crypto'
+import { logger } from '@/lib/logger'
+
+// Module-level logger for auth operations
+const authLogger = logger.child({ route: 'lib/auth' })
 
 // Extend global type for auth attempts tracking
 declare global {
@@ -30,7 +34,7 @@ function validateAdminCredentials(): void {
   
   // Log security warning if using default email
   if (ADMIN_CREDENTIALS.email === 'admin@farmcompanion.co.uk') {
-    console.warn('⚠️  SECURITY: Using default admin email. Consider changing ADMIN_EMAIL.')
+    authLogger.warn('Using default admin email - consider changing ADMIN_EMAIL')
   }
 }
 
@@ -57,7 +61,7 @@ async function getAuthAttempts(email: string): Promise<number> {
     
     return attempts
   } catch (error) {
-    console.error('Failed to get auth attempts:', error)
+    authLogger.error('Failed to get auth attempts', { email }, error as Error)
     return 0
   }
 }
@@ -72,7 +76,7 @@ async function incrementAuthAttempts(email: string): Promise<void> {
     global.authAttempts[email] = (global.authAttempts[email] || 0) + 1
     global.authAttemptsTime[email] = Date.now()
   } catch (error) {
-    console.error('Failed to increment auth attempts:', error)
+    authLogger.error('Failed to increment auth attempts', { email }, error as Error)
   }
 }
 
@@ -86,7 +90,7 @@ async function clearAuthAttempts(email: string): Promise<void> {
       delete global.authAttemptsTime[email]
     }
   } catch (error) {
-    console.error('Failed to clear auth attempts:', error)
+    authLogger.error('Failed to clear auth attempts', { email }, error as Error)
   }
 }
 
@@ -104,23 +108,23 @@ export async function isAuthenticated(): Promise<boolean> {
     const session = cookieStore.get(SESSION_COOKIE)
     
     if (!session) {
-      console.log('No session cookie found')
+      authLogger.debug('No session cookie found')
       return false
     }
-    
+
     const sessionData = JSON.parse(session.value)
     const now = Date.now()
-    
+
     // Check if session is expired
     if (sessionData.expiresAt < now) {
-      console.log('Session expired')
+      authLogger.debug('Session expired')
       return false
     }
-    
-    console.log('User is authenticated:', sessionData.email)
+
+    authLogger.debug('User is authenticated', { email: sessionData.email })
     return true
   } catch (error) {
-    console.error('Authentication check failed:', error)
+    authLogger.error('Authentication check failed', {}, error as Error)
     return false
   }
 }
@@ -148,7 +152,7 @@ export async function getCurrentUser(): Promise<AdminUser | null> {
       permissions: ['photo_management', 'claims_management', 'user_management']
     }
   } catch (error) {
-    console.error('Get current user failed:', error)
+    authLogger.error('Get current user failed', {}, error as Error)
     return null
   }
 }
@@ -160,15 +164,14 @@ export async function authenticateAdmin(email: string, password: string): Promis
     validateAdminCredentials()
     
     // Security logging (without exposing sensitive data)
-    console.log('🔐 AUTH: Authentication attempt for:', email)
-    console.log('🔐 AUTH: Credentials configured:', !!ADMIN_CREDENTIALS.email && !!ADMIN_CREDENTIALS.password)
+    authLogger.info('Authentication attempt', { email, credentialsConfigured: !!ADMIN_CREDENTIALS.email && !!ADMIN_CREDENTIALS.password })
     
     // Validate input
     const trimmedEmail = email.trim()
     const trimmedPassword = password.trim()
     
     if (!trimmedEmail || !trimmedPassword) {
-      console.log('🔐 AUTH: Failed - Empty credentials')
+      authLogger.warn('Authentication failed - empty credentials')
       return {
         success: false,
         error: 'Email and password are required'
@@ -178,7 +181,7 @@ export async function authenticateAdmin(email: string, password: string): Promis
     // Rate limiting check (basic implementation)
     const authAttempts = await getAuthAttempts(trimmedEmail)
     if (authAttempts > 5) {
-      console.log('🔐 AUTH: Failed - Too many attempts for:', trimmedEmail)
+      authLogger.warn('Authentication failed - too many attempts', { email: trimmedEmail, attempts: authAttempts })
       return {
         success: false,
         error: 'Too many login attempts. Please try again later.'
@@ -188,7 +191,7 @@ export async function authenticateAdmin(email: string, password: string): Promis
     // Validate credentials
     if (trimmedEmail !== ADMIN_CREDENTIALS.email || trimmedPassword !== ADMIN_CREDENTIALS.password) {
       await incrementAuthAttempts(trimmedEmail)
-      console.log('🔐 AUTH: Failed - Invalid credentials for:', trimmedEmail)
+      authLogger.warn('Authentication failed - invalid credentials', { email: trimmedEmail })
       return {
         success: false,
         error: 'Invalid email or password'
@@ -209,8 +212,8 @@ export async function authenticateAdmin(email: string, password: string): Promis
       expiresAt: Date.now() + SESSION_DURATION
     }
     
-    console.log('🔐 AUTH: Success - Creating session for:', sessionData.email)
-    
+    authLogger.info('Authentication successful - creating session', { email: sessionData.email, sessionId })
+
     // Set secure session cookie
     const cookieStore = await cookies()
     cookieStore.set(SESSION_COOKIE, JSON.stringify(sessionData), {
@@ -221,10 +224,10 @@ export async function authenticateAdmin(email: string, password: string): Promis
       path: '/admin' // Restrict to admin paths
     })
     
-    console.log('🔐 AUTH: Session created successfully')
+    authLogger.info('Session created successfully')
     return { success: true }
   } catch (error) {
-    console.error('Authentication failed:', error)
+    authLogger.error('Authentication failed', {}, error as Error)
     return {
       success: false,
       error: 'Authentication failed'
@@ -237,20 +240,21 @@ export async function logoutAdmin(): Promise<void> {
   try {
     const cookieStore = await cookies()
     cookieStore.delete(SESSION_COOKIE)
+    authLogger.info('Admin logout successful')
   } catch (error) {
-    console.error('Logout failed:', error)
+    authLogger.error('Logout failed', {}, error as Error)
   }
 }
 
 // Require authentication middleware
 export async function requireAuth(): Promise<AdminUser> {
   const user = await getCurrentUser()
-  
+
   if (!user) {
-    console.log('No authenticated user found, redirecting to login')
+    authLogger.debug('No authenticated user found, redirecting to login')
     redirect('/admin/login')
   }
-  
+
   return user
 }
 

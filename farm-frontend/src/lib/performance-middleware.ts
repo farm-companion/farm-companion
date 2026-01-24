@@ -2,19 +2,22 @@
 // PuredgeOS 3.0 Compliant Performance Middleware
 
 import { NextRequest, NextResponse } from 'next/server'
-import { 
-  trackAPIPerformance, 
-  PerformanceTimer, 
+import {
+  trackAPIPerformance,
+  PerformanceTimer,
   getMemoryUsage,
-  getCPUUsage 
+  getCPUUsage
 } from './performance-monitor'
-import { 
-  cacheManager, 
+import {
+  cacheManager,
   CACHE_TTL,
   getCached,
-  setCached 
+  setCached
 } from './cache-manager'
 import { extractRequestContext } from './error-handler'
+import { logger } from '@/lib/logger'
+
+const perfMiddlewareLogger = logger.child({ route: 'lib/performance-middleware' })
 
 // Performance middleware with caching
 export function withPerformanceCache<T extends any[]>(
@@ -273,17 +276,19 @@ export function withMemoryMonitoring<T extends any[]>(
       
       // Log memory usage if it's high
       if (endMemory.percentage > 80) {
-        console.warn(`High memory usage: ${endMemory.percentage.toFixed(2)}%`)
+        perfMiddlewareLogger.warn('High memory usage detected', { memoryPercentage: endMemory.percentage.toFixed(2) })
       }
-      
+
       return response
     } catch (error) {
       const endMemory = getMemoryUsage()
       const endTime = Date.now()
-      
-      console.error(`Memory usage during error: ${endMemory.percentage.toFixed(2)}%`)
-      console.error(`Processing time: ${endTime - startTime}ms`)
-      
+
+      perfMiddlewareLogger.error('Error during request processing', {
+        memoryPercentage: endMemory.percentage.toFixed(2),
+        processingTimeMs: endTime - startTime
+      }, error as Error)
+
       throw error
     }
   }

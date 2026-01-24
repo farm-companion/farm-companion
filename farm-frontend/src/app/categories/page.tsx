@@ -49,7 +49,7 @@ export default async function CategoriesPage() {
       {/* Breadcrumbs */}
       <div className="border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
             <Link href="/" className="hover:text-brand-primary transition-colors">
               Home
             </Link>
@@ -66,7 +66,7 @@ export default async function CategoriesPage() {
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
               Farm Categories
             </h1>
-            <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-body md:text-heading text-slate-600 dark:text-slate-400 mb-6">
               Explore {categories.length} categories of farms, producers, and agricultural
               businesses across the UK
             </p>
@@ -139,19 +139,19 @@ function CategoryCard({ category }: { category: any }) {
       )}
 
       {/* Category Name */}
-      <h3 className="font-semibold text-slate-900 dark:text-white mb-2 text-sm md:text-base">
+      <h3 className="font-semibold text-slate-900 dark:text-white mb-2 text-caption md:text-body">
         {category.name}
       </h3>
 
       {/* Description */}
       {category.description && (
-        <p className="text-xs md:text-sm text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
+        <p className="text-small md:text-caption text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
           {category.description}
         </p>
       )}
 
       {/* Farm Count Badge */}
-      <Badge variant="outline" size="sm" className="text-xs">
+      <Badge variant="outline" size="sm" className="text-small">
         {category.farmCount} {category.farmCount === 1 ? 'Farm' : 'Farms'}
       </Badge>
 

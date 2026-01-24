@@ -24,14 +24,14 @@ export default async function AdminDashboardPage() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Admin Dashboard
               </h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
+              <p className="text-caption text-gray-600 dark:text-gray-400">
                 Welcome back, {user?.email}
               </p>
             </div>
             <form action="/api/admin/logout" method="POST">
               <button
                 type="submit"
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-caption font-medium transition-colors"
               >
                 Sign Out
               </button>
@@ -54,10 +54,10 @@ export default async function AdminDashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    <h3 className="text-body font-medium text-gray-900 dark:text-white">
                       Photo Management
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-caption text-gray-500 dark:text-gray-400">
                       Review and manage photo submissions
                     </p>
                   </div>
@@ -65,7 +65,7 @@ export default async function AdminDashboardPage() {
                 <div className="mt-6">
                   <Link
                     href="/admin/photos"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-caption font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
                   >
                     Manage Photos
                   </Link>
@@ -83,10 +83,10 @@ export default async function AdminDashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    <h3 className="text-body font-medium text-gray-900 dark:text-white">
                       Farm Submissions
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-caption text-gray-500 dark:text-gray-400">
                       Review new farm shop submissions
                     </p>
                   </div>
@@ -94,7 +94,7 @@ export default async function AdminDashboardPage() {
                 <div className="mt-6">
                   <Link
                     href="/admin/farms"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-caption font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
                   >
                     Review Submissions
                   </Link>
@@ -112,10 +112,10 @@ export default async function AdminDashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    <h3 className="text-body font-medium text-gray-900 dark:text-white">
                       Claims Management
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-caption text-gray-500 dark:text-gray-400">
                       Review farm shop ownership claims
                     </p>
                   </div>
@@ -123,7 +123,7 @@ export default async function AdminDashboardPage() {
                 <div className="mt-6">
                   <Link
                     href="/admin/claims"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-caption font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
                   >
                     Manage Claims
                   </Link>
@@ -141,10 +141,10 @@ export default async function AdminDashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    <h3 className="text-body font-medium text-gray-900 dark:text-white">
                       Analytics
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-caption text-gray-500 dark:text-gray-400">
                       View site statistics and insights
                     </p>
                   </div>
@@ -152,7 +152,7 @@ export default async function AdminDashboardPage() {
                 <div className="mt-6">
                   <button
                     disabled
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-gray-400 bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-caption font-medium rounded-md text-gray-400 bg-gray-100 dark:bg-gray-700 cursor-not-allowed"
                   >
                     Coming Soon
                   </button>
@@ -171,10 +171,10 @@ export default async function AdminDashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    <h3 className="text-body font-medium text-gray-900 dark:text-white">
                       Produce Management
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-caption text-gray-500 dark:text-gray-400">
                       Manage seasonal produce images
                     </p>
                   </div>
@@ -182,7 +182,7 @@ export default async function AdminDashboardPage() {
                 <div className="mt-6">
                   <Link
                     href="/admin/produce"
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-caption font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition-colors"
                   >
                     Manage Produce
                   </Link>
@@ -200,10 +200,10 @@ export default async function AdminDashboardPage() {
                     </svg>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    <h3 className="text-body font-medium text-gray-900 dark:text-white">
                       Quick Actions
                     </h3>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                    <p className="text-caption text-gray-500 dark:text-gray-400">
                       Common administrative tasks
                     </p>
                   </div>
@@ -211,25 +211,25 @@ export default async function AdminDashboardPage() {
                 <div className="mt-6 space-y-2">
                   <Link
                     href="/add"
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                    className="block w-full text-left px-4 py-2 text-caption text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
                   >
                     Add Farm Shop
                   </Link>
                   <Link
                     href="/map"
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                    className="block w-full text-left px-4 py-2 text-caption text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
                   >
                     View Map
                   </Link>
                   <Link
                     href="/contact"
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                    className="block w-full text-left px-4 py-2 text-caption text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
                   >
                     Contact Form
                   </Link>
                   <Link
                     href="/"
-                    className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
+                    className="block w-full text-left px-4 py-2 text-caption text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
                   >
                     View Site
                   </Link>

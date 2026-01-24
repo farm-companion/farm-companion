@@ -295,6 +295,7 @@ export async function checkDataIntegrity(schema: keyof DatabaseSchema): Promise<
   valid: boolean
   errors: string[]
   orphanedIndexes: string[]
+  totalRecords: number
 }> {
   const client = await ensureConnection()
   const config = DB_SCHEMA[schema]
@@ -344,7 +345,8 @@ export async function checkDataIntegrity(schema: keyof DatabaseSchema): Promise<
   return {
     valid: errors.length === 0 && orphanedIndexes.length === 0,
     errors,
-    orphanedIndexes
+    orphanedIndexes,
+    totalRecords: records.size
   }
 }
 

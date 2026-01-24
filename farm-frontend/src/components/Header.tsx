@@ -78,11 +78,11 @@ function Brand({ inverted }: { inverted: boolean }) {
       </div>
       <div className="leading-tight">
         <span className={cx(
-          'block text-base font-semibold', 
+          'block text-body font-semibold', 
           inverted ? 'text-white' : 'text-gray-900 dark:text-white'
         )}>Farm Companion</span>
         <span className={cx(
-          'hidden text-xs font-medium sm:block', 
+          'hidden text-small font-medium sm:block', 
           inverted ? 'text-white/80' : 'text-gray-600 dark:text-gray-300'
         )}>Real food, real places</span>
       </div>
@@ -156,7 +156,7 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
         <div className="mx-auto flex h-full max-w-screen-sm flex-col px-5 pt-4 pb-8">
           {/* header row */}
           <div className="mb-4 flex items-center justify-between">
-            <h2 id={labelledBy} className="text-base font-semibold text-gray-900 dark:text-white">Menu</h2>
+            <h2 id={labelledBy} className="text-body font-semibold text-gray-900 dark:text-white">Menu</h2>
             <button
               onClick={onClose}
               className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 active:scale-95"
@@ -172,32 +172,32 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
               <Link href="/map" onClick={onClose}
                 className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 Farm Map
-                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Find farm shops near you</p>
+                <p className="mt-1 text-caption text-gray-700 dark:text-gray-300">Find farm shops near you</p>
               </Link>
 
               <Link href="/seasonal" onClick={onClose}
                 className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 What&apos;s in Season
-                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Fresh produce calendar</p>
+                <p className="mt-1 text-caption text-gray-700 dark:text-gray-300">Fresh produce calendar</p>
               </Link>
 
               <Link href="/about" onClick={onClose}
                 className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 About
-                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Our story and mission</p>
+                <p className="mt-1 text-caption text-gray-700 dark:text-gray-300">Our story and mission</p>
               </Link>
 
               <Link href="/contact" onClick={onClose}
                 className="block rounded-xl border border-gray-200 bg-gray-50 p-4 text-gray-900 transition hover:translate-x-[2px] hover:shadow-sm active:translate-x-[1px] dark:border-gray-700 dark:bg-gray-800 dark:text-white">
                 Feedback
-                <p className="mt-1 text-sm text-gray-700 dark:text-gray-300">Share your thoughts</p>
+                <p className="mt-1 text-caption text-gray-700 dark:text-gray-300">Share your thoughts</p>
               </Link>
 
               <div className="mt-6 rounded-xl border border-gray-200 p-4 dark:border-gray-700">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium text-gray-900 dark:text-white">Theme</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-300">Light or dark mode</p>
+                    <p className="text-caption font-medium text-gray-900 dark:text-white">Theme</p>
+                    <p className="text-small text-gray-600 dark:text-gray-300">Light or dark mode</p>
                   </div>
                   <ThemeToggle />
                 </div>
@@ -266,23 +266,23 @@ export default function Header() {
         <Brand inverted={inverted} />
 
         <nav aria-label="Primary" className="hidden items-center gap-4 md:flex">
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/map">
+          <Link className={cx('text-caption font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/map">
             Map
           </Link>
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/seasonal">
+          <Link className={cx('text-caption font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/seasonal">
             Seasonal
           </Link>
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/about">
+          <Link className={cx('text-caption font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/about">
             About
           </Link>
-          <Link className={cx('text-sm font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/contact">
+          <Link className={cx('text-caption font-medium transition hover:opacity-80', inverted ? 'text-white' : 'text-gray-900 dark:text-gray-100')} href="/contact">
             Feedback
           </Link>
           <Link
             href="/add"
             className={cx(
               // Increased touch target to 48px height (was 40px)
-              'inline-flex h-12 items-center justify-center rounded-md border px-4 text-sm font-medium transition hover:opacity-90',
+              'inline-flex h-12 items-center justify-center rounded-md border px-4 text-caption font-medium transition hover:opacity-90',
               inverted
                 ? 'border-white bg-white text-black hover:bg-gray-100'
                 : 'border-gray-900 bg-gray-900 text-white hover:bg-black dark:border-gray-100 dark:bg-gray-100 dark:text-gray-900 dark:hover:bg-white'

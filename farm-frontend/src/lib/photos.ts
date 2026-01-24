@@ -1,5 +1,8 @@
 import redis, { ensureConnection } from './redis'
 import { head } from '@vercel/blob'
+import { logger } from '@/lib/logger'
+
+const photosLogger = logger.child({ route: 'lib/photos' })
 
 export type ApprovedPhoto = {
   id: string
@@ -27,7 +30,7 @@ export async function getApprovedPhotosBySlug(slug: string): Promise<ApprovedPho
           const photoData = await client.hGetAll(`photo:${id}`)
           return photoData || null
         } catch (err) {
-          console.warn('Failed to fetch photo metadata', { photoId: id, error: err })
+          photosLogger.warn('Failed to fetch photo metadata', { photoId: id }, err as Error)
           return null
         }
       })
@@ -50,7 +53,7 @@ export async function getApprovedPhotosBySlug(slug: string): Promise<ApprovedPho
 
     return photos
   } catch (error) {
-    console.error('Error fetching approved photos', { farmSlug: slug, error })
+    photosLogger.error('Error fetching approved photos', { farmSlug: slug }, error as Error)
     return []
   }
 }
@@ -74,7 +77,7 @@ export async function getValidApprovedPhotosBySlug(slug: string): Promise<Approv
           const photoData = await client.hGetAll(`photo:${id}`)
           return photoData || null
         } catch (err) {
-          console.warn('Failed to fetch photo metadata', { photoId: id, error: err })
+          photosLogger.warn('Failed to fetch photo metadata', { photoId: id }, err as Error)
           return null
         }
       })
@@ -101,15 +104,14 @@ export async function getValidApprovedPhotosBySlug(slug: string): Promise<Approv
         try {
           // Extract pathname from URL
           const pathname = photo.url.replace('https://blob.vercel-storage.com/', '')
-          
+
           // Check if file exists in blob storage
           await head(pathname)
           return photo
         } catch (error) {
-          console.warn('Photo not found in blob storage, removing from display', { 
-            photoId: photo.id, 
-            url: photo.url,
-            error: error instanceof Error ? error.message : 'Unknown error'
+          photosLogger.warn('Photo not found in blob storage, removing from display', {
+            photoId: photo.id,
+            url: photo.url
           })
           return null
         }
@@ -119,7 +121,7 @@ export async function getValidApprovedPhotosBySlug(slug: string): Promise<Approv
     // Filter out null results (photos that don't exist in blob storage)
     return validPhotos.filter(Boolean) as ApprovedPhoto[]
   } catch (error) {
-    console.error('Error fetching valid approved photos', { farmSlug: slug, error })
+    photosLogger.error('Error fetching valid approved photos', { farmSlug: slug }, error as Error)
     return []
   }
 }
@@ -142,7 +144,7 @@ export async function getPhotoById(id: string): Promise<ApprovedPhoto | null> {
       status: 'approved' as const
     }
   } catch (error) {
-    console.error('Error fetching photo by ID', { photoId: id, error })
+    photosLogger.error('Error fetching photo by ID', { photoId: id }, error as Error)
     return null
   }
 }
@@ -160,7 +162,7 @@ export async function getPendingPhotos(): Promise<any[]> {
           const photoData = await client.hGetAll(`photo:${id}`)
           return photoData || null
         } catch (err) {
-          console.warn('Failed to fetch pending photo metadata', { photoId: id, error: err })
+          photosLogger.warn('Failed to fetch pending photo metadata', { photoId: id }, err as Error)
           return null
         }
       })
@@ -168,7 +170,7 @@ export async function getPendingPhotos(): Promise<any[]> {
 
     return photos.filter(Boolean)
   } catch (error) {
-    console.error('Error fetching pending photos', { error })
+    photosLogger.error('Error fetching pending photos', {}, error as Error)
     return []
   }
 }

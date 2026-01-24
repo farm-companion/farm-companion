@@ -20,6 +20,9 @@
  */
 
 import { MeiliSearch } from 'meilisearch'
+import { logger } from '@/lib/logger'
+
+const searchSetupLogger = logger.child({ route: 'lib/search' })
 
 const client = new MeiliSearch({
   host: process.env.MEILISEARCH_HOST || 'http://127.0.0.1:7700',
@@ -94,7 +97,7 @@ export async function setupSearchIndex() {
     },
   })
 
-  console.log('✓ Search index configured successfully')
+  searchSetupLogger.info('Search index configured successfully')
 }
 
 /**
