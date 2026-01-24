@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "node scripts/fix-prisma-zeptomatch.js && patch-package",
+    "postinstall": "prisma generate && node scripts/fix-prisma-zeptomatch.js && patch-package",
     "generate:produce-images": "tsx src/scripts/generate-produce-images.ts"
   },
   "dependencies": {
