@@ -87,11 +87,7 @@
 - [x] Standardize admin/login/route (3-in-1: eliminated 8 console statements)
 - [x] Standardize admin/logout/route (3-in-1: eliminated 1 console statement)
 - [x] Standardize admin/database-integrity/route (3-in-1: eliminated 2 console statements, 8 inline errors for GET and POST handlers)
-- [ ] Standardize error handling in batch 2 (remaining routes)
-- [ ] Standardize error handling in batch 3 (10 routes)
-- [ ] Standardize error handling in batch 4 (10 routes)
-- [ ] Standardize error handling in batch 5 (10 routes)
-- [ ] Standardize error handling in batch 6 (11 remaining routes)
+- [x] Queue 12 COMPLETE - 57/63 routes use handleApiError, 6 routes use intentional specialized patterns (selftest health checks, auth redirects, caching wrapper, apiMiddleware)
 
 ### Queue 13: Console.log Elimination (FORENSIC DISCOVERY - 94 statements across 48 routes)
 - [x] Remove console.log from high-volume offenders batch 1a (upload/route 19 statements eliminated)
