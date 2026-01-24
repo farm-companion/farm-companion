@@ -163,6 +163,19 @@
   --header-h: 64px;
   --search-h: 96px;
 
+  /* ==========================================================================
+     INFORMATION DENSITY GRID - BEATS APPLE'S WASTED SPACE
+     Three modes: comfortable (default), compact, dense
+     ========================================================================== */
+
+  /* Comfortable Mode (Default) - Marketing, landing pages */
+  --density-card-padding: 40px;
+  --density-grid-gap: 48px;
+  --density-section-y: 128px;
+  --density-section-y-lg: 192px;
+  --density-button-height: 44px;
+  --density-input-height: 44px;
+
   /* Seasonal color palette - Editorial British food magazine aesthetic */
   --seasonal-cream: #faf5f0;
   --seasonal-forest: #14532d;  /* Green 900 - WCAG AAA */
@@ -179,6 +192,37 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
   --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
   --shadow-glass: 0 8px 32px rgb(0 0 0 / 0.08), 0 2px 8px rgb(0 0 0 / 0.04);
+}
+
+/* Compact Mode - Dashboards, data tables */
+.density-compact {
+  --density-card-padding: 24px;
+  --density-grid-gap: 32px;
+  --density-section-y: 64px;
+  --density-section-y-lg: 96px;
+  --density-button-height: 40px;
+  --density-input-height: 40px;
+}
+
+/* Dense Mode - Admin panels, power users */
+.density-dense {
+  --density-card-padding: 16px;
+  --density-grid-gap: 24px;
+  --density-section-y: 48px;
+  --density-section-y-lg: 64px;
+  --density-button-height: 36px;
+  --density-input-height: 36px;
+}
+
+/* Density utility classes */
+.density-padding { padding: var(--density-card-padding); }
+.density-gap { gap: var(--density-grid-gap); }
+.density-section-y { padding-top: var(--density-section-y); padding-bottom: var(--density-section-y); }
+.density-button-h { height: var(--density-button-height); }
+.density-input-h { height: var(--density-input-height); }
+
+@media (min-width: 768px) {
+  .density-section-y { padding-top: var(--density-section-y-lg); padding-bottom: var(--density-section-y-lg); }
 }
 
 /* ============================================================================
@@ -2207,15 +2251,25 @@ html {
    MICRO-INTERACTIONS - DELIGHTFUL ANIMATIONS
    ============================================================================ */
 
-/* Error shake animation */
+/* Error shake animation - God-tier feedback */
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
   20%, 40%, 60%, 80% { transform: translateX(8px); }
 }
 
+@keyframes error-shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-8px); }
+  20%, 40%, 60%, 80% { transform: translateX(8px); }
+}
+
 .animate-shake {
-  animation: shake 0.6s ease-in-out;
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+.animate-error-shake {
+  animation: error-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
 }
 
 /* Success pop animation */
