@@ -1,5 +1,8 @@
 import redis, { ensureConnection } from './redis'
 import { del } from '@vercel/blob'
+import { logger } from '@/lib/logger'
+
+const photoLogger = logger.child({ route: 'lib/photo-storage' })
 
 export type PhotoSubmission = {
   id: string
@@ -64,7 +67,7 @@ export async function getPhotoSubmission(photoId: string): Promise<PhotoSubmissi
       deletionRequest: photoData.deletionRequest ? JSON.parse(photoData.deletionRequest) : undefined
     }
   } catch (error) {
-    console.error('Error getting photo submission:', error)
+    photoLogger.error('Error getting photo submission', { photoId }, error as Error)
     return null
   }
 }
@@ -85,7 +88,7 @@ export async function updatePhotoStatus(photoId: string, status: string, metadat
     await client.hSet(`photo:${photoId}`, updates)
     return true
   } catch (error) {
-    console.error('Error updating photo status:', error)
+    photoLogger.error('Error updating photo status', { photoId, status }, error as Error)
     return false
   }
 }
@@ -132,7 +135,7 @@ export async function requestPhotoDeletion(params: {
       requestId
     }
   } catch (error) {
-    console.error('Error requesting photo deletion:', error)
+    photoLogger.error('Error requesting photo deletion', { photoId: params.photoId }, error as Error)
     return {
       success: false,
       error: 'Failed to submit deletion request'
@@ -169,9 +172,9 @@ export async function reviewDeletionRequest(params: {
           await del(photo.url)
         }
       } catch (blobError) {
-        console.warn('Failed to delete from blob storage:', blobError)
+        photoLogger.warn('Failed to delete from blob storage', { photoId }, blobError as Error)
       }
-      
+
       // Update photo status
       await updatePhotoStatus(photoId, 'deleted', {
         deletedAt: timestamp
@@ -215,7 +218,7 @@ export async function reviewDeletionRequest(params: {
       }
     }
   } catch (error) {
-    console.error('Error reviewing deletion request:', error)
+    photoLogger.error('Error reviewing deletion request', { requestId: params.requestId, action: params.action }, error as Error)
     return {
       success: false,
       error: 'Failed to review deletion request'
@@ -249,7 +252,7 @@ export async function recoverDeletedPhoto(photoId: string): Promise<{ success: b
       message: 'Photo recovered successfully'
     }
   } catch (error) {
-    console.error('Error recovering deleted photo:', error)
+    photoLogger.error('Error recovering deleted photo', { photoId }, error as Error)
     return {
       success: false,
       error: 'Failed to recover photo'
@@ -285,7 +288,7 @@ export async function getPendingDeletionRequests(): Promise<DeletionRequest[]> {
     
     return requests.filter(Boolean) as DeletionRequest[]
   } catch (error) {
-    console.error('Error getting pending deletion requests:', error)
+    photoLogger.error('Error getting pending deletion requests', {}, error as Error)
     return []
   }
 }
@@ -303,7 +306,7 @@ export async function getRecoverablePhotos(): Promise<PhotoSubmission[]> {
     
     return photos.filter(Boolean) as PhotoSubmission[]
   } catch (error) {
-    console.error('Error getting recoverable photos:', error)
+    photoLogger.error('Error getting recoverable photos', {}, error as Error)
     return []
   }
 }
@@ -326,9 +329,9 @@ export async function cleanupExpiredDeletedPhotos(): Promise<number> {
             await del(photo.url)
           }
         } catch (blobError) {
-          console.warn('Failed to delete from blob storage:', blobError)
+          photoLogger.warn('Failed to delete from blob storage during cleanup', { photoId }, blobError as Error)
         }
-        
+
         // Remove from Redis
         await client.del(`photo:${photoId}`)
         await client.lRem('photos:deleted', 0, photoId)
@@ -339,7 +342,7 @@ export async function cleanupExpiredDeletedPhotos(): Promise<number> {
     
     return cleanedCount
   } catch (error) {
-    console.error('Error cleaning up expired deleted photos:', error)
+    photoLogger.error('Error cleaning up expired deleted photos', {}, error as Error)
     return 0
   }
 }
