@@ -3,6 +3,10 @@
 
 import { Resend } from 'resend'
 import PhotoSubmissionReceiptEmail from '@/emails/PhotoSubmissionReceipt'
+import { logger } from '@/lib/logger'
+
+// Module-level logger for email operations
+const emailLogger = logger.child({ route: 'lib/email' })
 // import PhotoApprovedEmail from '@/emails/PhotoApproved'
 // import PhotoRejectedEmail from '@/emails/PhotoRejected'
 
@@ -26,7 +30,7 @@ export async function sendPhotoSubmissionReceipt(input: ReceiptInput) {
 
   // Enhanced validation with detailed logging
   if (!input.to || !from) {
-    console.warn('Email send skipped: missing required fields', {
+    emailLogger.warn('Photo receipt email skipped - missing required fields', {
       hasTo: !!input.to,
       hasFrom: !!from,
       farmSlug: input.farmSlug
@@ -37,7 +41,7 @@ export async function sendPhotoSubmissionReceipt(input: ReceiptInput) {
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(input.to)) {
-    console.warn('Email send skipped: invalid email format', { email: input.to })
+    emailLogger.warn('Photo receipt email skipped - invalid email format', { email: input.to })
     return { skipped: true, reason: 'invalid_email_format' }
   }
 
@@ -65,7 +69,7 @@ export async function sendPhotoSubmissionReceipt(input: ReceiptInput) {
       replyTo: 'support@farmcompanion.co.uk',
     })
 
-    console.log('Email sent successfully', {
+    emailLogger.info('Photo receipt email sent successfully', {
       to: input.to,
       farmSlug: input.farmSlug,
       messageId: result.data?.id
@@ -73,12 +77,10 @@ export async function sendPhotoSubmissionReceipt(input: ReceiptInput) {
 
     return result
   } catch (error) {
-    console.error('Email send failed', {
-      error: error instanceof Error ? error.message : 'Unknown error',
+    emailLogger.error('Photo receipt email send failed', {
       to: input.to,
-      farmSlug: input.farmSlug,
-      stack: error instanceof Error ? error.stack : undefined
-    })
+      farmSlug: input.farmSlug
+    }, error as Error)
     
     // Return error details for monitoring
     return { 
@@ -238,13 +240,13 @@ export async function sendSubmissionAckEmail(opts: {
   const logoPath = `${siteUrl}/brand/farm-companion-logo.svg`
 
   if (!opts.to || !from) {
-    console.warn('Farm submission ack email skipped: missing required fields')
+    emailLogger.warn('Farm submission ack email skipped - missing required fields', { farmName: opts.farmName })
     return { skipped: true, reason: 'missing_required_fields' }
   }
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(opts.to)) {
-    console.warn('Farm submission ack email skipped: invalid email format', { email: opts.to })
+    emailLogger.warn('Farm submission ack email skipped - invalid email format', { email: opts.to })
     return { skipped: true, reason: 'invalid_email_format' }
   }
 
@@ -272,7 +274,7 @@ export async function sendSubmissionAckEmail(opts: {
       replyTo: 'support@farmcompanion.co.uk',
     })
 
-    console.log('Farm submission ack email sent successfully', {
+    emailLogger.info('Farm submission ack email sent successfully', {
       to: opts.to,
       farmName: opts.farmName,
       messageId: result.data?.id
@@ -280,11 +282,10 @@ export async function sendSubmissionAckEmail(opts: {
 
     return result
   } catch (error) {
-    console.error('Farm submission ack email send failed', {
-      error: error instanceof Error ? error.message : 'Unknown error',
+    emailLogger.error('Farm submission ack email send failed', {
       to: opts.to,
-      farmName: opts.farmName,
-    })
+      farmName: opts.farmName
+    }, error as Error)
     
     return { 
       error: true, 
@@ -298,11 +299,11 @@ export async function sendSubmissionAckEmail(opts: {
 export function validateEmailConfig() {
   const required = ['RESEND_API_KEY', 'RESEND_FROM', 'SITE_URL']
   const missing = required.filter(key => !process.env[key])
-  
+
   if (missing.length > 0) {
-    console.warn('Email configuration incomplete', { missing })
+    emailLogger.warn('Email configuration incomplete', { missing })
     return false
   }
-  
+
   return true
 }
