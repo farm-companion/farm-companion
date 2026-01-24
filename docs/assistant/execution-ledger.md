@@ -63,6 +63,7 @@
 - [x] Replace console.log with structured logging in produce/cache lib files (Slice 1d: produce-image-generator.ts 14, cache-strategy.ts 10, produce-integration.ts 10 = 34 statements)
 - [x] Replace console.log with structured logging in photos/blob/perf lib files (Slice 1e: photos.ts 8, produce-blob.ts 7, performance-monitor.ts 7 = 22 statements)
 - [x] Replace console.log with structured logging in blob/search/error lib files (Slice 1f: blob.ts 3, meilisearch.ts 2, error-handler.ts 2 = 7 statements)
+- [x] Replace console.log with structured logging in middleware/sitemap lib files (Slice 1g: performance-middleware.ts 3, accessibility-middleware.ts 1, enhanced-sitemap.ts 2 = 6 statements)
 - [ ] Extract service layer from API routes (Slice 2)
 - [ ] Fix N+1 queries in admin routes (Slice 3)
 - [ ] Error handling standardization (Slice 4)
@@ -143,6 +144,11 @@
 ## Completed Work
 
 ### 2026-01-24 (Structured Logging - Lib Files)
+- **Queue 10, Slice 1g: Structured logging for middleware/sitemap lib files** (COMPLETE)
+  - performance-middleware.ts: 3 console statements replaced with perfMiddlewareLogger (memory warnings, error handling)
+  - accessibility-middleware.ts: 1 console statement replaced with a11yLogger (accessibility issues)
+  - enhanced-sitemap.ts: 2 console statements replaced with sitemapLogger (farm shops, county pages errors)
+  - Total: 6 console statements converted to structured logging
 - **Queue 10, Slice 1f: Structured logging for blob/search/error lib files** (COMPLETE)
   - blob.ts: 3 console statements replaced with blobUtilLogger (URL fixing, upload, upload URL creation)
   - meilisearch.ts: 2 console statements replaced with searchLogger (index creation, configuration)

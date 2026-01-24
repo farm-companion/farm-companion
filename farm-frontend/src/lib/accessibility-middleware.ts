@@ -2,6 +2,9 @@
 // PuredgeOS 3.0 Compliant Accessibility Management
 
 import { NextRequest, NextResponse } from 'next/server'
+import { logger } from '@/lib/logger'
+
+const a11yLogger = logger.child({ route: 'lib/accessibility-middleware' })
 
 // Accessibility compliance checker middleware
 export function withAccessibilityMiddleware(handler: (request: NextRequest, context: any) => Promise<NextResponse>) {
@@ -23,7 +26,7 @@ export function withAccessibilityMiddleware(handler: (request: NextRequest, cont
     const accessibilityIssues = checkHTMLAccessibility(html)
     
     if (accessibilityIssues.length > 0) {
-      console.warn('Accessibility issues detected:', accessibilityIssues)
+      a11yLogger.warn('Accessibility issues detected', { issues: accessibilityIssues, issueCount: accessibilityIssues.length })
       
       // In development, you might want to add warnings to the response
       if (process.env.NODE_ENV === 'development') {

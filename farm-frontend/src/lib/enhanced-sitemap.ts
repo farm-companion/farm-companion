@@ -4,6 +4,9 @@
 import { SITE_URL } from './site'
 import { PRODUCE } from '@/data/produce'
 import { getFarmData } from '@/lib/farm-data'
+import { logger } from '@/lib/logger'
+
+const sitemapLogger = logger.child({ route: 'lib/enhanced-sitemap' })
 
 export interface SitemapEntry {
   url: string
@@ -135,7 +138,7 @@ export async function generateFarmShopsSitemap(): Promise<SitemapEntry[]> {
       })) || []
     }))
   } catch (error) {
-    console.error('Error generating farm shops sitemap:', error)
+    sitemapLogger.error('Error generating farm shops sitemap', {}, error as Error)
     return []
   }
 }
@@ -170,7 +173,7 @@ export async function generateCountyPagesSitemap(): Promise<SitemapEntry[]> {
       lastModified: new Date()
     }))
   } catch (error) {
-    console.error('Error generating county pages sitemap:', error)
+    sitemapLogger.error('Error generating county pages sitemap', {}, error as Error)
     return []
   }
 }
