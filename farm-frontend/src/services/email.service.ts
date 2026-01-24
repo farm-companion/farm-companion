@@ -6,7 +6,14 @@
 import { Resend } from 'resend'
 import { createRouteLogger } from '@/lib/logger'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization to avoid build-time errors when API key is unavailable
+let resend: Resend | null = null
+function getResend(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
 
 const FROM_EMAIL = 'Farm Companion <hello@farmcompanion.co.uk>'
 const REPLY_TO_EMAIL = 'hello@farmcompanion.co.uk'
@@ -32,7 +39,7 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
   }
 
   try {
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResend().emails.send({
       from: FROM_EMAIL,
       to: [options.to],
       subject: options.subject,
