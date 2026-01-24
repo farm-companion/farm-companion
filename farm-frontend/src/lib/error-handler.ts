@@ -4,6 +4,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { kv } from '@vercel/kv'
 import { logSecurityEvent } from './logging'
+import { logger } from '@/lib/logger'
+
+const errorHandlerLogger = logger.child({ route: 'lib/error-handler' })
 
 export interface ErrorContext {
   requestId?: string
@@ -109,18 +112,17 @@ export async function logStructuredError(error: StructuredError): Promise<void> 
       }
     }
 
-    // Always log to console with structured format
-    console.error('Structured Error:', {
+    // Always log with structured logger
+    errorHandlerLogger.error('Structured error occurred', {
       id: error.id,
       type: error.type,
       severity: error.severity,
-      message: error.message,
       route: error.context.route,
       method: error.context.method,
-      timestamp: error.timestamp,
-    })
+      timestamp: error.timestamp
+    }, new Error(error.message))
   } catch (logError) {
-    console.error('Failed to log structured error:', logError)
+    errorHandlerLogger.error('Failed to log structured error', {}, logError as Error)
   }
 }
 

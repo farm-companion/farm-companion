@@ -61,6 +61,8 @@
 - [x] Replace console.log with structured logging in remaining lib files (Slice 1b: photo-storage.ts 10, redis.ts 5, content-change-tracker.ts 7 = 22 statements)
 - [x] Replace console.log with structured logging in more lib files (Slice 1c: cache-manager.ts 5, security.ts 4, seo-middleware.ts 4 = 13 statements)
 - [x] Replace console.log with structured logging in produce/cache lib files (Slice 1d: produce-image-generator.ts 14, cache-strategy.ts 10, produce-integration.ts 10 = 34 statements)
+- [x] Replace console.log with structured logging in photos/blob/perf lib files (Slice 1e: photos.ts 8, produce-blob.ts 7, performance-monitor.ts 7 = 22 statements)
+- [x] Replace console.log with structured logging in blob/search/error lib files (Slice 1f: blob.ts 3, meilisearch.ts 2, error-handler.ts 2 = 7 statements)
 - [ ] Extract service layer from API routes (Slice 2)
 - [ ] Fix N+1 queries in admin routes (Slice 3)
 - [ ] Error handling standardization (Slice 4)
@@ -141,6 +143,16 @@
 ## Completed Work
 
 ### 2026-01-24 (Structured Logging - Lib Files)
+- **Queue 10, Slice 1f: Structured logging for blob/search/error lib files** (COMPLETE)
+  - blob.ts: 3 console statements replaced with blobUtilLogger (URL fixing, upload, upload URL creation)
+  - meilisearch.ts: 2 console statements replaced with searchLogger (index creation, configuration)
+  - error-handler.ts: 2 console statements replaced with errorHandlerLogger (structured error logging)
+  - Total: 7 console statements converted to structured logging
+- **Queue 10, Slice 1e: Structured logging for photos/blob/perf lib files** (COMPLETE)
+  - photos.ts: 8 console statements replaced with photosLogger (approved photos, pending photos, metadata fetch)
+  - produce-blob.ts: 7 console statements replaced with blobLogger (image processing, upload, delete)
+  - performance-monitor.ts: 7 console statements replaced with perfLogger (metrics flush, Web Vitals)
+  - Total: 22 console statements converted to structured logging
 - **Queue 10, Slice 1d: Structured logging for produce/cache lib files** (COMPLETE)
   - produce-image-generator.ts: 14 console statements replaced with imageGenLogger (fal.ai, Pollinations, image generation)
   - cache-strategy.ts: 10 console statements replaced with cacheStrategyLogger (warming, invalidation)
