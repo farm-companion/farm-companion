@@ -2559,6 +2559,179 @@ html {
   border-radius: inherit;
 }
 
+/* ==========================================================================
+   KINETIC FLUIDITY - SPRING PHYSICS MOTION SYSTEM
+   "Every millisecond should tell the user's brain where things came from"
+   Springs > Tweens: Springs don't just move, they settle.
+   ========================================================================== */
+
+/* Spring Physics Timing Functions */
+:root {
+  /* Bouncy: Modals, CMD+K, high-energy alerts (stiffness: 400, damping: 15) */
+  --spring-bouncy: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Fluid: Page transitions, sidebar toggles (stiffness: 200, damping: 25) */
+  --spring-fluid: cubic-bezier(0.23, 1, 0.32, 1);
+
+  /* Snappy: Hover states, active scale, radio buttons (stiffness: 500, damping: 35) */
+  --spring-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  /* Gentle: Subtle movements, opacity changes */
+  --spring-gentle: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Kinetic Interaction - The "Press" Logic */
+.kinetic-interaction {
+  transition: transform 0.2s var(--spring-snappy);
+  will-change: transform; /* GPU acceleration - no ghosting */
+}
+
+.kinetic-interaction:hover {
+  transform: scale(1.02); /* Expansion implies availability */
+}
+
+.kinetic-interaction:active {
+  transform: scale(0.96); /* Compression implies physical pressure */
+  transition-duration: 50ms; /* Instant response on press */
+}
+
+/* Kinetic Button - Full interaction cycle */
+.kinetic-button {
+  transition: transform 0.2s var(--spring-snappy),
+              box-shadow 0.2s var(--spring-gentle);
+  will-change: transform;
+}
+
+.kinetic-button:hover {
+  transform: scale(1.02);
+}
+
+.kinetic-button:active {
+  transform: scale(0.96);
+  transition-duration: 50ms;
+}
+
+/* Irradiance Page Entry - The "Focus Bloom" Effect */
+@keyframes irradiance-entry {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.irradiance-entry {
+  animation: irradiance-entry 0.6s var(--spring-fluid) forwards;
+}
+
+/* Staggered Entry - 40ms delay between children */
+.stagger-entry > * {
+  opacity: 0;
+  animation: irradiance-entry 0.5s var(--spring-fluid) forwards;
+}
+
+.stagger-entry > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-entry > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-entry > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-entry > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-entry > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-entry > *:nth-child(6) { animation-delay: 200ms; }
+.stagger-entry > *:nth-child(7) { animation-delay: 240ms; }
+.stagger-entry > *:nth-child(8) { animation-delay: 280ms; }
+.stagger-entry > *:nth-child(9) { animation-delay: 320ms; }
+.stagger-entry > *:nth-child(10) { animation-delay: 360ms; }
+
+/* Bouncy Modal Entry */
+@keyframes bouncy-entry {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.bouncy-entry {
+  animation: bouncy-entry 0.4s var(--spring-bouncy) forwards;
+}
+
+/* Slide-up Entry (for lists, cards) */
+@keyframes slide-up-entry {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up-entry {
+  animation: slide-up-entry 0.3s var(--spring-snappy) forwards;
+}
+
+/* Fade Scale Entry (subtle) */
+@keyframes fade-scale-entry {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade-scale-entry {
+  animation: fade-scale-entry 0.25s var(--spring-gentle) forwards;
+}
+
+/* Exit Animations */
+@keyframes kinetic-exit {
+  to {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.kinetic-exit {
+  animation: kinetic-exit 0.15s var(--spring-snappy) forwards;
+}
+
+/* Reduced Motion: Graceful degradation to opacity-only */
+@media (prefers-reduced-motion: reduce) {
+  .kinetic-interaction,
+  .kinetic-button {
+    transition: opacity 0.2s ease;
+  }
+
+  .kinetic-interaction:hover,
+  .kinetic-interaction:active,
+  .kinetic-button:hover,
+  .kinetic-button:active {
+    transform: none;
+  }
+
+  .irradiance-entry,
+  .stagger-entry > *,
+  .bouncy-entry,
+  .slide-up-entry,
+  .fade-scale-entry {
+    animation: none;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
 /* Premium text utilities */
 .text-balance {
   text-wrap: balance;
