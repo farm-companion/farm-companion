@@ -238,13 +238,13 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         <div className="flex items-center justify-between p-6 border-b border-border-default/20">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-gradient-to-br from-serum to-solar flex items-center justify-center shadow-lg">
-              <span className="text-white font-bold text-base">FC</span>
+              <span className="text-white font-bold text-body">FC</span>
             </div>
             <div>
-              <h2 className="text-xl font-bold text-text-heading">
+              <h2 className="text-heading font-bold text-text-heading">
                 Farm Companion
               </h2>
-              <p className="text-xs text-text-muted">Navigation</p>
+              <p className="text-captionall text-text-muted">Navigation</p>
             </div>
           </div>
           <button
@@ -272,10 +272,10 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <item.icon className="w-5 h-5 text-text-body group-hover:text-brand-primary transition-colors" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-base font-semibold text-text-heading group-hover:text-brand-primary transition-colors">
+                    <div className="text-body font-semibold text-text-heading group-hover:text-brand-primary transition-colors">
                       {item.title}
                     </div>
-                    <div className="text-sm text-text-muted mt-0.5">
+                    <div className="text-caption text-text-muted mt-0.5">
                       {item.description}
                     </div>
                   </div>
@@ -287,7 +287,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
           {/* Quick Actions */}
           <div className="px-6 mb-8">
-            <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4">
+            <h3 className="text-caption font-semibold text-text-muted uppercase tracking-wider mb-4">
               Quick Actions
             </h3>
             <div className="space-y-2">
@@ -303,16 +303,16 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <div className="text-base font-semibold text-text-heading group-hover:text-brand-primary transition-colors">
+                      <div className="text-body font-semibold text-text-heading group-hover:text-brand-primary transition-colors">
                         {item.title}
                       </div>
                       {item.badge && (
-                        <span className="px-2 py-1 text-xs font-medium bg-brand-primary/10 text-brand-primary rounded-full">
+                        <span className="px-2 py-1 text-captionall font-medium bg-brand-primary/10 text-brand-primary rounded-full">
                           {item.badge}
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-text-muted mt-0.5">
+                    <div className="text-caption text-text-muted mt-0.5">
                       {item.description}
                     </div>
                   </div>
@@ -324,7 +324,7 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
 
           {/* User Section */}
           <div className="px-6">
-            <h3 className="text-sm font-semibold text-text-muted uppercase tracking-wider mb-4">
+            <h3 className="text-caption font-semibold text-text-muted uppercase tracking-wider mb-4">
               Account
             </h3>
             <div className="space-y-2">
@@ -339,10 +339,10 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
                     <item.icon className="w-5 h-5 text-text-body group-hover:text-brand-primary transition-colors" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-base font-semibold text-text-heading group-hover:text-brand-primary transition-colors">
+                    <div className="text-body font-semibold text-text-heading group-hover:text-brand-primary transition-colors">
                       {item.title}
                     </div>
-                    <div className="text-sm text-text-muted mt-0.5">
+                    <div className="text-caption text-text-muted mt-0.5">
                       {item.description}
                     </div>
                   </div>
@@ -357,18 +357,18 @@ export default function MobileMenu({ isOpen, onClose }: MobileMenuProps) {
         <div className="border-t border-border-default/20 p-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-serum to-solar flex items-center justify-center">
-              <span className="text-white font-bold text-sm">FC</span>
+              <span className="text-white font-bold text-caption">FC</span>
             </div>
             <div>
-              <p className="text-sm font-semibold text-text-heading">
+              <p className="text-caption font-semibold text-text-heading">
                 Farm Companion
               </p>
-              <p className="text-xs text-text-muted">
+              <p className="text-captionall text-text-muted">
                 Real food, real people, real places
               </p>
             </div>
           </div>
-          <p className="text-xs text-text-muted leading-relaxed">
+          <p className="text-captionall text-text-muted leading-relaxed">
             The UK&apos;s premium guide to authentic farm experiences and fresh local produce.
           </p>
         </div>

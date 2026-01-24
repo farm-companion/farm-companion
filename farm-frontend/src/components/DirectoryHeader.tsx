@@ -30,7 +30,7 @@ export function DirectoryHeader({
   return (
     <div className="sticky top-[var(--top-nav)] z-20 bg-background-surface/95 backdrop-blur border-b border-border-default/30">
       <div className="mx-auto max-w-7xl px-4 py-3 flex items-center gap-3">
-        <span className="text-sm text-text-muted">{total} farm{total !== 1 ? 's' : ''} found</span>
+        <span className="text-caption text-text-muted">{total} farm{total !== 1 ? 's' : ''} found</span>
         
         {/* Active filter chips */}
         <div className="flex items-center gap-2 flex-wrap">
@@ -38,7 +38,7 @@ export function DirectoryHeader({
             <button 
               key={filter.key} 
               onClick={() => onClearFilter(filter.key)}
-              className="inline-flex items-center gap-1 rounded-full bg-background-canvas px-3 py-1 text-xs hover:bg-background-canvas/80 transition-colors"
+              className="inline-flex items-center gap-1 rounded-full bg-background-canvas px-3 py-1 text-small hover:bg-background-canvas/80 transition-colors"
               aria-label={`Remove ${filter.label} filter`}
             >
               {filter.label}
@@ -48,7 +48,7 @@ export function DirectoryHeader({
           {activeFilters.length > 0 && (
             <button 
               onClick={onClearAll} 
-              className="text-xs underline hover:text-primary-600 transition-colors"
+              className="text-small underline hover:text-primary-600 transition-colors"
             >
               Clear all
             </button>
@@ -58,7 +58,7 @@ export function DirectoryHeader({
         <div className="ml-auto flex items-center gap-2">
           <button 
             onClick={onFilterOpen} 
-            className="inline-flex items-center gap-2 px-3 py-1.5 text-sm rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors"
+            className="inline-flex items-center gap-2 px-3 py-1.5 text-caption rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors"
           >
             <Filter className="h-4 w-4" />
             Filters
@@ -67,7 +67,7 @@ export function DirectoryHeader({
           <div className="inline-flex rounded-lg border border-border-default/50 p-0.5">
             <button
               onClick={() => setView('list')}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              className={`px-3 py-1.5 text-caption rounded-md transition-colors ${
                 view === 'list' 
                   ? 'bg-background-canvas font-medium text-text-heading' 
                   : 'hover:bg-background-canvas/60 text-text-muted'
@@ -79,7 +79,7 @@ export function DirectoryHeader({
             </button>
             <button
               onClick={() => setView('cards')}
-              className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
+              className={`px-3 py-1.5 text-caption rounded-md transition-colors ${
                 view === 'cards' 
                   ? 'bg-background-canvas font-medium text-text-heading' 
                   : 'hover:bg-background-canvas/60 text-text-muted'

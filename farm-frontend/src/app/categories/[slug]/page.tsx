@@ -176,7 +176,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       {/* Breadcrumbs */}
       <div className="border-b border-slate-200 dark:border-slate-800">
         <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
             <Link href="/" className="hover:text-brand-primary transition-colors">
               Home
             </Link>
@@ -208,7 +208,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
             {/* Description */}
             {category.description && (
-              <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-6">
+              <p className="text-body md:text-heading text-slate-600 dark:text-slate-400 mb-6">
                 {category.description}
               </p>
             )}
@@ -247,7 +247,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                   <div className="space-y-2">
                     <Link
                       href={`/categories/${slug}`}
-                      className={`block px-3 py-2 rounded-md text-sm transition-colors ${
+                      className={`block px-3 py-2 rounded-md text-caption transition-colors ${
                         !county
                           ? 'bg-brand-primary text-white'
                           : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -259,7 +259,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       <Link
                         key={countyData.county}
                         href={`/categories/${slug}?county=${encodeURIComponent(countyData.county)}`}
-                        className={`block px-3 py-2 rounded-md text-sm transition-colors ${
+                        className={`block px-3 py-2 rounded-md text-caption transition-colors ${
                           county === countyData.county
                             ? 'bg-brand-primary text-white'
                             : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -283,9 +283,9 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       <Link
                         key={relatedCat.id}
                         href={`/categories/${relatedCat.slug}`}
-                        className="flex items-center gap-2 px-3 py-2 rounded-md text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 rounded-md text-caption text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                       >
-                        {relatedCat.icon && <span className="text-lg">{relatedCat.icon}</span>}
+                        {relatedCat.icon && <span className="text-body">{relatedCat.icon}</span>}
                         <span>{relatedCat.name}</span>
                       </Link>
                     ))}
@@ -357,7 +357,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-lg text-slate-600 dark:text-slate-400 mb-4">
+                <p className="text-body text-slate-600 dark:text-slate-400 mb-4">
                   No farms found in this category
                   {county && ` in ${county}`}.
                 </p>
@@ -386,7 +386,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                   key={index}
                   className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6"
                 >
-                  <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-3">
+                  <h3 className="text-body font-semibold text-slate-900 dark:text-white mb-3">
                     {faq.question}
                   </h3>
                   <p className="text-slate-600 dark:text-slate-400 leading-relaxed">

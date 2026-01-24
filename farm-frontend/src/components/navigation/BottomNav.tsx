@@ -128,7 +128,7 @@ export function BottomNav() {
                 {/* Label */}
                 <span
                   className={cn(
-                    'text-xs font-medium transition-all',
+                    'text-small font-medium transition-all',
                     active && 'font-semibold'
                   )}
                 >

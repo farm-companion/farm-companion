@@ -158,7 +158,7 @@ export default function FarmReviewInterface() {
   }
 
   const getStatusBadge = (status: string) => {
-    const baseClasses = "px-2 py-1 text-xs rounded-full font-medium"
+    const baseClasses = "px-2 py-1 text-small rounded-full font-medium"
     switch (status) {
       case 'pending':
         return `${baseClasses} bg-yellow-100 text-yellow-800`
@@ -189,7 +189,7 @@ export default function FarmReviewInterface() {
           <div className="flex items-center">
             <Clock className="w-8 h-8 text-yellow-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Pending</p>
+              <p className="text-caption font-medium text-gray-500 dark:text-gray-400">Pending</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {submissions.filter(s => s.status === 'pending').length}
               </p>
@@ -201,7 +201,7 @@ export default function FarmReviewInterface() {
           <div className="flex items-center">
             <CheckCircle className="w-8 h-8 text-green-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Approved</p>
+              <p className="text-caption font-medium text-gray-500 dark:text-gray-400">Approved</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {submissions.filter(s => s.status === 'approved').length}
               </p>
@@ -213,7 +213,7 @@ export default function FarmReviewInterface() {
           <div className="flex items-center">
             <XCircle className="w-8 h-8 text-red-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Rejected</p>
+              <p className="text-caption font-medium text-gray-500 dark:text-gray-400">Rejected</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {submissions.filter(s => s.status === 'rejected').length}
               </p>
@@ -225,7 +225,7 @@ export default function FarmReviewInterface() {
           <div className="flex items-center">
             <AlertCircle className="w-8 h-8 text-orange-500" />
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Changes Requested</p>
+              <p className="text-caption font-medium text-gray-500 dark:text-gray-400">Changes Requested</p>
               <p className="text-2xl font-bold text-gray-900 dark:text-white">
                 {submissions.filter(s => s.status === 'changes_requested').length}
               </p>
@@ -286,7 +286,7 @@ export default function FarmReviewInterface() {
       {/* Submissions List */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
-          <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+          <h3 className="text-body font-medium text-gray-900 dark:text-white">
             Farm Submissions ({filteredSubmissions.length})
           </h3>
         </div>
@@ -303,21 +303,21 @@ export default function FarmReviewInterface() {
                   <div className="flex items-center space-x-4">
                     {getStatusIcon(submission.status)}
                     <div>
-                      <h4 className="text-sm font-medium text-gray-900 dark:text-white">
+                      <h4 className="text-caption font-medium text-gray-900 dark:text-white">
                         {submission.name}
                       </h4>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                      <p className="text-caption text-gray-500 dark:text-gray-400">
                         {submission.location.address}, {submission.location.county}
                       </p>
                       <div className="flex items-center space-x-4 mt-1">
                         <span className={getStatusBadge(submission.status)}>
                           {submission.status.replace('_', ' ')}
                         </span>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-small text-gray-400">
                           Submitted {new Date(submission.submittedAt).toLocaleDateString()}
                         </span>
                         {submission.images.length > 0 && (
-                          <span className="text-xs text-gray-400 flex items-center">
+                          <span className="text-small text-gray-400 flex items-center">
                             <ImageIcon className="w-3 h-3 mr-1" />
                             {submission.images.length} images
                           </span>
@@ -349,7 +349,7 @@ export default function FarmReviewInterface() {
           <div className="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6 border-b border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-heading font-semibold text-gray-900 dark:text-white">
                   Review: {selectedSubmission.name}
                 </h2>
                 <button
@@ -364,41 +364,41 @@ export default function FarmReviewInterface() {
             <div className="p-6 space-y-6">
               {/* Farm Details */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Farm Details</h3>
+                <h3 className="text-body font-medium text-gray-900 dark:text-white mb-4">Farm Details</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Farm ID</label>
-                    <p className="text-sm text-gray-900 dark:text-white font-mono">{selectedSubmission.id}</p>
+                    <label className="block text-caption font-medium text-gray-500 dark:text-gray-400">Farm ID</label>
+                    <p className="text-caption text-gray-900 dark:text-white font-mono">{selectedSubmission.id}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Slug</label>
-                    <p className="text-sm text-gray-900 dark:text-white">{selectedSubmission.slug}</p>
+                    <label className="block text-caption font-medium text-gray-500 dark:text-gray-400">Slug</label>
+                    <p className="text-caption text-gray-900 dark:text-white">{selectedSubmission.slug}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">Address</label>
-                    <p className="text-sm text-gray-900 dark:text-white">{selectedSubmission.location.address}</p>
+                    <label className="block text-caption font-medium text-gray-500 dark:text-gray-400">Address</label>
+                    <p className="text-caption text-gray-900 dark:text-white">{selectedSubmission.location.address}</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-500 dark:text-gray-400">County</label>
-                    <p className="text-sm text-gray-900 dark:text-white">{selectedSubmission.location.county}</p>
+                    <label className="block text-caption font-medium text-gray-500 dark:text-gray-400">County</label>
+                    <p className="text-caption text-gray-900 dark:text-white">{selectedSubmission.location.county}</p>
                   </div>
                 </div>
               </div>
 
               {/* Contact Information */}
               <div>
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Contact Information</h3>
+                <h3 className="text-body font-medium text-gray-900 dark:text-white mb-4">Contact Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {selectedSubmission.contact.email && (
                     <div className="flex items-center space-x-2">
                       <Mail className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-900 dark:text-white">{selectedSubmission.contact.email}</span>
+                      <span className="text-caption text-gray-900 dark:text-white">{selectedSubmission.contact.email}</span>
                     </div>
                   )}
                   {selectedSubmission.contact.phone && (
                     <div className="flex items-center space-x-2">
                       <Phone className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-900 dark:text-white">{selectedSubmission.contact.phone}</span>
+                      <span className="text-caption text-gray-900 dark:text-white">{selectedSubmission.contact.phone}</span>
                     </div>
                   )}
                   {selectedSubmission.contact.website && (
@@ -408,7 +408,7 @@ export default function FarmReviewInterface() {
                         href={selectedSubmission.contact.website} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-sm text-serum hover:underline"
+                        className="text-caption text-serum hover:underline"
                       >
                         {selectedSubmission.contact.website}
                       </a>
@@ -420,12 +420,12 @@ export default function FarmReviewInterface() {
               {/* Offerings */}
               {selectedSubmission.offerings.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Offerings</h3>
+                  <h3 className="text-body font-medium text-gray-900 dark:text-white mb-4">Offerings</h3>
                   <div className="flex flex-wrap gap-2">
                     {selectedSubmission.offerings.map((offering, index) => (
                       <span 
                         key={index}
-                        className="px-2 py-1 bg-serum/10 text-serum text-xs rounded-full"
+                        className="px-2 py-1 bg-serum/10 text-serum text-small rounded-full"
                       >
                         {offering}
                       </span>
@@ -437,15 +437,15 @@ export default function FarmReviewInterface() {
               {/* Story */}
               {selectedSubmission.story && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Farm Story</h3>
-                  <p className="text-sm text-gray-900 dark:text-white">{selectedSubmission.story}</p>
+                  <h3 className="text-body font-medium text-gray-900 dark:text-white mb-4">Farm Story</h3>
+                  <p className="text-caption text-gray-900 dark:text-white">{selectedSubmission.story}</p>
                 </div>
               )}
 
               {/* Images */}
               {selectedSubmission.images.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">
+                  <h3 className="text-body font-medium text-gray-900 dark:text-white mb-4">
                     Images ({selectedSubmission.images.length})
                   </h3>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -460,7 +460,7 @@ export default function FarmReviewInterface() {
                         ) : (
                           <div className="text-center">
                             <ImageIcon className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                            <p className="text-xs text-gray-500">{image.name}</p>
+                            <p className="text-small text-gray-500">{image.name}</p>
                           </div>
                         )}
                       </div>
@@ -472,7 +472,7 @@ export default function FarmReviewInterface() {
               {/* Review Actions */}
               {selectedSubmission.status === 'pending' && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Review Actions</h3>
+                  <h3 className="text-body font-medium text-gray-900 dark:text-white mb-4">Review Actions</h3>
                   <div className="flex flex-col sm:flex-row gap-4">
                     <Button
                       onClick={() => handleReview(selectedSubmission.id, 'approve')}
@@ -508,7 +508,7 @@ export default function FarmReviewInterface() {
               {/* Move to Live Action */}
               {selectedSubmission.status === 'approved' && (
                 <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-4">Live Directory</h3>
+                  <h3 className="text-body font-medium text-gray-900 dark:text-white mb-4">Live Directory</h3>
                   <div className="flex flex-col sm:flex-row gap-4">
                     <Button
                       onClick={() => handleMoveToLive(selectedSubmission.id)}
@@ -520,7 +520,7 @@ export default function FarmReviewInterface() {
                       Move to Live Directory
                     </Button>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  <p className="text-caption text-gray-500 dark:text-gray-400 mt-2">
                     This will make the farm visible on the public map and directory
                   </p>
                 </div>

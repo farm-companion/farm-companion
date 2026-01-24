@@ -17,12 +17,12 @@ function FarmCard({ farm }: { farm: FarmShop }) {
       {/* Status indicator */}
       <div className="absolute top-4 right-4">
         {farm.verified ? (
-          <div className="flex items-center gap-1 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full">
+          <div className="flex items-center gap-1 text-small bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full">
             <CheckCircle className="w-3 h-3 fill-current" />
             <span>Verified</span>
           </div>
         ) : (
-          <div className="flex items-center gap-1 text-xs bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full">
+          <div className="flex items-center gap-1 text-small bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full">
             <Shield className="w-3 h-3" />
             <span>Available</span>
           </div>
@@ -32,12 +32,12 @@ function FarmCard({ farm }: { farm: FarmShop }) {
       <div className="p-6">
         {/* Header with name and location */}
         <div className="mb-4">
-          <h3 className="text-lg font-semibold text-obsidian dark:text-sandstone mb-2">
+          <h3 className="text-body font-semibold text-obsidian dark:text-sandstone mb-2">
             {farm.name}
           </h3>
           
           {/* Simple location display */}
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 text-caption text-gray-600 dark:text-gray-400">
             <MapPin className="w-4 h-4 text-gray-400" />
             <span className="truncate">{farm.location.address}</span>
             {farm.location.county && (
@@ -53,7 +53,7 @@ function FarmCard({ farm }: { farm: FarmShop }) {
         <div className="space-y-2 mb-4">
           {/* Contact info */}
           {farm.contact?.phone && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2 text-caption text-gray-600 dark:text-gray-400">
               <div className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
               <span>{farm.contact.phone}</span>
             </div>
@@ -61,7 +61,7 @@ function FarmCard({ farm }: { farm: FarmShop }) {
           
           {/* Hours info */}
           {farm.hours && farm.hours.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex items-center gap-2 text-caption text-gray-600 dark:text-gray-400">
               <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
               <span>Open for business</span>
             </div>
@@ -73,13 +73,13 @@ function FarmCard({ farm }: { farm: FarmShop }) {
               {farm.offerings.slice(0, 3).map((offering, index) => (
                 <span 
                   key={index}
-                  className="inline-flex items-center px-2 py-1 text-xs bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
+                  className="inline-flex items-center px-2 py-1 text-small bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
                 >
                   {offering}
                 </span>
               ))}
               {farm.offerings.length > 3 && (
-                <span className="inline-flex items-center px-2 py-1 text-xs bg-serum/10 text-serum rounded">
+                <span className="inline-flex items-center px-2 py-1 text-small bg-serum/10 text-serum rounded">
                   +{farm.offerings.length - 3} more
                 </span>
               )}
@@ -91,7 +91,7 @@ function FarmCard({ farm }: { farm: FarmShop }) {
         <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
           <Link
             href={`/shop/${farm.slug}`}
-            className="text-serum hover:text-serum/80 font-medium text-sm flex items-center gap-1"
+            className="text-serum hover:text-serum/80 font-medium text-caption flex items-center gap-1"
           >
             View Details
             <ArrowRight className="w-4 h-4" />
@@ -99,7 +99,7 @@ function FarmCard({ farm }: { farm: FarmShop }) {
           
           <Link
             href={`/claim/${farm.slug}`}
-            className="bg-serum text-black px-4 py-2 rounded-lg font-semibold text-sm hover:bg-serum/90 transition-colors duration-200"
+            className="bg-serum text-black px-4 py-2 rounded-lg font-semibold text-caption hover:bg-serum/90 transition-colors duration-200"
           >
             Claim This Shop
           </Link>
@@ -120,7 +120,7 @@ function CountySection({ county, farms }: { county: string; farms: FarmShop[] })
             {county}
           </h3>
         </div>
-        <span className="text-sm font-semibold text-serum bg-serum/10 dark:bg-serum/20 px-4 py-2 rounded-full border border-serum/20 dark:border-serum/30">
+        <span className="text-caption font-semibold text-serum bg-serum/10 dark:bg-serum/20 px-4 py-2 rounded-full border border-serum/20 dark:border-serum/30">
           {farms.length} farm{farms.length !== 1 ? 's' : ''}
         </span>
       </div>
@@ -254,7 +254,7 @@ function ClaimPageContent() {
             <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Take control of your farm shop&apos;s online presence. Update information, add photos, and connect with customers.
             </p>
-            <p className="text-lg text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+            <p className="text-body text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Join {stats.farmCount}+ farm shops already managing their listings on Farm Companion.
             </p>
             
@@ -262,15 +262,15 @@ function ClaimPageContent() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-8">
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">{stats.farmCount}+</div>
-                <div className="text-white/80 text-sm md:text-base">Active Listings</div>
+                <div className="text-white/80 text-caption md:text-body">Active Listings</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">{stats.countyCount}</div>
-                <div className="text-white/80 text-sm md:text-base">UK Counties</div>
+                <div className="text-white/80 text-caption md:text-body">UK Counties</div>
               </div>
               <div className="text-center">
                 <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">100%</div>
-                <div className="text-white/80 text-sm md:text-base">Free to Claim</div>
+                <div className="text-white/80 text-caption md:text-body">Free to Claim</div>
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@ function ClaimPageContent() {
             <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading dark:text-white mb-4">
               Why Claim Your Listing?
             </h2>
-            <p className="text-xl text-text-muted dark:text-gray-300 max-w-3xl mx-auto">
+            <p className="text-heading text-text-muted dark:text-gray-300 max-w-3xl mx-auto">
               Take control of your farm shop&apos;s online presence and connect with customers who are actively looking for local produce.
             </p>
           </div>
@@ -295,7 +295,7 @@ function ClaimPageContent() {
               <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
                 <CheckCircle className="w-6 h-6 text-serum" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
                 Update Your Information
               </h3>
               <p className="text-text-muted dark:text-gray-300 leading-relaxed">
@@ -308,7 +308,7 @@ function ClaimPageContent() {
               <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
                 <MapPin className="w-6 h-6 text-serum" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
                 Reach Local Customers
               </h3>
               <p className="text-text-muted dark:text-gray-300 leading-relaxed">
@@ -321,7 +321,7 @@ function ClaimPageContent() {
               <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
                 <Plus className="w-6 h-6 text-serum" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
                 Add Your Photos
               </h3>
               <p className="text-text-muted dark:text-gray-300 leading-relaxed">
@@ -334,7 +334,7 @@ function ClaimPageContent() {
               <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
                 <Shield className="w-6 h-6 text-serum" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
                 Build Trust & Credibility
               </h3>
               <p className="text-text-muted dark:text-gray-300 leading-relaxed">
@@ -347,7 +347,7 @@ function ClaimPageContent() {
               <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
                 <ArrowRight className="w-6 h-6 text-serum" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
                 Free Marketing
               </h3>
               <p className="text-text-muted dark:text-gray-300 leading-relaxed">
@@ -360,7 +360,7 @@ function ClaimPageContent() {
               <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
                 <CheckCircle className="w-6 h-6 text-serum" />
               </div>
-              <h3 className="text-xl font-heading font-semibold text-text-heading dark:text-white mb-4">
+              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
                 Easy Management
               </h3>
               <p className="text-text-muted dark:text-gray-300 leading-relaxed">
@@ -385,7 +385,7 @@ function ClaimPageContent() {
             </div>
             <ol className="space-y-4">
               <li className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-sm">
+                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-caption">
                   1
                 </div>
                 <div>
@@ -395,7 +395,7 @@ function ClaimPageContent() {
                 </div>
               </li>
               <li className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-sm">
+                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-caption">
                   2
                 </div>
                 <div>
@@ -405,7 +405,7 @@ function ClaimPageContent() {
                 </div>
               </li>
               <li className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-sm">
+                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-caption">
                   3
                 </div>
                 <div>
@@ -415,7 +415,7 @@ function ClaimPageContent() {
                 </div>
               </li>
               <li className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-sm">
+                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-caption">
                   4
                 </div>
                 <div>

@@ -32,7 +32,7 @@ export function StatusBadge({ openingHours, className = '', showIcon = true }: S
       variants={fadeIn}
       initial="initial"
       animate="animate"
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${colorClass} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-small font-medium ${colorClass} ${className}`}
     >
       {showIcon && <span className="text-[10px]">{icon}</span>}
       <span>{status.message}</span>
@@ -55,7 +55,7 @@ export function StatusBadgeCompact({ openingHours, className = '' }: StatusBadge
   const colorClass = status.status === 'open' ? 'text-success' : 'text-error'
 
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium ${colorClass} ${className}`}>
+    <span className={`inline-flex items-center gap-1 text-small font-medium ${colorClass} ${className}`}>
       <span className="text-[8px]">{icon}</span>
       {text}
     </span>

@@ -131,7 +131,7 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
     return (
       <div className={`text-center p-6 bg-green-50 border border-green-200 rounded-lg ${className}`}>
         <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-3" />
-        <h3 className="text-lg font-semibold text-green-800 mb-2">
+        <h3 className="text-body font-semibold text-green-800 mb-2">
           Successfully Subscribed!
         </h3>
         <p className="text-green-700">
@@ -168,7 +168,7 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
 
         {/* Name Field */}
         <div>
-          <label htmlFor="newsletter-name" className="block text-sm font-medium text-text-heading mb-2">
+          <label htmlFor="newsletter-name" className="block text-caption font-medium text-text-heading mb-2">
             Your Name *
           </label>
           <input
@@ -185,7 +185,7 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
 
         {/* Email Field */}
         <div>
-          <label htmlFor="newsletter-email" className="block text-sm font-medium text-text-heading mb-2">
+          <label htmlFor="newsletter-email" className="block text-caption font-medium text-text-heading mb-2">
             Email Address *
           </label>
           <input
@@ -211,7 +211,7 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
             required
             disabled={formState.isLoading}
           />
-          <label htmlFor="newsletter-consent" className="text-sm text-text-muted">
+          <label htmlFor="newsletter-consent" className="text-caption text-text-muted">
             I agree to receive email updates from Farm Companion. I can unsubscribe at any time.
             <span className="text-brand-danger ml-1" aria-hidden="true">*</span>
           </label>
@@ -221,7 +221,7 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
         {formState.error && (
           <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-            <p className="text-sm text-red-700">{formState.error}</p>
+            <p className="text-caption text-red-700">{formState.error}</p>
           </div>
         )}
 
@@ -247,7 +247,7 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
         </Button>
       </form>
 
-      <p className="text-xs text-text-muted mt-4 text-center">
+      <p className="text-small text-text-muted mt-4 text-center">
         We respect your privacy. Unsubscribe at any time.
       </p>
     </div>

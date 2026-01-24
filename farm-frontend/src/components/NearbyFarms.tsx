@@ -209,7 +209,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
               {locationDenied ? 'Popular Farms Near London' : 'Farms Near You'}
             </h2>
           </div>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-body text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             {locationDenied
               ? 'Discover these popular farms. Enable location to see farms near you.'
               : 'Discover local farms close to your location'}

@@ -45,7 +45,7 @@ export function FarmListRow({ farm, selected, onSelect, onDirections }: FarmList
         }`}>
           {farm.name}
         </div>
-        <div className="truncate text-sm text-text-muted">
+        <div className="truncate text-caption text-text-muted">
           {farm.location?.county || 'UK'}
           {farm.location?.postcode && (
             <span className="ml-2">• {farm.location.postcode}</span>

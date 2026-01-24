@@ -130,7 +130,7 @@ export default function ThemeToggle() {
       )}
       
       {/* Tooltip */}
-      <div className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+      <div className="absolute bottom-full right-0 mb-2 px-2 py-1 text-small bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
         {isAuto ? 'Auto (follows system)' : isDark ? 'Dark mode' : 'Light mode'}
         {!isAuto && (
           <button

@@ -104,7 +104,7 @@ export default function Footer() {
             <Leaf className="h-5 w-5 text-serum" />
             Farm Companion
           </h3>
-          <p className="text-sm text-text-muted">
+          <p className="text-caption text-text-muted">
             The UK&apos;s premium guide to real food, real people, and real places.
           </p>
           {/* Social Media Icons */}
@@ -164,7 +164,7 @@ export default function Footer() {
                     id={`footer-section-${section.title.toLowerCase().replace(/\s+/g, '-')}`}
                     className="mt-2 animate-fade-in-up"
                   >
-                    <ul className="space-y-2 text-sm">
+                    <ul className="space-y-2 text-caption">
                       {section.links.map((link) => (
                         <li key={link.label}>
                           {link.external ? (
@@ -202,7 +202,7 @@ export default function Footer() {
               <Leaf className="h-5 w-5 text-serum" />
               Farm Companion
             </h3>
-            <p className="text-sm text-text-muted">
+            <p className="text-caption text-text-muted">
               The UK&apos;s premium guide to real food, real people, and real places.
             </p>
             {/* Social Media Icons */}
@@ -241,7 +241,7 @@ export default function Footer() {
           {footerSections.map((section) => (
             <div key={section.title} className="space-y-4">
               <h3 className="font-semibold text-text-heading">{section.title}</h3>
-              <ul className="space-y-2 text-sm">
+              <ul className="space-y-2 text-caption">
                 {section.links.map((link) => (
                   <li key={link.label}>
                     {link.external ? (
@@ -270,7 +270,7 @@ export default function Footer() {
 
         {/* Bottom section */}
         <div className="mt-8 border-t border-border-default pt-8">
-          <div className="flex flex-col items-center justify-between space-y-4 text-sm text-text-muted md:flex-row md:space-y-0">
+          <div className="flex flex-col items-center justify-between space-y-4 text-caption text-text-muted md:flex-row md:space-y-0">
             <div>
               © {currentYear} Farm Companion. All rights reserved.
             </div>

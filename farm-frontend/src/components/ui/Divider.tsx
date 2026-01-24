@@ -61,7 +61,7 @@ export function Divider({
     return (
       <div className={`relative flex items-center ${spacing === 'none' ? '' : `my-${spacing}`} ${className || ''}`}>
         <div className="flex-grow border-t border-gray-200 dark:border-gray-800" />
-        <span className="flex-shrink mx-4 text-sm text-gray-500 dark:text-gray-400">
+        <span className="flex-shrink mx-4 text-caption text-gray-500 dark:text-gray-400">
           {label}
         </span>
         <div className="flex-grow border-t border-gray-200 dark:border-gray-800" />

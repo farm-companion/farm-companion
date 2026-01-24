@@ -20,7 +20,7 @@ const dropdownMenuContentVariants = cva(
 )
 
 const dropdownMenuItemVariants = cva(
-  'relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
+  'relative flex cursor-pointer select-none items-center rounded-sm px-3 py-2 text-caption outline-none transition-colors data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
   {
     variants: {
       variant: {
@@ -81,7 +81,7 @@ const DropdownMenuLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <DropdownMenuPrimitive.Label
     ref={ref}
-    className={'px-3 py-2 text-xs font-semibold text-slate-500 dark:text-slate-400 ' + (className || '')}
+    className={'px-3 py-2 text-small font-semibold text-slate-500 dark:text-slate-400 ' + (className || '')}
     {...props}
   />
 ))

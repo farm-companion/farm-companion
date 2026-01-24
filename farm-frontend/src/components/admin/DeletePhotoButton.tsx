@@ -52,7 +52,7 @@ export default function DeletePhotoButton({ photoId, photoDescription, onDelete 
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
             <div className="flex items-center gap-3 mb-4">
               <AlertTriangle className="w-6 h-6 text-red-600" />
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+              <h3 className="text-body font-semibold text-gray-900 dark:text-white">
                 Delete Photo
               </h3>
             </div>
@@ -62,7 +62,7 @@ export default function DeletePhotoButton({ photoId, photoDescription, onDelete 
             </p>
             
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label className="block text-caption font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Deletion Reason *
               </label>
               <textarea

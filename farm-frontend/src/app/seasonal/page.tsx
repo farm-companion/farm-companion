@@ -170,7 +170,7 @@ export default async function SeasonalPage() {
             {/* Editorial Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
               <span className="w-2 h-2 rounded-full bg-[#A8E6CF] animate-pulse" />
-              <span className="text-white/90 text-sm font-['IBM_Plex_Sans_Condensed'] tracking-wide uppercase">
+              <span className="text-white/90 text-caption font-['IBM_Plex_Sans_Condensed'] tracking-wide uppercase">
                 {monthName} {new Date().getFullYear()}
               </span>
             </div>
@@ -214,7 +214,7 @@ export default async function SeasonalPage() {
 
         {/* Scroll Indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 hidden lg:flex flex-col items-center gap-2 text-white/60">
-          <span className="text-sm font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wider">Scroll to explore</span>
+          <span className="text-caption font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wider">Scroll to explore</span>
           <svg className="w-6 h-6 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
           </svg>
@@ -231,7 +231,7 @@ export default async function SeasonalPage() {
           >
             The Full Calendar
           </h2>
-          <p className="text-lg md:text-xl text-[#2D3436]/70 max-w-2xl mx-auto font-['Manrope']">
+          <p className="text-body md:text-heading text-[#2D3436]/70 max-w-2xl mx-auto font-['Manrope']">
             {inSeasonNow.length} items in season now • {allProduce.length} items year-round
           </p>
         </div>
@@ -273,7 +273,7 @@ export default async function SeasonalPage() {
           >
             Find Fresh Seasonal Produce
           </h2>
-          <p className="text-xl text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed font-['Manrope']">
+          <p className="text-heading text-white/80 mb-10 max-w-2xl mx-auto leading-relaxed font-['Manrope']">
             Visit local farm shops to get the freshest seasonal produce at its peak flavor.
             Support British farmers and taste the difference.
           </p>

@@ -62,7 +62,7 @@ export function EmptyState({
         </div>
       )}
 
-      <h3 className="text-xl font-semibold text-text-heading mb-2">
+      <h3 className="text-heading font-semibold text-text-heading mb-2">
         {title}
       </h3>
 

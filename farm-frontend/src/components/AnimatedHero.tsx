@@ -57,7 +57,7 @@ export function AnimatedHero({ countyCount }: AnimatedHeroProps) {
 
           <motion.p
             variants={staggerItem}
-            className="text-base sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-6 md:mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto px-4"
+            className="text-body sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-6 md:mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto px-4"
           >
             Find farm shops near you with fresh local produce, seasonal UK fruit and vegetables,
             and authentic farm experiences across {countyCount} counties.
@@ -72,13 +72,13 @@ export function AnimatedHero({ countyCount }: AnimatedHeroProps) {
               className="bg-serum text-black h-12 sm:h-14 px-6 sm:px-8 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm hover:scale-105 transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-serum focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               <MapPin className="w-5 h-5" />
-              <span className="text-sm sm:text-base">Explore Farm Map</span>
+              <span className="text-caption sm:text-body">Explore Farm Map</span>
             </Link>
             <Link
               href="/seasonal"
               className="bg-white/10 backdrop-blur-sm border border-white/20 text-white h-12 sm:h-14 px-6 sm:px-8 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:scale-105 transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
-              <span className="text-sm sm:text-base">What&apos;s in Season</span>
+              <span className="text-caption sm:text-body">What&apos;s in Season</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
           </motion.div>

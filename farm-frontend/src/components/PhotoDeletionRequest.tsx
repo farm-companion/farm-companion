@@ -57,10 +57,10 @@ export default function PhotoDeletionRequest({ photoId, onRequestSubmitted }: Ph
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-green-800 dark:text-green-200">
+            <h3 className="text-caption font-medium text-green-800 dark:text-green-200">
               Deletion Request Submitted
             </h3>
-            <p className="text-sm text-green-700 dark:text-green-300 mt-1">
+            <p className="text-caption text-green-700 dark:text-green-300 mt-1">
               Your request has been submitted and will be reviewed by our team. You will receive an email confirmation shortly.
             </p>
           </div>
@@ -72,17 +72,17 @@ export default function PhotoDeletionRequest({ photoId, onRequestSubmitted }: Ph
   return (
     <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
       <div className="mb-4">
-        <h3 className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+        <h3 className="text-caption font-medium text-yellow-800 dark:text-yellow-200">
           Request Photo Deletion
         </h3>
-        <p className="text-sm text-yellow-700 dark:text-yellow-300 mt-1">
+        <p className="text-caption text-yellow-700 dark:text-yellow-300 mt-1">
           If you believe this photo should be removed, please provide a reason and your contact information.
         </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="reason" className="block text-sm font-medium text-yellow-800 dark:text-yellow-200">
+          <label htmlFor="reason" className="block text-caption font-medium text-yellow-800 dark:text-yellow-200">
             Reason for Deletion *
           </label>
           <textarea
@@ -91,13 +91,13 @@ export default function PhotoDeletionRequest({ photoId, onRequestSubmitted }: Ph
             onChange={(e) => setReason(e.target.value)}
             required
             rows={3}
-            className="mt-1 block w-full rounded-md border-yellow-300 dark:border-yellow-600 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 dark:bg-gray-800 dark:text-white sm:text-sm"
+            className="mt-1 block w-full rounded-md border-yellow-300 dark:border-yellow-600 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 dark:bg-gray-800 dark:text-white sm:text-caption"
             placeholder="Please explain why this photo should be removed..."
           />
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-yellow-800 dark:text-yellow-200">
+          <label htmlFor="email" className="block text-caption font-medium text-yellow-800 dark:text-yellow-200">
             Your Email *
           </label>
           <input
@@ -106,14 +106,14 @@ export default function PhotoDeletionRequest({ photoId, onRequestSubmitted }: Ph
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="mt-1 block w-full rounded-md border-yellow-300 dark:border-yellow-600 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 dark:bg-gray-800 dark:text-white sm:text-sm"
+            className="mt-1 block w-full rounded-md border-yellow-300 dark:border-yellow-600 shadow-sm focus:border-yellow-500 focus:ring-yellow-500 dark:bg-gray-800 dark:text-white sm:text-caption"
             placeholder="your.email@example.com"
           />
         </div>
 
         {submitStatus === 'error' && (
           <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md p-3">
-            <p className="text-sm text-red-800 dark:text-red-200">
+            <p className="text-caption text-red-800 dark:text-red-200">
               Failed to submit request. Please try again.
             </p>
           </div>
@@ -123,7 +123,7 @@ export default function PhotoDeletionRequest({ photoId, onRequestSubmitted }: Ph
           <button
             type="submit"
             disabled={isSubmitting}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-caption font-medium rounded-md text-yellow-800 bg-yellow-100 hover:bg-yellow-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-yellow-900 dark:text-yellow-200 dark:hover:bg-yellow-800"
           >
             {isSubmitting ? 'Submitting...' : 'Submit Request'}
           </button>

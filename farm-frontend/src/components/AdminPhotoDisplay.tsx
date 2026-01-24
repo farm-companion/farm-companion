@@ -41,10 +41,10 @@ export default function AdminPhotoDisplay({
           <svg className="h-12 w-12 text-text-muted mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <p className="text-sm text-text-muted">No image available</p>
+          <p className="text-caption text-text-muted">No image available</p>
           {imageError && (
             <div className="absolute inset-0 bg-red-50 border border-red-200 rounded-lg flex items-center justify-center">
-              <span className="text-xs text-red-600 font-medium">Failed to load</span>
+              <span className="text-small text-red-600 font-medium">Failed to load</span>
             </div>
           )}
         </div>
@@ -63,7 +63,7 @@ export default function AdminPhotoDisplay({
         <div className="absolute inset-0 bg-background-surface border border-border-default/30 rounded-lg flex items-center justify-center z-10">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 border-2 border-serum border-t-transparent rounded-full animate-spin" />
-            <span className="text-sm text-text-muted">Loading...</span>
+            <span className="text-caption text-text-muted">Loading...</span>
           </div>
         </div>
       )}
@@ -122,7 +122,7 @@ export default function AdminPhotoDisplay({
       {/* Caption Overlay */}
       {caption && (
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 rounded-b-lg">
-          <p className="text-white text-sm line-clamp-2">{caption}</p>
+          <p className="text-white text-caption line-clamp-2">{caption}</p>
         </div>
       )}
     </div>

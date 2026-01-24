@@ -123,7 +123,7 @@ export function HeroSearch({ onSearch, className = '' }: HeroSearchProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search for farms, produce, or products..."
-            className="flex-1 py-6 pl-16 pr-4 text-lg bg-transparent border-none outline-none placeholder-gray-400 dark:text-white"
+            className="flex-1 py-6 pl-16 pr-4 text-body bg-transparent border-none outline-none placeholder-gray-400 dark:text-white"
           />
 
           {/* Filter Toggle */}
@@ -155,7 +155,7 @@ export function HeroSearch({ onSearch, className = '' }: HeroSearchProps) {
           <Button
             type="submit"
             variant="primary"
-            className="m-2 px-8 py-4 text-lg font-semibold"
+            className="m-2 px-8 py-4 text-body font-semibold"
           >
             Search
           </Button>
@@ -165,7 +165,7 @@ export function HeroSearch({ onSearch, className = '' }: HeroSearchProps) {
         {showFilters && (
           <div className="mt-4 p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-premium border border-gray-200 dark:border-gray-800 animate-fade-in">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Filters</h3>
+              <h3 className="text-body font-semibold text-gray-900 dark:text-white">Filters</h3>
               <button
                 type="button"
                 onClick={() => setShowFilters(false)}
@@ -179,7 +179,7 @@ export function HeroSearch({ onSearch, className = '' }: HeroSearchProps) {
               <button
                 type="button"
                 onClick={() => toggleFilter('organic')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-full text-caption font-medium transition-colors ${
                   filters.organic
                     ? 'bg-brand-primary text-white'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -191,7 +191,7 @@ export function HeroSearch({ onSearch, className = '' }: HeroSearchProps) {
               <button
                 type="button"
                 onClick={() => toggleFilter('pickYourOwn')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-full text-caption font-medium transition-colors ${
                   filters.pickYourOwn
                     ? 'bg-brand-primary text-white'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -203,7 +203,7 @@ export function HeroSearch({ onSearch, className = '' }: HeroSearchProps) {
               <button
                 type="button"
                 onClick={() => toggleFilter('farmShop')}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`px-4 py-2 rounded-full text-caption font-medium transition-colors ${
                   filters.farmShop
                     ? 'bg-brand-primary text-white'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
@@ -216,7 +216,7 @@ export function HeroSearch({ onSearch, className = '' }: HeroSearchProps) {
                 <button
                   type="button"
                   onClick={clearLocation}
-                  className="px-4 py-2 rounded-full text-sm font-medium bg-brand-primary text-white hover:bg-brand-primary/90 transition-colors flex items-center gap-2"
+                  className="px-4 py-2 rounded-full text-caption font-medium bg-brand-primary text-white hover:bg-brand-primary/90 transition-colors flex items-center gap-2"
                 >
                   Near me
                   <X className="w-4 h-4" />
@@ -230,14 +230,14 @@ export function HeroSearch({ onSearch, className = '' }: HeroSearchProps) {
       {/* Popular Searches */}
       {!query && !showFilters && (
         <div className="mt-6 animate-fade-in">
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Popular searches:</p>
+          <p className="text-caption text-gray-600 dark:text-gray-400 mb-3">Popular searches:</p>
           <div className="flex flex-wrap gap-2">
             {POPULAR_SEARCHES.map((search) => (
               <button
                 key={search}
                 type="button"
                 onClick={() => handlePopularSearch(search)}
-                className="px-3 py-1.5 text-sm bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 rounded-full hover:bg-white dark:hover:bg-gray-800 hover:shadow-premium transition-all duration-fast backdrop-blur-sm"
+                className="px-3 py-1.5 text-caption bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 rounded-full hover:bg-white dark:hover:bg-gray-800 hover:shadow-premium transition-all duration-fast backdrop-blur-sm"
               >
                 {search}
               </button>

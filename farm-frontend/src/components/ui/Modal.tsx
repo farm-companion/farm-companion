@@ -120,7 +120,7 @@ const Modal: React.FC<ModalProps> = ({
         <div className="flex items-center justify-between p-6 border-b border-border-default">
           <h2
             id="modal-title"
-            className="text-xl font-heading font-bold text-text-heading"
+            className="text-heading font-heading font-bold text-text-heading"
           >
             {title}
           </h2>

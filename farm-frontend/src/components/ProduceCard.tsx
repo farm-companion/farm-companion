@@ -106,7 +106,7 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
         
         {/* Month indicator if using fallback month */}
         {effectiveMonth !== month && hasApiImages && (
-          <div className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
+          <div className="absolute top-2 right-2 bg-black/70 text-white text-captionall px-2 py-1 rounded-full">
             Month {effectiveMonth}
           </div>
         )}
@@ -120,7 +120,7 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
         
         {/* Season indicator */}
         {produce.monthsInSeason && (
-          <p className="text-sm text-text-muted mt-1">
+          <p className="text-caption text-text-muted mt-1">
             {produce.monthsInSeason.length === 1 
               ? `In season: ${getMonthName(produce.monthsInSeason[0])}`
               : `In season: ${produce.monthsInSeason.map(getMonthName).join(', ')}`

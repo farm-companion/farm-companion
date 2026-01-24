@@ -87,7 +87,7 @@ export function AccessibleModal({
         tabIndex={-1}
       >
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 id="modal-title" className="text-lg font-semibold">
+          <h2 id="modal-title" className="text-body font-semibold">
             {title}
           </h2>
           <Button

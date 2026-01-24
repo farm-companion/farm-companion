@@ -94,8 +94,8 @@ export default function PhotoViewer({
           <svg className="w-16 h-16 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
           </svg>
-          <p className="text-lg font-medium">No photos yet</p>
-          <p className="text-sm">Be the first to share a photo of this farm!</p>
+          <p className="text-body font-medium">No photos yet</p>
+          <p className="text-caption">Be the first to share a photo of this farm!</p>
         </div>
       </div>
     )
@@ -104,7 +104,7 @@ export default function PhotoViewer({
   return (
     <div className={className}>
       {title && (
-        <h3 className="text-xl font-semibold text-text-heading mb-4">{title}</h3>
+        <h3 className="text-heading font-semibold text-text-heading mb-4">{title}</h3>
       )}
       
       {/* Photo Grid - Responsive Layout */}
@@ -134,14 +134,14 @@ export default function PhotoViewer({
               
               {/* Status badge */}
               {showStatus && (
-                <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(photo.status)}`}>
+                <div className={`absolute top-2 right-2 px-2 py-1 rounded-full text-small font-medium border ${getStatusColor(photo.status)}`}>
                   {getStatusText(photo.status)}
                 </div>
               )}
               
               {/* Quality score */}
               {photo.qualityScore && (
-                <div className="absolute top-2 left-2 px-2 py-1 rounded-full text-xs font-medium bg-black bg-opacity-50 text-white">
+                <div className="absolute top-2 left-2 px-2 py-1 rounded-full text-small font-medium bg-black bg-opacity-50 text-white">
                   ⭐ {photo.qualityScore}/10
                 </div>
               )}
@@ -152,17 +152,17 @@ export default function PhotoViewer({
                   <svg className="w-8 h-8 text-white mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
                   </svg>
-                  <p className="text-white text-sm font-medium">Click to enlarge</p>
+                  <p className="text-white text-caption font-medium">Click to enlarge</p>
                 </div>
               </div>
             </div>
             
             {/* Photo info */}
             <div className="p-3">
-              <p className="text-sm text-text-body line-clamp-2 mb-2 font-medium">
+              <p className="text-caption text-text-body line-clamp-2 mb-2 font-medium">
                 {photo.description}
               </p>
-              <div className="flex items-center justify-between text-xs text-text-muted">
+              <div className="flex items-center justify-between text-small text-text-muted">
                 <span>By {photo.submitterName}</span>
                 <span>{new Date(photo.submittedAt).toLocaleDateString()}</span>
               </div>
@@ -212,7 +212,7 @@ export default function PhotoViewer({
             
             {/* Photo counter for carousel */}
             {photos.length > 1 && (
-              <div className="absolute top-4 left-4 z-20 px-3 py-1 bg-black bg-opacity-50 text-white rounded-full text-sm">
+              <div className="absolute top-4 left-4 z-20 px-3 py-1 bg-black bg-opacity-50 text-white rounded-full text-caption">
                 {currentPhotoIndex + 1} of {photos.length}
               </div>
             )}
@@ -234,10 +234,10 @@ export default function PhotoViewer({
             <div className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
-                  <h3 className="text-xl font-semibold text-text-heading mb-3">
+                  <h3 className="text-heading font-semibold text-text-heading mb-3">
                     {selectedPhoto.description}
                   </h3>
-                  <div className="flex items-center space-x-4 text-sm text-text-muted">
+                  <div className="flex items-center space-x-4 text-caption text-text-muted">
                     <span>By {selectedPhoto.submitterName}</span>
                     <span>•</span>
                     <span>{new Date(selectedPhoto.submittedAt).toLocaleDateString('en-GB', {
@@ -255,7 +255,7 @@ export default function PhotoViewer({
                 </div>
                 
                 {showStatus && (
-                  <div className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(selectedPhoto.status)}`}>
+                  <div className={`px-3 py-1 rounded-full text-caption font-medium border ${getStatusColor(selectedPhoto.status)}`}>
                     {getStatusText(selectedPhoto.status)}
                   </div>
                 )}
@@ -266,7 +266,7 @@ export default function PhotoViewer({
                 <div className="flex space-x-2">
                   <button
                     onClick={() => window.open(selectedPhoto.photoUrl, '_blank')}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-caption font-medium"
                   >
                     Open in new tab
                   </button>
@@ -277,7 +277,7 @@ export default function PhotoViewer({
                       link.download = `farm-photo-${selectedPhoto.id}.jpg`
                       link.click()
                     }}
-                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm font-medium"
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-caption font-medium"
                   >
                     Download
                   </button>
@@ -285,14 +285,14 @@ export default function PhotoViewer({
                     (userRole === 'submitter' && selectedPhoto.submitterName === userEmail)) && (
                     <button
                       onClick={() => setShowDeletionRequest(true)}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-caption font-medium"
                     >
                       Request Deletion
                     </button>
                   )}
                 </div>
                 
-                <div className="text-sm text-gray-500">
+                <div className="text-caption text-gray-500">
                   Click outside to close
                 </div>
               </div>
@@ -300,7 +300,7 @@ export default function PhotoViewer({
               {/* Deletion Request Modal */}
               {showDeletionRequest && selectedPhoto && (
                 <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                  <p className="text-caption text-gray-600 dark:text-gray-300">
                     Photo deletion requests are not available in the current version.
                   </p>
                 </div>

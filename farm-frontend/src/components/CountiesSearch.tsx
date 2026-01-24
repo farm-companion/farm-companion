@@ -77,14 +77,14 @@ export default function CountiesSearch({ counties }: CountiesSearchProps) {
                   className="w-full px-4 py-3 text-left text-text-body hover:bg-background-canvas hover:text-text-heading transition-colors flex items-center justify-between"
                 >
                   <span>{county}</span>
-                  <span className="text-text-muted text-sm">→</span>
+                  <span className="text-text-muted text-caption">→</span>
                 </button>
               ))}
             </div>
           ) : (
             <div className="px-4 py-6 text-center text-text-muted">
               <p>No counties found matching &quot;{searchQuery}&quot;</p>
-              <p className="text-sm mt-1">Try a different search term</p>
+              <p className="text-caption mt-1">Try a different search term</p>
             </div>
           )}
         </div>
@@ -92,7 +92,7 @@ export default function CountiesSearch({ counties }: CountiesSearchProps) {
 
       {/* Search Stats */}
       {searchQuery && (
-        <div className="mt-2 text-sm text-text-muted">
+        <div className="mt-2 text-caption text-text-muted">
           {filteredCounties.length > 0 ? (
             <span>Found {filteredCounties.length} county{filteredCounties.length !== 1 ? 'ies' : 'y'}</span>
           ) : (

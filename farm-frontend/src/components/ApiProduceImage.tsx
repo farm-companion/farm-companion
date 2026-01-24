@@ -134,8 +134,8 @@ export default function ApiProduceImage({
           <div className="w-12 h-12 bg-background-canvas rounded-full mx-auto mb-2 flex items-center justify-center border border-border-default">
             <span className="text-xl">🌱</span>
           </div>
-          <p className="text-sm text-text-muted font-medium">{produceName}</p>
-          <p className="text-xs text-text-muted mt-1">No images available</p>
+          <p className="text-caption text-text-muted font-medium">{produceName}</p>
+          <p className="text-small text-text-muted mt-1">No images available</p>
         </div>
       </div>
     )
@@ -249,8 +249,8 @@ export function ApiProduceGallery({
             <div className="w-12 h-12 bg-background-canvas rounded-full mx-auto mb-2 flex items-center justify-center border border-border-default">
               <span className="text-xl">🌱</span>
             </div>
-            <p className="text-sm text-text-muted font-medium">{produceName}</p>
-            <p className="text-xs text-text-muted mt-1">No images available</p>
+            <p className="text-caption text-text-muted font-medium">{produceName}</p>
+            <p className="text-small text-text-muted mt-1">No images available</p>
           </div>
         </div>
       </div>

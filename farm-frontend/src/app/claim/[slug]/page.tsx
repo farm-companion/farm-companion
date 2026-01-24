@@ -21,7 +21,7 @@ export default async function ClaimPage({ params }: { params: Promise<{ slug: st
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-8">
-      <Link href={`/shop/${slug}`} className="text-sm underline hover:no-underline">
+      <Link href={`/shop/${slug}`} className="text-caption underline hover:no-underline">
         ← Back to {shop.name}
       </Link>
 

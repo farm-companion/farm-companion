@@ -113,14 +113,14 @@ export default function FarmPhotoGallery({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 {currentPhoto.caption && (
-                  <p className="text-white text-lg font-semibold mb-2 leading-tight">
+                  <p className="text-white text-body font-semibold mb-2 leading-tight">
                     {currentPhoto.caption}
                   </p>
                 )}
                 {currentPhoto.authorName && (
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-serum rounded-full" />
-                    <p className="text-white/90 text-sm font-medium">
+                    <p className="text-white/90 text-caption font-medium">
                       Shared by {currentPhoto.authorName}
                     </p>
                   </div>
@@ -196,7 +196,7 @@ export default function FarmPhotoGallery({
 
       {/* Enhanced Photo Counter */}
       {photos.length > 1 && (
-        <div className="absolute top-6 left-6 bg-background-surface/90 backdrop-blur-sm text-text-heading px-4 py-2 rounded-full text-sm font-semibold border border-border-default/30">
+        <div className="absolute top-6 left-6 bg-background-surface/90 backdrop-blur-sm text-text-heading px-4 py-2 rounded-full text-caption font-semibold border border-border-default/30">
           {currentIndex + 1} of {photos.length}
         </div>
       )}
