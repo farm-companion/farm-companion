@@ -82,6 +82,67 @@ export async function getFarmStats() {
   }
 }
 
+// Get a single farm by slug (for individual farm pages)
+export async function getFarmBySlug(slug: string): Promise<FarmShop | null> {
+  try {
+    const farm = await prisma.farm.findFirst({
+      where: {
+        slug,
+        status: 'active',
+      },
+      include: {
+        categories: {
+          include: {
+            category: true,
+          },
+        },
+        images: {
+          where: {
+            status: 'approved',
+          },
+          orderBy: {
+            isHero: 'desc',
+          },
+        },
+      },
+    })
+
+    if (!farm) return null
+
+    // Validate coordinates
+    const lat = Number(farm.latitude)
+    const lng = Number(farm.longitude)
+    if (!lat || !lng || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      return null
+    }
+
+    return {
+      id: farm.id,
+      name: farm.name,
+      slug: farm.slug,
+      description: farm.description || undefined,
+      location: {
+        lat,
+        lng,
+        address: farm.address,
+        city: farm.city || undefined,
+        county: farm.county,
+        postcode: farm.postcode,
+      },
+      contact: {
+        phone: farm.phone || undefined,
+        email: farm.email || undefined,
+        website: farm.website || undefined,
+      },
+      offerings: farm.categories.map((fc) => fc.category.name),
+      images: farm.images.length > 0 ? farm.images.map((img) => img.url) : undefined,
+      verified: farm.verified,
+    }
+  } catch (error) {
+    throw new Error(`Failed to load farm by slug: ${error}`)
+  }
+}
+
 // Client-side farm data fetching (for map page only)
 export async function fetchFarmDataClient(): Promise<FarmShop[]> {
   try {

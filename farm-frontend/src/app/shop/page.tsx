@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
-import { getFarmDataServer, getFarmStatsServer } from '@/lib/farm-data-server'
+import { getFarmData, getFarmStats } from '@/lib/farm-data'
 import ShopPageClient from '@/components/ShopPageClient'
 import { SITE_URL } from '@/lib/site'
 
@@ -9,7 +9,7 @@ export const revalidate = 21600
 
 // Generate metadata dynamically for better SEO
 export async function generateMetadata(): Promise<Metadata> {
-  const stats = await getFarmStatsServer()
+  const stats = await getFarmStats()
   
   return {
     title: `UK Farm Shops Directory - Find ${stats.farmCount}+ Local Farm Shops Near You`,
@@ -131,8 +131,8 @@ function ShopPageLoading() {
 // Main shop page component
 async function ShopPageContent() {
   const [farms, stats] = await Promise.all([
-    getFarmDataServer(),
-    getFarmStatsServer()
+    getFarmData(),
+    getFarmStats()
   ])
   
   // Generate structured data for SEO

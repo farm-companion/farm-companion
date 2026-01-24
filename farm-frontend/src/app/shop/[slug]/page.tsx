@@ -1,26 +1,18 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import fs from 'node:fs/promises'
-import path from 'node:path'
 import type { FarmShop } from '@/types/farm'
 import { processFarmDescription } from '@/lib/seo-utils'
 import FarmAnalytics from '@/components/FarmAnalytics'
 import { getValidApprovedPhotosBySlug } from '@/lib/photos'
 import { FarmPageClient } from '@/components/FarmPageClient'
+import { getFarmBySlug } from '@/lib/farm-data'
 
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
 
-async function readFarms(): Promise<FarmShop[]> {
-  const file = path.join(process.cwd(), 'data', 'farms.json')
-  const raw = await fs.readFile(file, 'utf8')
-  return JSON.parse(raw) as FarmShop[]
-}
-
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
-  const farms = await readFarms()
-  const shop = farms.find((f) => f.slug === slug)
+  const shop = await getFarmBySlug(slug)
   if (!shop) return { title: 'Farm shop not found' }
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
   const url = `/shop/${encodeURIComponent(shop.slug)}`
@@ -60,8 +52,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function ShopPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
-  const farms = await readFarms()
-  const shop = farms.find((f) => f.slug === slug)
+  const shop = await getFarmBySlug(slug)
   if (!shop) notFound()
 
   // Fetch approved photos for this farm (only those that exist in blob storage)

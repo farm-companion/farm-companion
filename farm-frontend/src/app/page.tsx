@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight, Leaf, Calendar, Heart, TrendingUp, Award, Clock } from 'lucide-react'
 import NewsletterSignup from '@/components/NewsletterSignup'
-import { getFarmStatsServer } from '@/lib/farm-data-server'
+import { getFarmStats } from '@/lib/farm-data'
 import { SITE_URL } from '@/lib/site'
 import { FeaturedGuides } from '@/components/FeaturedGuides'
 import { CategoryGrid } from '@/components/CategoryGrid'
@@ -59,7 +59,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 3600 // Revalidate every hour
 
 export default async function HomePage() {
-  const { farmCount, countyCount } = await getFarmStatsServer()
+  const { farmCount, countyCount } = await getFarmStats()
 
   return (
     <div className="min-h-screen bg-background-canvas">
