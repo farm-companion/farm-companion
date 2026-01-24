@@ -76,7 +76,10 @@ function cspFor(req: NextRequest) {
 }
 
 export function middleware(req: NextRequest) {
-  if (!IS_PROD) return NextResponse.next()
+  // TEMPORARILY DISABLED - debugging CSS loading issue
+  return NextResponse.next()
+
+  // if (!IS_PROD) return NextResponse.next()
   
   const url = new URL(req.url)
   if (url.protocol !== 'https:' || url.host !== new URL(SITE_URL).host) {
