@@ -19,6 +19,7 @@ This document defines the precise design parameters for achieving Apple-level, A
 9. [Micro-Haptics and Audio Cues](#micro-haptics-and-audio-cues)
 10. [Focus-First Navigation](#focus-first-navigation)
 11. [Quality Checklist](#quality-checklist)
+12. [Universal Quality Audit (UQA)](#universal-quality-audit-uqa)
 
 ---
 
@@ -922,10 +923,118 @@ shadow-premium   // Subtle depth
 
 ---
 
+## Universal Quality Audit (UQA)
+
+> **The Final Gate:** If a component fails even one of these checks, it is considered "Legacy" and must be refactored.
+
+### 1. The 100ms Interaction Rule
+
+**The Check:** Does the component respond visually within 1 frame (16ms) and functionally within 100ms?
+
+**The Fix:**
+- Implement "Optimistic UI" (change immediately before API responds)
+- Add `scale-[0.97]` active state for instant tactile feedback
+- Use `will-change: transform` for GPU acceleration
+
+```tsx
+className="active:scale-[0.97] transition-transform duration-50"
+```
+
+### 2. The "Irradiance" Contrast Check
+
+**The Check:** In Dark Mode, is the text weight at least 100 units lower than in Light Mode?
+
+**The Fix:**
+- Light Mode: `font-medium` (500) or `font-semibold` (600)
+- Dark Mode: `font-normal` (400) or `font-medium` (500)
+- Apply `-webkit-font-smoothing: antialiased` in dark mode
+
+```tsx
+className="font-semibold dark:font-medium"
+```
+
+### 3. The "Pure Ink" Black Test
+
+**The Check:** Is the background `#050505` (not Apple's muddy `#1C1C1E`)?
+
+**The Fix:**
+- Canvas: `#050505` (OLED pixels turn off)
+- Surface: `#121214` (subtle card lift)
+- Never use `#1C1C1E` or `slate-950`
+
+```tsx
+className="dark:bg-[#050505]"  // Canvas
+className="dark:bg-[#121214]"  // Surface
+```
+
+### 4. Tabular Alignment Audit
+
+**The Check:** Do numbers jump or "wiggle" when they update?
+
+**The Fix:**
+- Apply `font-variant-numeric: tabular-nums`
+- Use `font-mono` (IBM Plex Mono) for all metrics
+- Uppercase labels with `tracking-widest`
+
+```tsx
+className="font-mono tabular-nums"  // Or use .text-numeric
+```
+
+### 5. The "Squish & Spring" Audit
+
+**The Check:** Does the animation feel "linear" or "mechanical"?
+
+**The Fix:**
+- Replace `ease-in-out` with spring physics
+- Use `cubic-bezier(0.2, 0.8, 0.2, 1)` for snappy interactions
+- Objects entering should overshoot by 2px and settle
+
+```tsx
+className="transition-all duration-200"
+style={{ transitionTimingFunction: 'var(--spring-snappy)' }}
+```
+
+### 6. The "No-Dead-Ends" Navigation
+
+**The Check:** Can a user complete the primary action using only a keyboard?
+
+**The Fix:**
+- Focus rings: 2px Kinetic Cyan with 2px offset
+- CMD+K must reach every action
+- Tab order must be logical (top-to-bottom, left-to-right)
+
+```tsx
+className="focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2"
+```
+
+---
+
+### God-Tier vs Apple Comparison
+
+| Feature | Apple Standard | God-Tier Standard |
+|---------|----------------|-------------------|
+| **Neutral Palette** | Cold Grays (Slate) | Obsidian Zinc (Warm/Deep) |
+| **Dark Mode** | `#1C1C1E` (Muddy) | `#050505` (Pure Ink) |
+| **Typography** | Proportional (San Francisco) | Tabular (IBM Plex Mono) |
+| **Interaction** | Fade/Blur | Scale/Spring/Glint |
+| **Spacing** | Generous (Loose) | Efficient Density (Instrumental) |
+| **Elevation** | Shadows | Border Luminance + Specular |
+
+---
+
+### Master Persona Prompt
+
+Use this prompt when starting any design session:
+
+> "Assume the persona of the Principal Design Engineer for Farm Companion. We operate on the Obsidian-Kinetic Design System. Every component must feature specular highlights in dark mode, adaptive font weights for optical balancing, and spring-based motion physics. Do not truncate text. Use tabular figures for all data. Our goal is a high-density instrument, not a consumer toy. Audit my next request against the UQA."
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.0.0 | 2026-01-24 | Obsidian-Kinetic palette, OLED dark mode, Instrument Hierarchy typography, Kinetic Fluidity motion, UQA |
 | 1.1.0 | 2026-01-24 | Added Information Density Grid, Micro-Haptics, Focus-First Navigation |
 | 1.0.0 | 2026-01-24 | Initial god-tier design system documentation |
 
