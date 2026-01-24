@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server'
 import { notifyBingOfSitemap } from '@/lib/bing-notifications'
 
+// Bing notification response type
+interface BingNotificationResult {
+  success: boolean
+  error?: string
+}
+
+// Extended fetch options (Node.js supports timeout but TypeScript doesn't know)
+interface FetchOptionsWithTimeout extends RequestInit {
+  timeout?: number
+}
+
 /**
  * Health Check Endpoint for Bing IndexNow System
  * 
@@ -52,10 +63,11 @@ export async function GET() {
     }
 
     try {
-      const sitemapResponse = await fetch('https://www.farmcompanion.co.uk/sitemap.xml', {
+      const fetchOptions: FetchOptionsWithTimeout = {
         method: 'HEAD',
         timeout: 10000,
-      } as any)
+      }
+      const sitemapResponse = await fetch('https://www.farmcompanion.co.uk/sitemap.xml', fetchOptions as RequestInit)
       
       sitemapCheck.details.statusCode = sitemapResponse.status
       sitemapCheck.details.accessible = sitemapResponse.ok
@@ -77,7 +89,7 @@ export async function GET() {
       status: 'pass',
       details: {
         testUrl: 'https://www.farmcompanion.co.uk/',
-        response: null as any,
+        response: null as BingNotificationResult | null,
         error: null as string | null,
       }
     }

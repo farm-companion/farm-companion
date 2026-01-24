@@ -6,6 +6,27 @@ import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
 
+// Sitemap reconciliation audit result type
+interface SitemapAudit {
+  timestamp: string
+  performedBy: string
+  results: {
+    databaseUrls: string[]
+    sitemapUrls: string[]
+    missingUrls: string[]
+    extraUrls: string[]
+    notificationsSent: number
+    errors: string[]
+  }
+  summary: {
+    totalDatabaseUrls: number
+    totalSitemapUrls: number
+    missingCount: number
+    extraCount: number
+    driftDetected: boolean
+  }
+}
+
 // Module logger for helper functions
 const moduleLogger = createRouteLogger('api/admin/audit/sitemap-reconciliation')
 
@@ -394,7 +415,7 @@ async function submitMissingUrlsToIndexNow(
 /**
  * Generate audit summary
  */
-function generateAuditSummary(audit: any): string {
+function generateAuditSummary(audit: SitemapAudit): string {
   const { summary } = audit
   
   if (!summary.driftDetected) {
@@ -407,7 +428,7 @@ function generateAuditSummary(audit: any): string {
 /**
  * Generate recommendations based on audit results
  */
-function generateRecommendations(audit: any): string[] {
+function generateRecommendations(audit: SitemapAudit): string[] {
   const recommendations: string[] = []
   const { summary, results } = audit
 

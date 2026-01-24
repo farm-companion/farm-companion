@@ -80,7 +80,7 @@ async function farmsHandler(request: NextRequest) {
     const offset = parseInt(searchParams.get('offset') || '0')
 
     // Build Prisma where clause
-    const where: any = {
+    const where: Prisma.FarmWhereInput = {
       status: 'active', // Only return active farms
     }
 

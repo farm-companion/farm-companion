@@ -3,6 +3,32 @@ import { notifyBingOfUrl } from '@/lib/bing-notifications'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
 
+// IndexNow submission response type
+interface IndexNowResponse {
+  success: boolean
+  error?: string
+  statusCode?: number
+}
+
+// Diagnostic step result types
+interface StepResult {
+  status: 'pass' | 'fail' | 'warning' | 'unknown'
+  details: Record<string, unknown>
+}
+
+// Full diagnostics result
+interface UrlIndexingDiagnostics {
+  url: string
+  timestamp: string
+  steps: {
+    step1: StepResult
+    step2: StepResult
+    step3: StepResult
+  }
+  recommendations: string[]
+  status: 'pass' | 'fail' | 'warning' | 'unknown'
+}
+
 /**
  * URL Indexing Diagnostic Tool
  *
@@ -230,7 +256,7 @@ async function submitToIndexNow(url: string, logger: ReturnType<typeof createRou
     status: 'unknown' as 'pass' | 'fail' | 'warning',
     details: {
       submitted: false,
-      response: null as any,
+      response: null as IndexNowResponse | null,
       error: null as string | null,
       monitoringGuidance: [] as string[],
     }
@@ -283,7 +309,7 @@ async function submitToIndexNow(url: string, logger: ReturnType<typeof createRou
 /**
  * Analyze diagnostic results and provide recommendations
  */
-function analyzeResults(diagnostics: any) {
+function analyzeResults(diagnostics: UrlIndexingDiagnostics) {
   const { steps } = diagnostics
   const recommendations: string[] = []
 

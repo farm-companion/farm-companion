@@ -4,6 +4,27 @@ import path from 'node:path'
 import { createRouteLogger } from '@/lib/logger'
 import { handleApiError } from '@/lib/errors'
 
+// Check result type
+interface CheckResult {
+  status: 'pass' | 'fail' | 'warning' | 'unknown'
+  details: Record<string, unknown>
+}
+
+// Full diagnostics result type
+interface IndexNowDiagnostics {
+  timestamp: string
+  errorResponse: string
+  submittedUrl: string
+  checks: {
+    publicKeyFile: CheckResult
+    hostValidation: CheckResult
+    urlListValidation: CheckResult
+    rateLimiting: CheckResult
+  }
+  recommendations: string[]
+  status: 'pass' | 'fail' | 'warning' | 'unknown'
+}
+
 /**
  * IndexNow Error Diagnostic Tool
  *
@@ -280,7 +301,7 @@ async function checkRateLimiting(logger: ReturnType<typeof createRouteLogger>) {
 /**
  * Analyze IndexNow diagnostic results
  */
-function analyzeIndexNowResults(diagnostics: any) {
+function analyzeIndexNowResults(diagnostics: IndexNowDiagnostics) {
   const { checks } = diagnostics
   const recommendations: string[] = []
 
@@ -305,8 +326,8 @@ function analyzeIndexNowResults(diagnostics: any) {
   }
 
   // Overall status determination
-  const hasFailures = Object.values(checks).some((check: any) => check.status === 'fail')
-  const hasWarnings = Object.values(checks).some((check: any) => check.status === 'warning')
+  const hasFailures = Object.values(checks).some((check: CheckResult) => check.status === 'fail')
+  const hasWarnings = Object.values(checks).some((check: CheckResult) => check.status === 'warning')
 
   if (hasFailures) {
     diagnostics.status = 'fail'

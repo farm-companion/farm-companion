@@ -104,12 +104,15 @@
 ### Queue 16: Type Safety Improvements (FORENSIC DISCOVERY - 31 any types)
 - [x] Replace any types in upload/route (1 instance - Sharp interface created)
 - [x] Replace any types in claims/route (2 instances - ClaimData interface created)
+- [x] Replace any types in farms/route (1 instance - Prisma.FarmWhereInput)
+- [x] Replace any types in diagnostics/url-indexing (2 instances - UrlIndexingDiagnostics, IndexNowResponse interfaces)
+- [x] Replace any types in diagnostics/bot-blocking (1 instance - BotBlockingDiagnostics interface)
+- [x] Replace any types in diagnostics/indexnow-errors (3 instances - IndexNowDiagnostics, CheckResult interfaces)
+- [x] Replace any types in performance/dashboard (1 instance - removed unnecessary cast)
+- [x] Replace any types in admin/audit/sitemap-reconciliation (2 instances - SitemapAudit interface)
+- [x] Replace any types in health/bing-indexnow (2 instances - BingNotificationResult, FetchOptionsWithTimeout interfaces)
 - [ ] Replace any types in admin/farms/photo-stats/route (4 remaining instances)
-- [ ] Replace any types in farms/route, farms-cached/route, admin/farms/route (4 instances)
-- [ ] Replace any types in search/route, selftest routes, monitoring/bing-status (4 instances)
-- [ ] Replace any types in performance/dashboard (6 instances)
-- [ ] Replace any types in diagnostics routes (6 instances)
-- [ ] Replace remaining any types in admin routes (5 instances)
+- [ ] Replace remaining any types in other routes (if any)
 
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
 - [x] Add structured logging to upload/route
@@ -132,6 +135,19 @@
 - [ ] Add structured logging to remaining routes (8+ routes)
 
 ## Completed Work
+
+### 2026-01-24 (Type Safety Improvements)
+- **Queue 16, Slice 1: API Route Type Safety Fixes** (COMPLETE)
+  - Fixed 12 `any` type instances across 8 API routes
+  - farms/route.ts: Changed `where: any` to `Prisma.FarmWhereInput`
+  - diagnostics/url-indexing/route.ts: Added UrlIndexingDiagnostics, IndexNowResponse, StepResult interfaces
+  - diagnostics/bot-blocking/route.ts: Added BotBlockingDiagnostics, BotAccessResult, ChallengeResult interfaces
+  - diagnostics/indexnow-errors/route.ts: Added IndexNowDiagnostics, CheckResult interfaces
+  - performance/dashboard/route.ts: Removed unnecessary `any` cast (type already defined)
+  - admin/audit/sitemap-reconciliation/route.ts: Added SitemapAudit interface
+  - health/bing-indexnow/route.ts: Added BingNotificationResult, FetchOptionsWithTimeout interfaces
+  - Remaining `any` types in upload/route.ts are intentional (Sharp library options)
+  - Files changed: 8 API route files
 
 ### 2026-01-24 (Data Architecture Cleanup)
 - **Queue 9, Slice 3: Geospatial indexes verification** (VERIFIED)

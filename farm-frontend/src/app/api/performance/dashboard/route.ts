@@ -162,7 +162,7 @@ function generateRecommendations(
   }
   
   if (performanceSummary.topSlowRoutes.length > 0) {
-    recommendations.push(`Optimize slow routes: ${performanceSummary.topSlowRoutes.slice(0, 3).map((r: any) => r.route).join(', ')}`)
+    recommendations.push(`Optimize slow routes: ${performanceSummary.topSlowRoutes.slice(0, 3).map((r) => r.route).join(', ')}`)
   }
   
   // Web Vitals recommendations
