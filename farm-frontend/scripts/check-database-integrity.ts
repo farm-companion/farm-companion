@@ -13,7 +13,11 @@
  * Usage: tsx scripts/check-database-integrity.ts
  */
 
+import { config } from 'dotenv'
 import { PrismaClient } from '@prisma/client'
+
+// Load environment variables from .env.local
+config({ path: '.env.local' })
 
 const prisma = new PrismaClient()
 
