@@ -32,7 +32,7 @@ function cspFor(req: NextRequest) {
     'https://*.googleapis.com',
   ]
   const frame = ["'self'"]
-  const script = ["'self'"]
+  const script = ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://vercel.live']
   const style = ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'] // Tailwind JIT needs none; inline may be needed for Next font fallback
   const font = ["'self'", 'data:', 'https://fonts.gstatic.com']
   const frameAncestors = ["'none'"]
