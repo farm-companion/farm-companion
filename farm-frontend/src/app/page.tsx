@@ -150,17 +150,17 @@ export default async function HomePage() {
           <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/40" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
           
-          {/* Subtle animated texture */}
+          {/* Static texture - animations removed for performance */}
           <div className="absolute inset-0 opacity-20">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.1),transparent_50%)] animate-pulse" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.05),transparent_50%)] animate-pulse" style={{ animationDelay: '1s' }} />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.1),transparent_50%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.05),transparent_50%)]" />
           </div>
         </div>
-        
+
         {/* Content with enhanced styling */}
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          {/* Animated icon */}
-          <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-full mb-6 sm:mb-8 border border-white/20 animate-bounce" style={{ animationDuration: '3s', animationIterationCount: 'infinite' }}>
+          {/* Icon - static for performance */}
+          <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-full mb-6 sm:mb-8 border border-white/20">
             <MapPin className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
           </div>
 

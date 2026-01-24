@@ -46,7 +46,7 @@
 - [x] Typography system - 5 semantic styles defined (Slice 2 - display/heading/body/caption/small)
 - [ ] Typography migration - 1109 legacy usages across 107 files (deferred, phased rollout)
 - [x] Spacing and layout grid - 8px system already configured in tailwind.config.js (lines 162-181: 1=8px, 2=16px, 3=24px, etc.)
-- [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
+- [x] Animation reduction (Slice 4) - Removed 14 continuous decorative animations from high-traffic pages (FarmPageClient 6, homepage 3, add page 5). Kept essential UX animations (loading skeletons, Framer Motion). prefers-reduced-motion already in globals.css.
 
 ### Queue 9: Data Architecture Fix (God-Tier Transformation)
 - [x] Data already migrated to Supabase (1,299 farms, 35 categories confirmed in Prisma Studio)
