@@ -32,8 +32,8 @@ if (!dbUrl) {
   process.exit(1)
 }
 
-// Parse the connection string
-function analyzeConnectionString(url: string) {
+// Parse and analyze the connection string
+function analyzeConnectionString(url: string): boolean {
   try {
     const parsed = new URL(url)
 
@@ -61,87 +61,88 @@ function analyzeConnectionString(url: string) {
       console.log('')
     }
 
+    // Check for pgbouncer parameter
+    const params = new URLSearchParams(parsed.search)
+    const pgbouncer = params.get('pgbouncer')
+
+    if (parsed.port === '6543' && pgbouncer !== 'true') {
+      console.log('WARNING: Using pooler port but missing ?pgbouncer=true parameter')
+      console.log('   Add ?pgbouncer=true to your DATABASE_URL for pooler compatibility')
+      console.log('')
+    }
+
     return true
   } catch (error) {
-    console.log('Failed to parse DATABASE_URL')
-    console.log(`  Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    console.log('Invalid DATABASE_URL format')
+    console.log('')
+    console.log(`Error: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    console.log('')
+    console.log('Expected format:')
+    console.log('  postgresql://[user]:[password]@[host]:[port]/[database]?pgbouncer=true')
+    console.log('')
+    console.log('Example (Supabase pooler):')
+    console.log('  postgresql://postgres.xxx:[password]@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true')
+    console.log('')
     return false
   }
 }
 
-async function testConnection() {
+async function testConnection(): Promise<void> {
   console.log('Testing Database Connection...')
   console.log('')
 
-  const prisma = new PrismaClient()
+  const prisma = new PrismaClient({
+    log: ['error'],
+  })
 
   try {
-    // Test basic connectivity
-    const start = Date.now()
-    await prisma.$queryRaw`SELECT 1`
-    const latency = Date.now() - start
-
-    console.log(`Connection successful (${latency}ms)`)
+    await prisma.$connect()
+    console.log('Successfully connected to database!')
     console.log('')
 
-    // Test farm table access
+    // Try a simple query
     const farmCount = await prisma.farm.count()
-    console.log(`Farm table accessible: ${farmCount} farms found`)
+    console.log('Database Stats:')
+    console.log(`  Total Farms: ${farmCount}`)
     console.log('')
 
-    // Get sample data
-    const sampleFarm = await prisma.farm.findFirst({
-      select: {
-        name: true,
-        county: true,
-        verified: true,
-      },
-    })
+    await prisma.$disconnect()
+    process.exit(0)
+  } catch (error: unknown) {
+    console.log('Connection failed!')
+    console.log('')
 
-    if (sampleFarm) {
-      console.log('Sample farm data:')
-      console.log(`  Name: ${sampleFarm.name}`)
-      console.log(`  County: ${sampleFarm.county}`)
-      console.log(`  Verified: ${sampleFarm.verified}`)
+    const message = error instanceof Error ? error.message : String(error)
+    console.log('Error:', message)
+    console.log('')
+
+    if (message.includes("Can't reach database server")) {
+      console.log('Troubleshooting Steps:')
+      console.log('')
+      console.log('1. Verify your Supabase project is active:')
+      console.log('   - Go to https://supabase.com/dashboard/projects')
+      console.log('   - Check project status (should be "Active")')
+      console.log('')
+      console.log('2. Check your connection string:')
+      console.log('   - Go to Project Settings > Database')
+      console.log('   - Copy the "Connection Pooling" string (Transaction mode)')
+      console.log('   - Should use port 6543, not 5432')
+      console.log('')
+      console.log('3. Verify network access:')
+      console.log('   - Supabase allows connections from all IPs by default')
+      console.log('   - Check if you are behind a firewall/VPN')
+      console.log('')
+      console.log('4. Test with psql command:')
+      console.log(`   psql "${dbUrl!.replace(/password=[^&@]*/, 'password=***')}"`)
       console.log('')
     }
 
-    console.log('All diagnostics passed!')
-
-  } catch (error) {
-    console.log('Connection failed')
-    console.log('')
-
-    if (error instanceof Error) {
-      console.log(`Error: ${error.message}`)
-
-      if (error.message.includes('ECONNREFUSED')) {
-        console.log('')
-        console.log('Possible causes:')
-        console.log('  - Database server is not running')
-        console.log('  - Firewall blocking connection')
-        console.log('  - Incorrect host/port')
-      } else if (error.message.includes('authentication')) {
-        console.log('')
-        console.log('Possible causes:')
-        console.log('  - Incorrect password')
-        console.log('  - User does not exist')
-        console.log('  - Password needs to be URL-encoded')
-      } else if (error.message.includes('timeout')) {
-        console.log('')
-        console.log('Possible causes:')
-        console.log('  - Network connectivity issues')
-        console.log('  - Database server overloaded')
-        console.log('  - SSL/TLS handshake issues')
-      }
-    }
-
-    process.exit(1)
-  } finally {
     await prisma.$disconnect()
+    process.exit(1)
   }
 }
 
 // Main execution
-analyzeConnectionString(dbUrl)
-testConnection().catch(console.error)
+if (analyzeConnectionString(dbUrl)) {
+  testConnection().catch(console.error)
+}
