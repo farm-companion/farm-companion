@@ -20,11 +20,17 @@ interface CategoryPageProps {
 }
 
 // Generate static params for all categories at build time
+// Returns empty array if database is unreachable (allows dynamic rendering)
 export async function generateStaticParams() {
-  const categories = await getCachedAllCategories()
-  return categories.map((category: any) => ({
-    slug: category.slug,
-  }))
+  try {
+    const categories = await getCachedAllCategories()
+    return categories.map((category: any) => ({
+      slug: category.slug,
+    }))
+  } catch {
+    // Database unreachable during build - pages will render dynamically
+    return []
+  }
 }
 
 // Generate metadata for SEO
