@@ -57,7 +57,8 @@
 - [x] Database constraints defined (Slice 4: ADD_CHECK_CONSTRAINTS.sql has CHECK constraints for lat/lng bounds, rating bounds, status enums. Apply via Supabase SQL Editor if not already active)
 
 ### Queue 10: Backend Architecture Cleanup (God-Tier Transformation)
-- [ ] Replace console.log with structured logging (Slice 1)
+- [x] Replace console.log with structured logging in lib files (Slice 1a: auth.ts 19, email.ts 9, bing-notifications.ts 8 = 36 statements)
+- [ ] Replace console.log with structured logging in remaining lib files (Slice 1b: photo-storage.ts, redis.ts, etc.)
 - [ ] Extract service layer from API routes (Slice 2)
 - [ ] Fix N+1 queries in admin routes (Slice 3)
 - [ ] Error handling standardization (Slice 4)
@@ -136,6 +137,14 @@
 - [ ] Add structured logging to remaining routes (8+ routes)
 
 ## Completed Work
+
+### 2026-01-24 (Structured Logging - Lib Files)
+- **Queue 10, Slice 1a: Structured logging for core lib files** (COMPLETE)
+  - auth.ts: 19 console statements replaced with authLogger (security events, rate limiting, session management)
+  - email.ts: 9 console statements replaced with emailLogger (photo receipts, farm submissions)
+  - bing-notifications.ts: 8 console statements replaced with bingLogger (IndexNow URL/sitemap notifications)
+  - Total: 36 console statements converted to structured logging
+  - All modules use child loggers with route context
 
 ### 2026-01-24 (Type Safety Improvements)
 - **Queue 16, Slice 1: API Route Type Safety Fixes** (COMPLETE)
