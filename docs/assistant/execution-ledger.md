@@ -43,7 +43,8 @@
 
 ### Queue 8: Design System Foundation (God-Tier Transformation)
 - [x] Consolidate color tokens - Add primary color scale (Slice 1)
-- [ ] Typography system - Reduce to 5 semantic styles (Slice 2)
+- [x] Typography system - 5 semantic styles defined (Slice 2 - display/heading/body/caption/small)
+- [ ] Typography migration - 1109 legacy usages across 107 files (deferred, phased rollout)
 - [ ] Spacing and layout grid - Enforce 8px system (Slice 3)
 - [ ] Animation reduction - Remove 80% of competing animations (Slice 4)
 
@@ -111,8 +112,8 @@
 - [x] Replace any types in performance/dashboard (1 instance - removed unnecessary cast)
 - [x] Replace any types in admin/audit/sitemap-reconciliation (2 instances - SitemapAudit interface)
 - [x] Replace any types in health/bing-indexnow (2 instances - BingNotificationResult, FetchOptionsWithTimeout interfaces)
-- [ ] Replace any types in admin/farms/photo-stats/route (4 remaining instances)
-- [ ] Replace remaining any types in other routes (if any)
+- [x] Replace any types in admin/farms/photo-stats/route (verified: no any types present)
+- [x] Queue 16 COMPLETE - Only intentional Sharp library any types remain in upload/route.ts
 
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
 - [x] Add structured logging to upload/route
