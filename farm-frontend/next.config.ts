@@ -14,9 +14,10 @@ const headersCommon = [
   { key: "X-DNS-Prefetch-Control", value: "off" },
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   { key: "Permissions-Policy", value: "geolocation=(), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
-  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-  { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
+  // Cross-origin headers REMOVED - were blocking CSS/fonts/images
+  // { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  // { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
   { key: "Origin-Agent-Cluster", value: "?1" },
   // CSP is now set in middleware (consent-aware)
 ]
