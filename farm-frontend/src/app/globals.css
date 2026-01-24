@@ -118,18 +118,23 @@
   --text-muted: #52525B;       /* 7.2:1 on white - Zinc 600, WCAG AAA for small text */
   --text-subtle: #71717A;      /* 5.0:1 on white - Zinc 500, AAA for large text only */
 
-  /* Obsidian Neutrals - Light Mode */
+  /* Obsidian Neutrals - Light Mode (Zinc-Warm) */
   --obsidian-canvas: #FFFFFF;
-  --obsidian-surface: #FAFAFA;       /* Zinc 50 - subtle surface elevation */
-  --obsidian-elevated: #F4F4F5;      /* Zinc 100 - cards, dropdowns */
+  --obsidian-surface: #F9F9FB;       /* Warm surface - adds depth to cards */
+  --obsidian-elevated: #F1F1F4;      /* Clear separation for dropdowns/modals */
   --obsidian-muted: #E4E4E7;         /* Zinc 200 - hover states */
-  --obsidian-border: #D4D4D8;        /* Zinc 300 - borders */
+  --obsidian-border: #E4E4E7;        /* Zinc 200 - refined borders */
 
-  /* Background Colors - Zinc-based */
+  /* Background Colors - Zinc-Warm */
   --background-canvas: #FFFFFF;
-  --background-surface: #FAFAFA;     /* Zinc 50 - subtle surface elevation */
-  --background-elevated: #F4F4F5;    /* Zinc 100 - cards, dropdowns */
-  --background-hover: #E4E4E7;       /* Zinc 200 - interactive hover states */
+  --background-surface: #F9F9FB;     /* Warm surface elevation */
+  --background-elevated: #F1F1F4;    /* Cards, dropdowns */
+  --background-hover: #E4E4E7;       /* Interactive hover states */
+
+  /* Overlay Colors - Alpha transparency for Light Mode */
+  --overlay-light: rgba(0, 0, 0, 0.02);
+  --overlay-medium: rgba(0, 0, 0, 0.04);
+  --overlay-strong: rgba(0, 0, 0, 0.06);
 
   /* Border Colors - Refined Zinc hierarchy */
   --border-default: #E4E4E7;   /* Zinc 200 - standard borders */
@@ -438,32 +443,41 @@ button {
    All text colors verified for 7:1+ contrast on #09090B
    ========================================================================== */
 
-/* Dark theme support - Manual toggle */
+/* ==========================================================================
+   DARK THEME - OBSIDIAN DEEP (OLED-OPTIMIZED)
+   Pure black canvas (#050505) allows OLED pixels to turn off.
+   Desaturated neutrals prevent "neon" fatigue.
+   ========================================================================== */
 .dark {
-  /* Text Colors - WCAG AAA on Obsidian #09090B */
-  --text-heading: #FAFAFA;     /* Zinc 50 - 19.2:1 on #09090B */
-  --text-body: #E4E4E7;        /* Zinc 200 - 14.8:1 on #09090B */
-  --text-muted: #A1A1AA;       /* Zinc 400 - 7.4:1 on #09090B */
-  --text-subtle: #71717A;      /* Zinc 500 - 4.6:1 on #09090B */
+  /* Text Colors - WCAG AAA on Obsidian #050505 */
+  --text-heading: #FAFAFA;     /* Zinc 50 - 19.8:1 on #050505 */
+  --text-body: #E4E4E7;        /* Zinc 200 - 15.2:1 on #050505 */
+  --text-muted: #A1A1AA;       /* Zinc 400 - 7.6:1 on #050505, desaturated */
+  --text-subtle: #71717A;      /* Zinc 500 - 4.8:1 on #050505 */
 
-  /* Obsidian Neutrals - Dark Mode */
-  --obsidian-canvas: #09090B;        /* Deepest Ink */
-  --obsidian-surface: #18181B;       /* Zinc 900 */
-  --obsidian-elevated: #27272A;      /* Zinc 800 */
-  --obsidian-muted: #3F3F46;         /* Zinc 700 */
-  --obsidian-border: #52525B;        /* Zinc 600 */
+  /* Obsidian-Deep Neutrals - OLED Optimized */
+  --obsidian-canvas: #050505;        /* Pure Ink - OLED pixels off */
+  --obsidian-surface: #121214;       /* Subtle lift for cards */
+  --obsidian-elevated: #1E1E21;      /* Clear modal/dropdown separation */
+  --obsidian-muted: #2A2A2E;         /* Hover states - desaturated */
+  --obsidian-border: #3A3A3F;        /* Borders - slightly warmer */
 
-  /* Background Colors */
-  --background-canvas: #09090B;      /* Deepest Ink */
-  --background-surface: #18181B;     /* Zinc 900 */
-  --background-elevated: #27272A;    /* Zinc 800 */
-  --background-hover: #3F3F46;       /* Zinc 700 */
+  /* Background Colors - OLED Optimized */
+  --background-canvas: #050505;      /* Pure Ink */
+  --background-surface: #121214;     /* Card backgrounds */
+  --background-elevated: #1E1E21;    /* Modals, dropdowns */
+  --background-hover: #2A2A2E;       /* Interactive hover */
 
-  /* Border Colors */
-  --border-default: #3F3F46;   /* Zinc 700 */
-  --border-subtle: #27272A;    /* Zinc 800 */
-  --border-strong: #52525B;    /* Zinc 600 */
+  /* Border Colors - Luminance-based (not solid colors) */
+  --border-default: rgba(255, 255, 255, 0.08);  /* Border lights */
+  --border-subtle: rgba(255, 255, 255, 0.04);   /* Subtle dividers */
+  --border-strong: rgba(255, 255, 255, 0.12);   /* Emphasized borders */
   --border-focus: #22D3EE;     /* Kinetic Cyan 400 - brighter on dark */
+
+  /* Overlay Colors - Alpha transparency */
+  --overlay-light: rgba(255, 255, 255, 0.03);
+  --overlay-medium: rgba(255, 255, 255, 0.06);
+  --overlay-strong: rgba(255, 255, 255, 0.10);
 
   /* Kinetic Primary - Brighter on dark */
   --kinetic: #22D3EE;          /* Cyan 400 - 10.2:1 on dark */
@@ -543,10 +557,25 @@ button {
   }
 }
 
+/* ==========================================================================
+   SMOOTH THEME TRANSITION - NO FLASH OF UNSTYLED CONTENT
+   300ms cubic-bezier for premium feel
+   ========================================================================== */
+body {
+  background-color: var(--background-canvas);
+  color: var(--text-body);
+  transition:
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Additional dark mode styles for common elements */
 .dark body {
   background-color: var(--background-canvas);
   color: var(--text-body);
+  /* Optical sizing fix: light text on dark bleeds, so we thin it slightly */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .dark .bg-background-canvas {
@@ -2447,7 +2476,87 @@ html {
 }
 
 .dark .glass-subtle {
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(18, 18, 20, 0.6);
+}
+
+/* ==========================================================================
+   COMPONENT ELEVATION STRATEGY - THE STRIPE/LINEAR SECRET
+   Light Mode: shadows for depth
+   Dark Mode: border luminance + specular highlight gradient
+   ========================================================================== */
+
+/* Elevated Card - Light Mode */
+.card-elevated {
+  background: var(--background-surface);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.04);
+  border-radius: 16px;
+}
+
+/* Elevated Card - Dark Mode (The Secret) */
+.dark .card-elevated {
+  background: var(--background-surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  /* Specular highlight - makes cards look like physical glass */
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 100%
+  );
+}
+
+/* Elevated Card Hover - Light Mode */
+.card-elevated:hover {
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.08);
+  border-color: var(--border-strong);
+}
+
+/* Elevated Card Hover - Dark Mode */
+.dark .card-elevated:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 100%
+  );
+}
+
+/* Modal/Dropdown Elevation - Higher than cards */
+.elevated-modal {
+  background: var(--background-elevated);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.15);
+  border-radius: 16px;
+}
+
+.dark .elevated-modal {
+  background: var(--background-elevated);
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.5);
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 50%
+  );
+}
+
+/* Surface with specular highlight only (no border change) */
+.specular-highlight {
+  position: relative;
+}
+
+.dark .specular-highlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 100%
+  );
+  pointer-events: none;
+  border-radius: inherit;
 }
 
 /* Premium text utilities */

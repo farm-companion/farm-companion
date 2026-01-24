@@ -66,15 +66,19 @@ All text must meet these contrast ratios on their intended backgrounds:
 
 We replace generic Slate with **Zinc-based Neutrals** (slight warm undertones) and introduce **Kinetic Cyan** (high-vibrancy, electric feel).
 
-#### Neutral Foundations (The Obsidian Stack)
+#### Neutral Foundations (Obsidian-Deep Stack)
 
-| Layer | Light Mode (Zinc) | Dark Mode (Obsidian) | Contrast | Use |
-|-------|-------------------|----------------------|----------|-----|
-| **Canvas** | `#FFFFFF` | `#09090B` (Deepest Ink) | Infinite | Page background |
-| **Surface** | `#FAFAFA` (zinc-50) | `#18181B` (zinc-900) | 18:1 | Card backgrounds |
-| **Elevated** | `#F4F4F5` (zinc-100) | `#27272A` (zinc-800) | 12:1 | Modals, dropdowns |
-| **Muted** | `#E4E4E7` (zinc-200) | `#3F3F46` (zinc-700) | 8:1 | Hover states |
-| **Border** | `#D4D4D8` (zinc-300) | `#52525B` (zinc-600) | UI | Borders, dividers |
+> **The Fix:** Most systems use the same saturation for both modes, making Dark Mode look "neon" and "cheap." We use **desaturated neutrals** for Dark Mode and **warm neutrals** for Light Mode.
+
+| Layer | Light Mode (Zinc-Warm) | Dark Mode (Obsidian-Deep) | Use |
+|-------|------------------------|---------------------------|-----|
+| **Canvas** | `#FFFFFF` | `#050505` (Pure Ink - OLED optimized) | Page background |
+| **Surface** | `#F9F9FB` | `#121214` (Subtle lift) | Card backgrounds |
+| **Elevated** | `#F1F1F4` | `#1E1E21` (Clear separation) | Modals, dropdowns |
+| **Muted** | `#E4E4E7` | `#2A2A2E` (Desaturated) | Hover states |
+| **Border** | `#E4E4E7` | `rgba(255,255,255,0.08)` | Borders, dividers |
+
+**Why Pure Black (#050505)?** Apple uses `#1C1C1E` which looks muddy on OLED screens. True black allows pixels to physically turn off, creating perfect contrast and saving battery.
 
 #### Text Colors (WCAG AAA Verified)
 
@@ -86,13 +90,15 @@ Body:        zinc-800   #27272A  (14.2:1) - Comfortable reading
 Muted:       zinc-600   #52525B  (7.2:1)  - WCAG AAA small text
 Subtle:      zinc-500   #71717A  (5.0:1)  - Large text only
 
-Dark Mode (on #09090B):
+Dark Mode (on #050505):
 -----------------------
-Headings:    zinc-50    #FAFAFA  (19.2:1) - Maximum legibility
-Body:        zinc-200   #E4E4E7  (14.8:1) - Comfortable reading
-Muted:       zinc-400   #A1A1AA  (7.4:1)  - WCAG AAA small text
-Subtle:      zinc-500   #71717A  (4.6:1)  - Large text only
+Headings:    zinc-50    #FAFAFA  (19.8:1) - Maximum legibility
+Body:        zinc-200   #E4E4E7  (15.2:1) - Comfortable reading
+Muted:       zinc-400   #A1A1AA  (7.6:1)  - WCAG AAA, desaturated
+Subtle:      zinc-500   #71717A  (4.8:1)  - Large text only
 ```
+
+**Optical Sizing Fix:** Light text on dark backgrounds "bleeds" and appears bolder. We apply `-webkit-font-smoothing: antialiased` in Dark Mode to compensate.
 
 #### Brand Accents (Kinetic & Iris)
 
@@ -121,12 +127,12 @@ Subtle:      zinc-500   #71717A  (4.6:1)  - Large text only
 
 ```css
 :root {
-  /* Obsidian Neutrals - Light Mode */
+  /* Obsidian Neutrals - Light Mode (Zinc-Warm) */
   --obsidian-canvas: #FFFFFF;
-  --obsidian-surface: #FAFAFA;
-  --obsidian-elevated: #F4F4F5;
+  --obsidian-surface: #F9F9FB;
+  --obsidian-elevated: #F1F1F4;
   --obsidian-muted: #E4E4E7;
-  --obsidian-border: #D4D4D8;
+  --obsidian-border: #E4E4E7;
 
   /* Text - Light Mode */
   --text-heading: #18181B;
@@ -139,22 +145,17 @@ Subtle:      zinc-500   #71717A  (4.6:1)  - Large text only
   --kinetic-dark: #0891B2;
   --kinetic-text: #155E75;
   --kinetic-glow: rgba(6, 182, 212, 0.15);
-
-  /* Iris Secondary */
-  --iris: #6366F1;
-  --iris-dark: #4F46E5;
-  --iris-glow: rgba(99, 102, 241, 0.15);
 }
 
 .dark {
-  /* Obsidian Neutrals - Dark Mode */
-  --obsidian-canvas: #09090B;
-  --obsidian-surface: #18181B;
-  --obsidian-elevated: #27272A;
-  --obsidian-muted: #3F3F46;
-  --obsidian-border: #52525B;
+  /* Obsidian-Deep Neutrals - OLED Optimized */
+  --obsidian-canvas: #050505;
+  --obsidian-surface: #121214;
+  --obsidian-elevated: #1E1E21;
+  --obsidian-muted: #2A2A2E;
+  --obsidian-border: rgba(255, 255, 255, 0.08);
 
-  /* Text - Dark Mode */
+  /* Text - Dark Mode (Desaturated) */
   --text-heading: #FAFAFA;
   --text-body: #E4E4E7;
   --text-muted: #A1A1AA;
@@ -165,7 +166,60 @@ Subtle:      zinc-500   #71717A  (4.6:1)  - Large text only
   --kinetic-dark: #06B6D4;
   --kinetic-glow: rgba(34, 211, 238, 0.2);
 }
+
+/* Smooth theme transition */
+body {
+  background-color: var(--obsidian-canvas);
+  color: var(--text-body);
+  transition:
+    background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
 ```
+
+---
+
+### Component Elevation Strategy
+
+> **The Stripe/Linear Secret:** In Light Mode, use shadows for depth. In Dark Mode, shadows are invisible, so use **border luminance** and **specular highlights** instead.
+
+#### Light Mode Elevation
+
+```css
+/* Card with shadow depth */
+.card-elevated {
+  background: var(--obsidian-surface);
+  border: 1px solid var(--obsidian-border);
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.04);
+  border-radius: 16px;
+}
+```
+
+#### Dark Mode Elevation (The Secret)
+
+```css
+.dark .card-elevated {
+  background: var(--obsidian-surface);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  /* Specular highlight - makes cards look like physical glass */
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 100%
+  );
+}
+```
+
+**The 2% Gradient:** Adding a white-to-transparent gradient on dark cards creates a "specular highlight" that simulates light reflection on glass. This is how Stripe and Linear achieve their premium dark mode feel.
+
+#### Elevation Classes
+
+| Class | Use Case | Light Mode | Dark Mode |
+|-------|----------|------------|-----------|
+| `.card-elevated` | Cards, panels | Shadow depth | Border luminance + specular |
+| `.elevated-modal` | Modals, dropdowns | Deep shadow | Stronger specular highlight |
+| `.specular-highlight` | Any surface | None | 2% white gradient overlay |
 
 ---
 
