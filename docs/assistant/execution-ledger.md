@@ -51,7 +51,7 @@
 - [x] Data already migrated to Supabase (1,299 farms, 35 categories confirmed in Prisma Studio)
 - [x] Remove JSON file dependencies from main pages (Slice 2a: shop pages + homepage now use Prisma via farm-data.ts)
 - [x] Remove JSON file dependencies from claim + counties pages (Slice 2b: claim/[slug] + counties now use Prisma)
-- [ ] Remove JSON file dependencies from sitemaps (Slice 2c: sitemap-generator.ts, enhanced-sitemap.ts)
+- [x] Remove JSON file dependencies from sitemaps (Slice 2c: sitemap-generator.ts + enhanced-sitemap.ts now use Prisma)
 - [ ] Add geospatial indexes to Prisma schema (Slice 3)
 - [ ] Database constraints and validation (Slice 4)
 
@@ -134,12 +134,17 @@
 ## Completed Work
 
 ### 2026-01-24 (Data Architecture Cleanup)
+- **Queue 9, Slice 2c: Remove JSON dependencies from sitemaps** (COMPLETE)
+  - Updated sitemap-generator.ts to use getFarmData() from Prisma
+  - Updated enhanced-sitemap.ts generateFarmShopsSitemap() and generateCountyPagesSitemap() to use Prisma
+  - Removed fs/path imports and JSON file reads from both sitemap files
+  - Files changed: sitemap-generator.ts, enhanced-sitemap.ts
+  - Impact: All sitemap generation now queries live Supabase data
 - **Queue 9, Slice 2b: Remove JSON dependencies from claim + counties pages** (COMPLETE)
   - Updated claim/[slug]/page.tsx to use getFarmBySlug() from Prisma
   - Updated counties/page.tsx to use getFarmData() from Prisma
   - Removed inline readFarms() and getFarms() functions that read from JSON
-  - Files changed: claim/[slug]/page.tsx (removed fs/path imports, JSON read), counties/page.tsx (removed fs/path imports, JSON read)
-  - Remaining: sitemaps still use JSON (Slice 2c)
+  - Files changed: claim/[slug]/page.tsx, counties/page.tsx
 - **Queue 9, Slice 2a: Remove JSON dependencies from main pages** (COMPLETE)
   - Added getFarmBySlug() to farm-data.ts for individual farm lookups via Prisma
   - Updated shop/page.tsx to use getFarmData() and getFarmStats() from Prisma
