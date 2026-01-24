@@ -3,6 +3,9 @@ import { writeFile, mkdir } from 'fs/promises'
 import { join } from 'path'
 import { existsSync } from 'fs'
 import { uploadProduceImage } from './produce-blob'
+import { logger } from '@/lib/logger'
+
+const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
 const NO_FACE_NEGATIVE = 'no people, no person, no faces, no face, nobody, no humans, no portrait, no selfie, no crowds, no watermark, no text, no logo, no abnormal shapes, no distorted fruits, no mutated vegetables'
 
@@ -30,33 +33,33 @@ export class ProduceImageGenerator {
     options: ProduceImageOptions = {}
   ): Promise<Buffer | null> {
     try {
-      console.log(`🎨 Generating image for: ${produceName}`)
+      imageGenLogger.info('Generating image', { produceName, slug })
 
       const width = options.width ?? 1600
       const height = options.height ?? 900
       const seed = options.seed ?? this.hashString(slug)
       const prompt = this.createProducePrompt(produceName, options.styleHint)
 
-      console.log(`🎨 Prompt: "${prompt.substring(0, 100)}..."`)
+      imageGenLogger.debug('Image prompt created', { promptPreview: prompt.substring(0, 100) })
 
       // Try fal.ai FLUX first
       let imageBuffer = await this.callFalAI(prompt, { width, height, seed, maxAttempts: 3 })
 
       // Fallback to Pollinations
       if (!imageBuffer) {
-        console.log('🔄 Falling back to Pollinations...')
+        imageGenLogger.info('Falling back to Pollinations', { produceName })
         imageBuffer = await this.callPollinations(prompt, { width, height, seed, maxAttempts: 3 })
       }
 
       if (imageBuffer) {
-        console.log(`✅ Generated image (${imageBuffer.length} bytes)`)
+        imageGenLogger.info('Image generated successfully', { produceName, bytes: imageBuffer.length })
         return imageBuffer
       }
 
-      console.warn('⚠️  Image generation returned null')
+      imageGenLogger.warn('Image generation returned null', { produceName })
       return null
     } catch (error) {
-      console.error('❌ Image generation failed:', error)
+      imageGenLogger.error('Image generation failed', { produceName }, error as Error)
       return null
     }
   }
@@ -159,7 +162,7 @@ export class ProduceImageGenerator {
       await mkdir(dir, { recursive: true })
     }
     await writeFile(outputPath, buffer)
-    console.log(`💾 Saved image: ${outputPath}`)
+    imageGenLogger.info('Image saved to file', { outputPath })
   }
 
   /**
@@ -188,7 +191,7 @@ export class ProduceImageGenerator {
     opts: { width: number; height: number; seed: number; maxAttempts: number }
   ): Promise<Buffer | null> {
     if (!this.falApiKey) {
-      console.warn('⚠️  FAL_KEY not found, skipping fal.ai')
+      imageGenLogger.warn('FAL_KEY not found, skipping fal.ai')
       return null
     }
 
@@ -196,7 +199,7 @@ export class ProduceImageGenerator {
       const attemptSeed = (opts.seed + i * 9973) >>> 0
 
       try {
-        console.log(`🔄 fal.ai attempt ${i + 1}/${opts.maxAttempts} (seed: ${attemptSeed})`)
+        imageGenLogger.debug('fal.ai attempt', { attempt: i + 1, maxAttempts: opts.maxAttempts, seed: attemptSeed })
 
         // Map dimensions to image_size
         let imageSize = 'landscape_16_9'
@@ -230,14 +233,14 @@ export class ProduceImageGenerator {
           })
 
           if (imageResponse.data?.length > 0) {
-            console.log(`✅ fal.ai generated image (${imageResponse.data.length} bytes)`)
+            imageGenLogger.info('fal.ai generated image', { bytes: imageResponse.data.length })
             return Buffer.from(imageResponse.data)
           }
         }
 
         await this.sleep(400 * (i + 1))
       } catch (err: any) {
-        console.warn(`⚠️  fal.ai attempt ${i + 1} failed: ${err.message}`)
+        imageGenLogger.warn('fal.ai attempt failed', { attempt: i + 1, error: err.message })
         await this.sleep(400 * (i + 1))
       }
     }
@@ -266,7 +269,7 @@ export class ProduceImageGenerator {
       const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?${params.toString()}`
 
       try {
-        console.log(`🔄 Pollinations attempt ${i + 1}/${opts.maxAttempts}`)
+        imageGenLogger.debug('Pollinations attempt', { attempt: i + 1, maxAttempts: opts.maxAttempts })
 
         const response = await axios.get(url, {
           responseType: 'arraybuffer',
@@ -275,13 +278,13 @@ export class ProduceImageGenerator {
         })
 
         if (response.status >= 200 && response.status < 300 && response.data?.length > 0) {
-          console.log(`✅ Pollinations generated image (${response.data.length} bytes)`)
+          imageGenLogger.info('Pollinations generated image', { bytes: response.data.length })
           return Buffer.from(response.data)
         }
 
         await this.sleep(400 * (i + 1))
       } catch (err: any) {
-        console.warn(`⚠️  Pollinations attempt ${i + 1} failed: ${err.message}`)
+        imageGenLogger.warn('Pollinations attempt failed', { attempt: i + 1, error: err.message })
         await this.sleep(400 * (i + 1))
       }
     }

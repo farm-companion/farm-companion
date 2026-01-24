@@ -3,6 +3,9 @@
 
 import { PRODUCE } from '@/data/produce'
 import type { Produce } from '@/data/produce'
+import { logger } from '@/lib/logger'
+
+const produceLogger = logger.child({ route: 'lib/produce-integration' })
 
 export interface ProduceImageUpload {
   produceSlug: string
@@ -53,41 +56,47 @@ const PRODUCE_IMAGES_API_URL = 'https://farm-produce-images-mm7s8jmyf-abdur-rahm
 // Upload images to produce-images system
 export async function uploadProduceImages(upload: ProduceImageUpload): Promise<ProduceUploadResult> {
   try {
-    console.log('🚀 Starting upload to:', `${PRODUCE_IMAGES_API_URL}/api/upload`)
-    console.log('📦 Upload data:', { produceSlug: upload.produceSlug, month: upload.month, imagesCount: upload.images.length })
-    
+    produceLogger.info('Starting produce image upload', {
+      produceSlug: upload.produceSlug,
+      month: upload.month,
+      imagesCount: upload.images.length
+    })
+
     const formData = new FormData()
-    
+
     upload.images.forEach(file => {
       formData.append('images', file)
     })
-    
+
     formData.append('produceSlug', upload.produceSlug)
     formData.append('month', upload.month.toString())
     formData.append('alt', upload.alt)
     formData.append('isPrimary', upload.isPrimary?.toString() || 'false')
-    
+
     if (upload.metadata) {
       formData.append('metadata', JSON.stringify(upload.metadata))
     }
 
-    console.log('📤 Sending request...')
+    produceLogger.debug('Sending upload request')
     const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/upload`, {
       method: 'POST',
       body: formData,
     })
 
-    console.log('📥 Response status:', response.status, response.statusText)
+    produceLogger.debug('Upload response received', { status: response.status, statusText: response.statusText })
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
-      console.error('❌ Upload failed:', errorData)
+      produceLogger.error('Upload failed', { status: response.status, errorData })
       throw new Error(errorData.error || `Upload failed: ${response.status}`)
     }
 
     const data = await response.json()
-    console.log('✅ Upload successful:', data)
-    
+    produceLogger.info('Upload successful', {
+      produceSlug: upload.produceSlug,
+      totalUploaded: data.data?.totalUploaded || 0
+    })
+
     return {
       success: data.success,
       uploadedImages: data.data?.uploadedImages || [],
@@ -96,7 +105,7 @@ export async function uploadProduceImages(upload: ProduceImageUpload): Promise<P
       errors: [],
     }
   } catch (error) {
-    console.error('💥 Error uploading produce images:', error)
+    produceLogger.error('Error uploading produce images', { produceSlug: upload.produceSlug }, error as Error)
     return {
       success: false,
       uploadedImages: [],
@@ -126,7 +135,7 @@ export async function getProduceImages(
     const data = await response.json()
     return data.data?.images || []
   } catch (error) {
-    console.error('Error fetching produce images:', error)
+    produceLogger.error('Error fetching produce images', { produceSlug, month }, error as Error)
     return []
   }
 }
@@ -143,7 +152,7 @@ export async function getProduceStats(): Promise<ProduceStats | null> {
     const data = await response.json()
     return data.data?.stats || null
   } catch (error) {
-    console.error('Error fetching produce stats:', error)
+    produceLogger.error('Error fetching produce stats', {}, error as Error)
     return null
   }
 }
@@ -163,7 +172,7 @@ export async function getProduceMetadata(produceSlug: string, month?: number) {
     const data = await response.json()
     return data.data || null
   } catch (error) {
-    console.error('Error fetching produce metadata:', error)
+    produceLogger.error('Error fetching produce metadata', { produceSlug, month }, error as Error)
     return null
   }
 }
