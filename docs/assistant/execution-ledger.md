@@ -159,7 +159,7 @@
 - **Environment Configuration Validated** (COMPLETE)
   - User successfully configured .env.local with DATABASE_URL
   - Verified via test: DATABASE_URL starts with postgresql:// protocol
-  - dotenv loading 8 environment variables from .env.local
+  - dotenv loading 8 environment variables from .env.local (later: 4 variables confirmed loading)
   - Database connection ready for integrity check
   - **Status**: Queue 20 unblocked, ready to run check-database-integrity.ts
 - **Database Integrity Check Script Fixed** (COMPLETE)
@@ -168,7 +168,18 @@
   - Fix: Added `import { config } from 'dotenv'` and `config({ path: '.env.local' })` at top
   - Script now loads environment variables before Prisma initialization
   - Commit: 3a22f15 - "fix: Load .env.local in database integrity check script"
-  - **Next Action**: Run `pnpm tsx scripts/check-database-integrity.ts` to validate database integrity
+  - Verification: User pulled changes and dotenv now loading successfully
+- **Database Connection Diagnostic Tool Created** (COMPLETE)
+  - Issue: "Can't reach database server at db.baxnifiqtnnovifnamlk.supabase.co:5432"
+  - Likely cause: Using direct connection (port 5432) instead of pooler (port 6543)
+  - Created diagnose-database-connection.ts comprehensive diagnostic script (136 lines)
+  - Features: Parses DATABASE_URL, validates format, checks port/params, tests connection
+  - Provides troubleshooting guidance for common connection issues
+  - Checks for required pgbouncer=true parameter for pooler connections
+  - Commit: 9008d40 - "feat: Add database connection diagnostic tool"
+  - **Next Action**: Run diagnostic script to identify connection issue
+    - `git pull origin claude/investigate-farmcompanion-forensics-tYCf8`
+    - `pnpm tsx scripts/diagnose-database-connection.ts`
 
 ### 2026-01-22 (Database Connection Forensics Investigation)
 - **Forensic Investigation: Database Connection Error** (COMPLETE)
