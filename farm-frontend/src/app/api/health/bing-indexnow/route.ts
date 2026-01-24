@@ -1,5 +1,7 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { notifyBingOfSitemap } from '@/lib/bing-notifications'
+import { createRouteLogger } from '@/lib/logger'
+import { handleApiError } from '@/lib/errors'
 
 // Bing notification response type
 interface BingNotificationResult {
@@ -23,7 +25,8 @@ interface FetchOptionsWithTimeout extends RequestInit {
  * 
  * Used by monitoring systems to ensure the Bing indexing system is working properly.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const logger = createRouteLogger('api/health/bing-indexnow', request)
   const startTime = Date.now()
   const healthChecks = {
     timestamp: new Date().toISOString(),
@@ -33,6 +36,8 @@ export async function GET() {
   }
 
   try {
+    logger.info('Starting Bing IndexNow health check')
+
     // Check 1: Environment Variables
     const envCheck = {
       status: 'pass',
@@ -194,6 +199,8 @@ export async function GET() {
 
     healthChecks.duration = Date.now() - startTime
 
+    logger.info('Bing IndexNow health check completed', { status: healthChecks.status, duration: healthChecks.duration })
+
     const statusCode = healthChecks.status === 'healthy' ? 200 : 503
     return NextResponse.json(healthChecks, { status: statusCode })
 
@@ -212,6 +219,6 @@ export async function GET() {
 }
 
 // Also support POST for flexibility
-export async function POST() {
-  return GET()
+export async function POST(request: NextRequest) {
+  return GET(request)
 }
