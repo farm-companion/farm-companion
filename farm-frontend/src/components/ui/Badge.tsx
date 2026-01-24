@@ -14,10 +14,18 @@ import { motion } from 'framer-motion'
 import { scaleIn } from '@/lib/animations'
 import { X } from 'lucide-react'
 
+/**
+ * God-Tier Badge Variants - Premium Status Indicators
+ *
+ * Design principles:
+ * - WCAG AAA compliant contrast for all variants
+ * - Subtle borders and backgrounds
+ * - Refined typography
+ */
 const badgeVariants = cva(
   [
     'inline-flex items-center justify-center',
-    'rounded-full font-medium',
+    'rounded-full font-semibold',
     'transition-all duration-200',
     'whitespace-nowrap',
   ],
@@ -25,50 +33,65 @@ const badgeVariants = cva(
     variants: {
       variant: {
         default: [
-          'bg-background-surface text-text-body',
-          'border border-border-default',
+          'bg-slate-100 dark:bg-slate-800',
+          'text-slate-700 dark:text-slate-200',
+          'border border-slate-200 dark:border-slate-700',
         ],
         primary: [
-          'bg-brand-primary text-white',
-          'hover:bg-brand-primary/90',
+          'bg-primary-100 dark:bg-primary-900/50',
+          'text-primary-800 dark:text-primary-200',
+          'border border-primary-200 dark:border-primary-800',
         ],
         secondary: [
-          'bg-solar text-midnight',
-          'hover:bg-solar/90',
+          'bg-secondary-100 dark:bg-secondary-900/50',
+          'text-secondary-800 dark:text-secondary-200',
+          'border border-secondary-200 dark:border-secondary-800',
         ],
         success: [
-          'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100',
-          'border border-green-200 dark:border-green-800',
+          'bg-success-100 dark:bg-success-900/50',
+          'text-success-800 dark:text-success-200',
+          'border border-success-200 dark:border-success-800',
         ],
         warning: [
-          'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100',
-          'border border-yellow-200 dark:border-yellow-800',
+          'bg-warning-100 dark:bg-warning-900/50',
+          'text-warning-800 dark:text-warning-200',
+          'border border-warning-200 dark:border-warning-800',
         ],
         error: [
-          'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100',
-          'border border-red-200 dark:border-red-800',
+          'bg-error-100 dark:bg-error-900/50',
+          'text-error-800 dark:text-error-200',
+          'border border-error-200 dark:border-error-800',
         ],
         info: [
-          'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100',
-          'border border-blue-200 dark:border-blue-800',
+          'bg-info-100 dark:bg-info-900/50',
+          'text-info-800 dark:text-info-200',
+          'border border-info-200 dark:border-info-800',
         ],
         outline: [
-          'bg-transparent text-text-body',
-          'border border-border-default',
-          'hover:bg-background-surface',
+          'bg-transparent',
+          'text-slate-700 dark:text-slate-200',
+          'border border-slate-300 dark:border-slate-600',
+          'hover:bg-slate-50 dark:hover:bg-slate-800',
         ],
         verified: [
-          'bg-serum/10 text-serum',
-          'border border-serum/20',
+          'bg-primary-50 dark:bg-primary-900/30',
+          'text-primary-700 dark:text-primary-300',
+          'border border-primary-200 dark:border-primary-700',
+        ],
+        solid: [
+          'bg-slate-900 dark:bg-slate-50',
+          'text-white dark:text-slate-900',
+          'border border-transparent',
         ],
       },
       size: {
-        sm: 'px-2 py-0.5 text-small gap-1',
-        md: 'px-2.5 py-1 text-caption gap-1.5',
-        lg: 'px-3 py-1.5 text-body gap-2',
+        xs: 'px-1.5 py-0.5 text-[10px] gap-0.5',
+        sm: 'px-2 py-0.5 text-[11px] gap-1',
+        md: 'px-2.5 py-1 text-[12px] gap-1.5',
+        lg: 'px-3 py-1.5 text-[13px] gap-2',
       },
       interactive: {
-        true: 'cursor-pointer hover:shadow-md active:scale-95',
+        true: 'cursor-pointer hover:shadow-sm active:scale-95',
         false: '',
       },
     },
