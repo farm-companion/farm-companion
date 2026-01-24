@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     // Validate input with Zod
     const parse = ConsentSchema.safeParse(body)
     if (!parse.success) {
-      logger.warn('Invalid consent data', { ip, errors: parse.error.errors })
+      logger.warn('Invalid consent data', { ip, errors: parse.error.issues })
       await trackIPReputation(ip, 'failure')
       throw errors.validation('Invalid consent data')
     }

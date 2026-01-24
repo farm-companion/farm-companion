@@ -32,19 +32,23 @@ export async function sendEmail(options: EmailOptions): Promise<void> {
   }
 
   try {
-    const result = await resend.emails.send({
+    const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: [options.to],
       subject: options.subject,
-      html: options.html,
-      text: options.text,
       replyTo: options.replyTo || REPLY_TO_EMAIL,
+      html: options.html || options.text || '',
+      text: options.text,
     })
+
+    if (error) {
+      throw error
+    }
 
     logger.info('Email sent successfully', {
       to: options.to,
       subject: options.subject,
-      resultId: result.id,
+      resultId: data?.id,
     })
   } catch (error) {
     logger.error('Email sending failed', { to: options.to, subject: options.subject }, error as Error)
