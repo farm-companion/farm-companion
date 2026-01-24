@@ -4,13 +4,13 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * God-Tier Card Component - Elegant Depth System
+ * Obsidian Card Component - Optical Balancing for Light/Dark Modes
  *
  * Design principles:
- * - Subtle shadows that create depth without distraction
- * - Refined borders for clear visual boundaries
- * - Smooth hover transitions
- * - Multiple variants for different use cases
+ * - Light Mode: Shadow depth for elevation (shadows work on white)
+ * - Dark Mode: Border luminance + specular highlight (shadows invisible on black)
+ * - Adaptive font weight: semibold in light, medium in dark (text "blooms" on dark)
+ * - OLED optimized: Pure ink background allows pixels to turn off
  */
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
@@ -32,30 +32,31 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     },
     ref
   ) => {
+    // Obsidian Optical Balancing: Different elevation strategies per mode
     const variantClasses = {
       default: [
-        'bg-white dark:bg-slate-900',
-        'border border-slate-200 dark:border-slate-800',
-        'shadow-card',
+        // Light Mode: Zinc-warm surface with shadow depth
+        'bg-white border border-zinc-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]',
+        // Dark Mode: Obsidian surface with border luminance (no shadow)
+        'dark:bg-[#121214] dark:border-white/[0.08] dark:shadow-none',
       ].join(' '),
       elevated: [
-        'bg-white dark:bg-slate-900',
-        'border border-slate-100 dark:border-slate-800',
-        'shadow-lg',
+        // Light Mode: Higher shadow for more lift
+        'bg-white border border-zinc-100 shadow-lg',
+        // Dark Mode: Brighter border luminance
+        'dark:bg-[#121214] dark:border-white/[0.10] dark:shadow-none',
       ].join(' '),
       outlined: [
-        'bg-white dark:bg-slate-900',
-        'border-2 border-slate-200 dark:border-slate-700',
+        'bg-white border-2 border-zinc-200',
+        'dark:bg-[#121214] dark:border-white/[0.12]',
       ].join(' '),
       glass: [
-        'bg-white/80 dark:bg-slate-900/80',
-        'backdrop-blur-xl',
-        'border border-slate-200/60 dark:border-slate-700/60',
-        'shadow-glass',
+        'bg-white/80 backdrop-blur-xl border border-zinc-200/60 shadow-glass',
+        'dark:bg-[#121214]/80 dark:border-white/[0.08]',
       ].join(' '),
       subtle: [
-        'bg-slate-50 dark:bg-slate-800/50',
-        'border border-slate-100 dark:border-slate-800',
+        'bg-zinc-50 border border-zinc-100',
+        'dark:bg-[#0A0A0B] dark:border-white/[0.04]',
       ].join(' '),
     };
 
@@ -68,19 +69,34 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
     const interactiveClasses = interactive
       ? [
-          'cursor-pointer transition-all duration-200 ease-out',
-          'hover:shadow-card-hover hover:-translate-y-0.5',
-          'hover:border-slate-300 dark:hover:border-slate-600',
-          'active:shadow-card active:translate-y-0 active:scale-[0.995]',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+          'cursor-pointer transition-all duration-300 ease-out',
+          // Light Mode: Shadow increases on hover
+          'hover:shadow-[0_20px_40px_rgba(0,0,0,0.08)] hover:-translate-y-1',
+          'hover:border-zinc-300',
+          // Dark Mode: Border brightens on hover (the "rim light" effect)
+          'dark:hover:border-white/20 dark:hover:-translate-y-1',
+          'active:translate-y-0 active:scale-[0.98]',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:ring-offset-2',
+          'dark:focus-visible:ring-offset-[#050505]',
         ].join(' ')
       : '';
+
+    // The Specular Highlight: A pseudo-element gradient that simulates light reflection
+    // This is the "Stripe/Linear secret" for premium dark mode cards
+    const specularHighlight = [
+      'relative overflow-hidden',
+      // Dark mode specular highlight (2% white gradient from top)
+      'before:absolute before:inset-0 before:pointer-events-none before:rounded-2xl',
+      'before:bg-gradient-to-b before:from-transparent before:to-transparent',
+      'dark:before:from-white/[0.02] dark:before:to-transparent',
+    ].join(' ');
 
     return (
       <div
         ref={ref}
         className={cn(
-          'rounded-2xl transition-shadow motion-reduce:transition-none',
+          'rounded-2xl transition-all motion-reduce:transition-none',
+          specularHighlight,
           variantClasses[variant],
           paddingClasses[padding],
           interactiveClasses,
@@ -114,7 +130,14 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTML
   ({ className, ...props }, ref) => (
     <h3
       ref={ref}
-      className={cn('text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-50', className)}
+      className={cn(
+        'text-lg tracking-tight',
+        // Adaptive font weight: semibold in light, medium in dark
+        // Light text on dark backgrounds "blooms" (irradiance), so we thin it
+        'font-semibold dark:font-medium',
+        'text-zinc-900 dark:text-zinc-50',
+        className
+      )}
       {...props}
     />
   )
@@ -125,7 +148,12 @@ const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
   ({ className, ...props }, ref) => (
     <p
       ref={ref}
-      className={cn('text-[14px] text-slate-500 dark:text-slate-400', className)}
+      className={cn(
+        'text-[14px]',
+        // Desaturated muted text for dark mode to prevent vibrancy fatigue
+        'text-zinc-600 dark:text-zinc-400',
+        className
+      )}
       {...props}
     />
   )

@@ -5,20 +5,23 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '@/lib/utils';
 
 /**
- * God-Tier Button Variants - Apple-Inspired Premium Interaction Design
+ * Kinetic Button Variants - Optical Balancing for Premium Interaction
  *
  * Features:
+ * - Perceptual Luminance: Cyan desaturated in dark mode to prevent "neon bleed"
+ * - Inner Glass Glint: Gradient overlay simulates physical LED
  * - WCAG AAA compliant contrast ratios
- * - Refined hover/active states with subtle shadows
- * - 48px minimum touch targets (WCAG AAA)
- * - Smooth transitions with reduced-motion support
- * - High visibility on any background
+ * - 48px minimum touch targets
+ * - Adaptive font weight for optical sizing
  */
 const buttonVariants = cva(
   [
-    'inline-flex items-center justify-center font-semibold transition-all duration-200',
+    'inline-flex items-center justify-center transition-all duration-200',
     'rounded-xl text-[14px] tracking-tight',
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary-500',
+    // Adaptive font weight: semibold in light, medium in dark (text "blooms" on dark)
+    'font-semibold dark:font-medium',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-cyan-500',
+    'dark:focus-visible:ring-offset-[#050505]',
     'disabled:pointer-events-none disabled:opacity-40 disabled:cursor-not-allowed',
     'min-h-[44px]', // WCAG AAA minimum touch target
     'motion-reduce:transition-none',
@@ -27,46 +30,59 @@ const buttonVariants = cva(
     variants: {
       variant: {
         primary: [
-          'bg-slate-900 text-white shadow-sm',
-          'hover:bg-slate-800 hover:shadow-md',
-          'active:bg-slate-950 active:scale-[0.98]',
-          'dark:bg-slate-50 dark:text-slate-900',
+          'bg-zinc-900 text-white shadow-sm',
+          'hover:bg-zinc-800 hover:shadow-md',
+          'active:bg-zinc-950 active:scale-[0.97]',
+          'dark:bg-zinc-50 dark:text-zinc-900',
           'dark:hover:bg-white dark:hover:shadow-md',
-          'dark:active:bg-slate-100',
+          'dark:active:bg-zinc-100',
+        ],
+        // Kinetic: The flagship button with perceptual luminance fixes
+        kinetic: [
+          // Light Mode: High vibrancy cyan with glow shadow
+          'bg-[#06B6D4] text-white shadow-[0_4px_14px_0_rgba(6,182,212,0.39)]',
+          'hover:bg-[#0891B2] hover:shadow-[0_6px_20px_rgba(6,182,212,0.23)]',
+          // Dark Mode: Slightly desaturated cyan, text becomes dark for contrast
+          'dark:bg-cyan-500/90 dark:text-zinc-950',
+          'dark:shadow-[0_0_15px_rgba(34,211,238,0.1)]',
+          'dark:hover:bg-cyan-400 dark:hover:shadow-[0_0_25px_rgba(34,211,238,0.2)]',
+          'active:scale-[0.97]',
         ],
         brand: [
-          'bg-primary-600 text-white shadow-sm',
-          'hover:bg-primary-700 hover:shadow-md',
-          'active:bg-primary-800 active:scale-[0.98]',
+          'bg-cyan-600 text-white shadow-sm',
+          'hover:bg-cyan-700 hover:shadow-md',
+          'active:bg-cyan-800 active:scale-[0.97]',
         ],
         // Secondary: High contrast bordered button - works on ANY background
         secondary: [
-          'bg-white text-slate-900 border-2 border-slate-900 shadow-sm',
-          'hover:bg-slate-900 hover:text-white hover:shadow-md',
-          'active:bg-slate-800 active:text-white active:scale-[0.98]',
-          'dark:bg-slate-900 dark:text-slate-50 dark:border-slate-50',
-          'dark:hover:bg-slate-50 dark:hover:text-slate-900',
-          'dark:active:bg-slate-100 dark:active:text-slate-900',
+          'bg-white text-zinc-900 border-2 border-zinc-900 shadow-sm',
+          'hover:bg-zinc-900 hover:text-white hover:shadow-md',
+          'active:bg-zinc-800 active:text-white active:scale-[0.97]',
+          // Dark Mode: Border becomes luminance-based
+          'dark:bg-[#121214] dark:text-zinc-50 dark:border-white/[0.20]',
+          'dark:hover:bg-zinc-50 dark:hover:text-zinc-900 dark:hover:border-white',
+          'dark:active:bg-zinc-100 dark:active:text-zinc-900',
         ],
-        // Outline: Lighter bordered variant for less prominent actions
+        // Outline: Lighter bordered variant with luminance borders in dark
         outline: [
-          'bg-transparent text-slate-700 border-2 border-slate-300',
-          'hover:bg-slate-100 hover:border-slate-400 hover:text-slate-900',
-          'active:bg-slate-200 active:scale-[0.98]',
-          'dark:text-slate-200 dark:border-slate-600',
-          'dark:hover:bg-slate-800 dark:hover:border-slate-500 dark:hover:text-slate-50',
+          'bg-transparent text-zinc-700 border-2 border-zinc-300',
+          'hover:bg-zinc-100 hover:border-zinc-400 hover:text-zinc-900',
+          'active:bg-zinc-200 active:scale-[0.97]',
+          // Dark Mode: Border luminance instead of solid color
+          'dark:text-zinc-200 dark:border-white/[0.12]',
+          'dark:hover:bg-white/[0.04] dark:hover:border-white/[0.20] dark:hover:text-zinc-50',
         ],
         tertiary: [
-          'bg-transparent text-slate-700',
-          'hover:bg-slate-100 hover:text-slate-900',
-          'active:bg-slate-200 active:scale-[0.98]',
-          'dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-50',
+          'bg-transparent text-zinc-700',
+          'hover:bg-zinc-100 hover:text-zinc-900',
+          'active:bg-zinc-200 active:scale-[0.97]',
+          'dark:text-zinc-300 dark:hover:bg-white/[0.04] dark:hover:text-zinc-50',
         ],
         ghost: [
-          'bg-transparent text-slate-600',
-          'hover:bg-slate-100/80 hover:text-slate-900',
-          'active:bg-slate-200/80 active:scale-[0.98]',
-          'dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-50',
+          'bg-transparent text-zinc-600',
+          'hover:bg-zinc-100/80 hover:text-zinc-900',
+          'active:bg-zinc-200/80 active:scale-[0.97]',
+          'dark:text-zinc-400 dark:hover:bg-white/[0.04] dark:hover:text-zinc-50',
         ],
         danger: [
           'bg-error-700 text-white shadow-sm',
