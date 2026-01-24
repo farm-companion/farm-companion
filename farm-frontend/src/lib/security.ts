@@ -1,4 +1,7 @@
 import { SITE_URL } from './site'
+import { logger } from '@/lib/logger'
+
+const securityLogger = logger.child({ route: 'lib/security' })
 
 // CSRF protection: check origin and referer headers
 export function checkCsrf(req: Request): boolean {
@@ -54,7 +57,7 @@ export function validateSubmissionTime(timestamp: number): boolean {
 // Cloudflare Turnstile verification
 export async function verifyTurnstile(token: string, ip: string): Promise<boolean> {
   if (!process.env.TURNSTILE_SECRET_KEY) {
-    console.warn('TURNSTILE_SECRET_KEY not configured')
+    securityLogger.warn('TURNSTILE_SECRET_KEY not configured')
     return true // Allow if not configured
   }
   
@@ -74,7 +77,7 @@ export async function verifyTurnstile(token: string, ip: string): Promise<boolea
     const result = await response.json()
     return result.success === true
   } catch (error) {
-    console.error('Turnstile verification failed:', error)
+    securityLogger.error('Turnstile verification failed', { ip }, error as Error)
     return false
   }
 }
@@ -167,7 +170,7 @@ export async function trackIPReputation(ip: string, action: 'success' | 'failure
       body: JSON.stringify(reputationData),
     })
   } catch (error) {
-    console.error('Failed to track IP reputation:', error)
+    securityLogger.error('Failed to track IP reputation', { ip, action }, error as Error)
   }
 }
 
@@ -192,7 +195,7 @@ export async function isIPBlocked(ip: string): Promise<boolean> {
     
     return false
   } catch (error) {
-    console.error('Failed to check IP reputation:', error)
+    securityLogger.error('Failed to check IP reputation', { ip }, error as Error)
     return false // Allow if check fails
   }
 }

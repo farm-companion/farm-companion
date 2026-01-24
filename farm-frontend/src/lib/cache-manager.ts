@@ -3,6 +3,9 @@
 
 import { kv } from '@vercel/kv'
 import { trackCachePerformance } from './performance-monitor'
+import { logger } from '@/lib/logger'
+
+const cacheLogger = logger.child({ route: 'lib/cache-manager' })
 
 export interface CacheOptions {
   ttl?: number // Time to live in seconds
@@ -154,7 +157,7 @@ export class CacheManager {
       
       return data
     } catch (error) {
-      console.error('Cache get error:', error)
+      cacheLogger.error('Cache get error', { namespace, key }, error as Error)
       this.stats.misses++
       this.updateHitRate()
       return null
@@ -210,7 +213,7 @@ export class CacheManager {
       
       return true
     } catch (error) {
-      console.error('Cache set error:', error)
+      cacheLogger.error('Cache set error', { namespace, key }, error as Error)
       return false
     }
   }
@@ -225,7 +228,7 @@ export class CacheManager {
       
       return result > 0
     } catch (error) {
-      console.error('Cache delete error:', error)
+      cacheLogger.error('Cache delete error', { namespace, key }, error as Error)
       return false
     }
   }
@@ -248,7 +251,7 @@ export class CacheManager {
       
       return deletedCount
     } catch (error) {
-      console.error('Cache invalidation error:', error)
+      cacheLogger.error('Cache invalidation error', { namespace, tags }, error as Error)
       return deletedCount
     }
   }
@@ -265,7 +268,7 @@ export class CacheManager {
       
       return keys.length
     } catch (error) {
-      console.error('Cache clear error:', error)
+      cacheLogger.error('Cache clear error', { namespace }, error as Error)
       return 0
     }
   }
