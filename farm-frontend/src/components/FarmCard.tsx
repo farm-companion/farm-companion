@@ -2,11 +2,11 @@
 
 import React from 'react'
 import Image from 'next/image'
-import { MapPin, Navigation, CheckCircle, Camera, GitCompare } from 'lucide-react'
+import Link from 'next/link'
+import { MapPin, Navigation, CheckCircle, ExternalLink } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { StatusBadgeCompact } from './StatusBadge'
 import { isCurrentlyOpen } from '@/lib/farm-status'
-import { useRouter } from 'next/navigation'
 
 interface FarmCardProps {
   farm: FarmShop
@@ -17,104 +17,121 @@ interface FarmCardProps {
   showCompare?: boolean
 }
 
+/**
+ * God-Tier FarmCard - Apple-Inspired Design
+ *
+ * Design principles:
+ * 1. Full content visibility - no truncated names
+ * 2. Clear visual hierarchy - primary CTA is obvious
+ * 3. WCAG AAA contrast - all text readable
+ * 4. Generous spacing - comfortable touch targets
+ * 5. Subtle depth - refined shadows and borders
+ */
 export function FarmCard({
   farm,
   onSelect,
   onDirections,
-  onCompare,
   selected = false,
-  showCompare = true
 }: FarmCardProps) {
-  const router = useRouter()
   const hasPhotos = farm.images && farm.images.length > 0
-  const isOpenNow = isCurrentlyOpen(farm.hours)
   const isVerified = farm.verified || false
 
-  const handleCompare = () => {
-    if (onCompare) {
-      onCompare(farm)
+  const handleDirections = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (onDirections) {
+      onDirections(farm)
     } else {
-      // Default behavior: navigate to compare page
-      router.push(`/compare?farms=${farm.id}`)
+      // Default: open Google Maps directions
+      const { lat, lng } = farm.location
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`, '_blank')
+    }
+  }
+
+  const handleCardClick = () => {
+    if (onSelect) {
+      onSelect(farm)
     }
   }
 
   return (
     <article
-      className={`group rounded-2xl border border-slate-300 dark:border-slate-700 bg-background-surface hover:shadow-premium-lg transition-all duration-200 overflow-hidden ${
-        selected ? 'ring-2 ring-primary-500 ring-offset-0' : ''
-      }`}
+      onClick={handleCardClick}
+      className={`
+        group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden
+        border-2 transition-all duration-200 cursor-pointer
+        ${selected
+          ? 'border-primary-500 shadow-lg ring-2 ring-primary-500/20'
+          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-xl'
+        }
+      `}
     >
-      <div className="flex gap-3 p-4">
-        {/* Thumbnail */}
-        <div className="h-14 w-14 rounded-xl bg-background-canvas overflow-hidden flex-shrink-0">
-          {hasPhotos ? (
-            <Image 
-              src={farm.images![0]} 
-              alt={`${farm.name} photo`} 
-              width={56}
-              height={56}
-              className="object-cover"
-            />
-          ) : (
-            <div className="h-full w-full flex items-center justify-center bg-background-canvas/50">
-              <MapPin className="h-6 w-6 text-text-muted" />
-            </div>
-          )}
-        </div>
-        
-        {/* Content */}
-        <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-slate-900 dark:text-slate-50 group-hover:text-primary-600 transition-colors line-clamp-2">
-            {farm.name}
-          </h3>
-          <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-1">
-            {farm.location?.county || 'UK'}
-          </p>
-          
-          {/* Badges */}
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {isVerified && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-small rounded-full bg-green-100 text-green-700">
-                <CheckCircle className="h-3 w-3" />
-                Verified
-              </span>
-            )}
-            {/* Real-time status badge */}
-            <StatusBadgeCompact openingHours={farm.hours} />
-            {hasPhotos && (
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-small rounded-full bg-blue-100 text-blue-700">
-                <Camera className="h-3 w-3" />
-                Photos
-              </span>
-            )}
+      {/* Image Section */}
+      <div className="relative h-36 bg-slate-100 dark:bg-slate-800 overflow-hidden">
+        {hasPhotos ? (
+          <Image
+            src={farm.images![0]}
+            alt={`${farm.name} farm shop`}
+            fill
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700">
+            <MapPin className="h-12 w-12 text-slate-400 dark:text-slate-500" />
           </div>
+        )}
+
+        {/* Status Badge Overlay */}
+        <div className="absolute top-3 left-3">
+          <StatusBadgeCompact openingHours={farm.hours} />
         </div>
 
-        {/* Actions */}
-        <div className="flex flex-col gap-2">
-          <button
-            onClick={() => onSelect?.(farm)}
-            className="px-3 py-1.5 text-caption font-medium rounded-md bg-primary-600 text-white hover:bg-primary-700 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+        {/* Verified Badge */}
+        {isVerified && (
+          <div className="absolute top-3 right-3">
+            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-white/90 dark:bg-slate-900/90 text-green-700 dark:text-green-400 shadow-sm backdrop-blur-sm">
+              <CheckCircle className="h-3.5 w-3.5" />
+              Verified
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Content Section */}
+      <div className="p-5">
+        {/* Farm Name - Full display, no truncation */}
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-1 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+          {farm.name}
+        </h3>
+
+        {/* Location */}
+        <p className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-4">
+          <MapPin className="h-4 w-4 flex-shrink-0" />
+          <span>{farm.location?.county || 'United Kingdom'}</span>
+        </p>
+
+        {/* Action Buttons */}
+        <div className="flex gap-3">
+          {/* Primary CTA - View Details */}
+          <Link
+            href={`/shop/${farm.slug}`}
+            onClick={(e) => e.stopPropagation()}
+            className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 text-sm font-semibold transition-all duration-200 hover:bg-slate-800 dark:hover:bg-white hover:shadow-md active:scale-[0.98]"
           >
-            View
-          </button>
+            View Details
+            <ExternalLink className="h-4 w-4" />
+          </Link>
+
+          {/* Secondary CTA - Directions */}
           <button
-            onClick={() => onDirections?.(farm)}
-            className="px-3 py-1.5 text-caption rounded-md border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            onClick={handleDirections}
+            className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-semibold transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 active:scale-[0.98]"
             title="Get directions"
           >
             <Navigation className="h-4 w-4" />
+            <span className="hidden sm:inline">Directions</span>
           </button>
-          {showCompare && (
-            <button
-              onClick={handleCompare}
-              className="px-3 py-1.5 text-caption rounded-md border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
-              title="Compare this farm"
-            >
-              <GitCompare className="h-4 w-4" />
-            </button>
-          )}
         </div>
       </div>
     </article>
