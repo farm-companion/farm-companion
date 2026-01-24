@@ -15,7 +15,14 @@ const limiter = new Ratelimit({
   limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
 })
 
-const resend = new Resend(process.env.RESEND_API_KEY)
+// Lazy initialization to avoid build-time errors when API key is unavailable
+let resend: Resend | null = null
+function getResend(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+  return resend
+}
 const TO = process.env.CONTACT_TO_EMAIL!
 const FROM = process.env.CONTACT_FROM_EMAIL!
 
@@ -111,7 +118,7 @@ export async function POST(req: NextRequest) {
     // Send admin forward (don't fail the user if email fails)
     ;(async () => {
       try {
-        await resend.emails.send({
+        await getResend().emails.send({
           from: FROM,
           to: TO,
           subject: `Contact: ${v.topic} — ${v.name}`,
@@ -134,7 +141,7 @@ export async function POST(req: NextRequest) {
     // Send user acknowledgement (non-blocking)
     ;(async () => {
       try {
-        await resend.emails.send({
+        await getResend().emails.send({
           from: FROM,
           to: v.email,
           subject: 'We received your message — Farm Companion',
