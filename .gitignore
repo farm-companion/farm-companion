@@ -125,3 +125,8 @@ data.ms/
 
 # MCP configuration (may contain connection strings)
 .mcp.json
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
