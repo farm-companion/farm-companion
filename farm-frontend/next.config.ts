@@ -16,7 +16,7 @@ const headersCommon = [
   { key: "Permissions-Policy", value: "geolocation=(), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
-  { key: "Cross-Origin-Embedder-Policy", value: "require-corp" },
+  { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
   { key: "Origin-Agent-Cluster", value: "?1" },
   // CSP is now set in middleware (consent-aware)
 ]
