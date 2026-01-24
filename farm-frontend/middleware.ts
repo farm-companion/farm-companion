@@ -33,8 +33,8 @@ function cspFor(req: NextRequest) {
   ]
   const frame = ["'self'"]
   const script = ["'self'"]
-  const style = ["'self'", "'unsafe-inline'"] // Tailwind JIT needs none; inline may be needed for Next font fallback
-  const font = ["'self'", 'data:']
+  const style = ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'] // Tailwind JIT needs none; inline may be needed for Next font fallback
+  const font = ["'self'", 'data:', 'https://fonts.gstatic.com']
   const frameAncestors = ["'none'"]
 
   // Enable analytics only if consented
