@@ -166,12 +166,20 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
       <section className={`py-12 md:py-16 bg-slate-100 dark:bg-slate-900/50 ${className}`}>
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
-            <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mx-auto mb-4" />
-            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mx-auto" />
+            <div className="h-8 w-48 bg-slate-300 dark:bg-slate-700 rounded-lg animate-pulse mx-auto mb-4" />
+            <div className="h-4 w-80 max-w-full bg-slate-300 dark:bg-slate-700 rounded-lg animate-pulse mx-auto" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-80 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
+              <div key={i} className="h-32 bg-white dark:bg-slate-800 rounded-2xl border border-slate-300 dark:border-slate-700 animate-pulse p-4">
+                <div className="flex gap-3">
+                  <div className="h-14 w-14 rounded-xl bg-slate-200 dark:bg-slate-700" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-5 w-3/4 bg-slate-200 dark:bg-slate-700 rounded" />
+                    <div className="h-4 w-1/2 bg-slate-200 dark:bg-slate-700 rounded" />
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -209,20 +217,25 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
               {locationDenied ? 'Popular Farms Near London' : 'Farms Near You'}
             </h2>
           </div>
-          <p className="text-body text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+          <p className="text-body text-slate-800 dark:text-slate-300 max-w-2xl mx-auto font-medium">
             {locationDenied
               ? 'Discover these popular farms. Enable location to see farms near you.'
               : 'Discover local farms close to your location'}
           </p>
           {locationDenied && (
-            <Button
-              variant="secondary"
-              onClick={handleEnableLocation}
-              className="mt-4"
-            >
-              <MapPin className="w-4 h-4 mr-2" />
-              Enable Location
-            </Button>
+            <div className="mt-4 space-y-2">
+              <Button
+                variant="secondary"
+                onClick={handleEnableLocation}
+                className="shadow-md"
+              >
+                <MapPin className="w-4 h-4 mr-2" />
+                Enable Location
+              </Button>
+              <p className="text-small text-slate-600 dark:text-slate-400">
+                If prompted, click &quot;Allow&quot; to see farms near you
+              </p>
+            </div>
           )}
         </div>
 

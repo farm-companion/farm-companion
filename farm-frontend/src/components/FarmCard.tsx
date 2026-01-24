@@ -40,8 +40,8 @@ export function FarmCard({
   }
 
   return (
-    <article 
-      className={`group rounded-2xl border border-border-default/40 bg-background-surface hover:shadow-premium transition-all duration-200 overflow-hidden ${
+    <article
+      className={`group rounded-2xl border border-slate-300 dark:border-slate-700 bg-background-surface hover:shadow-premium-lg transition-all duration-200 overflow-hidden ${
         selected ? 'ring-2 ring-primary-500 ring-offset-0' : ''
       }`}
     >
@@ -65,10 +65,10 @@ export function FarmCard({
         
         {/* Content */}
         <div className="min-w-0 flex-1">
-          <h3 className="truncate font-semibold text-text-heading group-hover:text-primary-600 transition-colors">
+          <h3 className="font-semibold text-slate-900 dark:text-slate-50 group-hover:text-primary-600 transition-colors line-clamp-2">
             {farm.name}
           </h3>
-          <p className="truncate text-caption text-text-muted">
+          <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-1">
             {farm.location?.county || 'UK'}
           </p>
           
@@ -101,14 +101,15 @@ export function FarmCard({
           </button>
           <button
             onClick={() => onDirections?.(farm)}
-            className="px-3 py-1.5 text-caption rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            className="px-3 py-1.5 text-caption rounded-md border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+            title="Get directions"
           >
             <Navigation className="h-4 w-4" />
           </button>
           {showCompare && (
             <button
               onClick={handleCompare}
-              className="px-3 py-1.5 text-caption rounded-md border border-border-default/50 hover:bg-background-canvas/60 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
+              className="px-3 py-1.5 text-caption rounded-md border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 transition-colors focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2"
               title="Compare this farm"
             >
               <GitCompare className="h-4 w-4" />
