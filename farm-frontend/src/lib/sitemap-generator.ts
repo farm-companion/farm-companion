@@ -8,6 +8,9 @@
 import { PRODUCE } from '@/data/produce'
 import { SITE_URL } from '@/lib/site'
 import { getFarmData } from '@/lib/farm-data'
+import { logger } from '@/lib/logger'
+
+const sitemapGenLogger = logger.child({ route: 'lib/sitemap-generator' })
 
 export const SITEMAP_CONFIG = {
   MAX_URLS_PER_SITEMAP: 1000,
@@ -111,7 +114,7 @@ export async function generateSitemapChunks(): Promise<{
       updatedAt: undefined
     }))
   } catch (error) {
-    console.warn('Could not load farms data for sitemap:', error)
+    sitemapGenLogger.warn('Could not load farms data for sitemap', {}, error as Error)
   }
 
   // Helper function for slugification

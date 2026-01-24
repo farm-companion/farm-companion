@@ -1,4 +1,7 @@
 import { kv } from '@vercel/kv'
+import { logger } from '@/lib/logger'
+
+const rateLimitLogger = logger.child({ route: 'lib/rate-limit' })
 
 export default function createRateLimiter({ 
   keyPrefix, 
@@ -21,7 +24,7 @@ export default function createRateLimiter({
         }
         return count <= limit
       } catch (error) {
-        console.warn('Rate limiter KV error, falling back to in-memory:', error)
+        rateLimitLogger.warn('Rate limiter KV error, falling back to in-memory', { keyPrefix, key }, error as Error)
         // Fallback to in-memory rate limiting for development
         return true
       }

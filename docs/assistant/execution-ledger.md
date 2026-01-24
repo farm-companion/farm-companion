@@ -64,6 +64,7 @@
 - [x] Replace console.log with structured logging in photos/blob/perf lib files (Slice 1e: photos.ts 8, produce-blob.ts 7, performance-monitor.ts 7 = 22 statements)
 - [x] Replace console.log with structured logging in blob/search/error lib files (Slice 1f: blob.ts 3, meilisearch.ts 2, error-handler.ts 2 = 7 statements)
 - [x] Replace console.log with structured logging in middleware/sitemap lib files (Slice 1g: performance-middleware.ts 3, accessibility-middleware.ts 1, enhanced-sitemap.ts 2 = 6 statements)
+- [x] Replace console.log with structured logging in remaining lib files (Slice 1h: sitemap-generator.ts 1, rate-limit.ts 1, prisma.ts 1, search.ts 1 = 4 statements)
 - [ ] Extract service layer from API routes (Slice 2)
 - [ ] Fix N+1 queries in admin routes (Slice 3)
 - [ ] Error handling standardization (Slice 4)
@@ -144,6 +145,13 @@
 ## Completed Work
 
 ### 2026-01-24 (Structured Logging - Lib Files)
+- **Queue 10, Slice 1h: Structured logging for remaining server-side lib files** (COMPLETE)
+  - sitemap-generator.ts: 1 console statement replaced with sitemapGenLogger (farms data load warning)
+  - rate-limit.ts: 1 console statement replaced with rateLimitLogger (KV fallback warning)
+  - prisma.ts: 1 console statement replaced with prismaLogger (connection failure)
+  - search.ts: 1 console statement replaced with searchSetupLogger (index configuration)
+  - Total: 4 console statements converted to structured logging
+  - Note: Client-side files (analytics.ts, accessibility.ts, error-handling.ts, farm-data.ts fetchFarmDataClient) intentionally keep console for browser debugging
 - **Queue 10, Slice 1g: Structured logging for middleware/sitemap lib files** (COMPLETE)
   - performance-middleware.ts: 3 console statements replaced with perfMiddlewareLogger (memory warnings, error handling)
   - accessibility-middleware.ts: 1 console statement replaced with a11yLogger (accessibility issues)
