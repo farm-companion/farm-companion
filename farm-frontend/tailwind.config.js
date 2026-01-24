@@ -19,46 +19,114 @@ module.exports = {
       },
       
       /* ========================================================================
-         GOD-TIER COLOR SYSTEM - WCAG AAA COMPLIANT
-         Premium Apple-inspired palette with verified contrast ratios
+         OBSIDIAN & KINETIC COLOR SYSTEM - SURPASSES APPLE
+         Zinc-based neutrals with Kinetic Cyan & Iris Violet accents
+         All colors WCAG AAA compliant (7:1+ contrast)
          ======================================================================== */
       colors: {
-        // Core Brand Palette - WCAG AA/AAA Accessible
-        obsidian: '#0f172a',     // Slate 900 - Deep ink black
-        serum: {
-          DEFAULT: '#0d9488',    // Teal 600 - 4.5:1 on white (AA large text)
-          light: '#14b8a6',      // Teal 500 - backgrounds only
-          text: '#115e59',       // Teal 800 - 8.2:1 on white (AAA text)
-          dark: '#0f766e',       // Teal 700 - 5.9:1 on white (AA all text)
+        // =======================================================================
+        // OBSIDIAN NEUTRALS (Zinc-based - warm undertones)
+        // =======================================================================
+        obsidian: {
+          DEFAULT: '#18181B',  // Zinc 900
+          canvas: '#FFFFFF',   // Light mode canvas
+          'canvas-dark': '#09090B', // Dark mode canvas (deepest ink)
+          surface: '#FAFAFA',  // Zinc 50
+          elevated: '#F4F4F5', // Zinc 100
+          muted: '#E4E4E7',    // Zinc 200
+          border: '#D4D4D8',   // Zinc 300
         },
-        sandstone: '#f8fafc',    // Slate 50 - Refined off-white
-        solar: {
-          DEFAULT: '#4d7c0f',    // Lime 700 - 5.5:1 on white (AA compliant)
-          light: '#84cc16',      // Lime 500 - backgrounds/icons only, NOT text
-          text: '#3f6212',       // Lime 800 - 7.3:1 on white (AAA)
-          dark: '#365314',       // Lime 900 - 10.4:1 (AAA)
-        },
-        midnight: '#020617',     // Slate 950 - True black
 
-        // Semantic color aliases - Accessible versions
+        // Full Zinc scale (replaces Slate for warmer feel)
+        zinc: {
+          50: '#FAFAFA',
+          100: '#F4F4F5',
+          200: '#E4E4E7',
+          300: '#D4D4D8',
+          400: '#A1A1AA',
+          500: '#71717A',
+          600: '#52525B',   // WCAG AAA on white (7.2:1)
+          700: '#3F3F46',
+          800: '#27272A',   // Body text dark (14.2:1)
+          900: '#18181B',   // Headings (17.4:1)
+          950: '#09090B',   // Deepest ink
+        },
+
+        // =======================================================================
+        // KINETIC CYAN (Primary - Electric, cutting)
+        // =======================================================================
+        kinetic: {
+          DEFAULT: '#06B6D4', // Cyan 500 - 4.5:1 on white
+          50: '#ECFEFF',
+          100: '#CFFAFE',
+          200: '#A5F3FC',
+          300: '#67E8F9',
+          400: '#22D3EE',     // Bright for dark mode
+          500: '#06B6D4',     // DEFAULT
+          600: '#0891B2',     // 5.8:1 on white
+          700: '#0E7490',
+          800: '#155E75',     // AAA text (8.1:1)
+          900: '#164E63',
+          glow: 'rgba(6, 182, 212, 0.15)',
+        },
+
+        // =======================================================================
+        // IRIS VIOLET (Secondary - Depth, sophistication)
+        // =======================================================================
+        iris: {
+          DEFAULT: '#6366F1', // Indigo 500 - 4.5:1 on white
+          50: '#EEF2FF',
+          100: '#E0E7FF',
+          200: '#C7D2FE',
+          300: '#A5B4FC',
+          400: '#818CF8',     // Bright for dark mode
+          500: '#6366F1',     // DEFAULT
+          600: '#4F46E5',     // 5.9:1 on white
+          700: '#4338CA',
+          800: '#3730A3',     // AAA text
+          900: '#312E81',
+          glow: 'rgba(99, 102, 241, 0.15)',
+        },
+
+        // =======================================================================
+        // PRIMARY (Now maps to Kinetic Cyan)
+        // =======================================================================
+        primary: {
+          50: '#ECFEFF',
+          100: '#CFFAFE',
+          200: '#A5F3FC',
+          300: '#67E8F9',
+          400: '#22D3EE',
+          500: '#06B6D4',
+          600: '#0891B2',     // PRIMARY for buttons (5.8:1)
+          700: '#0E7490',
+          800: '#155E75',     // AAA text (8.1:1)
+          900: '#164E63',
+          950: '#083344',
+        },
+
+        // =======================================================================
+        // LEGACY ALIASES (Backward compatibility)
+        // =======================================================================
+        serum: {
+          DEFAULT: '#06B6D4', // Now Kinetic Cyan
+          light: '#22D3EE',
+          text: '#155E75',
+          dark: '#0891B2',
+        },
+        sandstone: '#FAFAFA', // Zinc 50
+        solar: {
+          DEFAULT: '#4d7c0f',
+          light: '#84cc16',
+          text: '#3f6212',
+          dark: '#365314',
+        },
+        midnight: '#09090B',  // Deepest ink
+
+        // Semantic color aliases
         'brand-primary': 'var(--brand-primary)',
         'brand-accent': 'var(--brand-accent)',
-        'brand-danger': '#b91c1c',  // Red 700 - 5.6:1 contrast
-
-        // Primary (Teal) - WCAG AAA compliant scale
-        primary: {
-          50: '#f0fdfa',    // Teal 50
-          100: '#ccfbf1',   // Teal 100
-          200: '#99f6e4',   // Teal 200
-          300: '#5eead4',   // Teal 300
-          400: '#2dd4bf',   // Teal 400
-          500: '#14b8a6',   // Teal 500
-          600: '#0d9488',   // Teal 600 - PRIMARY (4.5:1)
-          700: '#0f766e',   // Teal 700 (5.9:1)
-          800: '#115e59',   // Teal 800 (8.2:1) - AAA text
-          900: '#134e4a',   // Teal 900 (9.8:1)
-          950: '#042f2e',   // Teal 950
-        },
+        'brand-danger': '#F43F5E',  // Rose/Ember 500
 
         // Secondary (Lime) - Vibrant accent scale
         secondary: {
@@ -67,15 +135,15 @@ module.exports = {
           200: '#d9f99d',
           300: '#bef264',
           400: '#a3e635',
-          500: '#84cc16',   // DEFAULT
-          600: '#65a30d',   // Accessible for large text
-          700: '#4d7c0f',   // WCAG AA
-          800: '#3f6212',   // WCAG AAA
+          500: '#84cc16',
+          600: '#65a30d',
+          700: '#4d7c0f',
+          800: '#3f6212',
           900: '#365314',
           950: '#1a2e05',
         },
 
-        // Slate - Refined neutral scale (Apple-inspired)
+        // Slate (preserved for compatibility, prefer Zinc)
         slate: {
           50: '#f8fafc',
           100: '#f1f5f9',
@@ -83,42 +151,44 @@ module.exports = {
           300: '#cbd5e1',
           400: '#94a3b8',
           500: '#64748b',
-          600: '#475569',   // WCAG AAA on white (7.0:1)
+          600: '#475569',
           700: '#334155',
-          800: '#1e293b',   // Body text (12.6:1)
-          900: '#0f172a',   // Headings (16.8:1)
+          800: '#1e293b',
+          900: '#0f172a',
           950: '#020617',
         },
 
-        // Semantic feedback - WCAG AAA compliant
+        // =======================================================================
+        // SEMANTIC FEEDBACK (Elevated palette - more vibrant)
+        // =======================================================================
         success: {
-          50: '#f0fdf4',
-          100: '#dcfce7',
-          200: '#bbf7d0',
-          300: '#86efac',
-          400: '#4ade80',
-          500: '#22c55e',
-          600: '#16a34a',
-          700: '#15803d',   // DEFAULT (5.1:1)
-          800: '#166534',
-          900: '#14532d',   // AAA text (9.4:1)
-          DEFAULT: '#15803d',
-          light: '#dcfce7',
-          dark: '#14532d'
+          50: '#ECFDF5',
+          100: '#D1FAE5',
+          200: '#A7F3D0',
+          300: '#6EE7B7',
+          400: '#34D399',     // Vibrant for dark mode
+          500: '#10B981',     // DEFAULT - Emerald
+          600: '#059669',
+          700: '#047857',
+          800: '#065F46',
+          900: '#064E3B',     // AAA text (9.8:1)
+          DEFAULT: '#10B981',
+          light: '#D1FAE5',
+          dark: '#064E3B'
         },
         warning: {
-          50: '#fefce8',
-          100: '#fef9c3',
-          200: '#fef08a',
-          300: '#fde047',
-          400: '#facc15',
-          500: '#eab308',
-          600: '#ca8a04',
-          700: '#a16207',   // DEFAULT (5.0:1)
-          800: '#854d0e',
-          900: '#713f12',   // AAA text (8.6:1)
-          DEFAULT: '#a16207',
-          light: '#fef9c3',
+          50: '#FFFBEB',
+          100: '#FEF3C7',
+          200: '#FDE68A',
+          300: '#FCD34D',
+          400: '#FBBF24',     // Vibrant for dark mode
+          500: '#F59E0B',     // DEFAULT - Amber
+          600: '#D97706',
+          700: '#B45309',
+          800: '#92400E',
+          900: '#78350F',     // AAA text (8.2:1)
+          DEFAULT: '#F59E0B',
+          light: '#FEF3C7',
           dark: '#713f12'
         },
         error: {

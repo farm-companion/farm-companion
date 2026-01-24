@@ -324,20 +324,20 @@ export function CommandPalette({ isOpen, onClose, additionalCommands = [] }: Com
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-slate-900/50 dark:bg-slate-950/70 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 bg-zinc-900/50 dark:bg-zinc-950/70 backdrop-blur-sm animate-fade-in"
         onClick={onClose}
       />
 
       {/* Palette */}
       <div
-        className="relative w-full max-w-lg mx-4 bg-white dark:bg-slate-900 rounded-2xl
-                   shadow-2xl border-2 border-slate-200 dark:border-slate-700
+        className="relative w-full max-w-lg mx-4 bg-white dark:bg-zinc-900 rounded-2xl
+                   shadow-2xl border-2 border-zinc-200 dark:border-zinc-700
                    overflow-hidden animate-slide-in"
         onKeyDown={handleKeyDown}
       >
         {/* Search Input */}
-        <div className="relative flex items-center border-b-2 border-slate-200 dark:border-slate-700">
-          <Search className="absolute left-5 w-5 h-5 text-slate-400" />
+        <div className="relative flex items-center border-b-2 border-zinc-200 dark:border-zinc-700">
+          <Search className="absolute left-5 w-5 h-5 text-zinc-400" />
           <input
             ref={inputRef}
             type="text"
@@ -347,13 +347,13 @@ export function CommandPalette({ isOpen, onClose, additionalCommands = [] }: Com
               setSelectedIndex(0);
             }}
             placeholder="Type a command or search..."
-            className="w-full h-14 pl-14 pr-14 text-lg bg-transparent text-slate-900 dark:text-slate-50
-                       placeholder:text-slate-500 focus:outline-none"
+            className="w-full h-14 pl-14 pr-14 text-lg bg-transparent text-zinc-900 dark:text-zinc-50
+                       placeholder:text-zinc-500 focus:outline-none"
           />
           <button
             onClick={onClose}
-            className="absolute right-4 p-1.5 rounded-lg text-slate-400 hover:text-slate-600
-                       hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            className="absolute right-4 p-1.5 rounded-lg text-zinc-400 hover:text-zinc-600
+                       hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -362,7 +362,7 @@ export function CommandPalette({ isOpen, onClose, additionalCommands = [] }: Com
         {/* Command List */}
         <div ref={listRef} className="max-h-80 overflow-y-auto p-2">
           {flatList.length === 0 ? (
-            <div className="py-8 text-center text-slate-500">
+            <div className="py-8 text-center text-zinc-500">
               No commands found for &quot;{query}&quot;
             </div>
           ) : (
@@ -371,7 +371,7 @@ export function CommandPalette({ isOpen, onClose, additionalCommands = [] }: Com
 
               return (
                 <div key={category} className="mb-2">
-                  <div className="px-3 py-2 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="px-3 py-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider">
                     {categoryLabels[category]}
                   </div>
                   {commands.map((command) => {
@@ -383,28 +383,33 @@ export function CommandPalette({ isOpen, onClose, additionalCommands = [] }: Com
                         key={command.id}
                         data-index={index}
                         onClick={() => handleSelect(command)}
-                        className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left
-                                   transition-colors duration-100
+                        className={`relative w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left
+                                   transition-all duration-150
                                    ${isSelected
-                                     ? 'bg-slate-100 dark:bg-slate-800'
-                                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                                     ? 'bg-zinc-100 dark:bg-zinc-800'
+                                     : 'hover:bg-zinc-50 dark:hover:bg-zinc-800/50'
                                    }`}
                       >
+                        {/* Kinetic Indicator */}
+                        {isSelected && (
+                          <div className="absolute left-0 w-1 h-6 bg-cyan-500 rounded-full kinetic-indicator" />
+                        )}
                         <div
                           className={`flex items-center justify-center w-10 h-10 rounded-xl
+                                     transition-colors duration-150
                                      ${isSelected
-                                       ? 'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-                                       : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                                       ? 'bg-cyan-100 dark:bg-cyan-900/30 text-cyan-600 dark:text-cyan-400'
+                                       : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400'
                                      }`}
                         >
                           {command.icon}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="font-medium text-slate-900 dark:text-slate-50">
+                          <div className="font-medium text-zinc-900 dark:text-zinc-50">
                             {command.label}
                           </div>
                           {command.description && (
-                            <div className="text-sm text-slate-500 truncate">
+                            <div className="text-sm text-zinc-500 truncate">
                               {command.description}
                             </div>
                           )}
@@ -414,9 +419,9 @@ export function CommandPalette({ isOpen, onClose, additionalCommands = [] }: Com
                             {command.shortcut.split(' ').map((key, i) => (
                               <kbd
                                 key={i}
-                                className="px-2 py-1 text-xs font-medium text-slate-500
-                                          bg-slate-100 dark:bg-slate-800 rounded-md
-                                          border border-slate-200 dark:border-slate-700"
+                                className="px-2 py-1 text-xs font-medium text-zinc-500
+                                          bg-zinc-100 dark:bg-zinc-800 rounded-md
+                                          border border-zinc-200 dark:border-zinc-700"
                               >
                                 {key}
                               </kbd>
@@ -424,7 +429,7 @@ export function CommandPalette({ isOpen, onClose, additionalCommands = [] }: Com
                           </div>
                         )}
                         {isSelected && (
-                          <ArrowRight className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                          <ArrowRight className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
                         )}
                       </button>
                     );
@@ -436,29 +441,29 @@ export function CommandPalette({ isOpen, onClose, additionalCommands = [] }: Com
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-4 py-3 border-t-2 border-slate-200 dark:border-slate-700
-                       text-xs text-slate-500">
+        <div className="flex items-center justify-between px-4 py-3 border-t-2 border-zinc-200 dark:border-zinc-700
+                       text-xs text-zinc-500">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+              <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
                 <span className="text-[10px]">↑↓</span>
               </kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+              <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
                 Enter
               </kbd>
               Select
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">
+              <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 rounded border border-zinc-200 dark:border-zinc-700">
                 Esc
               </kbd>
               Close
             </span>
           </div>
-          <div className="flex items-center gap-1 text-slate-400">
+          <div className="flex items-center gap-1 text-zinc-400">
             <Command className="w-3 h-3" />
             <span>+K</span>
           </div>

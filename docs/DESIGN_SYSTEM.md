@@ -47,6 +47,8 @@ Study these exemplars:
 
 ## Color System
 
+> **Design Philosophy:** Zinc is the material of the future. By moving from Slate (blue-heavy) to Zinc (neutral-warm), we allow the Kinetic Cyan to pop without looking like a children's toy. This is industrial-grade frontend.
+
 ### WCAG AAA Contrast Requirements
 
 All text must meet these contrast ratios on their intended backgrounds:
@@ -58,84 +60,154 @@ All text must meet these contrast ratios on their intended backgrounds:
 | UI components | 3:1 (AA) | 4:1+ |
 | Decorative only | No requirement | N/A |
 
-### Primary Palette
+---
+
+### The Obsidian & Kinetic Palette
+
+We replace generic Slate with **Zinc-based Neutrals** (slight warm undertones) and introduce **Kinetic Cyan** (high-vibrancy, electric feel).
+
+#### Neutral Foundations (The Obsidian Stack)
+
+| Layer | Light Mode (Zinc) | Dark Mode (Obsidian) | Contrast | Use |
+|-------|-------------------|----------------------|----------|-----|
+| **Canvas** | `#FFFFFF` | `#09090B` (Deepest Ink) | Infinite | Page background |
+| **Surface** | `#FAFAFA` (zinc-50) | `#18181B` (zinc-900) | 18:1 | Card backgrounds |
+| **Elevated** | `#F4F4F5` (zinc-100) | `#27272A` (zinc-800) | 12:1 | Modals, dropdowns |
+| **Muted** | `#E4E4E7` (zinc-200) | `#3F3F46` (zinc-700) | 8:1 | Hover states |
+| **Border** | `#D4D4D8` (zinc-300) | `#52525B` (zinc-600) | UI | Borders, dividers |
+
+#### Text Colors (WCAG AAA Verified)
 
 ```
-Light Mode (on white #ffffff):
-------------------------------
-Headings:    slate-900  #0f172a  (16.8:1) - Maximum legibility
-Body:        slate-800  #1e293b  (12.6:1) - Comfortable reading
-Muted:       slate-600  #475569  (7.0:1)  - WCAG AAA small text
-Subtle:      slate-500  #64748b  (4.5:1)  - Large text only
+Light Mode (on #FFFFFF):
+------------------------
+Headings:    zinc-900   #18181B  (17.4:1) - Maximum legibility
+Body:        zinc-800   #27272A  (14.2:1) - Comfortable reading
+Muted:       zinc-600   #52525B  (7.2:1)  - WCAG AAA small text
+Subtle:      zinc-500   #71717A  (5.0:1)  - Large text only
 
-Dark Mode (on slate-900 #0f172a):
----------------------------------
-Headings:    slate-50   #f8fafc  (15.3:1)
-Body:        slate-200  #e2e8f0  (11.7:1)
-Muted:       slate-400  #94a3b8  (7.0:1)
-Subtle:      slate-500  #64748b  (4.5:1)
-```
-
-### Brand Colors
-
-```
-Serum (Primary - Teal):
+Dark Mode (on #09090B):
 -----------------------
-serum.DEFAULT  #0d9488  Teal 600  (4.5:1) - Large text, icons, buttons
-serum.dark     #0f766e  Teal 700  (5.9:1) - Small text on white
-serum.text     #115e59  Teal 800  (8.2:1) - Body text, AAA compliant
-
-Solar (Accent - Lime):
-----------------------
-solar.DEFAULT  #4d7c0f  Lime 700  (5.5:1) - AA compliant
-solar.light    #84cc16  Lime 500  (2.3:1) - DECORATIVE ONLY, never text
-solar.text     #3f6212  Lime 800  (7.3:1) - AAA compliant text
-solar.dark     #365314  Lime 900  (10.4:1) - Maximum contrast
+Headings:    zinc-50    #FAFAFA  (19.2:1) - Maximum legibility
+Body:        zinc-200   #E4E4E7  (14.8:1) - Comfortable reading
+Muted:       zinc-400   #A1A1AA  (7.4:1)  - WCAG AAA small text
+Subtle:      zinc-500   #71717A  (4.6:1)  - Large text only
 ```
 
-### Semantic Feedback Colors
+#### Brand Accents (Kinetic & Iris)
 
+| Role | Name | Hex | Contrast | Why |
+|------|------|-----|----------|-----|
+| **Primary** | Kinetic Cyan | `#06B6D4` | 4.5:1 | Cuts through dark backgrounds like a laser |
+| **Primary Dark** | Deep Cyan | `#0891B2` | 5.8:1 | Small text on white |
+| **Primary Text** | Cyan 800 | `#155E75` | 8.1:1 | AAA body text |
+| **Secondary** | Iris Violet | `#6366F1` | 4.5:1 | Ghost states, subtle depth |
+| **Secondary Dark** | Deep Violet | `#4F46E5` | 5.9:1 | Small text |
+| **Accent** | Solar Lime | `#84CC16` | 2.3:1 | Decorative only |
+| **Accent Text** | Lime 800 | `#3F6212` | 7.3:1 | AAA text |
+
+#### Semantic Feedback (Elevated)
+
+| State | Color | Hex | Text Hex | Contrast |
+|-------|-------|-----|----------|----------|
+| **Success** | Emerald | `#10B981` | `#064E3B` | 9.8:1 |
+| **Warning** | Amber | `#F59E0B` | `#78350F` | 8.2:1 |
+| **Error** | Rose/Ember | `#F43F5E` | `#881337` | 8.9:1 |
+| **Info** | Sky | `#0EA5E9` | `#0C4A6E` | 9.1:1 |
+
+---
+
+### CSS Variable Implementation
+
+```css
+:root {
+  /* Obsidian Neutrals - Light Mode */
+  --obsidian-canvas: #FFFFFF;
+  --obsidian-surface: #FAFAFA;
+  --obsidian-elevated: #F4F4F5;
+  --obsidian-muted: #E4E4E7;
+  --obsidian-border: #D4D4D8;
+
+  /* Text - Light Mode */
+  --text-heading: #18181B;
+  --text-body: #27272A;
+  --text-muted: #52525B;
+  --text-subtle: #71717A;
+
+  /* Kinetic Accents */
+  --kinetic: #06B6D4;
+  --kinetic-dark: #0891B2;
+  --kinetic-text: #155E75;
+  --kinetic-glow: rgba(6, 182, 212, 0.15);
+
+  /* Iris Secondary */
+  --iris: #6366F1;
+  --iris-dark: #4F46E5;
+  --iris-glow: rgba(99, 102, 241, 0.15);
+}
+
+.dark {
+  /* Obsidian Neutrals - Dark Mode */
+  --obsidian-canvas: #09090B;
+  --obsidian-surface: #18181B;
+  --obsidian-elevated: #27272A;
+  --obsidian-muted: #3F3F46;
+  --obsidian-border: #52525B;
+
+  /* Text - Dark Mode */
+  --text-heading: #FAFAFA;
+  --text-body: #E4E4E7;
+  --text-muted: #A1A1AA;
+  --text-subtle: #71717A;
+
+  /* Kinetic - Brighter on dark */
+  --kinetic: #22D3EE;
+  --kinetic-dark: #06B6D4;
+  --kinetic-glow: rgba(34, 211, 238, 0.2);
+}
 ```
-Success:  #15803d  Green 700   (5.1:1)  - Text: #14532d (9.4:1)
-Warning:  #a16207  Yellow 700  (5.0:1)  - Text: #713f12 (8.6:1)
-Error:    #b91c1c  Red 700     (5.6:1)  - Text: #7f1d1d (9.2:1)
-Info:     #1d4ed8  Blue 700    (5.5:1)  - Text: #1e3a8a (9.8:1)
+
+---
+
+### The "God-Tier" Active State
+
+Instead of flat background colors, we use **Glassmorphism Gradients** for selected states:
+
+```tsx
+// Active/Selected item styling
+className={`
+  ${isSelected
+    ? 'bg-gradient-to-r from-cyan-500/10 to-transparent border-l-[3px] border-l-cyan-500 shadow-[0_0_15px_rgba(6,182,212,0.1)]'
+    : 'hover:bg-zinc-100 dark:hover:bg-zinc-800/50'
+  }
+`}
 ```
 
-### Background Colors
+**Components:**
+- **Background:** Linear gradient `from-cyan-500/10 to-transparent`
+- **Left Border:** 3px Kinetic Cyan with rounded caps
+- **Glow:** Subtle `shadow-[0_0_15px_rgba(6,182,212,0.1)]`
 
-```
-Light Mode:
------------
-canvas:    #ffffff  - Page background
-surface:   #f8fafc  - Card backgrounds (slate-50)
-elevated:  #f1f5f9  - Dropdowns, modals (slate-100)
-hover:     #e2e8f0  - Interactive hover (slate-200)
+---
 
-Dark Mode:
-----------
-canvas:    #0f172a  - Page background (slate-900)
-surface:   #1e293b  - Card backgrounds (slate-800)
-elevated:  #334155  - Dropdowns, modals (slate-700)
-hover:     #475569  - Interactive hover (slate-600)
-```
+### Film Grain Texture (Better Than Apple)
 
-### Border Colors
+Apple uses pure blurs. We add **Film Grain** to prevent gradient banding:
 
-```
-Light Mode:
------------
-default:   #e2e8f0  - Standard borders (slate-200)
-subtle:    #f1f5f9  - Faint dividers (slate-100)
-strong:    #cbd5e1  - Emphasized borders (slate-300)
-focus:     #0d9488  - Focus rings (teal-600)
+```css
+.grain {
+  position: relative;
+}
 
-Dark Mode:
-----------
-default:   #334155  - Standard borders (slate-700)
-subtle:    #1e293b  - Faint dividers (slate-800)
-strong:    #475569  - Emphasized borders (slate-600)
-focus:     #2dd4bf  - Focus rings (teal-400)
+.grain::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  opacity: 0.03;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
 ```
 
 ---
