@@ -1,12 +1,11 @@
-import { promises as fs } from 'fs'
-import path from 'path'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
-import { FarmShop } from '@/types/farm'
+import type { FarmShop } from '@/types/farm'
 import { SITE_URL } from '@/lib/site'
 import CountiesSearch from '@/components/CountiesSearch'
 import BackToTop from '@/components/BackToTop'
+import { getFarmData } from '@/lib/farm-data'
 
 import type { Metadata } from 'next'
 
@@ -48,18 +47,6 @@ export const metadata: Metadata = {
   },
 }
 
-// Load farm data with error handling
-async function getFarms(): Promise<FarmShop[]> {
-  try {
-    const dataPath = path.join(process.cwd(), 'data', 'farms.json')
-    const data = await fs.readFile(dataPath, 'utf-8')
-    return JSON.parse(data)
-  } catch (error) {
-    console.error('Error loading farm data:', error)
-    return []
-  }
-}
-
 // Group farms by county
 function groupFarmsByCounty(farms: FarmShop[]) {
   const grouped = farms.reduce((acc, farm) => {
@@ -81,7 +68,7 @@ function groupFarmsByCounty(farms: FarmShop[]) {
 }
 
 export default async function CountiesPage() {
-  const farms = await getFarms()
+  const farms = await getFarmData()
   const farmsByCounty = groupFarmsByCounty(farms)
 
   return (
