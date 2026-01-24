@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
  * - Refined hover/active states with subtle shadows
  * - 48px minimum touch targets (WCAG AAA)
  * - Smooth transitions with reduced-motion support
+ * - High visibility on any background
  */
 const buttonVariants = cva(
   [
@@ -38,12 +39,22 @@ const buttonVariants = cva(
           'hover:bg-primary-700 hover:shadow-md',
           'active:bg-primary-800 active:scale-[0.98]',
         ],
+        // Secondary: High contrast bordered button - works on ANY background
         secondary: [
-          'bg-slate-100 text-slate-700 border border-slate-200',
-          'hover:bg-slate-200 hover:text-slate-900 hover:border-slate-300',
-          'active:bg-slate-300 active:scale-[0.98]',
-          'dark:bg-slate-800 dark:text-slate-200 dark:border-slate-700',
-          'dark:hover:bg-slate-700 dark:hover:text-slate-50',
+          'bg-white text-slate-900 border-2 border-slate-900 shadow-sm',
+          'hover:bg-slate-900 hover:text-white hover:shadow-md',
+          'active:bg-slate-800 active:text-white active:scale-[0.98]',
+          'dark:bg-slate-900 dark:text-slate-50 dark:border-slate-50',
+          'dark:hover:bg-slate-50 dark:hover:text-slate-900',
+          'dark:active:bg-slate-100 dark:active:text-slate-900',
+        ],
+        // Outline: Lighter bordered variant for less prominent actions
+        outline: [
+          'bg-transparent text-slate-700 border-2 border-slate-300',
+          'hover:bg-slate-100 hover:border-slate-400 hover:text-slate-900',
+          'active:bg-slate-200 active:scale-[0.98]',
+          'dark:text-slate-200 dark:border-slate-600',
+          'dark:hover:bg-slate-800 dark:hover:border-slate-500 dark:hover:text-slate-50',
         ],
         tertiary: [
           'bg-transparent text-slate-700',

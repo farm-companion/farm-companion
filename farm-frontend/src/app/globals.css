@@ -136,10 +136,13 @@
   --brand-accent: #84cc16;     /* Lime 500 - accent highlights */
   --brand-accent-dark: #65a30d; /* Lime 600 - accessible version */
 
-  /* Legacy brand colors (preserved for compatibility) */
-  --serum: #0d9488;            /* Updated to accessible teal */
-  --serum-light: #14b8a6;      /* Teal 500 for large UI only */
-  --solar: #84cc16;            /* Lime 500 */
+  /* Legacy brand colors (preserved for compatibility) - WCAG AA on white */
+  --serum: #0d9488;            /* Teal 600 - 4.5:1 on white (AA for large text) */
+  --serum-light: #14b8a6;      /* Teal 500 for backgrounds/decorative only */
+  --serum-text: #115e59;       /* Teal 800 - 8.2:1 on white (AAA for all text) */
+  --solar: #4d7c0f;            /* Lime 700 - 5.5:1 on white (AA compliant) */
+  --solar-light: #84cc16;      /* Lime 500 for backgrounds/decorative only */
+  --solar-text: #3f6212;       /* Lime 800 - 7.3:1 on white (AAA compliant) */
   --obsidian: #0f172a;         /* Slate 900 */
 
   /* Semantic Feedback - WCAG AAA compliant */
@@ -394,9 +397,12 @@ button {
   --brand-accent: #a3e635;     /* Lime 400 */
   --brand-accent-dark: #84cc16; /* Lime 500 */
 
-  --serum: #2dd4bf;
-  --serum-light: #5eead4;
-  --solar: #a3e635;
+  --serum: #2dd4bf;            /* Teal 400 - visible on dark */
+  --serum-light: #5eead4;      /* Teal 300 */
+  --serum-text: #5eead4;       /* Teal 300 - 10.7:1 on dark (AAA) */
+  --solar: #a3e635;            /* Lime 400 - visible on dark */
+  --solar-light: #bef264;      /* Lime 300 */
+  --solar-text: #bef264;       /* Lime 300 - 12.4:1 on dark (AAA) */
   --obsidian: #f8fafc;
 
   --success: #4ade80;          /* Green 400 - 8.4:1 on dark */

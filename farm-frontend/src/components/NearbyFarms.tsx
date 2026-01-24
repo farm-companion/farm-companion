@@ -163,15 +163,15 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
 
   if (isLoading) {
     return (
-      <section className={`py-12 md:py-16 bg-gray-50 dark:bg-gray-900/50 ${className}`}>
+      <section className={`py-12 md:py-16 bg-slate-100 dark:bg-slate-900/50 ${className}`}>
         <div className="container mx-auto px-4">
           <div className="text-center mb-10">
-            <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mx-auto mb-4" />
-            <div className="h-4 w-96 bg-gray-200 dark:bg-gray-800 rounded animate-pulse mx-auto" />
+            <div className="h-8 w-48 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mx-auto mb-4" />
+            <div className="h-4 w-96 bg-slate-200 dark:bg-slate-800 rounded animate-pulse mx-auto" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-80 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse" />
+              <div key={i} className="h-80 bg-slate-200 dark:bg-slate-800 rounded-2xl animate-pulse" />
             ))}
           </div>
         </div>
@@ -181,7 +181,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
 
   if (error) {
     return (
-      <section className={`py-12 md:py-16 bg-gray-50 dark:bg-gray-900/50 ${className}`}>
+      <section className={`py-12 md:py-16 bg-slate-100 dark:bg-slate-900/50 ${className}`}>
         <div className="container mx-auto px-4">
           <EmptyState
             icon={<MapPin className="w-16 h-16" />}
@@ -199,17 +199,17 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   }
 
   return (
-    <section className={`py-12 md:py-16 bg-gray-50 dark:bg-gray-900/50 ${className}`}>
+    <section className={`py-12 md:py-16 bg-slate-100 dark:bg-slate-900/50 ${className}`}>
       <div className="container mx-auto px-4">
         {/* Section Header */}
         <div className="text-center mb-10">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <Navigation className="w-6 h-6 text-brand-primary" />
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+            <Navigation className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-50">
               {locationDenied ? 'Popular Farms Near London' : 'Farms Near You'}
             </h2>
           </div>
-          <p className="text-body text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+          <p className="text-body text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
             {locationDenied
               ? 'Discover these popular farms. Enable location to see farms near you.'
               : 'Discover local farms close to your location'}

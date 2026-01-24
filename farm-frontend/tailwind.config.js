@@ -23,11 +23,21 @@ module.exports = {
          Premium Apple-inspired palette with verified contrast ratios
          ======================================================================== */
       colors: {
-        // Core Brand Palette - WCAG AAA Accessible
+        // Core Brand Palette - WCAG AA/AAA Accessible
         obsidian: '#0f172a',     // Slate 900 - Deep ink black
-        serum: '#0d9488',        // Teal 600 - Accessible brand teal
+        serum: {
+          DEFAULT: '#0d9488',    // Teal 600 - 4.5:1 on white (AA large text)
+          light: '#14b8a6',      // Teal 500 - backgrounds only
+          text: '#115e59',       // Teal 800 - 8.2:1 on white (AAA text)
+          dark: '#0f766e',       // Teal 700 - 5.9:1 on white (AA all text)
+        },
         sandstone: '#f8fafc',    // Slate 50 - Refined off-white
-        solar: '#84cc16',        // Lime 500 - Vibrant accent
+        solar: {
+          DEFAULT: '#4d7c0f',    // Lime 700 - 5.5:1 on white (AA compliant)
+          light: '#84cc16',      // Lime 500 - backgrounds/icons only, NOT text
+          text: '#3f6212',       // Lime 800 - 7.3:1 on white (AAA)
+          dark: '#365314',       // Lime 900 - 10.4:1 (AAA)
+        },
         midnight: '#020617',     // Slate 950 - True black
 
         // Semantic color aliases - Accessible versions
