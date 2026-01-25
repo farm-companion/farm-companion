@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
-import { Search } from 'lucide-react'
+import { Search, Filter } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
-import { MapSearch, LocationTracker } from '@/features/map'
+import { MapSearch, LocationTracker, SearchAreaControl, FilterOverlayPanel } from '@/features/map'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
 
@@ -68,9 +68,12 @@ export default function MapPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
+  const [activeBounds, setActiveBounds] = useState<google.maps.LatLngBounds | null>(null)
+  const [searchAsIMove, setSearchAsIMove] = useState(true)
   const [bottomSheetHeight, setBottomSheetHeight] = useState(200)
   const [isDesktop, setIsDesktop] = useState(false)
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)
 
   const locationWatchIdRef = useRef<number | null>(null)
   
@@ -223,16 +226,16 @@ export default function MapPage() {
       })
     }
 
-    // 4) map bounds (debounced)
-    if (debouncedBounds) {
-      result = result.filter(f => debouncedBounds.contains(new google.maps.LatLng(f.location.lat, f.location.lng)))
+    // 4) map bounds - use activeBounds (controlled by searchAsIMove toggle)
+    if (activeBounds) {
+      result = result.filter(f => activeBounds.contains(new google.maps.LatLng(f.location.lat, f.location.lng)))
     }
 
     // 5) final sort by distance if we have one
     if (userLocation) result = result.sort((a,b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
 
     return result
-  }, [farms, userLocation, debouncedQuery, filters, debouncedBounds])
+  }, [farms, userLocation, debouncedQuery, filters, activeBounds])
 
   // Update filtered farms when the computed result changes
   useEffect(() => {
@@ -282,7 +285,32 @@ export default function MapPage() {
   // Handle map bounds change
   const handleBoundsChange = useCallback((bounds: google.maps.LatLngBounds) => {
     setMapBounds(bounds)
-  }, [])
+    // Auto-update active bounds if search-as-I-move is enabled
+    if (searchAsIMove) {
+      setActiveBounds(bounds)
+    }
+  }, [searchAsIMove])
+
+  // Handle manual search this area
+  const handleSearchThisArea = useCallback(() => {
+    if (mapBounds) {
+      setActiveBounds(mapBounds)
+      triggerHaptic('light')
+    }
+  }, [mapBounds, triggerHaptic])
+
+  // Toggle search as I move
+  const handleToggleSearchAsIMove = useCallback(() => {
+    setSearchAsIMove(prev => {
+      const newValue = !prev
+      // If enabling, immediately sync bounds
+      if (newValue && mapBounds) {
+        setActiveBounds(mapBounds)
+      }
+      return newValue
+    })
+    triggerHaptic('light')
+  }, [mapBounds, triggerHaptic])
 
   // Handle map zoom change
   const handleZoomChange = useCallback(() => {
@@ -441,7 +469,41 @@ export default function MapPage() {
             />
           </div>
 
+          {/* Search as I Move Control - Top Right */}
+          <div className="absolute top-16 md:top-4 right-4 z-20">
+            <SearchAreaControl
+              searchAsIMove={searchAsIMove}
+              onToggle={handleToggleSearchAsIMove}
+              onSearchThisArea={handleSearchThisArea}
+              hasPendingSearch={!searchAsIMove && mapBounds !== activeBounds}
+              farmCount={filteredFarms.length}
+            />
+          </div>
 
+          {/* Filter Button - Bottom Left (Mobile) */}
+          <div className="md:hidden absolute bottom-24 left-4 z-20">
+            <button
+              onClick={() => setIsFilterPanelOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
+            >
+              <Filter className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">Filters</span>
+              {(filters.county || filters.category || filters.openNow) && (
+                <span className="w-2 h-2 bg-cyan-500 rounded-full" />
+              )}
+            </button>
+          </div>
+
+          {/* Filter Overlay Panel */}
+          <FilterOverlayPanel
+            isOpen={isFilterPanelOpen}
+            onClose={() => setIsFilterPanelOpen(false)}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            counties={counties}
+            categories={categories}
+            farmCount={filteredFarms.length}
+          />
 
           {/* Mobile: Enhanced Bottom Sheet with Farm List */}
           <div className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none">

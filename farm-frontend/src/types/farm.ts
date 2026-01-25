@@ -18,6 +18,8 @@ export interface FarmShop {
   }
   hours?: any[] // Allow any hours format
   offerings?: string[]
+  /** Amenity IDs for facilities (wheelchair, cafe, pyo, organic, etc.) */
+  amenities?: string[]
   contact?: {
     phone?: string
     email?: string

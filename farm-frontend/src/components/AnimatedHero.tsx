@@ -5,36 +5,35 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
+import { DynamicSeasonalHeadline, DynamicSeasonalSubheadline, SeasonBadge } from './DynamicSeasonalHeadline'
+import { HeroVideoBackground } from './HeroVideoBackground'
 
 interface AnimatedHeroProps {
   countyCount: number
+  videoSrc?: string
+  videoPoster?: string
 }
 
-export function AnimatedHero({ countyCount }: AnimatedHeroProps) {
+export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHeroProps) {
   return (
     <section
       data-header-invert
       className="relative h-[75vh] min-h-[600px] md:h-[80vh] md:min-h-[700px] lg:h-screen lg:min-h-[800px] lg:max-h-[1000px] overflow-hidden"
     >
-      {/* Background Image with Professional Handling */}
-      <div className="absolute inset-0">
-        <Image
-          src="/main_header.jpg"
-          alt="Colorful display of fresh vegetables, fruits, and flowers arranged in baskets at a UK farm shop, showcasing the variety of local produce available"
-          fill
-          className="object-cover object-center"
-          priority
-          fetchPriority="high"
-          sizes="100vw"
-          quality={85}
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-        />
-        {/* Professional Overlay Gradient */}
+      {/* Background with optional video support */}
+      <HeroVideoBackground
+        videoSrc={videoSrc}
+        videoPoster={videoPoster}
+        imageSrc="/main_header.jpg"
+        imageAlt="Colorful display of fresh vegetables, fruits, and flowers arranged in baskets at a UK farm shop, showcasing the variety of local produce available"
+        className="absolute inset-0"
+        overlayClassName="hero-overlay"
+      />
+      {/* Overlay gradients applied separately for consistent styling */}
+      <div className="absolute inset-0 pointer-events-none">
         <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
-        {/* Subtle texture overlay for depth */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_70%)]" />
       </div>
 
@@ -47,20 +46,26 @@ export function AnimatedHero({ countyCount }: AnimatedHeroProps) {
           className="text-center max-w-4xl mx-auto px-6"
         >
           <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
+
+          {/* Season Badge */}
+          <motion.div variants={staggerItem} className="mb-4">
+            <SeasonBadge className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-white/90 border border-white/20" />
+          </motion.div>
+
           <motion.h2
             variants={staggerItem}
             className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-4 md:mb-6 leading-tight text-white drop-shadow-lg"
           >
-            Find Fresh Local
-            <span className="block text-serum drop-shadow-lg">Farm Shops</span>
+            <DynamicSeasonalHeadline
+              accentClassName="text-serum drop-shadow-lg"
+            />
           </motion.h2>
 
           <motion.p
             variants={staggerItem}
             className="text-body sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-6 md:mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto px-4"
           >
-            Find farm shops near you with fresh local produce, seasonal UK fruit and vegetables,
-            and authentic farm experiences across {countyCount} counties.
+            <DynamicSeasonalSubheadline countyCount={countyCount} />
           </motion.p>
 
           <motion.div

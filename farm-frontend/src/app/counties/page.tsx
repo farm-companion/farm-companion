@@ -5,6 +5,7 @@ import type { FarmShop } from '@/types/farm'
 import { SITE_URL } from '@/lib/site'
 import CountiesSearch from '@/components/CountiesSearch'
 import BackToTop from '@/components/BackToTop'
+import { CountyDensityBadge, CountyDensityLegend, UKCountyMap } from '@/components/counties'
 import { getFarmData } from '@/lib/farm-data'
 
 import type { Metadata } from 'next'
@@ -136,55 +137,84 @@ export default async function CountiesPage() {
       {/* Main Content */}
       <div id="counties-content" className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
 
-        {/* Search Bar */}
-        <div className="mb-8">
-          <CountiesSearch counties={Object.keys(farmsByCounty)} />
-        </div>
-
-        {/* Counties Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {Object.entries(farmsByCounty).map(([county, countyFarms]) => (
-            <div
-              key={county}
-              className="bg-background-surface border border-border-default rounded-lg p-6 hover:shadow-md transition-shadow"
-            >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-heading font-semibold text-text-heading">
-                  {county}
-                </h2>
-                <span className="text-caption text-text-muted bg-background-canvas px-2 py-1 rounded-full">
-                  {countyFarms.length}
-                </span>
-              </div>
-              
-              <div className="space-y-2">
-                {countyFarms.slice(0, 3).map((farm: { id: string; slug: string; name: string }) => (
-                  <Link
-                    key={farm.id}
-                    href={`/shop/${farm.slug}`}
-                    className="block text-caption text-text-body hover:text-text-heading transition-colors"
-                  >
-                    {farm.name}
-                  </Link>
-                ))}
-                
-                {countyFarms.length > 3 && (
-                  <p className="text-small text-text-muted">
-                    +{countyFarms.length - 3} more farm shops
-                  </p>
-                )}
-              </div>
-              
-              <div className="mt-4 pt-4 border-t border-border-default">
-                <Link
-                  href={`/counties/${county.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="text-caption text-brand-primary hover:text-brand-primary/80 transition-colors"
-                >
-                  View all in {county} →
-                </Link>
-              </div>
+        {/* Two Column Layout: Map + Search/List */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          {/* Interactive Map */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <h2 className="text-heading font-semibold text-text-heading mb-4 text-center lg:text-left">
+                Explore by Region
+              </h2>
+              <UKCountyMap
+                counties={Object.entries(farmsByCounty).map(([name, farms]) => ({
+                  name,
+                  slug: name.toLowerCase().replace(/\s+/g, '-'),
+                  farmCount: farms.length,
+                }))}
+              />
+              <p className="mt-4 text-small text-text-muted text-center">
+                Click a region to explore
+              </p>
             </div>
-          ))}
+          </div>
+
+          {/* Search + Counties List */}
+          <div className="lg:col-span-2">
+            {/* Search Bar */}
+            <div className="mb-6">
+              <CountiesSearch counties={Object.keys(farmsByCounty)} />
+            </div>
+
+            {/* Density Legend */}
+            <div className="mb-8">
+              <CountyDensityLegend />
+            </div>
+
+            {/* Counties List - Horizontal Cards for Readability */}
+            <div className="space-y-3">
+              {Object.entries(farmsByCounty).map(([county, countyFarms]) => (
+                <Link
+                  key={county}
+                  href={`/counties/${county.toLowerCase().replace(/\s+/g, '-')}`}
+                  className="group block obsidian-card p-4 sm:p-5 hover:border-brand-primary/30 dark:hover:border-white/20 transition-all duration-200"
+                >
+                  {/* Mobile: Stacked | Desktop: Horizontal */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
+                    {/* County Name + Badge */}
+                    <div className="flex items-center gap-3 sm:min-w-[280px]">
+                      <h2 className="text-body obsidian-weight text-text-heading group-hover:text-brand-primary transition-colors">
+                        {county}
+                      </h2>
+                      <CountyDensityBadge count={countyFarms.length} />
+                    </div>
+
+                    {/* Farm Names - Hidden on mobile, shown on tablet+ */}
+                    <div className="hidden sm:flex flex-1 items-center gap-2 text-caption text-text-muted overflow-hidden">
+                      {countyFarms.slice(0, 3).map((farm: { id: string; slug: string; name: string }, idx: number) => (
+                        <span key={farm.id} className="flex items-center">
+                          {idx > 0 && <span className="mx-2 text-border-default">&middot;</span>}
+                          <span className="truncate max-w-[150px]">{farm.name}</span>
+                        </span>
+                      ))}
+                      {countyFarms.length > 3 && (
+                        <span className="text-text-subtle ml-1">+{countyFarms.length - 3} more</span>
+                      )}
+                    </div>
+
+                    {/* Mobile: Show farm count */}
+                    <div className="sm:hidden text-small text-text-muted">
+                      {countyFarms.length} farm {countyFarms.length === 1 ? 'shop' : 'shops'}
+                    </div>
+
+                    {/* Arrow indicator */}
+                    <div className="hidden sm:flex items-center text-text-muted group-hover:text-brand-primary transition-colors">
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Summary */}

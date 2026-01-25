@@ -11,6 +11,8 @@ import AnalyticsLoader from '@/components/AnalyticsLoader'
 import { AriaLiveRegion } from '@/components/accessibility/AriaLiveRegion'
 import { SkipLinks } from '@/components/accessibility/SkipLinks'
 import { BottomNav } from '@/components/navigation/BottomNav'
+import { CommandPalette } from '@/components/search'
+import { ThemeProvider } from '@/components/ThemeProvider'
 import { SITE_URL } from '@/lib/site'
 
 // Modern Swiss Minimalism Font Stack
@@ -219,101 +221,38 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="msapplication-config" content="/browserconfig.xml" />
         <meta name="theme-color" content="#00C2B2" />
         
-        {/* Theme detection script - optimized with next/script */}
-        <Script
-          id="theme-detection"
-          strategy="beforeInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              (function() {
-                try {
-                  // Get theme preference
-                  var theme = localStorage.getItem('theme');
-                  var systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-                  
-                  // Apply theme immediately
-                  if (theme === 'dark' || (!theme && systemPrefersDark)) {
-                    document.documentElement.classList.add('dark');
-                    document.documentElement.classList.remove('light');
-                  } else if (theme === 'light') {
-                    document.documentElement.classList.add('light');
-                    document.documentElement.classList.remove('dark');
-                  } else {
-                    document.documentElement.classList.remove('dark', 'light');
-                  }
-                  
-                  // Listen for system theme changes
-                  var mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-                  mediaQuery.addEventListener('change', function(e) {
-                    // Only auto-switch if no manual theme is set
-                    if (!localStorage.getItem('theme')) {
-                      if (e.matches) {
-                        document.documentElement.classList.add('dark');
-                        document.documentElement.classList.remove('light');
-                      } else {
-                        document.documentElement.classList.remove('dark');
-                        document.documentElement.classList.remove('light');
-                      }
-                      // Dispatch event for components to update
-                      window.dispatchEvent(new Event('theme-changed'));
-                    }
-                  });
-                  
-                  // Mark theme as ready and show content immediately
-                  document.documentElement.classList.add('theme-ready');
-                  
-                  // Also ensure content is visible after DOM is ready
-                  if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', function() {
-                      document.documentElement.classList.add('theme-ready');
-                    });
-                  } else {
-                    document.documentElement.classList.add('theme-ready');
-                  }
-                  
-                } catch (e) {
-                  console.warn('Theme detection failed:', e);
-                  // Fallback: show content even if theme detection fails
-                  document.documentElement.classList.add('theme-ready');
-                }
-                
-                // Ensure content is always visible after a short delay as final fallback
-                setTimeout(function() {
-                  document.documentElement.classList.add('theme-ready');
-                }, 50);
-              })();
-            `,
-          }}
-        />
+        {/* Theme detection handled by next-themes ThemeProvider */}
       </head>
       <body className="min-h-screen bg-background-canvas text-text-body antialiased">
-        {/* Accessibility Components */}
-        <SkipLinks />
-        <AriaLiveRegion />
+        <ThemeProvider>
+          {/* Accessibility Components */}
+          <SkipLinks />
+          <AriaLiveRegion />
 
-        {/* Header */}
-        <Header />
+          {/* Header */}
+          <Header />
 
-        {/* Page content */}
-        <main id="main-content" className="flex-1" role="main">{children}</main>
+          {/* Page content */}
+          <main id="main-content" className="flex-1" role="main">{children}</main>
 
-        {/* Mobile Bottom Navigation */}
-        <BottomNav />
+          {/* Mobile Bottom Navigation */}
+          <BottomNav />
 
-        {/* Consent */}
-        <ConsentBanner />
+          {/* Consent */}
+          <ConsentBanner />
 
-        {/* Footer - conditionally hidden on map page */}
-        <FooterWrapper />
+          {/* Command Palette (CMD+K search) */}
+          <CommandPalette />
 
-        {/* Vercel Analytics */}
-        {/* <Analytics /> */}
+          {/* Footer - conditionally hidden on map page */}
+          <FooterWrapper />
 
-        {/* Consent-gated Analytics */}
-        <AnalyticsLoader />
+          {/* Vercel Analytics */}
+          {/* <Analytics /> */}
 
-        {/* Force deployment to remove all content protection - right-click should work */}
-
+          {/* Consent-gated Analytics */}
+          <AnalyticsLoader />
+        </ThemeProvider>
       </body>
     </html>
   )

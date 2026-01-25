@@ -76,34 +76,38 @@
   font-display: swap;
 }
 
-/* Font Usage Classes */
-h1, h2, h3, h4, h5, h6, .brand, .display {
-  font-family: var(--font-primary);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
-  font-weight: 600;
+/* Font Usage Classes - wrapped in @layer base to allow Tailwind overrides */
+@layer base {
+  h1, h2, h3, h4, h5, h6, .brand, .display {
+    font-family: var(--font-primary);
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    font-weight: 600;
+  }
 }
 
 /* Body text uses Manrope (loaded via Google Fonts) */
-body, p, li, .body-text {
-  font-family: var(--font-body);
-  font-weight: 400;
-  line-height: 1.6;
-}
+@layer base {
+  body, p, li, .body-text {
+    font-family: var(--font-body);
+    font-weight: 400;
+    line-height: 1.6;
+  }
 
-/* UI elements use IBM Plex Sans Condensed (loaded via Google Fonts) */
-button, .filter, .ui-label, .cta, .btn, .button {
-  font-family: var(--font-accent);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
+  /* UI elements use IBM Plex Sans Condensed (loaded via Google Fonts) */
+  button, .filter, .ui-label, .cta, .btn, .button {
+    font-family: var(--font-accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
 
-/* Enhanced font smoothing for better rendering */
-h1, h2, h3, h4, h5, h6, .brand, .display {
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-rendering: optimizeLegibility;
+  /* Enhanced font smoothing for better rendering */
+  h1, h2, h3, h4, h5, h6, .brand, .display {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
 }
 
 /* Clash Display Specific Utility Classes */
