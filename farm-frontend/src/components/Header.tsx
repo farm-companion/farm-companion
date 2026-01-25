@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { Leaf, Menu, X, MapPin, Calendar, Info, MessageSquare, Plus, Command, Search } from 'lucide-react'
 import ThemeToggle from '@/components/ThemeToggle'
-import { LocationContext, MegaMenu, CountiesPreview } from '@/components/navigation'
+import { LocationContext, MegaMenu, CountiesPreview, SeasonalPreview } from '@/components/navigation'
 
 /**
  * God-Tier Header 5.0 - Command Center Design
@@ -368,24 +368,23 @@ export default function Header() {
               <CountiesPreview />
             </MegaMenu>
 
-            {/* Other nav links */}
-            {[
-              { href: '/seasonal', label: 'Seasonal' },
-              { href: '/about', label: 'About' },
-            ].map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cx(
-                  'px-4 py-2 rounded-lg text-[12px] font-semibold dark:font-medium uppercase tracking-[0.06em] transition-all duration-200',
-                  inverted
-                    ? 'text-white/90 hover:text-white hover:bg-white/10'
-                    : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-white/[0.04]'
-                )}
-              >
-                {item.label}
-              </Link>
-            ))}
+            {/* Seasonal with Mega Menu */}
+            <MegaMenu label="Seasonal" href="/seasonal" inverted={inverted}>
+              <SeasonalPreview />
+            </MegaMenu>
+
+            {/* About link */}
+            <Link
+              href="/about"
+              className={cx(
+                'px-4 py-2 rounded-lg text-[12px] font-semibold dark:font-medium uppercase tracking-[0.06em] transition-all duration-200',
+                inverted
+                  ? 'text-white/90 hover:text-white hover:bg-white/10'
+                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-white/[0.04]'
+              )}
+            >
+              About
+            </Link>
 
             {/* CMD+K Search Trigger */}
             <CommandTrigger inverted={inverted} />

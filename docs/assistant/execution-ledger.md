@@ -128,7 +128,7 @@
 - [x] Slice 19.1: Location Context Display (LocationContext.tsx with month + region detection)
 - [x] Slice 19.2: Enhanced Mobile Bottom Nav (center "Nearby" FAB, active indicator dots)
 - [x] Slice 19.3: Mega Menu - Counties Preview (MegaMenu.tsx + CountiesPreview.tsx)
-- [ ] Slice 19.4: Mega Menu - Seasonal Preview
+- [x] Slice 19.4: Mega Menu - Seasonal Preview (SeasonalPreview.tsx with in-season items)
 - [ ] Slice 19.5: Universal Search (Command+K)
 - [ ] Slice 19.6: Predictive Search Suggestions
 
