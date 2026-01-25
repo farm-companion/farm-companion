@@ -167,25 +167,25 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     }
   }
 
-  // Loading skeleton - matches new card design
+  // Loading skeleton - Obsidian-Kinetic styling
   if (isLoading) {
     return (
-      <section className={`py-16 md:py-24 bg-white dark:bg-slate-950 ${className}`}>
+      <section className={`py-16 md:py-24 bg-white dark:bg-[#050505] ${className}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <div className="h-10 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse mx-auto mb-4" />
-            <div className="h-6 w-96 max-w-full bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse mx-auto" />
+            <div className="h-10 w-64 bg-zinc-200 dark:bg-[#1E1E21] rounded-lg animate-pulse mx-auto mb-4" />
+            <div className="h-6 w-96 max-w-full bg-zinc-200 dark:bg-[#1E1E21] rounded-lg animate-pulse mx-auto" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="h-36 bg-slate-200 dark:bg-slate-800 animate-pulse" />
+              <div key={i} className="bg-white dark:bg-[#121214] rounded-2xl border-2 border-zinc-200 dark:border-white/[0.08] overflow-hidden">
+                <div className="h-36 bg-zinc-200 dark:bg-[#1E1E21] animate-pulse" />
                 <div className="p-5 space-y-3">
-                  <div className="h-6 w-3/4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-                  <div className="h-4 w-1/2 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+                  <div className="h-6 w-3/4 bg-zinc-200 dark:bg-[#1E1E21] rounded animate-pulse" />
+                  <div className="h-4 w-1/2 bg-zinc-200 dark:bg-[#1E1E21] rounded animate-pulse" />
                   <div className="flex gap-3 pt-2">
-                    <div className="flex-1 h-11 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-                    <div className="w-24 h-11 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+                    <div className="flex-1 h-11 bg-zinc-200 dark:bg-[#1E1E21] rounded-xl animate-pulse" />
+                    <div className="w-24 h-11 bg-zinc-200 dark:bg-[#1E1E21] rounded-xl animate-pulse" />
                   </div>
                 </div>
               </div>
@@ -198,7 +198,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
 
   if (error) {
     return (
-      <section className={`py-16 md:py-24 bg-white dark:bg-slate-950 ${className}`}>
+      <section className={`py-16 md:py-24 bg-white dark:bg-[#050505] ${className}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <EmptyState
             icon={<MapPin className="w-16 h-16" />}
@@ -216,22 +216,22 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   }
 
   return (
-    <section className={`py-16 md:py-24 bg-white dark:bg-slate-950 ${className}`}>
+    <section className={`py-16 md:py-24 bg-white dark:bg-[#050505] ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header - Maximum contrast */}
+        {/* Section Header - Obsidian-Kinetic styling */}
         <div className="text-center mb-12">
           {/* Icon badge */}
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-100 dark:bg-primary-900/30 mb-6">
-            <Compass className="w-7 h-7 text-primary-600 dark:text-primary-400" />
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-100 dark:bg-cyan-900/30 mb-6">
+            <Compass className="w-7 h-7 text-cyan-600 dark:text-cyan-400" />
           </div>
 
-          {/* Heading - slate-900 for maximum contrast (16.8:1) */}
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+          {/* Heading - zinc-900 for maximum contrast, adaptive font weight */}
+          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold dark:font-semibold text-zinc-900 dark:text-zinc-50 mb-4">
             {locationDenied ? 'Popular Farms Near London' : 'Farms Near You'}
           </h2>
 
-          {/* Description - slate-700 for high contrast (8.6:1) */}
-          <p className="text-lg text-slate-700 dark:text-slate-300 max-w-2xl mx-auto mb-6">
+          {/* Description - zinc-700 for high contrast */}
+          <p className="text-lg text-zinc-700 dark:text-zinc-300 max-w-2xl mx-auto mb-6">
             {locationDenied
               ? 'Discover these popular farm shops. Enable location to see farms closest to you.'
               : 'Discover local farm shops close to your location with fresh produce and more.'}
@@ -248,7 +248,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
                 <MapPin className="w-5 h-5 mr-2" />
                 Enable Location
               </Button>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
                 Click &quot;Allow&quot; when your browser asks for permission
               </p>
             </div>

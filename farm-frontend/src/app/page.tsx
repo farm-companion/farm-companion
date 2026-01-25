@@ -220,45 +220,47 @@ export default async function HomePage() {
         
         
         
-        {/* Content Container with Enhanced Background */}
+        {/* Content Container - Obsidian-Kinetic styling */}
         <div className="relative z-10 max-w-4xl mx-auto px-6 py-20">
           {/* Special Background Card for Content */}
           <div className="relative">
-            {/* Solid white glass effect with window-like border */}
-            <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md rounded-2xl border-4 border-white/70 dark:border-slate-700/70 shadow-2xl" style={{
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.8)'
+            {/* Obsidian glass surface with border luminance */}
+            <div className="absolute inset-0 bg-white/80 dark:bg-[#121214]/90 backdrop-blur-md rounded-2xl border border-zinc-200 dark:border-white/[0.08] shadow-2xl dark:shadow-none" style={{
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
             }}></div>
-            
+            {/* Specular edge highlight (dark mode only) */}
+            <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent dark:block hidden pointer-events-none rounded-t-2xl" />
+
             {/* Content with proper spacing */}
             <div className="relative z-10 p-8 md:p-12">
               <div className="prose prose-lg max-w-none">
-                {/* Enhanced main heading with maximum contrast */}
+                {/* Enhanced main heading - Obsidian typography */}
                 <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-heading font-bold text-slate-900 dark:text-slate-50 mb-4 animate-fade-in">
+                  <h2 className="text-3xl md:text-4xl font-heading font-bold dark:font-semibold text-zinc-900 dark:text-zinc-50 mb-4 animate-fade-in">
                     UK Farm Shops Directory
                   </h2>
-                  <div className="w-24 h-1 bg-gradient-to-r from-primary-600 to-secondary-500 mx-auto rounded-full opacity-60 drop-shadow-sm"></div>
+                  <div className="w-24 h-1 bg-gradient-to-r from-cyan-500 to-emerald-500 mx-auto rounded-full opacity-60 drop-shadow-sm"></div>
                 </div>
-                
-                {/* Enhanced intro paragraph with maximum contrast */}
+
+                {/* Enhanced intro paragraph - Obsidian text colors */}
                 <div className="text-center mb-16 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-                  <p className="text-body text-slate-800 dark:text-slate-200 mb-6 leading-relaxed font-medium">
+                  <p className="text-body text-zinc-800 dark:text-zinc-200 mb-6 leading-relaxed font-medium dark:font-normal">
                     Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated
-                    a directory of over <span className="font-bold text-primary-700 dark:text-primary-400">{farmCount}</span> authentic farm shops across <span className="font-bold text-primary-700 dark:text-primary-400">{countyCount}</span> counties,
+                    a directory of over <span className="font-bold text-cyan-700 dark:text-cyan-400">{farmCount}</span> authentic farm shops across <span className="font-bold text-cyan-700 dark:text-cyan-400">{countyCount}</span> counties,
                     helping you discover the freshest local produce and connect with real farmers.
                   </p>
                 </div>
-                
-                {/* Enhanced content sections with maximum contrast */}
+
+                {/* Enhanced content sections - Obsidian styling */}
                 <div className="space-y-12">
                   <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
-                    <h3 className="text-xl font-heading font-semibold text-slate-900 dark:text-slate-50 mb-4 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center shadow-sm">
-                        <MapPin className="w-4 h-4 text-primary-700 dark:text-primary-400" />
+                    <h3 className="text-xl font-heading font-semibold dark:font-medium text-zinc-900 dark:text-zinc-50 mb-4 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-cyan-100 dark:bg-cyan-900/30 rounded-full flex items-center justify-center shadow-sm dark:shadow-none">
+                        <MapPin className="w-4 h-4 text-cyan-700 dark:text-cyan-400" />
                       </div>
                       Find Farm Shops Near You
                     </h3>
-                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                    <p className="text-zinc-800 dark:text-zinc-300 leading-relaxed font-medium dark:font-normal">
                       Search for farm shops near you to buy fresh vegetables, organic meat, artisanal cheese,
                       and homemade preserves. Our interactive map shows verified contact details, opening hours,
                       and what each farm sells locally.
@@ -266,13 +268,13 @@ export default async function HomePage() {
                   </div>
 
                   <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-                    <h3 className="text-xl font-heading font-semibold text-slate-900 dark:text-slate-50 mb-4 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-secondary-100 dark:bg-secondary-900/30 rounded-full flex items-center justify-center shadow-sm">
-                        <Calendar className="w-4 h-4 text-secondary-700 dark:text-secondary-400" />
+                    <h3 className="text-xl font-heading font-semibold dark:font-medium text-zinc-900 dark:text-zinc-50 mb-4 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center shadow-sm dark:shadow-none">
+                        <Calendar className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
                       </div>
                       Seasonal Produce Guides
                     </h3>
-                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                    <p className="text-zinc-800 dark:text-zinc-300 leading-relaxed font-medium dark:font-normal">
                       Buy seasonal UK fruit and vegetables at their peak flavour and nutritional value.
                       Our guides show what&apos;s in season each month, with tips on choosing, storing,
                       and cooking the freshest local produce.
@@ -280,13 +282,13 @@ export default async function HomePage() {
                   </div>
 
                   <div className="animate-fade-in" style={{ animationDelay: '0.8s' }}>
-                    <h3 className="text-xl font-heading font-semibold text-slate-900 dark:text-slate-50 mb-4 flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center shadow-sm">
-                        <Heart className="w-4 h-4 text-primary-700 dark:text-primary-400" />
+                    <h3 className="text-xl font-heading font-semibold dark:font-medium text-zinc-900 dark:text-zinc-50 mb-4 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center shadow-sm dark:shadow-none">
+                        <Heart className="w-4 h-4 text-rose-700 dark:text-rose-400" />
                       </div>
                       Support Local Farmers
                     </h3>
-                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed font-medium">
+                    <p className="text-zinc-800 dark:text-zinc-300 leading-relaxed font-medium dark:font-normal">
                       By choosing to shop at local farm shops, you&apos;re supporting British farmers and
                       contributing to sustainable, local food systems. You&apos;ll enjoy fresher produce,
                       reduce food miles, and help maintain the UK&apos;s rich agricultural heritage.
