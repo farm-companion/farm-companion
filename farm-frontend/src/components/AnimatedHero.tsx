@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
+import { DynamicSeasonalHeadline, DynamicSeasonalSubheadline, SeasonBadge } from './DynamicSeasonalHeadline'
 
 interface AnimatedHeroProps {
   countyCount: number
@@ -47,20 +48,26 @@ export function AnimatedHero({ countyCount }: AnimatedHeroProps) {
           className="text-center max-w-4xl mx-auto px-6"
         >
           <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
+
+          {/* Season Badge */}
+          <motion.div variants={staggerItem} className="mb-4">
+            <SeasonBadge className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-white/90 border border-white/20" />
+          </motion.div>
+
           <motion.h2
             variants={staggerItem}
             className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-4 md:mb-6 leading-tight text-white drop-shadow-lg"
           >
-            Find Fresh Local
-            <span className="block text-serum drop-shadow-lg">Farm Shops</span>
+            <DynamicSeasonalHeadline
+              accentClassName="text-serum drop-shadow-lg"
+            />
           </motion.h2>
 
           <motion.p
             variants={staggerItem}
             className="text-body sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-6 md:mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto px-4"
           >
-            Find farm shops near you with fresh local produce, seasonal UK fruit and vegetables,
-            and authentic farm experiences across {countyCount} counties.
+            <DynamicSeasonalSubheadline countyCount={countyCount} />
           </motion.p>
 
           <motion.div
