@@ -165,7 +165,7 @@
 
 ### Queue 24: Homepage Transformation
 - [x] Slice 24.1: Dynamic Seasonal Headline (DynamicSeasonalHeadline.tsx with month/time awareness)
-- [ ] Slice 24.2: "Find Shops Open Now" CTA
+- [x] Slice 24.2: "Find Shops Open Now" CTA (OpenNowCTA.tsx + /api/farms/open-now-count)
 - [ ] Slice 24.3: Weekend Planner Module
 - [ ] Slice 24.4: Social Proof Ticker
 - [ ] Slice 24.5: Hero Video Background

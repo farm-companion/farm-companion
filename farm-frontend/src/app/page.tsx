@@ -12,6 +12,7 @@ import { AnimatedStats } from '@/components/AnimatedStats'
 import { AnimatedFeatures } from '@/components/AnimatedFeatures'
 import { SeasonalShowcase } from '@/components/SeasonalShowcase'
 import { NearbyFarms } from '@/components/NearbyFarms'
+import { OpenNowCTA } from '@/components/OpenNowCTA'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -107,6 +108,9 @@ export default async function HomePage() {
           }),
         }}
       />
+
+      {/* Floating Open Now CTA */}
+      <OpenNowCTA variant="floating" />
 
       {/* Animated Hero Section */}
       <AnimatedHero countyCount={countyCount} />
