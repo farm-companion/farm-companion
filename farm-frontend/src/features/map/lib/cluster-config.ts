@@ -3,7 +3,26 @@
  *
  * Provides zoom-aware cluster sizing with 5-tier visual hierarchy.
  * Clusters dynamically scale based on farm count and current zoom level.
+ * Includes animation easing for smooth transitions.
  */
+
+/**
+ * Animation easing functions for cluster transitions
+ */
+export const CLUSTER_EASING = {
+  // Smooth ease-out for appearing clusters
+  APPEAR: 'cubic-bezier(0.34, 1.56, 0.64, 1)', // Slightly bouncy
+  // Gentle ease for zoom transitions
+  ZOOM: 'cubic-bezier(0.4, 0, 0.2, 1)', // Material Design standard
+  // Snappy ease for hover states
+  HOVER: 'cubic-bezier(0.2, 0, 0, 1)', // Fast out, slow in
+  // Duration in milliseconds
+  DURATION: {
+    APPEAR: 300,
+    ZOOM: 400,
+    HOVER: 150,
+  },
+}
 
 export interface ClusterTier {
   name: 'tiny' | 'small' | 'medium' | 'large' | 'mega'
@@ -69,49 +88,76 @@ export function generateClusterSVG(count: number, zoom: number = 10): {
   // Gradient ID unique per tier for proper rendering
   const gradientId = `cluster-gradient-${tier.name}`
 
-  // Pulse animation for mega clusters
-  const pulseFilter = tier.pulseAnimation ? `
-    <defs>
-      <filter id="glow-${tier.name}" x="-50%" y="-50%" width="200%" height="200%">
-        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-        <feMerge>
-          <feMergeNode in="coloredBlur"/>
-          <feMergeNode in="SourceGraphic"/>
-        </feMerge>
-      </filter>
-    </defs>
+  // Animation styles for smooth appearance and pulse
+  const animationStyles = `
+    <style>
+      @keyframes clusterAppear {
+        0% { transform: scale(0); opacity: 0; }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); opacity: 1; }
+      }
+      @keyframes clusterPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+      .cluster-group {
+        animation: clusterAppear 0.3s ${CLUSTER_EASING.APPEAR} forwards;
+        transform-origin: center;
+      }
+      ${tier.pulseAnimation ? `
+      .cluster-circle {
+        animation: clusterPulse 2s ease-in-out infinite;
+        transform-origin: center;
+      }
+      ` : ''}
+    </style>
+  `
+
+  // Glow filter for mega clusters
+  const glowFilter = tier.pulseAnimation ? `
+    <filter id="glow-${tier.name}" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
   ` : ''
 
   const filterAttr = tier.pulseAnimation ? `filter="url(#glow-${tier.name})"` : ''
 
-  // Create gradient for depth effect
+  // Create gradient for depth effect with animation
   const svg = `
     <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      ${pulseFilter}
+      ${animationStyles}
       <defs>
+        ${glowFilter}
         <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="0%" y2="100%">
           <stop offset="0%" style="stop-color:${tier.color};stop-opacity:1" />
           <stop offset="100%" style="stop-color:${adjustColor(tier.color, -20)};stop-opacity:1" />
         </linearGradient>
       </defs>
-      <circle
-        cx="${anchor}"
-        cy="${anchor}"
-        r="${radius}"
-        fill="url(#${gradientId})"
-        stroke="white"
-        stroke-width="${tier.borderWidth}"
-        ${filterAttr}
-      />
-      <text
-        x="${anchor}"
-        y="${textY}"
-        text-anchor="middle"
-        fill="white"
-        font-family="system-ui, -apple-system, sans-serif"
-        font-size="${tier.fontSize}"
-        font-weight="600"
-      >${formatClusterCount(count)}</text>
+      <g class="cluster-group">
+        <circle
+          class="cluster-circle"
+          cx="${anchor}"
+          cy="${anchor}"
+          r="${radius}"
+          fill="url(#${gradientId})"
+          stroke="white"
+          stroke-width="${tier.borderWidth}"
+          ${filterAttr}
+        />
+        <text
+          x="${anchor}"
+          y="${textY}"
+          text-anchor="middle"
+          fill="white"
+          font-family="system-ui, -apple-system, sans-serif"
+          font-size="${tier.fontSize}"
+          font-weight="600"
+        >${formatClusterCount(count)}</text>
+      </g>
     </svg>
   `.trim()
 
@@ -190,4 +236,61 @@ export const CLUSTER_ZOOM_THRESHOLDS = {
 export function getClusterTargetZoom(count: number): number {
   const tier = getClusterTier(count)
   return CLUSTER_ZOOM_THRESHOLDS.ZOOM_TARGETS[tier.name]
+}
+
+/**
+ * Smooth zoom animation to target level
+ * Uses eased interpolation for natural feel
+ */
+export function animateZoomTo(
+  map: google.maps.Map,
+  targetZoom: number,
+  targetCenter?: google.maps.LatLng,
+  duration: number = CLUSTER_EASING.DURATION.ZOOM
+): Promise<void> {
+  return new Promise((resolve) => {
+    const startZoom = map.getZoom() || 10
+    const startCenter = map.getCenter()
+    const startTime = performance.now()
+
+    // Easing function (ease-out cubic)
+    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3)
+
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime
+      const progress = Math.min(elapsed / duration, 1)
+      const easedProgress = easeOutCubic(progress)
+
+      // Interpolate zoom
+      const currentZoom = startZoom + (targetZoom - startZoom) * easedProgress
+      map.setZoom(currentZoom)
+
+      // Interpolate center if provided
+      if (targetCenter && startCenter) {
+        const lat = startCenter.lat() + (targetCenter.lat() - startCenter.lat()) * easedProgress
+        const lng = startCenter.lng() + (targetCenter.lng() - startCenter.lng()) * easedProgress
+        map.setCenter(new google.maps.LatLng(lat, lng))
+      }
+
+      if (progress < 1) {
+        requestAnimationFrame(animate)
+      } else {
+        resolve()
+      }
+    }
+
+    requestAnimationFrame(animate)
+  })
+}
+
+/**
+ * Get animation class for cluster state changes
+ */
+export function getClusterAnimationClass(state: 'appear' | 'hover' | 'active'): string {
+  const classes = {
+    appear: 'animate-cluster-appear',
+    hover: 'animate-cluster-hover',
+    active: 'animate-cluster-active',
+  }
+  return classes[state]
 }

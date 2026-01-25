@@ -5,11 +5,14 @@
 export {
   CLUSTER_TIERS,
   CLUSTER_ZOOM_THRESHOLDS,
+  CLUSTER_EASING,
   getClusterTier,
   getZoomAwareSize,
   generateClusterSVG,
   createSmartClusterRenderer,
   getClusterTargetZoom,
+  animateZoomTo,
+  getClusterAnimationClass,
   type ClusterTier,
 } from './cluster-config'
 
