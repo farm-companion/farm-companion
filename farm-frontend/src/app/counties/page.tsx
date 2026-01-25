@@ -175,10 +175,10 @@ export default async function CountiesPage() {
           {Object.entries(farmsByCounty).map(([county, countyFarms]) => (
             <div
               key={county}
-              className="bg-background-surface border border-border-default rounded-lg p-6 hover:shadow-md transition-shadow"
+              className="bg-background-surface border border-border-default rounded-lg p-6 hover:shadow-md transition-shadow overflow-hidden"
             >
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-heading font-semibold text-text-heading">
+              <div className="flex items-start justify-between gap-2 mb-4">
+                <h2 className="text-body font-semibold text-text-heading leading-tight break-words min-w-0">
                   {county}
                 </h2>
                 <CountyDensityBadge count={countyFarms.length} />
@@ -205,9 +205,9 @@ export default async function CountiesPage() {
               <div className="mt-4 pt-4 border-t border-border-default">
                 <Link
                   href={`/counties/${county.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="text-caption text-brand-primary hover:text-brand-primary/80 transition-colors"
+                  className="text-caption text-brand-primary hover:text-brand-primary/80 transition-colors inline-block break-words"
                 >
-                  View all in {county} →
+                  View all in {county} &rarr;
                 </Link>
               </div>
             </div>
