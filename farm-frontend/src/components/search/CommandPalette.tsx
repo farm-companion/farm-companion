@@ -14,11 +14,11 @@
  * - Focus trap and keyboard navigation
  */
 
-import { useState, useEffect, useRef, useMemo } from 'react'
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Search, MapPin, Leaf, Map, X, ArrowRight } from 'lucide-react'
+import { Search, MapPin, Leaf, Map, X, ArrowRight, Store } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCommandPalette } from '@/hooks/useCommandPalette'
 import { PRODUCE } from '@/data/produce'
@@ -36,6 +36,16 @@ interface SearchResult {
   subtitle?: string
   href: string
   icon: typeof MapPin
+}
+
+interface FarmSuggestion {
+  id: string
+  name: string
+  slug: string
+  location?: {
+    city?: string
+    county?: string
+  }
 }
 
 /**
@@ -58,13 +68,32 @@ const QUICK_ACTIONS: SearchResult[] = [
   { id: 'add', type: 'action', title: 'Add a Farm', subtitle: 'Submit a new farm shop', href: '/add', icon: MapPin },
 ]
 
+/**
+ * Debounce hook for search
+ */
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay)
+    return () => clearTimeout(timer)
+  }, [value, delay])
+
+  return debouncedValue
+}
+
 export function CommandPalette() {
   const { isOpen, close } = useCommandPalette()
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [farmResults, setFarmResults] = useState<FarmSuggestion[]>([])
+  const [isSearching, setIsSearching] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
   const [mounted, setMounted] = useState(false)
+
+  // Debounce query for API calls
+  const debouncedQuery = useDebounce(query, 150)
 
   useEffect(() => {
     setMounted(true)
@@ -75,21 +104,58 @@ export function CommandPalette() {
     if (isOpen) {
       setQuery('')
       setSelectedIndex(0)
+      setFarmResults([])
       setTimeout(() => inputRef.current?.focus(), 50)
     }
   }, [isOpen])
 
-  // Search results
+  // Fetch farm suggestions from Meilisearch API
+  useEffect(() => {
+    if (!debouncedQuery || debouncedQuery.length < 2) {
+      setFarmResults([])
+      return
+    }
+
+    const fetchFarms = async () => {
+      setIsSearching(true)
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(debouncedQuery)}&suggest=true`)
+        if (res.ok) {
+          const data = await res.json()
+          setFarmResults(data.suggestions || [])
+        }
+      } catch {
+        // Silently fail - show local results only
+      } finally {
+        setIsSearching(false)
+      }
+    }
+
+    fetchFarms()
+  }, [debouncedQuery])
+
+  // Combine farm results with produce/county results
   const results = useMemo((): SearchResult[] => {
     if (!query.trim()) {
-      // Show quick actions when no query
       return QUICK_ACTIONS
     }
 
     const q = query.toLowerCase().trim()
     const matches: SearchResult[] = []
 
-    // Search produce
+    // Add farm results from Meilisearch (priority)
+    farmResults.forEach((farm) => {
+      matches.push({
+        id: `farm-${farm.id}`,
+        type: 'farm',
+        title: farm.name,
+        subtitle: farm.location?.county || farm.location?.city || 'Farm Shop',
+        href: `/shop/${farm.slug}`,
+        icon: Store,
+      })
+    })
+
+    // Search produce (local)
     PRODUCE.forEach((p) => {
       if (p.name.toLowerCase().includes(q) || p.slug.includes(q)) {
         matches.push({
@@ -229,7 +295,13 @@ export function CommandPalette() {
             )}
 
             {/* Search results */}
-            {results.length === 0 && query.length >= 3 ? (
+            {isSearching && query.length >= 2 ? (
+              <div className="px-4 py-8 text-center">
+                <p className="text-small text-slate-500 dark:text-slate-400">
+                  Searching...
+                </p>
+              </div>
+            ) : results.length === 0 && query.length >= 3 ? (
               <div className="px-4 py-8 text-center">
                 <p className="text-small text-slate-500 dark:text-slate-400">
                   No results found for "{query}"
@@ -257,21 +329,25 @@ export function CommandPalette() {
                         <div
                           className={cn(
                             'flex items-center justify-center w-9 h-9 rounded-lg',
-                            result.type === 'produce'
-                              ? 'bg-emerald-100 dark:bg-emerald-500/20'
-                              : result.type === 'county'
-                                ? 'bg-blue-100 dark:bg-blue-500/20'
-                                : 'bg-slate-100 dark:bg-white/[0.06]'
+                            result.type === 'farm'
+                              ? 'bg-primary-100 dark:bg-primary-500/20'
+                              : result.type === 'produce'
+                                ? 'bg-emerald-100 dark:bg-emerald-500/20'
+                                : result.type === 'county'
+                                  ? 'bg-blue-100 dark:bg-blue-500/20'
+                                  : 'bg-slate-100 dark:bg-white/[0.06]'
                           )}
                         >
                           <Icon
                             className={cn(
                               'w-4 h-4',
-                              result.type === 'produce'
-                                ? 'text-emerald-600 dark:text-emerald-400'
-                                : result.type === 'county'
-                                  ? 'text-blue-600 dark:text-blue-400'
-                                  : 'text-slate-600 dark:text-slate-400'
+                              result.type === 'farm'
+                                ? 'text-primary-600 dark:text-primary-400'
+                                : result.type === 'produce'
+                                  ? 'text-emerald-600 dark:text-emerald-400'
+                                  : result.type === 'county'
+                                    ? 'text-blue-600 dark:text-blue-400'
+                                    : 'text-slate-600 dark:text-slate-400'
                             )}
                           />
                         </div>
