@@ -5,6 +5,7 @@ import type { FarmShop } from '@/types/farm'
 import { SITE_URL } from '@/lib/site'
 import CountiesSearch from '@/components/CountiesSearch'
 import BackToTop from '@/components/BackToTop'
+import { CountyDensityBadge, CountyDensityLegend } from '@/components/counties'
 import { getFarmData } from '@/lib/farm-data'
 
 import type { Metadata } from 'next'
@@ -137,8 +138,13 @@ export default async function CountiesPage() {
       <div id="counties-content" className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
 
         {/* Search Bar */}
-        <div className="mb-8">
+        <div className="mb-6">
           <CountiesSearch counties={Object.keys(farmsByCounty)} />
+        </div>
+
+        {/* Density Legend */}
+        <div className="mb-8">
+          <CountyDensityLegend />
         </div>
 
         {/* Counties Grid */}
@@ -152,9 +158,7 @@ export default async function CountiesPage() {
                 <h2 className="text-heading font-semibold text-text-heading">
                   {county}
                 </h2>
-                <span className="text-caption text-text-muted bg-background-canvas px-2 py-1 rounded-full">
-                  {countyFarms.length}
-                </span>
+                <CountyDensityBadge count={countyFarms.length} />
               </div>
               
               <div className="space-y-2">

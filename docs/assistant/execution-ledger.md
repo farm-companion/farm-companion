@@ -122,7 +122,7 @@
 - [x] Slice 18.2b: NearbyFarms Harvest Design Enhancement (seasonal headlines, live status indicator, open farms count)
 - [x] Slice 18.3: "What's In Season Now" Module (InSeasonNow.tsx + seasonal-utils.ts)
 - [x] Slice 18.4: Shop Amenity Icons (AmenityIcons.tsx + amenities.ts data)
-- [ ] Slice 18.5: County Density Indicators
+- [x] Slice 18.5: County Density Indicators (CountyDensityBadge.tsx + CountyDensityLegend)
 
 ### Queue 19: Header Evolution (Command Center)
 - [ ] Slice 19.1: Location Context Display
