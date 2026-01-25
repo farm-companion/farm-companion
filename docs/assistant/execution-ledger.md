@@ -116,6 +116,91 @@
 - [x] Replace any types in admin/farms/photo-stats/route (verified: no any types present)
 - [x] Queue 16 COMPLETE - Only intentional Sharp library any types remain in upload/route.ts
 
+### Queue 18: Immediate Value Additions (DESIGN SYSTEM OVERHAUL)
+- [x] Slice 18.1: Dynamic "Open Now" Status Badge (Already exists: farm-status.ts + StatusBadge.tsx)
+- [x] Slice 18.2: Distance Display on Shop Cards (FarmCard.tsx + useUserLocation hook)
+- [ ] Slice 18.3: "What's In Season Now" Module
+- [ ] Slice 18.4: Shop Amenity Icons
+- [ ] Slice 18.5: County Density Indicators
+
+### Queue 19: Header Evolution (Command Center)
+- [ ] Slice 19.1: Location Context Display
+- [ ] Slice 19.2: Enhanced Mobile Bottom Nav
+- [ ] Slice 19.3: Mega Menu - Counties Preview
+- [ ] Slice 19.4: Mega Menu - Seasonal Preview
+- [ ] Slice 19.5: Universal Search (Command+K)
+- [ ] Slice 19.6: Predictive Search Suggestions
+
+### Queue 20: Seasonal Page Transformation
+- [ ] Slice 20.1: Seasonal Data Structure
+- [ ] Slice 20.2: Produce Card Enhancement
+- [ ] Slice 20.3: Seasonality Progress Bar
+- [ ] Slice 20.4: Month Navigation Wheel (SVG)
+- [ ] Slice 20.5: "Find Stockists" Bridge
+- [ ] Slice 20.6: Nutrition Radial Charts
+
+### Queue 21: Counties Page Transformation
+- [ ] Slice 21.1: UK SVG Map Component
+- [ ] Slice 21.2: Density Coloring Logic
+- [ ] Slice 21.3: County Hover Tooltips
+- [ ] Slice 21.4: Region Sidebar Filters
+- [ ] Slice 21.5: County Landing Page Enhancement
+- [ ] Slice 21.6: "Curator's Choice" Featured Shops
+
+### Queue 22: Shop Profile Enhancement
+- [ ] Slice 22.1: Verification Badge System
+- [ ] Slice 22.2: Dynamic Operating Status
+- [ ] Slice 22.3: "What's In Season Here" Cross-Reference
+- [ ] Slice 22.4: Interactive Location Card
+- [ ] Slice 22.5: Farm Story Rich Text
+- [ ] Slice 22.6: Related Farms Module
+
+### Queue 23: Map Experience Enhancement
+- [ ] Slice 23.1: Smart Cluster Sizing
+- [ ] Slice 23.2: Category-Based Pin Icons
+- [ ] Slice 23.3: "Search as I Move" Toggle
+- [ ] Slice 23.4: Filter Overlay Panel
+- [ ] Slice 23.5: Cluster Animation Easing
+
+### Queue 24: Homepage Transformation
+- [ ] Slice 24.1: Dynamic Seasonal Headline
+- [ ] Slice 24.2: "Find Shops Open Now" CTA
+- [ ] Slice 24.3: Weekend Planner Module
+- [ ] Slice 24.4: Social Proof Ticker
+- [ ] Slice 24.5: Hero Video Background
+
+### Queue 25: "Harvest" Color System (Optional Theme)
+- [ ] Slice 25.1: Harvest Color Tokens
+- [ ] Slice 25.2: Theme Provider
+- [ ] Slice 25.3: Theme Toggle Component
+- [ ] Slice 25.4: Harvest Button Variants
+- [ ] Slice 25.5: Harvest Card Styles
+
+### Queue 26: "Add Farm" Flow Improvement
+- [ ] Slice 26.1: Address Autocomplete
+- [ ] Slice 26.2: Opening Hours Builder
+- [ ] Slice 26.3: Real-Time Validation
+- [ ] Slice 26.4: Progress Indicator
+
+### Queue 27: Accessibility & Motion Polish
+- [ ] Slice 27.1: Screen Reader Map Fallback
+- [ ] Slice 27.2: Skip Links Enhancement
+- [ ] Slice 27.3: Page Transition Animation
+- [ ] Slice 27.4: Button Spring Physics
+- [ ] Slice 27.5: Loading State Animations
+
+### Queue 28: SEO & Programmatic Pages
+- [ ] Slice 28.1: Location+Produce URL Generator
+- [ ] Slice 28.2: Location+Produce Page Template
+- [ ] Slice 28.3: LocalBusiness Schema Enhancement
+- [ ] Slice 28.4: FAQPage Schema
+
+### Queue 29: Voice & Microcopy
+- [ ] Slice 29.1: Error Message Overhaul
+- [ ] Slice 29.2: Empty State Messages
+- [ ] Slice 29.3: Loading Messages
+- [ ] Slice 29.4: Success Messages
+
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
 - [x] Add structured logging to upload/route
 - [x] Add structured logging to photos/upload-url/route
@@ -134,6 +219,23 @@
 - [x] Queue 17 COMPLETE - All 63 API routes now have structured logging via createRouteLogger (verified via grep)
 
 ## Completed Work
+
+### 2026-01-25 (Design System Overhaul Plan + First Slices)
+- **Strategic Design System Overhaul Plan Created** (COMPLETE)
+  - Created comprehensive incremental implementation plan: docs/assistant/design-system-overhaul-plan.md
+  - Added Queues 18-29 to execution ledger (12 new queues, 60+ slices)
+  - Prioritized immediate value additions over breaking changes
+  - Follows CLAUDE.md constraints (max 8 files, 300 lines per slice)
+- **Queue 18, Slice 18.1: Open Status Badge** (VERIFIED EXISTING)
+  - Already implemented: src/lib/farm-status.ts (getFarmStatus, formatOpeningHours, isCurrentlyOpen)
+  - Already implemented: src/components/StatusBadge.tsx (StatusBadge, StatusBadgeCompact)
+  - Used in: FarmCard, FarmPageClient, compare page, admin interface
+- **Queue 18, Slice 18.2: Distance Display** (COMPLETE)
+  - Updated FarmCard.tsx to show formatted distance when available
+  - Uses formatDistance from shared/lib/geo.ts
+  - Added useUserLocation hook (hooks/useUserLocation.ts) for reusable geolocation
+  - Exported from hooks/index.ts
+  - Files changed: FarmCard.tsx (2 edits), useUserLocation.ts (new), hooks/index.ts (1 edit)
 
 ### 2026-01-24 (TypeScript Error Resolution)
 - **Type Safety Fixes for Production Readiness** (COMPLETE)

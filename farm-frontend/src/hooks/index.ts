@@ -8,3 +8,6 @@ export { useHapticFeedback, triggerHaptic } from './useHapticFeedback';
 export type { HapticType } from './useHapticFeedback';
 
 export { useSoundFeedback } from './useSoundFeedback';
+
+export { useUserLocation } from './useUserLocation';
+export type { UserLocation, UseUserLocationOptions, UseUserLocationResult } from './useUserLocation';

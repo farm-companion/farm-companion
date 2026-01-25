@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { MapPin, Navigation, CheckCircle, ExternalLink } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { StatusBadgeCompact } from './StatusBadge'
-import { isCurrentlyOpen } from '@/lib/farm-status'
+import { formatDistance } from '@/shared/lib/geo'
 
 interface FarmCardProps {
   farm: FarmShop
@@ -105,11 +105,19 @@ export function FarmCard({
           {farm.name}
         </h3>
 
-        {/* Location */}
-        <p className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-4">
+        {/* Location & Distance */}
+        <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-4">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span>{farm.location?.county || 'United Kingdom'}</span>
-        </p>
+          {farm.distance !== undefined && farm.distance > 0 && (
+            <>
+              <span className="text-slate-400 dark:text-slate-500">·</span>
+              <span className="font-medium text-primary-600 dark:text-primary-400">
+                {formatDistance(farm.distance)}
+              </span>
+            </>
+          )}
+        </div>
 
         {/* Action Buttons */}
         <div className="flex gap-3">
