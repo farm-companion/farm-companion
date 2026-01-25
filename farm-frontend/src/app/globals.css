@@ -276,26 +276,32 @@ body {
 
 /* Modern Swiss Minimalism Font Assignments */
 
-/* Headings / Brand - Clash Display (bold, high-impact) */
-h1, h2, h3, h4, h5, h6, .brand {
-  font-family: var(--font-primary);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--text-heading);
+/* Headings / Brand - Clash Display (bold, high-impact)
+   Wrapped in @layer base so Tailwind utility classes can override */
+@layer base {
+  h1, h2, h3, h4, h5, h6, .brand {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text-heading);
+  }
 }
 
-/* Regular heading sizes - comfortable reading */
-h1 {
-  font-size: clamp(1.75rem, 4vw, 2.5rem); /* 28px to 40px - regular size */
-}
+/* Regular heading sizes - comfortable reading
+   Wrapped in @layer base so Tailwind utility classes can override */
+@layer base {
+  h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem); /* 28px to 40px - regular size */
+  }
 
-h2 {
-  font-size: clamp(1.5rem, 3.5vw, 2rem); /* 24px to 32px - regular size */
-}
+  h2 {
+    font-size: clamp(1.5rem, 3.5vw, 2rem); /* 24px to 32px - regular size */
+  }
 
-h3 {
-  font-size: clamp(1.25rem, 3vw, 1.5rem); /* 20px to 24px - regular size */
+  h3 {
+    font-size: clamp(1.25rem, 3vw, 1.5rem); /* 20px to 24px - regular size */
+  }
 }
 
 h4 {
