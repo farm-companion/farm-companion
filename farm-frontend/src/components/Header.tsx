@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { Leaf, Menu, X, MapPin, Calendar, Info, MessageSquare, Plus, Command, Search } from 'lucide-react'
 import ThemeToggle from '@/components/ThemeToggle'
+import { LocationContext } from '@/components/navigation/LocationContext'
 
 /**
  * God-Tier Header 5.0 - Command Center Design
@@ -337,7 +338,15 @@ export default function Header() {
         >
           {/* Specular edge highlight (dark mode only) */}
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent dark:block hidden pointer-events-none rounded-t-2xl" />
-          <Brand inverted={inverted} />
+
+          {/* Brand + Location Context */}
+          <div className="flex items-center gap-4">
+            <Brand inverted={inverted} />
+            {/* Location context - hidden on mobile, shown on large screens */}
+            <div className="hidden lg:block">
+              <LocationContext variant="compact" inverted={inverted} />
+            </div>
+          </div>
 
           {/* Desktop navigation - Command Center typography */}
           <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
