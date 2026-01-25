@@ -19,117 +19,57 @@ module.exports = {
       },
       
       /* ========================================================================
-         OBSIDIAN & KINETIC COLOR SYSTEM - SURPASSES APPLE
-         Zinc-based neutrals with Kinetic Cyan & Iris Violet accents
-         All colors WCAG AAA compliant (7:1+ contrast)
+         HARVEST SEMANTIC COLOR SYSTEM - God-Tier Theming
+
+         Rule: NEVER use raw colors in components (bg-[#F9F7F2], text-zinc-900)
+         ALWAYS use semantic classes (bg-background, text-foreground)
+
+         These map to CSS variables that swap based on .dark class
          ======================================================================== */
       colors: {
         // =======================================================================
-        // OBSIDIAN NEUTRALS (Zinc-based - warm undertones)
+        // SEMANTIC COLORS (USE THESE IN COMPONENTS)
         // =======================================================================
-        obsidian: {
-          DEFAULT: '#18181B',  // Zinc 900
-          canvas: '#FFFFFF',   // Light mode canvas
-          'canvas-dark': '#09090B', // Dark mode canvas (deepest ink)
-          surface: '#FAFAFA',  // Zinc 50
-          elevated: '#F4F4F5', // Zinc 100
-          muted: '#E4E4E7',    // Zinc 200
-          border: '#D4D4D8',   // Zinc 300
+        background: 'hsl(var(--background))',
+        'background-secondary': 'hsl(var(--background-secondary))',
+        foreground: 'hsl(var(--foreground))',
+        'foreground-secondary': 'hsl(var(--foreground-secondary))',
+        'foreground-muted': 'hsl(var(--foreground-muted))',
+
+        card: {
+          DEFAULT: 'hsl(var(--card))',
+          hover: 'hsl(var(--card-hover))',
+          foreground: 'hsl(var(--foreground))',
         },
 
-        // Full Zinc scale (replaces Slate for warmer feel)
-        zinc: {
-          50: '#FAFAFA',
-          100: '#F4F4F5',
-          200: '#E4E4E7',
-          300: '#D4D4D8',
-          400: '#A1A1AA',
-          500: '#71717A',
-          600: '#52525B',   // WCAG AAA on white (7.2:1)
-          700: '#3F3F46',
-          800: '#27272A',   // Body text dark (14.2:1)
-          900: '#18181B',   // Headings (17.4:1)
-          950: '#09090B',   // Deepest ink
+        popover: {
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--foreground))',
         },
 
-        // =======================================================================
-        // KINETIC CYAN (Primary - Electric, cutting)
-        // =======================================================================
-        kinetic: {
-          DEFAULT: '#06B6D4', // Cyan 500 - 4.5:1 on white
-          50: '#ECFEFF',
-          100: '#CFFAFE',
-          200: '#A5F3FC',
-          300: '#67E8F9',
-          400: '#22D3EE',     // Bright for dark mode
-          500: '#06B6D4',     // DEFAULT
-          600: '#0891B2',     // 5.8:1 on white
-          700: '#0E7490',
-          800: '#155E75',     // AAA text (8.1:1)
-          900: '#164E63',
-          glow: 'rgba(6, 182, 212, 0.15)',
-        },
-
-        // =======================================================================
-        // IRIS VIOLET (Secondary - Depth, sophistication)
-        // =======================================================================
-        iris: {
-          DEFAULT: '#6366F1', // Indigo 500 - 4.5:1 on white
-          50: '#EEF2FF',
-          100: '#E0E7FF',
-          200: '#C7D2FE',
-          300: '#A5B4FC',
-          400: '#818CF8',     // Bright for dark mode
-          500: '#6366F1',     // DEFAULT
-          600: '#4F46E5',     // 5.9:1 on white
-          700: '#4338CA',
-          800: '#3730A3',     // AAA text
-          900: '#312E81',
-          glow: 'rgba(99, 102, 241, 0.15)',
-        },
-
-        // =======================================================================
-        // PRIMARY (Now maps to Kinetic Cyan)
-        // =======================================================================
         primary: {
+          DEFAULT: 'hsl(var(--primary))',
+          hover: 'hsl(var(--primary-hover))',
+          foreground: 'hsl(var(--primary-foreground))',
+          // Full scale for gradients
           50: '#ECFEFF',
           100: '#CFFAFE',
           200: '#A5F3FC',
           300: '#67E8F9',
           400: '#22D3EE',
           500: '#06B6D4',
-          600: '#0891B2',     // PRIMARY for buttons (5.8:1)
+          600: '#0891B2',
           700: '#0E7490',
-          800: '#155E75',     // AAA text (8.1:1)
+          800: '#155E75',
           900: '#164E63',
           950: '#083344',
         },
 
-        // =======================================================================
-        // LEGACY ALIASES (Backward compatibility)
-        // =======================================================================
-        serum: {
-          DEFAULT: '#06B6D4', // Now Kinetic Cyan
-          light: '#22D3EE',
-          text: '#155E75',
-          dark: '#0891B2',
-        },
-        sandstone: '#FAFAFA', // Zinc 50
-        solar: {
-          DEFAULT: '#4d7c0f',
-          light: '#84cc16',
-          text: '#3f6212',
-          dark: '#365314',
-        },
-        midnight: '#09090B',  // Deepest ink
-
-        // Semantic color aliases
-        'brand-primary': 'var(--brand-primary)',
-        'brand-accent': 'var(--brand-accent)',
-        'brand-danger': '#F43F5E',  // Rose/Ember 500
-
-        // Secondary (Lime) - Vibrant accent scale
         secondary: {
+          DEFAULT: 'hsl(var(--secondary))',
+          hover: 'hsl(var(--secondary-hover))',
+          foreground: 'hsl(var(--secondary-foreground))',
+          // Full scale
           50: '#f7fee7',
           100: '#ecfccb',
           200: '#d9f99d',
@@ -143,7 +83,126 @@ module.exports = {
           950: '#1a2e05',
         },
 
-        // Slate (preserved for compatibility, prefer Zinc)
+        muted: {
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--foreground-muted))',
+        },
+
+        accent: {
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
+        },
+
+        destructive: {
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
+        },
+
+        border: 'hsl(var(--border))',
+        'border-subtle': 'hsl(var(--border-subtle))',
+        'border-strong': 'hsl(var(--border-strong))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+
+        // Feedback states
+        success: {
+          DEFAULT: 'hsl(var(--success))',
+          foreground: 'hsl(var(--success-foreground))',
+        },
+        warning: {
+          DEFAULT: 'hsl(var(--warning))',
+          foreground: 'hsl(var(--warning-foreground))',
+        },
+        error: {
+          DEFAULT: 'hsl(var(--error))',
+          foreground: 'hsl(var(--error-foreground))',
+        },
+        info: {
+          DEFAULT: 'hsl(var(--info))',
+          foreground: 'hsl(var(--info-foreground))',
+        },
+
+        // =======================================================================
+        // PRIMITIVE SCALES (For advanced use only - prefer semantics above)
+        // =======================================================================
+        // Obsidian Neutrals (Zinc-based)
+        obsidian: {
+          DEFAULT: '#18181B',
+          canvas: '#FFFFFF',
+          'canvas-dark': '#0C0A09',
+          surface: '#FAFAFA',
+          elevated: '#F4F4F5',
+          muted: '#E4E4E7',
+          border: '#D4D4D8',
+        },
+
+        zinc: {
+          50: '#FAFAFA',
+          100: '#F4F4F5',
+          200: '#E4E4E7',
+          300: '#D4D4D8',
+          400: '#A1A1AA',
+          500: '#71717A',
+          600: '#52525B',
+          700: '#3F3F46',
+          800: '#27272A',
+          900: '#18181B',
+          950: '#09090B',
+        },
+
+        // Kinetic Cyan
+        kinetic: {
+          DEFAULT: '#06B6D4',
+          50: '#ECFEFF',
+          100: '#CFFAFE',
+          200: '#A5F3FC',
+          300: '#67E8F9',
+          400: '#22D3EE',
+          500: '#06B6D4',
+          600: '#0891B2',
+          700: '#0E7490',
+          800: '#155E75',
+          900: '#164E63',
+          glow: 'rgba(6, 182, 212, 0.15)',
+        },
+
+        // Iris Violet
+        iris: {
+          DEFAULT: '#6366F1',
+          50: '#EEF2FF',
+          100: '#E0E7FF',
+          200: '#C7D2FE',
+          300: '#A5B4FC',
+          400: '#818CF8',
+          500: '#6366F1',
+          600: '#4F46E5',
+          700: '#4338CA',
+          800: '#3730A3',
+          900: '#312E81',
+          glow: 'rgba(99, 102, 241, 0.15)',
+        },
+
+        // Legacy aliases
+        serum: {
+          DEFAULT: '#06B6D4',
+          light: '#22D3EE',
+          text: '#155E75',
+          dark: '#0891B2',
+        },
+        sandstone: '#FAFAFA',
+        solar: {
+          DEFAULT: '#4d7c0f',
+          light: '#84cc16',
+          text: '#3f6212',
+          dark: '#365314',
+        },
+        midnight: '#0C0A09',
+
+        'brand-primary': 'var(--brand-primary)',
+        'brand-accent': 'var(--brand-accent)',
+        'brand-danger': '#F43F5E',
+
+        // Slate (compatibility)
         slate: {
           50: '#f8fafc',
           100: '#f1f5f9',
@@ -158,84 +217,16 @@ module.exports = {
           950: '#020617',
         },
 
-        // =======================================================================
-        // SEMANTIC FEEDBACK (Elevated palette - more vibrant)
-        // =======================================================================
-        success: {
-          50: '#ECFDF5',
-          100: '#D1FAE5',
-          200: '#A7F3D0',
-          300: '#6EE7B7',
-          400: '#34D399',     // Vibrant for dark mode
-          500: '#10B981',     // DEFAULT - Emerald
-          600: '#059669',
-          700: '#047857',
-          800: '#065F46',
-          900: '#064E3B',     // AAA text (9.8:1)
-          DEFAULT: '#10B981',
-          light: '#D1FAE5',
-          dark: '#064E3B'
-        },
-        warning: {
-          50: '#FFFBEB',
-          100: '#FEF3C7',
-          200: '#FDE68A',
-          300: '#FCD34D',
-          400: '#FBBF24',     // Vibrant for dark mode
-          500: '#F59E0B',     // DEFAULT - Amber
-          600: '#D97706',
-          700: '#B45309',
-          800: '#92400E',
-          900: '#78350F',     // AAA text (8.2:1)
-          DEFAULT: '#F59E0B',
-          light: '#FEF3C7',
-          dark: '#713f12'
-        },
-        error: {
-          50: '#fef2f2',
-          100: '#fee2e2',
-          200: '#fecaca',
-          300: '#fca5a5',
-          400: '#f87171',
-          500: '#ef4444',
-          600: '#dc2626',
-          700: '#b91c1c',   // DEFAULT (5.6:1)
-          800: '#991b1b',
-          900: '#7f1d1d',   // AAA text (9.2:1)
-          DEFAULT: '#b91c1c',
-          light: '#fee2e2',
-          dark: '#7f1d1d'
-        },
-        info: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          200: '#bfdbfe',
-          300: '#93c5fd',
-          400: '#60a5fa',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',   // DEFAULT (5.5:1)
-          800: '#1e40af',
-          900: '#1e3a8a',   // AAA text (9.8:1)
-          DEFAULT: '#1d4ed8',
-          light: '#dbeafe',
-          dark: '#1e3a8a'
-        },
-
-        // CSS Variable mappings
+        // Legacy CSS variable mappings
         'background-canvas': 'var(--background-canvas)',
         'background-surface': 'var(--background-surface)',
         'background-elevated': 'var(--background-elevated)',
         'background-hover': 'var(--background-hover)',
-
         'text-heading': 'var(--text-heading)',
         'text-body': 'var(--text-body)',
         'text-muted': 'var(--text-muted)',
         'text-subtle': 'var(--text-subtle)',
-
         'border-default': 'var(--border-default)',
-        'border-subtle': 'var(--border-subtle)',
-        'border-strong': 'var(--border-strong)',
         'border-focus': 'var(--border-focus)',
       },
       
@@ -315,8 +306,10 @@ module.exports = {
       borderRadius: {
         'none': '0',
         'sm': '4px',
+        DEFAULT: 'var(--radius)',
         'md': '8px',
-        'lg': '16px',
+        'lg': 'calc(var(--radius) * 1.5)',
+        'xl': 'calc(var(--radius) * 2)',
         'full': '9999px',
       },
       
