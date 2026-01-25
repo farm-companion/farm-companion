@@ -11,6 +11,7 @@ import AnalyticsLoader from '@/components/AnalyticsLoader'
 import { AriaLiveRegion } from '@/components/accessibility/AriaLiveRegion'
 import { SkipLinks } from '@/components/accessibility/SkipLinks'
 import { BottomNav } from '@/components/navigation/BottomNav'
+import { CommandPalette } from '@/components/search'
 import { SITE_URL } from '@/lib/site'
 
 // Modern Swiss Minimalism Font Stack
@@ -302,6 +303,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
         {/* Consent */}
         <ConsentBanner />
+
+        {/* Command Palette (CMD+K search) */}
+        <CommandPalette />
 
         {/* Footer - conditionally hidden on map page */}
         <FooterWrapper />
