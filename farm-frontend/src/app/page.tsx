@@ -124,9 +124,6 @@ export default async function HomePage() {
       {/* Social Proof Ticker */}
       <SocialProofTicker />
 
-      {/* Social Proof Ticker */}
-      <SocialProofTicker />
-
       {/* Animated Stats Section */}
       <AnimatedStats farmCount={farmCount} countyCount={countyCount} />
 
