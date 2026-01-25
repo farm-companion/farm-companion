@@ -115,7 +115,11 @@ export default async function HomePage() {
       <OpenNowCTA variant="floating" />
 
       {/* Animated Hero Section */}
-      <AnimatedHero countyCount={countyCount} />
+      <AnimatedHero
+        countyCount={countyCount}
+        videoSrc="/videos/hero-produce.mp4"
+        videoPoster="/main_header.jpg"
+      />
 
       {/* Social Proof Ticker */}
       <SocialProofTicker />
