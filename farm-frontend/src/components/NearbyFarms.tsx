@@ -47,6 +47,8 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   const [isLoading, setIsLoading] = useState(true)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationDenied, setLocationDenied] = useState(false)
+  const [permissionState, setPermissionState] = useState<'prompt' | 'granted' | 'denied' | 'unknown'>('unknown')
+  const [showLocationHelp, setShowLocationHelp] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Get current month for seasonal headline
@@ -58,8 +60,33 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     return farms.filter(farm => isCurrentlyOpen(farm.hours)).length
   }, [farms])
 
-  // Request user location
+  // Check geolocation permission state
   useEffect(() => {
+    async function checkPermission() {
+      if ('permissions' in navigator) {
+        try {
+          const result = await navigator.permissions.query({ name: 'geolocation' })
+          setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
+
+          // Listen for permission changes
+          result.addEventListener('change', () => {
+            setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
+            if (result.state === 'granted') {
+              setLocationDenied(false)
+              setShowLocationHelp(false)
+              requestLocation()
+            }
+          })
+        } catch {
+          setPermissionState('unknown')
+        }
+      }
+    }
+    checkPermission()
+  }, [])
+
+  // Request user location
+  const requestLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -67,6 +94,8 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             lat: position.coords.latitude,
             lng: position.coords.longitude
           })
+          setLocationDenied(false)
+          setShowLocationHelp(false)
         },
         () => {
           setLocationDenied(true)
@@ -84,6 +113,11 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
       // Fallback to London coordinates
       setUserLocation({ lat: 51.5074, lng: -0.1278 })
     }
+  }
+
+  // Initial location request on mount
+  useEffect(() => {
+    requestLocation()
   }, [])
 
   // Fetch and sort farms by distance
@@ -135,21 +169,14 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   }
 
   const handleEnableLocation = () => {
-    // Re-request location permission
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          })
-          setLocationDenied(false)
-        },
-        () => {
-          // Geolocation permission still denied
-        }
-      )
+    // If permission is denied, show help modal since browser won't re-prompt
+    if (permissionState === 'denied') {
+      setShowLocationHelp(true)
+      return
     }
+
+    // Otherwise try to request location (will prompt if state is 'prompt')
+    requestLocation()
   }
 
   // Loading skeleton - matches new card design
@@ -243,7 +270,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           )}
 
           {/* Enable Location CTA */}
-          {locationDenied && (
+          {locationDenied && !showLocationHelp && (
             <div className="inline-flex flex-col items-center gap-3">
               <Button
                 variant="primary"
@@ -254,8 +281,67 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
                 Enable Location
               </Button>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Click &quot;Allow&quot; when your browser asks for permission
+                {permissionState === 'denied'
+                  ? 'Location was previously blocked. Click to see how to enable it.'
+                  : 'Click "Allow" when your browser asks for permission'}
               </p>
+            </div>
+          )}
+
+          {/* Location Help Panel - shown when permission is denied */}
+          {showLocationHelp && (
+            <div className="max-w-md mx-auto bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-left">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
+                  <Compass className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                    Enable Location Access
+                  </h3>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Location access was previously blocked. To enable it:
+                  </p>
+                </div>
+              </div>
+
+              <ol className="space-y-2 text-sm text-slate-700 dark:text-slate-300 mb-4 pl-4">
+                <li className="flex items-start gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center justify-center">1</span>
+                  <span>Click the <strong>lock icon</strong> in your browser&apos;s address bar</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center justify-center">2</span>
+                  <span>Find <strong>Location</strong> in the permissions list</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center justify-center">3</span>
+                  <span>Change from &quot;Block&quot; to <strong>Allow</strong></span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center justify-center">4</span>
+                  <span>Refresh the page</span>
+                </li>
+              </ol>
+
+              <div className="flex gap-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setShowLocationHelp(false)}
+                  className="flex-1"
+                >
+                  Close
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => window.location.reload()}
+                  className="flex-1"
+                >
+                  Refresh Page
+                </Button>
+              </div>
             </div>
           )}
         </div>

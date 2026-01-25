@@ -17,7 +17,7 @@
 import { useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Leaf, Sparkles, Clock, ChevronRight } from 'lucide-react'
+import { Leaf, Sparkles, Clock, ChevronRight, Sunrise } from 'lucide-react'
 import {
   getProduceInSeason,
   getCurrentMonth,
@@ -142,6 +142,11 @@ function SeasonStatusBadge({ status }: { status: SeasonalProduce['seasonStatus']
       icon: Sparkles,
       label: 'Peak',
       className: 'bg-emerald-500/90 text-white'
+    },
+    starting: {
+      icon: Sunrise,
+      label: 'Just Started',
+      className: 'bg-sky-500/90 text-white'
     },
     'in-season': {
       icon: Leaf,
