@@ -6,27 +6,8 @@ import { FarmCard } from './FarmCard'
 import { Button } from './ui/Button'
 import { MapPin, Navigation, Compass } from 'lucide-react'
 import { EmptyState } from './ui/EmptyState'
-
-interface Farm {
-  id: string
-  name: string
-  slug: string
-  location: {
-    address: string
-    city?: string
-    county: string
-    postcode: string
-    lat: number
-    lng: number
-  }
-  googleRating?: number
-  verified?: boolean
-  images?: Array<{
-    url: string
-    altText?: string
-  }>
-  categories?: string[]
-}
+import type { FarmShop } from '@/types/farm'
+import { calculateDistance } from '@/shared/lib/geo'
 
 interface NearbyFarmsProps {
   className?: string
@@ -45,32 +26,11 @@ interface NearbyFarmsProps {
  */
 export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   const router = useRouter()
-  const [farms, setFarms] = useState<Farm[]>([])
+  const [farms, setFarms] = useState<FarmShop[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationDenied, setLocationDenied] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // Calculate distance using Haversine formula
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371 // Earth's radius in km
-    const dLat = toRadians(lat2 - lat1)
-    const dLng = toRadians(lng2 - lng1)
-
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRadians(lat1)) *
-        Math.cos(toRadians(lat2)) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2)
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    return R * c
-  }
-
-  const toRadians = (degrees: number): number => {
-    return degrees * (Math.PI / 180)
-  }
 
   // Request user location
   useEffect(() => {
@@ -82,8 +42,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             lng: position.coords.longitude
           })
         },
-        (error) => {
-          console.error('Geolocation error:', error)
+        () => {
           setLocationDenied(true)
           // Fallback to London coordinates
           setUserLocation({ lat: 51.5074, lng: -0.1278 })
@@ -111,27 +70,24 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
         if (!response.ok) throw new Error('Failed to fetch farms')
 
         const data = await response.json()
-        const allFarms = data.farms || []
+        const allFarms: FarmShop[] = data.farms || []
 
-        // Calculate distances and sort
+        // Calculate distances and sort by nearest
         const farmsWithDistance = allFarms
-          .map((farm: Farm) => ({
+          .map((farm) => ({
             ...farm,
-            distance: userLocation
-              ? calculateDistance(
-                  userLocation.lat,
-                  userLocation.lng,
-                  farm.location.lat,
-                  farm.location.lng
-                )
-              : 0
+            distance: calculateDistance(
+              userLocation.lat,
+              userLocation.lng,
+              farm.location.lat,
+              farm.location.lng
+            )
           }))
-          .sort((a: any, b: any) => a.distance - b.distance)
+          .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
           .slice(0, limit)
 
         setFarms(farmsWithDistance)
-      } catch (err) {
-        console.error('Error loading nearby farms:', err)
+      } catch {
         setError('Unable to load nearby farms')
       } finally {
         setIsLoading(false)
@@ -160,8 +116,8 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           })
           setLocationDenied(false)
         },
-        (error) => {
-          console.error('Geolocation error:', error)
+        () => {
+          // Geolocation permission still denied
         }
       )
     }
@@ -258,7 +214,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
         {/* Farm Grid - 4 columns on large screens */}
         {farms.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {farms.map((farm: any) => (
+            {farms.map((farm) => (
               <FarmCard
                 key={farm.id}
                 farm={farm}

@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Navigation, CheckCircle, ExternalLink } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
+import { getImageUrl } from '@/types/farm'
 import { StatusBadgeCompact } from './StatusBadge'
 import { formatDistance } from '@/shared/lib/geo'
 
@@ -33,7 +34,8 @@ export function FarmCard({
   onDirections,
   selected = false,
 }: FarmCardProps) {
-  const hasPhotos = farm.images && farm.images.length > 0
+  const firstImageUrl = farm.images?.[0] ? getImageUrl(farm.images[0]) : undefined
+  const hasPhotos = !!firstImageUrl
   const isVerified = farm.verified || false
 
   const handleDirections = (e: React.MouseEvent) => {
@@ -68,9 +70,9 @@ export function FarmCard({
     >
       {/* Image Section */}
       <div className="relative h-36 bg-slate-100 dark:bg-slate-800 overflow-hidden">
-        {hasPhotos ? (
+        {hasPhotos && firstImageUrl ? (
           <Image
-            src={farm.images![0]}
+            src={firstImageUrl}
             alt={`${farm.name} farm shop`}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
