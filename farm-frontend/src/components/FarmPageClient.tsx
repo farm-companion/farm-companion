@@ -20,6 +20,7 @@ import {
   Sparkles
 } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
+import { getImageUrl } from '@/types/farm'
 import { ObfuscatedEmail, ObfuscatedPhone } from './ObfuscatedContact'
 import { StatusBadge } from './StatusBadge'
 import PhotoSubmissionForm from './PhotoSubmissionForm'
@@ -174,8 +175,9 @@ export function FarmPageClient({
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
             >
               {shop.images
-                .filter(img => img && typeof img === 'string' && img.trim() !== '')
-                .map((image, index) => (
+                .map(img => getImageUrl(img))
+                .filter((url): url is string => !!url && url.trim() !== '')
+                .map((imageUrl, index) => (
                   <motion.div
                     key={index}
                     variants={staggerItem}
@@ -185,7 +187,7 @@ export function FarmPageClient({
                   >
                     <div className="aspect-[4/3] relative">
                       <Image
-                        src={image}
+                        src={imageUrl}
                         alt={`${name} - Photo ${index + 1}`}
                         fill
                         className="object-cover transition-transform duration-700 group-hover:scale-110"
