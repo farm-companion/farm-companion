@@ -181,7 +181,7 @@ async function generateFarmImages() {
               farmId: farm.id,
               url: url,
               altText: `${farm.name} farm shop`,
-              type: 'ai_generated',
+              uploadedBy: 'ai_generator',
               status: 'approved',
               displayOrder: 0
             }

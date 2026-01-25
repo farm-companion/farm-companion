@@ -119,6 +119,7 @@
 ### Queue 18: Immediate Value Additions (DESIGN SYSTEM OVERHAUL)
 - [x] Slice 18.1: Dynamic "Open Now" Status Badge (Already exists: farm-status.ts + StatusBadge.tsx)
 - [x] Slice 18.2: Distance Display on Shop Cards (FarmCard.tsx + useUserLocation hook)
+- [x] Slice 18.2b: NearbyFarms Harvest Design Enhancement (seasonal headlines, live status indicator, open farms count)
 - [ ] Slice 18.3: "What's In Season Now" Module
 - [ ] Slice 18.4: Shop Amenity Icons
 - [ ] Slice 18.5: County Density Indicators
@@ -252,6 +253,18 @@
   - Created generate-farm-images.ts CLI script
   - Usage: pnpm run generate:farm-images --limit=10 --upload
   - Automatically creates Image record in database for generated farms
+- **NearbyFarms Harvest Design Enhancement** (COMPLETE)
+  - Added seasonal headlines for each month (January-December with seasonal subtext)
+  - Added live status indicator showing how many farms are currently open
+  - Animated ping dot for real-time visual feedback
+  - Uses isCurrentlyOpen() from farm-status.ts for accurate open status
+  - Files changed: NearbyFarms.tsx (seasonal data + UI enhancement)
+- **TypeScript Build Fixes** (COMPLETE)
+  - Fixed farm-status.ts: Changed getNextOpenTime to use normalizedHours instead of raw openingHours
+  - Fixed enhanced-sitemap.ts: Added getImageUrl import and extraction for FarmImage objects
+  - Fixed generate-farm-images.ts: Changed `type` to `uploadedBy` (matching Prisma schema)
+  - Fixed NearbyFarms.tsx: Captured userLocation as const for TypeScript narrowing in async closure
+  - Result: 0 TypeScript errors (tsc --noEmit passes)
 
 ### 2026-01-24 (TypeScript Error Resolution)
 - **Type Safety Fixes for Production Readiness** (COMPLETE)

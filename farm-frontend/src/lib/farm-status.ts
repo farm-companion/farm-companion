@@ -173,7 +173,7 @@ export function getFarmStatus(openingHours?: unknown): FarmStatus {
   }
 
   // Closed for today (past closing time)
-  const nextOpen = getNextOpenTime(openingHours, now)
+  const nextOpen = getNextOpenTime(normalizedHours, now)
   if (nextOpen) {
     return {
       status: 'closed',
