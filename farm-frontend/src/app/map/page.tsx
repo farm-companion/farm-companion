@@ -2,9 +2,9 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
-import { Search } from 'lucide-react'
+import { Search, Filter } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
-import { MapSearch, LocationTracker, SearchAreaControl } from '@/features/map'
+import { MapSearch, LocationTracker, SearchAreaControl, FilterOverlayPanel } from '@/features/map'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
 
@@ -73,6 +73,7 @@ export default function MapPage() {
   const [bottomSheetHeight, setBottomSheetHeight] = useState(200)
   const [isDesktop, setIsDesktop] = useState(false)
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
+  const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)
 
   const locationWatchIdRef = useRef<number | null>(null)
   
@@ -478,6 +479,31 @@ export default function MapPage() {
               farmCount={filteredFarms.length}
             />
           </div>
+
+          {/* Filter Button - Bottom Left (Mobile) */}
+          <div className="md:hidden absolute bottom-24 left-4 z-20">
+            <button
+              onClick={() => setIsFilterPanelOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
+            >
+              <Filter className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
+              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">Filters</span>
+              {(filters.county || filters.category || filters.openNow) && (
+                <span className="w-2 h-2 bg-cyan-500 rounded-full" />
+              )}
+            </button>
+          </div>
+
+          {/* Filter Overlay Panel */}
+          <FilterOverlayPanel
+            isOpen={isFilterPanelOpen}
+            onClose={() => setIsFilterPanelOpen(false)}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            counties={counties}
+            categories={categories}
+            farmCount={filteredFarms.length}
+          />
 
           {/* Mobile: Enhanced Bottom Sheet with Farm List */}
           <div className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
