@@ -6,3 +6,4 @@
 
 export { CountyDensityBadge, CountyDensityLegend } from './CountyDensityBadge'
 export { UKCountyMap } from './UKCountyMap'
+export { RegionFilter, RegionPills } from './RegionFilter'
