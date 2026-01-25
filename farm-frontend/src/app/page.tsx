@@ -13,6 +13,7 @@ import { AnimatedFeatures } from '@/components/AnimatedFeatures'
 import { SeasonalShowcase } from '@/components/SeasonalShowcase'
 import { NearbyFarms } from '@/components/NearbyFarms'
 import { OpenNowCTA } from '@/components/OpenNowCTA'
+import { WeekendPlanner } from '@/components/WeekendPlanner'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -129,6 +130,11 @@ export default async function HomePage() {
 
       {/* Nearby Farms Section */}
       <NearbyFarms limit={4} />
+
+      {/* Weekend Planner Section */}
+      <section className="py-12 md:py-16 section-lazy">
+        <WeekendPlanner limit={4} />
+      </section>
 
       {/* Animated Features Section */}
       <AnimatedFeatures />
