@@ -133,12 +133,12 @@
 - [x] Slice 19.6: Predictive Search Suggestions (SearchSuggestions.tsx with intent patterns)
 
 ### Queue 20: Seasonal Page Transformation
-- [ ] Slice 20.1: Seasonal Data Structure
-- [ ] Slice 20.2: Produce Card Enhancement
-- [ ] Slice 20.3: Seasonality Progress Bar
-- [ ] Slice 20.4: Month Navigation Wheel (SVG)
-- [ ] Slice 20.5: "Find Stockists" Bridge
-- [ ] Slice 20.6: Nutrition Radial Charts
+- [x] Slice 20.1: Seasonal Data Structure (enhanced seasonal-utils.ts with progress, daysRemaining, categories)
+- [ ] Slice 20.2: Produce Card Enhancement (deferred - SeasonalGrid already polished)
+- [x] Slice 20.3: Seasonality Progress Bar (SeasonProgress.tsx with month segments)
+- [x] Slice 20.4: Month Navigation Wheel (MonthWheel.tsx SVG + MonthSelector compact)
+- [x] Slice 20.5: "Find Stockists" Bridge (FindStockists.tsx + FindStockistsCompact)
+- [x] Slice 20.6: Nutrition Radial Charts (NutritionRadial.tsx + NutritionBars + NutritionPills)
 
 ### Queue 21: Counties Page Transformation
 - [ ] Slice 21.1: UK SVG Map Component
