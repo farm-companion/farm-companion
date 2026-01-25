@@ -167,7 +167,7 @@
 - [x] Slice 24.1: Dynamic Seasonal Headline (DynamicSeasonalHeadline.tsx with month/time awareness)
 - [x] Slice 24.2: "Find Shops Open Now" CTA (OpenNowCTA.tsx + /api/farms/open-now-count)
 - [x] Slice 24.3: Weekend Planner Module (WeekendPlanner.tsx + /api/farms/weekend)
-- [ ] Slice 24.4: Social Proof Ticker
+- [x] Slice 24.4: Social Proof Ticker (SocialProofTicker.tsx, VisitorCount, TrustIndicators)
 - [ ] Slice 24.5: Hero Video Background
 
 ### Queue 25: "Harvest" Color System (Optional Theme)

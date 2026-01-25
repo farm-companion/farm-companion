@@ -14,6 +14,7 @@ import { SeasonalShowcase } from '@/components/SeasonalShowcase'
 import { NearbyFarms } from '@/components/NearbyFarms'
 import { OpenNowCTA } from '@/components/OpenNowCTA'
 import { WeekendPlanner } from '@/components/WeekendPlanner'
+import { SocialProofTicker } from '@/components/SocialProofTicker'
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -115,6 +116,9 @@ export default async function HomePage() {
 
       {/* Animated Hero Section */}
       <AnimatedHero countyCount={countyCount} />
+
+      {/* Social Proof Ticker */}
+      <SocialProofTicker />
 
       {/* Animated Stats Section */}
       <AnimatedStats farmCount={farmCount} countyCount={countyCount} />
