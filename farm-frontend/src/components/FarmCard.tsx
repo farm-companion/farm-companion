@@ -100,15 +100,15 @@ export function FarmCard({
         )}
       </div>
 
-      {/* Content Section */}
-      <div className="p-5 flex flex-col flex-grow">
+      {/* Content Section - Generous padding for breathing room */}
+      <div className="p-6 flex flex-col flex-grow">
         {/* Farm Name - Full display, no truncation */}
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-2 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-3 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
           {farm.name}
         </h3>
 
         {/* Location & Distance */}
-        <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-auto pb-4">
+        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-auto pb-5">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span className="truncate">{farm.location?.county || 'United Kingdom'}</span>
           {farm.distance !== undefined && farm.distance > 0 && (
@@ -122,7 +122,7 @@ export function FarmCard({
         </div>
 
         {/* Action Buttons - Always at bottom */}
-        <div className="flex gap-3 mt-auto">
+        <div className="flex gap-3 mt-auto pt-2">
           {/* Primary CTA - View Details */}
           <Link
             href={`/shop/${farm.slug}`}
