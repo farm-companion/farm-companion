@@ -120,8 +120,8 @@
 - [x] Slice 18.1: Dynamic "Open Now" Status Badge (Already exists: farm-status.ts + StatusBadge.tsx)
 - [x] Slice 18.2: Distance Display on Shop Cards (FarmCard.tsx + useUserLocation hook)
 - [x] Slice 18.2b: NearbyFarms Harvest Design Enhancement (seasonal headlines, live status indicator, open farms count)
-- [ ] Slice 18.3: "What's In Season Now" Module
-- [ ] Slice 18.4: Shop Amenity Icons
+- [x] Slice 18.3: "What's In Season Now" Module (InSeasonNow.tsx + seasonal-utils.ts)
+- [x] Slice 18.4: Shop Amenity Icons (AmenityIcons.tsx + amenities.ts data)
 - [ ] Slice 18.5: County Density Indicators
 
 ### Queue 19: Header Evolution (Command Center)
