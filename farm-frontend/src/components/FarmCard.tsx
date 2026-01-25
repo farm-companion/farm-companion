@@ -7,6 +7,7 @@ import { MapPin, Navigation, CheckCircle, ExternalLink } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
 import { StatusBadgeCompact } from './StatusBadge'
+import { AmenityIcons } from './shop/AmenityIcons'
 import { formatDistance } from '@/shared/lib/geo'
 
 interface FarmCardProps {
@@ -100,15 +101,15 @@ export function FarmCard({
         )}
       </div>
 
-      {/* Content Section */}
-      <div className="p-5 flex flex-col flex-grow">
+      {/* Content Section - Generous padding for breathing room */}
+      <div className="p-6 flex flex-col flex-grow">
         {/* Farm Name - Full display, no truncation */}
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-2 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-3 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
           {farm.name}
         </h3>
 
         {/* Location & Distance */}
-        <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-auto pb-4">
+        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-3">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span className="truncate">{farm.location?.county || 'United Kingdom'}</span>
           {farm.distance !== undefined && farm.distance > 0 && (
@@ -121,8 +122,20 @@ export function FarmCard({
           )}
         </div>
 
+        {/* Amenity Icons */}
+        {farm.amenities && farm.amenities.length > 0 && (
+          <div className="mb-auto pb-4">
+            <AmenityIcons amenityIds={farm.amenities} limit={4} />
+          </div>
+        )}
+
+        {/* Spacer when no amenities */}
+        {(!farm.amenities || farm.amenities.length === 0) && (
+          <div className="mb-auto pb-2" />
+        )}
+
         {/* Action Buttons - Always at bottom */}
-        <div className="flex gap-3 mt-auto">
+        <div className="flex gap-3 mt-auto pt-2">
           {/* Primary CTA - View Details */}
           <Link
             href={`/shop/${farm.slug}`}
@@ -133,14 +146,14 @@ export function FarmCard({
             <ExternalLink className="h-4 w-4" />
           </Link>
 
-          {/* Secondary CTA - Directions */}
+          {/* Secondary CTA - Directions (icon only to save space) */}
           <button
             onClick={handleDirections}
-            className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-semibold transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 active:scale-[0.98]"
+            className="inline-flex items-center justify-center h-11 w-11 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 active:scale-[0.98]"
             title="Get directions"
+            aria-label="Get directions"
           >
-            <Navigation className="h-4 w-4" />
-            <span className="hidden sm:inline">Directions</span>
+            <Navigation className="h-5 w-5" />
           </button>
         </div>
       </div>

@@ -1,108 +1,39 @@
 'use client'
 
+import { useTheme } from 'next-themes'
 import { useState, useEffect } from 'react'
-import { Sun, Moon } from 'lucide-react'
+import { Sun, Moon, Monitor } from 'lucide-react'
 
+/**
+ * Theme Toggle - Harvest Design System
+ *
+ * Three-state toggle: Light, Dark, System (auto)
+ * Uses next-themes for reliable SSR and hydration
+ */
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(false)
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [isAuto, setIsAuto] = useState(true)
 
   useEffect(() => {
     setMounted(true)
-    
-    // Function to update component state based on current theme
-    const updateThemeState = () => {
-      const savedTheme = localStorage.getItem('theme')
-      const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      
-      // Check if user has manually set a theme
-      if (savedTheme === 'dark' || savedTheme === 'light') {
-        setIsAuto(false)
-        setIsDark(savedTheme === 'dark')
-      } else {
-        // Auto mode - follow system preference
-        setIsAuto(true)
-        setIsDark(systemPrefersDark)
-      }
-    }
-    
-    // Initial state
-    updateThemeState()
-    
-    // Listen for theme changes
-    window.addEventListener('theme-changed', updateThemeState)
-    
-    // Listen for system theme changes
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleSystemThemeChange = () => {
-      if (isAuto) {
-        const systemPrefersDark = mediaQuery.matches
-        setIsDark(systemPrefersDark)
-        if (systemPrefersDark) {
-          document.documentElement.classList.add('dark')
-        } else {
-          document.documentElement.classList.remove('dark')
-        }
-      }
-    }
-    
-    mediaQuery.addEventListener('change', handleSystemThemeChange)
-    
-    // Cleanup
-    return () => {
-      window.removeEventListener('theme-changed', updateThemeState)
-      mediaQuery.removeEventListener('change', handleSystemThemeChange)
-    }
-  }, [isAuto])
+  }, [])
 
   const toggleTheme = () => {
-    if (isAuto) {
-      // Switch from auto to manual light mode
-      setIsAuto(false)
-      setIsDark(false)
-      localStorage.setItem('theme', 'light')
-      document.documentElement.classList.remove('dark')
-      document.documentElement.classList.add('light')
-      // Dispatch event for other components
-      window.dispatchEvent(new Event('theme-changed'))
-    } else if (isDark) {
-      // Switch from dark to light
-      setIsDark(false)
-      localStorage.setItem('theme', 'light')
-      document.documentElement.classList.remove('dark')
-      document.documentElement.classList.add('light')
-      // Dispatch event for other components
-      window.dispatchEvent(new Event('theme-changed'))
+    // Cycle: system -> light -> dark -> system
+    if (theme === 'system') {
+      setTheme('light')
+    } else if (theme === 'light') {
+      setTheme('dark')
     } else {
-      // Switch from light to dark
-      setIsDark(true)
-      localStorage.setItem('theme', 'dark')
-      document.documentElement.classList.add('dark')
-      document.documentElement.classList.remove('light')
-      // Dispatch event for other components
-      window.dispatchEvent(new Event('theme-changed'))
+      setTheme('system')
     }
-  }
-
-  const resetToAuto = () => {
-    setIsAuto(true)
-    localStorage.removeItem('theme')
-    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    setIsDark(systemPrefersDark)
-    document.documentElement.classList.remove('dark', 'light')
-    if (systemPrefersDark) {
-      document.documentElement.classList.add('dark')
-    }
-    // Dispatch event for other components
-    window.dispatchEvent(new Event('theme-changed'))
   }
 
   // Prevent hydration mismatch
   if (!mounted) {
     return (
       <button
-        className="p-2 rounded-full bg-background-surface border border-border-default hover:bg-background-canvas transition-colors"
+        className="p-2 rounded-full bg-zinc-100 dark:bg-white/[0.06] border border-zinc-200 dark:border-white/[0.08] transition-colors"
         aria-label="Toggle theme"
       >
         <div className="w-5 h-5" />
@@ -110,39 +41,54 @@ export default function ThemeToggle() {
     )
   }
 
+  const isDark = resolvedTheme === 'dark'
+  const isSystem = theme === 'system'
+
   return (
     <div className="relative group">
       <button
         onClick={toggleTheme}
-        className="p-2 rounded-full bg-background-surface border border-border-default hover:bg-background-canvas transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary"
-        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+        className="p-2 rounded-full bg-zinc-100 dark:bg-white/[0.06] border border-zinc-200 dark:border-white/[0.08] hover:bg-zinc-200 dark:hover:bg-white/[0.1] transition-colors focus:outline-none focus:ring-2 focus:ring-cyan-500 dark:focus:ring-cyan-400"
+        aria-label={
+          isSystem
+            ? 'Using system theme, click to switch to light'
+            : isDark
+            ? 'Dark mode, click to switch to system'
+            : 'Light mode, click to switch to dark'
+        }
       >
         {isDark ? (
-          <Sun className="w-5 h-5 text-text-body" />
+          <Sun className="w-5 h-5 text-zinc-700 dark:text-zinc-200" />
         ) : (
-          <Moon className="w-5 h-5 text-text-body" />
+          <Moon className="w-5 h-5 text-zinc-700 dark:text-zinc-200" />
         )}
       </button>
-      
-      {/* Auto indicator */}
-      {isAuto && (
-        <div className="absolute -top-1 -right-1 w-3 h-3 bg-serum rounded-full border-2 border-white dark:border-gray-800" />
+
+      {/* System/Auto indicator */}
+      {isSystem && (
+        <div className="absolute -top-1 -right-1 w-3 h-3 bg-cyan-500 rounded-full border-2 border-white dark:border-zinc-900" />
       )}
-      
+
       {/* Tooltip */}
-      <div className="absolute bottom-full right-0 mb-2 px-2 py-1 text-small bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-        {isAuto ? 'Auto (follows system)' : isDark ? 'Dark mode' : 'Light mode'}
-        {!isAuto && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              resetToAuto()
-            }}
-            className="block w-full mt-1 text-serum hover:text-serum/80"
-          >
-            Reset to auto
-          </button>
-        )}
+      <div className="absolute bottom-full right-0 mb-2 px-3 py-1.5 text-xs bg-zinc-900 dark:bg-zinc-800 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none shadow-lg">
+        <div className="flex items-center gap-2">
+          {isSystem ? (
+            <>
+              <Monitor className="w-3.5 h-3.5" />
+              <span>System ({isDark ? 'dark' : 'light'})</span>
+            </>
+          ) : isDark ? (
+            <>
+              <Moon className="w-3.5 h-3.5" />
+              <span>Dark mode</span>
+            </>
+          ) : (
+            <>
+              <Sun className="w-3.5 h-3.5" />
+              <span>Light mode</span>
+            </>
+          )}
+        </div>
       </div>
     </div>
   )

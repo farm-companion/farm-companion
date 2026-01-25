@@ -1,0 +1,299 @@
+/**
+ * HARVEST THEME SYSTEM - God-Tier Dark Mode
+ *
+ * This file defines the complete semantic theming layer.
+ * Components MUST use semantic classes (bg-background, text-foreground)
+ * NOT raw colors (bg-[#F9F7F2], text-zinc-900)
+ *
+ * Architecture:
+ * 1. Primitives: Raw color values (never used directly in components)
+ * 2. Semantics: Functional aliases that swap based on .dark class
+ * 3. Utilities: Helper classes for optical weight shifting, elevation
+ */
+
+/* ==========================================================================
+   LAYER 1: PRIMITIVES - Raw Harvest Palette
+   These are the immutable color tokens. NEVER use these directly in components.
+   ========================================================================== */
+
+:root {
+  /* Soil Scale - Warm neutrals inspired by British farmland */
+  --harvest-soil-50: #FAFAF9;   /* Chalk white */
+  --harvest-soil-100: #F5F5F4;  /* Bone/Cream */
+  --harvest-soil-200: #E7E5E4;  /* Light stone */
+  --harvest-soil-300: #D6D3D1;  /* Weathered stone */
+  --harvest-soil-400: #A8A29E;  /* Dry earth */
+  --harvest-soil-500: #78716C;  /* Rich soil */
+  --harvest-soil-600: #57534E;  /* Deep earth */
+  --harvest-soil-700: #44403C;  /* Loam */
+  --harvest-soil-800: #292524;  /* Dark loam */
+  --harvest-soil-900: #1C1917;  /* Deep loam */
+  --harvest-soil-950: #0C0A09;  /* Pure ink (OLED black) */
+
+  /* Leaf Scale - British countryside greens */
+  --harvest-leaf-50: #F0FDF4;
+  --harvest-leaf-100: #DCFCE7;
+  --harvest-leaf-200: #BBF7D0;
+  --harvest-leaf-300: #86EFAC;
+  --harvest-leaf-400: #4ADE80;  /* Lighter for dark mode */
+  --harvest-leaf-500: #22C55E;  /* Primary green */
+  --harvest-leaf-600: #16A34A;  /* Deep leaf */
+  --harvest-leaf-700: #15803D;  /* Forest */
+  --harvest-leaf-800: #166534;
+  --harvest-leaf-900: #14532D;  /* WCAG AAA on light */
+
+  /* Kinetic Cyan - Action color */
+  --harvest-kinetic-300: #67E8F9;
+  --harvest-kinetic-400: #22D3EE;  /* Brighter for dark */
+  --harvest-kinetic-500: #06B6D4;  /* Primary action */
+  --harvest-kinetic-600: #0891B2;
+  --harvest-kinetic-700: #0E7490;
+  --harvest-kinetic-800: #155E75;  /* AAA text on light */
+}
+
+/* ==========================================================================
+   LAYER 2: SEMANTICS - Functional Aliases (Light Mode Default)
+   These swap values based on .dark class. USE THESE in components.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    /* Page & Surface Backgrounds */
+    --background: var(--harvest-soil-50);           /* Page background */
+    --background-secondary: var(--harvest-soil-100); /* Alternate sections */
+    --card: #FFFFFF;                                 /* Card surfaces */
+    --card-hover: var(--harvest-soil-50);           /* Card hover state */
+    --popover: #FFFFFF;                              /* Dropdowns, tooltips */
+    --muted: var(--harvest-soil-100);               /* Muted backgrounds */
+
+    /* Text Colors - WCAG AAA verified */
+    --foreground: var(--harvest-soil-900);          /* Primary text */
+    --foreground-secondary: var(--harvest-soil-700); /* Secondary text */
+    --foreground-muted: var(--harvest-soil-500);    /* Muted/placeholder */
+    --foreground-subtle: var(--harvest-soil-400);   /* Subtle hints */
+
+    /* Border Colors */
+    --border: var(--harvest-soil-200);              /* Default borders */
+    --border-subtle: var(--harvest-soil-100);       /* Subtle dividers */
+    --border-strong: var(--harvest-soil-300);       /* Emphasized borders */
+    --ring: var(--harvest-kinetic-500);             /* Focus rings */
+
+    /* Primary Action (Kinetic Cyan) */
+    --primary: var(--harvest-kinetic-500);
+    --primary-hover: var(--harvest-kinetic-600);
+    --primary-foreground: #FFFFFF;
+
+    /* Secondary Action (Leaf Green) */
+    --secondary: var(--harvest-leaf-600);
+    --secondary-hover: var(--harvest-leaf-700);
+    --secondary-foreground: #FFFFFF;
+
+    /* Accent */
+    --accent: var(--harvest-leaf-500);
+    --accent-foreground: var(--harvest-soil-900);
+
+    /* Destructive */
+    --destructive: #EF4444;
+    --destructive-foreground: #FFFFFF;
+
+    /* Feedback States */
+    --success: #10B981;
+    --success-foreground: #064E3B;
+    --warning: #F59E0B;
+    --warning-foreground: #78350F;
+    --error: #EF4444;
+    --error-foreground: #7F1D1D;
+    --info: #3B82F6;
+    --info-foreground: #1E3A8A;
+
+    /* Shadows - Light mode uses actual shadows */
+    --shadow-color: 0 0% 0%;
+    --shadow-strength: 0.08;
+
+    /* Input */
+    --input: var(--harvest-soil-200);
+    --input-focus: var(--harvest-kinetic-500);
+
+    /* Radius */
+    --radius: 0.75rem;
+  }
+
+  /* ==========================================================================
+     DARK MODE - Obsidian Deep (OLED Optimized)
+
+     Key principles:
+     1. Pure Ink (#0C0A09) allows OLED pixels to turn off
+     2. Elevation by luminance (lighter = higher, no shadows)
+     3. Border luminance replaces shadows
+     4. Desaturated colors prevent "neon fatigue"
+     5. Optical weight shifting (lighter font weights)
+     ========================================================================== */
+
+  .dark {
+    /* Page & Surface Backgrounds - Elevation by Luminance */
+    --background: var(--harvest-soil-950);          /* Pure Ink - OLED black */
+    --background-secondary: var(--harvest-soil-900); /* Slightly lifted */
+    --card: var(--harvest-soil-900);                /* Cards sit above page */
+    --card-hover: var(--harvest-soil-800);          /* Hover lifts higher */
+    --popover: var(--harvest-soil-800);             /* Popovers highest */
+    --muted: var(--harvest-soil-800);               /* Muted backgrounds */
+
+    /* Text Colors - Adjusted for dark backgrounds */
+    --foreground: var(--harvest-soil-50);           /* Primary text */
+    --foreground-secondary: var(--harvest-soil-200); /* Secondary text */
+    --foreground-muted: var(--harvest-soil-400);    /* Muted/placeholder */
+    --foreground-subtle: var(--harvest-soil-500);   /* Subtle hints */
+
+    /* Border Luminance - Replace shadows with glowing borders */
+    --border: rgba(255, 255, 255, 0.08);            /* Subtle glow */
+    --border-subtle: rgba(255, 255, 255, 0.04);     /* Very subtle */
+    --border-strong: rgba(255, 255, 255, 0.12);     /* Emphasized */
+    --ring: var(--harvest-kinetic-400);             /* Brighter focus */
+
+    /* Primary Action - Brighter on dark */
+    --primary: var(--harvest-kinetic-400);
+    --primary-hover: var(--harvest-kinetic-300);
+    --primary-foreground: var(--harvest-soil-900);
+
+    /* Secondary Action - Lighter green for contrast */
+    --secondary: var(--harvest-leaf-400);
+    --secondary-hover: var(--harvest-leaf-300);
+    --secondary-foreground: var(--harvest-soil-900);
+
+    /* Accent - Desaturated for dark mode */
+    --accent: var(--harvest-leaf-400);
+    --accent-foreground: var(--harvest-soil-900);
+
+    /* Destructive - Slightly desaturated */
+    --destructive: #F87171;
+    --destructive-foreground: var(--harvest-soil-900);
+
+    /* Feedback States - Elevated for dark */
+    --success: #34D399;
+    --success-foreground: var(--harvest-soil-900);
+    --warning: #FBBF24;
+    --warning-foreground: var(--harvest-soil-900);
+    --error: #FB7185;
+    --error-foreground: var(--harvest-soil-900);
+    --info: #60A5FA;
+    --info-foreground: var(--harvest-soil-900);
+
+    /* Shadows - Disabled in dark mode (use border luminance) */
+    --shadow-color: 0 0% 0%;
+    --shadow-strength: 0;
+
+    /* Input */
+    --input: rgba(255, 255, 255, 0.08);
+    --input-focus: var(--harvest-kinetic-400);
+  }
+}
+
+/* ==========================================================================
+   LAYER 3: UTILITY CLASSES - Optical Corrections & Effects
+   ========================================================================== */
+
+/* Optical Weight Shifting: Light text on dark appears thicker
+   semibold (600) in light -> medium (500) in dark */
+.font-harvest {
+  font-weight: 600;
+}
+.dark .font-harvest {
+  font-weight: 500;
+}
+
+.font-harvest-light {
+  font-weight: 500;
+}
+.dark .font-harvest-light {
+  font-weight: 400;
+}
+
+/* Specular Highlight: Simulates light source hitting top edge */
+.harvest-card {
+  background-color: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.dark .harvest-card {
+  /* Top-edge gradient simulates overhead light */
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 15%
+  );
+}
+
+/* Elevated surfaces (modals, dropdowns) */
+.harvest-elevated {
+  background-color: hsl(var(--popover));
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+}
+
+.dark .harvest-elevated {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 10%
+  );
+}
+
+/* Glow effect for interactive elements */
+.harvest-glow {
+  transition: box-shadow 0.2s ease;
+}
+
+.dark .harvest-glow:hover {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+}
+
+.dark .harvest-glow:focus-visible {
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.4);
+}
+
+/* Border luminance utility */
+.border-luminance {
+  border-color: hsl(var(--border));
+}
+
+.dark .border-luminance {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* ==========================================================================
+   SYSTEM PREFERENCE FALLBACK
+   Applies dark theme when user prefers dark and no .light class present
+   ========================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    --background: var(--harvest-soil-950);
+    --background-secondary: var(--harvest-soil-900);
+    --card: var(--harvest-soil-900);
+    --card-hover: var(--harvest-soil-800);
+    --popover: var(--harvest-soil-800);
+    --muted: var(--harvest-soil-800);
+
+    --foreground: var(--harvest-soil-50);
+    --foreground-secondary: var(--harvest-soil-200);
+    --foreground-muted: var(--harvest-soil-400);
+    --foreground-subtle: var(--harvest-soil-500);
+
+    --border: rgba(255, 255, 255, 0.08);
+    --border-subtle: rgba(255, 255, 255, 0.04);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --ring: var(--harvest-kinetic-400);
+
+    --primary: var(--harvest-kinetic-400);
+    --primary-hover: var(--harvest-kinetic-300);
+    --primary-foreground: var(--harvest-soil-900);
+
+    --secondary: var(--harvest-leaf-400);
+    --secondary-hover: var(--harvest-leaf-300);
+    --secondary-foreground: var(--harvest-soil-900);
+
+    --shadow-strength: 0;
+  }
+}

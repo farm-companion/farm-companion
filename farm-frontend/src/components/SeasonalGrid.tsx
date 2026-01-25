@@ -4,13 +4,24 @@ import { useState, useMemo } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import { MapPin, Timer } from 'lucide-react'
 import type { Produce } from '@/data/produce'
+import {
+  getProduceCategory,
+  type SeasonStatus,
+  type ProduceCategory,
+} from '@/lib/seasonal-utils'
 
 interface EnrichedProduce extends Produce {
   isInSeason: boolean
   isPeakSeason: boolean
   isComingSoon: boolean
   primarySeason: 'spring' | 'summer' | 'autumn' | 'winter'
+  // New enhanced fields
+  seasonProgress?: number
+  daysRemaining?: number | null
+  seasonStatus?: SeasonStatus
+  category?: ProduceCategory
 }
 
 interface SeasonalGridProps {
@@ -205,6 +216,17 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
     ? `${monthNames[produce.monthsInSeason[0] - 1]} - ${monthNames[produce.monthsInSeason[produce.monthsInSeason.length - 1] - 1]}`
     : 'Year-round'
 
+  // Get category for this produce
+  const category = produce.category || getProduceCategory(produce.slug)
+
+  // Calculate season progress if in season
+  const currentMonth = new Date().getMonth() + 1
+  const isCurrentlyInSeason = produce.monthsInSeason.includes(currentMonth)
+  const monthIndex = produce.monthsInSeason.indexOf(currentMonth)
+  const seasonProgress = isCurrentlyInSeason
+    ? Math.round(((monthIndex + 0.5) / produce.monthsInSeason.length) * 100)
+    : 0
+
   return (
     <motion.div
       layout
@@ -267,42 +289,89 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
 
         {/* Content Section */}
         <div className="p-5">
-          {/* Season Color Accent */}
-          <div className={`w-12 h-1 rounded-full ${seasonColors.bg} mb-3`} />
+          {/* Top row: Category + Season Progress */}
+          <div className="flex items-center justify-between mb-3">
+            {/* Category Badge */}
+            <span className={`
+              px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wide
+              ${category === 'fruit' ? 'bg-rose-100 text-rose-700' : ''}
+              ${category === 'vegetable' ? 'bg-emerald-100 text-emerald-700' : ''}
+              ${category === 'herb' ? 'bg-violet-100 text-violet-700' : ''}
+              ${category === 'other' ? 'bg-slate-100 text-slate-600' : ''}
+            `}>
+              {category}
+            </span>
+
+            {/* Mini Season Progress */}
+            {isCurrentlyInSeason && (
+              <div className="flex items-center gap-1.5">
+                <div className="w-12 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${seasonColors.bg}`}
+                    style={{ width: `${seasonProgress}%` }}
+                  />
+                </div>
+                <span className="text-[10px] text-slate-500 font-medium">
+                  {seasonProgress}%
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Produce Name */}
           <h4
-            className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-[#1a3a2a] mb-2 group-hover:text-[#2D3436] transition-colors"
+            className="text-2xl font-semibold leading-tight tracking-[-0.02em] text-[#1a3a2a] mb-1 group-hover:text-[#2D3436] transition-colors"
             style={{ fontFamily: 'Clash Display, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}
           >
             {produce.name}
           </h4>
 
-          {/* Month Range */}
-          <p className="text-caption text-[#2D3436]/60 font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wide mb-3">
-            {monthRange}
-          </p>
+          {/* Month Range + Days indicator */}
+          <div className="flex items-center gap-2 mb-3">
+            <p className="text-caption text-[#2D3436]/60 font-['IBM_Plex_Sans_Condensed'] uppercase tracking-wide">
+              {monthRange}
+            </p>
+            {isCurrentlyInSeason && produce.daysRemaining !== undefined && produce.daysRemaining !== null && (
+              <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 font-medium">
+                <Timer className="w-3 h-3" />
+                {produce.daysRemaining < 30 ? `${produce.daysRemaining}d left` : `${Math.round(produce.daysRemaining / 30)}mo left`}
+              </span>
+            )}
+          </div>
 
           {/* Selection Tips Preview */}
           {produce.selectionTips && produce.selectionTips.length > 0 && (
-            <p className="text-caption text-[#2D3436]/70 font-['Manrope'] leading-relaxed line-clamp-2">
+            <p className="text-caption text-[#2D3436]/70 font-['Manrope'] leading-relaxed line-clamp-2 mb-3">
               {produce.selectionTips[0]}
             </p>
           )}
 
-          {/* Nutrition Highlight (if available) */}
+          {/* Enhanced Nutrition Pills */}
           {produce.nutritionPer100g && (
-            <div className="mt-3 flex flex-wrap gap-2">
-              <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#FAF8F5] text-small font-['IBM_Plex_Sans_Condensed'] text-[#2D3436]/70">
+            <div className="flex flex-wrap gap-1.5">
+              <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded-full text-[10px] font-semibold">
                 {produce.nutritionPer100g.kcal} kcal
               </span>
               {produce.nutritionPer100g.protein > 0 && (
-                <span className="inline-flex items-center px-2 py-1 rounded-full bg-[#FAF8F5] text-small font-['IBM_Plex_Sans_Condensed'] text-[#2D3436]/70">
+                <span className="px-2 py-0.5 bg-teal-50 text-teal-700 rounded-full text-[10px] font-semibold">
                   {produce.nutritionPer100g.protein}g protein
+                </span>
+              )}
+              {produce.nutritionPer100g.fiber && produce.nutritionPer100g.fiber > 0 && (
+                <span className="px-2 py-0.5 bg-green-50 text-green-700 rounded-full text-[10px] font-semibold">
+                  {produce.nutritionPer100g.fiber}g fiber
                 </span>
               )}
             </div>
           )}
+
+          {/* Find nearby CTA */}
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <span className="inline-flex items-center gap-1 text-caption text-primary-600 font-medium group-hover:text-primary-700">
+              <MapPin className="w-3.5 h-3.5" />
+              Find {produce.name} nearby
+            </span>
+          </div>
         </div>
 
         {/* Hover Arrow Indicator */}

@@ -6,6 +6,8 @@ import { MarkerClusterer } from '@googlemaps/markerclusterer'
 import { Map } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import type { ClusterClickEvent, MarkerState, FarmMarkerExtended, WindowWithMapUtils, ClusterData } from '@/types/map'
+import { createSmartClusterRenderer, getClusterTargetZoom, CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
+import { getPinForFarm, generateCategoryMarkerSVG } from '../lib/pin-icons'
 import MarkerActions from './MarkerActions'
 import MapMarkerPopover from './MapMarkerPopover'
 import ClusterPreview from './ClusterPreview'
@@ -39,24 +41,8 @@ interface MapShellProps {
   onMapReady?: (map: google.maps.Map) => void
 }
 
-// RAW SVG strings (not encoded) - will be encoded when building data: URLs
-const CLUSTER_SVGS = {
-  small: `
-    <svg width="40" height="40" viewBox="0 0 40 40" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="20" cy="20" r="18" fill="#00C2B2" stroke="white" stroke-width="2"/>
-      <text x="20" y="25" text-anchor="middle" fill="white" font-family="Clash Display" font-size="14" font-weight="600">{COUNT}</text>
-    </svg>`,
-  medium: `
-    <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="24" cy="24" r="22" fill="#00C2B2" stroke="white" stroke-width="2"/>
-      <text x="24" y="30" text-anchor="middle" fill="white" font-family="Clash Display" font-size="16" font-weight="600">{COUNT}</text>
-    </svg>`,
-  large: `
-    <svg width="56" height="56" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="28" cy="28" r="26" fill="#00C2B2" stroke="white" stroke-width="2"/>
-      <text x="28" y="35" text-anchor="middle" fill="white" font-family="Clash Display" font-size="18" font-weight="600">{COUNT}</text>
-    </svg>`
-}
+// Cluster rendering now handled by createSmartClusterRenderer from cluster-config.ts
+// 5-tier hierarchy: mega (50+), large (20+), medium (10+), small (5+), tiny (2+)
 
 // UK bounds for fallback (including Ireland)
 const UK_BOUNDS = {
@@ -114,18 +100,13 @@ export default function MapShell({
     }
   }, [])
 
-  // Smart zoom to cluster with optimal zoom level
+  // Smart zoom to cluster with optimal zoom level (uses cluster-config)
   const handleZoomToCluster = useCallback((cluster: ClusterData) => {
     const map = mapInstanceRef.current
     if (!map || !cluster || !cluster.markers?.length) return
 
     const count = cluster.count
-    let targetZoom = 14
-
-    if (count > 50) targetZoom = 12
-    else if (count > 20) targetZoom = 13
-    else if (count > 10) targetZoom = 14
-    else targetZoom = 15
+    const targetZoom = getClusterTargetZoom(count)
 
     const bounds = new google.maps.LatLngBounds()
     cluster.markers.forEach((marker: google.maps.Marker) => {
@@ -162,8 +143,8 @@ export default function MapShell({
     const markers = event.markers || []
     const markerCount = markers.length
 
-    // For small clusters, show preview sheet
-    if (markerCount > 0 && markerCount <= 8) {
+    // For small clusters, show preview sheet (threshold from cluster-config)
+    if (markerCount > 0 && markerCount <= CLUSTER_ZOOM_THRESHOLDS.PREVIEW_MAX_COUNT) {
       const farms: FarmShop[] = []
       markers.forEach(marker => {
         const farmMarker = marker as FarmMarkerExtended
@@ -325,16 +306,15 @@ export default function MapShell({
     farmData.forEach(farm => {
       if (!farm.location?.lat || !farm.location?.lng) return
 
+      // Get category-based pin icon for this farm
+      const pinConfig = getPinForFarm(farm.offerings)
+      const markerSvg = generateCategoryMarkerSVG(pinConfig, 32)
+
       const marker = new google.maps.Marker({
         position: { lat: farm.location.lat, lng: farm.location.lng },
         title: farm.name,
         icon: {
-          url: `data:image/svg+xml;utf8,${encodeURIComponent(
-            `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="16" cy="16" r="14" fill="#00C2B2" stroke="white" stroke-width="2"/>
-              <circle cx="16" cy="16" r="5" fill="white"/>
-            </svg>`
-          )}`,
+          url: `data:image/svg+xml;utf8,${encodeURIComponent(markerSvg)}`,
           scaledSize: new google.maps.Size(32, 32),
           anchor: new google.maps.Point(16, 16),
         },
@@ -356,46 +336,14 @@ export default function MapShell({
       markers.push(marker)
     })
 
-    // Create/update clusterer with stable renderer
+    // Create/update clusterer with smart zoom-aware renderer
     if (!clustererRef.current) {
-      // Create stable renderer instance once
+      // Create stable renderer instance once using smart cluster config
       if (!clusterRenderer.current) {
-        clusterRenderer.current = {
-          render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
-            
-            // Choose SVG size based on count for better visual hierarchy
-            let raw: string
-            let size: google.maps.Size
-            let anchor: google.maps.Point
-            
-            if (count > 20) {
-              raw = CLUSTER_SVGS.large
-              size = new google.maps.Size(56, 56)
-              anchor = new google.maps.Point(28, 28)
-            } else if (count > 5) {
-              raw = CLUSTER_SVGS.medium
-              size = new google.maps.Size(48, 48)
-              anchor = new google.maps.Point(24, 24)
-            } else {
-              raw = CLUSTER_SVGS.small
-              size = new google.maps.Size(40, 40)
-              anchor = new google.maps.Point(20, 20)
-            }
-            
-            // Replace placeholder and encode once when building data: URL
-            const svg = raw.replace('{COUNT}', String(count))
-            const svgUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-            
-            return new google.maps.Marker({
-              position,
-              icon: { url: svgUrl, scaledSize: size, anchor },
-              zIndex: google.maps.Marker.MAX_ZINDEX + 2   // cluster on top
-            })
-          }
-        }
+        clusterRenderer.current = createSmartClusterRenderer(() => map.getZoom() || 10)
       }
-      
-      clustererRef.current = new MarkerClusterer({ 
+
+      clustererRef.current = new MarkerClusterer({
         map,
         markers: [],
         renderer: clusterRenderer.current,

@@ -120,60 +120,60 @@
 - [x] Slice 18.1: Dynamic "Open Now" Status Badge (Already exists: farm-status.ts + StatusBadge.tsx)
 - [x] Slice 18.2: Distance Display on Shop Cards (FarmCard.tsx + useUserLocation hook)
 - [x] Slice 18.2b: NearbyFarms Harvest Design Enhancement (seasonal headlines, live status indicator, open farms count)
-- [ ] Slice 18.3: "What's In Season Now" Module
-- [ ] Slice 18.4: Shop Amenity Icons
-- [ ] Slice 18.5: County Density Indicators
+- [x] Slice 18.3: "What's In Season Now" Module (InSeasonNow.tsx + seasonal-utils.ts)
+- [x] Slice 18.4: Shop Amenity Icons (AmenityIcons.tsx + amenities.ts data)
+- [x] Slice 18.5: County Density Indicators (CountyDensityBadge.tsx + CountyDensityLegend)
 
 ### Queue 19: Header Evolution (Command Center)
-- [ ] Slice 19.1: Location Context Display
-- [ ] Slice 19.2: Enhanced Mobile Bottom Nav
-- [ ] Slice 19.3: Mega Menu - Counties Preview
-- [ ] Slice 19.4: Mega Menu - Seasonal Preview
-- [ ] Slice 19.5: Universal Search (Command+K)
-- [ ] Slice 19.6: Predictive Search Suggestions
+- [x] Slice 19.1: Location Context Display (LocationContext.tsx with month + region detection)
+- [x] Slice 19.2: Enhanced Mobile Bottom Nav (center "Nearby" FAB, active indicator dots)
+- [x] Slice 19.3: Mega Menu - Counties Preview (MegaMenu.tsx + CountiesPreview.tsx)
+- [x] Slice 19.4: Mega Menu - Seasonal Preview (SeasonalPreview.tsx with in-season items)
+- [x] Slice 19.5: Universal Search (CommandPalette.tsx + useCommandPalette.ts + Meilisearch integration)
+- [x] Slice 19.6: Predictive Search Suggestions (SearchSuggestions.tsx with intent patterns)
 
 ### Queue 20: Seasonal Page Transformation
-- [ ] Slice 20.1: Seasonal Data Structure
-- [ ] Slice 20.2: Produce Card Enhancement
-- [ ] Slice 20.3: Seasonality Progress Bar
-- [ ] Slice 20.4: Month Navigation Wheel (SVG)
-- [ ] Slice 20.5: "Find Stockists" Bridge
-- [ ] Slice 20.6: Nutrition Radial Charts
+- [x] Slice 20.1: Seasonal Data Structure (enhanced seasonal-utils.ts with progress, daysRemaining, categories)
+- [x] Slice 20.2: Produce Card Enhancement (category badge, progress bar, days remaining, nutrition pills)
+- [x] Slice 20.3: Seasonality Progress Bar (SeasonProgress.tsx with month segments)
+- [x] Slice 20.4: Month Navigation Wheel (MonthWheel.tsx SVG + MonthSelector compact)
+- [x] Slice 20.5: "Find Stockists" Bridge (FindStockists.tsx + FindStockistsCompact)
+- [x] Slice 20.6: Nutrition Radial Charts (NutritionRadial.tsx + NutritionBars + NutritionPills)
 
 ### Queue 21: Counties Page Transformation
-- [ ] Slice 21.1: UK SVG Map Component
-- [ ] Slice 21.2: Density Coloring Logic
-- [ ] Slice 21.3: County Hover Tooltips
-- [ ] Slice 21.4: Region Sidebar Filters
-- [ ] Slice 21.5: County Landing Page Enhancement
-- [ ] Slice 21.6: "Curator's Choice" Featured Shops
+- [x] Slice 21.1: UK SVG Map Component (UKCountyMap.tsx with 40 regions)
+- [x] Slice 21.2: Density Coloring Logic (5-tier coloring based on farm count)
+- [x] Slice 21.3: County Hover Tooltips (interactive tooltips with farm count)
+- [x] Slice 21.4: Region Sidebar Filters (RegionFilter.tsx + RegionPills)
+- [x] Slice 21.5: County Landing Page Enhancement (CountyHero.tsx with seasonal highlights)
+- [x] Slice 21.6: "Curator's Choice" Featured Shops (CuratorsChoice.tsx + CuratorsChoiceCompact)
 
 ### Queue 22: Shop Profile Enhancement
-- [ ] Slice 22.1: Verification Badge System
-- [ ] Slice 22.2: Dynamic Operating Status
-- [ ] Slice 22.3: "What's In Season Here" Cross-Reference
-- [ ] Slice 22.4: Interactive Location Card
-- [ ] Slice 22.5: Farm Story Rich Text
-- [ ] Slice 22.6: Related Farms Module
+- [x] Slice 22.1: Verification Badge System (VerificationBadge.tsx - 3 tiers: verified/claimed/unverified)
+- [x] Slice 22.2: Dynamic Operating Status (OperatingStatus.tsx - countdown, weekly schedule)
+- [x] Slice 22.3: "What's In Season Here" Cross-Reference (WhatsInSeason.tsx - maps offerings to seasonal produce)
+- [x] Slice 22.4: Interactive Location Card (LocationCard.tsx - map preview, directions, contact)
+- [x] Slice 22.5: Farm Story Rich Text (FarmStory.tsx - expandable paragraphs, quote decoration)
+- [x] Slice 22.6: Related Farms Module (RelatedFarms.tsx - similarity scoring, nearby farms)
 
-### Queue 23: Map Experience Enhancement
-- [ ] Slice 23.1: Smart Cluster Sizing
-- [ ] Slice 23.2: Category-Based Pin Icons
-- [ ] Slice 23.3: "Search as I Move" Toggle
-- [ ] Slice 23.4: Filter Overlay Panel
-- [ ] Slice 23.5: Cluster Animation Easing
+### Queue 23: Map Experience Enhancement (COMPLETE)
+- [x] Slice 23.1: Smart Cluster Sizing (cluster-config.ts with 5-tier hierarchy + zoom-aware sizing)
+- [x] Slice 23.2: Category-Based Pin Icons (pin-icons.ts with 18 category configs, color+icon per category)
+- [x] Slice 23.3: "Search as I Move" Toggle (SearchAreaControl.tsx + map page integration)
+- [x] Slice 23.4: Filter Overlay Panel (FilterOverlayPanel.tsx - mobile slide-up filter UI)
+- [x] Slice 23.5: Cluster Animation Easing (CSS keyframes, easing constants, animateZoomTo)
 
-### Queue 24: Homepage Transformation
-- [ ] Slice 24.1: Dynamic Seasonal Headline
-- [ ] Slice 24.2: "Find Shops Open Now" CTA
-- [ ] Slice 24.3: Weekend Planner Module
-- [ ] Slice 24.4: Social Proof Ticker
-- [ ] Slice 24.5: Hero Video Background
+### Queue 24: Homepage Transformation (COMPLETE)
+- [x] Slice 24.1: Dynamic Seasonal Headline (DynamicSeasonalHeadline.tsx with month/time awareness)
+- [x] Slice 24.2: "Find Shops Open Now" CTA (OpenNowCTA.tsx + /api/farms/open-now-count)
+- [x] Slice 24.3: Weekend Planner Module (WeekendPlanner.tsx + /api/farms/weekend)
+- [x] Slice 24.4: Social Proof Ticker (SocialProofTicker.tsx, VisitorCount, TrustIndicators)
+- [x] Slice 24.5: Hero Video Background (HeroVideoBackground.tsx with reduced-motion support)
 
 ### Queue 25: "Harvest" Color System (Optional Theme)
-- [ ] Slice 25.1: Harvest Color Tokens
-- [ ] Slice 25.2: Theme Provider
-- [ ] Slice 25.3: Theme Toggle Component
+- [x] Slice 25.1: Harvest Color Tokens (harvest-theme.css with Soil/Leaf/Kinetic primitives)
+- [x] Slice 25.2: Theme Provider (next-themes integration with ThemeProvider.tsx)
+- [x] Slice 25.3: Theme Toggle Component (ThemeToggle.tsx with 3-state cycle)
 - [ ] Slice 25.4: Harvest Button Variants
 - [ ] Slice 25.5: Harvest Card Styles
 
@@ -220,6 +220,36 @@
 - [x] Queue 17 COMPLETE - All 63 API routes now have structured logging via createRouteLogger (verified via grep)
 
 ## Completed Work
+
+### 2026-01-25 (Harvest Theme System + next-themes Integration)
+- **Queue 25, Slice 25.1: Harvest Color Tokens** (COMPLETE)
+  - Created harvest-theme.css with 3-layer architecture: Primitives, Semantics, Utilities
+  - Soil scale (warm neutrals): harvest-soil-50 to harvest-soil-950 (Pure Ink #0C0A09)
+  - Leaf scale (British countryside greens): harvest-leaf-50 to harvest-leaf-900
+  - Kinetic Cyan (action color): harvest-kinetic-300 to harvest-kinetic-800
+  - Semantic tokens that swap on .dark class: background, card, foreground, border, primary, etc.
+  - Dark mode: Elevation by luminance, border luminance (rgba 255,255,255,0.08), no shadows
+  - Utility classes: font-harvest (optical weight shifting), harvest-card (specular highlight)
+- **Queue 25, Slice 25.2: Theme Provider** (COMPLETE)
+  - Added next-themes package via pnpm
+  - Created ThemeProvider.tsx wrapping next-themes
+  - Configuration: attribute="class", defaultTheme="system", storageKey="theme"
+  - Updated layout.tsx to wrap content with ThemeProvider
+  - Removed redundant inline theme detection script
+- **Queue 25, Slice 25.3: Theme Toggle Component** (COMPLETE)
+  - Refactored ThemeToggle.tsx to use useTheme hook from next-themes
+  - 3-state cycle: system -> light -> dark -> system
+  - System mode indicator (cyan dot)
+  - Tooltip showing current mode with system resolution
+  - SSR-safe with mounted state check
+- **Obsidian Dark Mode Sitewide Fix** (COMPLETE)
+  - Fixed counties page with horizontal card layout
+  - Added obsidian-card, obsidian-elevated, obsidian-weight utility classes
+  - Fixed prefers-color-scheme fallback with Obsidian tokens
+- **Tailwind Config Semantic Colors** (COMPLETE)
+  - Updated tailwind.config.js with hsl() wrappers for CSS variable colors
+  - Semantic color mapping: background, foreground, card, primary, secondary, border, etc.
+  - Border radius using --radius CSS variable
 
 ### 2026-01-25 (Design System Overhaul Plan + First Slices)
 - **Strategic Design System Overhaul Plan Created** (COMPLETE)

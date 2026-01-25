@@ -11,3 +11,6 @@ export { useSoundFeedback } from './useSoundFeedback';
 
 export { useUserLocation } from './useUserLocation';
 export type { UserLocation, UseUserLocationOptions, UseUserLocationResult } from './useUserLocation';
+
+export { useCommandPalette } from './useCommandPalette';
+export type { UseCommandPaletteResult } from './useCommandPalette';

@@ -1,4 +1,5 @@
 @import '../styles/fonts.css';
+@import '../styles/harvest-theme.css';
 
 /* Tailwind CSS v4 import */
 @import "tailwindcss";
@@ -276,26 +277,32 @@ body {
 
 /* Modern Swiss Minimalism Font Assignments */
 
-/* Headings / Brand - Clash Display (bold, high-impact) */
-h1, h2, h3, h4, h5, h6, .brand {
-  font-family: var(--font-primary);
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -0.02em;
-  color: var(--text-heading);
+/* Headings / Brand - Clash Display (bold, high-impact)
+   Wrapped in @layer base so Tailwind utility classes can override */
+@layer base {
+  h1, h2, h3, h4, h5, h6, .brand {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text-heading);
+  }
 }
 
-/* Regular heading sizes - comfortable reading */
-h1 {
-  font-size: clamp(1.75rem, 4vw, 2.5rem); /* 28px to 40px - regular size */
-}
+/* Regular heading sizes - comfortable reading
+   Wrapped in @layer base so Tailwind utility classes can override */
+@layer base {
+  h1 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem); /* 28px to 40px - regular size */
+  }
 
-h2 {
-  font-size: clamp(1.5rem, 3.5vw, 2rem); /* 24px to 32px - regular size */
-}
+  h2 {
+    font-size: clamp(1.5rem, 3.5vw, 2rem); /* 24px to 32px - regular size */
+  }
 
-h3 {
-  font-size: clamp(1.25rem, 3vw, 1.5rem); /* 20px to 24px - regular size */
+  h3 {
+    font-size: clamp(1.25rem, 3vw, 1.5rem); /* 20px to 24px - regular size */
+  }
 }
 
 h4 {
@@ -529,31 +536,35 @@ button {
   --shadow-glass: 0 8px 32px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.3);
 }
 
-/* Dark theme support - System preference (fallback) */
+/* Dark theme support - System preference (uses Obsidian tokens) */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --text-heading: #f8fafc;
-    --text-body: #e2e8f0;
-    --text-muted: #94a3b8;
-    --text-subtle: #64748b;
+    /* Text Colors - WCAG AAA on Obsidian #050505 */
+    --text-heading: #FAFAFA;
+    --text-body: #E4E4E7;
+    --text-muted: #A1A1AA;
+    --text-subtle: #71717A;
 
-    --background-canvas: #0f172a;
-    --background-surface: #1e293b;
-    --background-elevated: #334155;
-    --background-hover: #475569;
+    /* Obsidian Backgrounds */
+    --background-canvas: #050505;
+    --background-surface: #121214;
+    --background-elevated: #1E1E21;
+    --background-hover: #2A2A2E;
 
-    --border-default: #334155;
-    --border-subtle: #1e293b;
-    --border-strong: #475569;
-    --border-focus: #2dd4bf;
+    /* Border Luminance (not solid colors) */
+    --border-default: rgba(255, 255, 255, 0.08);
+    --border-subtle: rgba(255, 255, 255, 0.04);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --border-focus: #22D3EE;
 
-    --brand-primary: #2dd4bf;
-    --brand-primary-dark: #14b8a6;
-    --brand-primary-text: #5eead4;
-    --serum: #2dd4bf;
-    --serum-light: #5eead4;
+    /* Kinetic Cyan - brighter on dark */
+    --brand-primary: #22D3EE;
+    --brand-primary-dark: #06B6D4;
+    --brand-primary-text: #67E8F9;
+    --serum: #22D3EE;
+    --serum-light: #67E8F9;
 
-    --shadow-glass: 0 8px 32px rgb(0 0 0 / 0.3), 0 2px 8px rgb(0 0 0 / 0.2);
+    --shadow-glass: 0 8px 32px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.3);
   }
 }
 
@@ -635,6 +646,89 @@ body {
 /* Dark mode for cards and surfaces */
 .dark .bg-gray-50 {
   background-color: var(--background-surface);
+}
+
+/* ==========================================================================
+   OBSIDIAN UTILITY CLASSES - GOD-TIER DARK MODE
+   ========================================================================== */
+
+/* Optical Weight Shifting: Light text on dark appears thicker
+   Use these classes to maintain visual weight consistency */
+.obsidian-weight {
+  font-weight: 600; /* semibold in light */
+}
+.dark .obsidian-weight {
+  font-weight: 500; /* medium in dark - appears same weight */
+}
+
+.obsidian-weight-light {
+  font-weight: 500; /* medium in light */
+}
+.dark .obsidian-weight-light {
+  font-weight: 400; /* regular in dark */
+}
+
+/* Border Luminance: Replace shadows with luminous borders in dark mode */
+.obsidian-card {
+  background-color: var(--background-surface);
+  border: 1px solid var(--border-default);
+  border-radius: 0.75rem;
+}
+.dark .obsidian-card {
+  background-color: #121214;
+  border-color: rgba(255, 255, 255, 0.08);
+  /* Specular highlight: subtle top gradient simulates light source */
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 20%
+  );
+}
+
+/* Elevated surfaces (modals, dropdowns) */
+.obsidian-elevated {
+  background-color: var(--background-elevated);
+  border: 1px solid var(--border-default);
+}
+.dark .obsidian-elevated {
+  background-color: #1E1E21;
+  border-color: rgba(255, 255, 255, 0.12);
+  background-image: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 15%
+  );
+}
+
+/* Specular highlight utility - adds "lift" without shadows */
+.obsidian-lift {
+  position: relative;
+}
+.dark .obsidian-lift::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255, 255, 255, 0.08),
+    transparent
+  );
+  pointer-events: none;
+}
+
+/* Glow effect for interactive elements in dark mode */
+.obsidian-glow {
+  transition: box-shadow 0.2s ease;
+}
+.dark .obsidian-glow:hover {
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+}
+.dark .obsidian-glow:focus {
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.3);
 }
 
 .dark .bg-gray-100 {
