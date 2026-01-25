@@ -22,6 +22,7 @@ import { Search, MapPin, Leaf, Map, X, ArrowRight } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useCommandPalette } from '@/hooks/useCommandPalette'
 import { PRODUCE } from '@/data/produce'
+import { SearchSuggestions, type Suggestion } from './SearchSuggestions'
 
 /**
  * Search result types
@@ -212,15 +213,29 @@ export function CommandPalette() {
             </button>
           </div>
 
-          {/* Results */}
+          {/* Suggestions + Results */}
           <div className="max-h-[50vh] overflow-y-auto p-2">
-            {results.length === 0 ? (
+            {/* Predictive suggestions - shown when query is short */}
+            {query.length < 3 && (
+              <SearchSuggestions
+                query={query}
+                limit={5}
+                onSelect={(suggestion: Suggestion) => {
+                  router.push(suggestion.href)
+                  close()
+                }}
+                className="mb-3 pb-3 border-b border-slate-200 dark:border-white/[0.06]"
+              />
+            )}
+
+            {/* Search results */}
+            {results.length === 0 && query.length >= 3 ? (
               <div className="px-4 py-8 text-center">
                 <p className="text-small text-slate-500 dark:text-slate-400">
                   No results found for "{query}"
                 </p>
               </div>
-            ) : (
+            ) : results.length > 0 ? (
               <ul role="listbox">
                 {results.map((result, index) => {
                   const Icon = result.icon
@@ -278,7 +293,7 @@ export function CommandPalette() {
                   )
                 })}
               </ul>
-            )}
+            ) : null}
           </div>
 
           {/* Footer hints */}
