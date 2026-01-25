@@ -133,14 +133,14 @@ export function FarmCard({
             <ExternalLink className="h-4 w-4" />
           </Link>
 
-          {/* Secondary CTA - Directions */}
+          {/* Secondary CTA - Directions (icon only to save space) */}
           <button
             onClick={handleDirections}
-            className="inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 text-sm font-semibold transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 active:scale-[0.98]"
+            className="inline-flex items-center justify-center h-11 w-11 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 active:scale-[0.98]"
             title="Get directions"
+            aria-label="Get directions"
           >
-            <Navigation className="h-4 w-4" />
-            <span className="hidden sm:inline">Directions</span>
+            <Navigation className="h-5 w-5" />
           </button>
         </div>
       </div>
