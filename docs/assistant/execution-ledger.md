@@ -171,9 +171,9 @@
 - [ ] Slice 24.5: Hero Video Background
 
 ### Queue 25: "Harvest" Color System (Optional Theme)
-- [ ] Slice 25.1: Harvest Color Tokens
-- [ ] Slice 25.2: Theme Provider
-- [ ] Slice 25.3: Theme Toggle Component
+- [x] Slice 25.1: Harvest Color Tokens (harvest-theme.css with Soil/Leaf/Kinetic primitives)
+- [x] Slice 25.2: Theme Provider (next-themes integration with ThemeProvider.tsx)
+- [x] Slice 25.3: Theme Toggle Component (ThemeToggle.tsx with 3-state cycle)
 - [ ] Slice 25.4: Harvest Button Variants
 - [ ] Slice 25.5: Harvest Card Styles
 
@@ -220,6 +220,36 @@
 - [x] Queue 17 COMPLETE - All 63 API routes now have structured logging via createRouteLogger (verified via grep)
 
 ## Completed Work
+
+### 2026-01-25 (Harvest Theme System + next-themes Integration)
+- **Queue 25, Slice 25.1: Harvest Color Tokens** (COMPLETE)
+  - Created harvest-theme.css with 3-layer architecture: Primitives, Semantics, Utilities
+  - Soil scale (warm neutrals): harvest-soil-50 to harvest-soil-950 (Pure Ink #0C0A09)
+  - Leaf scale (British countryside greens): harvest-leaf-50 to harvest-leaf-900
+  - Kinetic Cyan (action color): harvest-kinetic-300 to harvest-kinetic-800
+  - Semantic tokens that swap on .dark class: background, card, foreground, border, primary, etc.
+  - Dark mode: Elevation by luminance, border luminance (rgba 255,255,255,0.08), no shadows
+  - Utility classes: font-harvest (optical weight shifting), harvest-card (specular highlight)
+- **Queue 25, Slice 25.2: Theme Provider** (COMPLETE)
+  - Added next-themes package via pnpm
+  - Created ThemeProvider.tsx wrapping next-themes
+  - Configuration: attribute="class", defaultTheme="system", storageKey="theme"
+  - Updated layout.tsx to wrap content with ThemeProvider
+  - Removed redundant inline theme detection script
+- **Queue 25, Slice 25.3: Theme Toggle Component** (COMPLETE)
+  - Refactored ThemeToggle.tsx to use useTheme hook from next-themes
+  - 3-state cycle: system -> light -> dark -> system
+  - System mode indicator (cyan dot)
+  - Tooltip showing current mode with system resolution
+  - SSR-safe with mounted state check
+- **Obsidian Dark Mode Sitewide Fix** (COMPLETE)
+  - Fixed counties page with horizontal card layout
+  - Added obsidian-card, obsidian-elevated, obsidian-weight utility classes
+  - Fixed prefers-color-scheme fallback with Obsidian tokens
+- **Tailwind Config Semantic Colors** (COMPLETE)
+  - Updated tailwind.config.js with hsl() wrappers for CSS variable colors
+  - Semantic color mapping: background, foreground, card, primary, secondary, border, etc.
+  - Border radius using --radius CSS variable
 
 ### 2026-01-25 (Design System Overhaul Plan + First Slices)
 - **Strategic Design System Overhaul Plan Created** (COMPLETE)
