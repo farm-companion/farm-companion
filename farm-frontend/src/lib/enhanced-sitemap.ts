@@ -4,6 +4,7 @@
 import { SITE_URL } from './site'
 import { PRODUCE } from '@/data/produce'
 import { getFarmData } from '@/lib/farm-data'
+import { getImageUrl } from '@/types/farm'
 import { logger } from '@/lib/logger'
 
 const sitemapLogger = logger.child({ route: 'lib/enhanced-sitemap' })
@@ -130,12 +131,15 @@ export async function generateFarmShopsSitemap(): Promise<SitemapEntry[]> {
       changeFrequency: 'weekly' as const,
       priority: 0.8,
       lastModified: new Date(),
-      images: farm.images?.map((imgUrl) => ({
-        url: imgUrl,
-        caption: `${farm.name} - Farm Shop`,
-        title: `${farm.name} - Farm Shop in ${farm.location.county}`,
-        geoLocation: `${farm.location.lat}, ${farm.location.lng}`
-      })) || []
+      images: farm.images
+        ?.map((img) => getImageUrl(img))
+        .filter((url): url is string => !!url)
+        .map((url) => ({
+          url,
+          caption: `${farm.name} - Farm Shop`,
+          title: `${farm.name} - Farm Shop in ${farm.location.county}`,
+          geoLocation: `${farm.location.lat}, ${farm.location.lng}`
+        })) || []
     }))
   } catch (error) {
     sitemapLogger.error('Error generating farm shops sitemap', {}, error as Error)

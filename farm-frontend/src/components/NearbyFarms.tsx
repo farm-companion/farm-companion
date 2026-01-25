@@ -1,36 +1,34 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { FarmCard } from './FarmCard'
 import { Button } from './ui/Button'
-import { MapPin, Navigation, Compass } from 'lucide-react'
+import { MapPin, Navigation, Compass, Clock } from 'lucide-react'
 import { EmptyState } from './ui/EmptyState'
-
-interface Farm {
-  id: string
-  name: string
-  slug: string
-  location: {
-    address: string
-    city?: string
-    county: string
-    postcode: string
-    lat: number
-    lng: number
-  }
-  googleRating?: number
-  verified?: boolean
-  images?: Array<{
-    url: string
-    altText?: string
-  }>
-  categories?: string[]
-}
+import type { FarmShop } from '@/types/farm'
+import { calculateDistance } from '@/shared/lib/geo'
+import { isCurrentlyOpen } from '@/lib/farm-status'
 
 interface NearbyFarmsProps {
   className?: string
   limit?: number
+}
+
+// Seasonal headlines for each month
+const SEASONAL_HEADLINES: Record<number, { headline: string; subtext: string }> = {
+  0: { headline: "January", subtext: "Time for hearty stews and crisp winter vegetables" },
+  1: { headline: "February", subtext: "Embrace forced rhubarb and stored root veg" },
+  2: { headline: "March", subtext: "Spring greens are emerging, leeks at their best" },
+  3: { headline: "April", subtext: "Asparagus season begins, wild garlic in woods" },
+  4: { headline: "May", subtext: "Jersey Royals and the first strawberries" },
+  5: { headline: "June", subtext: "Peak strawberry season, broad beans aplenty" },
+  6: { headline: "July", subtext: "Summer berries, courgettes and fresh salads" },
+  7: { headline: "August", subtext: "Sweetcorn, tomatoes and stone fruit galore" },
+  8: { headline: "September", subtext: "Apple season, blackberries and squash" },
+  9: { headline: "October", subtext: "Pumpkins, game birds and orchard fruits" },
+  10: { headline: "November", subtext: "Brussels sprouts, parsnips and comfort food" },
+  11: { headline: "December", subtext: "Christmas fare, chestnuts and winter roots" }
 }
 
 /**
@@ -45,32 +43,20 @@ interface NearbyFarmsProps {
  */
 export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   const router = useRouter()
-  const [farms, setFarms] = useState<Farm[]>([])
+  const [farms, setFarms] = useState<FarmShop[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
   const [locationDenied, setLocationDenied] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Calculate distance using Haversine formula
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
-    const R = 6371 // Earth's radius in km
-    const dLat = toRadians(lat2 - lat1)
-    const dLng = toRadians(lng2 - lng1)
+  // Get current month for seasonal headline
+  const currentMonth = new Date().getMonth()
+  const seasonal = SEASONAL_HEADLINES[currentMonth]
 
-    const a =
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(toRadians(lat1)) *
-        Math.cos(toRadians(lat2)) *
-        Math.sin(dLng / 2) *
-        Math.sin(dLng / 2)
-
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-    return R * c
-  }
-
-  const toRadians = (degrees: number): number => {
-    return degrees * (Math.PI / 180)
-  }
+  // Count how many farms are currently open
+  const openFarmsCount = useMemo(() => {
+    return farms.filter(farm => isCurrentlyOpen(farm.hours)).length
+  }, [farms])
 
   // Request user location
   useEffect(() => {
@@ -82,8 +68,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             lng: position.coords.longitude
           })
         },
-        (error) => {
-          console.error('Geolocation error:', error)
+        () => {
           setLocationDenied(true)
           // Fallback to London coordinates
           setUserLocation({ lat: 51.5074, lng: -0.1278 })
@@ -105,33 +90,33 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   useEffect(() => {
     if (!userLocation) return
 
+    // Capture userLocation as const for TypeScript narrowing
+    const location = userLocation
+
     async function loadNearbyFarms() {
       try {
         const response = await fetch('/api/farms?limit=100')
         if (!response.ok) throw new Error('Failed to fetch farms')
 
         const data = await response.json()
-        const allFarms = data.farms || []
+        const allFarms: FarmShop[] = data.farms || []
 
-        // Calculate distances and sort
+        // Calculate distances and sort by nearest
         const farmsWithDistance = allFarms
-          .map((farm: Farm) => ({
+          .map((farm) => ({
             ...farm,
-            distance: userLocation
-              ? calculateDistance(
-                  userLocation.lat,
-                  userLocation.lng,
-                  farm.location.lat,
-                  farm.location.lng
-                )
-              : 0
+            distance: calculateDistance(
+              location.lat,
+              location.lng,
+              farm.location.lat,
+              farm.location.lng
+            )
           }))
-          .sort((a: any, b: any) => a.distance - b.distance)
+          .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
           .slice(0, limit)
 
         setFarms(farmsWithDistance)
-      } catch (err) {
-        console.error('Error loading nearby farms:', err)
+      } catch {
         setError('Unable to load nearby farms')
       } finally {
         setIsLoading(false)
@@ -160,8 +145,8 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           })
           setLocationDenied(false)
         },
-        (error) => {
-          console.error('Geolocation error:', error)
+        () => {
+          // Geolocation permission still denied
         }
       )
     }
@@ -218,11 +203,16 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   return (
     <section className={`py-16 md:py-24 bg-white dark:bg-slate-950 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header - Maximum contrast */}
+        {/* Section Header - Seasonal and Dynamic */}
         <div className="text-center mb-12">
-          {/* Icon badge */}
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-100 dark:bg-primary-900/30 mb-6">
-            <Compass className="w-7 h-7 text-primary-600 dark:text-primary-400" />
+          {/* Seasonal Tag */}
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mb-6">
+            <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm">
+              {seasonal.headline}
+            </span>
+            <span className="text-amber-700 dark:text-amber-300 text-sm">
+              {seasonal.subtext}
+            </span>
           </div>
 
           {/* Heading - slate-900 for maximum contrast (16.8:1) */}
@@ -230,12 +220,27 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             {locationDenied ? 'Popular Farms Near London' : 'Farms Near You'}
           </h2>
 
-          {/* Description - slate-700 for high contrast (8.6:1) */}
-          <p className="text-lg text-slate-700 dark:text-slate-300 max-w-2xl mx-auto mb-6">
+          {/* Description with live status - slate-700 for high contrast (8.6:1) */}
+          <p className="text-lg text-slate-700 dark:text-slate-300 max-w-2xl mx-auto mb-4">
             {locationDenied
               ? 'Discover these popular farm shops. Enable location to see farms closest to you.'
               : 'Discover local farm shops close to your location with fresh produce and more.'}
           </p>
+
+          {/* Live Status Indicator */}
+          {farms.length > 0 && (
+            <div className="inline-flex items-center gap-2 text-sm mb-6">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <span className="text-slate-600 dark:text-slate-400">
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{openFarmsCount}</span>
+                {' '}of {farms.length} farms open now
+              </span>
+              <Clock className="w-4 h-4 text-slate-400 dark:text-slate-500 ml-1" />
+            </div>
+          )}
 
           {/* Enable Location CTA */}
           {locationDenied && (
@@ -258,7 +263,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
         {/* Farm Grid - 4 columns on large screens */}
         {farms.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-            {farms.map((farm: any) => (
+            {farms.map((farm) => (
               <FarmCard
                 key={farm.id}
                 farm={farm}

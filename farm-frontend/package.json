@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "postinstall": "prisma generate && node scripts/fix-prisma-zeptomatch.js && patch-package",
-    "generate:produce-images": "tsx src/scripts/generate-produce-images.ts"
+    "generate:produce-images": "tsx src/scripts/generate-produce-images.ts",
+    "generate:farm-images": "tsx src/scripts/generate-farm-images.ts"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",

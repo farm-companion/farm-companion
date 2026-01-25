@@ -5,8 +5,9 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Navigation, CheckCircle, ExternalLink } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
+import { getImageUrl } from '@/types/farm'
 import { StatusBadgeCompact } from './StatusBadge'
-import { isCurrentlyOpen } from '@/lib/farm-status'
+import { formatDistance } from '@/shared/lib/geo'
 
 interface FarmCardProps {
   farm: FarmShop
@@ -33,7 +34,8 @@ export function FarmCard({
   onDirections,
   selected = false,
 }: FarmCardProps) {
-  const hasPhotos = farm.images && farm.images.length > 0
+  const firstImageUrl = farm.images?.[0] ? getImageUrl(farm.images[0]) : undefined
+  const hasPhotos = !!firstImageUrl
   const isVerified = farm.verified || false
 
   const handleDirections = (e: React.MouseEvent) => {
@@ -59,18 +61,18 @@ export function FarmCard({
       onClick={handleCardClick}
       className={`
         group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden
-        border-2 transition-all duration-200 cursor-pointer
+        border-2 transition-all duration-200 cursor-pointer flex flex-col h-full
         ${selected
           ? 'border-primary-500 shadow-lg ring-2 ring-primary-500/20'
           : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-xl'
         }
       `}
     >
-      {/* Image Section */}
-      <div className="relative h-36 bg-slate-100 dark:bg-slate-800 overflow-hidden">
-        {hasPhotos ? (
+      {/* Image Section - Taller for better visual impact */}
+      <div className="relative h-44 sm:h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0">
+        {hasPhotos && firstImageUrl ? (
           <Image
-            src={farm.images![0]}
+            src={firstImageUrl}
             alt={`${farm.name} farm shop`}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -99,20 +101,28 @@ export function FarmCard({
       </div>
 
       {/* Content Section */}
-      <div className="p-5">
+      <div className="p-5 flex flex-col flex-grow">
         {/* Farm Name - Full display, no truncation */}
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-1 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-2 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
           {farm.name}
         </h3>
 
-        {/* Location */}
-        <p className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-4">
+        {/* Location & Distance */}
+        <div className="flex items-center gap-1.5 text-sm text-slate-600 dark:text-slate-400 mb-auto pb-4">
           <MapPin className="h-4 w-4 flex-shrink-0" />
-          <span>{farm.location?.county || 'United Kingdom'}</span>
-        </p>
+          <span className="truncate">{farm.location?.county || 'United Kingdom'}</span>
+          {farm.distance !== undefined && farm.distance > 0 && (
+            <>
+              <span className="text-slate-400 dark:text-slate-500 flex-shrink-0">·</span>
+              <span className="font-semibold text-primary-600 dark:text-primary-400 flex-shrink-0">
+                {formatDistance(farm.distance)}
+              </span>
+            </>
+          )}
+        </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3">
+        {/* Action Buttons - Always at bottom */}
+        <div className="flex gap-3 mt-auto">
           {/* Primary CTA - View Details */}
           <Link
             href={`/shop/${farm.slug}`}

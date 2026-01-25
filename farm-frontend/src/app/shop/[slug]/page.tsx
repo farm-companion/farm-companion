@@ -82,7 +82,9 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
       name: shop.name,
       url: `${base}/shop/${encodeURIComponent(shop.slug)}`,
       description: cleanDescription || `${shop.name} - Farm shop in ${shop.location.county}`,
-      image: Array.isArray(shop.images) && shop.images.length > 0 ? shop.images.slice(0, 3) : undefined,
+      image: Array.isArray(shop.images) && shop.images.length > 0
+        ? shop.images.slice(0, 3).map(img => typeof img === 'string' ? img : img.url)
+        : undefined,
       address: {
         '@type': 'PostalAddress',
         streetAddress: shop.location?.address || '',
