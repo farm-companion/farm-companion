@@ -5,7 +5,7 @@ import type { FarmShop } from '@/types/farm'
 import { SITE_URL } from '@/lib/site'
 import CountiesSearch from '@/components/CountiesSearch'
 import BackToTop from '@/components/BackToTop'
-import { CountyDensityBadge, CountyDensityLegend } from '@/components/counties'
+import { CountyDensityBadge, CountyDensityLegend, UKCountyMap } from '@/components/counties'
 import { getFarmData } from '@/lib/farm-data'
 
 import type { Metadata } from 'next'
@@ -137,17 +137,40 @@ export default async function CountiesPage() {
       {/* Main Content */}
       <div id="counties-content" className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
 
-        {/* Search Bar */}
-        <div className="mb-6">
-          <CountiesSearch counties={Object.keys(farmsByCounty)} />
-        </div>
+        {/* Two Column Layout: Map + Search/List */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          {/* Interactive Map */}
+          <div className="lg:col-span-1">
+            <div className="sticky top-24">
+              <h2 className="text-heading font-semibold text-text-heading mb-4 text-center lg:text-left">
+                Explore by Region
+              </h2>
+              <UKCountyMap
+                counties={Object.entries(farmsByCounty).map(([name, farms]) => ({
+                  name,
+                  slug: name.toLowerCase().replace(/\s+/g, '-'),
+                  farmCount: farms.length,
+                }))}
+              />
+              <p className="mt-4 text-small text-text-muted text-center">
+                Click a region to explore
+              </p>
+            </div>
+          </div>
 
-        {/* Density Legend */}
-        <div className="mb-8">
-          <CountyDensityLegend />
-        </div>
+          {/* Search + Counties List */}
+          <div className="lg:col-span-2">
+            {/* Search Bar */}
+            <div className="mb-6">
+              <CountiesSearch counties={Object.keys(farmsByCounty)} />
+            </div>
 
-        {/* Counties Grid */}
+            {/* Density Legend */}
+            <div className="mb-8">
+              <CountyDensityLegend />
+            </div>
+
+            {/* Counties Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {Object.entries(farmsByCounty).map(([county, countyFarms]) => (
             <div
@@ -189,6 +212,8 @@ export default async function CountiesPage() {
               </div>
             </div>
           ))}
+            </div>
+          </div>
         </div>
 
         {/* Summary */}

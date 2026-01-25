@@ -5,3 +5,4 @@
  */
 
 export { CountyDensityBadge, CountyDensityLegend } from './CountyDensityBadge'
+export { UKCountyMap } from './UKCountyMap'
