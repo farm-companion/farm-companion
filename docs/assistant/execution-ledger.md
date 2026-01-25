@@ -141,20 +141,20 @@
 - [x] Slice 20.6: Nutrition Radial Charts (NutritionRadial.tsx + NutritionBars + NutritionPills)
 
 ### Queue 21: Counties Page Transformation
-- [ ] Slice 21.1: UK SVG Map Component
-- [ ] Slice 21.2: Density Coloring Logic
-- [ ] Slice 21.3: County Hover Tooltips
-- [ ] Slice 21.4: Region Sidebar Filters
-- [ ] Slice 21.5: County Landing Page Enhancement
-- [ ] Slice 21.6: "Curator's Choice" Featured Shops
+- [x] Slice 21.1: UK SVG Map Component (UKCountyMap.tsx with 40 regions)
+- [x] Slice 21.2: Density Coloring Logic (5-tier coloring based on farm count)
+- [x] Slice 21.3: County Hover Tooltips (interactive tooltips with farm count)
+- [x] Slice 21.4: Region Sidebar Filters (RegionFilter.tsx + RegionPills)
+- [x] Slice 21.5: County Landing Page Enhancement (CountyHero.tsx with seasonal highlights)
+- [x] Slice 21.6: "Curator's Choice" Featured Shops (CuratorsChoice.tsx + CuratorsChoiceCompact)
 
 ### Queue 22: Shop Profile Enhancement
-- [ ] Slice 22.1: Verification Badge System
-- [ ] Slice 22.2: Dynamic Operating Status
-- [ ] Slice 22.3: "What's In Season Here" Cross-Reference
-- [ ] Slice 22.4: Interactive Location Card
-- [ ] Slice 22.5: Farm Story Rich Text
-- [ ] Slice 22.6: Related Farms Module
+- [x] Slice 22.1: Verification Badge System (VerificationBadge.tsx - 3 tiers: verified/claimed/unverified)
+- [x] Slice 22.2: Dynamic Operating Status (OperatingStatus.tsx - countdown, weekly schedule)
+- [x] Slice 22.3: "What's In Season Here" Cross-Reference (WhatsInSeason.tsx - maps offerings to seasonal produce)
+- [x] Slice 22.4: Interactive Location Card (LocationCard.tsx - map preview, directions, contact)
+- [x] Slice 22.5: Farm Story Rich Text (FarmStory.tsx - expandable paragraphs, quote decoration)
+- [x] Slice 22.6: Related Farms Module (RelatedFarms.tsx - similarity scoring, nearby farms)
 
 ### Queue 23: Map Experience Enhancement
 - [ ] Slice 23.1: Smart Cluster Sizing
