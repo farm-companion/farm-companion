@@ -163,12 +163,12 @@
 - [x] Slice 23.4: Filter Overlay Panel (FilterOverlayPanel.tsx - mobile slide-up filter UI)
 - [x] Slice 23.5: Cluster Animation Easing (CSS keyframes, easing constants, animateZoomTo)
 
-### Queue 24: Homepage Transformation
-- [ ] Slice 24.1: Dynamic Seasonal Headline
-- [ ] Slice 24.2: "Find Shops Open Now" CTA
-- [ ] Slice 24.3: Weekend Planner Module
-- [ ] Slice 24.4: Social Proof Ticker
-- [ ] Slice 24.5: Hero Video Background
+### Queue 24: Homepage Transformation (COMPLETE)
+- [x] Slice 24.1: Dynamic Seasonal Headline (DynamicSeasonalHeadline.tsx with month/time awareness)
+- [x] Slice 24.2: "Find Shops Open Now" CTA (OpenNowCTA.tsx + /api/farms/open-now-count)
+- [x] Slice 24.3: Weekend Planner Module (WeekendPlanner.tsx + /api/farms/weekend)
+- [x] Slice 24.4: Social Proof Ticker (SocialProofTicker.tsx, VisitorCount, TrustIndicators)
+- [x] Slice 24.5: Hero Video Background (HeroVideoBackground.tsx with reduced-motion support)
 
 ### Queue 25: "Harvest" Color System (Optional Theme)
 - [x] Slice 25.1: Harvest Color Tokens (harvest-theme.css with Soil/Leaf/Kinetic primitives)
