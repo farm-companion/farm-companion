@@ -2,28 +2,35 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { FarmImageGenerator } from '@/lib/farm-image-generator'
 import { uploadFarmImage } from '@/lib/farm-blob'
-import { isAuthenticated } from '@/lib/auth'
 import { createRouteLogger } from '@/lib/logger'
 import { handleApiError, errors } from '@/lib/errors'
 
 const logger = createRouteLogger('admin/generate-images')
 
+// Simple API key auth - set ADMIN_API_KEY in your environment
+function checkApiKey(request: NextRequest): boolean {
+  const apiKey = process.env.ADMIN_API_KEY
+  if (!apiKey) return true // No key configured = allow (dev mode)
+
+  const providedKey = request.headers.get('x-api-key') ||
+                      new URL(request.url).searchParams.get('apiKey')
+  return providedKey === apiKey
+}
+
 /**
  * POST /api/admin/generate-images
  *
  * Generate AI images for farms without photos.
- * Requires admin authentication.
  *
  * Query params:
  * - limit: Max farms to process (default: 5, max: 20)
  * - dryRun: If "true", don't upload or save (default: false)
+ * - apiKey: API key for authentication (or use x-api-key header)
  */
 export async function POST(request: NextRequest) {
   try {
-    // Check admin authentication
-    const auth = await isAuthenticated()
-    if (!auth) {
-      throw errors.authentication('Admin authentication required')
+    if (!checkApiKey(request)) {
+      throw errors.authentication('Invalid API key')
     }
 
     const { searchParams } = new URL(request.url)
@@ -153,11 +160,10 @@ export async function POST(request: NextRequest) {
  *
  * Get stats on farms needing images.
  */
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const auth = await isAuthenticated()
-    if (!auth) {
-      throw errors.authentication('Admin authentication required')
+    if (!checkApiKey(request)) {
+      throw errors.authentication('Invalid API key')
     }
 
     const [totalFarms, farmsWithImages, farmsWithoutImages] = await Promise.all([
