@@ -244,6 +244,14 @@
   - Fix: Updated NearbyFarms to use shared FarmShop type and calculateDistance()
   - Removed duplicate Haversine implementation (already in shared/lib/geo.ts)
   - This enables: Distance display, Status badges, Images on homepage cards
+- **Farm Shop Image Generator** (COMPLETE)
+  - Created FarmImageGenerator class using fal.ai FLUX + Pollinations fallback
+  - UK-specific prompts: Cotswold stone, Yorkshire moorland, Devon coastal, etc.
+  - Regional styling based on county for authentic British farm shop imagery
+  - Created farm-blob.ts for Vercel Blob storage (1600x900 WebP @ 85%)
+  - Created generate-farm-images.ts CLI script
+  - Usage: pnpm run generate:farm-images --limit=10 --upload
+  - Automatically creates Image record in database for generated farms
 
 ### 2026-01-24 (TypeScript Error Resolution)
 - **Type Safety Fixes for Production Readiness** (COMPLETE)
