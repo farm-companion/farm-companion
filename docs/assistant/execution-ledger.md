@@ -156,12 +156,12 @@
 - [x] Slice 22.5: Farm Story Rich Text (FarmStory.tsx - expandable paragraphs, quote decoration)
 - [x] Slice 22.6: Related Farms Module (RelatedFarms.tsx - similarity scoring, nearby farms)
 
-### Queue 23: Map Experience Enhancement
+### Queue 23: Map Experience Enhancement (COMPLETE)
 - [x] Slice 23.1: Smart Cluster Sizing (cluster-config.ts with 5-tier hierarchy + zoom-aware sizing)
 - [x] Slice 23.2: Category-Based Pin Icons (pin-icons.ts with 18 category configs, color+icon per category)
-- [ ] Slice 23.3: "Search as I Move" Toggle
-- [ ] Slice 23.4: Filter Overlay Panel
-- [ ] Slice 23.5: Cluster Animation Easing
+- [x] Slice 23.3: "Search as I Move" Toggle (SearchAreaControl.tsx + map page integration)
+- [x] Slice 23.4: Filter Overlay Panel (FilterOverlayPanel.tsx - mobile slide-up filter UI)
+- [x] Slice 23.5: Cluster Animation Easing (CSS keyframes, easing constants, animateZoomTo)
 
 ### Queue 24: Homepage Transformation
 - [ ] Slice 24.1: Dynamic Seasonal Headline
