@@ -134,7 +134,7 @@
 
 ### Queue 20: Seasonal Page Transformation
 - [x] Slice 20.1: Seasonal Data Structure (enhanced seasonal-utils.ts with progress, daysRemaining, categories)
-- [ ] Slice 20.2: Produce Card Enhancement (deferred - SeasonalGrid already polished)
+- [x] Slice 20.2: Produce Card Enhancement (category badge, progress bar, days remaining, nutrition pills)
 - [x] Slice 20.3: Seasonality Progress Bar (SeasonProgress.tsx with month segments)
 - [x] Slice 20.4: Month Navigation Wheel (MonthWheel.tsx SVG + MonthSelector compact)
 - [x] Slice 20.5: "Find Stockists" Bridge (FindStockists.tsx + FindStockistsCompact)
