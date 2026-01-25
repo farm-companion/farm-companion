@@ -159,7 +159,7 @@
 ### Queue 23: Map Experience Enhancement
 - [x] Slice 23.1: Smart Cluster Sizing (cluster-config.ts with 5-tier hierarchy + zoom-aware sizing)
 - [x] Slice 23.2: Category-Based Pin Icons (pin-icons.ts with 18 category configs, color+icon per category)
-- [ ] Slice 23.3: "Search as I Move" Toggle
+- [x] Slice 23.3: "Search as I Move" Toggle (SearchAreaControl.tsx + map page integration)
 - [ ] Slice 23.4: Filter Overlay Panel
 - [ ] Slice 23.5: Cluster Animation Easing
 
