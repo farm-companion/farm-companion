@@ -7,6 +7,7 @@ import { MapPin, Navigation, CheckCircle, ExternalLink } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
 import { StatusBadgeCompact } from './StatusBadge'
+import { AmenityIcons } from './shop/AmenityIcons'
 import { formatDistance } from '@/shared/lib/geo'
 
 interface FarmCardProps {
@@ -108,7 +109,7 @@ export function FarmCard({
         </h3>
 
         {/* Location & Distance */}
-        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-auto pb-5">
+        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-3">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span className="truncate">{farm.location?.county || 'United Kingdom'}</span>
           {farm.distance !== undefined && farm.distance > 0 && (
@@ -120,6 +121,18 @@ export function FarmCard({
             </>
           )}
         </div>
+
+        {/* Amenity Icons */}
+        {farm.amenities && farm.amenities.length > 0 && (
+          <div className="mb-auto pb-4">
+            <AmenityIcons amenityIds={farm.amenities} limit={4} />
+          </div>
+        )}
+
+        {/* Spacer when no amenities */}
+        {(!farm.amenities || farm.amenities.length === 0) && (
+          <div className="mb-auto pb-2" />
+        )}
 
         {/* Action Buttons - Always at bottom */}
         <div className="flex gap-3 mt-auto pt-2">
