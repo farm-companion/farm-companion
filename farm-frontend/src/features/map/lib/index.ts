@@ -12,3 +12,11 @@ export {
   getClusterTargetZoom,
   type ClusterTier,
 } from './cluster-config'
+
+export {
+  CATEGORY_PINS,
+  DEFAULT_PIN,
+  getPinForFarm,
+  generateCategoryMarkerSVG,
+  type CategoryPinConfig,
+} from './pin-icons'

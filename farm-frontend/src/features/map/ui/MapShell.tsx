@@ -7,6 +7,7 @@ import { Map } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import type { ClusterClickEvent, MarkerState, FarmMarkerExtended, WindowWithMapUtils, ClusterData } from '@/types/map'
 import { createSmartClusterRenderer, getClusterTargetZoom, CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
+import { getPinForFarm, generateCategoryMarkerSVG } from '../lib/pin-icons'
 import MarkerActions from './MarkerActions'
 import MapMarkerPopover from './MapMarkerPopover'
 import ClusterPreview from './ClusterPreview'
@@ -305,16 +306,15 @@ export default function MapShell({
     farmData.forEach(farm => {
       if (!farm.location?.lat || !farm.location?.lng) return
 
+      // Get category-based pin icon for this farm
+      const pinConfig = getPinForFarm(farm.offerings)
+      const markerSvg = generateCategoryMarkerSVG(pinConfig, 32)
+
       const marker = new google.maps.Marker({
         position: { lat: farm.location.lat, lng: farm.location.lng },
         title: farm.name,
         icon: {
-          url: `data:image/svg+xml;utf8,${encodeURIComponent(
-            `<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-              <circle cx="16" cy="16" r="14" fill="#00C2B2" stroke="white" stroke-width="2"/>
-              <circle cx="16" cy="16" r="5" fill="white"/>
-            </svg>`
-          )}`,
+          url: `data:image/svg+xml;utf8,${encodeURIComponent(markerSvg)}`,
           scaledSize: new google.maps.Size(32, 32),
           anchor: new google.maps.Point(16, 16),
         },
