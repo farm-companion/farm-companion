@@ -1,11 +1,11 @@
 'use client'
 
-import { getFarmStatus, getStatusColorClass, type OpeningHours } from '@/lib/farm-status'
+import { getFarmStatus, getStatusColorClass } from '@/lib/farm-status'
 import { motion } from 'framer-motion'
 import { fadeIn } from '@/lib/animations'
 
 interface StatusBadgeProps {
-  openingHours?: OpeningHours
+  openingHours?: unknown // Accepts any format, normalized internally
   className?: string
   showIcon?: boolean
 }
