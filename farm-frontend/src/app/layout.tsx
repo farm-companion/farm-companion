@@ -1,7 +1,7 @@
 import './globals.css'
 
 import type { Metadata } from 'next'
-import { Manrope, IBM_Plex_Sans, Crimson_Pro } from 'next/font/google'
+import { Manrope, IBM_Plex_Sans, IBM_Plex_Mono, Crimson_Pro } from 'next/font/google'
 import Script from 'next/script'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
@@ -31,6 +31,14 @@ const plexCondensed = IBM_Plex_Sans({
   display: 'swap',
   weight: ['400', '600'],
   variable: '--font-accent',
+})
+
+// Mono: IBM Plex Mono (technical, precise, tabular figures for metrics)
+const plexMono = IBM_Plex_Mono({
+  subsets: ['latin'],
+  display: 'swap',
+  weight: ['400', '500', '600'],
+  variable: '--font-mono',
 })
 
 // Serif: Crimson Pro (editorial, magazine-style)
@@ -137,7 +145,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${plexCondensed.variable} ${crimsonPro.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${plexCondensed.variable} ${plexMono.variable} ${crimsonPro.variable}`}>
       <head>
         {/* Site-wide structured data - optimized with next/script */}
         <Script

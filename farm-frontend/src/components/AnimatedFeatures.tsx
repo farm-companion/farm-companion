@@ -5,27 +5,28 @@ import { Leaf, Calendar, Heart } from 'lucide-react'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
 
 export function AnimatedFeatures() {
+  // WCAG AAA compliant colors - using accessible primary/secondary scales
   const features = [
     {
       icon: Leaf,
       title: 'Fresh & Local',
       description: 'Direct from farm to table, ensuring maximum freshness and flavor.',
-      colorBg: 'bg-serum/10',
-      colorText: 'text-serum'
+      colorBg: 'bg-primary-100 dark:bg-primary-900/30',
+      colorText: 'text-primary-700 dark:text-primary-400'
     },
     {
       icon: Calendar,
       title: 'Seasonal Selection',
       description: "Discover what's in season and at its peak flavor throughout the year.",
-      colorBg: 'bg-solar/10',
-      colorText: 'text-solar'
+      colorBg: 'bg-secondary-100 dark:bg-secondary-900/30',
+      colorText: 'text-secondary-700 dark:text-secondary-400'
     },
     {
       icon: Heart,
       title: 'Family Values',
       description: 'Support local families and sustainable farming practices.',
-      colorBg: 'bg-serum/10',
-      colorText: 'text-serum'
+      colorBg: 'bg-primary-100 dark:bg-primary-900/30',
+      colorText: 'text-primary-700 dark:text-primary-400'
     }
   ]
 

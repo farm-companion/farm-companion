@@ -10,38 +10,39 @@ interface AnimatedStatsProps {
 }
 
 export function AnimatedStats({ farmCount, countyCount }: AnimatedStatsProps) {
+  // WCAG AAA compliant colors - text versions for proper contrast
   const stats = [
     {
       icon: MapPin,
       value: `${farmCount}+`,
       label: 'Farm Shops',
       description: 'Verified local farm shops across the UK',
-      colorBg: 'bg-serum/10',
-      colorText: 'text-serum'
+      colorBg: 'bg-primary-100 dark:bg-primary-900/30',
+      colorText: 'text-primary-700 dark:text-primary-400'
     },
     {
       icon: Award,
       value: countyCount,
       label: 'Counties',
       description: 'Complete coverage of UK regions',
-      colorBg: 'bg-solar/10',
-      colorText: 'text-solar'
+      colorBg: 'bg-secondary-100 dark:bg-secondary-900/30',
+      colorText: 'text-secondary-700 dark:text-secondary-400'
     },
     {
       icon: TrendingUp,
       value: '100%',
       label: 'Fresh & Local',
       description: 'Direct from farm to table',
-      colorBg: 'bg-serum/10',
-      colorText: 'text-serum'
+      colorBg: 'bg-primary-100 dark:bg-primary-900/30',
+      colorText: 'text-primary-700 dark:text-primary-400'
     },
     {
       icon: Clock,
       value: 'Live',
       label: 'Real-time Status',
       description: 'See which farms are open now',
-      colorBg: 'bg-solar/10',
-      colorText: 'text-solar'
+      colorBg: 'bg-secondary-100 dark:bg-secondary-900/30',
+      colorText: 'text-secondary-700 dark:text-secondary-400'
     }
   ]
 
