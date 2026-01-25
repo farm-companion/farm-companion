@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { Leaf, Menu, X, MapPin, Calendar, Info, MessageSquare, Plus, Command, Search } from 'lucide-react'
 import ThemeToggle from '@/components/ThemeToggle'
-import { LocationContext } from '@/components/navigation/LocationContext'
+import { LocationContext, MegaMenu, CountiesPreview } from '@/components/navigation'
 
 /**
  * God-Tier Header 5.0 - Command Center Design
@@ -350,17 +350,33 @@ export default function Header() {
 
           {/* Desktop navigation - Command Center typography */}
           <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
+            {/* Map link */}
+            <Link
+              href="/map"
+              className={cx(
+                'px-4 py-2 rounded-lg text-[12px] font-semibold dark:font-medium uppercase tracking-[0.06em] transition-all duration-200',
+                inverted
+                  ? 'text-white/90 hover:text-white hover:bg-white/10'
+                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-white/[0.04]'
+              )}
+            >
+              Map
+            </Link>
+
+            {/* Counties with Mega Menu */}
+            <MegaMenu label="Counties" href="/counties" inverted={inverted}>
+              <CountiesPreview />
+            </MegaMenu>
+
+            {/* Other nav links */}
             {[
-              { href: '/map', label: 'Map' },
               { href: '/seasonal', label: 'Seasonal' },
               { href: '/about', label: 'About' },
-              { href: '/contact', label: 'Feedback' },
             ].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
                 className={cx(
-                  // Uppercase nav labels with tight letter-spacing (instrument hierarchy)
                   'px-4 py-2 rounded-lg text-[12px] font-semibold dark:font-medium uppercase tracking-[0.06em] transition-all duration-200',
                   inverted
                     ? 'text-white/90 hover:text-white hover:bg-white/10'
