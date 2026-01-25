@@ -236,6 +236,14 @@
   - Added useUserLocation hook (hooks/useUserLocation.ts) for reusable geolocation
   - Exported from hooks/index.ts
   - Files changed: FarmCard.tsx (2 edits), useUserLocation.ts (new), hooks/index.ts (1 edit)
+- **Critical Bug Fix: NearbyFarms Data Type Mismatch** (COMPLETE)
+  - Root cause: API returns images as [{url, alt}] but FarmCard expected string[]
+  - Root cause: NearbyFarms had local Farm interface missing hours property
+  - Fix: Added FarmImage interface and getImageUrl() helper to types/farm.ts
+  - Fix: Updated FarmCard to use getImageUrl() for extracting image URLs
+  - Fix: Updated NearbyFarms to use shared FarmShop type and calculateDistance()
+  - Removed duplicate Haversine implementation (already in shared/lib/geo.ts)
+  - This enables: Distance display, Status badges, Images on homepage cards
 
 ### 2026-01-24 (TypeScript Error Resolution)
 - **Type Safety Fixes for Production Readiness** (COMPLETE)
