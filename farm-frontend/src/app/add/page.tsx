@@ -8,6 +8,7 @@ import PhotoSubmissionForm from '@/components/PhotoSubmissionForm'
 import FarmImageUpload from '@/components/FarmImageUpload'
 import Image from 'next/image'
 import Link from 'next/link'
+import { AddressAutocomplete } from '@/components/AddressAutocomplete'
 
 type Hours = { day: 'Mon'|'Tue'|'Wed'|'Thu'|'Fri'|'Sat'|'Sun'; open?: string; close?: string }
 type FarmForm = {
@@ -503,18 +504,42 @@ export default function AddFarmPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="farm-postcode" className="block text-caption font-medium text-text-heading mb-2">
+                    Postcode * <span className="text-text-muted font-normal">(auto-fills county and coordinates)</span>
+                  </label>
+                  <AddressAutocomplete
+                    initialPostcode={form.postcode}
+                    error={touched && !form.postcode}
+                    onAddressSelect={(address) => {
+                      setForm(prev => ({
+                        ...prev,
+                        postcode: address.postcode,
+                        county: address.county,
+                        lat: address.latitude.toString(),
+                        lng: address.longitude.toString(),
+                      }))
+                    }}
+                  />
+                  {touched && !form.postcode && (
+                    <p id="postcode-error" className="text-caption text-red-600 mt-1 flex items-center space-x-1">
+                      <AlertCircle className="w-4 h-4" />
+                      <span>Postcode is required</span>
+                    </p>
+                  )}
+                </div>
                 <div>
                   <label htmlFor="farm-county" className="block text-caption font-medium text-text-heading mb-2">
-                    County *
+                    County * {form.county && <span className="text-green-600 text-small font-normal">(auto-filled)</span>}
                   </label>
-                  <input 
+                  <input
                     id="farm-county"
                     name="county"
                     className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
-                      touched && !form.county ? 'border-red-500' : 'border-border-default'
+                      touched && !form.county ? 'border-red-500' : form.county ? 'border-green-500 bg-green-50/50 dark:bg-green-950/20' : 'border-border-default'
                     }`}
-                    value={form.county} 
+                    value={form.county}
                     onChange={onChange('county')}
                     placeholder="e.g. Devon"
                     aria-invalid={touched && !form.county}
@@ -527,39 +552,17 @@ export default function AddFarmPage() {
                     </p>
                   )}
                 </div>
-                <div>
-                  <label htmlFor="farm-postcode" className="block text-caption font-medium text-text-heading mb-2">
-                    Postcode *
-                  </label>
-                  <input 
-                    id="farm-postcode"
-                    name="postcode"
-                    className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
-                      touched && !form.postcode ? 'border-red-500' : 'border-border-default'
-                    }`}
-                    value={form.postcode} 
-                    onChange={onChange('postcode')}
-                    placeholder="e.g. EX1 1AA"
-                    aria-invalid={touched && !form.postcode}
-                    aria-describedby={touched && !form.postcode ? 'postcode-error' : undefined}
-                  />
-                  {touched && !form.postcode && (
-                    <p id="postcode-error" className="text-caption text-red-600 mt-1 flex items-center space-x-1">
-                      <AlertCircle className="w-4 h-4" />
-                      <span>Postcode is required</span>
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <label className="block text-caption font-medium text-text-heading mb-2">
-                    Slug (auto-generated)
-                  </label>
-                  <input 
-                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-surface text-text-muted cursor-not-allowed" 
-                    value={slug} 
-                    readOnly 
-                  />
-                </div>
+              </div>
+
+              <div>
+                <label className="block text-caption font-medium text-text-heading mb-2">
+                  URL Slug <span className="text-text-muted font-normal">(auto-generated from name)</span>
+                </label>
+                <input
+                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-surface text-text-muted cursor-not-allowed"
+                  value={slug}
+                  readOnly
+                />
               </div>
             </div>
           </section>

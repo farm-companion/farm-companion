@@ -170,12 +170,12 @@
 - [x] Slice 24.4: Social Proof Ticker (SocialProofTicker.tsx, VisitorCount, TrustIndicators)
 - [x] Slice 24.5: Hero Video Background (HeroVideoBackground.tsx with reduced-motion support)
 
-### Queue 25: "Harvest" Color System (Optional Theme)
+### Queue 25: "Harvest" Color System (Optional Theme) - COMPLETE
 - [x] Slice 25.1: Harvest Color Tokens (harvest-theme.css with Soil/Leaf/Kinetic primitives)
 - [x] Slice 25.2: Theme Provider (next-themes integration with ThemeProvider.tsx)
 - [x] Slice 25.3: Theme Toggle Component (ThemeToggle.tsx with 3-state cycle)
-- [ ] Slice 25.4: Harvest Button Variants
-- [ ] Slice 25.5: Harvest Card Styles
+- [x] Slice 25.4: Harvest Button Variants (harvest-primary, harvest-leaf, harvest-soil, harvest-outline, harvest-ghost)
+- [x] Slice 25.5: Harvest Card Styles (harvest, harvest-elevated, harvest-accent + CardTitle/CardDescription harvest prop)
 
 ### Queue 26: "Add Farm" Flow Improvement
 - [ ] Slice 26.1: Address Autocomplete
