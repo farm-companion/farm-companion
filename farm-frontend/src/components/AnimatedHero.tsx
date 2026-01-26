@@ -18,7 +18,7 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
   return (
     <section
       data-header-invert
-      className="relative h-[75vh] min-h-[600px] md:h-[80vh] md:min-h-[700px] lg:h-screen lg:min-h-[800px] lg:max-h-[1000px] overflow-hidden"
+      className="relative h-[60vh] min-h-[480px] md:h-[65vh] md:min-h-[520px] lg:h-[70vh] lg:min-h-[560px] lg:max-h-[800px] overflow-hidden"
     >
       {/* Background with optional video support */}
       <HeroVideoBackground
