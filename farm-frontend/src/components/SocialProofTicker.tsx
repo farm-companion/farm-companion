@@ -109,7 +109,10 @@ export function SocialProofTicker({
     }
   }, [interval])
 
-  if (!mounted || !currentItem) return null
+  // Render empty placeholder during SSR to avoid hydration mismatch
+  if (!mounted || !currentItem) {
+    return <div className="h-10" aria-hidden="true" />
+  }
 
   const IconComponent = ICONS[currentItem.icon]
 

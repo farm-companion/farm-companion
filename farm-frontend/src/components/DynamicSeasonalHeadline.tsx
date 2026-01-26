@@ -127,20 +127,14 @@ export function DynamicSeasonalHeadline({
     setHeadlineData(getSeasonalHeadlineData(month))
   }, [])
 
-  // SSR fallback
-  if (!mounted || !headlineData) {
-    return (
-      <>
-        <span className={className}>Find Fresh Local</span>
-        <span className={`block ${accentClassName}`}>Farm Shops</span>
-      </>
-    )
-  }
+  // SSR fallback - use suppressHydrationWarning for dynamic content
+  const headline = mounted && headlineData ? headlineData.headline : 'Find Fresh Local'
+  const accent = mounted && headlineData ? headlineData.accent : 'Farm Shops'
 
   return (
     <>
-      <span className={className}>{headlineData.headline}</span>
-      <span className={`block ${accentClassName}`}>{headlineData.accent}</span>
+      <span className={className} suppressHydrationWarning>{headline}</span>
+      <span className={`block ${accentClassName}`} suppressHydrationWarning>{accent}</span>
     </>
   )
 }
@@ -162,19 +156,13 @@ export function DynamicSeasonalSubheadline({
     setSubheadline(data.subheadline)
   }, [])
 
-  // SSR fallback
-  if (!mounted || !subheadline) {
-    return (
-      <span className={className}>
-        Find farm shops near you with fresh local produce, seasonal UK fruit and vegetables,
-        and authentic farm experiences across {countyCount} counties.
-      </span>
-    )
-  }
+  const text = mounted && subheadline
+    ? `${subheadline} Explore ${countyCount} counties of local flavour.`
+    : `Find farm shops near you with fresh local produce, seasonal UK fruit and vegetables, and authentic farm experiences across ${countyCount} counties.`
 
   return (
-    <span className={className}>
-      {subheadline} Explore {countyCount} counties of local flavour.
+    <span className={className} suppressHydrationWarning>
+      {text}
     </span>
   )
 }
@@ -195,8 +183,6 @@ export function SeasonBadge({ className = '' }: { className?: string }) {
     })
   }, [])
 
-  if (!mounted || !seasonData) return null
-
   const seasonIcons: Record<Season, string> = {
     winter: '❄',
     spring: '🌱',
@@ -204,10 +190,14 @@ export function SeasonBadge({ className = '' }: { className?: string }) {
     autumn: '🍂',
   }
 
+  // Render placeholder during SSR to avoid hydration mismatch
+  const icon = mounted && seasonData ? seasonIcons[seasonData.season] : '🌿'
+  const monthName = mounted && seasonData ? seasonData.monthName : ''
+
   return (
-    <span className={`inline-flex items-center gap-1.5 text-small font-medium ${className}`}>
-      <span>{seasonIcons[seasonData.season]}</span>
-      <span>{seasonData.monthName}</span>
+    <span className={`inline-flex items-center gap-1.5 text-small font-medium ${className}`} suppressHydrationWarning>
+      <span suppressHydrationWarning>{icon}</span>
+      <span suppressHydrationWarning>{monthName}</span>
     </span>
   )
 }
