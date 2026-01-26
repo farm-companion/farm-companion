@@ -61,23 +61,19 @@ export function HeroVideoBackground({
   }
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
+    <div className={`overflow-hidden ${className}`}>
       {/* Image background (always present as fallback) */}
-      <div
-        className={`absolute inset-0 transition-opacity duration-700 ${
+      <Image
+        src={imageSrc}
+        alt={imageAlt}
+        fill
+        className={`object-cover object-center transition-opacity duration-700 ${
           shouldShowVideo && isVideoLoaded ? 'opacity-0' : 'opacity-100'
         }`}
-      >
-        <Image
-          src={imageSrc}
-          alt={imageAlt}
-          fill
-          className="object-cover object-center"
-          priority
-          sizes="100vw"
-          quality={85}
-        />
-      </div>
+        priority
+        sizes="100vw"
+        quality={85}
+      />
 
       {/* Video background (conditionally rendered) */}
       {shouldShowVideo && (
@@ -97,18 +93,6 @@ export function HeroVideoBackground({
           <source src={videoSrc} type="video/mp4" />
         </video>
       )}
-
-      {/* Overlay gradients */}
-      <div className={`absolute inset-0 ${overlayClassName}`}>
-        {/* Default overlay if none provided */}
-        {!overlayClassName && (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
-          </>
-        )}
-      </div>
 
       {/* Content */}
       {children && (
