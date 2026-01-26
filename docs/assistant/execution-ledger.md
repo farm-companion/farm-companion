@@ -177,11 +177,11 @@
 - [x] Slice 25.4: Harvest Button Variants (harvest-primary, harvest-leaf, harvest-soil, harvest-outline, harvest-ghost)
 - [x] Slice 25.5: Harvest Card Styles (harvest, harvest-elevated, harvest-accent + CardTitle/CardDescription harvest prop)
 
-### Queue 26: "Add Farm" Flow Improvement
+### Queue 26: "Add Farm" Flow Improvement - COMPLETE
 - [x] Slice 26.1: Address Autocomplete (AddressAutocomplete.tsx + Postcodes.io API, auto-fills county/lat/lng)
 - [x] Slice 26.2: Opening Hours Builder (OpeningHoursBuilder.tsx with presets, quick actions, copy-to-all)
-- [ ] Slice 26.3: Real-Time Validation
-- [ ] Slice 26.4: Progress Indicator
+- [x] Slice 26.3: Real-Time Validation (useFormValidation hook + FormField component with visual feedback)
+- [x] Slice 26.4: Progress Indicator (FormProgress.tsx with vertical/horizontal variants, section tracking)
 
 ### Queue 27: Accessibility & Motion Polish
 - [ ] Slice 27.1: Screen Reader Map Fallback
