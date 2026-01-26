@@ -61,19 +61,24 @@ export function HeroVideoBackground({
   }
 
   return (
-    <div className={`overflow-hidden ${className}`}>
-      {/* Image background (always present as fallback) */}
-      <Image
-        src={imageSrc}
-        alt={imageAlt}
-        fill
-        className={`object-cover object-center transition-opacity duration-700 ${
+    <div className={`${className}`}>
+      {/* Image background - wrapper needed for next/image fill to work */}
+      <div
+        className={`absolute inset-0 transition-opacity duration-700 ${
           shouldShowVideo && isVideoLoaded ? 'opacity-0' : 'opacity-100'
         }`}
-        priority
-        sizes="100vw"
-        quality={85}
-      />
+      >
+        <Image
+          src={imageSrc}
+          alt={imageAlt}
+          fill
+          className="object-cover"
+          style={{ objectPosition: 'center 70%' }}
+          priority
+          sizes="100vw"
+          quality={85}
+        />
+      </div>
 
       {/* Video background (conditionally rendered) */}
       {shouldShowVideo && (
@@ -82,6 +87,7 @@ export function HeroVideoBackground({
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
             isVideoLoaded ? 'opacity-100' : 'opacity-0'
           }`}
+          style={{ objectPosition: 'center 70%' }}
           autoPlay
           muted
           loop
@@ -98,13 +104,6 @@ export function HeroVideoBackground({
       {children && (
         <div className="relative z-10 h-full">
           {children}
-        </div>
-      )}
-
-      {/* Reduced motion indicator (for debugging, can be removed in production) */}
-      {process.env.NODE_ENV === 'development' && prefersReducedMotion && (
-        <div className="absolute top-4 right-4 z-20 bg-amber-500/80 text-black text-small px-2 py-1 rounded">
-          Reduced motion: video paused
         </div>
       )}
     </div>
