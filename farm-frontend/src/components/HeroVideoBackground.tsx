@@ -61,7 +61,7 @@ export function HeroVideoBackground({
   }
 
   return (
-    <div className={`${className}`}>
+    <div className={`absolute inset-0 h-full w-full overflow-hidden ${className ?? ""}`}>
       {/* Image background - wrapper needed for next/image fill to work */}
       <div
         className={`absolute inset-0 transition-opacity duration-700 ${
