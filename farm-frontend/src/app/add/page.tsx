@@ -10,6 +10,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { AddressAutocomplete } from '@/components/AddressAutocomplete'
 import { OpeningHoursBuilder } from '@/components/OpeningHoursBuilder'
+import { FormProgress } from '@/components/FormProgress'
 
 type Hours = { day: 'Mon'|'Tue'|'Wed'|'Thu'|'Fri'|'Sat'|'Sun'; open?: string; close?: string; closed?: boolean }
 type FarmForm = {
@@ -756,9 +757,25 @@ export default function AddFarmPage() {
           )}
         </div>
 
-        {/* Sidebar - Preview */}
+        {/* Sidebar - Progress & Preview */}
         <div className="lg:col-span-1">
-          <div className="sticky top-6 lg:top-24 max-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-6rem)] overflow-y-auto">
+          <div className="sticky top-6 lg:top-24 max-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-6rem)] overflow-y-auto space-y-6">
+            {/* Progress Tracker */}
+            <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-6 border border-border-default/30 shadow-2xl">
+              <FormProgress
+                variant="vertical"
+                sections={[
+                  { id: 'name', label: 'Farm Name', required: true, isComplete: !!form.name },
+                  { id: 'address', label: 'Address', required: true, isComplete: !!form.address },
+                  { id: 'location', label: 'Postcode & County', required: true, isComplete: !!(form.postcode && form.county) },
+                  { id: 'contact', label: 'Contact Info', required: false, isComplete: !!(form.website || form.email || form.phone) },
+                  { id: 'hours', label: 'Opening Hours', required: false, isComplete: hours.some(h => h.open && h.close) },
+                  { id: 'story', label: 'Farm Story', required: false, isComplete: !!form.story },
+                ]}
+              />
+            </div>
+
+            {/* Preview Card */}
             <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
               <h3 className="text-body font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
                 <span className="w-2 h-2 bg-serum rounded-full"></span>
