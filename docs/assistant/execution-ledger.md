@@ -178,8 +178,8 @@
 - [x] Slice 25.5: Harvest Card Styles (harvest, harvest-elevated, harvest-accent + CardTitle/CardDescription harvest prop)
 
 ### Queue 26: "Add Farm" Flow Improvement
-- [ ] Slice 26.1: Address Autocomplete
-- [ ] Slice 26.2: Opening Hours Builder
+- [x] Slice 26.1: Address Autocomplete (AddressAutocomplete.tsx + Postcodes.io API, auto-fills county/lat/lng)
+- [x] Slice 26.2: Opening Hours Builder (OpeningHoursBuilder.tsx with presets, quick actions, copy-to-all)
 - [ ] Slice 26.3: Real-Time Validation
 - [ ] Slice 26.4: Progress Indicator
 
