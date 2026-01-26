@@ -9,8 +9,9 @@ import FarmImageUpload from '@/components/FarmImageUpload'
 import Image from 'next/image'
 import Link from 'next/link'
 import { AddressAutocomplete } from '@/components/AddressAutocomplete'
+import { OpeningHoursBuilder } from '@/components/OpeningHoursBuilder'
 
-type Hours = { day: 'Mon'|'Tue'|'Wed'|'Thu'|'Fri'|'Sat'|'Sun'; open?: string; close?: string }
+type Hours = { day: 'Mon'|'Tue'|'Wed'|'Thu'|'Fri'|'Sat'|'Sun'; open?: string; close?: string; closed?: boolean }
 type FarmForm = {
   name: string
   address: string
@@ -690,29 +691,13 @@ export default function AddFarmPage() {
           <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
             <h2 className="text-heading font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
               <span className="w-2 h-2 bg-serum rounded-full"></span>
-              <span>Opening Hours (24h format, optional)</span>
+              <span>Opening Hours <span className="text-text-muted font-normal">(optional)</span></span>
             </h2>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {hours.map(h => (
-                <div key={h.day} className="flex items-center space-x-3 p-3 bg-background-canvas rounded-lg">
-                  <span className="w-12 text-caption font-medium text-text-heading">{h.day}</span>
-                  <input 
-                    className="w-20 rounded border border-border-default px-2 py-1 text-caption bg-background-canvas text-text-body focus:outline-none focus:ring-1 focus:ring-serum" 
-                    placeholder="09:00" 
-                    value={h.open || ''} 
-                    onChange={onHoursChange(h.day, 'open')}
-                  />
-                  <span className="text-caption text-text-muted">–</span>
-                  <input 
-                    className="w-20 rounded border border-border-default px-2 py-1 text-caption bg-background-canvas text-text-body focus:outline-none focus:ring-1 focus:ring-serum" 
-                    placeholder="17:00" 
-                    value={h.close || ''} 
-                    onChange={onHoursChange(h.day, 'close')}
-                  />
-                </div>
-              ))}
-            </div>
+
+            <OpeningHoursBuilder
+              value={hours}
+              onChange={setHours}
+            />
           </section>
 
           {/* Farm Images */}
