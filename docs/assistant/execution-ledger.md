@@ -186,7 +186,7 @@
 ### Queue 27: Accessibility & Motion Polish
 - [x] Slice 27.1: Screen Reader Map Fallback (MapAccessibilityFallback.tsx + MapStateDescription)
 - [x] Slice 27.2: Skip Links Enhancement (Enhanced SkipLinks.tsx with focus management, dynamic targets, added navigation/search IDs to Header)
-- [ ] Slice 27.3: Page Transition Animation
+- [x] Slice 27.3: Page Transition Animation (PageTransition.tsx + template.tsx with reduced-motion support)
 - [ ] Slice 27.4: Button Spring Physics
 - [ ] Slice 27.5: Loading State Animations
 
