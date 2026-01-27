@@ -216,11 +216,14 @@
 - [x] Slice 30.3: Tile provider configuration (map-config.ts with Stadia/MapTiler/OSM fallback chain)
 
 **Phase 2: Marker System (Slices 30.4-30.6)**
-- [ ] Slice 30.4: Custom marker component
+- [x] Slice 30.4: Custom marker component
   - FarmMarker.tsx using MapLibre Marker API
   - Category-based icons (reuse existing pin-icons.ts)
-  - Open/closed status indicator
-  - Hover and selected states
+  - Open/closed status indicator (green/red dot)
+  - Hover and selected states (scaling, glow, bounce animation)
+  - FarmMarkerLayer for managing collections
+  - Accessible keyboard navigation (role=button, tabindex, Enter/Space)
+  - CSS animations in globals.css with reduced-motion support
 - [ ] Slice 30.5: Marker clustering with Supercluster
   - Install supercluster package
   - Create useClusteredMarkers hook
