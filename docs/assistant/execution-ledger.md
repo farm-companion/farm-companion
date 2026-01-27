@@ -202,6 +202,101 @@
 - [ ] Slice 29.3: Loading Messages
 - [ ] Slice 29.4: Success Messages
 
+### Queue 30: MapLibre GL Migration (Google Maps Replacement)
+**Goal:** Replace Google Maps with MapLibre GL + free tile provider for zero-cost, unlimited map loads.
+
+**Tile Provider Selection:**
+- Primary: Stadia Maps (free tier: 200K tiles/day, no CC required)
+- Fallback: MapTiler (free tier: 100K tiles/month)
+- Style: Stadia Alidade Smooth or custom style matching brand
+
+**Phase 1: Foundation (Slices 30.1-30.3)**
+- [ ] Slice 30.1: Install MapLibre GL dependencies
+  - Add maplibre-gl package
+  - Add @maplibre/maplibre-gl-geocoder for search
+  - Configure CSS imports in globals.css
+  - Create MapLibreProvider context for shared map instance
+- [ ] Slice 30.2: Create base MapLibre component
+  - MapLibreMap.tsx with initialization logic
+  - Support for style URL configuration via env var
+  - Responsive container with proper aspect ratios
+  - Touch/mouse interaction handlers
+  - prefers-reduced-motion support (disable animations)
+- [ ] Slice 30.3: Tile provider configuration
+  - Create lib/map-config.ts with tile URLs
+  - Environment variables: NEXT_PUBLIC_STADIA_API_KEY (optional for higher limits)
+  - Fallback chain: Stadia -> MapTiler -> OSM raster
+  - Attribution component per provider requirements
+
+**Phase 2: Marker System (Slices 30.4-30.6)**
+- [ ] Slice 30.4: Custom marker component
+  - FarmMarker.tsx using MapLibre Marker API
+  - Category-based icons (reuse existing pin-icons.ts)
+  - Open/closed status indicator
+  - Hover and selected states
+- [ ] Slice 30.5: Marker clustering with Supercluster
+  - Install supercluster package
+  - Create useClusteredMarkers hook
+  - Cluster rendering with farm count
+  - Smooth zoom-to-cluster animation
+  - Click to expand cluster logic
+- [ ] Slice 30.6: Marker popups and interactions
+  - FarmPopup.tsx for desktop hover/click
+  - Mobile bottom sheet integration (existing Drawer)
+  - Keyboard navigation between markers
+  - Focus management for accessibility
+
+**Phase 3: Search & Geocoding (Slices 30.7-30.8)**
+- [ ] Slice 30.7: Replace Google Geocoding
+  - Integrate Nominatim (OpenStreetMap) for free geocoding
+  - Create lib/geocoding.ts abstraction layer
+  - Rate limiting (1 req/sec for Nominatim)
+  - UK-biased search results
+  - Postcode lookup optimization
+- [ ] Slice 30.8: Map search integration
+  - Update MapSearch.tsx to use new geocoding
+  - "Search as I move" toggle (existing SearchAreaControl)
+  - Bounds-based farm filtering
+  - Search suggestions from farm names + locations
+
+**Phase 4: Feature Parity (Slices 30.9-30.11)**
+- [ ] Slice 30.9: User location tracking
+  - Geolocation API integration
+  - "Center on me" button
+  - Location accuracy indicator
+  - Permission handling with fallback
+- [ ] Slice 30.10: Map controls and UI
+  - Zoom controls (accessible)
+  - Fullscreen toggle
+  - Map style switcher (streets/satellite if available)
+  - Scale bar
+- [ ] Slice 30.11: Static map images
+  - Update LocationCard.tsx static map URL
+  - Use MapTiler Static API or generate server-side
+  - Fallback to placeholder image
+
+**Phase 5: Migration & Cleanup (Slices 30.12-30.14)**
+- [ ] Slice 30.12: MapShell.tsx migration
+  - Replace Google Maps initialization with MapLibre
+  - Preserve all existing UI (sidebar, filters, mobile sheet)
+  - Feature flag for gradual rollout: NEXT_PUBLIC_USE_MAPLIBRE
+- [ ] Slice 30.13: Remove Google Maps dependencies
+  - Remove @googlemaps/js-api-loader
+  - Remove Google Maps types
+  - Clean up lib/googleMaps.ts
+  - Update env.example documentation
+- [ ] Slice 30.14: Testing and polish
+  - Cross-browser testing (Chrome, Firefox, Safari, Edge)
+  - Mobile touch gesture testing
+  - Performance profiling (target: 60fps pan/zoom)
+  - Accessibility audit (screen reader, keyboard)
+
+**Technical Notes:**
+- MapLibre GL is WebGL-based, requires browser support check
+- Supercluster runs in Web Worker for performance
+- Consider react-map-gl wrapper for easier React integration
+- Stadia Maps requires attribution: "© Stadia Maps © OpenMapTiles © OpenStreetMap"
+
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
 - [x] Add structured logging to upload/route
 - [x] Add structured logging to photos/upload-url/route
