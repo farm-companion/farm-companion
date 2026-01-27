@@ -114,6 +114,7 @@ function CommandTrigger({ inverted }: { inverted: boolean }) {
 
   return (
     <button
+      id="search"
       onClick={() => {
         // Dispatch custom event for command palette (can be wired to search modal)
         window.dispatchEvent(new CustomEvent('open-command-palette'))
@@ -349,7 +350,7 @@ export default function Header() {
           </div>
 
           {/* Desktop navigation - Command Center typography */}
-          <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
+          <nav id="navigation" aria-label="Primary" className="hidden items-center gap-1 md:flex">
             {/* Map link */}
             <Link
               href="/map"

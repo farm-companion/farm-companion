@@ -1,5 +1,6 @@
 @import '../styles/fonts.css';
 @import '../styles/harvest-theme.css';
+@import 'maplibre-gl/dist/maplibre-gl.css';
 
 /* Tailwind CSS v4 import */
 @import "tailwindcss";
@@ -3101,4 +3102,105 @@ html {
 
 .dark ::selection {
   background: rgba(45, 212, 191, 0.3);
+}
+
+/* ============================================================================
+   MAPLIBRE FARM MARKERS
+   ============================================================================ */
+
+/* Base marker styles */
+.farm-marker {
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+
+.farm-marker:hover {
+  transform: scale(1.05);
+}
+
+.farm-marker:active {
+  transform: scale(0.98);
+}
+
+/* Focus state for keyboard navigation */
+.farm-marker:focus {
+  outline: none;
+}
+
+.farm-marker:focus-visible {
+  outline: 2px solid var(--primary, #00C2B2);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
+/* Selected marker bounce animation */
+@keyframes marker-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+.farm-marker[data-selected="true"] {
+  animation: marker-bounce 0.6s ease-in-out;
+}
+
+/* Cluster marker styles */
+.cluster-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 14px;
+  color: white;
+  cursor: pointer;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.cluster-marker:hover {
+  transform: scale(1.1);
+}
+
+.cluster-marker:active {
+  transform: scale(0.95);
+}
+
+/* Cluster size tiers */
+.cluster-marker[data-size="small"] {
+  width: 36px;
+  height: 36px;
+  background: linear-gradient(135deg, #00C2B2 0%, #00a8a0 100%);
+}
+
+.cluster-marker[data-size="medium"] {
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, #0D9488 0%, #0f766e 100%);
+}
+
+.cluster-marker[data-size="large"] {
+  width: 52px;
+  height: 52px;
+  background: linear-gradient(135deg, #0f766e 0%, #115e59 100%);
+}
+
+.cluster-marker[data-size="xlarge"] {
+  width: 60px;
+  height: 60px;
+  font-size: 16px;
+  background: linear-gradient(135deg, #115e59 0%, #134e4a 100%);
+}
+
+/* Reduced motion support for markers */
+@media (prefers-reduced-motion: reduce) {
+  .farm-marker,
+  .cluster-marker {
+    transition: none;
+  }
+
+  .farm-marker[data-selected="true"] {
+    animation: none;
+  }
 }

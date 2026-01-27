@@ -378,12 +378,17 @@ module.exports = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
+        'shimmer': {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
 
       animation: {
         'fade-in': 'fade-in 250ms cubic-bezier(0.2, 0.8, 0.2, 1)',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'shimmer': 'shimmer 2s infinite',
       },
       
       // Premium background patterns

@@ -1,5 +1,6 @@
 // Base Components
 export { Button, buttonVariants } from './Button';
+export { SpringButton, SpringLinkButton, springConfig } from './SpringButton';
 export { Card } from './Card';
 export { Modal } from './Modal';
 
@@ -17,6 +18,15 @@ export { Alert } from './Alert';
 export { Badge } from './Badge';
 export { Toaster, toast } from './Toast';
 export { Skeleton } from './Skeleton';
+export {
+  Spinner,
+  LoadingDots,
+  PulseRing,
+  ProgressBar,
+  LoadingOverlay,
+  LoadingPlaceholder,
+  Shimmer,
+} from './Loading';
 
 // Data Display Components
 export { Rating } from './Rating';
