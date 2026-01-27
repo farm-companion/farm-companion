@@ -294,3 +294,70 @@ export function getClusterAnimationClass(state: 'appear' | 'hover' | 'active'): 
   }
   return classes[state]
 }
+
+// =============================================================================
+// MAPLIBRE GL ANIMATION UTILITIES
+// =============================================================================
+
+import type { Map as MapLibreMapInstance } from 'maplibre-gl'
+
+/**
+ * Smooth zoom animation to target level (MapLibre GL)
+ * Uses MapLibre's built-in flyTo for smooth easing
+ */
+export function animateMapLibreZoomTo(
+  map: MapLibreMapInstance,
+  targetZoom: number,
+  targetCenter?: [number, number],
+  options: {
+    duration?: number
+    prefersReducedMotion?: boolean
+  } = {}
+): Promise<void> {
+  const { duration = CLUSTER_EASING.DURATION.ZOOM, prefersReducedMotion = false } = options
+
+  return new Promise((resolve) => {
+    const currentCenter = map.getCenter()
+
+    map.flyTo({
+      center: targetCenter || [currentCenter.lng, currentCenter.lat],
+      zoom: targetZoom,
+      duration: prefersReducedMotion ? 0 : duration,
+      essential: true, // Animation runs even if user has reduced motion preference (handled by prefersReducedMotion)
+    })
+
+    // Resolve after animation completes
+    if (prefersReducedMotion || duration === 0) {
+      resolve()
+    } else {
+      const onMoveEnd = () => {
+        map.off('moveend', onMoveEnd)
+        resolve()
+      }
+      map.on('moveend', onMoveEnd)
+    }
+  })
+}
+
+/**
+ * Expand cluster with smooth animation (MapLibre GL)
+ * Calculates optimal zoom and animates to reveal cluster contents
+ */
+export function expandClusterAnimated(
+  map: MapLibreMapInstance,
+  expansionZoom: number,
+  clusterCenter: [number, number],
+  options: {
+    maxZoom?: number
+    prefersReducedMotion?: boolean
+  } = {}
+): Promise<void> {
+  const { maxZoom = CLUSTER_ZOOM_THRESHOLDS.MAX_ZOOM, prefersReducedMotion = false } = options
+
+  const targetZoom = Math.min(expansionZoom, maxZoom)
+
+  return animateMapLibreZoomTo(map, targetZoom, clusterCenter, {
+    duration: CLUSTER_EASING.DURATION.ZOOM,
+    prefersReducedMotion,
+  })
+}

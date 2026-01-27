@@ -224,12 +224,14 @@
   - FarmMarkerLayer for managing collections
   - Accessible keyboard navigation (role=button, tabindex, Enter/Space)
   - CSS animations in globals.css with reduced-motion support
-- [ ] Slice 30.5: Marker clustering with Supercluster
-  - Install supercluster package
-  - Create useClusteredMarkers hook
-  - Cluster rendering with farm count
-  - Smooth zoom-to-cluster animation
-  - Click to expand cluster logic
+- [x] Slice 30.5: Marker clustering with Supercluster
+  - Installed supercluster@8.0.1 and @types/supercluster@7.1.3
+  - Created useClusteredMarkers hook with Supercluster integration
+  - Created ClusterMarker.tsx with 5-tier visual hierarchy (reuses cluster-config.ts)
+  - Created ClusteredFarmMarkerLayer.tsx as unified component
+  - Added animateMapLibreZoomTo and expandClusterAnimated for smooth animations
+  - Click behavior: small clusters (<=8) trigger preview callback, larger clusters zoom to expand
+  - Updated components/map/index.ts with full exports
 - [ ] Slice 30.6: Marker popups and interactions
   - FarmPopup.tsx for desktop hover/click
   - Mobile bottom sheet integration (existing Drawer)
