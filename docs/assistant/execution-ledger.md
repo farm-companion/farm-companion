@@ -212,12 +212,7 @@
 
 **Phase 1: Foundation (Slices 30.1-30.3)**
 - [x] Slice 30.1: Install MapLibre GL dependencies (maplibre-gl package, CSS import, MapLibreProvider context)
-- [ ] Slice 30.2: Create base MapLibre component
-  - MapLibreMap.tsx with initialization logic
-  - Support for style URL configuration via env var
-  - Responsive container with proper aspect ratios
-  - Touch/mouse interaction handlers
-  - prefers-reduced-motion support (disable animations)
+- [x] Slice 30.2: Create base MapLibre component (MapLibreMap.tsx with theme switching, reduced motion, imperative API)
 - [x] Slice 30.3: Tile provider configuration (map-config.ts with Stadia/MapTiler/OSM fallback chain)
 
 **Phase 2: Marker System (Slices 30.4-30.6)**

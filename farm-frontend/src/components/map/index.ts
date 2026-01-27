@@ -5,6 +5,8 @@
  */
 
 export { MapLibreProvider, useMapLibre, useMapLibreSafe } from './MapLibreProvider'
+export { MapLibreMap } from './MapLibreMap'
+export type { MapLibreMapRef, MapLibreMapProps } from './MapLibreMap'
 
 // Re-export map config utilities
 export {
