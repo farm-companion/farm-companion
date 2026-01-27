@@ -1,5 +1,6 @@
 // Base Components
 export { Button, buttonVariants } from './Button';
+export { SpringButton, SpringLinkButton, springConfig } from './SpringButton';
 export { Card } from './Card';
 export { Modal } from './Modal';
 
