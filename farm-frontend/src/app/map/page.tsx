@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic'
 import { Search, Filter } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
 import { MapSearch, LocationTracker, SearchAreaControl, FilterOverlayPanel } from '@/features/map'
+import { MapAccessibilityFallback, MapStateDescription } from '@/components/accessibility'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
 
@@ -373,6 +374,20 @@ export default function MapPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Accessibility: Screen reader map fallback */}
+      <MapAccessibilityFallback
+        farms={filteredFarms}
+        selectedFarmId={selectedFarmId}
+        onFarmSelect={handleFarmSelect}
+        userLocation={userLocation}
+        formatDistance={formatDistance}
+        skipTargetId="farm-list-region"
+      />
+      <MapStateDescription
+        farmCount={filteredFarms.length}
+        selectedFarm={filteredFarms.find(f => f.id === selectedFarmId)}
+      />
+
       {/* Mobile: Header removed for maximum map space */}
 
       {/* Main Content */}
@@ -506,7 +521,12 @@ export default function MapPage() {
           />
 
           {/* Mobile: Enhanced Bottom Sheet with Farm List */}
-          <div className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
+          <div
+            id="mobile-farm-list-region"
+            role="region"
+            aria-label="Farm shop list"
+            className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none"
+          >
             <BottomSheet
               isOpen={true}
               snapPoints={[40, 200, 400]}
@@ -570,7 +590,12 @@ export default function MapPage() {
           </div>
 
           {/* Desktop: Sidebar with Farm List */}
-          <div className="hidden md:block absolute right-0 top-0 bottom-0 w-96 bg-white dark:bg-gray-900 shadow-lg border-l border-gray-200 dark:border-gray-700">
+          <div
+            id="farm-list-region"
+            role="region"
+            aria-label="Farm shop list"
+            className="hidden md:block absolute right-0 top-0 bottom-0 w-96 bg-white dark:bg-gray-900 shadow-lg border-l border-gray-200 dark:border-gray-700"
+          >
             <FarmList
               farms={filteredFarms}
               selectedFarmId={selectedFarmId}
