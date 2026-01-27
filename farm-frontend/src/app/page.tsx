@@ -117,7 +117,7 @@ export default async function HomePage() {
       {/* Animated Hero Section */}
       <AnimatedHero
         countyCount={countyCount}
-        videoSrc="/videos/hero-produce.mp4"
+        videoSrc="/videos/hero-desktop-loop.mp4"
         videoPoster="/main_header.jpg"
       />
 
