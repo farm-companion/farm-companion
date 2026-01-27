@@ -84,10 +84,20 @@ export function HeroVideoBackground({
       {shouldShowVideo && (
         <video
           ref={videoRef}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
+          className={`absolute transition-opacity duration-700 ${
             isVideoLoaded ? 'opacity-100' : 'opacity-0'
           }`}
-          style={{ objectPosition: 'center 70%' }}
+          style={{
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            minWidth: '100%',
+            minHeight: '100%',
+            width: 'auto',
+            height: 'auto',
+            objectFit: 'cover',
+            objectPosition: 'center 70%',
+          }}
           autoPlay
           muted
           loop
