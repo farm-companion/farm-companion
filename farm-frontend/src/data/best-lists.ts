@@ -232,64 +232,64 @@ Beyond the food, farm cafés offer:
     ],
   },
   {
-    slug: 'best-christmas-tree-farms',
-    title: 'Best Christmas Tree Farms',
-    metaTitle: 'Best Christmas Tree Farms in the UK (2026) | Choose & Cut',
-    metaDescription: 'Find the best Christmas tree farms in the UK. Choose and cut your own tree, enjoy festive activities, and create magical family memories.',
-    heading: 'Top Christmas Tree Farms for a Magical Experience',
-    intro: 'Make choosing your Christmas tree a magical family tradition at these outstanding Christmas tree farms. From choose-and-cut experiences to festive activities and Santa visits, these farms offer unforgettable holiday experiences.',
-    content: `## Why Choose a Christmas Tree Farm?
+    slug: 'best-lavender-farms',
+    title: 'Best Lavender Farms in the UK',
+    metaTitle: 'Best Lavender Farms in the UK (2026) | Visit & Pick',
+    metaDescription: 'Discover the best lavender farms in the UK. Walk through fragrant purple fields, pick your own lavender, and browse artisan lavender products.',
+    heading: 'Top Lavender Farms for a Fragrant Day Out',
+    intro: 'Experience the beauty and fragrance of lavender at these outstanding farms across the UK. From walking through purple fields in bloom to picking your own stems and browsing artisan products, these farms offer unforgettable sensory experiences.',
+    content: `## Why Visit a Lavender Farm?
 
-Visiting a Christmas tree farm has become a beloved tradition for many families. It's not just about the tree – it's about creating memories, enjoying festive activities, and supporting local growers.
+Lavender farms have become increasingly popular destinations in the UK. The stunning purple fields provide incredible photo opportunities, the fragrance is calming and uplifting, and many farms offer pick-your-own experiences alongside artisan lavender products.
 
 ## What to Expect
 
-Christmas tree farms typically offer:
-- **Choose & Cut**: Select and cut your own tree
-- **Pre-Cut Trees**: If you prefer not to cut
-- **Variety**: Different species (Norway Spruce, Nordmann Fir, Fraser Fir)
-- **Sizes**: From table-top to 12+ feet
-- **Festive Activities**: Santa's grotto, reindeer, festive food
-- **Shop**: Wreaths, decorations, and gifts
+Lavender farms typically offer:
+- **Field Walks**: Stroll through rows of blooming lavender
+- **Pick Your Own**: Cut fresh lavender stems to take home
+- **Farm Shop**: Lavender oils, soaps, skincare, and culinary products
+- **Cafe**: Lavender-infused teas, cakes, and ice cream
+- **Gardens**: Demonstration gardens with different varieties
+- **Photography**: Instagram-worthy purple landscapes
 
-## Best Tree Varieties
+## Best Lavender Varieties
 
-- **Nordmann Fir**: Non-drop needles, excellent needle retention
-- **Norway Spruce**: Traditional, affordable, great scent
-- **Fraser Fir**: Strong branches, pleasant aroma
-- **Blue Spruce**: Distinctive blue-green color
+- **English Lavender**: Classic variety with intense fragrance
+- **French Lavender**: Distinctive butterfly-shaped petals
+- **Lavandin**: Hybrid with stronger scent, used for oils
+- **White Lavender**: Rare variety for visual contrast
 
 ## Planning Your Visit
 
-- **Season**: Most open late November through Christmas
-- **Weekdays**: Less crowded than weekends
-- **Weather**: Dress warmly and wear boots
-- **Transport**: Bring rope/straps to secure your tree
-- **Activities**: Check for special events and Santa visits
+- **Season**: Peak bloom is mid-June to mid-August
+- **Timing**: Flowers open fully in morning sun
+- **Weather**: Best on warm, dry days
+- **What to Bring**: Camera, sun protection, containers for picking
+- **Bees**: Lavender attracts pollinators (peaceful, not aggressive)
 
 ## Top Tips
 
-1. Measure your ceiling height before choosing
-2. Bring gloves for carrying the tree
-3. Arrive early for best selection
-4. Many farms offer delivery services
-5. Some require advance booking for activities`,
-    category: 'christmas-trees',
+1. Check bloom status before visiting (farms often post updates)
+2. Arrive early for best light and fewer crowds
+3. Wear comfortable shoes for walking field paths
+4. Bring cash as some farm shops are card-only limited
+5. Book ahead for workshops or special events`,
+    category: 'lavender-farms',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-01-27',
     faqs: [
       {
-        question: 'When should I buy a Christmas tree?',
-        answer: 'Most people buy their tree in early-to-mid December. Nordmann Firs last longest (4-5 weeks), while Norway Spruce are best bought closer to Christmas (2-3 weeks before).',
+        question: 'When is the best time to visit a lavender farm?',
+        answer: 'Peak lavender season in the UK runs from mid-June to mid-August, with late June to early July typically being the most spectacular. Check with individual farms as bloom times vary by location and weather.',
       },
       {
-        question: 'How do I care for my real Christmas tree?',
-        answer: 'Keep your tree in water at all times, away from heat sources. Cut an inch off the trunk before placing in water, and check water levels daily.',
+        question: 'Can I pick lavender at these farms?',
+        answer: 'Many lavender farms offer pick-your-own experiences. You typically pay by the bunch or weight. Bring your own scissors or the farm will provide them, along with containers or bags.',
       },
       {
-        question: 'Are real trees better for the environment?',
-        answer: 'Real trees from sustainable farms are carbon neutral or negative, biodegradable, and support local agriculture. Most farms plant 2-3 trees for every one cut.',
+        question: 'What products can I buy at lavender farms?',
+        answer: 'Lavender farms usually sell essential oils, dried lavender, soaps, skincare products, room sprays, pillows, and culinary items like lavender honey, shortbread, and tea.',
       },
     ],
   },
@@ -480,7 +480,7 @@ When ice cream is made on a dairy farm using milk from the farm's own cows, it's
 Farm ice cream shops usually have:
 - **Classic Flavors**: Vanilla, chocolate, strawberry
 - **Specialty Flavors**: Unique combinations, 30-50+ varieties
-- **Seasonal Specials**: Pumpkin spice, mulled wine, Easter egg
+- **Seasonal Specials**: Pumpkin spice, elderflower, rhubarb crumble
 - **Dairy-Free**: Many now offer vegan options
 - **Sorbets**: Fruit-based options
 - **Sundaes & Milkshakes**: Full dessert menu
