@@ -94,6 +94,39 @@ const buttonVariants = cva(
           'hover:bg-success-800 hover:shadow-md',
           'active:bg-success-900 active:scale-[0.98]',
         ],
+        // Harvest Theme: Uses CSS semantic variables for auto light/dark
+        'harvest-primary': [
+          'bg-[hsl(var(--primary))] text-[hsl(var(--primary-foreground))]',
+          'shadow-sm hover:bg-[hsl(var(--primary-hover))] hover:shadow-md',
+          'active:scale-[0.97]',
+          'font-semibold dark:font-medium',
+        ],
+        'harvest-leaf': [
+          'bg-[hsl(var(--secondary))] text-[hsl(var(--secondary-foreground))]',
+          'shadow-sm hover:bg-[hsl(var(--secondary-hover))] hover:shadow-md',
+          'active:scale-[0.97]',
+          'font-semibold dark:font-medium',
+        ],
+        'harvest-soil': [
+          'bg-[var(--harvest-soil-800)] text-[var(--harvest-soil-50)]',
+          'dark:bg-[var(--harvest-soil-100)] dark:text-[var(--harvest-soil-900)]',
+          'shadow-sm hover:shadow-md',
+          'hover:bg-[var(--harvest-soil-700)] dark:hover:bg-[var(--harvest-soil-200)]',
+          'active:scale-[0.97]',
+          'font-semibold dark:font-medium',
+        ],
+        'harvest-outline': [
+          'bg-transparent border-2 border-[hsl(var(--border-strong))]',
+          'text-[hsl(var(--foreground))]',
+          'hover:bg-[hsl(var(--muted))] hover:border-[hsl(var(--primary))]',
+          'active:scale-[0.97]',
+          'dark:border-[rgba(255,255,255,0.12)] dark:hover:border-[var(--harvest-kinetic-400)]',
+        ],
+        'harvest-ghost': [
+          'bg-transparent text-[hsl(var(--foreground-secondary))]',
+          'hover:bg-[hsl(var(--muted))] hover:text-[hsl(var(--foreground))]',
+          'active:scale-[0.97]',
+        ],
       },
       size: {
         xs: 'h-8 px-3 text-[12px] min-h-[32px] rounded-lg',

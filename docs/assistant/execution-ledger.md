@@ -170,18 +170,18 @@
 - [x] Slice 24.4: Social Proof Ticker (SocialProofTicker.tsx, VisitorCount, TrustIndicators)
 - [x] Slice 24.5: Hero Video Background (HeroVideoBackground.tsx with reduced-motion support)
 
-### Queue 25: "Harvest" Color System (Optional Theme)
+### Queue 25: "Harvest" Color System (Optional Theme) - COMPLETE
 - [x] Slice 25.1: Harvest Color Tokens (harvest-theme.css with Soil/Leaf/Kinetic primitives)
 - [x] Slice 25.2: Theme Provider (next-themes integration with ThemeProvider.tsx)
 - [x] Slice 25.3: Theme Toggle Component (ThemeToggle.tsx with 3-state cycle)
-- [ ] Slice 25.4: Harvest Button Variants
-- [ ] Slice 25.5: Harvest Card Styles
+- [x] Slice 25.4: Harvest Button Variants (harvest-primary, harvest-leaf, harvest-soil, harvest-outline, harvest-ghost)
+- [x] Slice 25.5: Harvest Card Styles (harvest, harvest-elevated, harvest-accent + CardTitle/CardDescription harvest prop)
 
-### Queue 26: "Add Farm" Flow Improvement
-- [ ] Slice 26.1: Address Autocomplete
-- [ ] Slice 26.2: Opening Hours Builder
-- [ ] Slice 26.3: Real-Time Validation
-- [ ] Slice 26.4: Progress Indicator
+### Queue 26: "Add Farm" Flow Improvement - COMPLETE
+- [x] Slice 26.1: Address Autocomplete (AddressAutocomplete.tsx + Postcodes.io API, auto-fills county/lat/lng)
+- [x] Slice 26.2: Opening Hours Builder (OpeningHoursBuilder.tsx with presets, quick actions, copy-to-all)
+- [x] Slice 26.3: Real-Time Validation (useFormValidation hook + FormField component with visual feedback)
+- [x] Slice 26.4: Progress Indicator (FormProgress.tsx with vertical/horizontal variants, section tracking)
 
 ### Queue 27: Accessibility & Motion Polish
 - [ ] Slice 27.1: Screen Reader Map Fallback

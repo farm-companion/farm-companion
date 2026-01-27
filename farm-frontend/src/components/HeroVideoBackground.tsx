@@ -61,8 +61,8 @@ export function HeroVideoBackground({
   }
 
   return (
-    <div className={`relative overflow-hidden ${className}`}>
-      {/* Image background (always present as fallback) */}
+    <div className={`absolute inset-0 h-full w-full overflow-hidden ${className ?? ""}`}>
+      {/* Image background - wrapper needed for next/image fill to work */}
       <div
         className={`absolute inset-0 transition-opacity duration-700 ${
           shouldShowVideo && isVideoLoaded ? 'opacity-0' : 'opacity-100'
@@ -72,7 +72,8 @@ export function HeroVideoBackground({
           src={imageSrc}
           alt={imageAlt}
           fill
-          className="object-cover object-center"
+          className="object-cover"
+          style={{ objectPosition: 'center 70%' }}
           priority
           sizes="100vw"
           quality={85}
@@ -86,6 +87,7 @@ export function HeroVideoBackground({
           className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${
             isVideoLoaded ? 'opacity-100' : 'opacity-0'
           }`}
+          style={{ objectPosition: 'center 70%' }}
           autoPlay
           muted
           loop
@@ -98,29 +100,10 @@ export function HeroVideoBackground({
         </video>
       )}
 
-      {/* Overlay gradients */}
-      <div className={`absolute inset-0 ${overlayClassName}`}>
-        {/* Default overlay if none provided */}
-        {!overlayClassName && (
-          <>
-            <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
-          </>
-        )}
-      </div>
-
       {/* Content */}
       {children && (
         <div className="relative z-10 h-full">
           {children}
-        </div>
-      )}
-
-      {/* Reduced motion indicator (for debugging, can be removed in production) */}
-      {process.env.NODE_ENV === 'development' && prefersReducedMotion && (
-        <div className="absolute top-4 right-4 z-20 bg-amber-500/80 text-black text-small px-2 py-1 rounded">
-          Reduced motion: video paused
         </div>
       )}
     </div>

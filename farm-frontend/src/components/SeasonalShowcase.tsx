@@ -117,9 +117,6 @@ export function SeasonalShowcase({ className = '' }: SeasonalShowcaseProps) {
                   priority={currentIndex === 0}
                 />
 
-                {/* Film grain overlay */}
-                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-[0.03] mix-blend-overlay" />
-
                 {/* Gradient overlay for depth */}
                 <div className="absolute inset-0 bg-gradient-to-br from-black/5 via-transparent to-black/10" />
 

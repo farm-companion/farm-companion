@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 
 export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
-  variant?: 'default' | 'elevated' | 'outlined' | 'glass' | 'subtle';
+  variant?: 'default' | 'elevated' | 'outlined' | 'glass' | 'subtle' | 'harvest' | 'harvest-elevated' | 'harvest-accent';
   interactive?: boolean;
   padding?: 'none' | 'sm' | 'md' | 'lg';
 }
@@ -57,6 +57,21 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
       subtle: [
         'bg-zinc-50 border border-zinc-100',
         'dark:bg-[#0A0A0B] dark:border-white/[0.04]',
+      ].join(' '),
+      // Harvest Theme variants - use semantic CSS variables
+      harvest: [
+        'bg-[hsl(var(--card))] border border-[hsl(var(--border))]',
+        'shadow-[0_4px_20px_hsl(var(--shadow-color)/var(--shadow-strength))]',
+      ].join(' '),
+      'harvest-elevated': [
+        'bg-[hsl(var(--popover))] border border-[hsl(var(--border-strong))]',
+        'shadow-[0_8px_30px_hsl(var(--shadow-color)/calc(var(--shadow-strength)*1.5))]',
+        // Specular highlight for dark mode
+        'dark:bg-gradient-to-b dark:from-[rgba(255,255,255,0.03)] dark:to-[hsl(var(--popover))]',
+      ].join(' '),
+      'harvest-accent': [
+        'bg-[hsl(var(--card))] border-2 border-[hsl(var(--secondary))]',
+        'shadow-[0_4px_20px_hsl(var(--shadow-color)/var(--shadow-strength))]',
       ].join(' '),
     };
 
@@ -126,8 +141,12 @@ const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 );
 CardHeader.displayName = 'CardHeader';
 
-const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
-  ({ className, ...props }, ref) => (
+interface CardTitleProps extends React.HTMLAttributes<HTMLHeadingElement> {
+  harvest?: boolean;
+}
+
+const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
+  ({ className, harvest = false, ...props }, ref) => (
     <h3
       ref={ref}
       className={cn(
@@ -135,7 +154,9 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTML
         // Adaptive font weight: semibold in light, medium in dark
         // Light text on dark backgrounds "blooms" (irradiance), so we thin it
         'font-semibold dark:font-medium',
-        'text-zinc-900 dark:text-zinc-50',
+        harvest
+          ? 'text-[hsl(var(--foreground))]'
+          : 'text-zinc-900 dark:text-zinc-50',
         className
       )}
       {...props}
@@ -144,14 +165,20 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTML
 );
 CardTitle.displayName = 'CardTitle';
 
-const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
-  ({ className, ...props }, ref) => (
+interface CardDescriptionProps extends React.HTMLAttributes<HTMLParagraphElement> {
+  harvest?: boolean;
+}
+
+const CardDescription = React.forwardRef<HTMLParagraphElement, CardDescriptionProps>(
+  ({ className, harvest = false, ...props }, ref) => (
     <p
       ref={ref}
       className={cn(
         'text-[14px]',
         // Desaturated muted text for dark mode to prevent vibrancy fatigue
-        'text-zinc-600 dark:text-zinc-400',
+        harvest
+          ? 'text-[hsl(var(--foreground-secondary))]'
+          : 'text-zinc-600 dark:text-zinc-400',
         className
       )}
       {...props}

@@ -10,6 +10,7 @@ export { RadioGroup } from './Radio';
 export { Select } from './Select';
 export { SearchBar } from './SearchBar';
 export { Toggle } from './Toggle';
+export { FormField, FormTextarea } from './FormField';
 
 // Feedback Components
 export { Alert } from './Alert';
