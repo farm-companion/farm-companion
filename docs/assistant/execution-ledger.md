@@ -232,11 +232,12 @@
   - Added animateMapLibreZoomTo and expandClusterAnimated for smooth animations
   - Click behavior: small clusters (<=8) trigger preview callback, larger clusters zoom to expand
   - Updated components/map/index.ts with full exports
-- [ ] Slice 30.6: Marker popups and interactions
-  - FarmPopup.tsx for desktop hover/click
-  - Mobile bottom sheet integration (existing Drawer)
-  - Keyboard navigation between markers
-  - Focus management for accessibility
+- [x] Slice 30.6: Marker popups and interactions
+  - FarmPopup.tsx for desktop hover/click (MapLibre Popup API integration)
+  - MobileMarkerSheet.tsx for mobile bottom sheet (Radix Drawer integration)
+  - useMarkerKeyboardNav.tsx hook for keyboard navigation (Arrow keys, Enter, Escape, Home, End)
+  - MarkerAnnouncer component for screen reader announcements
+  - CSS popup animations in globals.css with reduced-motion support
 
 **Phase 3: Search & Geocoding (Slices 30.7-30.8)**
 - [ ] Slice 30.7: Replace Google Geocoding

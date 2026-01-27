@@ -3204,3 +3204,65 @@ html {
     animation: none;
   }
 }
+
+/* =============================================================================
+   MAPLIBRE FARM POPUP STYLES
+   ============================================================================= */
+
+/* Popup wrapper override */
+.maplibregl-popup.farm-popup-wrapper {
+  z-index: 50;
+}
+
+.maplibregl-popup.farm-popup-wrapper .maplibregl-popup-content {
+  padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  overflow: hidden;
+}
+
+.maplibregl-popup.farm-popup-wrapper .maplibregl-popup-tip {
+  border-top-color: hsl(var(--card));
+}
+
+/* Popup content styling */
+.farm-popup-content {
+  padding: 16px;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+/* Dark mode popup */
+.dark .maplibregl-popup.farm-popup-wrapper .maplibregl-popup-content {
+  background: hsl(var(--card));
+  border-color: hsl(var(--border));
+}
+
+.dark .maplibregl-popup.farm-popup-wrapper .maplibregl-popup-tip {
+  border-top-color: hsl(var(--card));
+}
+
+/* Popup animation */
+.maplibregl-popup.farm-popup-wrapper {
+  animation: popup-enter 0.2s ease-out;
+}
+
+@keyframes popup-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Reduced motion for popups */
+@media (prefers-reduced-motion: reduce) {
+  .maplibregl-popup.farm-popup-wrapper {
+    animation: none;
+  }
+}
