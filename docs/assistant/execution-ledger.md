@@ -211,22 +211,14 @@
 - Style: Stadia Alidade Smooth or custom style matching brand
 
 **Phase 1: Foundation (Slices 30.1-30.3)**
-- [ ] Slice 30.1: Install MapLibre GL dependencies
-  - Add maplibre-gl package
-  - Add @maplibre/maplibre-gl-geocoder for search
-  - Configure CSS imports in globals.css
-  - Create MapLibreProvider context for shared map instance
+- [x] Slice 30.1: Install MapLibre GL dependencies (maplibre-gl package, CSS import, MapLibreProvider context)
 - [ ] Slice 30.2: Create base MapLibre component
   - MapLibreMap.tsx with initialization logic
   - Support for style URL configuration via env var
   - Responsive container with proper aspect ratios
   - Touch/mouse interaction handlers
   - prefers-reduced-motion support (disable animations)
-- [ ] Slice 30.3: Tile provider configuration
-  - Create lib/map-config.ts with tile URLs
-  - Environment variables: NEXT_PUBLIC_STADIA_API_KEY (optional for higher limits)
-  - Fallback chain: Stadia -> MapTiler -> OSM raster
-  - Attribution component per provider requirements
+- [x] Slice 30.3: Tile provider configuration (map-config.ts with Stadia/MapTiler/OSM fallback chain)
 
 **Phase 2: Marker System (Slices 30.4-30.6)**
 - [ ] Slice 30.4: Custom marker component
