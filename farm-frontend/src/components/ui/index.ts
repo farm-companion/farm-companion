@@ -18,6 +18,15 @@ export { Alert } from './Alert';
 export { Badge } from './Badge';
 export { Toaster, toast } from './Toast';
 export { Skeleton } from './Skeleton';
+export {
+  Spinner,
+  LoadingDots,
+  PulseRing,
+  ProgressBar,
+  LoadingOverlay,
+  LoadingPlaceholder,
+  Shimmer,
+} from './Loading';
 
 // Data Display Components
 export { Rating } from './Rating';

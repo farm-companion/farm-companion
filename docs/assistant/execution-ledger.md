@@ -188,7 +188,7 @@
 - [x] Slice 27.2: Skip Links Enhancement (Enhanced SkipLinks.tsx with focus management, dynamic targets, added navigation/search IDs to Header)
 - [x] Slice 27.3: Page Transition Animation (PageTransition.tsx + template.tsx with reduced-motion support)
 - [x] Slice 27.4: Button Spring Physics (SpringButton.tsx + SpringLinkButton with configurable spring presets)
-- [ ] Slice 27.5: Loading State Animations
+- [x] Slice 27.5: Loading State Animations (Loading.tsx with Spinner, LoadingDots, PulseRing, ProgressBar, LoadingOverlay, Shimmer)
 
 ### Queue 28: SEO & Programmatic Pages
 - [ ] Slice 28.1: Location+Produce URL Generator
