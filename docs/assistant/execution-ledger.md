@@ -221,7 +221,11 @@
   - getErrorMessage, getErrorFromStatus, getErrorFromException helpers
   - fieldErrors for form validation (required, email, phone, postcode, etc.)
   - formMessages for common form states (submitting, success, unsavedChanges)
-- [ ] Slice 29.2: Empty State Messages
+- [x] Slice 29.2: Empty State Messages
+  - Created empty-states.tsx with 18 pre-configured empty states
+  - Contexts: search, map, favorites, county, category, seasonal, admin
+  - Helper functions: getSearchEmptyState, getCountyEmptyState, getCategoryEmptyState
+  - Seasonal awareness with getSeasonalEmptyState (winter/spring/summer/autumn)
 - [ ] Slice 29.3: Loading Messages
 - [ ] Slice 29.4: Success Messages
 
