@@ -23,8 +23,8 @@ function useDebounced<T>(value: T, delay = 150) {
   return v
 }
 
-// Dynamic imports for performance
-const MapShellWithNoSSR = dynamic(() => import('@/features/map/ui/MapShell'), {
+// Dynamic imports for performance - uses MapShellAuto for automatic provider selection
+const MapShellWithNoSSR = dynamic(() => import('@/features/map/ui/MapShellAuto'), {
   ssr: false,
   loading: () => (
     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
@@ -33,9 +33,9 @@ const MapShellWithNoSSR = dynamic(() => import('@/features/map/ui/MapShell'), {
           <div className="w-12 h-12 border-3 border-gray-200 dark:border-gray-600 rounded-full mx-auto"></div>
           <div className="absolute inset-0 w-12 h-12 border-3 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
-        <h3 className="text-body font-semibold text-gray-800 dark:text-gray-200 mb-1">Loading Map</h3>
-        <p className="text-caption text-gray-600 dark:text-gray-400">Preparing your farm discovery experience...</p>
-        
+        <h3 className="text-body font-semibold text-gray-800 dark:text-gray-200 mb-1">Charting the Farmland</h3>
+        <p className="text-caption text-gray-600 dark:text-gray-400">Harvesting latest updates...</p>
+
         {/* Map skeleton */}
         <div className="mt-6 w-32 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
@@ -68,12 +68,14 @@ export default function MapPage() {
   const [filters, setFilters] = useState<FilterState>({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [mapBounds, setMapBounds] = useState<google.maps.LatLngBounds | null>(null)
-  const [activeBounds, setActiveBounds] = useState<google.maps.LatLngBounds | null>(null)
+  // Bounds type is provider-agnostic (works with both Google Maps and MapLibre)
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null)
+  const [activeBounds, setActiveBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null)
   const [searchAsIMove, setSearchAsIMove] = useState(true)
   const [bottomSheetHeight, setBottomSheetHeight] = useState(200)
   const [isDesktop, setIsDesktop] = useState(false)
-  const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null)
+  // Map instance is provider-agnostic (typed as unknown, cast as needed)
+  const [mapInstance, setMapInstance] = useState<unknown>(null)
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)
 
   const locationWatchIdRef = useRef<number | null>(null)
@@ -158,21 +160,22 @@ export default function MapPage() {
     }
   }, [])
 
-  // Zoom to user location
+  // Zoom to user location - dispatches event for map component to handle
   const zoomToLocation = useCallback(() => {
-    if (!mapInstance || !userLocation) {
-      // If no map or location, get location first
+    if (!userLocation) {
+      // If no location, get location first
       getCurrentLocation()
       return
     }
-    
-    const position = new google.maps.LatLng(userLocation.latitude, userLocation.longitude)
-    mapInstance.panTo(position)
-    mapInstance.setZoom(15) // Zoom to street level
-    
+
+    // Dispatch custom event for map component to handle zoom
+    window.dispatchEvent(new CustomEvent('map:zoomToLocation', {
+      detail: { lat: userLocation.latitude, lng: userLocation.longitude, zoom: 15 }
+    }))
+
     // Trigger haptic feedback
     triggerHaptic('light')
-  }, [mapInstance, userLocation, getCurrentLocation, triggerHaptic])
+  }, [userLocation, getCurrentLocation, triggerHaptic])
 
   // Handle what3words coordinates
   const handleW3WCoordinates = useCallback((coordinates: { lat: number; lng: number }) => {
@@ -229,7 +232,11 @@ export default function MapPage() {
 
     // 4) map bounds - use activeBounds (controlled by searchAsIMove toggle)
     if (activeBounds) {
-      result = result.filter(f => activeBounds.contains(new google.maps.LatLng(f.location.lat, f.location.lng)))
+      result = result.filter(f => {
+        const { lat, lng } = f.location
+        return lat >= activeBounds.south && lat <= activeBounds.north &&
+               lng >= activeBounds.west && lng <= activeBounds.east
+      })
     }
 
     // 5) final sort by distance if we have one
@@ -283,12 +290,16 @@ export default function MapPage() {
     }
   }, [])
 
-  // Handle map bounds change
-  const handleBoundsChange = useCallback((bounds: google.maps.LatLngBounds) => {
-    setMapBounds(bounds)
-    // Auto-update active bounds if search-as-I-move is enabled
-    if (searchAsIMove) {
-      setActiveBounds(bounds)
+  // Handle map bounds change - receives normalized bounds object
+  const handleBoundsChange = useCallback((bounds: unknown) => {
+    // Normalize bounds to simple object format (works with both Google Maps and MapLibre)
+    const normalizedBounds = bounds as { north: number; south: number; east: number; west: number } | null
+    if (normalizedBounds) {
+      setMapBounds(normalizedBounds)
+      // Auto-update active bounds if search-as-I-move is enabled
+      if (searchAsIMove) {
+        setActiveBounds(normalizedBounds)
+      }
     }
   }, [searchAsIMove])
 
