@@ -1,7 +1,9 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { MapPin, Navigation, Copy, Check, ExternalLink, Phone, Mail, Globe } from 'lucide-react'
+import { getStaticMapUrl, hasStaticMapProvider, getStaticMapAttribution } from '@/lib/static-map'
 
 interface LocationCardProps {
   /** Farm location data */
@@ -21,6 +23,8 @@ interface LocationCardProps {
   }
   /** Farm name for map labels */
   farmName: string
+  /** Show static map image (requires API key) */
+  showStaticMap?: boolean
   /** Additional CSS classes */
   className?: string
 }
@@ -31,17 +35,6 @@ interface LocationCardProps {
 function getDirectionsUrl(lat: number, lng: number, name: string): string {
   const destination = encodeURIComponent(`${name}`)
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=${destination}`
-}
-
-/**
- * Generate static map image URL
- */
-function getStaticMapUrl(lat: number, lng: number): string {
-  // Using OpenStreetMap static tile
-  const zoom = 14
-  const size = '400x200'
-  // Using a simple static map service (Mapbox style tiles via OSM)
-  return `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/static/pin-l+06B6D4(${lng},${lat})/${lng},${lat},${zoom},0/${size}@2x?access_token=pk.placeholder`
 }
 
 /**
@@ -57,9 +50,11 @@ export function LocationCard({
   location,
   contact,
   farmName,
+  showStaticMap = true,
   className = '',
 }: LocationCardProps) {
   const [copied, setCopied] = useState(false)
+  const [mapError, setMapError] = useState(false)
 
   const fullAddress = [
     location.address,
@@ -67,6 +62,19 @@ export function LocationCard({
     location.county,
     location.postcode
   ].filter(Boolean).join(', ')
+
+  // Generate static map URL if provider is available
+  const staticMapUrl = showStaticMap && hasStaticMapProvider() && !mapError
+    ? getStaticMapUrl({
+        lat: location.lat,
+        lng: location.lng,
+        zoom: 14,
+        width: 400,
+        height: 200,
+        style: 'streets',
+        showMarker: true,
+      })
+    : null
 
   const handleCopyAddress = async () => {
     try {
@@ -96,17 +104,38 @@ export function LocationCard({
         href={mapsUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="block relative aspect-[2/1] bg-slate-100 dark:bg-white/[0.04] group"
+        className="block relative aspect-[2/1] bg-slate-100 dark:bg-white/[0.04] group overflow-hidden"
       >
-        {/* Placeholder map with gradient */}
-        <div className="absolute inset-0 bg-gradient-to-br from-primary-100 to-emerald-100 dark:from-primary-900/20 dark:to-emerald-900/20" />
+        {/* Static map image (when available) */}
+        {staticMapUrl ? (
+          <>
+            <Image
+              src={staticMapUrl}
+              alt={`Map showing location of ${farmName}`}
+              fill
+              className="object-cover"
+              sizes="400px"
+              onError={() => setMapError(true)}
+              unoptimized // External URL
+            />
+            {/* Attribution */}
+            <div className="absolute bottom-1 right-1 text-[10px] text-white/80 bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
+              {getStaticMapAttribution()}
+            </div>
+          </>
+        ) : (
+          <>
+            {/* Placeholder map with gradient */}
+            <div className="absolute inset-0 bg-gradient-to-br from-primary-100 to-emerald-100 dark:from-primary-900/20 dark:to-emerald-900/20" />
 
-        {/* Map pin icon */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="p-4 bg-white dark:bg-[#1E1E21] rounded-full shadow-lg dark:shadow-none dark:border dark:border-white/[0.08] group-hover:scale-110 transition-transform">
-            <MapPin className="w-8 h-8 text-primary-600 dark:text-primary-400" />
-          </div>
-        </div>
+            {/* Map pin icon */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="p-4 bg-white dark:bg-[#1E1E21] rounded-full shadow-lg dark:shadow-none dark:border dark:border-white/[0.08] group-hover:scale-110 transition-transform">
+                <MapPin className="w-8 h-8 text-primary-600 dark:text-primary-400" />
+              </div>
+            </div>
+          </>
+        )}
 
         {/* Hover overlay */}
         <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 dark:group-hover:bg-white/5 transition-colors flex items-center justify-center">
