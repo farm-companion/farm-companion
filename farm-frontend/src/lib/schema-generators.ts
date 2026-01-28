@@ -399,3 +399,205 @@ export function generateWebPageSchema(
     }),
   }
 }
+
+// =============================================================================
+// FAQ SCHEMA
+// =============================================================================
+
+export interface FAQItem {
+  question: string
+  answer: string
+}
+
+/**
+ * Generate FAQPage schema for rich snippets
+ *
+ * @see https://developers.google.com/search/docs/appearance/structured-data/faqpage
+ *
+ * @example
+ * ```tsx
+ * const faqSchema = generateFAQPageSchema([
+ *   { question: 'What are your opening hours?', answer: 'We are open 9am-5pm daily.' },
+ *   { question: 'Do you offer delivery?', answer: 'Yes, we deliver within 10 miles.' },
+ * ], 'https://example.com/faq')
+ * ```
+ */
+export function generateFAQPageSchema(
+  faqs: FAQItem[],
+  pageUrl?: string
+): object {
+  const schema: Record<string, unknown> = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.question,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.answer,
+      },
+    })),
+  }
+
+  if (pageUrl) {
+    schema['@id'] = `${pageUrl}#faq`
+    schema.url = pageUrl
+  }
+
+  return schema
+}
+
+/**
+ * Generate FAQ schema for a county page
+ *
+ * Customizes generic FAQs with county-specific information
+ */
+export function generateCountyFAQSchema(
+  countyName: string,
+  faqs: FAQItem[],
+  pageUrl: string
+): object {
+  // Customize FAQs with county name
+  const customizedFaqs = faqs.map((faq) => ({
+    question: faq.question.replace('this county', countyName),
+    answer: faq.answer.replace(/this county/g, countyName),
+  }))
+
+  return generateFAQPageSchema(customizedFaqs, pageUrl)
+}
+
+/**
+ * Generate FAQ schema for a farm shop page
+ *
+ * Creates dynamic FAQs based on farm data
+ */
+export function generateFarmFAQSchema(
+  farm: FarmForSchema,
+  pageUrl: string
+): object {
+  const faqs: FAQItem[] = []
+
+  // Opening hours FAQ
+  if (farm.hours && farm.hours.length > 0) {
+    const openDays = farm.hours
+      .filter((h) => !h.closed && h.open && h.close)
+      .map((h) => `${h.day}: ${h.open}-${h.close}`)
+      .join(', ')
+
+    if (openDays) {
+      faqs.push({
+        question: `What are the opening hours for ${farm.name}?`,
+        answer: `${farm.name} is open ${openDays}. We recommend checking before visiting as hours may vary seasonally.`,
+      })
+    }
+  }
+
+  // Location FAQ
+  faqs.push({
+    question: `Where is ${farm.name} located?`,
+    answer: `${farm.name} is located at ${farm.location.address}, ${farm.location.city || farm.location.county}, ${farm.location.postcode}. You can find directions on our map or use the postcode for sat nav.`,
+  })
+
+  // Contact FAQ
+  if (farm.contact?.phone || farm.contact?.email) {
+    const contactMethods: string[] = []
+    if (farm.contact.phone) contactMethods.push(`phone at ${farm.contact.phone}`)
+    if (farm.contact.email) contactMethods.push(`email at ${farm.contact.email}`)
+
+    faqs.push({
+      question: `How can I contact ${farm.name}?`,
+      answer: `You can contact ${farm.name} by ${contactMethods.join(' or ')}. ${farm.contact.website ? `Visit their website at ${farm.contact.website} for more information.` : ''}`,
+    })
+  }
+
+  // Products FAQ
+  if (farm.offerings && farm.offerings.length > 0) {
+    const products = farm.offerings.slice(0, 8).join(', ')
+    faqs.push({
+      question: `What products does ${farm.name} sell?`,
+      answer: `${farm.name} offers a range of farm-fresh products including ${products}${farm.offerings.length > 8 ? ' and more' : ''}. Product availability may vary seasonally.`,
+    })
+  }
+
+  // Amenities FAQ
+  if (farm.amenities && farm.amenities.length > 0) {
+    const amenityDescriptions: Record<string, string> = {
+      wheelchair: 'wheelchair accessible',
+      parking: 'free parking',
+      cafe: 'an on-site cafe',
+      pyo: 'pick your own opportunities',
+      organic: 'organic produce',
+      delivery: 'delivery services',
+      card: 'card payment facilities',
+      dogs: 'dog-friendly areas',
+      toilets: 'public toilets',
+      children: 'child-friendly facilities',
+    }
+
+    const amenityList = farm.amenities
+      .filter((a) => amenityDescriptions[a])
+      .map((a) => amenityDescriptions[a])
+
+    if (amenityList.length > 0) {
+      faqs.push({
+        question: `What facilities are available at ${farm.name}?`,
+        answer: `${farm.name} offers ${amenityList.join(', ')}. Please contact the farm directly for specific accessibility requirements or to confirm current facilities.`,
+      })
+    }
+  }
+
+  return generateFAQPageSchema(faqs, pageUrl)
+}
+
+/**
+ * Generate HowTo schema for farm-related activities
+ *
+ * Useful for PYO farms, farm visits, etc.
+ */
+export function generateHowToSchema(
+  name: string,
+  description: string,
+  steps: Array<{ name: string; text: string; image?: string }>,
+  options: {
+    totalTime?: string // ISO 8601 duration, e.g., "PT30M"
+    estimatedCost?: { currency: string; value: string }
+    supply?: string[]
+    tool?: string[]
+  } = {}
+): object {
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'HowTo',
+    name,
+    description,
+    step: steps.map((step, index) => ({
+      '@type': 'HowToStep',
+      position: index + 1,
+      name: step.name,
+      text: step.text,
+      ...(step.image && { image: step.image }),
+    })),
+    ...(options.totalTime && { totalTime: options.totalTime }),
+    ...(options.estimatedCost && {
+      estimatedCost: {
+        '@type': 'MonetaryAmount',
+        currency: options.estimatedCost.currency,
+        value: options.estimatedCost.value,
+      },
+    }),
+    ...(options.supply &&
+      options.supply.length > 0 && {
+        supply: options.supply.map((s) => ({
+          '@type': 'HowToSupply',
+          name: s,
+        })),
+      }),
+    ...(options.tool &&
+      options.tool.length > 0 && {
+        tool: options.tool.map((t) => ({
+          '@type': 'HowToTool',
+          name: t,
+        })),
+      }),
+  }
+}
