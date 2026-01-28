@@ -30,14 +30,25 @@ export function HeroVideoBackground({
   const [isVideoLoaded, setIsVideoLoaded] = useState(false)
   const [hasVideoError, setHasVideoError] = useState(false)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  const [isMobile, setIsMobile] = useState(true) // Default to true for SSR (show image first)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
-    // Check for reduced motion preference
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
-    setPrefersReducedMotion(mediaQuery.matches)
+    // Check for mobile viewport (skip video on mobile to save bandwidth)
+    const mobileQuery = window.matchMedia('(max-width: 768px)')
+    setIsMobile(mobileQuery.matches)
 
-    const handleChange = (e: MediaQueryListEvent) => {
+    const handleMobileChange = (e: MediaQueryListEvent) => {
+      setIsMobile(e.matches)
+    }
+
+    mobileQuery.addEventListener('change', handleMobileChange)
+
+    // Check for reduced motion preference
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(motionQuery.matches)
+
+    const handleMotionChange = (e: MediaQueryListEvent) => {
       setPrefersReducedMotion(e.matches)
       if (e.matches && videoRef.current) {
         videoRef.current.pause()
@@ -46,11 +57,15 @@ export function HeroVideoBackground({
       }
     }
 
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
+    motionQuery.addEventListener('change', handleMotionChange)
+    return () => {
+      mobileQuery.removeEventListener('change', handleMobileChange)
+      motionQuery.removeEventListener('change', handleMotionChange)
+    }
   }, [])
 
-  const shouldShowVideo = videoSrc && !hasVideoError && !prefersReducedMotion
+  // Show video only on desktop, when video is available, no errors, and motion is allowed
+  const shouldShowVideo = videoSrc && !hasVideoError && !prefersReducedMotion && !isMobile
 
   const handleVideoLoad = () => {
     setIsVideoLoaded(true)
