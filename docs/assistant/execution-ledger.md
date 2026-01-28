@@ -196,7 +196,11 @@
   - URL pattern: /find/[county-slug]/[category-slug]
   - Includes ItemList and BreadcrumbList schema.org structured data
   - Updated sitemap-generator.ts to include SEO pages in sitemap
-- [ ] Slice 28.2: Location+Produce Page Template
+- [x] Slice 28.2: Location+Produce Page Template
+  - Created /find/[county]/[category]/page.tsx with full SSG support
+  - Breadcrumb navigation, hero section, farm grid, related pages
+  - Empty state with fallback CTA to county page
+  - ItemList and BreadcrumbList schema.org JSON-LD
 - [ ] Slice 28.3: LocalBusiness Schema Enhancement
 - [ ] Slice 28.4: FAQPage Schema
 
