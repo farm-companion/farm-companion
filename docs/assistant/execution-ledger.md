@@ -280,12 +280,14 @@
   - Accessible: ARIA labels, focus management, reduced motion support
 
 **Phase 3: Search & Geocoding (Slices 30.7-30.8)**
-- [ ] Slice 30.7: Replace Google Geocoding
-  - Integrate Nominatim (OpenStreetMap) for free geocoding
-  - Create lib/geocoding.ts abstraction layer
-  - Rate limiting (1 req/sec for Nominatim)
-  - UK-biased search results
-  - Postcode lookup optimization
+- [x] Slice 30.7: Replace Google Geocoding
+  - Created lib/geocoding.ts abstraction layer
+  - Nominatim integration with 1 req/sec rate limiting
+  - Postcodes.io for fast UK postcode lookups
+  - geocodeAddress, reverseGeocode, searchPlaces functions
+  - autocompletePostcode for search suggestions
+  - In-memory cache with 1-hour TTL
+  - getApproximateLocation IP fallback
 - [ ] Slice 30.8: Map search integration
   - Update MapSearch.tsx to use new geocoding
   - "Search as I move" toggle (existing SearchAreaControl)
