@@ -147,9 +147,12 @@ export default function MapLibreShell({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return
 
+    const mapStyle = getMapStyle(false)
+    console.log('[MapLibreShell] Using map style:', typeof mapStyle === 'string' ? mapStyle : 'OSM Raster Object')
+
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: getMapStyle(false),
+      style: mapStyle,
       center: [center.lng, center.lat],
       zoom,
       minZoom: 3,
@@ -192,8 +195,21 @@ export default function MapLibreShell({
     })
 
     map.on('error', (e) => {
-      console.warn('[MapLibreShell] Map error:', e)
-      setError('Failed to load map tiles')
+      console.error('[MapLibreShell] Map error:', e.error?.message || e)
+      // Only set error state for critical failures, not tile load failures
+      if (e.error?.message?.includes('style') || e.error?.message?.includes('Source')) {
+        setError('Failed to load map style')
+      }
+    })
+
+    // Debug: log when style is loaded
+    map.on('styledata', () => {
+      console.log('[MapLibreShell] Style loaded successfully')
+    })
+
+    // Debug: log tile errors
+    map.on('sourcedataerror', (e) => {
+      console.warn('[MapLibreShell] Source error:', e.sourceId, e.error)
     })
 
     return () => {
@@ -471,7 +487,11 @@ export default function MapLibreShell({
         style={{
           touchAction: 'pan-x pan-y pinch-zoom',
           WebkitUserSelect: 'none',
-          userSelect: 'none'
+          userSelect: 'none',
+          width: '100%',
+          height: '100%',
+          minHeight: '300px',
+          background: '#e5e7eb' // Light gray fallback while loading
         }}
       />
 

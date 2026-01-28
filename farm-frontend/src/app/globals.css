@@ -2,6 +2,34 @@
 @import '../styles/harvest-theme.css';
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
+/* ============================================================================
+   MAPLIBRE GL EXPLICIT STYLES - ENSURE VISIBILITY
+   ============================================================================ */
+.maplibregl-map {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.maplibregl-canvas-container,
+.maplibregl-canvas {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Ensure map container has proper dimensions */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+}
+
 /* Tailwind CSS v4 import */
 @import "tailwindcss";
 
