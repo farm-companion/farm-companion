@@ -288,11 +288,18 @@
   - autocompletePostcode for search suggestions
   - In-memory cache with 1-hour TTL
   - getApproximateLocation IP fallback
-- [ ] Slice 30.8: Map search integration
-  - Update MapSearch.tsx to use new geocoding
-  - "Search as I move" toggle (existing SearchAreaControl)
-  - Bounds-based farm filtering
-  - Search suggestions from farm names + locations
+- [x] Slice 30.8: Map search integration
+  - Replaced Google Places Autocomplete with free geocoding abstraction
+  - Added SearchSuggestion interface for typed suggestions
+  - Integrated searchPlaces, autocompletePostcode, isUKPostcode from lib/geocoding.ts
+  - Farm name matching (local, instant)
+  - Postcode autocomplete via Postcodes.io
+  - Place search via Nominatim (rate-limited)
+  - Keyboard navigation: ArrowUp/Down, Enter, Escape
+  - Added onLocationSelect callback for emitting coordinates
+  - Accessible: role=combobox, aria-expanded, aria-autocomplete
+  - Both full and compact versions updated with suggestions dropdown
+  - "Search as I move" toggle already implemented (SearchAreaControl.tsx)
 
 **Phase 4: Feature Parity (Slices 30.9-30.11)**
 - [ ] Slice 30.9: User location tracking
