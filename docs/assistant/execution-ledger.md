@@ -196,51 +196,15 @@
   - URL pattern: /find/[county-slug]/[category-slug]
   - Includes ItemList and BreadcrumbList schema.org structured data
   - Updated sitemap-generator.ts to include SEO pages in sitemap
-- [x] Slice 28.2: Location+Produce Page Template
-  - Created /find/[county]/[category]/page.tsx with full SSG support
-  - Breadcrumb navigation, hero section, farm grid, related pages
-  - Empty state with fallback CTA to county page
-  - ItemList and BreadcrumbList schema.org JSON-LD
-- [x] Slice 28.3: LocalBusiness Schema Enhancement
-  - Created schema-generators.ts with comprehensive schema utilities
-  - generateLocalBusinessSchema: GroceryStore with amenities, rating, credentials
-  - generatePlaceSchema: Enhanced location with hasMap
-  - generateProductSchema: Product schema for offerings
-  - generateFarmPageSchemas: Combined schemas for shop pages
-  - generateWebPageSchema: WebPage schema for any page
-- [x] Slice 28.4: FAQPage Schema
-  - generateFAQPageSchema: Generic FAQ schema for rich snippets
-  - generateCountyFAQSchema: County-customized FAQs with name replacement
-  - generateFarmFAQSchema: Dynamic FAQs from farm data (hours, location, products, amenities)
-  - generateHowToSchema: HowTo schema for PYO/farm visit instructions
-  - Queue 28 COMPLETE
+- [ ] Slice 28.2: Location+Produce Page Template
+- [ ] Slice 28.3: LocalBusiness Schema Enhancement
+- [ ] Slice 28.4: FAQPage Schema
 
 ### Queue 29: Voice & Microcopy
-- [x] Slice 29.1: Error Message Overhaul
-  - Created user-messages.ts with 25+ error codes and user-friendly messages
-  - getErrorMessage, getErrorFromStatus, getErrorFromException helpers
-  - fieldErrors for form validation (required, email, phone, postcode, etc.)
-  - formMessages for common form states (submitting, success, unsavedChanges)
-- [x] Slice 29.2: Empty State Messages
-  - Created empty-states.tsx with 18 pre-configured empty states
-  - Contexts: search, map, favorites, county, category, seasonal, admin
-  - Helper functions: getSearchEmptyState, getCountyEmptyState, getCategoryEmptyState
-  - Seasonal awareness with getSeasonalEmptyState (winter/spring/summer/autumn)
-- [x] Slice 29.3: Loading Messages
-  - Created loading-messages.ts with 20 loading contexts
-  - getLoadingMessage (random), getPrimaryLoadingMessage (consistent)
-  - progressMessages for multi-step processes (upload, submission, photo)
-  - skeletonLabels for accessible screen reader announcements
-  - getLongLoadMessage for elapsed time awareness
-  - buttonLoadingText for 20+ common button actions
-- [x] Slice 29.4: Success Messages
-  - Created success-messages.ts with 25 success contexts
-  - Form submissions, photos, favorites, admin actions, auth
-  - getSuccessMessage, getCustomSuccessMessage helpers
-  - getFarmSubmittedMessage, getPhotoUploadedMessage with dynamic content
-  - toastMessages for 15+ quick confirmations
-  - confirmations for delete, unsavedChanges, signOut dialogs
-  - Queue 29 COMPLETE
+- [ ] Slice 29.1: Error Message Overhaul
+- [ ] Slice 29.2: Empty State Messages
+- [ ] Slice 29.3: Loading Messages
+- [ ] Slice 29.4: Success Messages
 
 ### Queue 30: MapLibre GL Migration (Google Maps Replacement)
 **Goal:** Replace Google Maps with MapLibre GL + free tile provider for zero-cost, unlimited map loads.
@@ -280,66 +244,33 @@
   - Accessible: ARIA labels, focus management, reduced motion support
 
 **Phase 3: Search & Geocoding (Slices 30.7-30.8)**
-- [x] Slice 30.7: Replace Google Geocoding
-  - Created lib/geocoding.ts abstraction layer
-  - Nominatim integration with 1 req/sec rate limiting
-  - Postcodes.io for fast UK postcode lookups
-  - geocodeAddress, reverseGeocode, searchPlaces functions
-  - autocompletePostcode for search suggestions
-  - In-memory cache with 1-hour TTL
-  - getApproximateLocation IP fallback
-- [x] Slice 30.8: Map search integration
-  - Replaced Google Places Autocomplete with free geocoding abstraction
-  - Added SearchSuggestion interface for typed suggestions
-  - Integrated searchPlaces, autocompletePostcode, isUKPostcode from lib/geocoding.ts
-  - Farm name matching (local, instant)
-  - Postcode autocomplete via Postcodes.io
-  - Place search via Nominatim (rate-limited)
-  - Keyboard navigation: ArrowUp/Down, Enter, Escape
-  - Added onLocationSelect callback for emitting coordinates
-  - Accessible: role=combobox, aria-expanded, aria-autocomplete
-  - Both full and compact versions updated with suggestions dropdown
-  - "Search as I move" toggle already implemented (SearchAreaControl.tsx)
+- [ ] Slice 30.7: Replace Google Geocoding
+  - Integrate Nominatim (OpenStreetMap) for free geocoding
+  - Create lib/geocoding.ts abstraction layer
+  - Rate limiting (1 req/sec for Nominatim)
+  - UK-biased search results
+  - Postcode lookup optimization
+- [ ] Slice 30.8: Map search integration
+  - Update MapSearch.tsx to use new geocoding
+  - "Search as I move" toggle (existing SearchAreaControl)
+  - Bounds-based farm filtering
+  - Search suggestions from farm names + locations
 
 **Phase 4: Feature Parity (Slices 30.9-30.11)**
-- [x] Slice 30.9: User location tracking
-  - Created useMapLocation hook with full Geolocation API integration
-  - Real-time continuous tracking option (watchPosition)
-  - Location marker with pulsing animation (CSS, reduced-motion aware)
-  - Accuracy circle visualization (GeoJSON polygon layer)
-  - IP-based fallback via getApproximateLocation
-  - Created LocationControl component with:
-    - "Center on me" button with fly-to animation
-    - Tracking toggle button
-    - Accuracy indicator badge
-    - Permission denied help message
-    - Source indicator (GPS vs IP approximation)
-  - Exported from features/map/index.ts
-- [x] Slice 30.10: Map controls and UI
-  - Created MapControls.tsx with:
-    - Zoom in/out buttons (keyboard accessible: Enter/Space)
-    - Fullscreen toggle (Fullscreen API)
-    - Style switcher dropdown (streets/satellite/outdoors)
-    - Compass button (appears when rotated, resets north)
-    - WCAG AA focus rings, disabled states
-  - Created ScaleBar.tsx with:
-    - Dynamic scale based on zoom and latitude
-    - Metric, imperial, nautical unit support
-    - Clean rounded values (1, 2, 5, 10... pattern)
-    - Updates on zoom/move events
-  - Exported from features/map/index.ts
-- [x] Slice 30.11: Static map images
-  - Created lib/static-map.ts utility:
-    - Multi-provider support: Geoapify, Stadia Maps, MapTiler
-    - Auto-fallback to OSM tiles when no API key
-    - Configurable: zoom, width, height, style, marker
-    - Attribution helper for proper licensing
-  - Updated LocationCard.tsx:
-    - Optional showStaticMap prop (default: true)
-    - Conditional static map rendering via hasStaticMapProvider
-    - Image error fallback to placeholder
-    - Dynamic attribution display
-    - Graceful degradation without API keys
+- [ ] Slice 30.9: User location tracking
+  - Geolocation API integration
+  - "Center on me" button
+  - Location accuracy indicator
+  - Permission handling with fallback
+- [ ] Slice 30.10: Map controls and UI
+  - Zoom controls (accessible)
+  - Fullscreen toggle
+  - Map style switcher (streets/satellite if available)
+  - Scale bar
+- [ ] Slice 30.11: Static map images
+  - Update LocationCard.tsx static map URL
+  - Use MapTiler Static API or generate server-side
+  - Fallback to placeholder image
 
 **Phase 5: Migration & Cleanup (Slices 30.12-30.14)**
 - [ ] Slice 30.12: MapShell.tsx migration
