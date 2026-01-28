@@ -328,10 +328,18 @@
     - Clean rounded values (1, 2, 5, 10... pattern)
     - Updates on zoom/move events
   - Exported from features/map/index.ts
-- [ ] Slice 30.11: Static map images
-  - Update LocationCard.tsx static map URL
-  - Use MapTiler Static API or generate server-side
-  - Fallback to placeholder image
+- [x] Slice 30.11: Static map images
+  - Created lib/static-map.ts utility:
+    - Multi-provider support: Geoapify, Stadia Maps, MapTiler
+    - Auto-fallback to OSM tiles when no API key
+    - Configurable: zoom, width, height, style, marker
+    - Attribution helper for proper licensing
+  - Updated LocationCard.tsx:
+    - Optional showStaticMap prop (default: true)
+    - Conditional static map rendering via hasStaticMapProvider
+    - Image error fallback to placeholder
+    - Dynamic attribution display
+    - Graceful degradation without API keys
 
 **Phase 5: Migration & Cleanup (Slices 30.12-30.14)**
 - [ ] Slice 30.12: MapShell.tsx migration
