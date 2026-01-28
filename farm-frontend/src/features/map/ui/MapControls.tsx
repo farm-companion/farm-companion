@@ -40,25 +40,15 @@ interface MapControlsProps {
   className?: string
 }
 
-// Default map styles (free tier providers)
+// Default map styles (OSM-based, no API key required)
+// Note: Style switching is disabled by default in MapLibreShell
+// since free OSM tiles don't support vector style switching
 const DEFAULT_STYLES = [
   {
     id: 'streets',
     name: 'Streets',
-    url: 'https://tiles.stadiamaps.com/styles/alidade_smooth.json',
+    url: '', // Not used - OSM raster tiles only
     icon: 'streets' as const,
-  },
-  {
-    id: 'satellite',
-    name: 'Satellite',
-    url: 'https://tiles.stadiamaps.com/styles/alidade_satellite.json',
-    icon: 'satellite' as const,
-  },
-  {
-    id: 'outdoors',
-    name: 'Outdoors',
-    url: 'https://tiles.stadiamaps.com/styles/outdoors.json',
-    icon: 'terrain' as const,
   },
 ]
 

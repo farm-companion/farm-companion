@@ -1,3 +1,5 @@
+import type { StyleSpecification } from 'maplibre-gl'
+
 /**
  * MapLibre GL Configuration
  *
@@ -44,11 +46,11 @@ export const MAPTILER_STYLES = {
  * OpenStreetMap Raster - Emergency fallback
  * Unlimited, but raster (not vector) so less performant
  */
-export const OSM_RASTER_STYLE = {
-  version: 8 as const,
+export const OSM_RASTER_STYLE: StyleSpecification = {
+  version: 8,
   sources: {
     osm: {
-      type: 'raster' as const,
+      type: 'raster',
       tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
       attribution: '© OpenStreetMap contributors',
@@ -57,7 +59,7 @@ export const OSM_RASTER_STYLE = {
   layers: [
     {
       id: 'osm-tiles',
-      type: 'raster' as const,
+      type: 'raster',
       source: 'osm',
       minzoom: 0,
       maxzoom: 19,
@@ -71,7 +73,7 @@ export const OSM_RASTER_STYLE = {
 
 export interface MapConfig {
   /** Map style URL or style object */
-  style: string | object
+  style: string | StyleSpecification
   /** Initial center coordinates [lng, lat] */
   center: [number, number]
   /** Initial zoom level */
@@ -90,15 +92,16 @@ export interface MapConfig {
 
 /**
  * Default map configuration for UK farm directory
+ * Uses OSM raster tiles which work everywhere without API keys
  */
 export const DEFAULT_MAP_CONFIG: MapConfig = {
-  style: STADIA_STYLES.alidadeSmooth,
+  style: OSM_RASTER_STYLE,
   // Center of UK (roughly Birmingham)
   center: [-1.8, 52.5],
   zoom: 6,
   minZoom: 5,
   maxZoom: 18,
-  attribution: '© <a href="https://stadiamaps.com/">Stadia Maps</a> © <a href="https://openmaptiles.org/">OpenMapTiles</a> © <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   showAttribution: true,
   // Restrict to UK and Ireland with some padding
   maxBounds: [
@@ -109,10 +112,12 @@ export const DEFAULT_MAP_CONFIG: MapConfig = {
 
 /**
  * Dark mode map configuration
+ * Note: OSM doesn't have free dark tiles, so we use the same light tiles
  */
 export const DARK_MAP_CONFIG: MapConfig = {
   ...DEFAULT_MAP_CONFIG,
-  style: STADIA_STYLES.alidadeSmoothDark,
+  // OSM doesn't have dark mode, would need CartoDB dark or similar
+  style: OSM_RASTER_STYLE,
 }
 
 // =============================================================================
@@ -121,11 +126,38 @@ export const DARK_MAP_CONFIG: MapConfig = {
 
 /**
  * Get map style based on theme
+ *
+ * Uses OSM raster tiles which work everywhere without API keys.
+ * Returns a style object (not URL) for guaranteed compatibility.
  */
-export function getMapStyle(isDarkMode: boolean): string {
-  return isDarkMode
-    ? STADIA_STYLES.alidadeSmoothDark
-    : STADIA_STYLES.alidadeSmooth
+export function getMapStyle(isDarkMode: boolean): StyleSpecification {
+  // Use OSM raster tiles - works everywhere, no API key needed
+  // Dark mode just uses the same tiles (no free dark OSM tiles available)
+  return {
+    version: 8,
+    sources: {
+      osm: {
+        type: 'raster',
+        tiles: [
+          'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        ],
+        tileSize: 256,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        maxzoom: 19,
+      },
+    },
+    layers: [
+      {
+        id: 'osm-tiles',
+        type: 'raster',
+        source: 'osm',
+        minzoom: 0,
+        maxzoom: 19,
+      },
+    ],
+  }
 }
 
 /**

@@ -40,7 +40,7 @@ export type {
 export {
   DEFAULT_MAP_CONFIG,
   DARK_MAP_CONFIG,
-  STADIA_STYLES,
+  OSM_RASTER_STYLE,
   getMapStyle,
   getMapConfig,
   isWithinUKBounds,
