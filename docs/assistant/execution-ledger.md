@@ -354,11 +354,18 @@
   - Stadia Maps tiles via getMapStyle (free tier)
   - Exported from features/map/index.ts
   - Original MapShell.tsx preserved for fallback
-- [ ] Slice 30.13: Remove Google Maps dependencies
-  - Remove @googlemaps/js-api-loader
-  - Remove Google Maps types
-  - Clean up lib/googleMaps.ts
-  - Update env.example documentation
+- [x] Slice 30.13: Map provider configuration
+  - Created lib/map-provider.ts:
+    - getMapProvider(), useMapLibre(), getEffectiveProvider()
+    - WebGL capability detection
+    - NEXT_PUBLIC_MAP_PROVIDER env var support
+    - Migration checklist documentation
+  - Created MapShellAuto.tsx:
+    - Auto-selects MapLibre or Google Maps based on config
+    - Dynamic imports (only loads needed provider)
+    - forceProvider prop for overrides
+  - Google Maps deps preserved for gradual rollout
+  - Exported MapShellAuto from features/map/index.ts
 - [ ] Slice 30.14: Testing and polish
   - Cross-browser testing (Chrome, Firefox, Safari, Edge)
   - Mobile touch gesture testing
