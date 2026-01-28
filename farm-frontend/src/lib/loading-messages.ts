@@ -2,13 +2,14 @@
  * Loading State Messages
  *
  * Context-specific loading messages that are more engaging than "Loading...".
- * Provides variety and personality while keeping users informed.
+ * Uses the "Knowledgeable Neighbor" voice: warm, specific to farming and
+ * local food, avoiding generic directory-speak.
  *
  * Voice guidelines:
- * - Be specific about what's loading
- * - Add personality without being annoying
- * - Keep it brief
- * - Vary messages for repeated loads
+ * - Use farming and seasonal metaphors naturally
+ * - Be warm and helpful, like a neighbor who knows the land
+ * - Keep it brief but evocative
+ * - "Harvesting" not "Loading", "fields" not "database"
  */
 
 // =============================================================================
@@ -60,122 +61,122 @@ const loadingMessages: Record<LoadingContext, LoadingMessage[]> = {
   // Page loads
   // ---------------------------------------------------------------------------
   page: [
-    { text: 'Loading...' },
+    { text: 'Harvesting latest updates...' },
     { text: 'Just a moment...' },
-    { text: 'Getting things ready...' },
+    { text: 'Preparing the harvest...' },
   ],
   farms: [
-    { text: 'Finding farm shops...', subtext: 'Searching our directory' },
-    { text: 'Loading farm shops...' },
+    { text: 'Finding real food near you...', subtext: 'Checking the fields' },
     { text: 'Gathering local farms...' },
+    { text: 'Rounding up the farms...' },
   ],
   'farm-detail': [
-    { text: 'Loading farm details...' },
-    { text: 'Getting farm information...' },
-    { text: 'Fetching the latest details...' },
+    { text: 'Gathering farm details...' },
+    { text: 'Picking the freshest info...' },
+    { text: 'Opening the farm gate...' },
   ],
   counties: [
-    { text: 'Loading counties...' },
-    { text: 'Mapping the UK...' },
+    { text: 'Mapping the countryside...' },
+    { text: 'Surveying the land...' },
   ],
   'county-detail': [
-    { text: 'Exploring this county...', subtext: 'Finding local farms' },
-    { text: 'Loading county farms...' },
+    { text: 'Exploring the local fields...', subtext: 'Finding nearby farms' },
+    { text: 'Scouting the county...' },
   ],
   seasonal: [
-    { text: "Finding what's in season...", subtext: 'Checking the calendar' },
-    { text: 'Loading seasonal produce...' },
+    { text: "Checking what's ripe...", subtext: 'Reading the seasons' },
+    { text: 'Following the harvest calendar...' },
   ],
   map: [
-    { text: 'Loading the map...', subtext: 'Plotting farm locations' },
-    { text: 'Mapping farm shops...' },
-    { text: 'Preparing the map...' },
+    { text: 'Charting the farmland...', subtext: 'Plotting the fields' },
+    { text: 'Mapping the countryside...' },
+    { text: 'Preparing your field guide...' },
   ],
 
   // ---------------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------------
   search: [
-    { text: 'Searching...', subtext: 'Looking through our directory' },
-    { text: 'Finding matches...' },
-    { text: 'Searching farm shops...' },
+    { text: 'Searching the fields...', subtext: 'Checking every corner' },
+    { text: 'Finding your match...' },
+    { text: 'Scouring the countryside...' },
   ],
   filter: [
-    { text: 'Applying filters...' },
-    { text: 'Filtering results...' },
+    { text: 'Sifting through the harvest...' },
+    { text: 'Sorting the bounty...' },
     { text: 'Narrowing down...' },
   ],
   location: [
-    { text: 'Finding your location...', subtext: 'This may take a moment' },
-    { text: 'Getting your position...' },
-    { text: 'Locating you...' },
+    { text: 'Finding you on the map...', subtext: 'This may take a moment' },
+    { text: 'Pinpointing your spot...' },
+    { text: 'Working out where you are...' },
   ],
   directions: [
-    { text: 'Calculating route...' },
-    { text: 'Finding the best way...' },
-    { text: 'Getting directions...' },
+    { text: 'Plotting your route...' },
+    { text: 'Finding the country lanes...' },
+    { text: 'Mapping the way...' },
   ],
 
   // ---------------------------------------------------------------------------
   // Forms
   // ---------------------------------------------------------------------------
   submitting: [
-    { text: 'Submitting...', subtext: 'Sending your information' },
-    { text: 'Processing submission...' },
-    { text: 'Sending your details...' },
+    { text: 'Planting your submission...', subtext: 'Sending to the farm' },
+    { text: 'Sending your story...' },
+    { text: 'Putting down roots...' },
   ],
   uploading: [
     { text: 'Uploading...', subtext: 'This may take a moment' },
-    { text: 'Uploading your file...' },
-    { text: 'Processing upload...' },
+    { text: 'Carrying to the barn...' },
+    { text: 'Storing away...' },
   ],
   saving: [
-    { text: 'Saving...', subtext: 'Storing your changes' },
+    { text: 'Preserving your changes...', subtext: 'Storing safely' },
     { text: 'Saving changes...' },
-    { text: 'Updating...' },
+    { text: 'Putting it in the cellar...' },
   ],
   sending: [
-    { text: 'Sending...', subtext: 'Delivering your message' },
-    { text: 'Sending message...' },
-    { text: 'On its way...' },
+    { text: 'Sending your message...', subtext: 'On its way' },
+    { text: 'Dispatching...' },
+    { text: 'Flying over the fields...' },
   ],
 
   // ---------------------------------------------------------------------------
   // Data
   // ---------------------------------------------------------------------------
   photos: [
-    { text: 'Loading photos...' },
-    { text: 'Fetching images...' },
-    { text: 'Getting photos...' },
+    { text: 'Developing the snapshots...' },
+    { text: 'Gathering the views...' },
+    { text: 'Framing the farm...' },
   ],
   reviews: [
-    { text: 'Loading reviews...' },
-    { text: 'Fetching feedback...' },
+    { text: 'Gathering voices from the field...' },
+    { text: 'Collecting the harvest of reviews...' },
   ],
   suggestions: [
-    { text: 'Getting suggestions...' },
-    { text: 'Finding recommendations...' },
+    { text: 'Picking recommendations...' },
+    { text: 'Handpicking suggestions...' },
   ],
 
   // ---------------------------------------------------------------------------
   // Auth
   // ---------------------------------------------------------------------------
   'signing-in': [
-    { text: 'Signing in...', subtext: 'Verifying your credentials' },
-    { text: 'Logging you in...' },
+    { text: 'Opening the gate...', subtext: 'Checking your credentials' },
+    { text: 'Welcoming you in...' },
   ],
   'signing-out': [
-    { text: 'Signing out...' },
-    { text: 'Logging out...' },
+    { text: 'Closing the gate...' },
+    { text: 'See you next harvest...' },
   ],
 
   // ---------------------------------------------------------------------------
   // Generic
   // ---------------------------------------------------------------------------
   default: [
-    { text: 'Loading...' },
+    { text: 'Harvesting latest updates...' },
     { text: 'Just a moment...' },
-    { text: 'Please wait...' },
+    { text: 'Tending to your request...' },
   ],
 }
 
@@ -222,22 +223,22 @@ export function getAllLoadingMessages(context: LoadingContext = 'default'): Load
  */
 export const progressMessages = {
   upload: {
-    preparing: 'Preparing upload...',
-    uploading: 'Uploading...',
-    processing: 'Processing...',
-    complete: 'Upload complete!',
+    preparing: 'Preparing the load...',
+    uploading: 'Carrying to the barn...',
+    processing: 'Sorting the delivery...',
+    complete: 'Safely stored!',
   },
   submission: {
-    validating: 'Validating your details...',
-    submitting: 'Submitting...',
-    processing: 'Processing your submission...',
-    complete: 'Submission received!',
+    validating: 'Checking your details...',
+    submitting: 'Planting your submission...',
+    processing: 'Tending to your request...',
+    complete: 'Your story has been received!',
   },
   photo: {
-    reading: 'Reading file...',
-    resizing: 'Optimizing image...',
-    uploading: 'Uploading photo...',
-    complete: 'Photo uploaded!',
+    reading: 'Opening the frame...',
+    resizing: 'Cropping for the gallery...',
+    uploading: 'Hanging on the wall...',
+    complete: 'Picture perfect!',
   },
 }
 
@@ -262,17 +263,17 @@ export function getProgressMessage(
  * Screen readers will announce these while content loads
  */
 export const skeletonLabels = {
-  farmCard: 'Loading farm shop information',
-  farmList: 'Loading list of farm shops',
-  farmDetail: 'Loading farm shop details',
-  photo: 'Loading photo',
-  photoGallery: 'Loading photo gallery',
-  map: 'Loading map',
-  countyList: 'Loading counties',
-  searchResults: 'Loading search results',
-  reviews: 'Loading reviews',
-  openingHours: 'Loading opening hours',
-  contact: 'Loading contact information',
+  farmCard: 'Gathering farm details',
+  farmList: 'Rounding up the farms',
+  farmDetail: 'Opening the farm gate',
+  photo: 'Developing photo',
+  photoGallery: 'Preparing the gallery',
+  map: 'Charting the farmland',
+  countyList: 'Mapping the counties',
+  searchResults: 'Harvesting search results',
+  reviews: 'Collecting voices from the field',
+  openingHours: 'Checking the schedule',
+  contact: 'Finding contact details',
 }
 
 /**
@@ -290,11 +291,11 @@ export function getSkeletonLabel(type: keyof typeof skeletonLabels): string {
  * Messages for when loading takes longer than expected
  */
 export const longLoadMessages = {
-  stillWorking: "Still working on it...",
-  takingLonger: "This is taking longer than usual...",
-  almostThere: "Almost there...",
-  hangTight: "Hang tight, nearly done...",
-  thanks: "Thanks for your patience...",
+  stillWorking: "Still tending to it...",
+  takingLonger: "The harvest is taking a bit longer...",
+  almostThere: "Nearly ready to pick...",
+  hangTight: "Just a few more rows to go...",
+  thanks: "Thanks for waiting through the weather...",
 }
 
 /**

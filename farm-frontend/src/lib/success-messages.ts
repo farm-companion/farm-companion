@@ -1,14 +1,14 @@
 /**
  * Success State Messages
  *
- * Confirmation and success messages for completed actions.
- * Provides positive feedback that confirms the user's action.
+ * Uses the "Knowledgeable Neighbor" voice: warm, specific to farming and
+ * local food, avoiding generic success-speak.
  *
  * Voice guidelines:
- * - Confirm what was done
- * - Be celebratory but not over the top
- * - Suggest next steps when appropriate
- * - Keep it brief
+ * - Use harvest and growth metaphors naturally
+ * - Be warm but not saccharine
+ * - "Your story has been received" not "Submission successful"
+ * - Suggest next steps in a neighborly way
  */
 
 // =============================================================================
@@ -75,139 +75,139 @@ const successMessages: Record<SuccessContext, SuccessMessage> = {
   // Form submissions
   // ---------------------------------------------------------------------------
   'farm-submitted': {
-    title: 'Farm shop submitted',
+    title: 'Your farm story is planted',
     message:
-      "Thanks for adding to our directory. We'll review your submission and it should appear within a few days.",
+      "Thanks for sharing. We'll tend to your submission and it should sprout in the directory within a few days.",
     nextStep: {
-      text: 'Add another farm',
+      text: 'Plant another',
       href: '/add',
     },
   },
   'claim-submitted': {
-    title: 'Claim request received',
+    title: 'Claim received',
     message:
-      "We've received your ownership claim. We'll verify the details and get back to you within 48 hours.",
+      "We've got your ownership claim. We'll check the deeds and get back to you within 48 hours.",
     nextStep: {
-      text: 'Return to farm page',
+      text: 'Back to the farm',
       action: 'goBack',
     },
   },
   'contact-sent': {
-    title: 'Message sent',
+    title: 'Message on its way',
     message:
-      "Thanks for getting in touch. We'll respond to your message as soon as possible, usually within 24 hours.",
+      "Thanks for reaching out. We'll get back to you as soon as we can, usually within a day.",
   },
   'newsletter-subscribed': {
-    title: "You're subscribed",
+    title: 'Welcome to the harvest',
     message:
-      "Welcome to the Farm Companion newsletter. You'll receive updates about new farms, seasonal highlights, and local food news.",
+      "You're in. Expect seasonal highlights, new farm discoveries, and local food news.",
     nextStep: {
-      text: 'Explore farm shops',
+      text: 'Explore farms',
       href: '/shop',
     },
   },
   'feedback-sent': {
-    title: 'Feedback received',
+    title: 'Heard and noted',
     message:
-      'Thanks for sharing your thoughts. Your feedback helps us improve Farm Companion for everyone.',
+      'Thanks for your thoughts. Every bit helps us make Farm Companion better for everyone.',
   },
 
   // ---------------------------------------------------------------------------
   // Photos
   // ---------------------------------------------------------------------------
   'photo-uploaded': {
-    title: 'Photo uploaded',
+    title: 'Picture captured',
     message:
-      "Your photo has been submitted for review. Once approved, it'll appear on the farm's page.",
+      "Your photo is in for review. Once approved, it'll hang in the farm's gallery.",
     nextStep: {
-      text: 'Add another photo',
+      text: 'Add another',
       action: 'addPhoto',
     },
   },
   'photos-uploaded': {
-    title: 'Photos uploaded',
+    title: 'Pictures captured',
     message:
-      "Your photos have been submitted for review. Once approved, they'll appear on the farm's page.",
+      "Your photos are in for review. Once approved, they'll appear in the gallery.",
   },
   'photo-deleted': {
-    title: 'Photo removed',
-    message: 'The photo has been removed successfully.',
+    title: 'Photo taken down',
+    message: 'The photo has been removed.',
   },
 
   // ---------------------------------------------------------------------------
   // User actions
   // ---------------------------------------------------------------------------
   'favorite-added': {
-    title: 'Added to favourites',
-    message: "You can find this farm in your favourites list for easy access.",
+    title: 'Farm saved',
+    message: "It's in your basket now. Find it anytime in your favourites.",
     nextStep: {
-      text: 'View favourites',
+      text: 'View basket',
       href: '/favourites',
     },
   },
   'favorite-removed': {
-    title: 'Removed from favourites',
-    message: 'This farm has been removed from your favourites.',
+    title: 'Farm removed',
+    message: "Taken out of your basket.",
   },
   'settings-saved': {
-    title: 'Settings saved',
-    message: 'Your preferences have been updated.',
+    title: 'Preferences stored',
+    message: 'Your settings are saved.',
   },
   'profile-updated': {
     title: 'Profile updated',
-    message: 'Your profile information has been saved.',
+    message: 'Your details are safely stored.',
   },
 
   // ---------------------------------------------------------------------------
   // Admin actions
   // ---------------------------------------------------------------------------
   'farm-approved': {
-    title: 'Farm approved',
-    message: 'The farm is now live and visible in the directory.',
+    title: 'Farm is live',
+    message: "It's on the map now, ready for visitors.",
     nextStep: {
-      text: 'View farm page',
+      text: 'Visit the farm',
       action: 'viewFarm',
     },
   },
   'farm-rejected': {
-    title: 'Farm rejected',
-    message: 'The submission has been rejected. The submitter will be notified.',
+    title: 'Farm not approved',
+    message: "The submission didn't make the cut. The submitter will be told.",
   },
   'photo-approved': {
-    title: 'Photo approved',
-    message: "The photo is now visible on the farm's page.",
+    title: 'Photo on display',
+    message: "It's now hanging in the farm's gallery.",
   },
   'photo-rejected': {
-    title: 'Photo rejected',
-    message: 'The photo has been rejected and will not be displayed.',
+    title: 'Photo not approved',
+    message: "This one won't be shown.",
   },
   'claim-approved': {
-    title: 'Claim approved',
-    message: 'Ownership has been transferred. The owner can now manage their listing.',
+    title: 'Ownership transferred',
+    message: 'The deeds are signed. The owner can now manage their listing.',
   },
   'claim-rejected': {
-    title: 'Claim rejected',
-    message: 'The ownership claim has been rejected. The claimant will be notified.',
+    title: 'Claim not approved',
+    message: "The ownership claim didn't go through. The claimant will be told.",
   },
 
   // ---------------------------------------------------------------------------
   // Data operations
   // ---------------------------------------------------------------------------
   'data-exported': {
-    title: 'Export complete',
-    message: 'Your data has been exported and downloaded.',
+    title: 'Harvest packed',
+    message: 'Your data is bundled and downloaded.',
   },
   'data-imported': {
-    title: 'Import complete',
-    message: 'Data has been successfully imported.',
+    title: 'Seeds planted',
+    message: 'Data has been imported successfully.',
   },
   'changes-saved': {
-    title: 'Changes saved',
-    message: 'Your changes have been saved successfully.',
+    title: 'Safely stored',
+    message: 'Your changes are preserved.',
   },
   deleted: {
-    title: 'Deleted',
-    message: 'The item has been permanently deleted.',
+    title: 'Cleared away',
+    message: "It's gone for good.",
   },
 
   // ---------------------------------------------------------------------------
@@ -215,27 +215,27 @@ const successMessages: Record<SuccessContext, SuccessMessage> = {
   // ---------------------------------------------------------------------------
   'signed-in': {
     title: 'Welcome back',
-    message: "You're now signed in.",
+    message: "The gate's open. You're in.",
   },
   'signed-out': {
-    title: 'Signed out',
-    message: "You've been signed out successfully.",
+    title: 'Gate closed',
+    message: "You've signed out. See you next time.",
   },
   'password-changed': {
-    title: 'Password updated',
-    message: 'Your password has been changed successfully.',
+    title: 'New key cut',
+    message: 'Your password has been changed.',
   },
 
   // ---------------------------------------------------------------------------
   // Sharing
   // ---------------------------------------------------------------------------
   'link-copied': {
-    title: 'Link copied',
-    message: 'The link has been copied to your clipboard.',
+    title: 'Link snagged',
+    message: 'Copied to your clipboard, ready to share.',
   },
   shared: {
-    title: 'Shared successfully',
-    message: 'Thanks for sharing Farm Companion.',
+    title: 'Word spread',
+    message: 'Thanks for telling others about Farm Companion.',
   },
 
   // ---------------------------------------------------------------------------
@@ -243,7 +243,7 @@ const successMessages: Record<SuccessContext, SuccessMessage> = {
   // ---------------------------------------------------------------------------
   default: {
     title: 'Done',
-    message: 'Action completed successfully.',
+    message: 'All sorted.',
   },
 }
 
@@ -275,8 +275,8 @@ export function getCustomSuccessMessage(
 export function getFarmSubmittedMessage(farmName: string): SuccessMessage {
   return {
     ...successMessages['farm-submitted'],
-    title: `${farmName} submitted`,
-    message: `Thanks for adding ${farmName} to our directory. We'll review your submission and it should appear within a few days.`,
+    title: `${farmName} is planted`,
+    message: `Thanks for sharing ${farmName}. We'll tend to it and it should appear in the directory soon.`,
   }
 }
 
@@ -289,8 +289,8 @@ export function getPhotoUploadedMessage(count: number): SuccessMessage {
   }
   return {
     ...successMessages['photos-uploaded'],
-    title: `${count} photos uploaded`,
-    message: `Your ${count} photos have been submitted for review. Once approved, they'll appear on the farm's page.`,
+    title: `${count} pictures captured`,
+    message: `Your ${count} photos are in for review. Once approved, they'll hang in the gallery.`,
   }
 }
 
@@ -301,7 +301,7 @@ export function getFavoriteAddedMessage(farmName: string): SuccessMessage {
   return {
     ...successMessages['favorite-added'],
     title: `${farmName} saved`,
-    message: `${farmName} has been added to your favourites for easy access.`,
+    message: `${farmName} is in your basket for easy finding.`,
   }
 }
 
@@ -314,28 +314,28 @@ export function getFavoriteAddedMessage(farmName: string): SuccessMessage {
  */
 export const toastMessages = {
   // Actions
-  saved: 'Saved',
-  deleted: 'Deleted',
-  copied: 'Copied to clipboard',
-  shared: 'Shared',
-  updated: 'Updated',
+  saved: 'Stored',
+  deleted: 'Cleared',
+  copied: 'Snagged',
+  shared: 'Spread',
+  updated: 'Freshened',
   added: 'Added',
-  removed: 'Removed',
-  sent: 'Sent',
-  submitted: 'Submitted',
-  uploaded: 'Uploaded',
+  removed: 'Taken out',
+  sent: 'On its way',
+  submitted: 'Planted',
+  uploaded: 'Stowed',
 
   // Favorites
-  favoriteAdded: 'Added to favourites',
-  favoriteRemoved: 'Removed from favourites',
+  favoriteAdded: 'In your basket',
+  favoriteRemoved: 'Out of basket',
 
   // Settings
-  settingsSaved: 'Settings saved',
-  preferencesUpdated: 'Preferences updated',
+  settingsSaved: 'Preferences stored',
+  preferencesUpdated: 'Settings freshened',
 
   // Errors recovered
-  reconnected: 'Connection restored',
-  syncComplete: 'Sync complete',
+  reconnected: 'Back online',
+  syncComplete: 'All caught up',
 }
 
 /**
@@ -354,34 +354,34 @@ export function getToastMessage(key: keyof typeof toastMessages): string {
  */
 export const confirmations = {
   delete: {
-    title: 'Delete this item?',
-    message: 'This action cannot be undone.',
-    confirmText: 'Delete',
+    title: 'Clear this away?',
+    message: "Once gone, it can't be brought back.",
+    confirmText: 'Clear it',
     cancelText: 'Keep it',
   },
   unsavedChanges: {
-    title: 'Unsaved changes',
-    message: 'You have unsaved changes. Are you sure you want to leave?',
-    confirmText: 'Leave anyway',
-    cancelText: 'Stay here',
+    title: 'Unsaved work',
+    message: "You've got changes that aren't stored. Leave anyway?",
+    confirmText: 'Leave',
+    cancelText: 'Stay',
   },
   removePhoto: {
-    title: 'Remove this photo?',
-    message: 'The photo will be permanently removed from the farm listing.',
-    confirmText: 'Remove photo',
-    cancelText: 'Keep photo',
+    title: 'Take down this photo?',
+    message: "It'll be removed from the farm's gallery for good.",
+    confirmText: 'Take it down',
+    cancelText: 'Keep it up',
   },
   cancelSubmission: {
-    title: 'Cancel submission?',
-    message: 'Your progress will be lost if you leave now.',
-    confirmText: 'Yes, cancel',
-    cancelText: 'Continue editing',
+    title: 'Abandon this?',
+    message: "Your work so far will be lost.",
+    confirmText: 'Yes, leave',
+    cancelText: 'Keep going',
   },
   signOut: {
-    title: 'Sign out?',
-    message: "You'll need to sign in again to access your account.",
+    title: 'Close the gate?',
+    message: "You'll need to sign in again next time.",
     confirmText: 'Sign out',
-    cancelText: 'Stay signed in',
+    cancelText: 'Stay in',
   },
 }
 
