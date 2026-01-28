@@ -1,23 +1,24 @@
 /**
  * Map Provider Configuration
  *
- * Enables gradual migration from Google Maps to MapLibre GL.
+ * Supports multiple map providers for flexibility and reliability.
  * Use NEXT_PUBLIC_MAP_PROVIDER env var to switch providers.
  *
  * Provider Options:
+ * - 'leaflet': Lightweight, reliable Leaflet with OSM tiles (recommended)
  * - 'maplibre': Free, open-source MapLibre GL with Stadia Maps tiles
  * - 'google': Google Maps (requires API key, has usage costs)
- * - 'auto': Uses MapLibre if available, falls back to Google Maps
+ * - 'auto': Uses Leaflet by default for reliability
  *
  * Environment Variables:
- * - NEXT_PUBLIC_MAP_PROVIDER: 'maplibre' | 'google' | 'auto' (default: 'auto')
+ * - NEXT_PUBLIC_MAP_PROVIDER: 'leaflet' | 'maplibre' | 'google' | 'auto' (default: 'leaflet')
  * - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY: Required for Google Maps
  * - NEXT_PUBLIC_STADIA_API_KEY: Optional, for higher Stadia Maps limits
  * - NEXT_PUBLIC_MAPTILER_API_KEY: Optional, for MapTiler tiles
  * - NEXT_PUBLIC_GEOAPIFY_API_KEY: Optional, for Geoapify static maps
  */
 
-export type MapProvider = 'maplibre' | 'google' | 'auto'
+export type MapProvider = 'leaflet' | 'maplibre' | 'google' | 'auto'
 
 /**
  * Get the configured map provider
@@ -59,8 +60,13 @@ export function hasGoogleMapsKey(): boolean {
 /**
  * Get the effective map provider based on configuration and capabilities
  */
-export function getEffectiveProvider(): 'maplibre' | 'google' {
+export function getEffectiveProvider(): 'leaflet' | 'maplibre' | 'google' {
   const provider = getMapProvider()
+
+  // Explicit provider selection
+  if (provider === 'leaflet') {
+    return 'leaflet'
+  }
 
   if (provider === 'google' && hasGoogleMapsKey()) {
     return 'google'
@@ -70,24 +76,27 @@ export function getEffectiveProvider(): 'maplibre' | 'google' {
     return 'maplibre'
   }
 
-  // Auto mode
-  if (useMapLibre()) {
-    return 'maplibre'
-  }
-
-  // Fall back to Google if available
-  if (hasGoogleMapsKey()) {
-    return 'google'
-  }
-
-  // Default to MapLibre even without optimal WebGL
-  return 'maplibre'
+  // Auto mode: prefer Leaflet for reliability
+  // Leaflet works without WebGL and has better browser compatibility
+  return 'leaflet'
 }
 
 /**
  * Map provider feature comparison
  */
 export const PROVIDER_FEATURES = {
+  leaflet: {
+    name: 'Leaflet',
+    cost: 'Free (OSM tiles)',
+    clustering: 'Leaflet.markercluster (client-side)',
+    geocoding: 'Nominatim + Postcodes.io (free)',
+    staticMaps: 'Geoapify/MapTiler (free tiers)',
+    offline: 'Possible with tile caching',
+    customStyles: 'Limited (tile provider dependent)',
+    attribution: 'Required: OpenStreetMap',
+    browserSupport: 'All browsers (no WebGL required)',
+    bundleSize: '~40KB',
+  },
   maplibre: {
     name: 'MapLibre GL',
     cost: 'Free (Stadia Maps free tier: 200K tiles/day)',
@@ -97,6 +106,8 @@ export const PROVIDER_FEATURES = {
     offline: 'Possible with tile caching',
     customStyles: 'Full control via style JSON',
     attribution: 'Required: Stadia Maps, OpenMapTiles, OpenStreetMap',
+    browserSupport: 'Modern browsers with WebGL',
+    bundleSize: '~200KB',
   },
   google: {
     name: 'Google Maps',
@@ -107,6 +118,8 @@ export const PROVIDER_FEATURES = {
     offline: 'Limited',
     customStyles: 'Google Cloud Console',
     attribution: 'Automatic',
+    browserSupport: 'All browsers',
+    bundleSize: '~150KB (external)',
   },
 } as const
 

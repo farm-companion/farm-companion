@@ -5,13 +5,18 @@ import { Suspense, useMemo } from 'react'
 import { getEffectiveProvider } from '@/lib/map-provider'
 import type { FarmShop } from '@/types/farm'
 
-// Dynamic imports to avoid loading both map libraries
+// Dynamic imports to avoid loading all map libraries
 const MapLibreShell = dynamic(() => import('./MapLibreShell'), {
   ssr: false,
   loading: () => <MapLoadingState />,
 })
 
 const MapShell = dynamic(() => import('./MapShell'), {
+  ssr: false,
+  loading: () => <MapLoadingState />,
+})
+
+const LeafletShell = dynamic(() => import('./LeafletShell'), {
   ssr: false,
   loading: () => <MapLoadingState />,
 })
@@ -44,7 +49,7 @@ interface MapShellAutoProps {
   isDesktop?: boolean
   onMapReady?: (map: unknown) => void
   /** Force a specific provider (overrides env config) */
-  forceProvider?: 'maplibre' | 'google'
+  forceProvider?: 'leaflet' | 'maplibre' | 'google'
 }
 
 function MapLoadingState() {
@@ -61,7 +66,7 @@ function MapLoadingState() {
 /**
  * MapShellAuto - Automatic map provider selection
  *
- * Automatically selects between MapLibre GL and Google Maps based on:
+ * Automatically selects between Leaflet, MapLibre GL and Google Maps based on:
  * 1. NEXT_PUBLIC_MAP_PROVIDER environment variable
  * 2. WebGL support (for MapLibre)
  * 3. Google Maps API key availability
@@ -73,7 +78,7 @@ function MapLoadingState() {
  *
  * To force a specific provider:
  * ```tsx
- * <MapShellAuto farms={farms} forceProvider="maplibre" />
+ * <MapShellAuto farms={farms} forceProvider="leaflet" />
  * ```
  */
 export default function MapShellAuto({
@@ -87,7 +92,9 @@ export default function MapShellAuto({
 
   return (
     <Suspense fallback={<MapLoadingState />}>
-      {provider === 'maplibre' ? (
+      {provider === 'leaflet' ? (
+        <LeafletShell {...props} />
+      ) : provider === 'maplibre' ? (
         <MapLibreShell {...props} />
       ) : (
         <MapShell {...props} />
