@@ -1,3 +1,5 @@
+import type { StyleSpecification } from 'maplibre-gl'
+
 /**
  * MapLibre GL Configuration
  *
@@ -44,11 +46,11 @@ export const MAPTILER_STYLES = {
  * OpenStreetMap Raster - Emergency fallback
  * Unlimited, but raster (not vector) so less performant
  */
-export const OSM_RASTER_STYLE = {
-  version: 8 as const,
+export const OSM_RASTER_STYLE: StyleSpecification = {
+  version: 8,
   sources: {
     osm: {
-      type: 'raster' as const,
+      type: 'raster',
       tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
       tileSize: 256,
       attribution: '© OpenStreetMap contributors',
@@ -57,7 +59,7 @@ export const OSM_RASTER_STYLE = {
   layers: [
     {
       id: 'osm-tiles',
-      type: 'raster' as const,
+      type: 'raster',
       source: 'osm',
       minzoom: 0,
       maxzoom: 19,
@@ -71,7 +73,7 @@ export const OSM_RASTER_STYLE = {
 
 export interface MapConfig {
   /** Map style URL or style object */
-  style: string | object
+  style: string | StyleSpecification
   /** Initial center coordinates [lng, lat] */
   center: [number, number]
   /** Initial zoom level */
@@ -128,7 +130,7 @@ export const DARK_MAP_CONFIG: MapConfig = {
  * Uses OSM raster tiles which work everywhere without API keys.
  * Returns a style object (not URL) for guaranteed compatibility.
  */
-export function getMapStyle(isDarkMode: boolean): object {
+export function getMapStyle(isDarkMode: boolean): StyleSpecification {
   // Use OSM raster tiles - works everywhere, no API key needed
   // Dark mode just uses the same tiles (no free dark OSM tiles available)
   return {
