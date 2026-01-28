@@ -42,3 +42,17 @@ export type {
   UseMapLocationOptions,
   UseMapLocationResult,
 } from './hooks/useMapLocation'
+
+// Accessibility utilities
+export {
+  ANNOUNCEMENTS,
+  announce,
+  prefersReducedMotion,
+  getAnimationDuration,
+  KEYBOARD_SHORTCUTS,
+  matchesShortcut,
+  createFocusTrap,
+  createSkipLink,
+  getFarmMarkerLabel,
+  getClusterMarkerLabel,
+} from './lib/accessibility'
