@@ -1,7 +1,13 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { Search, Filter, X, Navigation, Loader2, Globe, Clock } from 'lucide-react'
+import { Search, Filter, X, Navigation, Loader2, Globe, Clock, MapPin } from 'lucide-react'
+import {
+  searchPlaces,
+  autocompletePostcode,
+  isUKPostcode,
+  type GeocodingResult,
+} from '@/lib/geocoding'
 
 interface FilterState {
   county?: string
@@ -9,17 +15,29 @@ interface FilterState {
   openNow?: boolean
 }
 
+interface SearchSuggestion {
+  id: string
+  type: 'place' | 'postcode' | 'farm'
+  displayName: string
+  lat?: number
+  lng?: number
+  source?: 'nominatim' | 'postcodes.io'
+}
+
 interface MapSearchProps {
   onSearch: (query: string) => void
   onNearMe: () => void
   onFilterChange: (filters: FilterState) => void
   onW3WCoordinates?: (coordinates: { lat: number; lng: number }) => void
+  onLocationSelect?: (coordinates: { lat: number; lng: number; displayName: string }) => void
   counties: string[]
   categories: string[]
   className?: string
   isLocationLoading?: boolean
   hasLocation?: boolean
   compact?: boolean
+  /** Optional farm names for local search suggestions */
+  farmNames?: Array<{ name: string; slug: string; lat: number; lng: number }>
 }
 
 interface W3WResponse {
@@ -37,55 +55,168 @@ export default function MapSearch({
   onNearMe,
   onFilterChange,
   onW3WCoordinates,
+  onLocationSelect,
   counties,
   categories,
   className = '',
   isLocationLoading = false,
   hasLocation = false,
-  compact = false
+  compact = false,
+  farmNames = [],
 }: MapSearchProps) {
   const [query, setQuery] = useState('')
   const [filters, setFilters] = useState<FilterState>({})
   const [showFilters, setShowFilters] = useState(false)
   const [isW3WLoading, setIsW3WLoading] = useState(false)
   const [searchType, setSearchType] = useState<'text' | 'w3w'>('text')
+  const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(-1)
   const searchRef = useRef<HTMLInputElement>(null)
-  const autocompleteRef = useRef<any>(null)
+  const suggestionsRef = useRef<HTMLDivElement>(null)
 
-  // Debounced search
+  // Debounced search and suggestions
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (query && searchType === 'text') {
+    const timer = setTimeout(async () => {
+      if (query && searchType === 'text' && query.length >= 2) {
         onSearch(query)
+        await fetchSuggestions(query)
+      } else {
+        setSuggestions([])
       }
     }, 300)
 
     return () => clearTimeout(timer)
   }, [query, searchType, onSearch])
 
-  // Initialize Google Places Autocomplete
-  useEffect(() => {
-    if (!searchRef.current || !window.google?.maps?.places) return
+  // Fetch search suggestions using our free geocoding
+  const fetchSuggestions = useCallback(async (searchQuery: string) => {
+    setIsLoadingSuggestions(true)
+    const results: SearchSuggestion[] = []
 
-    autocompleteRef.current = new window.google.maps.places.Autocomplete(searchRef.current, {
-      types: ['postal_code'],
-      componentRestrictions: { country: 'uk' },
-      fields: ['geometry', 'formatted_address']
-    })
-
-    autocompleteRef.current.addListener('place_changed', () => {
-      const place = autocompleteRef.current?.getPlace()
-      if (place?.geometry?.location) {
-        const { lat, lng } = place.geometry.location
-        setQuery(place.formatted_address || '')
+    try {
+      // Check for matching farm names first (fast, local)
+      if (farmNames.length > 0) {
+        const queryLower = searchQuery.toLowerCase()
+        const matchingFarms = farmNames
+          .filter(farm => farm.name.toLowerCase().includes(queryLower))
+          .slice(0, 3)
+          .map(farm => ({
+            id: `farm-${farm.slug}`,
+            type: 'farm' as const,
+            displayName: farm.name,
+            lat: farm.lat,
+            lng: farm.lng,
+          }))
+        results.push(...matchingFarms)
       }
-    })
 
-    return () => {
-      if (autocompleteRef.current) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
+      // If it looks like a postcode, use fast postcode autocomplete
+      if (isUKPostcode(searchQuery) || /^[A-Z]{1,2}[0-9]/i.test(searchQuery)) {
+        const postcodes = await autocompletePostcode(searchQuery, 3)
+        results.push(
+          ...postcodes.map(p => ({
+            id: `postcode-${p.postcode}`,
+            type: 'postcode' as const,
+            displayName: p.displayName,
+            source: 'postcodes.io' as const,
+          }))
+        )
+      }
+
+      // Use Nominatim for general place search (rate limited)
+      const places = await searchPlaces(searchQuery, { limit: 3 })
+      results.push(
+        ...places.map((place: GeocodingResult, index: number) => ({
+          id: `place-${index}-${place.lat}-${place.lng}`,
+          type: 'place' as const,
+          displayName: place.displayName,
+          lat: place.lat,
+          lng: place.lng,
+          source: place.source,
+        }))
+      )
+
+      setSuggestions(results.slice(0, 6)) // Limit to 6 total suggestions
+      setShowSuggestions(results.length > 0)
+      setSelectedIndex(-1)
+    } catch (error) {
+      console.warn('[MapSearch] Failed to fetch suggestions:', error)
+    } finally {
+      setIsLoadingSuggestions(false)
+    }
+  }, [farmNames])
+
+  // Handle suggestion selection
+  const handleSelectSuggestion = useCallback(async (suggestion: SearchSuggestion) => {
+    setQuery(suggestion.displayName)
+    setShowSuggestions(false)
+
+    // If we already have coordinates, emit them
+    if (suggestion.lat !== undefined && suggestion.lng !== undefined) {
+      onLocationSelect?.({
+        lat: suggestion.lat,
+        lng: suggestion.lng,
+        displayName: suggestion.displayName,
+      })
+      return
+    }
+
+    // For postcodes without coordinates, look them up
+    if (suggestion.type === 'postcode') {
+      const places = await searchPlaces(suggestion.displayName, { limit: 1 })
+      if (places.length > 0) {
+        onLocationSelect?.({
+          lat: places[0].lat,
+          lng: places[0].lng,
+          displayName: places[0].displayName,
+        })
       }
     }
+  }, [onLocationSelect])
+
+  // Keyboard navigation for suggestions
+  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (!showSuggestions || suggestions.length === 0) return
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setSelectedIndex(prev => Math.min(prev + 1, suggestions.length - 1))
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setSelectedIndex(prev => Math.max(prev - 1, -1))
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (selectedIndex >= 0 && selectedIndex < suggestions.length) {
+          handleSelectSuggestion(suggestions[selectedIndex])
+        }
+        break
+      case 'Escape':
+        setShowSuggestions(false)
+        setSelectedIndex(-1)
+        break
+    }
+  }, [showSuggestions, suggestions, selectedIndex, handleSelectSuggestion])
+
+  // Close suggestions on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        suggestionsRef.current &&
+        !suggestionsRef.current.contains(e.target as Node) &&
+        searchRef.current &&
+        !searchRef.current.contains(e.target as Node)
+      ) {
+        setShowSuggestions(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   // Handle what3words search
@@ -105,9 +236,9 @@ export default function MapSearch({
       if (onW3WCoordinates) {
         onW3WCoordinates(data.coordinates)
       }
-      
+
     } catch (error) {
-      console.error('what3words error:', error)
+      console.warn('[MapSearch] what3words error:', error)
       alert('Invalid what3words address. Please check the format (e.g., "filled.count.soap")')
     } finally {
       setIsW3WLoading(false)
@@ -118,22 +249,8 @@ export default function MapSearch({
   const handleSearchTypeChange = useCallback((type: 'text' | 'w3w') => {
     setSearchType(type)
     setQuery('')
-    if (type === 'w3w') {
-      // Disable Google Places autocomplete for w3w
-      if (autocompleteRef.current) {
-        window.google.maps.event.clearInstanceListeners(autocompleteRef.current)
-        autocompleteRef.current = null
-      }
-    } else {
-      // Re-enable Google Places autocomplete
-      if (searchRef.current && window.google?.maps?.places) {
-        autocompleteRef.current = new window.google.maps.places.Autocomplete(searchRef.current, {
-          types: ['postal_code'],
-          componentRestrictions: { country: 'uk' },
-          fields: ['geometry', 'formatted_address']
-        })
-      }
-    }
+    setSuggestions([])
+    setShowSuggestions(false)
   }, [])
 
   const handleNearMe = useCallback(() => {
@@ -158,33 +275,72 @@ export default function MapSearch({
     return (
       <div className={`flex gap-2 ${className}`}>
         <div className="relative flex-1">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3" />
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 z-10" />
           <input
             ref={searchRef}
             type="text"
             placeholder="Search farms..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              if (e.target.value.length === 0) {
+                setSuggestions([])
+                setShowSuggestions(false)
+              }
+            }}
+            onFocus={() => {
+              if (suggestions.length > 0) setShowSuggestions(true)
+            }}
+            onKeyDown={handleKeyDown}
             className="w-full pl-7 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:ring-1 focus:ring-serum focus:border-transparent outline-none"
             aria-label="Search farms"
+            role="combobox"
+            aria-expanded={showSuggestions}
           />
           {query && (
             <button
-              onClick={() => setQuery('')}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              onClick={() => {
+                setQuery('')
+                setSuggestions([])
+                setShowSuggestions(false)
+              }}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 z-10"
               aria-label="Clear search"
             >
               <X className="w-3 h-3" />
             </button>
           )}
+
+          {/* Compact Suggestions Dropdown */}
+          {showSuggestions && suggestions.length > 0 && (
+            <div
+              ref={suggestionsRef}
+              className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-md shadow-lg z-50 max-h-48 overflow-y-auto"
+              role="listbox"
+            >
+              {suggestions.slice(0, 4).map((suggestion, index) => (
+                <button
+                  key={suggestion.id}
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-50 ${
+                    index === selectedIndex ? 'bg-gray-50' : ''
+                  }`}
+                  role="option"
+                  aria-selected={index === selectedIndex}
+                >
+                  <span className="truncate block">{suggestion.displayName}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
-        
+
         <button
           onClick={handleNearMe}
           disabled={isLocationLoading}
           className={`px-3 py-2 rounded-md transition-colors flex items-center gap-1 text-xs ${
-            hasLocation 
-              ? 'bg-green-100 text-green-700 hover:bg-green-200' 
+            hasLocation
+              ? 'bg-green-100 text-green-700 hover:bg-green-200'
               : 'bg-serum text-white hover:bg-serum/90'
           } disabled:opacity-50`}
           title="Find farms near me"
@@ -231,34 +387,118 @@ export default function MapSearch({
       {/* Search Bar */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4 z-10" />
           <input
             ref={searchRef}
             type="text"
             placeholder={
-              searchType === 'w3w' 
-                ? "Enter what3words address (e.g., filled.count.soap)" 
+              searchType === 'w3w'
+                ? "Enter what3words address (e.g., filled.count.soap)"
                 : "Search by name, postcode, or address..."
             }
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => {
+              setQuery(e.target.value)
+              if (e.target.value.length === 0) {
+                setSuggestions([])
+                setShowSuggestions(false)
+              }
+            }}
+            onFocus={() => {
+              if (suggestions.length > 0 && searchType === 'text') {
+                setShowSuggestions(true)
+              }
+            }}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && searchType === 'w3w') {
+              if (searchType === 'w3w' && e.key === 'Enter') {
                 e.preventDefault()
                 handleW3WSearch()
+              } else {
+                handleKeyDown(e)
               }
             }}
             className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 dark:border-gray-600"
             aria-label={searchType === 'w3w' ? 'Enter what3words address' : 'Search farms'}
+            aria-expanded={showSuggestions}
+            aria-haspopup="listbox"
+            aria-autocomplete="list"
+            role="combobox"
           />
           {query && (
             <button
-              onClick={() => setQuery('')}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+              onClick={() => {
+                setQuery('')
+                setSuggestions([])
+                setShowSuggestions(false)
+              }}
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 z-10"
               aria-label="Clear search"
             >
               <X className="w-4 h-4" />
             </button>
+          )}
+
+          {/* Search Suggestions Dropdown */}
+          {showSuggestions && searchType === 'text' && (
+            <div
+              ref={suggestionsRef}
+              className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-80 overflow-y-auto"
+              role="listbox"
+            >
+              {isLoadingSuggestions && suggestions.length === 0 && (
+                <div className="flex items-center justify-center py-4 text-gray-500 dark:text-gray-400">
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <span className="text-sm">Searching...</span>
+                </div>
+              )}
+
+              {suggestions.map((suggestion, index) => (
+                <button
+                  key={suggestion.id}
+                  onClick={() => handleSelectSuggestion(suggestion)}
+                  onMouseEnter={() => setSelectedIndex(index)}
+                  className={`w-full px-4 py-3 text-left flex items-start gap-3 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                    index === selectedIndex ? 'bg-gray-50 dark:bg-gray-700' : ''
+                  }`}
+                  role="option"
+                  aria-selected={index === selectedIndex}
+                >
+                  <div className="flex-shrink-0 mt-0.5">
+                    {suggestion.type === 'farm' && (
+                      <div className="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                        <MapPin className="w-3 h-3 text-green-600 dark:text-green-400" />
+                      </div>
+                    )}
+                    {suggestion.type === 'postcode' && (
+                      <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
+                        <Navigation className="w-3 h-3 text-blue-600 dark:text-blue-400" />
+                      </div>
+                    )}
+                    {suggestion.type === 'place' && (
+                      <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <Globe className="w-3 h-3 text-gray-600 dark:text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      {suggestion.displayName}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {suggestion.type === 'farm' && 'Farm shop'}
+                      {suggestion.type === 'postcode' && 'Postcode'}
+                      {suggestion.type === 'place' && 'Location'}
+                    </p>
+                  </div>
+                </button>
+              ))}
+
+              {!isLoadingSuggestions && suggestions.length === 0 && query.length >= 2 && (
+                <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                  No suggestions found for &ldquo;{query}&rdquo;
+                </div>
+              )}
+            </div>
           )}
         </div>
         
