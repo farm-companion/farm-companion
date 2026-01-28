@@ -226,7 +226,13 @@
   - Contexts: search, map, favorites, county, category, seasonal, admin
   - Helper functions: getSearchEmptyState, getCountyEmptyState, getCategoryEmptyState
   - Seasonal awareness with getSeasonalEmptyState (winter/spring/summer/autumn)
-- [ ] Slice 29.3: Loading Messages
+- [x] Slice 29.3: Loading Messages
+  - Created loading-messages.ts with 20 loading contexts
+  - getLoadingMessage (random), getPrimaryLoadingMessage (consistent)
+  - progressMessages for multi-step processes (upload, submission, photo)
+  - skeletonLabels for accessible screen reader announcements
+  - getLongLoadMessage for elapsed time awareness
+  - buttonLoadingText for 20+ common button actions
 - [ ] Slice 29.4: Success Messages
 
 ### Queue 30: MapLibre GL Migration (Google Maps Replacement)
