@@ -14,6 +14,8 @@ export { default as MarkerActions } from './ui/MarkerActions'
 export { default as SearchAreaControl } from './ui/SearchAreaControl'
 export { default as FilterOverlayPanel } from './ui/FilterOverlayPanel'
 export { default as LocationControl } from './ui/LocationControl'
+export { default as MapControls } from './ui/MapControls'
+export { default as ScaleBar } from './ui/ScaleBar'
 
 // Hooks
 export { useClusteredMarkers } from './hooks/useClusteredMarkers'

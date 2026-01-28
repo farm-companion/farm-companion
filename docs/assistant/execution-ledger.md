@@ -315,11 +315,19 @@
     - Permission denied help message
     - Source indicator (GPS vs IP approximation)
   - Exported from features/map/index.ts
-- [ ] Slice 30.10: Map controls and UI
-  - Zoom controls (accessible)
-  - Fullscreen toggle
-  - Map style switcher (streets/satellite if available)
-  - Scale bar
+- [x] Slice 30.10: Map controls and UI
+  - Created MapControls.tsx with:
+    - Zoom in/out buttons (keyboard accessible: Enter/Space)
+    - Fullscreen toggle (Fullscreen API)
+    - Style switcher dropdown (streets/satellite/outdoors)
+    - Compass button (appears when rotated, resets north)
+    - WCAG AA focus rings, disabled states
+  - Created ScaleBar.tsx with:
+    - Dynamic scale based on zoom and latitude
+    - Metric, imperial, nautical unit support
+    - Clean rounded values (1, 2, 5, 10... pattern)
+    - Updates on zoom/move events
+  - Exported from features/map/index.ts
 - [ ] Slice 30.11: Static map images
   - Update LocationCard.tsx static map URL
   - Use MapTiler Static API or generate server-side
