@@ -124,37 +124,42 @@ export const DARK_MAP_CONFIG: MapConfig = {
 // HELPER FUNCTIONS
 // =============================================================================
 
+// Stadia Maps API key from environment
+const STADIA_API_KEY = process.env.NEXT_PUBLIC_STADIA_API_KEY
+
 /**
  * Get map style based on theme
  *
- * Uses OSM raster tiles which work everywhere without API keys.
- * Returns a style object (not URL) for guaranteed compatibility.
+ * Uses Stadia Maps if API key is configured, otherwise falls back to OSM raster tiles.
  */
-export function getMapStyle(isDarkMode: boolean): StyleSpecification {
-  // Use OSM raster tiles - works everywhere, no API key needed
-  // Dark mode just uses the same tiles (no free dark OSM tiles available)
+export function getMapStyle(isDarkMode: boolean): StyleSpecification | string {
+  // If Stadia API key is available, use Stadia vector tiles (much nicer)
+  if (STADIA_API_KEY) {
+    const style = isDarkMode
+      ? STADIA_STYLES.alidadeSmoothDark
+      : STADIA_STYLES.alidadeSmooth
+    return `${style}?api_key=${STADIA_API_KEY}`
+  }
+
+  // Fallback to OSM raster tiles (no API key needed)
   return {
     version: 8,
+    name: 'OSM Raster',
     sources: {
-      osm: {
+      'osm-tiles': {
         type: 'raster',
         tiles: [
-          'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-          'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png',
+          'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
         ],
         tileSize: 256,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        maxzoom: 19,
       },
     },
     layers: [
       {
-        id: 'osm-tiles',
+        id: 'osm-layer',
         type: 'raster',
-        source: 'osm',
-        minzoom: 0,
-        maxzoom: 19,
+        source: 'osm-tiles',
       },
     ],
   }
