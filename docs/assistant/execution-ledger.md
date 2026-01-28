@@ -216,7 +216,11 @@
   - Queue 28 COMPLETE
 
 ### Queue 29: Voice & Microcopy
-- [ ] Slice 29.1: Error Message Overhaul
+- [x] Slice 29.1: Error Message Overhaul
+  - Created user-messages.ts with 25+ error codes and user-friendly messages
+  - getErrorMessage, getErrorFromStatus, getErrorFromException helpers
+  - fieldErrors for form validation (required, email, phone, postcode, etc.)
+  - formMessages for common form states (submitting, success, unsavedChanges)
 - [ ] Slice 29.2: Empty State Messages
 - [ ] Slice 29.3: Loading Messages
 - [ ] Slice 29.4: Success Messages
