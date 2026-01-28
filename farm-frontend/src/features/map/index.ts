@@ -13,6 +13,7 @@ export { default as ClusterPreview } from './ui/ClusterPreview'
 export { default as MarkerActions } from './ui/MarkerActions'
 export { default as SearchAreaControl } from './ui/SearchAreaControl'
 export { default as FilterOverlayPanel } from './ui/FilterOverlayPanel'
+export { default as LocationControl } from './ui/LocationControl'
 
 // Hooks
 export { useClusteredMarkers } from './hooks/useClusteredMarkers'
@@ -30,3 +31,10 @@ export type {
   UseMarkerKeyboardNavOptions,
   UseMarkerKeyboardNavResult,
 } from './hooks/useMarkerKeyboardNav'
+
+export { useMapLocation } from './hooks/useMapLocation'
+export type {
+  MapLocationState,
+  UseMapLocationOptions,
+  UseMapLocationResult,
+} from './hooks/useMapLocation'

@@ -302,11 +302,19 @@
   - "Search as I move" toggle already implemented (SearchAreaControl.tsx)
 
 **Phase 4: Feature Parity (Slices 30.9-30.11)**
-- [ ] Slice 30.9: User location tracking
-  - Geolocation API integration
-  - "Center on me" button
-  - Location accuracy indicator
-  - Permission handling with fallback
+- [x] Slice 30.9: User location tracking
+  - Created useMapLocation hook with full Geolocation API integration
+  - Real-time continuous tracking option (watchPosition)
+  - Location marker with pulsing animation (CSS, reduced-motion aware)
+  - Accuracy circle visualization (GeoJSON polygon layer)
+  - IP-based fallback via getApproximateLocation
+  - Created LocationControl component with:
+    - "Center on me" button with fly-to animation
+    - Tracking toggle button
+    - Accuracy indicator badge
+    - Permission denied help message
+    - Source indicator (GPS vs IP approximation)
+  - Exported from features/map/index.ts
 - [ ] Slice 30.10: Map controls and UI
   - Zoom controls (accessible)
   - Fullscreen toggle
