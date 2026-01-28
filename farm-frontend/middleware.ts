@@ -21,6 +21,11 @@ function cspFor(req: NextRequest) {
     'https://*.s3.amazonaws.com',
     'https://maps.googleapis.com',
     'https://maps.gstatic.com',
+    // MapLibre tile sources
+    'https://tile.openstreetmap.org',
+    'https://*.tile.openstreetmap.org',
+    'https://tiles.stadiamaps.com',
+    'https://*.stadiamaps.com',
   ]
   const connect = [
     "'self'",
@@ -30,6 +35,12 @@ function cspFor(req: NextRequest) {
     'https://maps.googleapis.com',
     'https://maps.gstatic.com',
     'https://*.googleapis.com',
+    // MapLibre tile sources
+    'https://tile.openstreetmap.org',
+    'https://*.tile.openstreetmap.org',
+    'https://tiles.stadiamaps.com',
+    'https://*.stadiamaps.com',
+    'https://api.stadiamaps.com',
   ]
   const frame = ["'self'", 'https://vercel.live']
   const script = ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://vercel.live']
@@ -69,6 +80,7 @@ function cspFor(req: NextRequest) {
     `frame-ancestors ${frameAncestors.join(' ')}`,
     `form-action 'self'`,
     `object-src 'none'`,
+    `worker-src 'self' blob:`,
     `upgrade-insecure-requests`,
   ].join('; ')
 
