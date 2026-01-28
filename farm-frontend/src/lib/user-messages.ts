@@ -1,15 +1,14 @@
 /**
  * User-Facing Error Messages
  *
- * Friendly, helpful error messages with consistent voice and tone.
- * These messages are designed to be shown directly to users.
+ * Uses the "Knowledgeable Neighbor" voice: warm, specific to farming and
+ * local food, avoiding generic error-speak.
  *
  * Voice guidelines:
- * - Be helpful, not blaming
- * - Be specific about what went wrong
- * - Suggest what the user can do
- * - Keep it brief but complete
- * - Use plain English, avoid jargon
+ * - Use farming and weather metaphors naturally
+ * - Be warm and helpful, like a neighbor who knows the land
+ * - "Lost in the fields" not "404 Not Found"
+ * - Always suggest a path forward
  */
 
 // =============================================================================
@@ -77,187 +76,187 @@ export type ErrorCode =
 const errorMessages: Record<ErrorCode, UserFacingError> = {
   // Network errors
   NETWORK_ERROR: {
-    title: 'Connection problem',
-    message: "We couldn't connect to our servers. Please check your internet connection.",
-    suggestion: 'Try refreshing the page or check if you are connected to the internet.',
+    title: 'The line went down',
+    message: "We've lost connection to the farm. Could be the weather.",
+    suggestion: 'Check your signal and try again.',
     canRetry: true,
   },
   TIMEOUT: {
-    title: 'Request timed out',
-    message: 'The request took too long to complete.',
-    suggestion: 'Please try again. If the problem persists, the service may be busy.',
+    title: 'That took too long',
+    message: 'The request wandered off. Sometimes the countryside is slow.',
+    suggestion: 'Give it another go. If it keeps happening, we may be busy.',
     canRetry: true,
   },
   OFFLINE: {
-    title: 'You appear to be offline',
-    message: "We can't reach our servers right now.",
-    suggestion: 'Please check your internet connection and try again.',
+    title: "You're off the grid",
+    message: "Can't reach the farm right now.",
+    suggestion: 'Check your connection and try again.',
     canRetry: true,
   },
 
   // Form errors
   VALIDATION_FAILED: {
-    title: 'Please check your details',
-    message: 'Some of the information provided needs to be corrected.',
-    suggestion: 'Review the highlighted fields and try again.',
+    title: 'Something needs adjusting',
+    message: 'A few details need another look.',
+    suggestion: 'Check the highlighted fields and try again.',
   },
   REQUIRED_FIELD: {
-    title: 'Required field missing',
-    message: 'Please fill in all required fields.',
+    title: 'Missing a piece',
+    message: 'This field needs filling in.',
     suggestion: 'Look for fields marked with an asterisk (*).',
   },
   INVALID_EMAIL: {
-    title: 'Invalid email address',
-    message: 'Please enter a valid email address.',
+    title: "That email doesn't look right",
+    message: 'We need a valid email to stay in touch.',
     suggestion: 'Check for typos, e.g. name@example.com',
   },
   INVALID_PHONE: {
-    title: 'Invalid phone number',
+    title: "That number won't ring",
     message: 'Please enter a valid UK phone number.',
-    suggestion: 'Use format: 01onal or 07xxx xxxxxx',
+    suggestion: 'Try 01onal or 07xxx xxxxxx format.',
   },
   INVALID_POSTCODE: {
-    title: 'Invalid postcode',
+    title: "Can't find that postcode",
     message: 'Please enter a valid UK postcode.',
-    suggestion: 'Use format: AB1 2CD or AB12 3CD',
+    suggestion: 'Use format like AB1 2CD or AB12 3CD.',
   },
   FILE_TOO_LARGE: {
-    title: 'File too large',
-    message: 'The file you selected is too large to upload.',
-    suggestion: 'Please choose a file smaller than 5MB.',
+    title: "That's a heavy load",
+    message: 'The file is too large to carry.',
+    suggestion: 'Please choose something under 5MB.',
   },
   INVALID_FILE_TYPE: {
-    title: 'Invalid file type',
-    message: 'This file type is not supported.',
-    suggestion: 'Please upload a JPG, PNG, or WebP image.',
+    title: "Can't open that one",
+    message: 'We only accept certain file types.',
+    suggestion: 'Try a JPG, PNG, or WebP image.',
   },
 
   // Auth errors
   SESSION_EXPIRED: {
-    title: 'Session expired',
-    message: 'Your session has expired for security reasons.',
-    suggestion: 'Please refresh the page and try again.',
+    title: 'The gate closed',
+    message: 'Your session timed out for safety.',
+    suggestion: 'Refresh the page and sign in again.',
     canRetry: true,
   },
   UNAUTHORIZED: {
-    title: 'Sign in required',
-    message: 'You need to be signed in to do this.',
-    suggestion: 'Please sign in and try again.',
+    title: 'Members only',
+    message: 'You need to sign in first.',
+    suggestion: 'Sign in and try again.',
   },
   FORBIDDEN: {
-    title: 'Access denied',
-    message: "You don't have permission to access this.",
-    suggestion: 'If you think this is a mistake, please contact us.',
+    title: 'Private land',
+    message: "You don't have access to this area.",
+    suggestion: 'If you think this is wrong, get in touch.',
     helpLink: '/contact',
   },
 
   // Data errors
   NOT_FOUND: {
-    title: 'Not found',
-    message: "We couldn't find what you were looking for.",
-    suggestion: 'It may have been moved or removed.',
+    title: 'Lost in the fields',
+    message: "We can't find that page. It may have wandered off.",
+    suggestion: 'Try searching or head back to the main path.',
   },
   ALREADY_EXISTS: {
-    title: 'Already exists',
-    message: 'This item already exists in our system.',
-    suggestion: 'Try searching for the existing entry instead.',
+    title: 'Already planted',
+    message: 'This one is already in our records.',
+    suggestion: 'Search for the existing entry instead.',
   },
   DATA_CONFLICT: {
-    title: 'Update conflict',
-    message: 'Someone else may have updated this at the same time.',
+    title: 'Two hands on the same tool',
+    message: 'Someone else was editing at the same time.',
     suggestion: 'Refresh the page and try your changes again.',
     canRetry: true,
   },
 
   // Rate limiting
   RATE_LIMITED: {
-    title: 'Slow down',
-    message: "You're doing that too quickly.",
-    suggestion: 'Please wait a moment before trying again.',
+    title: 'Easy there',
+    message: "You're moving faster than the tractor can keep up.",
+    suggestion: 'Take a breath and try again shortly.',
     canRetry: true,
   },
   TOO_MANY_REQUESTS: {
-    title: 'Too many requests',
-    message: "You've made too many requests recently.",
-    suggestion: 'Please wait a few minutes before trying again.',
+    title: 'Wearing out the welcome',
+    message: "That's a lot of knocks on the door.",
+    suggestion: 'Give us a few minutes and try again.',
     canRetry: true,
   },
 
   // Server errors
   SERVER_ERROR: {
-    title: 'Something went wrong',
-    message: "We're having trouble on our end.",
-    suggestion: "Please try again later. We're working to fix this.",
+    title: 'Something broke',
+    message: "There's trouble in the barn. We're on it.",
+    suggestion: 'Try again in a bit.',
     canRetry: true,
   },
   SERVICE_UNAVAILABLE: {
-    title: 'Service temporarily unavailable',
-    message: 'Our servers are currently overloaded or under maintenance.',
-    suggestion: 'Please try again in a few minutes.',
+    title: 'Farm is busy',
+    message: 'The servers are overworked or resting.',
+    suggestion: 'Give it a few minutes and try again.',
     canRetry: true,
   },
   MAINTENANCE: {
-    title: 'Scheduled maintenance',
-    message: "We're currently performing maintenance.",
-    suggestion: 'Please check back shortly. This usually takes less than an hour.',
+    title: 'Fixing the fences',
+    message: "We're doing some planned maintenance.",
+    suggestion: "Check back shortly. This won't take long.",
   },
 
   // Farm-specific errors
   FARM_NOT_FOUND: {
-    title: 'Farm shop not found',
-    message: "We couldn't find this farm shop.",
-    suggestion: 'It may have been removed or the link may be incorrect.',
+    title: 'Farm not on the map',
+    message: "We can't find this farm. It may have closed or the link may be off.",
+    suggestion: 'Try searching or browse all farms.',
     helpLink: '/shop',
   },
   COUNTY_NOT_FOUND: {
-    title: 'County not found',
-    message: "We couldn't find this county.",
-    suggestion: 'Try browsing our full list of counties.',
+    title: 'County not charted',
+    message: "We can't find this county.",
+    suggestion: 'Browse our full list of counties.',
     helpLink: '/counties',
   },
   PHOTO_UPLOAD_FAILED: {
-    title: 'Photo upload failed',
-    message: "We couldn't upload your photo.",
-    suggestion: 'Please try again with a smaller image (max 5MB, JPG or PNG).',
+    title: 'Photo dropped',
+    message: "The upload didn't make it.",
+    suggestion: 'Try a smaller image (under 5MB, JPG or PNG).',
     canRetry: true,
   },
   CLAIM_FAILED: {
-    title: 'Claim submission failed',
-    message: "We couldn't process your claim request.",
-    suggestion: 'Please try again or contact us for help.',
+    title: 'Claim hit a snag',
+    message: "We couldn't process your ownership claim.",
+    suggestion: 'Try again or get in touch for help.',
     canRetry: true,
     helpLink: '/contact',
   },
   SUBMISSION_FAILED: {
-    title: 'Submission failed',
-    message: "We couldn't process your submission.",
-    suggestion: 'Please check your details and try again.',
+    title: "Didn't go through",
+    message: "Your submission got stuck in the mud.",
+    suggestion: 'Check your details and try again.',
     canRetry: true,
   },
 
   // Location errors
   LOCATION_DENIED: {
-    title: 'Location access denied',
-    message: "We can't access your location because permission was denied.",
-    suggestion: 'Enable location access in your browser settings to use this feature.',
+    title: "Can't see where you are",
+    message: 'Location access was denied.',
+    suggestion: 'Enable location in your browser settings, or search by postcode.',
   },
   LOCATION_UNAVAILABLE: {
-    title: 'Location unavailable',
-    message: "We couldn't determine your location.",
-    suggestion: 'Try searching for a location or postcode instead.',
+    title: 'Lost your bearings',
+    message: "We couldn't work out where you are.",
+    suggestion: 'Try searching by place name or postcode instead.',
   },
   LOCATION_TIMEOUT: {
-    title: 'Location request timed out',
-    message: "Getting your location took too long.",
+    title: 'Location took too long',
+    message: 'Finding you is taking a while.',
     suggestion: 'Try again or enter your location manually.',
     canRetry: true,
   },
 
   // Generic fallback
   UNKNOWN: {
-    title: 'Something went wrong',
-    message: 'An unexpected error occurred.',
-    suggestion: 'Please try again. If the problem persists, contact us.',
+    title: 'Something went sideways',
+    message: 'An unexpected hiccup. These things happen.',
+    suggestion: 'Try again. If it keeps happening, let us know.',
     canRetry: true,
     helpLink: '/contact',
   },
@@ -389,11 +388,11 @@ export const fieldErrors = {
  * Form-level messages
  */
 export const formMessages = {
-  submitting: 'Submitting...',
-  saving: 'Saving...',
-  loading: 'Loading...',
-  success: 'Successfully saved!',
-  error: 'Something went wrong. Please try again.',
-  unsavedChanges: 'You have unsaved changes. Are you sure you want to leave?',
-  confirmDelete: 'Are you sure you want to delete this? This cannot be undone.',
+  submitting: 'Planting your submission...',
+  saving: 'Preserving your changes...',
+  loading: 'Harvesting latest updates...',
+  success: 'Safely stored!',
+  error: 'Something went sideways. Try again.',
+  unsavedChanges: 'You have unsaved changes. Sure you want to leave?',
+  confirmDelete: 'Once gone, it cannot be brought back. Are you sure?',
 }

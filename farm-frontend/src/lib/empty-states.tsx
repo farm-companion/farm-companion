@@ -2,13 +2,14 @@
  * Empty State Messages
  *
  * Pre-configured empty state content for different contexts.
- * Used with the EmptyState component for consistent messaging.
+ * Uses the "Knowledgeable Neighbor" voice: warm, specific to farming and
+ * local food, avoiding generic directory-speak.
  *
  * Voice guidelines:
- * - Be encouraging, not discouraging
- * - Suggest what the user can do next
- * - Keep it brief and friendly
- * - Use action-oriented language
+ * - Use farming and seasonal metaphors naturally
+ * - Be warm and helpful, like a neighbor who knows the land
+ * - "We've checked the fields" not "No results found"
+ * - Encourage contribution to the community
  */
 
 import {
@@ -86,43 +87,43 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
   // ---------------------------------------------------------------------------
   'search-no-results': {
     icon: <Search className="w-12 h-12" />,
-    title: 'No results found',
+    title: "We've checked the fields",
     description:
-      "We couldn't find any farm shops matching your search. Try different keywords or browse by county.",
+      "No farms match that search, but the countryside is vast. Try a different term or explore by county.",
     action: {
-      label: 'Browse all shops',
+      label: 'Explore all farms',
       href: '/shop',
     },
   },
   'search-no-query': {
     icon: <Search className="w-12 h-12" />,
-    title: 'Search for farm shops',
+    title: 'Find real food near you',
     description:
-      'Enter a location, farm name, or product to find farm shops near you.',
+      'Search by place, farm name, or what you fancy. Fresh eggs? Raw milk? Heritage veg?',
   },
   'filter-no-results': {
     icon: <Filter className="w-12 h-12" />,
-    title: 'No matches for these filters',
+    title: 'Nothing matches all those filters',
     description:
-      'Try removing some filters to see more results. You can also search in a different area.',
+      'The harvest is selective this season. Try loosening a filter or two.',
     action: {
       label: 'Clear all filters',
     },
   },
   'map-no-farms': {
     icon: <Map className="w-12 h-12" />,
-    title: 'No farm shops in this area',
+    title: 'Quiet fields here',
     description:
-      'Try zooming out or moving the map to explore nearby areas. Farm shops are spread across the UK.',
+      "No farms listed in this spot yet. Pan around or zoom out to find what's nearby.",
     action: {
       label: 'Show all UK farms',
     },
   },
   'map-zoomed-out': {
     icon: <MapPin className="w-12 h-12" />,
-    title: 'Zoom in to see farm shops',
+    title: 'Zoom in to see the farms',
     description:
-      'The map is zoomed out too far to show individual locations. Zoom in or search for a specific area.',
+      "From this height, the fields blur together. Zoom in closer to see individual farms.",
   },
 
   // ---------------------------------------------------------------------------
@@ -130,19 +131,19 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
   // ---------------------------------------------------------------------------
   'favorites-empty': {
     icon: <Heart className="w-12 h-12" />,
-    title: 'No favourites yet',
+    title: 'Your basket is empty',
     description:
-      "Save your favourite farm shops by tapping the heart icon. They'll appear here for easy access.",
+      "Tap the heart on farms you love. They'll be saved here for your next visit.",
     action: {
-      label: 'Discover farm shops',
+      label: 'Discover farms',
       href: '/shop',
     },
   },
   'recent-empty': {
     icon: <Clock className="w-12 h-12" />,
-    title: 'No recent visits',
+    title: 'No footprints yet',
     description:
-      "Farm shops you view will appear here so you can easily find them again.",
+      "Farms you visit will leave a trail here, making it easy to find them again.",
     action: {
       label: 'Start exploring',
       href: '/map',
@@ -150,11 +151,11 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
   },
   'compare-empty': {
     icon: <ShoppingBag className="w-12 h-12" />,
-    title: 'Nothing to compare',
+    title: 'Nothing on the scales',
     description:
-      'Add farm shops to compare their offerings, locations, and facilities side by side.',
+      'Add farms to weigh them side by side: their produce, location, and what makes each special.',
     action: {
-      label: 'Find farm shops',
+      label: 'Find farms',
       href: '/shop',
     },
   },
@@ -164,19 +165,19 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
   // ---------------------------------------------------------------------------
   'county-no-farms': {
     icon: <Store className="w-12 h-12" />,
-    title: 'No farm shops listed yet',
+    title: 'Uncharted territory',
     description:
-      "We don't have any farm shops listed in this county yet. Know one? Help us grow our directory.",
+      "No farms listed here yet. Know a hidden gem in this county? Share your farm story.",
     action: {
-      label: 'Add a farm shop',
+      label: 'Share your farm story',
       href: '/add',
     },
   },
   'category-no-farms': {
     icon: <Leaf className="w-12 h-12" />,
-    title: 'No shops in this category',
+    title: 'This field lies fallow',
     description:
-      "We haven't found farm shops with this category in your area yet. Try a different category or location.",
+      "We haven't found farms offering this in your area. Try another category or widen your search.",
     action: {
       label: 'Browse all categories',
       href: '/shop',
@@ -184,9 +185,9 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
   },
   'seasonal-nothing': {
     icon: <Calendar className="w-12 h-12" />,
-    title: 'Nothing in season right now',
+    title: 'Between harvests',
     description:
-      'Check back soon or explore what produce is coming into season next month.',
+      "The land is resting. Check back soon to see what's coming into season.",
     action: {
       label: 'View seasonal calendar',
       href: '/seasonal',
@@ -194,24 +195,24 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
   },
   'farm-no-photos': {
     icon: <Image className="w-12 h-12" />,
-    title: 'No photos yet',
+    title: 'No snapshots yet',
     description:
-      'Be the first to share a photo of this farm shop. Help others see what to expect.',
+      "This farm's story is waiting to be told. Be the first to share a photo.",
     action: {
       label: 'Add a photo',
     },
   },
   'farm-no-reviews': {
     icon: <Star className="w-12 h-12" />,
-    title: 'No reviews yet',
+    title: 'No voices yet',
     description:
-      "This farm shop hasn't been reviewed yet. Visit and share your experience to help others.",
+      "This farm is waiting for its first review. Visit and share what you find.",
   },
   'farm-no-hours': {
     icon: <Clock className="w-12 h-12" />,
-    title: 'Opening hours not available',
+    title: 'Hours unknown',
     description:
-      "We don't have opening hours for this farm shop. Contact them directly or check their website.",
+      "We don't have opening times for this farm. Best to ring ahead or check their site.",
   },
 
   // ---------------------------------------------------------------------------
@@ -219,19 +220,19 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
   // ---------------------------------------------------------------------------
   'submissions-empty': {
     icon: <FileText className="w-12 h-12" />,
-    title: 'No submissions',
+    title: 'No seeds planted',
     description:
-      "You haven't submitted any farm shops yet. Help grow our directory by adding local farms you know.",
+      "You haven't shared any farms yet. Know a local gem? Share your farm story.",
     action: {
-      label: 'Submit a farm shop',
+      label: 'Share your farm story',
       href: '/add',
     },
   },
   'claims-empty': {
     icon: <Store className="w-12 h-12" />,
-    title: 'No claims',
+    title: 'No farms claimed',
     description:
-      "You haven't claimed any farm shops. If you own or manage a listed farm, claim it to update the information.",
+      "Run a farm that's listed? Claim it to keep your details fresh and tell your story.",
     action: {
       label: 'Find your farm',
       href: '/shop',
@@ -239,8 +240,8 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
   },
   'notifications-empty': {
     icon: <Bell className="w-12 h-12" />,
-    title: 'No notifications',
-    description: "You're all caught up. We'll notify you when there's something new.",
+    title: 'All quiet on the farm',
+    description: "Nothing new right now. We'll let you know when there's news.",
   },
 
   // ---------------------------------------------------------------------------
@@ -248,18 +249,18 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
   // ---------------------------------------------------------------------------
   'admin-no-pending': {
     icon: <FileText className="w-12 h-12" />,
-    title: 'No pending items',
-    description: 'All submissions have been reviewed. Check back later for new items.',
+    title: 'Barn is empty',
+    description: 'All submissions reviewed. Check back when more come in from the field.',
   },
   'admin-no-photos': {
     icon: <Image className="w-12 h-12" />,
-    title: 'No photos to review',
-    description: 'All photos have been moderated. New uploads will appear here.',
+    title: 'Gallery curated',
+    description: 'All photos have been sorted. New ones will appear here.',
   },
   'admin-no-claims': {
     icon: <Users className="w-12 h-12" />,
-    title: 'No pending claims',
-    description: 'All ownership claims have been processed.',
+    title: 'Deeds in order',
+    description: 'All ownership claims have been settled.',
   },
 }
 
@@ -284,7 +285,7 @@ export function getSearchEmptyState(query?: string): EmptyStateContent {
 
   return {
     ...emptyStates['search-no-results'],
-    description: `We couldn't find any farm shops matching "${query}". Try different keywords or browse by county.`,
+    description: `We've checked the fields for "${query}" but came up empty. Try different words or explore by county.`,
   }
 }
 
@@ -294,8 +295,8 @@ export function getSearchEmptyState(query?: string): EmptyStateContent {
 export function getCountyEmptyState(countyName: string): EmptyStateContent {
   return {
     ...emptyStates['county-no-farms'],
-    title: `No farm shops in ${countyName} yet`,
-    description: `We don't have any farm shops listed in ${countyName} yet. Know one? Help us grow our directory.`,
+    title: `${countyName} awaits`,
+    description: `No farms listed in ${countyName} yet. Know a local gem? Share your farm story.`,
   }
 }
 
@@ -306,12 +307,12 @@ export function getCategoryEmptyState(
   categoryName: string,
   countyName?: string
 ): EmptyStateContent {
-  const location = countyName ? ` in ${countyName}` : ' in your area'
+  const location = countyName ? ` in ${countyName}` : ' nearby'
 
   return {
     ...emptyStates['category-no-farms'],
-    title: `No ${categoryName.toLowerCase()} shops found`,
-    description: `We haven't found farm shops selling ${categoryName.toLowerCase()}${location} yet. Try a different category or location.`,
+    title: `No ${categoryName.toLowerCase()} found`,
+    description: `Haven't spotted ${categoryName.toLowerCase()}${location} yet. Try another category or cast a wider net.`,
   }
 }
 
@@ -342,24 +343,24 @@ export function createEmptyState(
 
 const seasonalMessages: Record<string, { title: string; description: string }> = {
   winter: {
-    title: 'Winter quietude',
+    title: 'The land rests',
     description:
-      'Many crops are dormant now, but root vegetables and stored produce are available. Spring planting will begin soon.',
+      'Fields lie fallow, but root cellars are full. Parsnips sweeten in the frost, and spring seeds are being sorted.',
   },
   spring: {
-    title: 'Spring is sprouting',
+    title: 'First shoots breaking',
     description:
-      'Early spring crops are just beginning. Check back as more produce comes into season over the coming weeks.',
+      'The soil is warming. Early greens are pushing through. Check back as the harvest unfolds.',
   },
   summer: {
-    title: 'Peak season ahead',
+    title: 'Abundance is coming',
     description:
-      'Summer abundance is coming. Many fruits and vegetables will be available soon.',
+      'The long days are working. Berries, stone fruits, and summer vegetables are ripening.',
   },
   autumn: {
-    title: 'Harvest winding down',
+    title: 'Harvest home',
     description:
-      'The main harvest is complete. Look for stored crops, preserves, and winter vegetables.',
+      'The main crop is in. Apples, squash, and preserves fill the shelves. Winter stores are being laid down.',
   },
 }
 
