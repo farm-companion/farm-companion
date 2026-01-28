@@ -208,7 +208,12 @@
   - generateProductSchema: Product schema for offerings
   - generateFarmPageSchemas: Combined schemas for shop pages
   - generateWebPageSchema: WebPage schema for any page
-- [ ] Slice 28.4: FAQPage Schema
+- [x] Slice 28.4: FAQPage Schema
+  - generateFAQPageSchema: Generic FAQ schema for rich snippets
+  - generateCountyFAQSchema: County-customized FAQs with name replacement
+  - generateFarmFAQSchema: Dynamic FAQs from farm data (hours, location, products, amenities)
+  - generateHowToSchema: HowTo schema for PYO/farm visit instructions
+  - Queue 28 COMPLETE
 
 ### Queue 29: Voice & Microcopy
 - [ ] Slice 29.1: Error Message Overhaul
