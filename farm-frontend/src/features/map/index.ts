@@ -6,6 +6,8 @@
 
 // UI Components
 export { default as MapShell } from './ui/MapShell'
+export { default as MapLibreShell } from './ui/MapLibreShell'
+export { default as MapShellAuto } from './ui/MapShellAuto'
 export { default as MapSearch } from './ui/MapSearch'
 export { default as LocationTracker } from './ui/LocationTracker'
 export { default as LiveLocationTracker } from './ui/LiveLocationTracker'
@@ -40,3 +42,17 @@ export type {
   UseMapLocationOptions,
   UseMapLocationResult,
 } from './hooks/useMapLocation'
+
+// Accessibility utilities
+export {
+  ANNOUNCEMENTS,
+  announce,
+  prefersReducedMotion,
+  getAnimationDuration,
+  KEYBOARD_SHORTCUTS,
+  matchesShortcut,
+  createFocusTrap,
+  createSkipLink,
+  getFarmMarkerLabel,
+  getClusterMarkerLabel,
+} from './lib/accessibility'
