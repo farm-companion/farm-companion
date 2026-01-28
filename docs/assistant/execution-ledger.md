@@ -342,10 +342,18 @@
     - Graceful degradation without API keys
 
 **Phase 5: Migration & Cleanup (Slices 30.12-30.14)**
-- [ ] Slice 30.12: MapShell.tsx migration
-  - Replace Google Maps initialization with MapLibre
-  - Preserve all existing UI (sidebar, filters, mobile sheet)
-  - Feature flag for gradual rollout: NEXT_PUBLIC_USE_MAPLIBRE
+- [x] Slice 30.12: MapShell.tsx migration
+  - Created MapLibreShell.tsx (580 lines) as drop-in replacement
+  - Supercluster integration via useClusteredMarkers hook
+  - 5-tier cluster styling (mega/large/medium/small/tiny)
+  - Category-based pin icons via getPinForFarm
+  - User location tracking via useMapLocation hook
+  - MapControls, LocationControl, ScaleBar integration
+  - Mobile MarkerActions + Desktop MapMarkerPopover
+  - Inline ClusterPreview without Google Maps types
+  - Stadia Maps tiles via getMapStyle (free tier)
+  - Exported from features/map/index.ts
+  - Original MapShell.tsx preserved for fallback
 - [ ] Slice 30.13: Remove Google Maps dependencies
   - Remove @googlemaps/js-api-loader
   - Remove Google Maps types

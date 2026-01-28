@@ -6,6 +6,7 @@
 
 // UI Components
 export { default as MapShell } from './ui/MapShell'
+export { default as MapLibreShell } from './ui/MapLibreShell'
 export { default as MapSearch } from './ui/MapSearch'
 export { default as LocationTracker } from './ui/LocationTracker'
 export { default as LiveLocationTracker } from './ui/LiveLocationTracker'
