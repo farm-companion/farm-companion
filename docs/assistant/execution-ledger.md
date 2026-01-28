@@ -201,7 +201,13 @@
   - Breadcrumb navigation, hero section, farm grid, related pages
   - Empty state with fallback CTA to county page
   - ItemList and BreadcrumbList schema.org JSON-LD
-- [ ] Slice 28.3: LocalBusiness Schema Enhancement
+- [x] Slice 28.3: LocalBusiness Schema Enhancement
+  - Created schema-generators.ts with comprehensive schema utilities
+  - generateLocalBusinessSchema: GroceryStore with amenities, rating, credentials
+  - generatePlaceSchema: Enhanced location with hasMap
+  - generateProductSchema: Product schema for offerings
+  - generateFarmPageSchemas: Combined schemas for shop pages
+  - generateWebPageSchema: WebPage schema for any page
 - [ ] Slice 28.4: FAQPage Schema
 
 ### Queue 29: Voice & Microcopy
