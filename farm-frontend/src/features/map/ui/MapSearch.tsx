@@ -279,6 +279,8 @@ export default function MapSearch({
           <input
             ref={searchRef}
             type="text"
+            id="map-search-compact"
+            name="map-search"
             placeholder="Search farms..."
             value={query}
             onChange={(e) => {
@@ -296,6 +298,7 @@ export default function MapSearch({
             aria-label="Search farms"
             role="combobox"
             aria-expanded={showSuggestions}
+            aria-controls="map-search-suggestions-compact"
           />
           {query && (
             <button
@@ -391,6 +394,8 @@ export default function MapSearch({
           <input
             ref={searchRef}
             type="text"
+            id="map-search"
+            name="map-search"
             placeholder={
               searchType === 'w3w'
                 ? "Enter what3words address (e.g., filled.count.soap)"
@@ -422,6 +427,7 @@ export default function MapSearch({
             aria-expanded={showSuggestions}
             aria-haspopup="listbox"
             aria-autocomplete="list"
+            aria-controls="map-search-suggestions"
             role="combobox"
           />
           {query && (
