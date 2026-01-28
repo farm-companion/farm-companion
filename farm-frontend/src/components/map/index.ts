@@ -18,6 +18,13 @@ export type { ClusterMarkerProps, ClusterMarkerLayerProps } from './ClusterMarke
 export { ClusteredFarmMarkerLayer } from './ClusteredFarmMarkerLayer'
 export type { ClusteredFarmMarkerLayerProps } from './ClusteredFarmMarkerLayer'
 
+// Popup and Sheet components
+export { FarmPopup } from './FarmPopup'
+export type { FarmPopupProps } from './FarmPopup'
+
+export { FarmDetailSheet } from './FarmDetailSheet'
+export type { FarmDetailSheetProps } from './FarmDetailSheet'
+
 // Re-export clustering hook
 export { useClusteredMarkers } from '@/features/map/hooks/useClusteredMarkers'
 export type {
