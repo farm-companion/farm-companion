@@ -210,8 +210,8 @@
 
 /* Specular Highlight: Simulates light source hitting top edge */
 .harvest-card {
-  background-color: hsl(var(--card));
-  border: 1px solid hsl(var(--border));
+  background-color: var(--card);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
@@ -226,8 +226,8 @@
 
 /* Elevated surfaces (modals, dropdowns) */
 .harvest-elevated {
-  background-color: hsl(var(--popover));
-  border: 1px solid hsl(var(--border));
+  background-color: var(--popover);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
 }
 
@@ -255,7 +255,7 @@
 
 /* Border luminance utility */
 .border-luminance {
-  border-color: hsl(var(--border));
+  border-color: var(--border);
 }
 
 .dark .border-luminance {
