@@ -392,6 +392,7 @@
 - [x] Slice 46: Add Open/Closed status coloring to markers (isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS)
 - [x] Slice 47: Add floating filter pills overlay (FilterPills.tsx - Open Now, Organic, PYO, Cafe toggles)
 - [x] Slice 47b: Implement bidirectional hover sync (list hover highlights marker, marker hover highlights list)
+- [x] Slice 48: Fix dark mode contrast issues sitewide (hsl() wrapper fix, gray/zinc/slate text overrides)
 
 **Technical Notes:**
 - MapLibre GL is WebGL-based, requires browser support check
