@@ -343,13 +343,15 @@ export default function MapLibreShell({
         const [lng, lat] = item.geometry.coordinates
         const pinConfig = getPinForFarm(farm.offerings)
         const isOpen = farm.hours ? isFarmOpen(farm.hours) : null
-        const svg = generateStatusMarkerSVG(pinConfig, isOpen, 36)
+        const markerSize = 36
+        const svg = generateStatusMarkerSVG(pinConfig, isOpen, markerSize)
 
         const el = document.createElement('div')
         el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
+        el.style.width = `${markerSize}px`
+        el.style.height = `${markerSize}px`
         el.innerHTML = svg
         el.style.cursor = 'pointer'
-        el.style.transition = 'transform 0.2s, filter 0.2s'
         el.dataset.farmId = farm.id
 
         el.addEventListener('mouseenter', () => {
@@ -375,7 +377,7 @@ export default function MapLibreShell({
 
         const marker = new maplibregl.Marker({
           element: el,
-          anchor: 'bottom'  // Pin points at bottom center
+          anchor: 'center'  // Circular markers anchor at center
         })
           .setLngLat([lng, lat])
           .addTo(map)
