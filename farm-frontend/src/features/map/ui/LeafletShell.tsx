@@ -29,7 +29,9 @@ interface UserLocation {
 interface LeafletShellProps {
   farms: FarmShop[]
   selectedFarmId?: string | null
+  hoveredFarmId?: string | null
   onFarmSelect?: (farmId: string) => void
+  onFarmHover?: (farmId: string | null) => void
   onMapLoad?: (map: L.Map) => void
   onBoundsChange?: (bounds: { north: number; south: number; east: number; west: number }) => void
   onZoomChange?: (zoom: number) => void
@@ -137,7 +139,9 @@ const createClusterIcon = (count: number) => {
 export default function LeafletShell({
   farms,
   selectedFarmId,
+  hoveredFarmId,
   onFarmSelect,
+  onFarmHover,
   onMapLoad,
   onBoundsChange,
   onZoomChange,
@@ -280,7 +284,9 @@ export default function LeafletShell({
     farms.forEach(farm => {
       const pinConfig = getPinForFarm(farm.offerings)
       const isOpen = farm.hours ? isFarmOpen(farm.hours) : null
-      const icon = createStatusIcon(pinConfig, isOpen)
+      const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
+      const size = isHighlighted ? 44 : 36
+      const icon = createStatusIcon(pinConfig, isOpen, size)
 
       const marker = L.marker([farm.location.lat, farm.location.lng], { icon })
 
@@ -291,8 +297,16 @@ export default function LeafletShell({
         handleMarkerClick(farm, e)
       })
 
-      // Highlight selected marker
-      if (selectedFarmId === farm.id) {
+      marker.on('mouseover', () => {
+        onFarmHover?.(farm.id)
+      })
+
+      marker.on('mouseout', () => {
+        onFarmHover?.(null)
+      })
+
+      // Highlight selected or hovered marker
+      if (isHighlighted) {
         marker.setZIndexOffset(1000)
       }
 
@@ -300,7 +314,7 @@ export default function LeafletShell({
     })
 
     console.log(`[LeafletShell] Added ${farms.length} markers`)
-  }, [farms, selectedFarmId, handleMarkerClick])
+  }, [farms, selectedFarmId, hoveredFarmId, handleMarkerClick, onFarmHover])
 
   // Pan to selected farm
   useEffect(() => {

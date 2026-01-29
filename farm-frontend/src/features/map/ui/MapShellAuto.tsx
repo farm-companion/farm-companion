@@ -37,7 +37,9 @@ interface UserLocation {
 interface MapShellAutoProps {
   farms: FarmShop[]
   selectedFarmId?: string | null
+  hoveredFarmId?: string | null
   onFarmSelect?: (farmId: string) => void
+  onFarmHover?: (farmId: string | null) => void
   onMapLoad?: (map: unknown) => void
   onBoundsChange?: (bounds: unknown) => void
   onZoomChange?: (zoom: number) => void

@@ -32,7 +32,9 @@ interface UserLocation {
 interface MapLibreShellProps {
   farms: FarmShop[]
   selectedFarmId?: string | null
+  hoveredFarmId?: string | null
   onFarmSelect?: (farmId: string) => void
+  onFarmHover?: (farmId: string | null) => void
   onMapLoad?: (map: maplibregl.Map) => void
   onBoundsChange?: (bounds: { north: number; south: number; east: number; west: number }) => void
   onZoomChange?: (zoom: number) => void
@@ -83,7 +85,9 @@ interface ClusterData {
 export default function MapLibreShell({
   farms,
   selectedFarmId,
+  hoveredFarmId,
   onFarmSelect,
+  onFarmHover,
   onMapLoad,
   onBoundsChange,
   onZoomChange,
@@ -341,19 +345,27 @@ export default function MapLibreShell({
         el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
         el.innerHTML = svg
         el.style.cursor = 'pointer'
-        el.style.transition = 'transform 0.2s'
+        el.style.transition = 'transform 0.2s, filter 0.2s'
+        el.dataset.farmId = farm.id
 
         el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.15)'
+          el.style.transform = 'scale(1.2)'
+          el.style.filter = 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))'
+          onFarmHover?.(farm.id)
         })
         el.addEventListener('mouseleave', () => {
-          el.style.transform = selectedFarmId === farm.id ? 'scale(1.15)' : 'scale(1)'
+          const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
+          el.style.transform = isHighlighted ? 'scale(1.2)' : 'scale(1)'
+          el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : 'none'
+          onFarmHover?.(null)
         })
         el.addEventListener('click', () => handleMarkerClick(farm))
 
-        // Highlight selected marker
-        if (selectedFarmId === farm.id) {
-          el.style.transform = 'scale(1.15)'
+        // Highlight selected or hovered marker
+        const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
+        if (isHighlighted) {
+          el.style.transform = 'scale(1.2)'
+          el.style.filter = 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))'
           el.style.zIndex = '1000'
         }
 
@@ -364,7 +376,7 @@ export default function MapLibreShell({
         markersRef.current.set(farm.id, marker)
       }
     })
-  }, [clusters, selectedFarmId, isCluster, handleClusterClick, handleMarkerClick])
+  }, [clusters, selectedFarmId, hoveredFarmId, isCluster, handleClusterClick, handleMarkerClick, onFarmHover])
 
   // Pan to selected farm
   useEffect(() => {
