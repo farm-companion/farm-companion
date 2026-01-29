@@ -128,7 +128,7 @@ export default function MapLibreShell({
     farms,
     currentZoom,
     currentBounds,
-    { radius: 60, maxZoom: 16 }
+    { radius: 50, maxZoom: 18 }  // Smaller radius + higher maxZoom for better expansion
   )
 
   // Use our location hook
@@ -265,10 +265,24 @@ export default function MapLibreShell({
     }
 
     // For larger clusters, zoom in with smooth animation
-    const expansionZoom = getClusterExpansionZoom(clusterId)
+    const currentZoom = map.getZoom()
+    let targetZoom: number
+
+    try {
+      const expansionZoom = getClusterExpansionZoom(clusterId)
+      // Use expansion zoom but ensure we always zoom in at least 1.5 levels
+      targetZoom = Math.max(expansionZoom, currentZoom + 1.5)
+    } catch {
+      // If cluster ID is stale, just zoom in by 2 levels
+      targetZoom = currentZoom + 2
+    }
+
+    // Cap at max zoom of 18
+    targetZoom = Math.min(targetZoom, 18)
+
     map.easeTo({
       center: [lng, lat],
-      zoom: Math.min(expansionZoom + 0.5, 16), // Slight overzoom for better expansion
+      zoom: targetZoom,
       duration: 400,
       easing: (t) => t * (2 - t) // Ease-out quad for smooth deceleration
     })
