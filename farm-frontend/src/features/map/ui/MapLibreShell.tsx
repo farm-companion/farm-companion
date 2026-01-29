@@ -307,6 +307,7 @@ export default function MapLibreShell({
         el.className = 'maplibre-cluster-marker'
 
         const { size, color, textColor } = getClusterStyle(count)
+        // NO transforms - just basic styling
         el.style.cssText = `
           width: ${size}px;
           height: ${size}px;
@@ -322,16 +323,15 @@ export default function MapLibreShell({
           box-shadow: 0 2px 8px rgba(0,0,0,0.3);
           cursor: pointer;
           pointer-events: auto;
-          transform-origin: center center;
-          transition: transform 0.15s ease-out;
         `
         el.textContent = count > 99 ? '99+' : String(count)
 
+        // Hover uses filter only, no transform
         el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.1)'
+          el.style.filter = 'brightness(1.1)'
         })
         el.addEventListener('mouseleave', () => {
-          el.style.transform = ''
+          el.style.filter = ''
         })
         el.addEventListener('click', (e) => {
           e.stopPropagation()
@@ -371,27 +371,22 @@ export default function MapLibreShell({
         el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
         el.dataset.farmId = farm.id
         el.dataset.open = isOpen === true ? 'true' : isOpen === false ? 'false' : 'unknown'
-        // Critical: Set all positioning properties inline to prevent touch jump
+        // Minimal styling - NO transforms to avoid conflicting with MapLibre positioning
         el.style.cssText = `
           width: ${markerSize}px;
           height: ${markerSize}px;
           cursor: pointer;
           pointer-events: auto;
-          transform-origin: center center;
-          transition: transform 0.15s ease-out, filter 0.15s ease-out;
         `
         el.innerHTML = svg
 
-        // Event handlers
+        // Event handlers - NO transform manipulation to test positioning
         el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.15)'
           el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
           onFarmHover?.(farm.id)
         })
         el.addEventListener('mouseleave', () => {
-          // Check current highlight state via data attribute
           const isHighlighted = el.dataset.highlighted === 'true'
-          el.style.transform = isHighlighted ? 'scale(1.15)' : ''
           el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : ''
           onFarmHover?.(null)
         })
@@ -423,7 +418,7 @@ export default function MapLibreShell({
     })
   }, [clusters, isCluster, handleClusterClick, handleMarkerClick, onFarmHover])
 
-  // Update marker highlight styles WITHOUT recreating markers
+  // Update marker highlight styles WITHOUT recreating markers - NO transforms
   useEffect(() => {
     markersRef.current.forEach((marker, farmId) => {
       const el = marker.getElement() as HTMLElement
@@ -433,11 +428,9 @@ export default function MapLibreShell({
       el.dataset.highlighted = isHighlighted ? 'true' : 'false'
 
       if (isHighlighted) {
-        el.style.transform = 'scale(1.15)'
         el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
         el.style.zIndex = '1000'
       } else {
-        el.style.transform = ''
         el.style.filter = ''
         el.style.zIndex = ''
       }

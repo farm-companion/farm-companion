@@ -1,10 +1,31 @@
 @import '../styles/fonts.css';
 @import '../styles/harvest-theme.css';
+
+/* Tailwind CSS v4 import - MUST come before MapLibre to allow overrides */
+@import "tailwindcss";
+
+/* MapLibre CSS - imported AFTER Tailwind so it wins specificity battles */
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
 /* ============================================================================
-   MAPLIBRE GL EXPLICIT STYLES - ENSURE VISIBILITY
+   MAPLIBRE GL EXPLICIT STYLES - HIGHEST SPECIFICITY
+   These rules MUST override any Tailwind preflight resets
    ============================================================================ */
+
+/* Force correct marker positioning - the wrapper uses transform: translate() */
+.maplibregl-map .maplibregl-marker {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  /* The actual position comes from transform: translate(x, y) set by MapLibre */
+  pointer-events: auto !important;
+  touch-action: none !important;
+  /* Prevent ANY animation/transition from affecting the wrapper's transform */
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Map container */
 .maplibregl-map {
   position: absolute !important;
   top: 0;
@@ -20,6 +41,7 @@
   left: 0;
   width: 100% !important;
   height: 100% !important;
+  touch-action: pan-x pan-y pinch-zoom;
 }
 
 /* Ensure map container has proper dimensions */
@@ -30,33 +52,19 @@
   min-height: 300px;
 }
 
-/* MapLibre marker wrapper - CRITICAL: Do not override transform */
-.maplibregl-marker {
-  /* MapLibre positions markers via transform: translate() - never override */
-  pointer-events: auto !important;
-  touch-action: none !important;
-  /* Prevent any animation/transition from affecting position */
-  animation: none !important;
-  transition: none !important;
-}
-
-/* Inner marker elements - safe to style */
+/* Inner marker elements - these CAN have transforms for hover effects */
 .maplibre-farm-marker,
 .maplibre-cluster-marker {
   box-sizing: border-box !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  transform-origin: center center !important;
   pointer-events: auto !important;
   touch-action: none !important;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
-  /* Only will-change filter - NOT transform (handled by parent) */
-  will-change: filter;
-  backface-visibility: hidden;
 }
 
 .maplibre-farm-marker svg {
@@ -66,15 +74,6 @@
   pointer-events: none;
   overflow: visible;
 }
-
-/* Ensure canvas allows pan/zoom gestures */
-.maplibregl-canvas-container,
-.maplibregl-canvas {
-  touch-action: pan-x pan-y pinch-zoom;
-}
-
-/* Tailwind CSS v4 import */
-@import "tailwindcss";
 
 /* ============================================================================
    MOBILE-FRIENDLY INTERACTIONS - NO PROTECTION
