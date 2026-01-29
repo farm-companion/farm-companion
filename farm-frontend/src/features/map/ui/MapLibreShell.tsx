@@ -175,10 +175,11 @@ export default function MapLibreShell({
       onMapLoad?.(map)
       onMapReady?.(map)
 
-      // Fit to UK bounds on initial load
+      // Fit to UK bounds on initial load - account for sidebar on desktop (384px)
+      const rightPadding = window.innerWidth >= 768 ? 400 : 20
       map.fitBounds(
         [[UK_BOUNDS.west, UK_BOUNDS.south], [UK_BOUNDS.east, UK_BOUNDS.north]],
-        { padding: { top: 80, right: 20, bottom: 20, left: 20 }, duration: 0 }
+        { padding: { top: 100, right: rightPadding, bottom: 100, left: 20 }, duration: 0 }
       )
     })
 
@@ -328,7 +329,10 @@ export default function MapLibreShell({
         })
         el.addEventListener('click', () => handleClusterClick(clusterId, count, lng, lat))
 
-        const marker = new maplibregl.Marker({ element: el })
+        const marker = new maplibregl.Marker({
+          element: el,
+          anchor: 'center'  // Clusters are circular, anchor at center
+        })
           .setLngLat([lng, lat])
           .addTo(map)
 
@@ -369,7 +373,10 @@ export default function MapLibreShell({
           el.style.zIndex = '1000'
         }
 
-        const marker = new maplibregl.Marker({ element: el })
+        const marker = new maplibregl.Marker({
+          element: el,
+          anchor: 'bottom'  // Pin points at bottom center
+        })
           .setLngLat([lng, lat])
           .addTo(map)
 
