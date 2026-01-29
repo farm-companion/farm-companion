@@ -21,11 +21,13 @@ function cspFor(req: NextRequest) {
     'https://*.s3.amazonaws.com',
     'https://maps.googleapis.com',
     'https://maps.gstatic.com',
-    // MapLibre tile sources
+    // MapLibre/Leaflet tile sources
     'https://tile.openstreetmap.org',
     'https://*.tile.openstreetmap.org',
     'https://tiles.stadiamaps.com',
     'https://*.stadiamaps.com',
+    // Leaflet marker icons CDN
+    'https://unpkg.com',
   ]
   const connect = [
     "'self'",

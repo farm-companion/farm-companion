@@ -42,9 +42,9 @@ interface LeafletShellProps {
   onMapReady?: (map: L.Map) => void
 }
 
-// UK bounds
+// UK bounds and center
 const UK_BOUNDS: L.LatLngBoundsExpression = [[49.8, -10.5], [61.0, 2.0]]
-const UK_CENTER: L.LatLngExpression = [54.5, -2.0]
+const UK_CENTER = { lat: 54.5, lng: -2.0 }
 
 interface MarkerState {
   selected: FarmShop | null
@@ -142,7 +142,7 @@ export default function LeafletShell({
   onMapLoad,
   onBoundsChange,
   onZoomChange,
-  center = { lat: UK_CENTER[0] as number, lng: UK_CENTER[1] as number },
+  center = UK_CENTER,
   zoom = 5,
   className = 'w-full h-full',
   userLocation: externalUserLocation,

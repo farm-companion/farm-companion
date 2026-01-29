@@ -876,25 +876,81 @@ body {
   box-shadow: 0 0 0 2px var(--brand-primary);
 }
 
-/* Text colors */
+/* ==========================================================================
+   SEMANTIC COLOR UTILITIES - Use these instead of raw Tailwind colors!
+   These automatically adapt to light/dark mode with proper contrast.
+   ========================================================================== */
+
+/* Text colors - Primary hierarchy */
 .text-text-heading { color: var(--text-heading); }
 .text-text-body { color: var(--text-body); }
 .text-text-muted { color: var(--text-muted); }
+.text-text-subtle { color: var(--text-subtle); }
+
+/* Text colors - Harvest theme semantic */
+.text-foreground { color: var(--foreground); }
+.text-foreground-secondary { color: var(--foreground-secondary); }
+.text-foreground-muted { color: var(--foreground-muted); }
+.text-foreground-subtle { color: var(--foreground-subtle); }
+
+/* Text colors - Brand */
 .text-brand-primary { color: var(--brand-primary); }
 .text-brand-danger { color: var(--brand-danger); }
 .text-serum { color: var(--serum); }
 .text-solar { color: var(--solar); }
 .text-obsidian { color: var(--obsidian); }
+.text-primary { color: var(--primary); }
+.text-secondary { color: var(--secondary); }
+.text-accent { color: var(--accent); }
 
-/* Background colors */
+/* Background colors - Surface hierarchy */
+.bg-background { background-color: var(--background); }
+.bg-background-secondary { background-color: var(--background-secondary); }
 .bg-background-canvas { background-color: var(--background-canvas); }
 .bg-background-surface { background-color: var(--background-surface); }
+.bg-background-elevated { background-color: var(--background-elevated); }
+.bg-background-hover { background-color: var(--background-hover); }
+
+/* Background colors - Semantic */
+.bg-card { background-color: var(--card); }
+.bg-card-hover { background-color: var(--card-hover); }
+.bg-popover { background-color: var(--popover); }
+.bg-muted { background-color: var(--muted); }
+
+/* Background colors - Brand */
 .bg-brand-primary { background-color: var(--brand-primary); }
 .bg-serum { background-color: var(--serum); }
 .bg-solar { background-color: var(--solar); }
+.bg-primary { background-color: var(--primary); }
+.bg-secondary { background-color: var(--secondary); }
 
-/* Border colors */
+/* Border colors - Semantic */
+.border-border { border-color: var(--border); }
 .border-border-default { border-color: var(--border-default); }
+.border-border-subtle { border-color: var(--border-subtle); }
+.border-border-strong { border-color: var(--border-strong); }
+.border-input { border-color: var(--input); }
+
+/* Ring/Focus colors */
+.ring-ring { --tw-ring-color: var(--ring); }
+
+/* Hover utilities that work in dark mode */
+.hover\:bg-hover:hover { background-color: var(--background-hover); }
+.hover\:bg-card-hover:hover { background-color: var(--card-hover); }
+
+/* Dark mode aware interactive states */
+.interactive-surface {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.interactive-surface:hover {
+  background-color: var(--card-hover);
+  border-color: var(--border-strong);
+}
+.dark .interactive-surface:hover {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
 
 /* Focus styles for accessibility */
 .focus-visible {
