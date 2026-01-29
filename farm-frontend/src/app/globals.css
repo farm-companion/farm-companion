@@ -65,6 +65,7 @@
   -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
+  will-change: transform, filter;
 }
 
 .maplibre-farm-marker svg {
