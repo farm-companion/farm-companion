@@ -301,19 +301,24 @@ export default function MapLibreShell({
         el.className = 'maplibre-cluster-marker'
 
         const { size, color, textColor } = getClusterStyle(count)
-        el.style.width = `${size}px`
-        el.style.height = `${size}px`
-        el.style.background = color
-        el.style.borderRadius = '50%'
-        el.style.display = 'flex'
-        el.style.alignItems = 'center'
-        el.style.justifyContent = 'center'
-        el.style.color = textColor
-        el.style.fontWeight = '600'
-        el.style.fontSize = `${Math.max(12, size / 3)}px`
-        el.style.border = '3px solid white'
-        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)'
-        el.style.cursor = 'pointer'
+        el.style.cssText = `
+          width: ${size}px;
+          height: ${size}px;
+          background: ${color};
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: ${textColor};
+          font-weight: 600;
+          font-size: ${Math.max(12, size / 3)}px;
+          border: 3px solid white;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          cursor: pointer;
+          pointer-events: auto;
+          transform-origin: center center;
+          transition: transform 0.15s ease-out;
+        `
         el.textContent = count > 99 ? '99+' : String(count)
 
         el.addEventListener('mouseenter', () => {
@@ -357,12 +362,18 @@ export default function MapLibreShell({
 
         // Create marker element with precise sizing
         const el = document.createElement('div')
-        el.className = 'maplibre-farm-marker'
+        el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
         el.dataset.farmId = farm.id
         el.dataset.open = isOpen === true ? 'true' : isOpen === false ? 'false' : 'unknown'
-        el.style.width = `${markerSize}px`
-        el.style.height = `${markerSize}px`
-        el.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'  // Shadow via CSS, not SVG
+        // Critical: Set all positioning properties inline to prevent touch jump
+        el.style.cssText = `
+          width: ${markerSize}px;
+          height: ${markerSize}px;
+          cursor: pointer;
+          pointer-events: auto;
+          transform-origin: center center;
+          transition: transform 0.15s ease-out, filter 0.15s ease-out;
+        `
         el.innerHTML = svg
 
         // Event handlers
@@ -372,11 +383,9 @@ export default function MapLibreShell({
           onFarmHover?.(farm.id)
         })
         el.addEventListener('mouseleave', () => {
-          const highlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
-          el.style.transform = highlighted ? 'scale(1.15)' : ''
-          el.style.filter = highlighted
-            ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
-            : 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'
+          const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
+          el.style.transform = isHighlighted ? 'scale(1.15)' : ''
+          el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : ''
           onFarmHover?.(null)
         })
         el.addEventListener('click', (e) => {
@@ -387,7 +396,6 @@ export default function MapLibreShell({
         // Touch handlers - must capture touchstart to prevent map pan
         el.addEventListener('touchstart', (e) => {
           e.stopPropagation()
-          // Don't preventDefault here - allows touchend to fire
         }, { passive: true })
         el.addEventListener('touchend', (e) => {
           e.stopPropagation()

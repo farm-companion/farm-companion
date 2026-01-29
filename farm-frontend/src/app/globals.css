@@ -30,41 +30,34 @@
   min-height: 300px;
 }
 
-/* MapLibre marker styles - FORENSIC FIX for touch position jump
-   Root cause: SVG filter shadows extend beyond element bounds, causing
-   touch coordinate mismatch. Solution: use CSS drop-shadow instead. */
+/* MapLibre marker styles - prevent position shift on touch/interaction */
 .maplibre-farm-marker,
 .maplibre-cluster-marker {
-  /* Precise box model */
   box-sizing: border-box !important;
-  display: block !important;
-  position: relative !important;
-  /* Touch handling */
-  pointer-events: auto !important;
-  touch-action: none !important;  /* Prevent ALL browser touch gestures */
-  -webkit-tap-highlight-color: transparent !important;
-  -webkit-touch-callout: none !important;
-  user-select: none !important;
-  -webkit-user-select: none !important;
-  /* Transform stability */
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
   transform-origin: center center !important;
+  pointer-events: auto !important;
+  touch-action: none !important;  /* Prevent ALL browser touch gestures on markers */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
+  -webkit-user-select: none;
   will-change: transform, filter;
-  /* Prevent text selection on double-tap */
-  -webkit-user-drag: none !important;
 }
 
 .maplibre-farm-marker svg {
-  display: block !important;
-  width: 100% !important;
-  height: 100% !important;
-  pointer-events: none !important;  /* SVG must not capture events */
-  overflow: visible;  /* Allow CSS shadow to show */
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* SVG should not capture events - let parent handle */
+  overflow: visible;
 }
 
-/* MapLibre marker wrapper - ensure proper stacking */
+/* Ensure MapLibre marker wrapper allows events through */
 .maplibregl-marker {
   pointer-events: auto !important;
-  /* Prevent wrapper from interfering with touch */
   touch-action: none !important;
 }
 
