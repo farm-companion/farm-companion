@@ -154,11 +154,16 @@ export default function MapLibreShell({
     const mapStyle = getMapStyle(false)
     console.log('[MapLibreShell] Using map style:', typeof mapStyle === 'string' ? mapStyle : 'OSM Raster Object')
 
+    // Calculate padding for initial bounds - account for sidebar on desktop (384px)
+    const rightPadding = typeof window !== 'undefined' && window.innerWidth >= 768 ? 400 : 20
+    const initialPadding = { top: 100, right: rightPadding, bottom: 100, left: 20 }
+
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
-      center: [center.lng, center.lat],
-      zoom,
+      // Use bounds instead of center/zoom to immediately show UK without flash
+      bounds: [[UK_BOUNDS.west, UK_BOUNDS.south], [UK_BOUNDS.east, UK_BOUNDS.north]],
+      fitBoundsOptions: { padding: initialPadding },
       minZoom: 3,
       maxZoom: 18,
       attributionControl: false,
@@ -174,13 +179,6 @@ export default function MapLibreShell({
       mapRef.current = map
       onMapLoad?.(map)
       onMapReady?.(map)
-
-      // Fit to UK bounds on initial load - account for sidebar on desktop (384px)
-      const rightPadding = window.innerWidth >= 768 ? 400 : 20
-      map.fitBounds(
-        [[UK_BOUNDS.west, UK_BOUNDS.south], [UK_BOUNDS.east, UK_BOUNDS.north]],
-        { padding: { top: 100, right: rightPadding, bottom: 100, left: 20 }, duration: 0 }
-      )
     })
 
     map.on('moveend', () => {
