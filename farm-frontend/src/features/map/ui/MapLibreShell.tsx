@@ -317,7 +317,9 @@ export default function MapLibreShell({
           border: 3px solid white;
           box-shadow: 0 2px 8px rgba(0,0,0,0.3);
           cursor: pointer;
-          transition: transform 0.2s;
+          pointer-events: auto;
+          transform-origin: center center;
+          transition: transform 0.15s ease-out;
         `
         el.textContent = count > 99 ? '99+' : String(count)
 
@@ -325,9 +327,12 @@ export default function MapLibreShell({
           el.style.transform = 'scale(1.1)'
         })
         el.addEventListener('mouseleave', () => {
-          el.style.transform = 'scale(1)'
+          el.style.transform = ''
         })
-        el.addEventListener('click', () => handleClusterClick(clusterId, count, lng, lat))
+        el.addEventListener('click', (e) => {
+          e.stopPropagation()
+          handleClusterClick(clusterId, count, lng, lat)
+        })
 
         const marker = new maplibregl.Marker({
           element: el,
@@ -348,10 +353,16 @@ export default function MapLibreShell({
 
         const el = document.createElement('div')
         el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
-        el.style.width = `${markerSize}px`
-        el.style.height = `${markerSize}px`
+        // Critical: Set all positioning properties inline to prevent touch jump
+        el.style.cssText = `
+          width: ${markerSize}px;
+          height: ${markerSize}px;
+          cursor: pointer;
+          pointer-events: auto;
+          transform-origin: center center;
+          transition: transform 0.15s ease-out, filter 0.15s ease-out;
+        `
         el.innerHTML = svg
-        el.style.cursor = 'pointer'
         el.dataset.farmId = farm.id
 
         el.addEventListener('mouseenter', () => {
@@ -361,11 +372,14 @@ export default function MapLibreShell({
         })
         el.addEventListener('mouseleave', () => {
           const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
-          el.style.transform = isHighlighted ? 'scale(1.2)' : 'scale(1)'
-          el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : 'none'
+          el.style.transform = isHighlighted ? 'scale(1.2)' : ''
+          el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : ''
           onFarmHover?.(null)
         })
-        el.addEventListener('click', () => handleMarkerClick(farm))
+        el.addEventListener('click', (e) => {
+          e.stopPropagation()  // Prevent event bubbling
+          handleMarkerClick(farm)
+        })
 
         // Highlight selected or hovered marker
         const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
