@@ -327,6 +327,10 @@ export default function MapLibreShell({
           e.preventDefault()
           handleClusterClick(clusterId, count, lng, lat)
         })
+        // Touch handlers - must capture touchstart to prevent map pan
+        el.addEventListener('touchstart', (e) => {
+          e.stopPropagation()
+        }, { passive: true })
         el.addEventListener('touchend', (e) => {
           e.stopPropagation()
           e.preventDefault()
@@ -380,7 +384,11 @@ export default function MapLibreShell({
           e.preventDefault()
           handleMarkerClick(farm)
         })
-        // Touch-specific handler
+        // Touch handlers - must capture touchstart to prevent map pan
+        el.addEventListener('touchstart', (e) => {
+          e.stopPropagation()
+          // Don't preventDefault here - allows touchend to fire
+        }, { passive: true })
         el.addEventListener('touchend', (e) => {
           e.stopPropagation()
           e.preventDefault()
