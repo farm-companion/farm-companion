@@ -77,29 +77,29 @@ export default function FilterOverlayPanel({
 
       {/* Panel */}
       <div
-        className="fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-zinc-900 rounded-t-2xl shadow-2xl max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom duration-300"
+        className="fixed inset-x-0 bottom-0 z-50 bg-card rounded-t-2xl shadow-2xl max-h-[85vh] overflow-hidden animate-in slide-in-from-bottom duration-300"
         role="dialog"
         aria-modal="true"
         aria-label="Filter farms"
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white dark:bg-zinc-900 border-b border-zinc-100 dark:border-zinc-800 px-4 py-3 flex items-center justify-between">
+        <div className="sticky top-0 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-cyan-100 dark:bg-cyan-500/20 rounded-lg">
-              <Filter className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Filter className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-50">
+              <h2 className="text-base font-semibold text-foreground">
                 Filter Farms
               </h2>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              <p className="text-xs text-foreground-muted">
                 {farmCount} farms match
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors"
+            className="p-2 text-foreground-muted hover:text-foreground hover:bg-muted rounded-full transition-colors"
             aria-label="Close filters"
           >
             <X className="w-5 h-5" />
@@ -110,16 +110,16 @@ export default function FilterOverlayPanel({
         <div className="overflow-y-auto p-4 space-y-6" style={{ maxHeight: 'calc(85vh - 140px)' }}>
           {/* Open Now Toggle */}
           <div>
-            <label className="flex items-center justify-between p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-xl cursor-pointer group">
+            <label className="flex items-center justify-between p-3 bg-muted rounded-xl cursor-pointer group">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-emerald-100 dark:bg-emerald-500/20 rounded-lg">
-                  <Clock className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <div className="p-2 bg-secondary/10 rounded-lg">
+                  <Clock className="w-4 h-4 text-secondary" />
                 </div>
                 <div>
-                  <span className="text-sm font-medium text-zinc-900 dark:text-zinc-50">
+                  <span className="text-sm font-medium text-foreground">
                     Open Now
                   </span>
-                  <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <p className="text-xs text-foreground-muted">
                     Only show farms currently open
                   </p>
                 </div>
@@ -131,8 +131,8 @@ export default function FilterOverlayPanel({
                   onChange={(e) => setLocalFilters({ ...localFilters, openNow: e.target.checked })}
                   className="sr-only peer"
                 />
-                <div className="w-11 h-6 bg-zinc-200 dark:bg-zinc-700 rounded-full peer-checked:bg-cyan-500 transition-colors" />
-                <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-sm peer-checked:translate-x-5 transition-transform" />
+                <div className="w-11 h-6 bg-muted border border-border rounded-full peer-checked:bg-primary transition-colors" />
+                <div className="absolute top-0.5 left-0.5 w-5 h-5 bg-card rounded-full shadow-sm peer-checked:translate-x-5 transition-transform" />
               </div>
             </label>
           </div>
@@ -140,8 +140,8 @@ export default function FilterOverlayPanel({
           {/* Category Filter */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <Tag className="w-4 h-4 text-zinc-400" />
-              <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Category</h3>
+              <Tag className="w-4 h-4 text-foreground-muted" />
+              <h3 className="text-sm font-medium text-foreground-secondary">Category</h3>
             </div>
             <div className="flex flex-wrap gap-2">
               {categories.slice(0, 12).map((category) => (
@@ -155,8 +155,8 @@ export default function FilterOverlayPanel({
                   }
                   className={`px-3 py-1.5 text-sm rounded-full border transition-all ${
                     localFilters.category === category
-                      ? 'bg-cyan-500 border-cyan-500 text-white'
-                      : 'bg-white dark:bg-zinc-800 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:border-cyan-300 dark:hover:border-cyan-700'
+                      ? 'bg-primary border-primary text-primary-foreground'
+                      : 'bg-card border-border text-foreground-secondary hover:border-primary/50'
                   }`}
                 >
                   {category}
@@ -168,8 +168,8 @@ export default function FilterOverlayPanel({
           {/* County Filter */}
           <div>
             <div className="flex items-center gap-2 mb-3">
-              <MapPin className="w-4 h-4 text-zinc-400" />
-              <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">County</h3>
+              <MapPin className="w-4 h-4 text-foreground-muted" />
+              <h3 className="text-sm font-medium text-foreground-secondary">County</h3>
             </div>
             <div className="relative">
               <select
@@ -180,7 +180,7 @@ export default function FilterOverlayPanel({
                     county: e.target.value || undefined,
                   })
                 }
-                className="w-full px-4 py-3 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-xl text-sm text-zinc-900 dark:text-zinc-100 appearance-none focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent"
+                className="w-full px-4 py-3 bg-card border border-border rounded-xl text-sm text-foreground appearance-none focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="">All counties</option>
                 {counties.map((county) => (
@@ -189,23 +189,23 @@ export default function FilterOverlayPanel({
                   </option>
                 ))}
               </select>
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground-muted pointer-events-none" />
             </div>
           </div>
         </div>
 
         {/* Footer Actions */}
-        <div className="sticky bottom-0 bg-white dark:bg-zinc-900 border-t border-zinc-100 dark:border-zinc-800 px-4 py-3 flex items-center gap-3">
+        <div className="sticky bottom-0 bg-card border-t border-border px-4 py-3 flex items-center gap-3">
           <button
             onClick={handleClearAll}
             disabled={activeFilterCount === 0}
-            className="flex-1 px-4 py-3 text-sm font-medium text-zinc-700 dark:text-zinc-300 bg-zinc-100 dark:bg-zinc-800 rounded-xl hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-3 text-sm font-medium text-foreground-secondary bg-muted rounded-xl hover:bg-background-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Clear All
           </button>
           <button
             onClick={handleApply}
-            className="flex-1 px-4 py-3 text-sm font-semibold text-white bg-cyan-500 rounded-xl hover:bg-cyan-600 transition-colors flex items-center justify-center gap-2"
+            className="flex-1 px-4 py-3 text-sm font-semibold text-primary-foreground bg-primary rounded-xl hover:bg-primary-hover transition-colors flex items-center justify-center gap-2"
           >
             <Check className="w-4 h-4" />
             Apply Filters

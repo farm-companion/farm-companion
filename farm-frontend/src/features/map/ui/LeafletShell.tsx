@@ -388,18 +388,18 @@ export default function LeafletShell({
 
   if (error) {
     return (
-      <div className={`${className} flex items-center justify-center bg-gray-100`}>
+      <div className={`${className} flex items-center justify-center bg-background-surface dark:bg-background`}>
         <div className="text-center p-6">
-          <div className="text-red-500 mb-4">
+          <div className="text-destructive mb-4">
             <svg className="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Map Unavailable</h3>
-          <p className="text-sm text-gray-600 mb-4">{error}</p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Map Unavailable</h3>
+          <p className="text-sm text-foreground-muted mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="bg-serum text-black px-4 py-2 rounded-lg font-medium hover:bg-serum/90 transition-colors"
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg font-medium hover:bg-primary-hover transition-colors"
           >
             Try Again
           </button>
@@ -411,22 +411,21 @@ export default function LeafletShell({
   return (
     <div className={`${className} relative`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center bg-background-surface dark:bg-background z-10 pointer-events-none">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Loading map...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
+            <p className="text-sm text-foreground-muted">Loading map...</p>
           </div>
         </div>
       )}
 
       <div
         ref={mapContainerRef}
-        className="absolute inset-0"
+        className="absolute inset-0 bg-muted"
         style={{
           width: '100%',
           height: '100%',
-          minHeight: '300px',
-          background: '#e5e7eb'
+          minHeight: '300px'
         }}
       />
 

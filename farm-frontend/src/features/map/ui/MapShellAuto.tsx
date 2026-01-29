@@ -54,10 +54,10 @@ interface MapShellAutoProps {
 
 function MapLoadingState() {
   return (
-    <div className="w-full h-full flex items-center justify-center bg-gray-100">
+    <div className="w-full h-full flex items-center justify-center bg-background-surface dark:bg-background">
       <div className="text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-2" />
-        <p className="text-sm text-gray-600">Harvesting latest updates...</p>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
+        <p className="text-sm text-foreground-muted">Harvesting latest updates...</p>
       </div>
     </div>
   )
