@@ -30,7 +30,17 @@
   min-height: 300px;
 }
 
-/* MapLibre marker styles - prevent position shift on touch/interaction */
+/* MapLibre marker wrapper - CRITICAL: Do not override transform */
+.maplibregl-marker {
+  /* MapLibre positions markers via transform: translate() - never override */
+  pointer-events: auto !important;
+  touch-action: none !important;
+  /* Prevent any animation/transition from affecting position */
+  animation: none !important;
+  transition: none !important;
+}
+
+/* Inner marker elements - safe to style */
 .maplibre-farm-marker,
 .maplibre-cluster-marker {
   box-sizing: border-box !important;
@@ -39,13 +49,13 @@
   justify-content: center !important;
   transform-origin: center center !important;
   pointer-events: auto !important;
-  touch-action: none !important;  /* Prevent ALL browser touch gestures on markers */
+  touch-action: none !important;
   -webkit-tap-highlight-color: transparent;
   -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
-  will-change: transform, filter;
-  /* Prevent marker from inheriting any rogue transforms */
+  /* Only will-change filter - NOT transform (handled by parent) */
+  will-change: filter;
   backface-visibility: hidden;
 }
 
@@ -53,21 +63,11 @@
   display: block;
   width: 100%;
   height: 100%;
-  pointer-events: none; /* SVG should not capture events - let parent handle */
+  pointer-events: none;
   overflow: visible;
 }
 
-/* MapLibre marker wrapper - critical positioning rules */
-.maplibregl-marker {
-  position: absolute !important; /* Must be absolute for transform positioning */
-  pointer-events: auto !important;
-  touch-action: none !important;
-  /* Prevent wrapper from collapsing or shifting */
-  top: 0 !important;
-  left: 0 !important;
-}
-
-/* Ensure canvas and markers layer doesn't interfere */
+/* Ensure canvas allows pan/zoom gestures */
 .maplibregl-canvas-container,
 .maplibregl-canvas {
   touch-action: pan-x pan-y pinch-zoom;
