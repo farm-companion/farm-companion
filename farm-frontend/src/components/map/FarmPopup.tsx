@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useEffect, useRef, useCallback, memo } from 'react'
+import React, { useEffect, useRef, useCallback, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Popup, Map as MapLibreMapInstance } from 'maplibre-gl'
-import { createRoot, Root } from 'react-dom/client'
-import { MapPin, Navigation, Share2, Heart, X, Clock, Phone, Globe, ExternalLink } from 'lucide-react'
-import { FarmShop } from '@/types/farm'
+import { FarmShop, getImageUrl } from '@/types/farm'
+import { getFarmStatus } from '@/lib/farm-status'
 import { calculateDistance, formatDistance } from '@/shared/lib/geo'
-import { isCurrentlyOpen } from '@/lib/farm-status'
+import { MapPin, Clock, ExternalLink, Navigation, Phone } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 // =============================================================================
 // TYPES
@@ -18,25 +19,17 @@ export interface FarmPopupProps {
   /** MapLibre map instance */
   map: MapLibreMapInstance | null
   /** Whether popup is visible */
-  isVisible: boolean
-  /** Callback when popup closes */
+  isOpen: boolean
+  /** Callback when popup is closed */
   onClose: () => void
-  /** Callback when navigate is clicked */
-  onNavigate?: (farm: FarmShop) => void
-  /** Callback when favorite is clicked */
-  onFavorite?: (farmId: string) => void
-  /** Callback when share is clicked */
-  onShare?: (farm: FarmShop) => void
-  /** Callback when view details is clicked */
+  /** Callback when "View Details" is clicked */
   onViewDetails?: (farm: FarmShop) => void
+  /** Callback when "Get Directions" is clicked */
+  onGetDirections?: (farm: FarmShop) => void
   /** User's current location for distance calculation */
   userLocation?: { latitude: number; longitude: number } | null
-  /** Offset from marker in pixels [x, y] */
-  offset?: [number, number]
-  /** Max width of popup in pixels */
-  maxWidth?: string
-  /** Whether to close on map click */
-  closeOnMapClick?: boolean
+  /** Additional class names */
+  className?: string
 }
 
 // =============================================================================
@@ -46,157 +39,137 @@ export interface FarmPopupProps {
 interface PopupContentProps {
   farm: FarmShop
   onClose: () => void
-  onNavigate?: (farm: FarmShop) => void
-  onFavorite?: (farmId: string) => void
-  onShare?: (farm: FarmShop) => void
   onViewDetails?: (farm: FarmShop) => void
-  userLocation?: { latitude: number; longitude: number } | null
+  onGetDirections?: (farm: FarmShop) => void
+  distance?: string | null
 }
 
 function PopupContent({
   farm,
   onClose,
-  onNavigate,
-  onFavorite,
-  onShare,
   onViewDetails,
-  userLocation,
+  onGetDirections,
+  distance,
 }: PopupContentProps) {
-  const isOpen = isCurrentlyOpen(farm.hours)
+  const status = getFarmStatus(farm.hours)
+  const isOpen = status.status === 'open'
+  const nextOpen = status.nextChange?.action === 'opens' ? status.nextChange.time : null
+  const imageUrl = farm.images?.[0] ? getImageUrl(farm.images[0]) : null
 
-  // Calculate distance
-  const distance = userLocation && farm.location
-    ? formatDistance(
-        calculateDistance(
-          userLocation.latitude,
-          userLocation.longitude,
-          farm.location.lat,
-          farm.location.lng
-        )
-      )
-    : null
+  const handleViewDetails = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onViewDetails?.(farm)
+  }
 
-  // Handle keyboard navigation
-  const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+  const handleGetDirections = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onGetDirections?.(farm)
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Escape') {
+      e.preventDefault()
       onClose()
     }
-  }, [onClose])
+  }
 
   return (
     <div
-      className="farm-popup-content"
-      onKeyDown={handleKeyDown}
+      className="farm-popup-content w-72 bg-white dark:bg-zinc-900 rounded-lg shadow-xl overflow-hidden"
       role="dialog"
-      aria-labelledby="popup-farm-name"
-      aria-describedby="popup-farm-location"
+      aria-label={`${farm.name} details`}
+      onKeyDown={handleKeyDown}
     >
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex-1 min-w-0">
-          <h3
-            id="popup-farm-name"
-            className="text-base font-semibold text-slate-900 dark:text-white truncate"
-          >
-            {farm.name}
-          </h3>
-          <div
-            id="popup-farm-location"
-            className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 mt-0.5"
-          >
-            <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className="truncate">{farm.location?.city || farm.location?.address}</span>
+      {/* Image header */}
+      {imageUrl && (
+        <div className="relative h-32 w-full">
+          <img
+            src={imageUrl}
+            alt={farm.name}
+            className="w-full h-full object-cover"
+          />
+          {/* Status badge overlay */}
+          <div className="absolute top-2 left-2">
+            <span
+              className={cn(
+                'inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium',
+                isOpen
+                  ? 'bg-green-100 text-green-800 dark:bg-green-900/80 dark:text-green-200'
+                  : 'bg-red-100 text-red-800 dark:bg-red-900/80 dark:text-red-200'
+              )}
+            >
+              <span
+                className={cn(
+                  'w-1.5 h-1.5 rounded-full',
+                  isOpen ? 'bg-green-500' : 'bg-red-500'
+                )}
+              />
+              {isOpen ? 'Open now' : 'Closed'}
+            </span>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1 -mt-1 -mr-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:text-slate-300 dark:hover:bg-slate-700 transition-colors"
-          aria-label="Close popup"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      </div>
+      )}
 
-      {/* Status and Distance */}
-      <div className="flex items-center gap-2 mb-3">
-        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${
-          isOpen
-            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-            : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-        }`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${isOpen ? 'bg-green-500' : 'bg-red-500'}`} />
-          {isOpen ? 'Open now' : 'Closed'}
-        </span>
-        {distance && (
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            {distance} away
+      {/* Content */}
+      <div className="p-3">
+        {/* Farm name */}
+        <h3 className="text-base font-semibold text-zinc-900 dark:text-white mb-1 line-clamp-1">
+          {farm.name}
+        </h3>
+
+        {/* Location */}
+        <div className="flex items-start gap-1.5 text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+          <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
+          <span className="line-clamp-1">
+            {farm.location.city || farm.location.address}
           </span>
-        )}
-      </div>
+        </div>
 
-      {/* Quick Info */}
-      {(farm.contact?.phone || farm.contact?.website) && (
-        <div className="flex flex-wrap gap-2 mb-3 text-xs text-slate-600 dark:text-slate-400">
+        {/* Distance and status row */}
+        <div className="flex items-center gap-2 text-sm mb-3">
+          {distance && (
+            <span className="inline-flex items-center gap-1 text-zinc-600 dark:text-zinc-400">
+              <Navigation className="w-3.5 h-3.5" />
+              {distance}
+            </span>
+          )}
+          {!isOpen && nextOpen && (
+            <span className="inline-flex items-center gap-1 text-zinc-500 dark:text-zinc-500">
+              <Clock className="w-3.5 h-3.5" />
+              {nextOpen}
+            </span>
+          )}
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <button
+            onClick={handleViewDetails}
+            className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg text-sm font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            View Details
+          </button>
+          <button
+            onClick={handleGetDirections}
+            className="inline-flex items-center justify-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
+            aria-label="Get directions"
+          >
+            <Navigation className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+          </button>
           {farm.contact?.phone && (
             <a
               href={`tel:${farm.contact.phone}`}
-              className="inline-flex items-center gap-1 hover:text-brand-primary"
+              className="inline-flex items-center justify-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
+              aria-label="Call farm"
             >
-              <Phone className="w-3 h-3" />
-              {farm.contact.phone}
-            </a>
-          )}
-          {farm.contact?.website && (
-            <a
-              href={farm.contact.website}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 hover:text-brand-primary"
-            >
-              <Globe className="w-3 h-3" />
-              Website
-              <ExternalLink className="w-2.5 h-2.5" />
+              <Phone className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
             </a>
           )}
         </div>
-      )}
-
-      {/* Actions */}
-      <div className="flex items-center gap-2">
-        <button
-          onClick={() => onNavigate?.(farm)}
-          className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-brand-primary text-white rounded-lg text-sm font-medium hover:bg-brand-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
-        >
-          <Navigation className="w-4 h-4" />
-          Directions
-        </button>
-
-        <button
-          onClick={() => onFavorite?.(farm.id)}
-          className="p-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400 hover:text-red-500 hover:border-red-200 dark:hover:border-red-800 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
-          aria-label="Add to favorites"
-        >
-          <Heart className="w-4 h-4" />
-        </button>
-
-        <button
-          onClick={() => onShare?.(farm)}
-          className="p-2 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-400 hover:text-brand-primary hover:border-brand-primary/50 transition-colors focus:outline-none focus:ring-2 focus:ring-brand-primary focus:ring-offset-2"
-          aria-label="Share farm"
-        >
-          <Share2 className="w-4 h-4" />
-        </button>
       </div>
-
-      {/* View Details Link */}
-      {onViewDetails && (
-        <button
-          onClick={() => onViewDetails(farm)}
-          className="w-full mt-2 py-2 text-sm text-brand-primary hover:text-brand-primary/80 font-medium transition-colors focus:outline-none focus:underline"
-        >
-          View full details
-        </button>
-      )}
     </div>
   )
 }
@@ -208,139 +181,137 @@ function PopupContent({
 /**
  * Farm Popup Component for MapLibre GL
  *
- * Renders a popup attached to a farm marker with:
- * - Farm name, location, and status
- * - Distance from user (if location available)
- * - Quick actions: navigate, favorite, share
- * - Accessible keyboard navigation
- * - Smooth open/close animations
+ * Uses MapLibre's native Popup API for optimal positioning and map integration.
+ * Features:
+ * - Auto-positioning to stay within map bounds
+ * - Farm image, status, and quick actions
+ * - Distance display when user location available
+ * - Keyboard accessible (Escape to close)
+ * - Dark mode support
  *
  * @example
  * ```tsx
  * <FarmPopup
  *   farm={selectedFarm}
  *   map={mapInstance}
- *   isVisible={!!selectedFarm}
+ *   isOpen={!!selectedFarm}
  *   onClose={() => setSelectedFarm(null)}
- *   onNavigate={handleNavigate}
+ *   onViewDetails={(farm) => router.push(`/shop/${farm.slug}`)}
+ *   onGetDirections={(farm) => openDirections(farm)}
  *   userLocation={userLocation}
  * />
  * ```
  */
-export const FarmPopup = memo(function FarmPopup({
+export function FarmPopup({
   farm,
   map,
-  isVisible,
+  isOpen,
   onClose,
-  onNavigate,
-  onFavorite,
-  onShare,
   onViewDetails,
+  onGetDirections,
   userLocation,
-  offset = [0, -10],
-  maxWidth = '300px',
-  closeOnMapClick = true,
+  className,
 }: FarmPopupProps) {
   const popupRef = useRef<Popup | null>(null)
-  const rootRef = useRef<Root | null>(null)
   const containerRef = useRef<HTMLDivElement | null>(null)
-  const closeCallbackRef = useRef(onClose)
+  const [isMounted, setIsMounted] = useState(false)
 
-  // Keep close callback ref updated
+  // Calculate distance from user
+  const distance = React.useMemo(() => {
+    if (!userLocation || !farm?.location) return null
+    const dist = calculateDistance(
+      userLocation.latitude,
+      userLocation.longitude,
+      farm.location.lat,
+      farm.location.lng
+    )
+    return formatDistance(dist)
+  }, [userLocation, farm?.location])
+
+  // Handle directions
+  const handleGetDirections = useCallback(
+    (farm: FarmShop) => {
+      if (onGetDirections) {
+        onGetDirections(farm)
+      } else {
+        // Default: open in Google Maps
+        const { lat, lng } = farm.location
+        window.open(
+          `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+          '_blank',
+          'noopener,noreferrer'
+        )
+      }
+    },
+    [onGetDirections]
+  )
+
+  // Create popup container on mount
   useEffect(() => {
-    closeCallbackRef.current = onClose
-  }, [onClose])
-
-  // Create popup instance
-  useEffect(() => {
-    if (!map) return
-
-    // Create container for React content
-    const container = document.createElement('div')
-    container.className = 'maplibre-farm-popup'
-    containerRef.current = container
-
-    // Create popup
-    const popup = new Popup({
-      closeButton: false,
-      closeOnClick: closeOnMapClick,
-      maxWidth,
-      offset,
-      className: 'farm-popup-wrapper',
-      focusAfterOpen: true,
-    })
-
-    popup.setDOMContent(container)
-
-    // Handle popup close event
-    popup.on('close', () => {
-      closeCallbackRef.current()
-    })
-
-    popupRef.current = popup
-
-    // Create React root
-    rootRef.current = createRoot(container)
+    containerRef.current = document.createElement('div')
+    containerRef.current.className = cn('farm-popup-container', className)
+    setIsMounted(true)
 
     return () => {
-      rootRef.current?.unmount()
-      popup.remove()
-      popupRef.current = null
-      rootRef.current = null
       containerRef.current = null
     }
-  }, [map, maxWidth, closeOnMapClick])
+  }, [className])
 
-  // Update popup visibility and content
+  // Manage popup lifecycle
   useEffect(() => {
-    if (!popupRef.current || !map || !rootRef.current) return
-
-    if (isVisible && farm && farm.location?.lat && farm.location?.lng) {
-      // Render content
-      rootRef.current.render(
-        <PopupContent
-          farm={farm}
-          onClose={onClose}
-          onNavigate={onNavigate}
-          onFavorite={onFavorite}
-          onShare={onShare}
-          onViewDetails={onViewDetails}
-          userLocation={userLocation}
-        />
-      )
-
-      // Position and show popup
-      popupRef.current
-        .setLngLat([farm.location.lng, farm.location.lat])
-        .addTo(map)
-    } else {
-      popupRef.current.remove()
+    if (!map || !farm || !isOpen || !containerRef.current || !isMounted) {
+      // Close popup if conditions not met
+      if (popupRef.current) {
+        popupRef.current.remove()
+        popupRef.current = null
+      }
+      return
     }
-  }, [isVisible, farm, map, onClose, onNavigate, onFavorite, onShare, onViewDetails, userLocation])
 
-  // Update offset when it changes
-  useEffect(() => {
-    if (popupRef.current) {
-      popupRef.current.setOffset(offset)
+    // Create popup if not exists
+    if (!popupRef.current) {
+      popupRef.current = new Popup({
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: '320px',
+        className: 'farm-popup-wrapper',
+        focusAfterOpen: true,
+        offset: [0, -10],
+      })
+
+      popupRef.current.on('close', onClose)
     }
-  }, [offset])
 
-  // Handle escape key globally
-  useEffect(() => {
-    if (!isVisible) return
+    // Update popup content and position
+    popupRef.current
+      .setLngLat([farm.location.lng, farm.location.lat])
+      .setDOMContent(containerRef.current)
+      .addTo(map)
 
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
+    // Cleanup
+    return () => {
+      if (popupRef.current) {
+        popupRef.current.remove()
+        popupRef.current = null
       }
     }
+  }, [map, farm, isOpen, onClose, isMounted])
 
-    document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isVisible, onClose])
+  // Render content via portal
+  if (!farm || !isOpen || !containerRef.current || !isMounted) {
+    return null
+  }
 
-  // This component manages a MapLibre Popup imperatively
-  return null
-})
+  return createPortal(
+    <PopupContent
+      farm={farm}
+      onClose={onClose}
+      onViewDetails={onViewDetails}
+      onGetDirections={handleGetDirections}
+      distance={distance}
+    />,
+    containerRef.current
+  )
+}
 
 export default FarmPopup

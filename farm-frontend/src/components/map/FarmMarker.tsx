@@ -244,10 +244,23 @@ export const FarmMarker = memo(function FarmMarker({
       }
     }
 
+    // Touch handlers - must capture touchstart to prevent map pan
+    const handleTouchStart = (e: TouchEvent) => {
+      e.stopPropagation()
+    }
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      e.stopPropagation()
+      e.preventDefault()
+      onClick?.(farm)
+    }
+
     el.addEventListener('click', handleClick)
     el.addEventListener('mouseenter', handleMouseEnter)
     el.addEventListener('mouseleave', handleMouseLeave)
     el.addEventListener('keydown', handleKeyDown)
+    el.addEventListener('touchstart', handleTouchStart, { passive: true })
+    el.addEventListener('touchend', handleTouchEnd, { passive: false })
 
     // Initial render
     updateMarkerElement()
@@ -258,6 +271,8 @@ export const FarmMarker = memo(function FarmMarker({
       el.removeEventListener('mouseenter', handleMouseEnter)
       el.removeEventListener('mouseleave', handleMouseLeave)
       el.removeEventListener('keydown', handleKeyDown)
+      el.removeEventListener('touchstart', handleTouchStart)
+      el.removeEventListener('touchend', handleTouchEnd)
       marker.remove()
       markerRef.current = null
       elementRef.current = null

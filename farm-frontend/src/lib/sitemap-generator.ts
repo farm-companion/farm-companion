@@ -8,6 +8,7 @@
 import { PRODUCE } from '@/data/produce'
 import { SITE_URL } from '@/lib/site'
 import { getFarmData } from '@/lib/farm-data'
+import { generateSEOPageSitemapEntries } from '@/lib/seo-pages'
 import { logger } from '@/lib/logger'
 
 const sitemapGenLogger = logger.child({ route: 'lib/sitemap-generator' })
@@ -163,6 +164,23 @@ export async function generateSitemapChunks(): Promise<{
       filename: `counties-${i + 1}.xml`,
       entries: countyPages
     })
+  }
+
+  // Generate SEO pages (location+category combinations)
+  try {
+    const seoPages = await generateSEOPageSitemapEntries()
+    const seoChunks = chunkArray(seoPages, SITEMAP_CONFIG.MAX_URLS_PER_SITEMAP)
+
+    for (let i = 0; i < seoChunks.length; i++) {
+      chunks.push({
+        filename: `seo-pages-${i + 1}.xml`,
+        entries: seoChunks[i]
+      })
+    }
+
+    sitemapGenLogger.info('Generated SEO pages for sitemap', { count: seoPages.length })
+  } catch (error) {
+    sitemapGenLogger.warn('Could not generate SEO pages for sitemap', {}, error as Error)
   }
 
   // Generate index sitemap

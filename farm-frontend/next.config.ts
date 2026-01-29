@@ -13,7 +13,8 @@ const headersCommon = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-DNS-Prefetch-Control", value: "off" },
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
-  { key: "Permissions-Policy", value: "geolocation=(), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
+  // Geolocation allowed on self for map functionality
+  { key: "Permissions-Policy", value: "geolocation=(self), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
   // Cross-origin headers REMOVED - were blocking CSS/fonts/images
   // { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
   // { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
@@ -22,11 +23,7 @@ const headersCommon = [
   // CSP is now set in middleware (consent-aware)
 ]
 
-// Headers for routes that need geolocation access
-const headersWithGeolocation = [
-  ...headersCommon,
-  { key: "Permissions-Policy", value: "geolocation=(self), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
-]
+// Note: Geolocation is now allowed site-wide in headersCommon for map functionality
 
 const nextConfig: NextConfig = {
   // Domain redirects - canonical domain is www.farmcompanion.co.uk
@@ -134,33 +131,7 @@ const nextConfig: NextConfig = {
             : []),
         ],
       },
-      // Allow geolocation only on map and location-related routes
-      {
-        source: "/map/:path*",
-        headers: [
-          ...headersWithGeolocation,
-          // HSTS and Expect-CT only in prod on HTTPS
-          ...(isProd
-            ? [
-                { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-                { key: "Expect-CT", value: "max-age=86400, enforce" }
-              ]
-            : []),
-        ],
-      },
-      {
-        source: "/map",
-        headers: [
-          ...headersWithGeolocation,
-          // HSTS and Expect-CT only in prod on HTTPS
-          ...(isProd
-            ? [
-                { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
-                { key: "Expect-CT", value: "max-age=86400, enforce" }
-              ]
-            : []),
-        ],
-      },
+      // Note: Geolocation is now allowed site-wide in headersCommon
       // Cross-origin headers for fonts
       {
         source: '/:all*(woff2)',

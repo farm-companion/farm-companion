@@ -18,9 +18,12 @@ export type { ClusterMarkerProps, ClusterMarkerLayerProps } from './ClusterMarke
 export { ClusteredFarmMarkerLayer } from './ClusteredFarmMarkerLayer'
 export type { ClusteredFarmMarkerLayerProps } from './ClusteredFarmMarkerLayer'
 
-// Popup and interaction components
+// Popup and Sheet components
 export { FarmPopup } from './FarmPopup'
 export type { FarmPopupProps } from './FarmPopup'
+
+export { FarmDetailSheet } from './FarmDetailSheet'
+export type { FarmDetailSheetProps } from './FarmDetailSheet'
 
 export { MobileMarkerSheet } from './MobileMarkerSheet'
 export type { MobileMarkerSheetProps } from './MobileMarkerSheet'
@@ -49,6 +52,7 @@ export {
   DEFAULT_MAP_CONFIG,
   DARK_MAP_CONFIG,
   STADIA_STYLES,
+  OSM_RASTER_STYLE,
   getMapStyle,
   getMapConfig,
   isWithinUKBounds,

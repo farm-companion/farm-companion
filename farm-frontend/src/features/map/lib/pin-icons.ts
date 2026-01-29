@@ -235,3 +235,88 @@ function adjustColor(hex: string, amount: number): string {
   const b = Math.min(255, Math.max(0, (num & 0x0000ff) + amount))
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
 }
+
+/**
+ * Check if a farm is currently open based on hours
+ */
+export function isFarmOpen(hours?: Array<{ day: string; open: string; close: string }>): boolean {
+  if (!hours || hours.length === 0) return false
+
+  const now = new Date()
+  const dayName = now.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase()
+  const currentTime = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit' })
+
+  const todayHours = hours.find(h => h.day.toLowerCase() === dayName)
+  if (!todayHours) return false
+
+  const open = todayHours.open.toLowerCase()
+  const close = todayHours.close.toLowerCase()
+
+  if (open === 'closed' || close === 'closed') return false
+  if (open === '24 hours' || close === '24 hours') return true
+
+  // Handle overnight hours (close < open means overnight)
+  if (close < open) {
+    return currentTime >= open || currentTime <= close
+  }
+
+  return currentTime >= open && currentTime <= close
+}
+
+/**
+ * Status colors for open/closed state
+ */
+export const STATUS_COLORS = {
+  open: '#16A34A',    // Leaf Green (Green-600)
+  closed: '#A1A1AA',  // Stone Gray (Zinc-400)
+  unknown: '#71717A', // Muted Gray (Zinc-500)
+}
+
+/**
+ * Generate an SVG marker with open/closed status indicator
+ * NOTE: Shadow is NOT included in SVG to prevent bounds mismatch on touch.
+ * Apply shadow via CSS: filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3))
+ */
+export function generateStatusMarkerSVG(
+  config: CategoryPinConfig,
+  isOpen: boolean | null,
+  size: number = 32
+): string {
+  const innerSize = size * 0.5
+  const centerOffset = (size - innerSize) / 2
+
+  // Determine ring color based on status
+  const ringColor = isOpen === null
+    ? STATUS_COLORS.unknown
+    : isOpen
+      ? STATUS_COLORS.open
+      : STATUS_COLORS.closed
+
+  // Desaturate the main color if closed
+  const mainColor = isOpen === false
+    ? desaturateColor(config.color, 0.5)
+    : config.color
+
+  // SVG without filter - shadow applied via CSS to prevent touch bounds mismatch
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pg${isOpen}" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="${mainColor}"/><stop offset="100%" stop-color="${adjustColor(mainColor, -30)}"/></linearGradient></defs><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 1}" fill="none" stroke="${ringColor}" stroke-width="3"/><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 4}" fill="url(#pg${isOpen})" stroke="white" stroke-width="2"/><g transform="translate(${centerOffset},${centerOffset}) scale(${innerSize / 16})" fill="white"><path d="${config.iconPath}"/></g></svg>`
+}
+
+/**
+ * Desaturate a hex color
+ */
+function desaturateColor(hex: string, amount: number): string {
+  const num = parseInt(hex.replace('#', ''), 16)
+  const r = (num >> 16) & 0xff
+  const g = (num >> 8) & 0xff
+  const b = num & 0xff
+
+  // Calculate grayscale value
+  const gray = Math.round(r * 0.299 + g * 0.587 + b * 0.114)
+
+  // Blend with grayscale
+  const newR = Math.round(r + (gray - r) * amount)
+  const newG = Math.round(g + (gray - g) * amount)
+  const newB = Math.round(b + (gray - b) * amount)
+
+  return `#${((newR << 16) | (newG << 8) | newB).toString(16).padStart(6, '0')}`
+}

@@ -191,16 +191,214 @@
 - [x] Slice 27.5: Loading State Animations (Loading.tsx with Spinner, LoadingDots, PulseRing, ProgressBar, LoadingOverlay, Shimmer)
 
 ### Queue 28: SEO & Programmatic Pages
-- [ ] Slice 28.1: Location+Produce URL Generator
-- [ ] Slice 28.2: Location+Produce Page Template
-- [ ] Slice 28.3: LocalBusiness Schema Enhancement
-- [ ] Slice 28.4: FAQPage Schema
+- [x] Slice 28.1: Location+Produce URL Generator
+  - Created seo-pages.ts with generateSEOPageParams, getSEOPageData, generateSEOPageSitemapEntries
+  - URL pattern: /find/[county-slug]/[category-slug]
+  - Includes ItemList and BreadcrumbList schema.org structured data
+  - Updated sitemap-generator.ts to include SEO pages in sitemap
+- [x] Slice 28.2: Location+Produce Page Template
+  - Created /find/[county]/[category]/page.tsx with full SSG support
+  - Breadcrumb navigation, hero section, farm grid, related pages
+  - Empty state with fallback CTA to county page
+  - ItemList and BreadcrumbList schema.org JSON-LD
+- [x] Slice 28.3: LocalBusiness Schema Enhancement
+  - Created schema-generators.ts with comprehensive schema utilities
+  - generateLocalBusinessSchema: GroceryStore with amenities, rating, credentials
+  - generatePlaceSchema: Enhanced location with hasMap
+  - generateProductSchema: Product schema for offerings
+  - generateFarmPageSchemas: Combined schemas for shop pages
+  - generateWebPageSchema: WebPage schema for any page
+- [x] Slice 28.4: FAQPage Schema
+  - generateFAQPageSchema: Generic FAQ schema for rich snippets
+  - generateCountyFAQSchema: County-customized FAQs with name replacement
+  - generateFarmFAQSchema: Dynamic FAQs from farm data (hours, location, products, amenities)
+  - generateHowToSchema: HowTo schema for PYO/farm visit instructions
+  - Queue 28 COMPLETE
 
 ### Queue 29: Voice & Microcopy
-- [ ] Slice 29.1: Error Message Overhaul
-- [ ] Slice 29.2: Empty State Messages
-- [ ] Slice 29.3: Loading Messages
-- [ ] Slice 29.4: Success Messages
+- [x] Slice 29.1: Error Message Overhaul
+  - Created user-messages.ts with 25+ error codes and user-friendly messages
+  - getErrorMessage, getErrorFromStatus, getErrorFromException helpers
+  - fieldErrors for form validation (required, email, phone, postcode, etc.)
+  - formMessages for common form states (submitting, success, unsavedChanges)
+- [x] Slice 29.2: Empty State Messages
+  - Created empty-states.tsx with 18 pre-configured empty states
+  - Contexts: search, map, favorites, county, category, seasonal, admin
+  - Helper functions: getSearchEmptyState, getCountyEmptyState, getCategoryEmptyState
+  - Seasonal awareness with getSeasonalEmptyState (winter/spring/summer/autumn)
+- [x] Slice 29.3: Loading Messages
+  - Created loading-messages.ts with 20 loading contexts
+  - getLoadingMessage (random), getPrimaryLoadingMessage (consistent)
+  - progressMessages for multi-step processes (upload, submission, photo)
+  - skeletonLabels for accessible screen reader announcements
+  - getLongLoadMessage for elapsed time awareness
+  - buttonLoadingText for 20+ common button actions
+- [x] Slice 29.4: Success Messages
+  - Created success-messages.ts with 25 success contexts
+  - Form submissions, photos, favorites, admin actions, auth
+  - getSuccessMessage, getCustomSuccessMessage helpers
+  - getFarmSubmittedMessage, getPhotoUploadedMessage with dynamic content
+  - toastMessages for 15+ quick confirmations
+  - confirmations for delete, unsavedChanges, signOut dialogs
+  - Queue 29 COMPLETE
+
+### Queue 30: MapLibre GL Migration (Google Maps Replacement)
+**Goal:** Replace Google Maps with MapLibre GL + free tile provider for zero-cost, unlimited map loads.
+
+**Tile Provider Selection:**
+- Primary: Stadia Maps (free tier: 200K tiles/day, no CC required)
+- Fallback: MapTiler (free tier: 100K tiles/month)
+- Style: Stadia Alidade Smooth or custom style matching brand
+
+**Phase 1: Foundation (Slices 30.1-30.3)**
+- [x] Slice 30.1: Install MapLibre GL dependencies (maplibre-gl package, CSS import, MapLibreProvider context)
+- [x] Slice 30.2: Create base MapLibre component (MapLibreMap.tsx with theme switching, reduced motion, imperative API)
+- [x] Slice 30.3: Tile provider configuration (map-config.ts with Stadia/MapTiler/OSM fallback chain)
+
+**Phase 2: Marker System (Slices 30.4-30.6)**
+- [x] Slice 30.4: Custom marker component
+  - FarmMarker.tsx using MapLibre Marker API
+  - Category-based icons (reuse existing pin-icons.ts)
+  - Open/closed status indicator (green/red dot)
+  - Hover and selected states (scaling, glow, bounce animation)
+  - FarmMarkerLayer for managing collections
+  - Accessible keyboard navigation (role=button, tabindex, Enter/Space)
+  - CSS animations in globals.css with reduced-motion support
+- [x] Slice 30.5: Marker clustering with Supercluster
+  - Installed supercluster@8.0.1 and @types/supercluster@7.1.3
+  - Created useClusteredMarkers hook with Supercluster integration
+  - Created ClusterMarker.tsx with 5-tier visual hierarchy (reuses cluster-config.ts)
+  - Created ClusteredFarmMarkerLayer.tsx as unified component
+  - Added animateMapLibreZoomTo and expandClusterAnimated for smooth animations
+  - Click behavior: small clusters (<=8) trigger preview callback, larger clusters zoom to expand
+  - Updated components/map/index.ts with full exports
+- [x] Slice 30.6: Marker popups and interactions
+  - Created FarmPopup.tsx using MapLibre native Popup API
+  - Created FarmDetailSheet.tsx mobile bottom sheet using Drawer
+  - Created useMarkerKeyboardNav hook for arrow key navigation
+  - Full keyboard support: arrows, Home/End, Escape, number keys 1-9
+  - Accessible: ARIA labels, focus management, reduced motion support
+
+**Phase 3: Search & Geocoding (Slices 30.7-30.8)**
+- [x] Slice 30.7: Replace Google Geocoding
+  - Created lib/geocoding.ts abstraction layer
+  - Nominatim integration with 1 req/sec rate limiting
+  - Postcodes.io for fast UK postcode lookups
+  - geocodeAddress, reverseGeocode, searchPlaces functions
+  - autocompletePostcode for search suggestions
+  - In-memory cache with 1-hour TTL
+  - getApproximateLocation IP fallback
+- [x] Slice 30.8: Map search integration
+  - Replaced Google Places Autocomplete with free geocoding abstraction
+  - Added SearchSuggestion interface for typed suggestions
+  - Integrated searchPlaces, autocompletePostcode, isUKPostcode from lib/geocoding.ts
+  - Farm name matching (local, instant)
+  - Postcode autocomplete via Postcodes.io
+  - Place search via Nominatim (rate-limited)
+  - Keyboard navigation: ArrowUp/Down, Enter, Escape
+  - Added onLocationSelect callback for emitting coordinates
+  - Accessible: role=combobox, aria-expanded, aria-autocomplete
+  - Both full and compact versions updated with suggestions dropdown
+  - "Search as I move" toggle already implemented (SearchAreaControl.tsx)
+
+**Phase 4: Feature Parity (Slices 30.9-30.11)**
+- [x] Slice 30.9: User location tracking
+  - Created useMapLocation hook with full Geolocation API integration
+  - Real-time continuous tracking option (watchPosition)
+  - Location marker with pulsing animation (CSS, reduced-motion aware)
+  - Accuracy circle visualization (GeoJSON polygon layer)
+  - IP-based fallback via getApproximateLocation
+  - Created LocationControl component with:
+    - "Center on me" button with fly-to animation
+    - Tracking toggle button
+    - Accuracy indicator badge
+    - Permission denied help message
+    - Source indicator (GPS vs IP approximation)
+  - Exported from features/map/index.ts
+- [x] Slice 30.10: Map controls and UI
+  - Created MapControls.tsx with:
+    - Zoom in/out buttons (keyboard accessible: Enter/Space)
+    - Fullscreen toggle (Fullscreen API)
+    - Style switcher dropdown (streets/satellite/outdoors)
+    - Compass button (appears when rotated, resets north)
+    - WCAG AA focus rings, disabled states
+  - Created ScaleBar.tsx with:
+    - Dynamic scale based on zoom and latitude
+    - Metric, imperial, nautical unit support
+    - Clean rounded values (1, 2, 5, 10... pattern)
+    - Updates on zoom/move events
+  - Exported from features/map/index.ts
+- [x] Slice 30.11: Static map images
+  - Created lib/static-map.ts utility:
+    - Multi-provider support: Geoapify, Stadia Maps, MapTiler
+    - Auto-fallback to OSM tiles when no API key
+    - Configurable: zoom, width, height, style, marker
+    - Attribution helper for proper licensing
+  - Updated LocationCard.tsx:
+    - Optional showStaticMap prop (default: true)
+    - Conditional static map rendering via hasStaticMapProvider
+    - Image error fallback to placeholder
+    - Dynamic attribution display
+    - Graceful degradation without API keys
+
+**Phase 5: Migration & Cleanup (Slices 30.12-30.14)**
+- [x] Slice 30.12: MapShell.tsx migration
+  - Created MapLibreShell.tsx (580 lines) as drop-in replacement
+  - Supercluster integration via useClusteredMarkers hook
+  - 5-tier cluster styling (mega/large/medium/small/tiny)
+  - Category-based pin icons via getPinForFarm
+  - User location tracking via useMapLocation hook
+  - MapControls, LocationControl, ScaleBar integration
+  - Mobile MarkerActions + Desktop MapMarkerPopover
+  - Inline ClusterPreview without Google Maps types
+  - Stadia Maps tiles via getMapStyle (free tier)
+  - Exported from features/map/index.ts
+  - Original MapShell.tsx preserved for fallback
+- [x] Slice 30.13: Map provider configuration
+  - Created lib/map-provider.ts:
+    - getMapProvider(), useMapLibre(), getEffectiveProvider()
+    - WebGL capability detection
+    - NEXT_PUBLIC_MAP_PROVIDER env var support
+    - Migration checklist documentation
+  - Created MapShellAuto.tsx:
+    - Auto-selects MapLibre or Google Maps based on config
+    - Dynamic imports (only loads needed provider)
+    - forceProvider prop for overrides
+  - Google Maps deps preserved for gradual rollout
+  - Exported MapShellAuto from features/map/index.ts
+- [x] Slice 30.14: Testing and polish
+  - Created lib/accessibility.ts:
+    - Screen reader announcements (ANNOUNCEMENTS object)
+    - announce() for ARIA live regions
+    - prefersReducedMotion() and getAnimationDuration()
+    - KEYBOARD_SHORTCUTS mapping
+    - Focus trap for modals
+    - Skip link generator
+    - Accessible label generators for markers/clusters
+  - Created TESTING.md checklist:
+    - Browser compatibility matrix
+    - Functional test cases (40+ items)
+    - Performance benchmarks
+    - Accessibility requirements
+    - Mobile-specific tests
+    - Integration tests
+    - Sign-off template
+  - Exported accessibility utilities from index.ts
+
+**Queue 30 COMPLETE - MapLibre GL Migration**
+
+### Queue 31: God-Tier Map Page Implementation
+- [x] Slice 45: Fix Tailwind color config (removed hsl() wrapper, CSS vars are hex)
+- [x] Slice 46: Add Open/Closed status coloring to markers (isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS)
+- [x] Slice 47: Add floating filter pills overlay (FilterPills.tsx - Open Now, Organic, PYO, Cafe toggles)
+- [x] Slice 47b: Implement bidirectional hover sync (list hover highlights marker, marker hover highlights list)
+- [x] Slice 48: Fix dark mode contrast issues sitewide (hsl() wrapper fix, gray/zinc/slate text overrides)
+
+**Technical Notes:**
+- MapLibre GL is WebGL-based, requires browser support check
+- Supercluster runs in Web Worker for performance
+- Consider react-map-gl wrapper for easier React integration
+- Stadia Maps requires attribution: "© Stadia Maps © OpenMapTiles © OpenStreetMap"
 
 ### Queue 30: MapLibre GL Migration (Google Maps Replacement)
 **Goal:** Replace Google Maps with MapLibre GL + free tile provider for zero-cost, unlimited map loads.
