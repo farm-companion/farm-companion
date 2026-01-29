@@ -309,13 +309,16 @@ export default function MapLibreShell({
   // Create/update markers when clusters change
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !clusters.length) return
+    if (!map) return
 
-    // Clear old markers
+    // Always clear old markers first - even when clusters is empty
     markersRef.current.forEach(marker => marker.remove())
     markersRef.current.clear()
     clusterMarkersRef.current.forEach(marker => marker.remove())
     clusterMarkersRef.current.clear()
+
+    // Exit if no clusters to render
+    if (!clusters.length) return
 
     clusters.forEach((item: ClusterOrPoint) => {
       // Validate coordinates before creating marker
