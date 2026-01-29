@@ -274,6 +274,8 @@ export const STATUS_COLORS = {
 
 /**
  * Generate an SVG marker with open/closed status indicator
+ * NOTE: Shadow is NOT included in SVG to prevent bounds mismatch on touch.
+ * Apply shadow via CSS: filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3))
  */
 export function generateStatusMarkerSVG(
   config: CategoryPinConfig,
@@ -295,28 +297,8 @@ export function generateStatusMarkerSVG(
     ? desaturateColor(config.color, 0.5)
     : config.color
 
-  return `
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="pin-gradient-${isOpen}" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" style="stop-color:${mainColor};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:${adjustColor(mainColor, -30)};stop-opacity:1" />
-        </linearGradient>
-        <filter id="pin-shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
-        </filter>
-      </defs>
-      <g filter="url(#pin-shadow)">
-        <!-- Status ring -->
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 1}" fill="none" stroke="${ringColor}" stroke-width="3"/>
-        <!-- Main pin -->
-        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 4}" fill="url(#pin-gradient-${isOpen})" stroke="white" stroke-width="2"/>
-        <g transform="translate(${centerOffset}, ${centerOffset}) scale(${innerSize / 16})" fill="white">
-          <path d="${config.iconPath}"/>
-        </g>
-      </g>
-    </svg>
-  `.trim()
+  // SVG without filter - shadow applied via CSS to prevent touch bounds mismatch
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pg${isOpen}" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="${mainColor}"/><stop offset="100%" stop-color="${adjustColor(mainColor, -30)}"/></linearGradient></defs><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 1}" fill="none" stroke="${ringColor}" stroke-width="3"/><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 4}" fill="url(#pg${isOpen})" stroke="white" stroke-width="2"/><g transform="translate(${centerOffset},${centerOffset}) scale(${innerSize / 16})" fill="white"><path d="${config.iconPath}"/></g></svg>`
 }
 
 /**

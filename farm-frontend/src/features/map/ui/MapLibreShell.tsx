@@ -303,24 +303,19 @@ export default function MapLibreShell({
         el.className = 'maplibre-cluster-marker'
 
         const { size, color, textColor } = getClusterStyle(count)
-        el.style.cssText = `
-          width: ${size}px;
-          height: ${size}px;
-          background: ${color};
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          color: ${textColor};
-          font-weight: 600;
-          font-size: ${Math.max(12, size / 3)}px;
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          cursor: pointer;
-          pointer-events: auto;
-          transform-origin: center center;
-          transition: transform 0.15s ease-out;
-        `
+        el.style.width = `${size}px`
+        el.style.height = `${size}px`
+        el.style.background = color
+        el.style.borderRadius = '50%'
+        el.style.display = 'flex'
+        el.style.alignItems = 'center'
+        el.style.justifyContent = 'center'
+        el.style.color = textColor
+        el.style.fontWeight = '600'
+        el.style.fontSize = `${Math.max(12, size / 3)}px`
+        el.style.border = '3px solid white'
+        el.style.boxShadow = '0 2px 8px rgba(0,0,0,0.3)'
+        el.style.cursor = 'pointer'
         el.textContent = count > 99 ? '99+' : String(count)
 
         el.addEventListener('mouseenter', () => {
@@ -331,12 +326,19 @@ export default function MapLibreShell({
         })
         el.addEventListener('click', (e) => {
           e.stopPropagation()
+          e.preventDefault()
           handleClusterClick(clusterId, count, lng, lat)
         })
+        el.addEventListener('touchend', (e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          handleClusterClick(clusterId, count, lng, lat)
+        }, { passive: false })
 
         const marker = new maplibregl.Marker({
           element: el,
-          anchor: 'center'  // Clusters are circular, anchor at center
+          anchor: 'center',
+          subpixelPositioning: true
         })
           .setLngLat([lng, lat])
           .addTo(map)
@@ -351,47 +353,54 @@ export default function MapLibreShell({
         const markerSize = 36
         const svg = generateStatusMarkerSVG(pinConfig, isOpen, markerSize)
 
+        // Create marker element with precise sizing
         const el = document.createElement('div')
-        el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
-        // Critical: Set all positioning properties inline to prevent touch jump
-        el.style.cssText = `
-          width: ${markerSize}px;
-          height: ${markerSize}px;
-          cursor: pointer;
-          pointer-events: auto;
-          transform-origin: center center;
-          transition: transform 0.15s ease-out, filter 0.15s ease-out;
-        `
-        el.innerHTML = svg
+        el.className = 'maplibre-farm-marker'
         el.dataset.farmId = farm.id
+        el.dataset.open = isOpen === true ? 'true' : isOpen === false ? 'false' : 'unknown'
+        el.style.width = `${markerSize}px`
+        el.style.height = `${markerSize}px`
+        el.style.filter = 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'  // Shadow via CSS, not SVG
+        el.innerHTML = svg
 
+        // Event handlers
         el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.2)'
-          el.style.filter = 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))'
+          el.style.transform = 'scale(1.15)'
+          el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
           onFarmHover?.(farm.id)
         })
         el.addEventListener('mouseleave', () => {
-          const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
-          el.style.transform = isHighlighted ? 'scale(1.2)' : ''
-          el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : ''
+          const highlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
+          el.style.transform = highlighted ? 'scale(1.15)' : ''
+          el.style.filter = highlighted
+            ? 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
+            : 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'
           onFarmHover?.(null)
         })
         el.addEventListener('click', (e) => {
-          e.stopPropagation()  // Prevent event bubbling
+          e.stopPropagation()
+          e.preventDefault()
           handleMarkerClick(farm)
         })
+        // Touch-specific handler
+        el.addEventListener('touchend', (e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          handleMarkerClick(farm)
+        }, { passive: false })
 
-        // Highlight selected or hovered marker
+        // Apply highlight state
         const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
         if (isHighlighted) {
-          el.style.transform = 'scale(1.2)'
-          el.style.filter = 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))'
+          el.style.transform = 'scale(1.15)'
+          el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
           el.style.zIndex = '1000'
         }
 
         const marker = new maplibregl.Marker({
           element: el,
-          anchor: 'center'  // Circular markers anchor at center
+          anchor: 'center',
+          subpixelPositioning: true  // Prevents marker jump on zoom/move
         })
           .setLngLat([lng, lat])
           .addTo(map)
