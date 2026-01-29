@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic'
 import { Search, Filter } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
 import { MapSearch, LocationTracker, SearchAreaControl, FilterOverlayPanel } from '@/features/map'
+import FilterPills, { useFilterPills, applyPillFilters, type FilterPillsState } from '@/features/map/ui/FilterPills'
+import { isFarmOpen } from '@/features/map/lib/pin-icons'
 import { MapAccessibilityFallback, MapStateDescription } from '@/components/accessibility'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
@@ -77,6 +79,10 @@ export default function MapPage() {
   // Map instance is provider-agnostic (typed as unknown, cast as needed)
   const [mapInstance, setMapInstance] = useState<unknown>(null)
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)
+  const [hoveredFarmId, setHoveredFarmId] = useState<string | null>(null)
+
+  // Filter pills state for quick toggles
+  const { filters: pillFilters, setFilters: setPillFilters } = useFilterPills()
 
   const locationWatchIdRef = useRef<number | null>(null)
   
@@ -210,7 +216,7 @@ export default function MapPage() {
       )
     }
 
-    // 3) filters
+    // 3) filters (panel filters)
     if (filters.county) result = result.filter(f => f.location.county === filters.county)
     if (filters.category) result = result.filter(f => f.offerings?.some(o => o === filters.category))
 
@@ -230,6 +236,9 @@ export default function MapPage() {
       })
     }
 
+    // 3.5) Quick filter pills (floating toggles)
+    result = applyPillFilters(result, pillFilters, isFarmOpen)
+
     // 4) map bounds - use activeBounds (controlled by searchAsIMove toggle)
     if (activeBounds) {
       result = result.filter(f => {
@@ -243,7 +252,7 @@ export default function MapPage() {
     if (userLocation) result = result.sort((a,b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
 
     return result
-  }, [farms, userLocation, debouncedQuery, filters, activeBounds])
+  }, [farms, userLocation, debouncedQuery, filters, pillFilters, activeBounds])
 
   // Update filtered farms when the computed result changes
   useEffect(() => {
@@ -453,29 +462,14 @@ export default function MapPage() {
                 )}
               </div>
               
-              {/* Ultra-compact quick filters - minimal space */}
-              {!searchQuery && (
-                <div className="mt-1.5 flex items-center gap-1 overflow-x-auto">
-                  <button 
-                    onClick={() => setSearchQuery('organic')}
-                    className="px-1.5 py-0.5 bg-serum/10 text-serum text-small font-medium rounded-md whitespace-nowrap border border-serum/20 hover:bg-serum/20 transition-colors"
-                  >
-                    Organic
-                  </button>
-                  <button 
-                    onClick={() => setSearchQuery('eggs')}
-                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-small font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Eggs
-                  </button>
-                  <button 
-                    onClick={() => setSearchQuery('vegetables')}
-                    className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 text-small font-medium rounded-md whitespace-nowrap border border-gray-200 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
-                  >
-                    Vegetables
-                  </button>
-                </div>
-              )}
+              {/* Filter Pills - Quick Toggles */}
+              <div className="mt-1.5 overflow-x-auto scrollbar-hide">
+                <FilterPills
+                  filters={pillFilters}
+                  onFilterChange={setPillFilters}
+                  className="flex-nowrap"
+                />
+              </div>
             </div>
           </div>
 
@@ -484,7 +478,9 @@ export default function MapPage() {
             <MapShellWithNoSSR
               farms={filteredFarms}
               selectedFarmId={selectedFarmId}
+              hoveredFarmId={hoveredFarmId}
               onFarmSelect={handleFarmSelect}
+              onFarmHover={setHoveredFarmId}
               onBoundsChange={handleBoundsChange}
               onZoomChange={handleZoomChange}
               userLocation={userLocation}
@@ -492,6 +488,15 @@ export default function MapPage() {
               isDesktop={isDesktop}
               onMapReady={setMapInstance}
               className="w-full h-full"
+            />
+          </div>
+
+          {/* Filter Pills - Desktop Floating */}
+          <div className="hidden md:block absolute top-4 left-4 z-20">
+            <FilterPills
+              filters={pillFilters}
+              onFilterChange={setPillFilters}
+              className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg border border-zinc-200/50 dark:border-zinc-700/50"
             />
           </div>
 
@@ -591,7 +596,9 @@ export default function MapPage() {
                 <FarmList
                   farms={filteredFarms}
                   selectedFarmId={selectedFarmId}
+                  hoveredFarmId={hoveredFarmId}
                   onFarmSelect={handleFarmSelect}
+                  onFarmHover={setHoveredFarmId}
                   userLocation={userLocation}
                   formatDistance={formatDistance}
                   className="h-full"
@@ -610,7 +617,9 @@ export default function MapPage() {
             <FarmList
               farms={filteredFarms}
               selectedFarmId={selectedFarmId}
+              hoveredFarmId={hoveredFarmId}
               onFarmSelect={handleFarmSelect}
+              onFarmHover={setHoveredFarmId}
               userLocation={userLocation}
               formatDistance={formatDistance}
               className="h-full"

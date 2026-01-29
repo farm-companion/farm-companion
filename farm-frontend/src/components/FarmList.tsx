@@ -10,7 +10,9 @@ import QuickActions from './QuickActions'
 interface FarmListProps {
   farms: FarmShop[]
   selectedFarmId?: string | null
+  hoveredFarmId?: string | null
   onFarmSelect: (farmId: string) => void
+  onFarmHover?: (farmId: string | null) => void
   className?: string
   userLocation?: {
     latitude: number
@@ -24,7 +26,9 @@ interface FarmListProps {
 export default function FarmList({
   farms,
   selectedFarmId,
+  hoveredFarmId,
   onFarmSelect,
+  onFarmHover,
   className = '',
   formatDistance
 }: FarmListProps) {
@@ -37,6 +41,7 @@ export default function FarmList({
 
   const FarmCard = useCallback(({ farm }: { farm: FarmShop; index: number }) => {
     const isSelected = selectedFarmId === farm.id
+    const isHovered = hoveredFarmId === farm.id
     const isExpanded = expandedFarmId === farm.id
     const hasContact = farm.contact?.phone || farm.contact?.website
     const hasHours = farm.hours && farm.hours.length > 0
@@ -45,10 +50,17 @@ export default function FarmList({
 
     return (
       <div
+        data-farm-id={farm.id}
         className={`p-4 border-b border-gray-100 cursor-pointer transition-all duration-200 ${
-          isSelected ? 'bg-serum/5 border-l-4 border-l-serum' : 'hover:bg-gray-50'
+          isSelected
+            ? 'bg-serum/5 border-l-4 border-l-serum'
+            : isHovered
+              ? 'bg-cyan-50 dark:bg-cyan-900/20 border-l-4 border-l-cyan-400'
+              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
         }`}
         onClick={() => handleFarmClick(farm.id)}
+        onMouseEnter={() => onFarmHover?.(farm.id)}
+        onMouseLeave={() => onFarmHover?.(null)}
         role="button"
         tabIndex={0}
         aria-label={`Select ${farm.name}`}
@@ -195,7 +207,7 @@ export default function FarmList({
         </div>
       </div>
     )
-  }, [selectedFarmId, expandedFarmId, handleFarmClick, formatDistance])
+  }, [selectedFarmId, hoveredFarmId, expandedFarmId, handleFarmClick, onFarmHover, formatDistance])
 
   const EmptyState = useCallback(() => (
     <div className="flex flex-col items-center justify-center py-12 text-center">

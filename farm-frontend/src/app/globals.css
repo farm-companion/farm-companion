@@ -2,6 +2,55 @@
 @import '../styles/harvest-theme.css';
 @import 'maplibre-gl/dist/maplibre-gl.css';
 
+/* ============================================================================
+   MAPLIBRE GL EXPLICIT STYLES - ENSURE VISIBILITY
+   ============================================================================ */
+.maplibregl-map {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.maplibregl-canvas-container,
+.maplibregl-canvas {
+  position: absolute !important;
+  top: 0;
+  left: 0;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Ensure map container has proper dimensions */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+}
+
+/* MapLibre marker styles - prevent position shift on interaction */
+.maplibre-farm-marker {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center center;
+  transition: transform 0.15s ease-out, filter 0.15s ease-out;
+  will-change: transform;
+}
+
+.maplibre-farm-marker svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.maplibre-cluster-marker {
+  transform-origin: center center;
+  will-change: transform;
+}
+
 /* Tailwind CSS v4 import */
 @import "tailwindcss";
 
@@ -745,6 +794,76 @@ body {
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
 }
 
+/* ==========================================================================
+   DARK MODE TEXT CONTRAST FIX
+   Override Tailwind's gray text colors for proper dark mode contrast
+   These ensure text remains readable on dark backgrounds
+   ========================================================================== */
+
+/* Gray text - Light shades (need to stay light in dark mode) */
+.dark .text-gray-100 { color: #F3F4F6; }
+.dark .text-gray-200 { color: #E5E7EB; }
+.dark .text-gray-300 { color: #D1D5DB; }
+
+/* Gray text - Medium shades (main problem area - bump up for contrast) */
+.dark .text-gray-400 { color: #D1D5DB; }  /* Was #9CA3AF, now lighter */
+.dark .text-gray-500 { color: #E5E7EB; }  /* Was #6B7280, now much lighter */
+.dark .text-gray-600 { color: #E5E7EB; }  /* Was #4B5563, now much lighter */
+
+/* Gray text - Dark shades (invert for dark mode) */
+.dark .text-gray-700 { color: #F3F4F6; }  /* Was #374151, now light */
+.dark .text-gray-800 { color: #F9FAFB; }  /* Was #1F2937, now very light */
+.dark .text-gray-900 { color: #FFFFFF; }  /* Was #111827, now white */
+
+/* Zinc text (same treatment) */
+.dark .text-zinc-400 { color: #D4D4D8; }
+.dark .text-zinc-500 { color: #E4E4E7; }
+.dark .text-zinc-600 { color: #E4E4E7; }
+.dark .text-zinc-700 { color: #F4F4F5; }
+.dark .text-zinc-800 { color: #FAFAFA; }
+.dark .text-zinc-900 { color: #FFFFFF; }
+
+/* Slate text (same treatment) */
+.dark .text-slate-400 { color: #CBD5E1; }
+.dark .text-slate-500 { color: #E2E8F0; }
+.dark .text-slate-600 { color: #E2E8F0; }
+.dark .text-slate-700 { color: #F1F5F9; }
+.dark .text-slate-800 { color: #F8FAFC; }
+.dark .text-slate-900 { color: #FFFFFF; }
+
+/* Black text - make it white in dark mode */
+.dark .text-black { color: #FFFFFF; }
+
+/* ==========================================================================
+   DARK MODE BACKGROUND CONTRAST FIX
+   Ensure background colors work properly in dark mode
+   ========================================================================== */
+
+/* Gray backgrounds - darken for dark mode */
+.dark .bg-gray-50 { background-color: #18181B; }
+.dark .bg-gray-100 { background-color: #1F1F23; }
+.dark .bg-gray-200 { background-color: #27272A; }
+
+/* Zinc backgrounds */
+.dark .bg-zinc-50 { background-color: #18181B; }
+.dark .bg-zinc-100 { background-color: #1F1F23; }
+.dark .bg-zinc-200 { background-color: #27272A; }
+
+/* White backgrounds - darken for dark mode */
+.dark .bg-white { background-color: #121214; }
+
+/* ==========================================================================
+   DARK MODE BORDER CONTRAST FIX
+   ========================================================================== */
+
+.dark .border-gray-100 { border-color: rgba(255, 255, 255, 0.06); }
+.dark .border-gray-200 { border-color: rgba(255, 255, 255, 0.08); }
+.dark .border-gray-300 { border-color: rgba(255, 255, 255, 0.12); }
+
+.dark .border-zinc-100 { border-color: rgba(255, 255, 255, 0.06); }
+.dark .border-zinc-200 { border-color: rgba(255, 255, 255, 0.08); }
+.dark .border-zinc-300 { border-color: rgba(255, 255, 255, 0.12); }
+
 /* High contrast mode */
 @media (prefers-contrast: high) {
   :root {
@@ -848,25 +967,81 @@ body {
   box-shadow: 0 0 0 2px var(--brand-primary);
 }
 
-/* Text colors */
+/* ==========================================================================
+   SEMANTIC COLOR UTILITIES - Use these instead of raw Tailwind colors!
+   These automatically adapt to light/dark mode with proper contrast.
+   ========================================================================== */
+
+/* Text colors - Primary hierarchy */
 .text-text-heading { color: var(--text-heading); }
 .text-text-body { color: var(--text-body); }
 .text-text-muted { color: var(--text-muted); }
+.text-text-subtle { color: var(--text-subtle); }
+
+/* Text colors - Harvest theme semantic */
+.text-foreground { color: var(--foreground); }
+.text-foreground-secondary { color: var(--foreground-secondary); }
+.text-foreground-muted { color: var(--foreground-muted); }
+.text-foreground-subtle { color: var(--foreground-subtle); }
+
+/* Text colors - Brand */
 .text-brand-primary { color: var(--brand-primary); }
 .text-brand-danger { color: var(--brand-danger); }
 .text-serum { color: var(--serum); }
 .text-solar { color: var(--solar); }
 .text-obsidian { color: var(--obsidian); }
+.text-primary { color: var(--primary); }
+.text-secondary { color: var(--secondary); }
+.text-accent { color: var(--accent); }
 
-/* Background colors */
+/* Background colors - Surface hierarchy */
+.bg-background { background-color: var(--background); }
+.bg-background-secondary { background-color: var(--background-secondary); }
 .bg-background-canvas { background-color: var(--background-canvas); }
 .bg-background-surface { background-color: var(--background-surface); }
+.bg-background-elevated { background-color: var(--background-elevated); }
+.bg-background-hover { background-color: var(--background-hover); }
+
+/* Background colors - Semantic */
+.bg-card { background-color: var(--card); }
+.bg-card-hover { background-color: var(--card-hover); }
+.bg-popover { background-color: var(--popover); }
+.bg-muted { background-color: var(--muted); }
+
+/* Background colors - Brand */
 .bg-brand-primary { background-color: var(--brand-primary); }
 .bg-serum { background-color: var(--serum); }
 .bg-solar { background-color: var(--solar); }
+.bg-primary { background-color: var(--primary); }
+.bg-secondary { background-color: var(--secondary); }
 
-/* Border colors */
+/* Border colors - Semantic */
+.border-border { border-color: var(--border); }
 .border-border-default { border-color: var(--border-default); }
+.border-border-subtle { border-color: var(--border-subtle); }
+.border-border-strong { border-color: var(--border-strong); }
+.border-input { border-color: var(--input); }
+
+/* Ring/Focus colors */
+.ring-ring { --tw-ring-color: var(--ring); }
+
+/* Hover utilities that work in dark mode */
+.hover\:bg-hover:hover { background-color: var(--background-hover); }
+.hover\:bg-card-hover:hover { background-color: var(--card-hover); }
+
+/* Dark mode aware interactive states */
+.interactive-surface {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+.interactive-surface:hover {
+  background-color: var(--card-hover);
+  border-color: var(--border-strong);
+}
+.dark .interactive-surface:hover {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
 
 /* Focus styles for accessibility */
 .focus-visible {

@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FarmShop } from '@/types/farm'
 import { useClusteredMarkers, type ClusterOrPoint, type FarmCluster } from '../hooks/useClusteredMarkers'
 import { useMapLocation } from '../hooks/useMapLocation'
-import { getPinForFarm, generateCategoryMarkerSVG } from '../lib/pin-icons'
+import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } from '../lib/pin-icons'
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
 import MarkerActions from './MarkerActions'
@@ -32,7 +32,9 @@ interface UserLocation {
 interface MapLibreShellProps {
   farms: FarmShop[]
   selectedFarmId?: string | null
+  hoveredFarmId?: string | null
   onFarmSelect?: (farmId: string) => void
+  onFarmHover?: (farmId: string | null) => void
   onMapLoad?: (map: maplibregl.Map) => void
   onBoundsChange?: (bounds: { north: number; south: number; east: number; west: number }) => void
   onZoomChange?: (zoom: number) => void
@@ -83,7 +85,9 @@ interface ClusterData {
 export default function MapLibreShell({
   farms,
   selectedFarmId,
+  hoveredFarmId,
   onFarmSelect,
+  onFarmHover,
   onMapLoad,
   onBoundsChange,
   onZoomChange,
@@ -147,9 +151,12 @@ export default function MapLibreShell({
   useEffect(() => {
     if (!mapContainerRef.current || mapRef.current) return
 
+    const mapStyle = getMapStyle(false)
+    console.log('[MapLibreShell] Using map style:', typeof mapStyle === 'string' ? mapStyle : 'OSM Raster Object')
+
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
-      style: getMapStyle(false),
+      style: mapStyle,
       center: [center.lng, center.lat],
       zoom,
       minZoom: 3,
@@ -168,10 +175,11 @@ export default function MapLibreShell({
       onMapLoad?.(map)
       onMapReady?.(map)
 
-      // Fit to UK bounds on initial load
+      // Fit to UK bounds on initial load - account for sidebar on desktop (384px)
+      const rightPadding = window.innerWidth >= 768 ? 400 : 20
       map.fitBounds(
         [[UK_BOUNDS.west, UK_BOUNDS.south], [UK_BOUNDS.east, UK_BOUNDS.north]],
-        { padding: { top: 80, right: 20, bottom: 20, left: 20 }, duration: 0 }
+        { padding: { top: 100, right: rightPadding, bottom: 100, left: 20 }, duration: 0 }
       )
     })
 
@@ -192,8 +200,21 @@ export default function MapLibreShell({
     })
 
     map.on('error', (e) => {
-      console.warn('[MapLibreShell] Map error:', e)
-      setError('Failed to load map tiles')
+      console.error('[MapLibreShell] Map error:', e.error?.message || e)
+      // Only set error state for critical failures, not tile load failures
+      if (e.error?.message?.includes('style') || e.error?.message?.includes('Source')) {
+        setError('Failed to load map style')
+      }
+    })
+
+    // Debug: log when style is loaded
+    map.on('styledata', () => {
+      console.log('[MapLibreShell] Style loaded successfully')
+    })
+
+    // Debug: log tile errors
+    map.on('sourcedataerror', (e) => {
+      console.warn('[MapLibreShell] Source error:', e.sourceId, e.error)
     })
 
     return () => {
@@ -308,7 +329,10 @@ export default function MapLibreShell({
         })
         el.addEventListener('click', () => handleClusterClick(clusterId, count, lng, lat))
 
-        const marker = new maplibregl.Marker({ element: el })
+        const marker = new maplibregl.Marker({
+          element: el,
+          anchor: 'center'  // Clusters are circular, anchor at center
+        })
           .setLngLat([lng, lat])
           .addTo(map)
 
@@ -318,36 +342,50 @@ export default function MapLibreShell({
         const farm = item.properties.farm
         const [lng, lat] = item.geometry.coordinates
         const pinConfig = getPinForFarm(farm.offerings)
-        const svg = generateCategoryMarkerSVG(pinConfig, 32)
+        const isOpen = farm.hours ? isFarmOpen(farm.hours) : null
+        const markerSize = 36
+        const svg = generateStatusMarkerSVG(pinConfig, isOpen, markerSize)
 
         const el = document.createElement('div')
-        el.className = 'maplibre-farm-marker'
+        el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
+        el.style.width = `${markerSize}px`
+        el.style.height = `${markerSize}px`
         el.innerHTML = svg
         el.style.cursor = 'pointer'
-        el.style.transition = 'transform 0.2s'
+        el.dataset.farmId = farm.id
 
         el.addEventListener('mouseenter', () => {
           el.style.transform = 'scale(1.2)'
+          el.style.filter = 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))'
+          onFarmHover?.(farm.id)
         })
         el.addEventListener('mouseleave', () => {
-          el.style.transform = selectedFarmId === farm.id ? 'scale(1.2)' : 'scale(1)'
+          const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
+          el.style.transform = isHighlighted ? 'scale(1.2)' : 'scale(1)'
+          el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : 'none'
+          onFarmHover?.(null)
         })
         el.addEventListener('click', () => handleMarkerClick(farm))
 
-        // Highlight selected marker
-        if (selectedFarmId === farm.id) {
+        // Highlight selected or hovered marker
+        const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
+        if (isHighlighted) {
           el.style.transform = 'scale(1.2)'
+          el.style.filter = 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))'
           el.style.zIndex = '1000'
         }
 
-        const marker = new maplibregl.Marker({ element: el })
+        const marker = new maplibregl.Marker({
+          element: el,
+          anchor: 'center'  // Circular markers anchor at center
+        })
           .setLngLat([lng, lat])
           .addTo(map)
 
         markersRef.current.set(farm.id, marker)
       }
     })
-  }, [clusters, selectedFarmId, isCluster, handleClusterClick, handleMarkerClick])
+  }, [clusters, selectedFarmId, hoveredFarmId, isCluster, handleClusterClick, handleMarkerClick, onFarmHover])
 
   // Pan to selected farm
   useEffect(() => {
@@ -471,7 +509,11 @@ export default function MapLibreShell({
         style={{
           touchAction: 'pan-x pan-y pinch-zoom',
           WebkitUserSelect: 'none',
-          userSelect: 'none'
+          userSelect: 'none',
+          width: '100%',
+          height: '100%',
+          minHeight: '300px',
+          background: '#e5e7eb' // Light gray fallback while loading
         }}
       />
 
