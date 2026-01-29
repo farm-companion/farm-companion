@@ -29,28 +29,29 @@ module.exports = {
       colors: {
         // =======================================================================
         // SEMANTIC COLORS (USE THESE IN COMPONENTS)
+        // CSS variables are hex colors, so we reference them directly
         // =======================================================================
-        background: 'hsl(var(--background))',
-        'background-secondary': 'hsl(var(--background-secondary))',
-        foreground: 'hsl(var(--foreground))',
-        'foreground-secondary': 'hsl(var(--foreground-secondary))',
-        'foreground-muted': 'hsl(var(--foreground-muted))',
+        background: 'var(--background)',
+        'background-secondary': 'var(--background-secondary)',
+        foreground: 'var(--foreground)',
+        'foreground-secondary': 'var(--foreground-secondary)',
+        'foreground-muted': 'var(--foreground-muted)',
 
         card: {
-          DEFAULT: 'hsl(var(--card))',
-          hover: 'hsl(var(--card-hover))',
-          foreground: 'hsl(var(--foreground))',
+          DEFAULT: 'var(--card)',
+          hover: 'var(--card-hover)',
+          foreground: 'var(--foreground)',
         },
 
         popover: {
-          DEFAULT: 'hsl(var(--popover))',
-          foreground: 'hsl(var(--foreground))',
+          DEFAULT: 'var(--popover)',
+          foreground: 'var(--foreground)',
         },
 
         primary: {
-          DEFAULT: 'hsl(var(--primary))',
-          hover: 'hsl(var(--primary-hover))',
-          foreground: 'hsl(var(--primary-foreground))',
+          DEFAULT: 'var(--primary)',
+          hover: 'var(--primary-hover)',
+          foreground: 'var(--primary-foreground)',
           // Full scale for gradients
           50: '#ECFEFF',
           100: '#CFFAFE',
@@ -66,9 +67,9 @@ module.exports = {
         },
 
         secondary: {
-          DEFAULT: 'hsl(var(--secondary))',
-          hover: 'hsl(var(--secondary-hover))',
-          foreground: 'hsl(var(--secondary-foreground))',
+          DEFAULT: 'var(--secondary)',
+          hover: 'var(--secondary-hover)',
+          foreground: 'var(--secondary-foreground)',
           // Full scale
           50: '#f7fee7',
           100: '#ecfccb',
@@ -84,42 +85,42 @@ module.exports = {
         },
 
         muted: {
-          DEFAULT: 'hsl(var(--muted))',
-          foreground: 'hsl(var(--foreground-muted))',
+          DEFAULT: 'var(--muted)',
+          foreground: 'var(--foreground-muted)',
         },
 
         accent: {
-          DEFAULT: 'hsl(var(--accent))',
-          foreground: 'hsl(var(--accent-foreground))',
+          DEFAULT: 'var(--accent)',
+          foreground: 'var(--accent-foreground)',
         },
 
         destructive: {
-          DEFAULT: 'hsl(var(--destructive))',
-          foreground: 'hsl(var(--destructive-foreground))',
+          DEFAULT: 'var(--destructive)',
+          foreground: 'var(--destructive-foreground)',
         },
 
-        border: 'hsl(var(--border))',
-        'border-subtle': 'hsl(var(--border-subtle))',
-        'border-strong': 'hsl(var(--border-strong))',
-        input: 'hsl(var(--input))',
-        ring: 'hsl(var(--ring))',
+        border: 'var(--border)',
+        'border-subtle': 'var(--border-subtle)',
+        'border-strong': 'var(--border-strong)',
+        input: 'var(--input)',
+        ring: 'var(--ring)',
 
         // Feedback states
         success: {
-          DEFAULT: 'hsl(var(--success))',
-          foreground: 'hsl(var(--success-foreground))',
+          DEFAULT: 'var(--success)',
+          foreground: 'var(--success-foreground)',
         },
         warning: {
-          DEFAULT: 'hsl(var(--warning))',
-          foreground: 'hsl(var(--warning-foreground))',
+          DEFAULT: 'var(--warning)',
+          foreground: 'var(--warning-foreground)',
         },
         error: {
-          DEFAULT: 'hsl(var(--error))',
-          foreground: 'hsl(var(--error-foreground))',
+          DEFAULT: 'var(--error)',
+          foreground: 'var(--error-foreground)',
         },
         info: {
-          DEFAULT: 'hsl(var(--info))',
-          foreground: 'hsl(var(--info-foreground))',
+          DEFAULT: 'var(--info)',
+          foreground: 'var(--info-foreground)',
         },
 
         // =======================================================================
