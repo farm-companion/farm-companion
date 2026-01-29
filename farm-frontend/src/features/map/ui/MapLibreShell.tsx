@@ -389,7 +389,8 @@ export default function MapLibreShell({
           onFarmHover?.(farm.id)
         })
         el.addEventListener('mouseleave', () => {
-          const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
+          // Check current highlight state via data attribute
+          const isHighlighted = el.dataset.highlighted === 'true'
           el.style.transform = isHighlighted ? 'scale(1.15)' : ''
           el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : ''
           onFarmHover?.(null)
@@ -409,14 +410,6 @@ export default function MapLibreShell({
           handleMarkerClick(farm)
         }, { passive: false })
 
-        // Apply highlight state
-        const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
-        if (isHighlighted) {
-          el.style.transform = 'scale(1.15)'
-          el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
-          el.style.zIndex = '1000'
-        }
-
         const marker = new maplibregl.Marker({
           element: el,
           anchor: 'center',
@@ -428,7 +421,28 @@ export default function MapLibreShell({
         markersRef.current.set(farm.id, marker)
       }
     })
-  }, [clusters, selectedFarmId, hoveredFarmId, isCluster, handleClusterClick, handleMarkerClick, onFarmHover])
+  }, [clusters, isCluster, handleClusterClick, handleMarkerClick, onFarmHover])
+
+  // Update marker highlight styles WITHOUT recreating markers
+  useEffect(() => {
+    markersRef.current.forEach((marker, farmId) => {
+      const el = marker.getElement() as HTMLElement
+      if (!el || !el.classList.contains('maplibre-farm-marker')) return
+
+      const isHighlighted = selectedFarmId === farmId || hoveredFarmId === farmId
+      el.dataset.highlighted = isHighlighted ? 'true' : 'false'
+
+      if (isHighlighted) {
+        el.style.transform = 'scale(1.15)'
+        el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
+        el.style.zIndex = '1000'
+      } else {
+        el.style.transform = ''
+        el.style.filter = ''
+        el.style.zIndex = ''
+      }
+    })
+  }, [selectedFarmId, hoveredFarmId])
 
   // Pan to selected farm
   useEffect(() => {
