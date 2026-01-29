@@ -291,11 +291,17 @@ export default function MapLibreShell({
     clusterMarkersRef.current.clear()
 
     clusters.forEach((item: ClusterOrPoint) => {
+      // Validate coordinates before creating marker
+      const [lng, lat] = item.geometry.coordinates
+      if (!Number.isFinite(lng) || !Number.isFinite(lat) || lng === 0 && lat === 0) {
+        console.warn('[MapLibreShell] Invalid coordinates, skipping marker:', { lng, lat, item })
+        return
+      }
+
       if (isCluster(item)) {
         // It's a cluster
         const clusterId = item.properties.cluster_id
         const count = item.properties.point_count
-        const [lng, lat] = item.geometry.coordinates
 
         const el = document.createElement('div')
         el.className = 'maplibre-cluster-marker'
@@ -354,7 +360,7 @@ export default function MapLibreShell({
       } else {
         // It's a single farm point
         const farm = item.properties.farm
-        const [lng, lat] = item.geometry.coordinates
+        // lng, lat already extracted at top of forEach
         const pinConfig = getPinForFarm(farm.offerings)
         const isOpen = farm.hours ? isFarmOpen(farm.hours) : null
         const markerSize = 36
