@@ -387,6 +387,12 @@
 
 **Queue 30 COMPLETE - MapLibre GL Migration**
 
+### Queue 31: God-Tier Map Page Implementation
+- [x] Slice 45: Fix Tailwind color config (removed hsl() wrapper, CSS vars are hex)
+- [x] Slice 46: Add Open/Closed status coloring to markers (isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS)
+- [x] Slice 47: Add floating filter pills overlay (FilterPills.tsx - Open Now, Organic, PYO, Cafe toggles)
+- [x] Slice 47b: Implement bidirectional hover sync (list hover highlights marker, marker hover highlights list)
+
 **Technical Notes:**
 - MapLibre GL is WebGL-based, requires browser support check
 - Supercluster runs in Web Worker for performance
