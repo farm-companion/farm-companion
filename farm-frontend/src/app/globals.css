@@ -12,17 +12,11 @@
    These rules MUST override any Tailwind preflight resets
    ============================================================================ */
 
-/* Force correct marker positioning - the wrapper uses transform: translate() */
+/* Marker wrapper - let MapLibre handle all positioning */
 .maplibregl-map .maplibregl-marker {
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  /* The actual position comes from transform: translate(x, y) set by MapLibre */
   pointer-events: auto !important;
+  /* Markers should not capture zoom/pan gestures */
   touch-action: none !important;
-  /* Prevent ANY animation/transition from affecting the wrapper's transform */
-  animation: none !important;
-  transition: none !important;
 }
 
 /* Map container */
@@ -52,7 +46,7 @@
   min-height: 300px;
 }
 
-/* Inner marker elements - these CAN have transforms for hover effects */
+/* Inner marker elements */
 .maplibre-farm-marker,
 .maplibre-cluster-marker {
   box-sizing: border-box !important;
@@ -65,7 +59,6 @@
   -webkit-touch-callout: none;
   user-select: none;
   -webkit-user-select: none;
-  will-change: transform, filter;
 }
 
 .maplibre-farm-marker svg {

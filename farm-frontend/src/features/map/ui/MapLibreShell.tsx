@@ -181,21 +181,32 @@ export default function MapLibreShell({
       onMapReady?.(map)
     })
 
-    map.on('moveend', () => {
-      const bounds = map.getBounds()
-      if (bounds) {
-        const newBounds = {
-          north: bounds.getNorth(),
-          south: bounds.getSouth(),
-          east: bounds.getEast(),
-          west: bounds.getWest()
+    // Debounced move handler to prevent glitchy marker recreation during zoom
+    let moveTimeout: ReturnType<typeof setTimeout> | null = null
+    const handleMoveEnd = () => {
+      // Clear any pending update
+      if (moveTimeout) clearTimeout(moveTimeout)
+
+      // Wait for animation to settle before updating state
+      moveTimeout = setTimeout(() => {
+        const bounds = map.getBounds()
+        if (bounds) {
+          const newBounds = {
+            north: bounds.getNorth(),
+            south: bounds.getSouth(),
+            east: bounds.getEast(),
+            west: bounds.getWest()
+          }
+          setCurrentBounds(newBounds)
+          onBoundsChange?.(newBounds)
         }
-        setCurrentBounds(newBounds)
-        onBoundsChange?.(newBounds)
-      }
-      setCurrentZoom(map.getZoom())
-      onZoomChange?.(map.getZoom())
-    })
+        setCurrentZoom(map.getZoom())
+        onZoomChange?.(map.getZoom())
+      }, 150) // Small delay to let animation complete
+    }
+
+    map.on('moveend', handleMoveEnd)
+    map.on('zoomend', handleMoveEnd)
 
     map.on('error', (e) => {
       console.error('[MapLibreShell] Map error:', e.error?.message || e)
@@ -216,6 +227,7 @@ export default function MapLibreShell({
     })
 
     return () => {
+      if (moveTimeout) clearTimeout(moveTimeout)
       map.remove()
       mapRef.current = null
       setMapInstance(null)
@@ -252,12 +264,13 @@ export default function MapLibreShell({
       }
     }
 
-    // For larger clusters, zoom in
+    // For larger clusters, zoom in with smooth animation
     const expansionZoom = getClusterExpansionZoom(clusterId)
-    map.flyTo({
+    map.easeTo({
       center: [lng, lat],
-      zoom: Math.min(expansionZoom, 16),
-      duration: 500
+      zoom: Math.min(expansionZoom + 0.5, 16), // Slight overzoom for better expansion
+      duration: 400,
+      easing: (t) => t * (2 - t) // Ease-out quad for smooth deceleration
     })
   }, [getClusterLeaves, getClusterExpansionZoom, triggerHaptic])
 
