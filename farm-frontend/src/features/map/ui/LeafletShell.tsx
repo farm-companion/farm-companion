@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { FarmShop } from '@/types/farm'
-import { getPinForFarm } from '../lib/pin-icons'
+import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS } from '../lib/pin-icons'
 import MarkerActions from './MarkerActions'
 import MapMarkerPopover from './MapMarkerPopover'
 
@@ -65,17 +65,16 @@ const fixLeafletIcons = () => {
   })
 }
 
-// Create custom category icon
-const createCategoryIcon = (color: string, size: number = 32) => {
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="2">
-      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-      <circle cx="12" cy="10" r="3" fill="white"/>
-    </svg>
-  `
+// Create custom category icon with open/closed status
+const createStatusIcon = (
+  config: ReturnType<typeof getPinForFarm>,
+  isOpen: boolean | null,
+  size: number = 36
+) => {
+  const svg = generateStatusMarkerSVG(config, isOpen, size)
   return L.divIcon({
     html: svg,
-    className: 'leaflet-farm-marker',
+    className: `leaflet-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`,
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
     popupAnchor: [0, -size]
@@ -277,10 +276,11 @@ export default function LeafletShell({
     // Clear existing markers
     clusterGroup.clearLayers()
 
-    // Add farm markers
+    // Add farm markers with open/closed status
     farms.forEach(farm => {
       const pinConfig = getPinForFarm(farm.offerings)
-      const icon = createCategoryIcon(pinConfig.color)
+      const isOpen = farm.hours ? isFarmOpen(farm.hours) : null
+      const icon = createStatusIcon(pinConfig, isOpen)
 
       const marker = L.marker([farm.location.lat, farm.location.lng], { icon })
 
