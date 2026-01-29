@@ -6,7 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FarmShop } from '@/types/farm'
 import { useClusteredMarkers, type ClusterOrPoint, type FarmCluster } from '../hooks/useClusteredMarkers'
 import { useMapLocation } from '../hooks/useMapLocation'
-import { getPinForFarm, generateCategoryMarkerSVG } from '../lib/pin-icons'
+import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } from '../lib/pin-icons'
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
 import MarkerActions from './MarkerActions'
@@ -334,25 +334,26 @@ export default function MapLibreShell({
         const farm = item.properties.farm
         const [lng, lat] = item.geometry.coordinates
         const pinConfig = getPinForFarm(farm.offerings)
-        const svg = generateCategoryMarkerSVG(pinConfig, 32)
+        const isOpen = farm.hours ? isFarmOpen(farm.hours) : null
+        const svg = generateStatusMarkerSVG(pinConfig, isOpen, 36)
 
         const el = document.createElement('div')
-        el.className = 'maplibre-farm-marker'
+        el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
         el.innerHTML = svg
         el.style.cursor = 'pointer'
         el.style.transition = 'transform 0.2s'
 
         el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.2)'
+          el.style.transform = 'scale(1.15)'
         })
         el.addEventListener('mouseleave', () => {
-          el.style.transform = selectedFarmId === farm.id ? 'scale(1.2)' : 'scale(1)'
+          el.style.transform = selectedFarmId === farm.id ? 'scale(1.15)' : 'scale(1)'
         })
         el.addEventListener('click', () => handleMarkerClick(farm))
 
         // Highlight selected marker
         if (selectedFarmId === farm.id) {
-          el.style.transform = 'scale(1.2)'
+          el.style.transform = 'scale(1.15)'
           el.style.zIndex = '1000'
         }
 

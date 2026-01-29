@@ -76,8 +76,13 @@ export function getEffectiveProvider(): 'leaflet' | 'maplibre' | 'google' {
     return 'maplibre'
   }
 
-  // Auto mode: prefer Leaflet for reliability
-  // Leaflet works without WebGL and has better browser compatibility
+  // Auto mode: prefer MapLibre for god-tier experience
+  // MapLibre GL JS offers vector rendering, smooth animations, and better performance
+  if (useMapLibre()) {
+    return 'maplibre'
+  }
+
+  // Fallback to Leaflet if WebGL unavailable
   return 'leaflet'
 }
 
