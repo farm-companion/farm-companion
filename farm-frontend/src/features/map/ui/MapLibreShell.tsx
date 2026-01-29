@@ -154,11 +154,16 @@ export default function MapLibreShell({
     const mapStyle = getMapStyle(false)
     console.log('[MapLibreShell] Using map style:', typeof mapStyle === 'string' ? mapStyle : 'OSM Raster Object')
 
+    // Calculate padding for initial bounds - account for sidebar on desktop (384px)
+    const rightPadding = typeof window !== 'undefined' && window.innerWidth >= 768 ? 400 : 20
+    const initialPadding = { top: 100, right: rightPadding, bottom: 100, left: 20 }
+
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
       style: mapStyle,
-      center: [center.lng, center.lat],
-      zoom,
+      // Use bounds instead of center/zoom to immediately show UK without flash
+      bounds: [[UK_BOUNDS.west, UK_BOUNDS.south], [UK_BOUNDS.east, UK_BOUNDS.north]],
+      fitBoundsOptions: { padding: initialPadding },
       minZoom: 3,
       maxZoom: 18,
       attributionControl: false,
@@ -174,13 +179,6 @@ export default function MapLibreShell({
       mapRef.current = map
       onMapLoad?.(map)
       onMapReady?.(map)
-
-      // Fit to UK bounds on initial load - account for sidebar on desktop (384px)
-      const rightPadding = window.innerWidth >= 768 ? 400 : 20
-      map.fitBounds(
-        [[UK_BOUNDS.west, UK_BOUNDS.south], [UK_BOUNDS.east, UK_BOUNDS.north]],
-        { padding: { top: 100, right: rightPadding, bottom: 100, left: 20 }, duration: 0 }
-      )
     })
 
     map.on('moveend', () => {
@@ -331,12 +329,23 @@ export default function MapLibreShell({
         })
         el.addEventListener('click', (e) => {
           e.stopPropagation()
+          e.preventDefault()
           handleClusterClick(clusterId, count, lng, lat)
         })
+        // Touch handlers - must capture touchstart to prevent map pan
+        el.addEventListener('touchstart', (e) => {
+          e.stopPropagation()
+        }, { passive: true })
+        el.addEventListener('touchend', (e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          handleClusterClick(clusterId, count, lng, lat)
+        }, { passive: false })
 
         const marker = new maplibregl.Marker({
           element: el,
-          anchor: 'center'  // Clusters are circular, anchor at center
+          anchor: 'center',
+          subpixelPositioning: true
         })
           .setLngLat([lng, lat])
           .addTo(map)
@@ -351,8 +360,11 @@ export default function MapLibreShell({
         const markerSize = 36
         const svg = generateStatusMarkerSVG(pinConfig, isOpen, markerSize)
 
+        // Create marker element with precise sizing
         const el = document.createElement('div')
         el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
+        el.dataset.farmId = farm.id
+        el.dataset.open = isOpen === true ? 'true' : isOpen === false ? 'false' : 'unknown'
         // Critical: Set all positioning properties inline to prevent touch jump
         el.style.cssText = `
           width: ${markerSize}px;
@@ -363,35 +375,46 @@ export default function MapLibreShell({
           transition: transform 0.15s ease-out, filter 0.15s ease-out;
         `
         el.innerHTML = svg
-        el.dataset.farmId = farm.id
 
+        // Event handlers
         el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.2)'
-          el.style.filter = 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))'
+          el.style.transform = 'scale(1.15)'
+          el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
           onFarmHover?.(farm.id)
         })
         el.addEventListener('mouseleave', () => {
           const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
-          el.style.transform = isHighlighted ? 'scale(1.2)' : ''
+          el.style.transform = isHighlighted ? 'scale(1.15)' : ''
           el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : ''
           onFarmHover?.(null)
         })
         el.addEventListener('click', (e) => {
-          e.stopPropagation()  // Prevent event bubbling
+          e.stopPropagation()
+          e.preventDefault()
           handleMarkerClick(farm)
         })
+        // Touch handlers - must capture touchstart to prevent map pan
+        el.addEventListener('touchstart', (e) => {
+          e.stopPropagation()
+        }, { passive: true })
+        el.addEventListener('touchend', (e) => {
+          e.stopPropagation()
+          e.preventDefault()
+          handleMarkerClick(farm)
+        }, { passive: false })
 
-        // Highlight selected or hovered marker
+        // Apply highlight state
         const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
         if (isHighlighted) {
-          el.style.transform = 'scale(1.2)'
-          el.style.filter = 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))'
+          el.style.transform = 'scale(1.15)'
+          el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
           el.style.zIndex = '1000'
         }
 
         const marker = new maplibregl.Marker({
           element: el,
-          anchor: 'center'  // Circular markers anchor at center
+          anchor: 'center',
+          subpixelPositioning: true  // Prevents marker jump on zoom/move
         })
           .setLngLat([lng, lat])
           .addTo(map)
