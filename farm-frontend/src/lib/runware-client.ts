@@ -234,6 +234,10 @@ export function getRunwareClient(): RunwareClient {
 /**
  * Harvest Visual Signature prompt components
  * Consistent styling across all image types
+ *
+ * NOTE: Individual generators (produce, farm, county) now have their own
+ * comprehensive negative prompts. This HARVEST_STYLE is kept for backward
+ * compatibility and general use cases.
  */
 export const HARVEST_STYLE = {
   /** Camera and lens settings for editorial look */
@@ -243,13 +247,26 @@ export const HARVEST_STYLE = {
   lighting: 'soft natural overcast light, no harsh shadows',
 
   /** Quality markers */
-  quality: 'editorial photography, magazine quality, no AI artifacts',
+  quality: 'editorial photography, magazine quality, documentary realism',
 
   /** Safe zone instruction for text overlays */
   safeZone: 'low-detail vignette in top-left quadrant for text overlay',
 
-  /** Common negative prompt elements */
-  negative: 'no people, no faces, no text, no watermarks, no logos, no AI artifacts, no plastic, no artificial lighting, no church, no church spire, no steeple, no religious buildings, no National Geographic, no magazine logo'
+  /** Common negative prompt elements - comprehensive anti-AI artifact list */
+  negative: [
+    // Anti-AI artifacts
+    'artificial, fake, CGI, 3D render, illustration, painting, digital art',
+    'too perfect, too symmetrical, oversaturated, hyperrealistic, HDR look',
+    // Anti-content pollution
+    'text, watermark, logo, signature, copyright, stamp',
+    'people, faces, crowds, figures',
+    // Anti-architecture pollution
+    'church, church spire, steeple, chapel, cathedral, religious building',
+    // Anti-brand pollution
+    'National Geographic, magazine logo, stock photo watermark',
+    // Anti-lighting errors
+    'artificial lighting, studio lights, flash photography'
+  ].join(', ')
 }
 
 /**

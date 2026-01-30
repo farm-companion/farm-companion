@@ -11,6 +11,9 @@
  *   pnpm tsx src/scripts/update-produce-images.ts --slug=strawberries
  */
 
+import dotenv from 'dotenv'
+dotenv.config({ path: '.env.local' })
+
 import { PRODUCE } from '../data/produce'
 import { ProduceImageGenerator } from '../lib/produce-image-generator'
 import { readFile, writeFile } from 'fs/promises'

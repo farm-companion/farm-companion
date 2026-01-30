@@ -13,6 +13,9 @@
  *   pnpm tsx src/scripts/update-farm-images.ts --force  # Regenerate even if images exist
  */
 
+import dotenv from 'dotenv'
+dotenv.config({ path: '.env.local' })
+
 import { prisma } from '../lib/prisma'
 import { FarmImageGenerator } from '../lib/farm-image-generator'
 import { uploadFarmImage } from '../lib/farm-blob'

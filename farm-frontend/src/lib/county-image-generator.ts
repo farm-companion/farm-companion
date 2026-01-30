@@ -1,262 +1,357 @@
 /**
- * County Image Generator
+ * County Image Generator - "Atmospheric Almanac" Template
  *
- * Generates atmospheric landscape photography for UK county cards using Runware.
- * Implements the Harvest Visual Signature: "Atmospheric Almanac" aesthetic.
+ * God-tier landscape photography using Forensic Photography Prompting.
+ * Captures authentic British county landscapes with cinematic realism.
+ * Targets the aesthetic of high-end travel photography, National Trust
+ * publications, and British landscape calendars.
  *
  * @see https://docs.runware.ai/
  */
 
 import axios from 'axios'
 import { logger } from '@/lib/logger'
-import { getRunwareClient, HARVEST_STYLE } from './runware-client'
+import { getRunwareClient } from './runware-client'
 
 const imageGenLogger = logger.child({ route: 'lib/county-image-generator' })
 
 /**
- * Harvest Visual Signature: Atmospheric Almanac
- * British countryside landscape photography for county directory cards
+ * God-Tier Negative Prompt - Eliminates AI Artifacts from Landscapes
+ *
+ * Prevents: oversaturated colors, perfect symmetry, generic postcards,
+ * unrealistic lighting that screams "AI generated"
  */
-const HARVEST_COUNTY_NEGATIVE = [
-  'no people, no faces, no crowds',
-  'no watermark, no text, no logo',
-  'no modern buildings, no cars, no roads',
-  'no AI artifacts, no unrealistic colors',
-  'no harsh shadows, no artificial lighting',
-  'no urban elements, no power lines'
+const ATMOSPHERIC_ALMANAC_NEGATIVE = [
+  // Anti-AI artifacts
+  'artificial, fake, CGI, 3D render, illustration, painting, digital art',
+  'oversaturated, hyperrealistic, too perfect, HDR look, video game',
+  'generic postcard, stock photo, cliche composition, tourist shot',
+  // Anti-content pollution
+  'text, watermark, logo, signature, copyright, stamp, magazine logo',
+  'people, crowds, tourists, hikers, figures in landscape',
+  'cars, vehicles, roads, motorways, modern infrastructure',
+  // Anti-architecture pollution
+  'church, church spire, steeple, chapel, cathedral, religious building',
+  'modern buildings, factories, power stations, wind turbines, pylons',
+  'housing estates, suburbs, urban sprawl, construction',
+  // Anti-composition errors
+  'blurry, out of focus, motion blur, tilted horizon, bad framing',
+  'cropped awkwardly, centered subject, boring composition',
+  // Anti-lighting errors
+  'harsh midday shadows, direct sunlight, blown highlights',
+  'artificial lighting, studio lights, flash photography',
+  'overexposed sky, underexposed foreground, high contrast HDR'
 ].join(', ')
 
 /**
- * UK county landscape characteristics
- * Authentic topography and natural features for each region
+ * British Seasonal Light - Authentic UK Atmospheric Conditions
+ *
+ * Maps each month to specific lighting conditions that reflect
+ * the actual British climate and its effect on landscape photography.
  */
-const COUNTY_LANDSCAPES: Record<string, {
-  terrain: string
-  features: string
+const BRITISH_SEASONAL_LIGHT: Record<number, string> = {
+  1: 'crisp January frost, low winter sun casting long shadows, cold blue tones, frozen landscape',
+  2: 'pale February light, hints of lengthening days, soft grey skies, early snowdrops',
+  3: 'fresh March morning, cool bright light, first spring clarity, new growth emerging',
+  4: 'April shower light, dramatic clouds with sun breaks, spring freshness, blossom season',
+  5: 'warm late May golden hour, lush green growth, bluebells in woodland, long evenings',
+  6: 'luminous June morning, peak summer light, wildflower meadows, endless golden dusk',
+  7: 'rich July warmth, amber harvest light, ripe fields, dramatic summer cumulus',
+  8: 'golden August afternoon, late summer abundance, wheat fields glowing, honey tones',
+  9: 'soft September morning, early autumn amber, harvest complete, misty valleys',
+  10: 'rich October golden hour, peak autumn color, russet and amber, dramatic skies',
+  11: 'moody November atmosphere, bare branches, atmospheric mist, melancholy beauty',
+  12: 'ethereal December light, frost-rimmed landscape, low sun, quiet winter stillness'
+}
+
+/**
+ * UK County Landscape Characteristics - Detailed Regional DNA
+ *
+ * Each county has unique topography, natural features, and atmospheric
+ * qualities that define its visual identity.
+ */
+const COUNTY_LANDSCAPE_DNA: Record<string, {
+  topography: string
+  naturalFeatures: string
   atmosphere: string
+  signature: string
 }> = {
-  // South West
+  // South West England
   cornwall: {
-    terrain: 'dramatic Cornish cliffs and rugged coastline',
-    features: 'wild Atlantic ocean, granite tors, fishing coves',
-    atmosphere: 'misty coastal morning, salt spray in the air'
+    topography: 'dramatic granite cliffs plunging to Atlantic Ocean, rugged headlands',
+    naturalFeatures: 'wild sea pinks on cliff edges, ancient granite tors, hidden coves',
+    atmosphere: 'salt spray mist, dramatic coastal weather, wild untamed energy',
+    signature: 'Cornish moors meeting wild Atlantic coast'
   },
   devon: {
-    terrain: 'rolling Devonshire hills and lush green valleys',
-    features: 'Dartmoor tors, thatched villages, red earth lanes',
-    atmosphere: 'soft golden light through morning mist'
+    topography: 'rolling red hills, Dartmoor granite tors, lush green valleys',
+    naturalFeatures: 'high moorland streams, ancient oak woodland, thatched valleys',
+    atmosphere: 'soft golden light through morning mist, gentle pastoral warmth',
+    signature: 'Dartmoor wilderness and rich red Devon earth'
   },
   somerset: {
-    terrain: 'Somerset Levels wetlands and Mendip Hills',
-    features: 'willow-lined rhynes, cider orchards, ancient churches',
-    atmosphere: 'ethereal morning fog over flat marshlands'
+    topography: 'flat Levels wetlands, Mendip Hills limestone ridges',
+    naturalFeatures: 'willow-lined rhynes, peat moors, ancient orchards',
+    atmosphere: 'ethereal morning fog over marshland, mystical Avalon quality',
+    signature: 'Glastonbury Tor rising from misty Levels'
   },
   dorset: {
-    terrain: 'Jurassic Coast chalk cliffs and rolling downs',
-    features: 'Durdle Door arch, Thomas Hardy landscapes, heathland',
-    atmosphere: 'dramatic coastal light, white cliffs catching sun'
+    topography: 'Jurassic Coast chalk cliffs, rolling downland, heath',
+    naturalFeatures: 'natural rock arches, fossil coast, heather moorland',
+    atmosphere: 'dramatic coastal light, white cliffs catching golden sun',
+    signature: 'ancient Jurassic coastline and Thomas Hardy landscape'
   },
   wiltshire: {
-    terrain: 'Salisbury Plain chalk downland',
-    features: 'ancient standing stones, rolling wheat fields, white horses',
-    atmosphere: 'mystical morning light over ancient landscape'
+    topography: 'Salisbury Plain chalk downland, rolling wheat fields',
+    naturalFeatures: 'ancient burial mounds, white horse hillsides, ancient stones',
+    atmosphere: 'mystical light over ancient landscape, timeless quality',
+    signature: 'Neolithic ceremonial landscape under vast skies'
   },
 
-  // Cotswolds & Heart of England
+  // Cotswolds and Heart of England
   gloucestershire: {
-    terrain: 'Cotswold escarpment and golden limestone villages',
-    features: 'honey-stone cottages, dry stone walls, beech woodlands',
-    atmosphere: 'warm afternoon light on golden stone'
+    topography: 'Cotswold escarpment, Severn Vale, beech-covered hills',
+    naturalFeatures: 'honey limestone walls, ancient beech hangers, wildflower meadows',
+    atmosphere: 'warm afternoon light on golden stone, pastoral perfection',
+    signature: 'rolling wolds and golden limestone England'
   },
   oxfordshire: {
-    terrain: 'Chiltern Hills and Thames Valley meadows',
-    features: 'dreaming spires in distance, water meadows, willows',
-    atmosphere: 'gentle English summer afternoon'
+    topography: 'Chiltern Hills beech woods, Thames Valley meadows',
+    naturalFeatures: 'chalk streams, water meadows, ancient woodland',
+    atmosphere: 'gentle English summer afternoon, dreamy pastoral quality',
+    signature: 'quintessential Thames Valley meadowland'
   },
   warwickshire: {
-    terrain: 'gentle Warwickshire countryside and Avon valley',
-    features: 'Shakespeare country, timber-framed villages, hedgerows',
-    atmosphere: 'soft pastoral light over green fields'
+    topography: 'gentle undulating countryside, Forest of Arden',
+    naturalFeatures: 'ancient hedgerows, wildflower meadows, winding lanes',
+    atmosphere: 'soft pastoral light, Shakespeare country tranquility',
+    signature: 'green heart of England countryside'
   },
   worcestershire: {
-    terrain: 'Malvern Hills ridge and Vale of Evesham',
-    features: 'dramatic hill views, fruit orchards, hop yards',
-    atmosphere: 'misty morning over orchard valleys'
+    topography: 'Malvern Hills ridge rising from Vale of Evesham',
+    naturalFeatures: 'fruit orchards in blossom, hop yards, ancient ridge',
+    atmosphere: 'misty morning over orchard valleys, Elgar country romance',
+    signature: 'dramatic Malvern ridge above fruit-laden vale'
   },
   herefordshire: {
-    terrain: 'Black Mountains foothills and Wye Valley',
-    features: 'cider apple orchards, half-timbered farms, meandering river',
-    atmosphere: 'golden autumn light through apple trees'
+    topography: 'Black Mountains foothills, meandering Wye Valley',
+    naturalFeatures: 'cider apple orchards, ancient woodland, river meadows',
+    atmosphere: 'golden autumn light through apple trees, borderland mystery',
+    signature: 'timeless orchard country and Wye Valley beauty'
   },
 
-  // South East
+  // South East England
   kent: {
-    terrain: 'Garden of England rolling countryside',
-    features: 'oast houses, hop gardens, orchards, white cliffs',
-    atmosphere: 'warm summer light over fruit-laden orchards'
+    topography: 'Garden of England rolling countryside, North Downs',
+    naturalFeatures: 'cherry and apple orchards, hop gardens, white cliffs',
+    atmosphere: 'warm summer light over fruit-laden orchards',
+    signature: 'England\'s garden in full productive bloom'
   },
   sussex: {
-    terrain: 'South Downs chalk grassland and weald',
-    features: 'rolling downs, flint villages, coastal views',
-    atmosphere: 'bright downland light, big sky country'
+    topography: 'South Downs chalk grassland, ancient Weald',
+    naturalFeatures: 'rolling downland, flint outcrops, ancient woodland',
+    atmosphere: 'bright downland light, vast sky over chalk hills',
+    signature: 'iconic South Downs Way and chalk figures'
   },
   surrey: {
-    terrain: 'Surrey Hills wooded ridges and heathland',
-    features: 'ancient woodlands, sandy commons, village greens',
-    atmosphere: 'dappled woodland light through beech canopy'
+    topography: 'Surrey Hills wooded ridges, sandy heathland',
+    naturalFeatures: 'ancient woodland, purple heather commons, box hills',
+    atmosphere: 'dappled woodland light through beech canopy',
+    signature: 'AONB hills surprisingly close to London'
   },
   hampshire: {
-    terrain: 'New Forest heathland and Test Valley',
-    features: 'wild ponies, ancient oaks, thatched cottages',
-    atmosphere: 'misty forest morning, shafts of sunlight'
+    topography: 'New Forest heathland, Test Valley chalk streams',
+    naturalFeatures: 'wild ponies grazing, ancient oaks, crystal chalk rivers',
+    atmosphere: 'misty forest morning with shafts of sunlight',
+    signature: 'ancient royal hunting forest and wild ponies'
   },
   berkshire: {
-    terrain: 'Thames Valley and Berkshire Downs',
-    features: 'riverside meadows, ancient woodlands, racehorse country',
-    atmosphere: 'soft river valley light at dawn'
+    topography: 'Thames Valley meadows, Berkshire Downs',
+    naturalFeatures: 'riverside meadows, ancient woodland, racehorse gallops',
+    atmosphere: 'soft river valley light at dawn, peaceful quality',
+    signature: 'royal Windsor countryside and chalk downland'
   },
 
   // East Anglia
   norfolk: {
-    terrain: 'vast Norfolk skies and flat fenland',
-    features: 'windmills, reed beds, Broads waterways, flint churches',
-    atmosphere: 'dramatic big sky, endless horizon'
+    topography: 'vast flat fenland, gentle coastal dunes',
+    naturalFeatures: 'reed beds, windmills, Broads waterways, flint cottages',
+    atmosphere: 'dramatic big sky country, endless horizon, painters light',
+    signature: 'infinite Norfolk skies and waterland wilderness'
   },
   suffolk: {
-    terrain: 'gentle Suffolk countryside and Heritage Coast',
-    features: 'pink-washed cottages, Constable country, estuaries',
-    atmosphere: 'soft diffused light, painterly quality'
+    topography: 'gentle river valleys, Heritage Coast estuaries',
+    naturalFeatures: 'Constable country water meadows, estuarine marshes',
+    atmosphere: 'soft diffused light, painterly quality, Dedham Vale',
+    signature: 'Constable\'s England and quiet Suffolk charm'
   },
   essex: {
-    terrain: 'Essex marshes and rolling farmland',
-    features: 'weatherboard villages, Thames estuary, ancient woodland',
-    atmosphere: 'moody estuary light, atmospheric sky'
+    topography: 'Thames estuary marshes, rolling farmland',
+    naturalFeatures: 'ancient woodland, saltmarsh, tidal creeks',
+    atmosphere: 'moody estuary light, atmospheric coastal sky',
+    signature: 'underrated marsh wilderness and ancient woods'
   },
   cambridgeshire: {
-    terrain: 'Cambridgeshire Fens and gently rolling chalk',
-    features: 'cathedral silhouette, endless fields, drainage channels',
-    atmosphere: 'vast sky over flat productive land'
+    topography: 'flat productive Fens, gentle chalk ridges',
+    naturalFeatures: 'drainage channels, endless arable fields, reedbeds',
+    atmosphere: 'vast sky over productive land, fenland drama',
+    signature: 'cathedral rising from infinite fenland'
   },
 
   // Midlands
   lincolnshire: {
-    terrain: 'Lincolnshire Wolds and fenland',
-    features: 'church spires, market towns, endless arable fields',
-    atmosphere: 'big sky country, dramatic cloud formations'
+    topography: 'Lincolnshire Wolds, flat fenland, coastal dunes',
+    naturalFeatures: 'rolling wolds, endless arable fields, Gibraltar Point',
+    atmosphere: 'big sky country, dramatic cloud formations, wide horizons',
+    signature: 'England\'s breadbasket under vast skies'
   },
   nottinghamshire: {
-    terrain: 'Sherwood Forest and Trent Valley',
-    features: 'ancient oak woodland, river meadows, red brick villages',
-    atmosphere: 'dappled forest light, Robin Hood country'
+    topography: 'Sherwood Forest, Trent Valley meadows',
+    naturalFeatures: 'ancient oak woodland, river meadows, sandstone outcrops',
+    atmosphere: 'dappled forest light, Robin Hood country magic',
+    signature: 'legendary Sherwood oaks and river valleys'
   },
   derbyshire: {
-    terrain: 'Peak District limestone dales and gritstone edges',
-    features: 'dramatic crags, dry stone walls, lead mining heritage',
-    atmosphere: 'dramatic moorland light, clouds over peaks'
+    topography: 'Peak District limestone dales, gritstone edges',
+    naturalFeatures: 'dramatic millstone crags, white limestone valleys, drystone walls',
+    atmosphere: 'dramatic moorland light, clouds sweeping over peaks',
+    signature: 'dramatic gritstone edges and white limestone dales'
   },
   staffordshire: {
-    terrain: 'Staffordshire Moorlands and Trent Valley',
-    features: 'pottery country, canal network, rolling farmland',
-    atmosphere: 'soft Midlands light over green pastures'
+    topography: 'Staffordshire Moorlands, Trent Valley',
+    naturalFeatures: 'heather moorland, canal-side meadows, rolling farmland',
+    atmosphere: 'soft Midlands light over green pastures',
+    signature: 'moorland meeting productive heartland'
   },
   shropshire: {
-    terrain: 'Shropshire Hills and Welsh Marches',
-    features: 'Long Mynd ridge, timber-framed market towns',
-    atmosphere: 'mystical borderland light, ancient hillforts'
+    topography: 'Shropshire Hills, Long Mynd ridge, Welsh Marches',
+    naturalFeatures: 'ancient hillforts, rolling borderland, river valleys',
+    atmosphere: 'mystical borderland light, Housman country romance',
+    signature: 'blue remembered hills of Welsh borders'
   },
 
-  // North
+  // Northern England
   yorkshire: {
-    terrain: 'Yorkshire Dales limestone and moorland',
-    features: 'dry stone walls, waterfalls, grey stone villages',
-    atmosphere: 'dramatic dale light, clouds over moors'
+    topography: 'Yorkshire Dales limestone, North York Moors',
+    naturalFeatures: 'miles of drystone walls, waterfalls, heather moorland',
+    atmosphere: 'dramatic dale light, clouds racing over moors',
+    signature: 'iconic Dales walls and moorland wilderness'
   },
   lancashire: {
-    terrain: 'Forest of Bowland and Ribble Valley',
-    features: 'rolling fells, stone villages, river valleys',
-    atmosphere: 'moody Pennine light, rain-washed greens'
+    topography: 'Forest of Bowland, Ribble Valley fells',
+    naturalFeatures: 'rolling fells, stone villages, hidden valleys',
+    atmosphere: 'moody Pennine light, rain-washed greens, wild beauty',
+    signature: 'undiscovered Bowland wilderness'
   },
   cumbria: {
-    terrain: 'Lake District mountains and lakes',
-    features: 'dramatic fells, mirror lakes, whitewashed farms',
-    atmosphere: 'mountain light through clouds, reflections'
+    topography: 'Lake District mountains, mirror lakes, valleys',
+    naturalFeatures: 'dramatic fells, still tarns, whitewashed farms',
+    atmosphere: 'mountain light through clouds, perfect lake reflections',
+    signature: 'Wordsworth\'s lakes and romantic fells'
   },
   northumberland: {
-    terrain: 'Cheviot Hills and Northumbrian coast',
-    features: 'castle ruins, empty beaches, dark sky country',
-    atmosphere: 'wild northern light, dramatic skies'
+    topography: 'Cheviot Hills, wild Northumbrian coast',
+    naturalFeatures: 'empty beaches, dark sky wilderness, Roman wall',
+    atmosphere: 'wild northern light, dramatic empty skies',
+    signature: 'England\'s wild frontier and darkest skies'
   },
   durham: {
-    terrain: 'Durham Dales and Pennine foothills',
-    features: 'cathedral city, lead mining heritage, moorland',
-    atmosphere: 'atmospheric northern light, ancient landscape'
+    topography: 'Durham Dales, Pennine foothills, Wear Valley',
+    naturalFeatures: 'lead mining heritage, moorland streams, hay meadows',
+    atmosphere: 'atmospheric northern light, ancient landscape',
+    signature: 'Prince Bishops\' county and high dales'
   },
 
   // Scotland
   scotland: {
-    terrain: 'Scottish Highlands and glens',
-    features: 'lochs, mountains, heather moorland, castles',
-    atmosphere: 'dramatic Highland light, mist in glens'
+    topography: 'Highland mountains, glens, island archipelagos',
+    naturalFeatures: 'lochs, heather moorland, ancient Caledonian pine',
+    atmosphere: 'dramatic Highland light, mist swirling in glens',
+    signature: 'wild Highland grandeur and Celtic mystery'
   },
   highland: {
-    terrain: 'dramatic Highland mountains and sea lochs',
-    features: 'munros, whisky distilleries, crofting landscape',
-    atmosphere: 'ethereal mountain light, weather drama'
+    topography: 'dramatic Munro peaks, sea lochs, vast moors',
+    naturalFeatures: 'ancient pine forest, red deer, wild Atlantic coast',
+    atmosphere: 'ethereal mountain light, weather drama, elemental force',
+    signature: 'last wilderness of Western Europe'
   },
   borders: {
-    terrain: 'Scottish Borders rolling hills',
-    features: 'abbey ruins, wool towns, river valleys',
-    atmosphere: 'soft pastoral light, peaceful valleys'
+    topography: 'Scottish Borders rolling hills, river valleys',
+    naturalFeatures: 'sheep-grazed hills, abbey ruins, winding rivers',
+    atmosphere: 'soft pastoral light, peaceful valley tranquility',
+    signature: 'Walter Scott country and wool towns'
   },
   fife: {
-    terrain: 'Fife coastal kingdom and farmland',
-    features: 'fishing villages, golf courses, East Neuk charm',
-    atmosphere: 'bright coastal light, North Sea horizon'
+    topography: 'Fife coastal kingdom, rolling farmland',
+    naturalFeatures: 'fishing villages, East Neuk harbors, golf links',
+    atmosphere: 'bright coastal light, North Sea horizon, fresh breeze',
+    signature: 'ancient kingdom between two firths'
   },
 
   // Wales
   wales: {
-    terrain: 'Welsh mountains and green valleys',
-    features: 'Snowdonia peaks, castles, sheep-dotted hills',
-    atmosphere: 'dramatic mountain light, Celtic mystery'
+    topography: 'Snowdonia peaks, green valleys, rugged coast',
+    naturalFeatures: 'mountain lakes, dragon country, sheep-dotted hills',
+    atmosphere: 'dramatic mountain light, Celtic mystery, ancient legend',
+    signature: 'land of song and mountain grandeur'
   },
   pembrokeshire: {
-    terrain: 'Pembrokeshire coastal path and islands',
-    features: 'wild cliffs, sea birds, hidden coves',
-    atmosphere: 'Atlantic light, dramatic coastal weather'
+    topography: 'Pembrokeshire coastal path, hidden coves',
+    naturalFeatures: 'wild cliffs, sea bird colonies, Celtic coastline',
+    atmosphere: 'Atlantic light, dramatic coastal weather, wild energy',
+    signature: 'Britain\'s only coastal national park'
   },
   powys: {
-    terrain: 'Brecon Beacons and Cambrian Mountains',
-    features: 'waterfalls, red kites, market towns',
-    atmosphere: 'mountain mist, green valley light'
+    topography: 'Brecon Beacons, Cambrian Mountains, Wye Valley',
+    naturalFeatures: 'waterfalls, red kites soaring, green uplands',
+    atmosphere: 'mountain mist, green valley light, Welsh silence',
+    signature: 'green heart of Wales and kite country'
   },
   gwynedd: {
-    terrain: 'Snowdonia mountain peaks and coastline',
-    features: 'dramatic peaks, slate quarries, Welsh heritage',
-    atmosphere: 'dramatic mountain weather, mythical landscape'
+    topography: 'Snowdonia peaks, dramatic mountain coastline',
+    naturalFeatures: 'Eryri wilderness, slate heritage, mountain lakes',
+    atmosphere: 'dramatic mountain weather, mythical Arthurian landscape',
+    signature: 'highest peaks of Wales and mythic landscape'
   },
 
   // Northern Ireland
   antrim: {
-    terrain: 'Antrim Coast and Glens',
-    features: 'Giants Causeway, dramatic cliffs, green glens',
-    atmosphere: 'wild Atlantic light, ancient geology'
+    topography: 'Antrim Coast, dramatic basalt cliffs, green glens',
+    naturalFeatures: 'Giants Causeway columns, nine glens, coastal path',
+    atmosphere: 'wild Atlantic light, ancient geological drama',
+    signature: 'legendary causeway coast and green glens'
   },
   down: {
-    terrain: 'Mourne Mountains and coastal drumlin landscape',
-    features: 'sweeping mountains to sea, fishing villages',
-    atmosphere: 'dramatic Irish light, mountains and sea'
+    topography: 'Mourne Mountains sweeping to sea, drumlin landscape',
+    naturalFeatures: 'granite peaks, Strangford Lough, fishing villages',
+    atmosphere: 'dramatic Irish light, mountains meeting sea',
+    signature: 'where the Mountains of Mourne sweep down to the sea'
   }
 }
 
 /**
- * Default landscape for counties not in the detailed list
+ * Default Landscape for counties not in detailed list
  */
 const DEFAULT_LANDSCAPE = {
-  terrain: 'rolling British countryside and pastoral farmland',
-  features: 'hedgerows, country lanes, village church spires',
-  atmosphere: 'soft English light, peaceful rural scene'
+  topography: 'rolling British countryside, pastoral farmland',
+  naturalFeatures: 'ancient hedgerows, wildflower meadows, woodland copses',
+  atmosphere: 'soft English light, peaceful rural tranquility',
+  signature: 'quintessential British countryside'
 }
+
+/**
+ * Cinematic Composition Templates
+ */
+const CINEMATIC_COMPOSITIONS = [
+  // Classic landscape rule of thirds
+  'rule of thirds composition with foreground interest leading to horizon, classic landscape photography',
+  // Wide panoramic
+  'wide cinematic panorama capturing the sweep of landscape, epic scale, travel photography',
+  // Intimate vista
+  'intimate corner of landscape with depth layers, foreground texture leading to atmospheric distance',
+  // Dramatic weather
+  'weather drama composition with dramatic sky dominating frame, landscape anchoring bottom third'
+]
 
 interface CountyImageOptions {
   width?: number
@@ -265,19 +360,25 @@ interface CountyImageOptions {
   seed?: number
   /** Include safe zone for text overlays */
   safeZone?: boolean
-  /** Season hint (spring, summer, autumn, winter) */
+  /** Season hint (spring, summer, autumn, winter) or month (1-12) */
   season?: string
+  month?: number
+  /** Composition variation (1-4) */
+  composition?: number
 }
 
 /**
- * CountyImageGenerator - Generate atmospheric county card images
- * Uses Runware Flux.2 [dev] with Pollinations as fallback
+ * CountyImageGenerator - "Atmospheric Almanac" Template
+ *
+ * Generates cinematic British landscape photography using
+ * Forensic Photography Prompting.
  */
 export class CountyImageGenerator {
   private userAgent = 'FarmCompanion-Frontend/1.0.0'
 
   /**
-   * Generate atmospheric landscape for a UK county
+   * Generate god-tier landscape photography for a UK county
+   * Cinematic realism meets editorial quality
    */
   async generateCountyImage(
     countyName: string,
@@ -285,16 +386,18 @@ export class CountyImageGenerator {
     options: CountyImageOptions = {}
   ): Promise<Buffer | null> {
     try {
-      imageGenLogger.info('Generating county image', { countyName, countySlug })
+      imageGenLogger.info('Generating Atmospheric Almanac county image', { countyName, countySlug })
 
       const width = options.width ?? 2048
-      const height = options.height ?? 1152 // 16:9 aspect for cards
+      const height = options.height ?? 1152 // 16:9 cinematic aspect
       const seed = options.seed ?? this.hashString(countySlug)
-      const prompt = this.createCountyPrompt(countyName, countySlug, options)
+      const prompt = this.createAtmosphericAlmanacPrompt(countyName, countySlug, options)
 
-      imageGenLogger.debug('Prompt created', { promptPreview: prompt.substring(0, 120) })
+      imageGenLogger.debug('Atmospheric Almanac prompt created', {
+        promptPreview: prompt.substring(0, 200)
+      })
 
-      // Try Runware first (60% cheaper, 40% faster)
+      // Try Runware first (Flux.2 [dev] for best realism)
       let imageBuffer = await this.callRunware(prompt, { width, height, seed })
 
       // Fallback to Pollinations
@@ -304,7 +407,7 @@ export class CountyImageGenerator {
       }
 
       if (imageBuffer) {
-        imageGenLogger.info('County image generated successfully', { countyName, bytes: imageBuffer.length })
+        imageGenLogger.info('Atmospheric Almanac image generated', { countyName, bytes: imageBuffer.length })
         return imageBuffer
       }
 
@@ -317,62 +420,112 @@ export class CountyImageGenerator {
   }
 
   /**
-   * Create Harvest Visual Signature prompt for county cards
-   * "Atmospheric Almanac" - evocative British landscape photography
+   * Create "Atmospheric Almanac" Prompt
+   *
+   * Forensic Photography Prompting that captures authentic British landscape
+   * with cinematic drama and documentary realism.
    */
-  private createCountyPrompt(
+  private createAtmosphericAlmanacPrompt(
     countyName: string,
     countySlug: string,
     options: CountyImageOptions
   ): string {
-    // Find matching landscape characteristics
-    const slugLower = countySlug.toLowerCase()
-    let landscape = DEFAULT_LANDSCAPE
+    const hash = this.hashString(countySlug)
 
-    for (const [key, value] of Object.entries(COUNTY_LANDSCAPES)) {
-      if (slugLower.includes(key) || countyName.toLowerCase().includes(key)) {
-        landscape = value
-        break
-      }
-    }
+    // Get county landscape DNA
+    const landscape = this.getCountyLandscape(countySlug, countyName)
 
-    // Seasonal variations
-    const seasonalHints: Record<string, string> = {
-      spring: 'fresh spring growth, blossom on trees, new lambs in fields',
-      summer: 'lush summer greenery, golden crops, warm hazy light',
-      autumn: 'golden autumn colors, harvest time, misty mornings',
-      winter: 'frost on fields, bare trees, low winter sun'
-    }
+    // Get seasonal lighting
+    const month = options.month ?? new Date().getMonth() + 1
+    const seasonalLight = BRITISH_SEASONAL_LIGHT[month]
 
-    const season = options.season || this.getCurrentSeason()
-    const seasonalHint = seasonalHints[season] || seasonalHints.summer
+    // Select composition
+    const compositionIndex = (options.composition ?? hash) % CINEMATIC_COMPOSITIONS.length
+    const composition = CINEMATIC_COMPOSITIONS[compositionIndex]
 
-    const parts = [
-      `${countyName} countryside landscape`,
-      landscape.terrain,
-      landscape.features,
-      HARVEST_STYLE.camera,
+    // Build forensic photography prompt
+    const promptParts = [
+      // Subject and location
+      `Atmospheric ${countyName} landscape, British countryside photography`,
+      landscape.signature,
+
+      // Topography and natural features
+      landscape.topography,
+      landscape.naturalFeatures,
+
+      // Technical camera specs (forces AI to think like a camera)
+      '35mm prime lens, f/8 aperture for landscape depth',
+      'sharp focus from foreground to horizon, hyperfocal distance',
+      'no lens distortion, natural perspective, perfectly level horizon',
+
+      // Lighting (British seasonal atmospheric)
+      'natural light only, no artificial lighting',
+      seasonalLight,
       landscape.atmosphere,
-      seasonalHint,
-      'editorial landscape photography',
-      'authentic British countryside',
-      'National Geographic quality',
-      options.safeZone ? 'darkened vignette in top-left for text overlay' : undefined,
+
+      // Composition
+      composition,
+
+      // Authenticity markers
+      'no buildings, no man-made structures in frame',
+      'natural British wilderness, authentic landscape',
+      'real film grain texture, authentic photographic quality',
+
+      // Quality markers
+      'high-end travel photography, British landscape calendar quality',
+      'editorial landscape photography, National Trust publication aesthetic',
+      'cinematic widescreen composition, documentary realism',
+
+      // Safe zone for text overlay
+      options.safeZone
+        ? 'subtle natural vignette with low-detail sky area in top-left quadrant for text overlay'
+        : undefined,
+
+      // Additional style hint
       options.styleHint
     ].filter(Boolean)
 
-    return parts.join(', ')
+    return promptParts.join(', ')
   }
 
   /**
-   * Get current season based on month
+   * Match county slug/name to landscape DNA
    */
-  private getCurrentSeason(): string {
-    const month = new Date().getMonth() + 1
-    if (month >= 3 && month <= 5) return 'spring'
-    if (month >= 6 && month <= 8) return 'summer'
-    if (month >= 9 && month <= 11) return 'autumn'
-    return 'winter'
+  private getCountyLandscape(countySlug: string, countyName: string): typeof DEFAULT_LANDSCAPE {
+    const slugLower = countySlug.toLowerCase()
+    const nameLower = countyName.toLowerCase()
+
+    // Direct match
+    for (const [key, value] of Object.entries(COUNTY_LANDSCAPE_DNA)) {
+      if (slugLower.includes(key) || nameLower.includes(key)) {
+        return value
+      }
+    }
+
+    // Partial matches for compound names
+    if (slugLower.includes('lake') || slugLower.includes('cumbri')) {
+      return COUNTY_LANDSCAPE_DNA['cumbria']
+    }
+    if (slugLower.includes('york')) {
+      return COUNTY_LANDSCAPE_DNA['yorkshire']
+    }
+    if (slugLower.includes('corn')) {
+      return COUNTY_LANDSCAPE_DNA['cornwall']
+    }
+    if (slugLower.includes('cotswold')) {
+      return COUNTY_LANDSCAPE_DNA['gloucestershire']
+    }
+    if (slugLower.includes('peak')) {
+      return COUNTY_LANDSCAPE_DNA['derbyshire']
+    }
+    if (slugLower.includes('high')) {
+      return COUNTY_LANDSCAPE_DNA['highland']
+    }
+    if (slugLower.includes('snowdon') || slugLower.includes('eryri')) {
+      return COUNTY_LANDSCAPE_DNA['gwynedd']
+    }
+
+    return DEFAULT_LANDSCAPE
   }
 
   /**
@@ -419,7 +572,7 @@ export class CountyImageGenerator {
     try {
       const buffer = await client.generateBuffer({
         prompt,
-        negativePrompt: HARVEST_COUNTY_NEGATIVE,
+        negativePrompt: ATMOSPHERIC_ALMANAC_NEGATIVE,
         width: opts.width,
         height: opts.height,
         seed: opts.seed,
@@ -429,7 +582,7 @@ export class CountyImageGenerator {
       })
 
       if (buffer) {
-        imageGenLogger.info('Runware generated county image', { bytes: buffer.length })
+        imageGenLogger.info('Runware generated Atmospheric Almanac image', { bytes: buffer.length })
         return buffer
       }
 
@@ -459,7 +612,7 @@ export class CountyImageGenerator {
         seed: String(attemptSeed)
       })
 
-      const fullPrompt = `${prompt}, Negative: ${HARVEST_COUNTY_NEGATIVE}`
+      const fullPrompt = `${prompt}, Negative: ${ATMOSPHERIC_ALMANAC_NEGATIVE}`
       const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?${params.toString()}`
 
       try {
@@ -472,7 +625,7 @@ export class CountyImageGenerator {
         })
 
         if (response.status >= 200 && response.status < 300 && response.data?.length > 0) {
-          imageGenLogger.info('Pollinations generated county image', { bytes: response.data.length })
+          imageGenLogger.info('Pollinations generated Atmospheric Almanac image', { bytes: response.data.length })
           return Buffer.from(response.data)
         }
 

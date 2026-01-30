@@ -1,8 +1,10 @@
 /**
- * Produce Image Generator
+ * Produce Image Generator - "Editorial Grocer" Template
  *
- * Generates editorial food photography for seasonal produce using Runware.
- * Implements the Harvest Visual Signature: "Editorial Grocer" aesthetic.
+ * God-tier editorial food photography using Forensic Photography Prompting.
+ * Mimics specific lens behavior and British atmospheric conditions to avoid
+ * the "AI slop" look. Targets the aesthetic of Waitrose Food, Kinfolk, and
+ * Country Living magazines.
  *
  * @see https://docs.runware.ai/
  */
@@ -12,42 +14,123 @@ import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import { uploadProduceImage } from './produce-blob'
 import { logger } from '@/lib/logger'
-import { getRunwareClient, HARVEST_STYLE } from './runware-client'
+import { getRunwareClient } from './runware-client'
 
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
 /**
- * Harvest Visual Signature: Editorial Grocer
- * Macro photography meets artisan grocery aesthetic
+ * God-Tier Negative Prompt - Eliminates AI Artifacts
+ *
+ * Prevents: symmetry, plastic look, oversaturation, generic styling,
+ * perfect lighting that screams "AI generated"
  */
-const HARVEST_PRODUCE_NEGATIVE = [
-  'no people, no faces, nobody',
-  'no watermark, no text, no logo, no National Geographic, no magazine watermark',
-  'no abnormal shapes, no distorted produce',
-  'no artificial lighting, no harsh shadows',
-  'no plastic packaging, no supermarket shelves',
-  'no AI artifacts, no unrealistic colors',
-  'no buildings, no architecture, no church, no landscape background'
+const EDITORIAL_GROCER_NEGATIVE = [
+  // Anti-AI artifacts
+  'artificial, fake, plastic, synthetic, CGI, 3D render, illustration, painting, drawing',
+  'oversaturated, hyperrealistic, too perfect, too symmetrical, unnatural colors',
+  'stock photo, generic, clipart, cartoon, anime',
+  // Anti-composition errors
+  'blurry, out of focus subject, motion blur, grainy, noisy, pixelated',
+  'cropped awkwardly, bad framing, centered subject, boring composition',
+  // Anti-content pollution
+  'text, watermark, logo, signature, copyright, stamp, label, price tag',
+  'people, hands, fingers, face, body parts',
+  'plastic packaging, cellophane, supermarket shelf, fluorescent lighting',
+  // Anti-location errors
+  'outdoor, garden, field, farm, church, building, architecture, landscape, sky',
+  // Anti-lighting errors
+  'harsh shadows, direct flash, studio strobe, ring light, artificial lighting',
+  'overexposed, underexposed, high contrast, HDR look'
 ].join(', ')
 
 /**
- * Seasonal lighting based on British months
- * Cool tones for winter, warm golden for summer
+ * British Seasonal Lighting - Authentic UK Atmosphere
+ *
+ * Maps each month to specific lighting conditions that reflect
+ * the actual British climate and its effect on food photography.
  */
-const SEASONAL_LIGHTING: Record<number, string> = {
-  1: 'cool overcast winter light, soft grey tones',
-  2: 'crisp late winter light, hints of warmth',
-  3: 'fresh spring morning light, cool and bright',
-  4: 'soft spring daylight, gentle warmth',
-  5: 'warm late spring light, golden undertones',
-  6: 'bright summer morning light, warm and inviting',
-  7: 'golden hour summer light, rich warm tones',
-  8: 'warm late summer afternoon light',
-  9: 'soft autumn morning light, amber tones',
-  10: 'warm autumn golden hour, rich ochre tones',
-  11: 'cool late autumn light, soft grey-gold',
-  12: 'cool winter daylight, soft and muted'
+const BRITISH_SEASONAL_LIGHTING: Record<number, string> = {
+  1: 'cool diffused January light through frosted window, soft grey-blue tones, crisp winter morning',
+  2: 'pale February daylight, hints of approaching spring warmth, soft neutral tones',
+  3: 'fresh March morning light, cool and bright, early spring clarity',
+  4: 'gentle April shower light, soft diffused daylight, spring freshness',
+  5: 'warm late May afternoon light, golden undertones, British spring peak',
+  6: 'bright June morning light, warm and luminous, long summer days',
+  7: 'golden hour July light, rich amber warmth, peak British summer',
+  8: 'warm August afternoon glow, late summer richness, honey tones',
+  9: 'soft September morning light, early autumn amber, harvest warmth',
+  10: 'rich October golden hour, deep ochre and amber, autumn peak',
+  11: 'moody November light, soft grey-gold, late autumn atmosphere',
+  12: 'cool December daylight, muted and soft, winter stillness'
 }
+
+/**
+ * Produce-Specific Tactile Details
+ *
+ * Each produce type gets specific "imperfection" instructions to avoid
+ * the too-perfect AI look. These details make images feel real.
+ */
+const PRODUCE_TACTILE_DETAILS: Record<string, string> = {
+  // Leafy greens
+  'kale': 'fine morning dew droplets on curled leaf edges, natural purple-green variegation, slightly irregular leaf shapes, visible leaf veins',
+  'purple-sprouting-broccoli': 'tiny water droplets on florets, natural purple and green color variation, slightly uneven stem thickness, authentic British PSB',
+  'leeks': 'fine soil particles near root end, natural gradient from white to dark green, slight outer leaf weathering, authentic allotment character',
+  'asparagus': 'tight purple-tinged tips with natural variation, slight stem curvature, subtle scale texture, freshly cut white ends',
+
+  // Root vegetables
+  'beetroot': 'authentic earth residue on skin, natural skin blemishes and irregularities, deep purple-red color variation, intact root tail',
+  'parsnips': 'fine root hairs, natural skin marks and earth traces, cream color with brown spots, authentic wonky shapes',
+  'swede': 'natural purple and cream skin mottling, slight surface roughness, authentic farmgate appearance',
+  'carrots': 'fine root hairs, natural orange color variation, slight curvature, authentic soil traces near crown',
+
+  // Fruits
+  'strawberries': 'natural seed texture, slight color variation from tip to shoulder, tiny imperfect shapes, authentic British variety',
+  'blackberries': 'individual drupelets with natural sheen variation, some slightly less ripe segments, authentic hedgerow appearance',
+  'raspberries': 'delicate individual drupelets, natural hollow center visible, slight color variation, fragile authentic appearance',
+  'apples': 'natural skin russeting, subtle color blush variation, authentic British heritage variety character',
+  'plums': 'natural waxy bloom on skin, slight color gradients, authentic Victoria or damson character',
+  'pears': 'natural skin freckling, subtle color variation, authentic Conference or Comice character',
+
+  // Summer produce
+  'tomato': 'natural skin shine variation, visible stem scar, authentic vine-ripened imperfections, heritage variety character',
+  'sweetcorn': 'natural kernel size variation, authentic silk threads, slight husk weathering, freshly picked appearance',
+  'courgettes': 'natural skin texture and slight scarring, authentic flower end, subtle color variation',
+  'runner-beans': 'natural string texture, slight curve and twist, authentic British allotment character',
+
+  // Winter produce
+  'pumpkins': 'natural ribbing depth variation, authentic stem attachment, subtle color mottling, harvest character',
+  'squash': 'natural skin texture variation, authentic stem end, subtle color gradients'
+}
+
+/**
+ * Composition Variations - Editorial Styling
+ *
+ * Each variation uses different professional food photography compositions
+ * that would appear in high-end UK food magazines.
+ */
+const EDITORIAL_COMPOSITIONS = [
+  // Variation 1: Classic overhead
+  'editorial overhead flat lay, asymmetric arrangement on aged oak surface, negative space for text overlay in top-left, Kinfolk magazine aesthetic',
+  // Variation 2: Hero macro
+  'intimate macro perspective at 45-degree angle, single hero subject with supporting elements, shallow focus fall-off, cookbook cover quality',
+  // Variation 3: Rustic still life
+  'Dutch masters inspired still life arrangement, layered depth with rustic props, dramatic side lighting, painterly quality',
+  // Variation 4: Minimal modern
+  'minimalist Scandinavian composition, clean negative space, single perfect specimen, stark natural linen backdrop'
+]
+
+/**
+ * Background Surfaces - Authentic British Kitchen Textures
+ */
+const AUTHENTIC_SURFACES = [
+  'aged oak farmhouse table with natural grain and patina, authentic wear marks',
+  'weathered marble pastry slab with subtle grey veining, well-used character',
+  'natural linen cloth with visible weave texture, soft cream tone, slight creases',
+  'vintage ceramic tile surface, off-white with aged character',
+  'reclaimed pine kitchen counter, honey-warm with authentic knots and grain',
+  'slate cheese board surface, natural grey-blue with authentic texture',
+  'handthrown ceramic plate, artisan imperfections, neutral glaze'
+]
 
 interface ProduceImageOptions {
   width?: number
@@ -56,14 +139,18 @@ interface ProduceImageOptions {
   seed?: number
   /** Month (1-12) for seasonal lighting */
   month?: number
+  /** Variation index (1-4) for composition selection */
+  variation?: number
+  /** Include safe zone for text overlay */
+  safeZone?: boolean
 }
 
 export class ProduceImageGenerator {
   private userAgent = 'FarmCompanion-Frontend/1.0.0'
 
   /**
-   * Generate editorial food photography for produce items
-   * Uses Runware (Flux.2 dev) with Pollinations fallback
+   * Generate god-tier editorial food photography
+   * Uses Forensic Photography Prompting for authentic British aesthetic
    */
   async generateProduceImage(
     produceName: string,
@@ -71,16 +158,18 @@ export class ProduceImageGenerator {
     options: ProduceImageOptions = {}
   ): Promise<Buffer | null> {
     try {
-      imageGenLogger.info('Generating produce image', { produceName, slug })
+      imageGenLogger.info('Generating editorial produce image', { produceName, slug })
 
       const width = options.width ?? 2048
       const height = options.height ?? 2048
       const seed = options.seed ?? this.hashString(slug)
-      const prompt = this.createProducePrompt(produceName, options)
+      const prompt = this.createEditorialGrocerPrompt(produceName, slug, options)
 
-      imageGenLogger.debug('Prompt created', { promptPreview: prompt.substring(0, 120) })
+      imageGenLogger.debug('Editorial Grocer prompt created', {
+        promptPreview: prompt.substring(0, 200)
+      })
 
-      // Try Runware first (60% cheaper, 40% faster)
+      // Try Runware first (Flux.2 [dev] for best realism)
       let imageBuffer = await this.callRunware(prompt, { width, height, seed })
 
       // Fallback to Pollinations if Runware fails
@@ -90,7 +179,10 @@ export class ProduceImageGenerator {
       }
 
       if (imageBuffer) {
-        imageGenLogger.info('Image generated successfully', { produceName, bytes: imageBuffer.length })
+        imageGenLogger.info('Editorial image generated successfully', {
+          produceName,
+          bytes: imageBuffer.length
+        })
         return imageBuffer
       }
 
@@ -103,58 +195,73 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create Harvest Visual Signature prompt for produce
-   * "Editorial Grocer" - macro photography meets artisan grocery aesthetic
+   * Create "Editorial Grocer" Prompt
+   *
+   * Forensic Photography Prompting that instructs the AI to behave like
+   * a camera rather than an illustrator. Produces Kinfolk/Waitrose quality.
    */
-  private createProducePrompt(produceName: string, options: ProduceImageOptions): string {
+  private createEditorialGrocerPrompt(
+    produceName: string,
+    slug: string,
+    options: ProduceImageOptions
+  ): string {
     const hash = this.hashString(produceName)
     const month = options.month ?? new Date().getMonth() + 1
+    const variation = options.variation ?? (hash % 4) + 1
 
-    // Editorial Grocer compositions - explicit food photography focus
-    const compositions = [
-      'overhead flat lay food photograph on weathered oak table',
-      'macro close-up food photography showing natural texture',
-      'editorial food still life with soft window light',
-      'minimalist food composition on natural linen cloth',
-      'artisan produce display in wicker basket, studio shot',
-      'fresh produce arrangement, professional food photography',
-      'rustic kitchen food scene on vintage cutting board',
-      'professional food photography, clean studio lighting'
-    ]
+    // Get produce-specific tactile details or generate generic ones
+    const tactileDetails = PRODUCE_TACTILE_DETAILS[slug] ||
+      `natural surface texture and authentic imperfections, real ${produceName.toLowerCase()} character`
 
-    // Backgrounds matching the site's soil-100 aesthetic - indoor only
-    const backgrounds = [
-      'warm cream linen backdrop, indoor studio',
-      'weathered light oak table surface',
-      'natural pale stone kitchen counter',
-      'soft oatmeal canvas backdrop, studio setting',
-      'vintage whitewashed wooden table',
-      'neutral beige ceramic tile surface',
-      'light grey marble countertop'
-    ]
+    // Select composition based on variation
+    const composition = EDITORIAL_COMPOSITIONS[(variation - 1) % EDITORIAL_COMPOSITIONS.length]
 
-    const selectedComposition = compositions[hash % compositions.length]
-    const selectedBackground = backgrounds[(hash + 5) % backgrounds.length]
-    const seasonalLight = SEASONAL_LIGHTING[month] || SEASONAL_LIGHTING[6]
+    // Select surface based on hash
+    const surface = AUTHENTIC_SURFACES[hash % AUTHENTIC_SURFACES.length]
 
-    const parts = [
-      `Fresh ${produceName}, real edible food`,
-      'close-up food photography',
-      selectedComposition,
-      HARVEST_STYLE.camera,
-      seasonalLight,
-      selectedBackground,
-      'professional food photography, cookbook quality',
-      'natural organic appearance, realistic food textures',
-      'sharp focus on the food, shallow depth of field',
+    // Get British seasonal lighting
+    const lighting = BRITISH_SEASONAL_LIGHTING[month]
+
+    // Build the forensic photography prompt
+    const promptParts = [
+      // Subject with tactile realism
+      `Macro photography of fresh British ${produceName} at seasonal peak`,
+      tactileDetails,
+
+      // Technical camera specs (forces AI to think like a camera)
+      '50mm prime lens, f/2.8 aperture, shallow depth of field',
+      'sharp focus on hero subject, natural bokeh on background',
+
+      // Lighting (British atmospheric)
+      `soft natural window light, ${lighting}`,
+      'no artificial lighting, authentic daylight only',
+
+      // Surface and styling
+      surface,
+      'professional food styling for UK culinary magazine',
+
+      // Composition
+      composition,
+
+      // Quality markers
+      'Kinfolk magazine editorial quality, Waitrose Food aesthetic',
+      'vibrant but natural colors, authentic British produce',
+
+      // Safe zone for text overlay if requested
+      options.safeZone
+        ? 'subtle vignette with low-detail area in top-left quadrant for text overlay'
+        : undefined,
+
+      // Additional style hint
       options.styleHint
     ].filter(Boolean)
 
-    return parts.join(', ')
+    return promptParts.join(', ')
   }
 
   /**
    * Generate multiple variations for a produce item
+   * Each variation uses a different editorial composition
    */
   async generateVariations(
     produceName: string,
@@ -165,7 +272,10 @@ export class ProduceImageGenerator {
 
     for (let i = 0; i < count; i++) {
       const seed = this.hashString(slug) + i * 9973
-      const buffer = await this.generateProduceImage(produceName, slug, { seed })
+      const buffer = await this.generateProduceImage(produceName, slug, {
+        seed,
+        variation: i + 1
+      })
 
       if (buffer) {
         buffers.push(buffer)
@@ -227,7 +337,7 @@ export class ProduceImageGenerator {
     try {
       const buffer = await client.generateBuffer({
         prompt,
-        negativePrompt: HARVEST_PRODUCE_NEGATIVE,
+        negativePrompt: EDITORIAL_GROCER_NEGATIVE,
         width: opts.width,
         height: opts.height,
         seed: opts.seed,
@@ -237,7 +347,7 @@ export class ProduceImageGenerator {
       })
 
       if (buffer) {
-        imageGenLogger.info('Runware generated produce image', { bytes: buffer.length })
+        imageGenLogger.info('Runware generated editorial image', { bytes: buffer.length })
         return buffer
       }
 
