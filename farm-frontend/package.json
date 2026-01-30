@@ -10,7 +10,10 @@
     "postinstall": "prisma generate && node scripts/fix-prisma-zeptomatch.js && patch-package",
     "generate:produce-images": "tsx src/scripts/generate-produce-images.ts",
     "generate:farm-images": "tsx src/scripts/generate-farm-images.ts",
-    "generate:county-images": "tsx src/scripts/generate-county-images.ts"
+    "generate:county-images": "tsx src/scripts/generate-county-images.ts",
+    "update:produce-images": "tsx src/scripts/update-produce-images.ts",
+    "update:farm-images": "tsx src/scripts/update-farm-images.ts",
+    "regenerate:all-images": "bash scripts/regenerate-all-images.sh"
   },
   "dependencies": {
     "@googlemaps/js-api-loader": "^2.0.2",

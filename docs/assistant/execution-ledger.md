@@ -507,7 +507,7 @@
 
 ## Completed Work
 
-### 2026-01-30 (Image Generation Prompt Fixes)
+### 2026-01-30 (Image Generation Prompt Fixes + Regeneration Scripts)
 - **Fix Image Generation Prompts** (COMPLETE)
   - Fixed prompts causing National Geographic watermarks and church spires in generated images
   - Updated HARVEST_STYLE.negative in runware-client.ts to exclude church/steeple/religious buildings/National Geographic/magazine watermarks
@@ -522,6 +522,39 @@
   - Fixed twitter-workflow image-generator.js: removed "National Geographic quality" and "distant church spire" from prompts
   - Replaced magazine-style references with "professional photography" and "cookbook quality"
   - Files changed: runware-client.ts, farm-image-generator.ts, produce-image-generator.ts, generate-produce-images/route.ts, twitter-workflow/image-generator.js
+
+- **Image Regeneration Scripts** (COMPLETE)
+  - Created update-produce-images.ts: Regenerates all produce images and auto-updates src/data/produce.ts
+    - Supports --dry-run, --slug=X, --count=N flags
+    - Automatic file update with regex replacement
+    - TypeScript snippet output for manual fallback
+  - Created update-farm-images.ts: Regenerates farm images with automatic database sync
+    - Supports --dry-run, --limit=N, --slug=X, --force flags
+    - Creates Image records with uploadedBy='ai_generator', status='approved'
+    - Handles existing image replacement in force mode
+  - Created regenerate-all-images.sh: Bash script for complete regeneration
+    - Processes all 12 produce items with 4 variations each
+    - Processes farm images in batches of 50
+    - Built-in rate limiting (2s between items)
+  - Added npm scripts: update:produce-images, update:farm-images, regenerate:all-images
+  - Files created: scripts/regenerate-all-images.sh, src/scripts/update-produce-images.ts, src/scripts/update-farm-images.ts
+  - Files modified: package.json
+
+**To regenerate all images, run:**
+```bash
+cd farm-frontend
+
+# Option 1: All-in-one script
+pnpm regenerate:all-images
+
+# Option 2: Individual commands
+pnpm update:produce-images          # Regenerate all produce images
+pnpm update:farm-images --limit=50  # Regenerate farm images in batches
+
+# Dry run first to verify
+pnpm update:produce-images --dry-run
+pnpm update:farm-images --dry-run --limit=10
+```
 
 ### 2026-01-25 (Harvest Theme System + next-themes Integration)
 - **Queue 25, Slice 25.1: Harvest Color Tokens** (COMPLETE)
