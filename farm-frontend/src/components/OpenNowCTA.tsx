@@ -103,8 +103,8 @@ export function OpenNowCTA({ className = '', variant = 'hero' }: OpenNowCTAProps
       <Link
         href="/map?filter=open"
         className={`fixed bottom-20 right-4 z-40 md:bottom-8 md:right-8
-          bg-emerald-500 text-white px-4 py-3 rounded-full shadow-lg
-          hover:bg-emerald-600 transition-all duration-200 hover:scale-105
+          bg-status-open text-status-open-contrast px-4 py-3 rounded-full shadow-lg
+          hover:bg-green-700 transition-all duration-200 hover:scale-105
           flex items-center gap-2 group ${className}`}
       >
         <span className="relative flex h-3 w-3">

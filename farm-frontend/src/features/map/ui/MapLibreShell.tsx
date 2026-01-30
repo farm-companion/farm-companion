@@ -6,6 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FarmShop } from '@/types/farm'
 import { useClusteredMarkers, type ClusterOrPoint, type FarmCluster } from '../hooks/useClusteredMarkers'
 import { useMapLocation } from '../hooks/useMapLocation'
+import { getContrastTextColor } from '@/lib/contrast'
 import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } from '../lib/pin-icons'
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
@@ -128,7 +129,7 @@ export default function MapLibreShell({
     farms,
     currentZoom,
     currentBounds,
-    { radius: 60, maxZoom: 16 }
+    { radius: 50, maxZoom: 18 }  // Smaller radius + higher maxZoom for better expansion
   )
 
   // Use our location hook
@@ -181,21 +182,32 @@ export default function MapLibreShell({
       onMapReady?.(map)
     })
 
-    map.on('moveend', () => {
-      const bounds = map.getBounds()
-      if (bounds) {
-        const newBounds = {
-          north: bounds.getNorth(),
-          south: bounds.getSouth(),
-          east: bounds.getEast(),
-          west: bounds.getWest()
+    // Debounced move handler to prevent glitchy marker recreation during zoom
+    let moveTimeout: ReturnType<typeof setTimeout> | null = null
+    const handleMoveEnd = () => {
+      // Clear any pending update
+      if (moveTimeout) clearTimeout(moveTimeout)
+
+      // Wait for animation to settle before updating state
+      moveTimeout = setTimeout(() => {
+        const bounds = map.getBounds()
+        if (bounds) {
+          const newBounds = {
+            north: bounds.getNorth(),
+            south: bounds.getSouth(),
+            east: bounds.getEast(),
+            west: bounds.getWest()
+          }
+          setCurrentBounds(newBounds)
+          onBoundsChange?.(newBounds)
         }
-        setCurrentBounds(newBounds)
-        onBoundsChange?.(newBounds)
-      }
-      setCurrentZoom(map.getZoom())
-      onZoomChange?.(map.getZoom())
-    })
+        setCurrentZoom(map.getZoom())
+        onZoomChange?.(map.getZoom())
+      }, 150) // Small delay to let animation complete
+    }
+
+    map.on('moveend', handleMoveEnd)
+    map.on('zoomend', handleMoveEnd)
 
     map.on('error', (e) => {
       console.error('[MapLibreShell] Map error:', e.error?.message || e)
@@ -216,19 +228,34 @@ export default function MapLibreShell({
     })
 
     return () => {
+      if (moveTimeout) clearTimeout(moveTimeout)
       map.remove()
       mapRef.current = null
       setMapInstance(null)
     }
   }, [])
 
-  // Cluster style helper
+  // Cluster style helper with WCAG AA compliant contrast (uses shared utility)
   const getClusterStyle = (count: number) => {
-    if (count >= 50) return { size: 56, color: '#ef4444', textColor: 'white' }
-    if (count >= 20) return { size: 48, color: '#f97316', textColor: 'white' }
-    if (count >= 10) return { size: 40, color: '#eab308', textColor: 'black' }
-    if (count >= 5) return { size: 36, color: '#22c55e', textColor: 'white' }
-    return { size: 32, color: '#06b6d4', textColor: 'white' }
+    // Harvest design system colors with enforced contrast
+    if (count >= 50) {
+      const bg = '#dc2626' // Red-600 (darker for better contrast)
+      return { size: 56, color: bg, textColor: getContrastTextColor(bg) }
+    }
+    if (count >= 20) {
+      const bg = '#c2410c' // Orange-700 (darkened from #f97316 for white text)
+      return { size: 48, color: bg, textColor: getContrastTextColor(bg) }
+    }
+    if (count >= 10) {
+      const bg = '#ca8a04' // Yellow-600 (amber tone, needs dark text)
+      return { size: 40, color: bg, textColor: getContrastTextColor(bg) }
+    }
+    if (count >= 5) {
+      const bg = '#16a34a' // Green-600
+      return { size: 36, color: bg, textColor: getContrastTextColor(bg) }
+    }
+    const bg = '#0891b2' // Cyan-600
+    return { size: 32, color: bg, textColor: getContrastTextColor(bg) }
   }
 
   // Handle cluster click
@@ -252,12 +279,27 @@ export default function MapLibreShell({
       }
     }
 
-    // For larger clusters, zoom in
-    const expansionZoom = getClusterExpansionZoom(clusterId)
-    map.flyTo({
+    // For larger clusters, zoom in with smooth animation
+    const currentZoom = map.getZoom()
+    let targetZoom: number
+
+    try {
+      const expansionZoom = getClusterExpansionZoom(clusterId)
+      // Use expansion zoom but ensure we always zoom in at least 1.5 levels
+      targetZoom = Math.max(expansionZoom, currentZoom + 1.5)
+    } catch {
+      // If cluster ID is stale, just zoom in by 2 levels
+      targetZoom = currentZoom + 2
+    }
+
+    // Cap at max zoom of 18
+    targetZoom = Math.min(targetZoom, 18)
+
+    map.easeTo({
       center: [lng, lat],
-      zoom: Math.min(expansionZoom, 16),
-      duration: 500
+      zoom: targetZoom,
+      duration: 400,
+      easing: (t) => t * (2 - t) // Ease-out quad for smooth deceleration
     })
   }, [getClusterLeaves, getClusterExpansionZoom, triggerHaptic])
 
@@ -282,25 +324,35 @@ export default function MapLibreShell({
   // Create/update markers when clusters change
   useEffect(() => {
     const map = mapRef.current
-    if (!map || !clusters.length) return
+    if (!map) return
 
-    // Clear old markers
+    // Always clear old markers first - even when clusters is empty
     markersRef.current.forEach(marker => marker.remove())
     markersRef.current.clear()
     clusterMarkersRef.current.forEach(marker => marker.remove())
     clusterMarkersRef.current.clear()
 
+    // Exit if no clusters to render
+    if (!clusters.length) return
+
     clusters.forEach((item: ClusterOrPoint) => {
+      // Validate coordinates before creating marker
+      const [lng, lat] = item.geometry.coordinates
+      if (!Number.isFinite(lng) || !Number.isFinite(lat) || lng === 0 && lat === 0) {
+        console.warn('[MapLibreShell] Invalid coordinates, skipping marker:', { lng, lat, item })
+        return
+      }
+
       if (isCluster(item)) {
         // It's a cluster
         const clusterId = item.properties.cluster_id
         const count = item.properties.point_count
-        const [lng, lat] = item.geometry.coordinates
 
         const el = document.createElement('div')
         el.className = 'maplibre-cluster-marker'
 
         const { size, color, textColor } = getClusterStyle(count)
+        // NO transforms - just basic styling
         el.style.cssText = `
           width: ${size}px;
           height: ${size}px;
@@ -316,16 +368,15 @@ export default function MapLibreShell({
           box-shadow: 0 2px 8px rgba(0,0,0,0.3);
           cursor: pointer;
           pointer-events: auto;
-          transform-origin: center center;
-          transition: transform 0.15s ease-out;
         `
         el.textContent = count > 99 ? '99+' : String(count)
 
+        // Hover uses filter only, no transform
         el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.1)'
+          el.style.filter = 'brightness(1.1)'
         })
         el.addEventListener('mouseleave', () => {
-          el.style.transform = ''
+          el.style.filter = ''
         })
         el.addEventListener('click', (e) => {
           e.stopPropagation()
@@ -354,7 +405,7 @@ export default function MapLibreShell({
       } else {
         // It's a single farm point
         const farm = item.properties.farm
-        const [lng, lat] = item.geometry.coordinates
+        // lng, lat already extracted at top of forEach
         const pinConfig = getPinForFarm(farm.offerings)
         const isOpen = farm.hours ? isFarmOpen(farm.hours) : null
         const markerSize = 36
@@ -365,26 +416,22 @@ export default function MapLibreShell({
         el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
         el.dataset.farmId = farm.id
         el.dataset.open = isOpen === true ? 'true' : isOpen === false ? 'false' : 'unknown'
-        // Critical: Set all positioning properties inline to prevent touch jump
+        // Minimal styling - NO transforms to avoid conflicting with MapLibre positioning
         el.style.cssText = `
           width: ${markerSize}px;
           height: ${markerSize}px;
           cursor: pointer;
           pointer-events: auto;
-          transform-origin: center center;
-          transition: transform 0.15s ease-out, filter 0.15s ease-out;
         `
         el.innerHTML = svg
 
-        // Event handlers
+        // Event handlers - NO transform manipulation to test positioning
         el.addEventListener('mouseenter', () => {
-          el.style.transform = 'scale(1.15)'
           el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
           onFarmHover?.(farm.id)
         })
         el.addEventListener('mouseleave', () => {
-          const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
-          el.style.transform = isHighlighted ? 'scale(1.15)' : ''
+          const isHighlighted = el.dataset.highlighted === 'true'
           el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : ''
           onFarmHover?.(null)
         })
@@ -403,14 +450,6 @@ export default function MapLibreShell({
           handleMarkerClick(farm)
         }, { passive: false })
 
-        // Apply highlight state
-        const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
-        if (isHighlighted) {
-          el.style.transform = 'scale(1.15)'
-          el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
-          el.style.zIndex = '1000'
-        }
-
         const marker = new maplibregl.Marker({
           element: el,
           anchor: 'center',
@@ -422,7 +461,26 @@ export default function MapLibreShell({
         markersRef.current.set(farm.id, marker)
       }
     })
-  }, [clusters, selectedFarmId, hoveredFarmId, isCluster, handleClusterClick, handleMarkerClick, onFarmHover])
+  }, [clusters, isCluster, handleClusterClick, handleMarkerClick, onFarmHover])
+
+  // Update marker highlight styles WITHOUT recreating markers - NO transforms
+  useEffect(() => {
+    markersRef.current.forEach((marker, farmId) => {
+      const el = marker.getElement() as HTMLElement
+      if (!el || !el.classList.contains('maplibre-farm-marker')) return
+
+      const isHighlighted = selectedFarmId === farmId || hoveredFarmId === farmId
+      el.dataset.highlighted = isHighlighted ? 'true' : 'false'
+
+      if (isHighlighted) {
+        el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
+        el.style.zIndex = '1000'
+      } else {
+        el.style.filter = ''
+        el.style.zIndex = ''
+      }
+    })
+  }, [selectedFarmId, hoveredFarmId])
 
   // Pan to selected farm
   useEffect(() => {

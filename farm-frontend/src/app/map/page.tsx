@@ -194,8 +194,9 @@ export default function MapPage() {
     })
   }, [])
 
-  // Filter and search farms
-  const filteredAndSearchedFarms = useMemo(() => {
+  // Base filtered farms (search + panel filters + pill filters, NO bounds)
+  // This is what the MAP receives - it handles its own spatial visibility via clustering
+  const farmsForMap = useMemo(() => {
     // 1) derive distance (no mutation)
     let result = farms.map(f => {
       const d = userLocation
@@ -239,7 +240,16 @@ export default function MapPage() {
     // 3.5) Quick filter pills (floating toggles)
     result = applyPillFilters(result, pillFilters, isFarmOpen)
 
-    // 4) map bounds - use activeBounds (controlled by searchAsIMove toggle)
+    // NO bounds filtering here - map handles its own visibility via clustering
+
+    return result
+  }, [farms, userLocation, debouncedQuery, filters, pillFilters])
+
+  // Farms for the LIST (includes bounds filtering for "what's in view")
+  const farmsForList = useMemo(() => {
+    let result = farmsForMap
+
+    // Apply bounds filter for the list only
     if (activeBounds) {
       result = result.filter(f => {
         const { lat, lng } = f.location
@@ -248,16 +258,18 @@ export default function MapPage() {
       })
     }
 
-    // 5) final sort by distance if we have one
-    if (userLocation) result = result.sort((a,b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
+    // Sort by distance if available
+    if (userLocation) {
+      result = [...result].sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
+    }
 
     return result
-  }, [farms, userLocation, debouncedQuery, filters, pillFilters, activeBounds])
+  }, [farmsForMap, activeBounds, userLocation])
 
-  // Update filtered farms when the computed result changes
+  // Update filtered farms state for components that need it
   useEffect(() => {
-    setFilteredFarms(filteredAndSearchedFarms)
-  }, [filteredAndSearchedFarms])
+    setFilteredFarms(farmsForList)
+  }, [farmsForList])
 
   // Get unique counties and categories for filters
   const counties = useMemo(() => {
@@ -476,7 +488,7 @@ export default function MapPage() {
           {/* Map */}
           <div className="absolute inset-0">
             <MapShellWithNoSSR
-              farms={filteredFarms}
+              farms={farmsForMap}
               selectedFarmId={selectedFarmId}
               hoveredFarmId={hoveredFarmId}
               onFarmSelect={handleFarmSelect}

@@ -60,13 +60,13 @@ export function StatusBadgeCompact({ openingHours, className = '' }: StatusBadge
         inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold
         backdrop-blur-sm shadow-sm
         ${isOpen
-          ? 'bg-emerald-500/90 text-white'
-          : 'bg-slate-900/80 text-slate-200'
+          ? 'bg-status-open text-status-open-contrast'
+          : 'bg-status-closed text-status-closed-contrast'
         }
         ${className}
       `}
     >
-      <span className={`text-[8px] ${isOpen ? 'text-emerald-200' : 'text-red-400'}`}>{icon}</span>
+      <span className="text-[8px] opacity-80">{icon}</span>
       {text}
     </span>
   )

@@ -25,6 +25,17 @@ export type { FarmPopupProps } from './FarmPopup'
 export { FarmDetailSheet } from './FarmDetailSheet'
 export type { FarmDetailSheetProps } from './FarmDetailSheet'
 
+export { MobileMarkerSheet } from './MobileMarkerSheet'
+export type { MobileMarkerSheetProps } from './MobileMarkerSheet'
+
+// Keyboard navigation
+export { useMarkerKeyboardNav, MarkerAnnouncer } from './useMarkerKeyboardNav'
+export type {
+  UseMarkerKeyboardNavOptions,
+  UseMarkerKeyboardNavResult,
+  MarkerAnnouncerProps,
+} from './useMarkerKeyboardNav'
+
 // Re-export clustering hook
 export { useClusteredMarkers } from '@/features/map/hooks/useClusteredMarkers'
 export type {
@@ -40,6 +51,7 @@ export type {
 export {
   DEFAULT_MAP_CONFIG,
   DARK_MAP_CONFIG,
+  STADIA_STYLES,
   OSM_RASTER_STYLE,
   getMapStyle,
   getMapConfig,
