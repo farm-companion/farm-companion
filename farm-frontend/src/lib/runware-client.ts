@@ -249,7 +249,7 @@ export const HARVEST_STYLE = {
   safeZone: 'low-detail vignette in top-left quadrant for text overlay',
 
   /** Common negative prompt elements */
-  negative: 'no people, no faces, no text, no watermarks, no logos, no AI artifacts, no plastic, no artificial lighting'
+  negative: 'no people, no faces, no text, no watermarks, no logos, no AI artifacts, no plastic, no artificial lighting, no church, no church spire, no steeple, no religious buildings, no National Geographic, no magazine logo'
 }
 
 /**

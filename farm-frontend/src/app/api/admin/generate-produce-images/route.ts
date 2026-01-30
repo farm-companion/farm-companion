@@ -17,11 +17,39 @@ function checkApiKey(request: NextRequest): boolean {
 }
 
 // Specific prompts for produce that need extra detail to avoid confusion
+// Each prompt must clearly describe the actual food item
 const PRODUCE_SPECIFIC_PROMPTS: Record<string, string> = {
   'kale': 'Fresh curly kale leaves, dark green leafy vegetable with ruffled edges, NOT broccoli, showing the characteristic wavy leaf structure',
   'purple-sprouting-broccoli': 'Purple sprouting broccoli with thin purple-green stems and small purple florets, British spring vegetable',
   'leeks': 'Fresh whole leeks with white and light green stalks, long cylindrical allium vegetable',
   'asparagus': 'Fresh green asparagus spears with tight purple-green tips, spring vegetable',
+  'beetroot': 'Fresh raw beetroot with deep purple-red skin, root vegetable with leafy tops',
+  'parsnips': 'Fresh parsnips, cream-colored root vegetables, similar shape to carrots but white',
+  'swede': 'Fresh swede root vegetable, round with purple and cream skin, also called rutabaga',
+  'celeriac': 'Fresh celeriac root, knobbly cream-colored root vegetable, celery root',
+  'chard': 'Fresh Swiss chard leaves with colorful stems, leafy green vegetable',
+  'spring-greens': 'Fresh spring greens, loose-leafed cabbage, bright green leafy vegetable',
+  'cavolo-nero': 'Cavolo nero, dark green Italian kale with long crinkled leaves, Tuscan kale',
+  'pak-choi': 'Fresh pak choi, Chinese cabbage with white stems and dark green leaves',
+  'turnips': 'Fresh turnips, round root vegetables with white and purple skin',
+  'kohlrabi': 'Fresh kohlrabi, pale green or purple bulb vegetable above ground',
+  'artichokes': 'Fresh globe artichokes, large green flower bud vegetable',
+  'broad-beans': 'Fresh broad beans in their pods, green fava beans',
+  'runner-beans': 'Fresh runner beans, long flat green bean pods',
+  'french-beans': 'Fresh French beans, thin tender green beans',
+  'mangetout': 'Fresh mangetout peas, flat edible pea pods, snow peas',
+  'rhubarb': 'Fresh rhubarb stalks, long pink-red stalks with green leaves',
+  'gooseberries': 'Fresh gooseberries, small green oval berries',
+  'blackcurrants': 'Fresh blackcurrants, small dark purple berries in clusters',
+  'redcurrants': 'Fresh redcurrants, small translucent red berries in clusters',
+  'damsons': 'Fresh damsons, small dark purple stone fruits',
+  'greengages': 'Fresh greengages, small green-yellow stone fruits, type of plum',
+  'medlars': 'Fresh medlars, small brown apple-like fruits',
+  'quince': 'Fresh quince fruit, large yellow pear-shaped fruit',
+  'courgettes': 'Fresh courgettes, dark green zucchini squash',
+  'marrows': 'Fresh marrow, large green striped squash vegetable',
+  'pumpkins': 'Fresh pumpkin, large orange round squash',
+  'squash': 'Fresh butternut squash, tan-colored gourd-shaped vegetable',
 }
 
 /**

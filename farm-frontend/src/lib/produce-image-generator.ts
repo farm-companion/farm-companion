@@ -22,11 +22,12 @@ const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
  */
 const HARVEST_PRODUCE_NEGATIVE = [
   'no people, no faces, nobody',
-  'no watermark, no text, no logo',
+  'no watermark, no text, no logo, no National Geographic, no magazine watermark',
   'no abnormal shapes, no distorted produce',
   'no artificial lighting, no harsh shadows',
   'no plastic packaging, no supermarket shelves',
-  'no AI artifacts, no unrealistic colors'
+  'no AI artifacts, no unrealistic colors',
+  'no buildings, no architecture, no church, no landscape background'
 ].join(', ')
 
 /**
@@ -109,27 +110,27 @@ export class ProduceImageGenerator {
     const hash = this.hashString(produceName)
     const month = options.month ?? new Date().getMonth() + 1
 
-    // Editorial Grocer compositions
+    // Editorial Grocer compositions - explicit food photography focus
     const compositions = [
-      'overhead flat lay on weathered oak table',
-      'macro close-up showing natural texture and dewdrops',
-      'editorial still life with soft window light',
-      'minimalist composition on natural linen',
-      'artisan market display in wicker basket',
-      'fresh harvest arrangement with garden herbs',
-      'rustic kitchen scene on vintage cutting board',
-      'Waitrose-style editorial food photography'
+      'overhead flat lay food photograph on weathered oak table',
+      'macro close-up food photography showing natural texture',
+      'editorial food still life with soft window light',
+      'minimalist food composition on natural linen cloth',
+      'artisan produce display in wicker basket, studio shot',
+      'fresh produce arrangement, professional food photography',
+      'rustic kitchen food scene on vintage cutting board',
+      'professional food photography, clean studio lighting'
     ]
 
-    // Backgrounds matching the site's soil-100 aesthetic
+    // Backgrounds matching the site's soil-100 aesthetic - indoor only
     const backgrounds = [
-      'warm cream linen background',
-      'weathered light oak surface',
-      'natural pale stone countertop',
-      'soft oatmeal canvas backdrop',
-      'vintage whitewashed wood',
-      'neutral beige ceramic tile',
-      'light grey marble with subtle veining'
+      'warm cream linen backdrop, indoor studio',
+      'weathered light oak table surface',
+      'natural pale stone kitchen counter',
+      'soft oatmeal canvas backdrop, studio setting',
+      'vintage whitewashed wooden table',
+      'neutral beige ceramic tile surface',
+      'light grey marble countertop'
     ]
 
     const selectedComposition = compositions[hash % compositions.length]
@@ -137,14 +138,15 @@ export class ProduceImageGenerator {
     const seasonalLight = SEASONAL_LIGHTING[month] || SEASONAL_LIGHTING[6]
 
     const parts = [
-      `Fresh British ${produceName}`,
+      `Fresh ${produceName}, real edible food`,
+      'close-up food photography',
       selectedComposition,
       HARVEST_STYLE.camera,
       seasonalLight,
       selectedBackground,
-      'editorial food photography, magazine quality',
-      'natural organic appearance, authentic textures',
-      'sharp focus on produce details',
+      'professional food photography, cookbook quality',
+      'natural organic appearance, realistic food textures',
+      'sharp focus on the food, shallow depth of field',
       options.styleHint
     ].filter(Boolean)
 

@@ -22,7 +22,9 @@ const HARVEST_FARM_NEGATIVE = [
   'no watermark, no text, no logo, no signs with text',
   'no distorted buildings, no modern architecture',
   'no AI artifacts, no unrealistic proportions',
-  'no harsh shadows, no artificial lighting'
+  'no harsh shadows, no artificial lighting',
+  'no church, no church spire, no steeple, no religious buildings, no chapel',
+  'no National Geographic, no documentary style, no magazine watermark'
 ].join(', ')
 
 /**
@@ -36,9 +38,9 @@ const REGIONAL_STYLES: Record<string, string> = {
   dorset: 'Purbeck stone, thatched roofs, rolling chalk downs',
 
   // Cotswolds
-  cotswold: 'honey-colored Cotswold limestone, dry stone walls',
-  gloucestershire: 'warm Cotswold stone, traditional market town charm',
-  oxfordshire: 'golden limestone, quintessential English village',
+  cotswold: 'honey-colored Cotswold limestone, dry stone walls, open fields',
+  gloucestershire: 'warm Cotswold stone, rolling hills backdrop',
+  oxfordshire: 'golden limestone, farmland setting',
 
   // South East
   kent: 'traditional oast houses, hop gardens, white weatherboard',
@@ -47,7 +49,7 @@ const REGIONAL_STYLES: Record<string, string> = {
 
   // East Anglia
   norfolk: 'flint construction, Norfolk Broads landscape, big skies',
-  suffolk: 'pink-washed cottages, traditional wool churches nearby',
+  suffolk: 'pink-washed buildings, open Suffolk farmland',
   essex: 'weatherboard and red brick, rolling farmland',
 
   // Midlands
@@ -134,16 +136,16 @@ export class FarmImageGenerator {
   private createFarmPrompt(farmName: string, options: FarmImageOptions): string {
     const hash = this.hashString(farmName)
 
-    // UK farm shop scene types
+    // UK farm shop scene types - standalone buildings only, no villages
     const sceneTypes = [
-      'charming British farm shop exterior with rustic wooden signage',
-      'traditional stone-built farm shop in English countryside',
-      'quaint village farm shop with period architectural details',
-      'picturesque farm shop entrance with seasonal flower displays',
-      'idyllic UK farm shop with rolling green hills background',
-      'welcoming British farm shop courtyard with vintage character',
-      'beautiful country farm shop at golden hour',
-      'authentic rural farm shop with cobblestone forecourt'
+      'standalone British farm shop exterior with rustic wooden signage',
+      'traditional stone-built farm shop surrounded by farmland',
+      'isolated rural farm shop with period architectural details',
+      'farm shop entrance with seasonal flower displays and hedgerow',
+      'UK farm shop building with rolling green fields background',
+      'welcoming British farm shop courtyard with wooden crates',
+      'country farm shop at golden hour with meadow backdrop',
+      'authentic rural farm shop with gravel forecourt'
     ]
 
     // Architectural details
@@ -190,8 +192,8 @@ export class FarmImageGenerator {
       HARVEST_STYLE.lighting,
       selectedDetail,
       selectedAtmosphere,
-      'British countryside setting',
-      'inviting and authentic atmosphere',
+      'isolated rural setting',
+      'farmland and fields backdrop',
       'editorial architectural photography',
       regionalHint,
       options.safeZone ? HARVEST_STYLE.safeZone : undefined,

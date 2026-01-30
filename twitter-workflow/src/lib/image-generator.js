@@ -7,7 +7,7 @@ dotenv.config({ path: '.env.local' });
  * Harvest Visual Signature negative prompt
  * Used across all image generation to ensure consistency
  */
-const HARVEST_NEGATIVE = 'no people, no person, no faces, nobody, no humans, no watermark, no text, no logo, no AI artifacts, no distorted buildings';
+const HARVEST_NEGATIVE = 'no people, no person, no faces, nobody, no humans, no watermark, no text, no logo, no AI artifacts, no distorted buildings, no church, no church spire, no steeple, no religious buildings, no chapel, no National Geographic, no magazine watermark';
 
 /**
  * Harvest Visual Signature camera settings
@@ -106,16 +106,16 @@ class ImageGenerator {
     switch (selectedCategory) {
       case 'farm_shop_exterior':
         basePrompt = [
-          'Charming British farm shop exterior',
+          'Standalone British farm shop exterior',
           'traditional stone building with rustic character',
           'warm inviting atmosphere',
-          'English countryside setting',
+          'isolated rural farmland setting',
           'editorial architectural photography'
         ];
         specificElements = [
           'golden hour lighting', 'soft morning light', 'warm afternoon sun',
           'autumn colors on climbing plants', 'spring flower boxes', 'summer greenery',
-          'vintage wooden signage', 'cobblestone forecourt', 'heritage features',
+          'vintage wooden signage', 'gravel forecourt', 'heritage features',
           'weathered oak beams', 'period windows', 'slate roof tiles'
         ];
         break;
@@ -125,13 +125,13 @@ class ImageGenerator {
           'British countryside landscape',
           'rolling green hills and pastoral fields',
           'authentic UK farmland scenery',
-          'National Geographic quality',
+          'professional landscape photography',
           'editorial landscape photography'
         ];
         specificElements = [
           'golden wheat fields', 'green pastures with sheep', 'patchwork fields',
           'dry stone walls', 'ancient hedgerows', 'country lanes',
-          'distant church spire', 'morning mist in valleys', 'dramatic sky',
+          'distant farmhouse', 'morning mist in valleys', 'dramatic sky',
           'oak trees in fields', 'wildflower meadows', 'river through farmland'
         ];
         break;
@@ -141,8 +141,8 @@ class ImageGenerator {
           'Artisan seeds and grains display',
           'natural organic products',
           'rustic wooden bowls and containers',
-          'editorial food photography',
-          'Waitrose magazine quality'
+          'professional food photography',
+          'cookbook quality photography'
         ];
         specificElements = [
           'golden wheat grains', 'mixed heritage seeds', 'organic oats',
@@ -157,8 +157,8 @@ class ImageGenerator {
           'British kitchen garden',
           'traditional raised beds and borders',
           'thriving vegetable patch',
-          'editorial garden photography',
-          'Country Living magazine style'
+          'professional garden photography',
+          'editorial garden photography'
         ];
         specificElements = [
           'heritage vegetables', 'climbing runner beans', 'leafy greens',

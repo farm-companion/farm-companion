@@ -507,6 +507,22 @@
 
 ## Completed Work
 
+### 2026-01-30 (Image Generation Prompt Fixes)
+- **Fix Image Generation Prompts** (COMPLETE)
+  - Fixed prompts causing National Geographic watermarks and church spires in generated images
+  - Updated HARVEST_STYLE.negative in runware-client.ts to exclude church/steeple/religious buildings/National Geographic/magazine watermarks
+  - Updated HARVEST_FARM_NEGATIVE in farm-image-generator.ts with same exclusions
+  - Updated HARVEST_PRODUCE_NEGATIVE in produce-image-generator.ts with exclusions for buildings/architecture/landscape
+  - Removed village references from farm scene types (replaced with isolated/standalone farm shop)
+  - Removed church reference from Suffolk regional style
+  - Updated Cotswolds/Oxfordshire regional styles to focus on farmland instead of villages
+  - Fixed prompt focus from "British countryside setting" to "isolated rural setting, farmland and fields backdrop"
+  - Updated produce prompts to be more explicit about food photography (added "real edible food", "close-up food photography")
+  - Added 27 additional produce-specific prompts in API route for ambiguous items (beetroot, parsnips, swede, etc.)
+  - Fixed twitter-workflow image-generator.js: removed "National Geographic quality" and "distant church spire" from prompts
+  - Replaced magazine-style references with "professional photography" and "cookbook quality"
+  - Files changed: runware-client.ts, farm-image-generator.ts, produce-image-generator.ts, generate-produce-images/route.ts, twitter-workflow/image-generator.js
+
 ### 2026-01-25 (Harvest Theme System + next-themes Integration)
 - **Queue 25, Slice 25.1: Harvest Color Tokens** (COMPLETE)
   - Created harvest-theme.css with 3-layer architecture: Primitives, Semantics, Utilities
