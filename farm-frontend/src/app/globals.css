@@ -75,9 +75,6 @@
   touch-action: none !important;
 }
 
-/* Tailwind CSS v4 import */
-@import "tailwindcss";
-
 /* ============================================================================
    MOBILE-FRIENDLY INTERACTIONS - NO PROTECTION
    ============================================================================ */

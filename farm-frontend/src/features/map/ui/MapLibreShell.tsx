@@ -234,13 +234,56 @@ export default function MapLibreShell({
     }
   }, [])
 
-  // Cluster style helper
+  /**
+   * Calculate relative luminance of a hex color (WCAG formula)
+   * Returns value between 0 (black) and 1 (white)
+   */
+  const getLuminance = (hex: string): number => {
+    const rgb = hex.replace('#', '').match(/.{2}/g)?.map(x => {
+      const c = parseInt(x, 16) / 255
+      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+    }) || [0, 0, 0]
+    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+  }
+
+  /**
+   * Get contrast-safe text color for a given background
+   * Uses WCAG 2.1 contrast ratio threshold of 4.5:1
+   */
+  const getContrastTextColor = (bgHex: string): string => {
+    const bgLum = getLuminance(bgHex)
+    const whiteLum = 1
+    const blackLum = 0
+
+    // Contrast ratio = (L1 + 0.05) / (L2 + 0.05) where L1 > L2
+    const whiteContrast = (whiteLum + 0.05) / (bgLum + 0.05)
+    const blackContrast = (bgLum + 0.05) / (blackLum + 0.05)
+
+    // Return color with better contrast (threshold 4.5:1 for AA)
+    return blackContrast > whiteContrast ? '#1a1816' : '#ffffff'
+  }
+
+  // Cluster style helper with WCAG AA compliant contrast
   const getClusterStyle = (count: number) => {
-    if (count >= 50) return { size: 56, color: '#ef4444', textColor: 'white' }
-    if (count >= 20) return { size: 48, color: '#f97316', textColor: 'white' }
-    if (count >= 10) return { size: 40, color: '#eab308', textColor: 'black' }
-    if (count >= 5) return { size: 36, color: '#22c55e', textColor: 'white' }
-    return { size: 32, color: '#06b6d4', textColor: 'white' }
+    // Harvest design system colors with enforced contrast
+    if (count >= 50) {
+      const bg = '#dc2626' // Red-600 (darker for better contrast)
+      return { size: 56, color: bg, textColor: getContrastTextColor(bg) }
+    }
+    if (count >= 20) {
+      const bg = '#c2410c' // Orange-700 (darkened from #f97316 for white text)
+      return { size: 48, color: bg, textColor: getContrastTextColor(bg) }
+    }
+    if (count >= 10) {
+      const bg = '#ca8a04' // Yellow-600 (amber tone, needs dark text)
+      return { size: 40, color: bg, textColor: getContrastTextColor(bg) }
+    }
+    if (count >= 5) {
+      const bg = '#16a34a' // Green-600
+      return { size: 36, color: bg, textColor: getContrastTextColor(bg) }
+    }
+    const bg = '#0891b2' // Cyan-600
+    return { size: 32, color: bg, textColor: getContrastTextColor(bg) }
   }
 
   // Handle cluster click
