@@ -1,31 +1,68 @@
+/**
+ * Produce Image Generator
+ *
+ * Generates editorial food photography for seasonal produce using Runware.
+ * Implements the Harvest Visual Signature: "Editorial Grocer" aesthetic.
+ *
+ * @see https://docs.runware.ai/
+ */
+
 import axios from 'axios'
 import { writeFile, mkdir } from 'fs/promises'
-import { join } from 'path'
 import { existsSync } from 'fs'
 import { uploadProduceImage } from './produce-blob'
 import { logger } from '@/lib/logger'
+import { getRunwareClient, HARVEST_STYLE } from './runware-client'
 
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
-const NO_FACE_NEGATIVE = 'no people, no person, no faces, no face, nobody, no humans, no portrait, no selfie, no crowds, no watermark, no text, no logo, no abnormal shapes, no distorted fruits, no mutated vegetables'
+/**
+ * Harvest Visual Signature: Editorial Grocer
+ * Macro photography meets artisan grocery aesthetic
+ */
+const HARVEST_PRODUCE_NEGATIVE = [
+  'no people, no faces, nobody',
+  'no watermark, no text, no logo',
+  'no abnormal shapes, no distorted produce',
+  'no artificial lighting, no harsh shadows',
+  'no plastic packaging, no supermarket shelves',
+  'no AI artifacts, no unrealistic colors'
+].join(', ')
+
+/**
+ * Seasonal lighting based on British months
+ * Cool tones for winter, warm golden for summer
+ */
+const SEASONAL_LIGHTING: Record<number, string> = {
+  1: 'cool overcast winter light, soft grey tones',
+  2: 'crisp late winter light, hints of warmth',
+  3: 'fresh spring morning light, cool and bright',
+  4: 'soft spring daylight, gentle warmth',
+  5: 'warm late spring light, golden undertones',
+  6: 'bright summer morning light, warm and inviting',
+  7: 'golden hour summer light, rich warm tones',
+  8: 'warm late summer afternoon light',
+  9: 'soft autumn morning light, amber tones',
+  10: 'warm autumn golden hour, rich ochre tones',
+  11: 'cool late autumn light, soft grey-gold',
+  12: 'cool winter daylight, soft and muted'
+}
 
 interface ProduceImageOptions {
   width?: number
   height?: number
   styleHint?: string
   seed?: number
+  /** Month (1-12) for seasonal lighting */
+  month?: number
 }
 
 export class ProduceImageGenerator {
-  private falApiKey: string | undefined
   private userAgent = 'FarmCompanion-Frontend/1.0.0'
-
-  constructor() {
-    this.falApiKey = process.env.FAL_KEY || process.env.NEXT_PUBLIC_FAL_KEY
-  }
 
   /**
    * Generate editorial food photography for produce items
+   * Uses Runware (Flux.2 dev) with Pollinations fallback
    */
   async generateProduceImage(
     produceName: string,
@@ -33,19 +70,19 @@ export class ProduceImageGenerator {
     options: ProduceImageOptions = {}
   ): Promise<Buffer | null> {
     try {
-      imageGenLogger.info('Generating image', { produceName, slug })
+      imageGenLogger.info('Generating produce image', { produceName, slug })
 
-      const width = options.width ?? 1600
-      const height = options.height ?? 900
+      const width = options.width ?? 2048
+      const height = options.height ?? 2048
       const seed = options.seed ?? this.hashString(slug)
-      const prompt = this.createProducePrompt(produceName, options.styleHint)
+      const prompt = this.createProducePrompt(produceName, options)
 
-      imageGenLogger.debug('Image prompt created', { promptPreview: prompt.substring(0, 100) })
+      imageGenLogger.debug('Prompt created', { promptPreview: prompt.substring(0, 120) })
 
-      // Try fal.ai FLUX first
-      let imageBuffer = await this.callFalAI(prompt, { width, height, seed, maxAttempts: 3 })
+      // Try Runware first (60% cheaper, 40% faster)
+      let imageBuffer = await this.callRunware(prompt, { width, height, seed })
 
-      // Fallback to Pollinations
+      // Fallback to Pollinations if Runware fails
       if (!imageBuffer) {
         imageGenLogger.info('Falling back to Pollinations', { produceName })
         imageBuffer = await this.callPollinations(prompt, { width, height, seed, maxAttempts: 3 })
@@ -65,62 +102,50 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create editorial food photography prompts for produce
+   * Create Harvest Visual Signature prompt for produce
+   * "Editorial Grocer" - macro photography meets artisan grocery aesthetic
    */
-  private createProducePrompt(produceName: string, styleHint?: string): string {
+  private createProducePrompt(produceName: string, options: ProduceImageOptions): string {
     const hash = this.hashString(produceName)
+    const month = options.month ?? new Date().getMonth() + 1
 
-    // Editorial photography styles for variety
-    const styles = [
-      'overhead flat lay on rustic wooden table',
-      'macro close-up showing texture and detail',
-      'editorial still life with natural window light',
-      'minimalist composition on neutral linen background',
-      'farmers market display with wicker basket',
-      'fresh harvest scene with morning dew',
-      'artisanal food photography with soft shadows',
-      'magazine-style composition with selective focus'
+    // Editorial Grocer compositions
+    const compositions = [
+      'overhead flat lay on weathered oak table',
+      'macro close-up showing natural texture and dewdrops',
+      'editorial still life with soft window light',
+      'minimalist composition on natural linen',
+      'artisan market display in wicker basket',
+      'fresh harvest arrangement with garden herbs',
+      'rustic kitchen scene on vintage cutting board',
+      'Waitrose-style editorial food photography'
     ]
 
-    const selectedStyle = styles[hash % styles.length]
-
-    // Lighting variations
-    const lighting = [
-      'golden hour natural light',
-      'soft diffused morning light',
-      'dramatic side lighting',
-      'bright airy studio light',
-      'warm afternoon sun',
-      'cool north-facing window light'
-    ]
-
-    const selectedLighting = lighting[(hash + 3) % lighting.length]
-
-    // Color palettes for backgrounds
+    // Backgrounds matching the site's soil-100 aesthetic
     const backgrounds = [
-      'warm cream background',
-      'rustic weathered wood surface',
-      'natural stone countertop',
-      'soft linen fabric texture',
-      'vintage wooden cutting board',
-      'marble surface with veining',
-      'neutral beige canvas backdrop'
+      'warm cream linen background',
+      'weathered light oak surface',
+      'natural pale stone countertop',
+      'soft oatmeal canvas backdrop',
+      'vintage whitewashed wood',
+      'neutral beige ceramic tile',
+      'light grey marble with subtle veining'
     ]
 
-    const selectedBackground = backgrounds[(hash + 7) % backgrounds.length]
+    const selectedComposition = compositions[hash % compositions.length]
+    const selectedBackground = backgrounds[(hash + 5) % backgrounds.length]
+    const seasonalLight = SEASONAL_LIGHTING[month] || SEASONAL_LIGHTING[6]
 
     const parts = [
-      `Fresh UK ${produceName}`,
-      'high-end food photography',
-      selectedStyle,
-      selectedLighting,
+      `Fresh British ${produceName}`,
+      selectedComposition,
+      HARVEST_STYLE.camera,
+      seasonalLight,
       selectedBackground,
-      'professional editorial quality',
-      'sharp focus on produce',
-      'natural colors and textures',
-      'organic and fresh appearance',
-      styleHint,
-      `Negative: ${NO_FACE_NEGATIVE}`
+      'editorial food photography, magazine quality',
+      'natural organic appearance, authentic textures',
+      'sharp focus on produce details',
+      options.styleHint
     ].filter(Boolean)
 
     return parts.join(', ')
@@ -146,7 +171,7 @@ export class ProduceImageGenerator {
 
       // Rate limiting between requests
       if (i < count - 1) {
-        await this.sleep(1000)
+        await this.sleep(800)
       }
     }
 
@@ -184,72 +209,46 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Call fal.ai FLUX API
+   * Call Runware API using Flux.2 [dev] via Sonic Engine
    */
-  private async callFalAI(
+  private async callRunware(
     prompt: string,
-    opts: { width: number; height: number; seed: number; maxAttempts: number }
+    opts: { width: number; height: number; seed: number }
   ): Promise<Buffer | null> {
-    if (!this.falApiKey) {
-      imageGenLogger.warn('FAL_KEY not found, skipping fal.ai')
+    const client = getRunwareClient()
+
+    if (!client.isConfigured()) {
+      imageGenLogger.warn('RUNWARE_API_KEY not configured, skipping Runware')
       return null
     }
 
-    for (let i = 0; i < opts.maxAttempts; i++) {
-      const attemptSeed = (opts.seed + i * 9973) >>> 0
+    try {
+      const buffer = await client.generateBuffer({
+        prompt,
+        negativePrompt: HARVEST_PRODUCE_NEGATIVE,
+        width: opts.width,
+        height: opts.height,
+        seed: opts.seed,
+        steps: 28,
+        cfgScale: 3.5,
+        outputFormat: 'webp'
+      })
 
-      try {
-        imageGenLogger.debug('fal.ai attempt', { attempt: i + 1, maxAttempts: opts.maxAttempts, seed: attemptSeed })
-
-        // Map dimensions to image_size
-        let imageSize = 'landscape_16_9'
-        if (opts.width === 1024 && opts.height === 1024) imageSize = 'square'
-        else if (opts.width === 900 && opts.height === 1600) imageSize = 'portrait_16_9'
-
-        const response = await axios.post(
-          'https://fal.run/fal-ai/flux',
-          {
-            prompt,
-            image_size: imageSize,
-            num_inference_steps: 28,
-            guidance_scale: 3.5,
-            seed: attemptSeed,
-            enable_safety_checker: true
-          },
-          {
-            headers: {
-              'Authorization': `Key ${this.falApiKey}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 120000
-          }
-        )
-
-        if (response.data?.images?.[0]?.url) {
-          const imageUrl = response.data.images[0].url
-          const imageResponse = await axios.get(imageUrl, {
-            responseType: 'arraybuffer',
-            timeout: 60000
-          })
-
-          if (imageResponse.data?.length > 0) {
-            imageGenLogger.info('fal.ai generated image', { bytes: imageResponse.data.length })
-            return Buffer.from(imageResponse.data)
-          }
-        }
-
-        await this.sleep(400 * (i + 1))
-      } catch (err: any) {
-        imageGenLogger.warn('fal.ai attempt failed', { attempt: i + 1, error: err.message })
-        await this.sleep(400 * (i + 1))
+      if (buffer) {
+        imageGenLogger.info('Runware generated produce image', { bytes: buffer.length })
+        return buffer
       }
-    }
 
-    return null
+      return null
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      imageGenLogger.warn('Runware attempt failed', { error: message })
+      return null
+    }
   }
 
   /**
-   * Call Pollinations AI API
+   * Call Pollinations AI API (fallback)
    */
   private async callPollinations(
     prompt: string,
@@ -259,8 +258,8 @@ export class ProduceImageGenerator {
       const attemptSeed = (opts.seed + i * 9973) >>> 0
 
       const params = new URLSearchParams({
-        width: String(opts.width),
-        height: String(opts.height),
+        width: String(Math.min(opts.width, 1600)),
+        height: String(Math.min(opts.height, 1600)),
         model: 'flux',
         nologo: 'true',
         seed: String(attemptSeed)
@@ -273,7 +272,7 @@ export class ProduceImageGenerator {
 
         const response = await axios.get(url, {
           responseType: 'arraybuffer',
-          timeout: 60000,
+          timeout: 90000,
           headers: { 'User-Agent': this.userAgent, Accept: 'image/*' }
         })
 
@@ -282,10 +281,11 @@ export class ProduceImageGenerator {
           return Buffer.from(response.data)
         }
 
-        await this.sleep(400 * (i + 1))
-      } catch (err: any) {
-        imageGenLogger.warn('Pollinations attempt failed', { attempt: i + 1, error: err.message })
-        await this.sleep(400 * (i + 1))
+        await this.sleep(500 * (i + 1))
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Unknown error'
+        imageGenLogger.warn('Pollinations attempt failed', { attempt: i + 1, error: message })
+        await this.sleep(500 * (i + 1))
       }
     }
 
@@ -293,7 +293,7 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Hash string to number for deterministic randomization
+   * Hash string to number for deterministic seed
    */
   private hashString(str: string): number {
     let hash = 0

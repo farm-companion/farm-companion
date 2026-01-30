@@ -1,9 +1,74 @@
+/**
+ * Farm Image Generator
+ *
+ * Generates editorial photography for UK farm shops using Runware.
+ * Implements the Harvest Visual Signature: "Real Places" aesthetic.
+ *
+ * @see https://docs.runware.ai/
+ */
+
 import axios from 'axios'
 import { logger } from '@/lib/logger'
+import { getRunwareClient, HARVEST_STYLE } from './runware-client'
 
 const imageGenLogger = logger.child({ route: 'lib/farm-image-generator' })
 
-const NO_FACE_NEGATIVE = 'no people, no person, no faces, no humans, no portrait, no crowds, no watermark, no text, no logo, no signs with text, no distorted buildings, no modern architecture'
+/**
+ * Harvest Visual Signature: Real Places
+ * Authentic British farm shop architecture and atmosphere
+ */
+const HARVEST_FARM_NEGATIVE = [
+  'no people, no faces, no crowds',
+  'no watermark, no text, no logo, no signs with text',
+  'no distorted buildings, no modern architecture',
+  'no AI artifacts, no unrealistic proportions',
+  'no harsh shadows, no artificial lighting'
+].join(', ')
+
+/**
+ * UK regional architectural styles
+ */
+const REGIONAL_STYLES: Record<string, string> = {
+  // South West
+  cornwall: 'Cornish granite and slate, coastal charm, pastel painted facades',
+  devon: 'Devon cob walls and thatch, red sandstone details',
+  somerset: 'golden Ham stone, traditional orchards backdrop',
+  dorset: 'Purbeck stone, thatched roofs, rolling chalk downs',
+
+  // Cotswolds
+  cotswold: 'honey-colored Cotswold limestone, dry stone walls',
+  gloucestershire: 'warm Cotswold stone, traditional market town charm',
+  oxfordshire: 'golden limestone, quintessential English village',
+
+  // South East
+  kent: 'traditional oast houses, hop gardens, white weatherboard',
+  sussex: 'flint and brick construction, South Downs backdrop',
+  surrey: 'tile-hung buildings, Surrey Hills landscape',
+
+  // East Anglia
+  norfolk: 'flint construction, Norfolk Broads landscape, big skies',
+  suffolk: 'pink-washed cottages, traditional wool churches nearby',
+  essex: 'weatherboard and red brick, rolling farmland',
+
+  // Midlands
+  warwickshire: 'red brick and timber, Shakespeare country charm',
+  worcestershire: 'black and white timber framing, Malvern Hills',
+  herefordshire: 'black and white half-timbered buildings, cider orchards',
+
+  // North
+  yorkshire: 'grey millstone grit, Yorkshire Dales moorland',
+  lancashire: 'red sandstone, Pennine backdrop',
+  cumbria: 'Lake District slate and whitewash, mountain backdrop',
+  northumberland: 'grey sandstone, dramatic Northumbrian landscape',
+
+  // Scotland
+  scotland: 'Scottish vernacular stone, Highland scenery',
+  highland: 'whitewashed crofts, dramatic mountain backdrop',
+
+  // Wales
+  wales: 'Welsh slate and whitewash, green valley setting',
+  pembrokeshire: 'coastal Welsh stone, wild Pembrokeshire coast'
+}
 
 interface FarmImageOptions {
   width?: number
@@ -11,19 +76,16 @@ interface FarmImageOptions {
   styleHint?: string
   seed?: number
   county?: string
+  /** Include safe zone for text overlays */
+  safeZone?: boolean
 }
 
 /**
  * FarmImageGenerator - Generate AI images for farm shops
- * Uses fal.ai FLUX with Pollinations as fallback
+ * Uses Runware Flux.2 [dev] with Pollinations as fallback
  */
 export class FarmImageGenerator {
-  private falApiKey: string | undefined
   private userAgent = 'FarmCompanion-Frontend/1.0.0'
-
-  constructor() {
-    this.falApiKey = process.env.FAL_KEY || process.env.NEXT_PUBLIC_FAL_KEY
-  }
 
   /**
    * Generate editorial photography for a farm shop
@@ -36,15 +98,15 @@ export class FarmImageGenerator {
     try {
       imageGenLogger.info('Generating farm image', { farmName, slug })
 
-      const width = options.width ?? 1600
-      const height = options.height ?? 900
+      const width = options.width ?? 2048
+      const height = options.height ?? 1152 // 16:9 aspect
       const seed = options.seed ?? this.hashString(slug)
       const prompt = this.createFarmPrompt(farmName, options)
 
-      imageGenLogger.debug('Image prompt created', { promptPreview: prompt.substring(0, 100) })
+      imageGenLogger.debug('Prompt created', { promptPreview: prompt.substring(0, 120) })
 
-      // Try fal.ai FLUX first
-      let imageBuffer = await this.callFalAI(prompt, { width, height, seed, maxAttempts: 3 })
+      // Try Runware first (60% cheaper, 40% faster)
+      let imageBuffer = await this.callRunware(prompt, { width, height, seed })
 
       // Fallback to Pollinations
       if (!imageBuffer) {
@@ -66,153 +128,120 @@ export class FarmImageGenerator {
   }
 
   /**
-   * Create editorial photography prompts for UK farm shops
+   * Create Harvest Visual Signature prompt for farm shops
+   * "Real Places" - authentic British farm shop architecture
    */
   private createFarmPrompt(farmName: string, options: FarmImageOptions): string {
     const hash = this.hashString(farmName)
 
-    // UK farm shop and rural scene types
+    // UK farm shop scene types
     const sceneTypes = [
       'charming British farm shop exterior with rustic wooden signage',
       'traditional stone-built farm shop in English countryside',
-      'quaint village farm shop with thatched roof details',
-      'picturesque farm shop entrance with flower baskets',
+      'quaint village farm shop with period architectural details',
+      'picturesque farm shop entrance with seasonal flower displays',
       'idyllic UK farm shop with rolling green hills background',
-      'cozy farm shop storefront with vintage character',
+      'welcoming British farm shop courtyard with vintage character',
       'beautiful country farm shop at golden hour',
-      'welcoming British farm shop with cobblestone courtyard'
+      'authentic rural farm shop with cobblestone forecourt'
     ]
 
-    const selectedScene = sceneTypes[hash % sceneTypes.length]
-
-    // Architectural details typical of UK farm shops
+    // Architectural details
     const details = [
-      'weathered oak beams and stone walls',
+      'weathered oak beams and local stone walls',
       'traditional brick and flint construction',
       'climbing roses on cottage walls',
       'vintage wooden crates with produce display',
       'rustic barn conversion with original features',
       'whitewashed walls with slate roof',
-      'period windows with leaded glass',
-      'heritage red telephone box nearby'
+      'period windows with traditional glazing bars',
+      'heritage farm buildings with patina of age'
     ]
-
-    const selectedDetail = details[(hash + 3) % details.length]
 
     // Atmospheric conditions
     const atmospheres = [
       'soft morning mist over green fields',
       'warm golden afternoon sunlight',
-      'clear blue sky with fluffy clouds',
+      'clear blue sky with fluffy cumulus clouds',
       'gentle English summer day',
-      'crisp autumn morning with dew',
+      'crisp autumn morning with morning dew',
       'bright spring day with blossom'
     ]
 
+    const selectedScene = sceneTypes[hash % sceneTypes.length]
+    const selectedDetail = details[(hash + 3) % details.length]
     const selectedAtmosphere = atmospheres[(hash + 7) % atmospheres.length]
 
-    // Regional hints based on county
+    // Regional architectural style
     let regionalHint = ''
     if (options.county) {
       const countyLower = options.county.toLowerCase()
-      if (countyLower.includes('cornwall') || countyLower.includes('devon')) {
-        regionalHint = 'West Country coastal charm, pastel colors'
-      } else if (countyLower.includes('cotswold') || countyLower.includes('gloucester')) {
-        regionalHint = 'honey-colored Cotswold stone architecture'
-      } else if (countyLower.includes('yorkshire')) {
-        regionalHint = 'rugged Yorkshire stone buildings, moorland backdrop'
-      } else if (countyLower.includes('kent') || countyLower.includes('sussex')) {
-        regionalHint = 'traditional oast houses and hop gardens nearby'
-      } else if (countyLower.includes('scotland') || countyLower.includes('highland')) {
-        regionalHint = 'Scottish highland scenery, heather and mountains'
+      for (const [region, style] of Object.entries(REGIONAL_STYLES)) {
+        if (countyLower.includes(region)) {
+          regionalHint = style
+          break
+        }
       }
     }
 
     const parts = [
       selectedScene,
-      'professional architectural photography',
+      HARVEST_STYLE.camera,
+      HARVEST_STYLE.lighting,
       selectedDetail,
       selectedAtmosphere,
       'British countryside setting',
       'inviting and authentic atmosphere',
-      'editorial quality composition',
-      'sharp focus on building',
+      'editorial architectural photography',
       regionalHint,
-      options.styleHint,
-      `Negative: ${NO_FACE_NEGATIVE}`
+      options.safeZone ? HARVEST_STYLE.safeZone : undefined,
+      options.styleHint
     ].filter(Boolean)
 
     return parts.join(', ')
   }
 
   /**
-   * Call fal.ai FLUX API
+   * Call Runware API using Flux.2 [dev] via Sonic Engine
    */
-  private async callFalAI(
+  private async callRunware(
     prompt: string,
-    opts: { width: number; height: number; seed: number; maxAttempts: number }
+    opts: { width: number; height: number; seed: number }
   ): Promise<Buffer | null> {
-    if (!this.falApiKey) {
-      imageGenLogger.warn('FAL_KEY not found, skipping fal.ai')
+    const client = getRunwareClient()
+
+    if (!client.isConfigured()) {
+      imageGenLogger.warn('RUNWARE_API_KEY not configured, skipping Runware')
       return null
     }
 
-    for (let i = 0; i < opts.maxAttempts; i++) {
-      const attemptSeed = (opts.seed + i * 9973) >>> 0
+    try {
+      const buffer = await client.generateBuffer({
+        prompt,
+        negativePrompt: HARVEST_FARM_NEGATIVE,
+        width: opts.width,
+        height: opts.height,
+        seed: opts.seed,
+        steps: 28,
+        cfgScale: 3.5,
+        outputFormat: 'webp'
+      })
 
-      try {
-        imageGenLogger.debug('fal.ai attempt', { attempt: i + 1, maxAttempts: opts.maxAttempts, seed: attemptSeed })
-
-        // Map dimensions to image_size
-        let imageSize = 'landscape_16_9'
-        if (opts.width === 1024 && opts.height === 1024) imageSize = 'square'
-        else if (opts.width === 900 && opts.height === 1600) imageSize = 'portrait_16_9'
-
-        const response = await axios.post(
-          'https://fal.run/fal-ai/flux',
-          {
-            prompt,
-            image_size: imageSize,
-            num_inference_steps: 28,
-            guidance_scale: 3.5,
-            seed: attemptSeed,
-            enable_safety_checker: true
-          },
-          {
-            headers: {
-              'Authorization': `Key ${this.falApiKey}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 120000
-          }
-        )
-
-        if (response.data?.images?.[0]?.url) {
-          const imageUrl = response.data.images[0].url
-          const imageResponse = await axios.get(imageUrl, {
-            responseType: 'arraybuffer',
-            timeout: 60000
-          })
-
-          if (imageResponse.data?.length > 0) {
-            imageGenLogger.info('fal.ai generated farm image', { bytes: imageResponse.data.length })
-            return Buffer.from(imageResponse.data)
-          }
-        }
-
-        await this.sleep(400 * (i + 1))
-      } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : 'Unknown error'
-        imageGenLogger.warn('fal.ai attempt failed', { attempt: i + 1, error: message })
-        await this.sleep(400 * (i + 1))
+      if (buffer) {
+        imageGenLogger.info('Runware generated farm image', { bytes: buffer.length })
+        return buffer
       }
-    }
 
-    return null
+      return null
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      imageGenLogger.warn('Runware attempt failed', { error: message })
+      return null
+    }
   }
 
   /**
-   * Call Pollinations AI API
+   * Call Pollinations AI API (fallback)
    */
   private async callPollinations(
     prompt: string,
@@ -222,21 +251,22 @@ export class FarmImageGenerator {
       const attemptSeed = (opts.seed + i * 9973) >>> 0
 
       const params = new URLSearchParams({
-        width: String(opts.width),
-        height: String(opts.height),
+        width: String(Math.min(opts.width, 1600)),
+        height: String(Math.min(opts.height, 900)),
         model: 'flux',
         nologo: 'true',
         seed: String(attemptSeed)
       })
 
-      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?${params.toString()}`
+      const fullPrompt = `${prompt}, Negative: ${HARVEST_FARM_NEGATIVE}`
+      const url = `https://image.pollinations.ai/prompt/${encodeURIComponent(fullPrompt)}?${params.toString()}`
 
       try {
         imageGenLogger.debug('Pollinations attempt', { attempt: i + 1, maxAttempts: opts.maxAttempts })
 
         const response = await axios.get(url, {
           responseType: 'arraybuffer',
-          timeout: 60000,
+          timeout: 90000,
           headers: { 'User-Agent': this.userAgent, Accept: 'image/*' }
         })
 
@@ -245,11 +275,11 @@ export class FarmImageGenerator {
           return Buffer.from(response.data)
         }
 
-        await this.sleep(400 * (i + 1))
-      } catch (err: unknown) {
+        await this.sleep(500 * (i + 1))
+      } catch (err) {
         const message = err instanceof Error ? err.message : 'Unknown error'
         imageGenLogger.warn('Pollinations attempt failed', { attempt: i + 1, error: message })
-        await this.sleep(400 * (i + 1))
+        await this.sleep(500 * (i + 1))
       }
     }
 
