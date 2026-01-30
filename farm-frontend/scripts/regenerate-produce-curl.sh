@@ -66,9 +66,54 @@ generate_and_upload() {
   local variation="$3"
   local uuid=$(generate_uuid)
 
-  # God-tier Editorial Grocer prompts
-  local prompt="Fresh British ${name}, editorial food photography for Waitrose Food magazine, 50mm prime lens f/2.8 aperture, shallow depth of field with crisp focal plane, natural morning dew droplets, authentic tactile imperfections, soft diffused British overcast window light, aged weathered oak table surface, asymmetric editorial arrangement, documentary realism, Kinfolk magazine aesthetic, authentic farm-fresh quality, natural color variation, real organic textures"
-  local negative="artificial, fake, plastic, synthetic, CGI, 3D render, illustration, painting, drawing, oversaturated, hyperrealistic, too perfect, too symmetrical, unnatural colors, stock photo, generic, clipart, cartoon, anime, text, watermark, logo, signature, copyright, National Geographic, magazine logo, stamp, people, hands, faces, figures, church, church spire, steeple, religious building, buildings, architecture, landscape, outdoor scene, supermarket, packaging, blurry, out of focus, harsh shadows, artificial lighting, studio strobes, overexposed, underexposed"
+  # Get produce-specific physical description
+  local produce_desc=""
+  case "$slug" in
+    "sweetcorn")
+      produce_desc="whole corn cobs with pale yellow husks partially pulled back revealing rows of plump golden yellow kernels, fine corn silk threads visible, cylindrical shape, kernels arranged in neat vertical rows"
+      ;;
+    "tomato")
+      produce_desc="round ripe red tomatoes with smooth shiny skin, green star-shaped calyx stem attachment on top, slight ribbing near stem, uniform red color with natural slight color variation"
+      ;;
+    "strawberries")
+      produce_desc="whole red strawberries with tiny yellow seeds dotted across surface, green leafy calyx cap on top, conical heart shape, red color graduating from tip to shoulder"
+      ;;
+    "blackberries")
+      produce_desc="whole blackberries made of many small round drupelets clustered together in oval shape, deep purple-black color with slight natural sheen, tiny hairs between drupelets"
+      ;;
+    "runner-beans")
+      produce_desc="long flat green runner bean pods about 20cm long, slightly rough textured surface, tapered ends, visible bumps where beans inside, slight natural curve, stems at one end"
+      ;;
+    "plums")
+      produce_desc="whole oval plums with smooth skin and natural waxy bloom, deep purple-red color, small stem attachment point, slight crease line running lengthwise"
+      ;;
+    "apples")
+      produce_desc="whole round apples with smooth skin, red and green coloring with natural blush variation, small brown stem on top, slight indent at top and bottom, no cuts no slices"
+      ;;
+    "pumpkins")
+      produce_desc="whole round pumpkins with deep vertical ribbing, orange skin, thick woody brown stem on top, slightly flattened shape, no carving no cutting"
+      ;;
+    "asparagus")
+      produce_desc="bundle of whole asparagus spears with tight pointed purple-green tips, pale green stalks fading to white at cut base, slight scale texture on tips, bundled together"
+      ;;
+    "kale")
+      produce_desc="bunch of curly kale leaves with deep green color and purple tints, heavily ruffled and curled leaf edges, thick pale stems, no cutting no chopping"
+      ;;
+    "leeks")
+      produce_desc="whole leeks with white cylindrical base transitioning to pale green then dark green flat leaves, leaves fan outward at top, layered structure visible at base, long and straight"
+      ;;
+    "purple-sprouting-broccoli")
+      produce_desc="purple sprouting broccoli stems with small purple-green floret heads, long pale green stems, leaves attached, multiple stems bundled together"
+      ;;
+    *)
+      produce_desc="fresh whole ${name}"
+      ;;
+  esac
+
+  # COMBINED: Accurate produce + Cinematic editorial styling
+  # Physical accuracy + 50mm lens + f/2.8 + shallow depth of field + natural window light
+  local prompt="Editorial food photography, ${produce_desc}, 50mm prime lens f/2.8 aperture, shallow depth of field with beautiful bokeh, soft natural window light from side, warm British afternoon glow, aged weathered oak table surface with natural grain, asymmetric artful arrangement, photorealistic anatomically accurate produce, vibrant natural colors, high-end culinary magazine quality, intimate macro detail, no text no watermarks no logos"
+  local negative="text, letters, words, writing, watermark, logo, brand name, cut, sliced, halved, cross-section, internal view, seeds visible, core visible, malformed, distorted, mutated, wrong shape, wrong color, artificial, fake, plastic, waxy, CGI, illustration, painting, drawing, clipart, harsh lighting, flash, studio strobe, overexposed, underexposed, outdoor background, sky, church, building, people, hands, fingers"
 
   echo "  [${variation}/4] Generating..."
 

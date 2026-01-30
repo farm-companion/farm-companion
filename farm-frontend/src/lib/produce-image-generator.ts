@@ -3,8 +3,15 @@
  *
  * God-tier editorial food photography using Forensic Photography Prompting.
  * Mimics specific lens behavior and British atmospheric conditions to avoid
- * the "AI slop" look. Targets the aesthetic of Waitrose Food, Kinfolk, and
- * Country Living magazines.
+ * the "AI slop" look. Targets high-end UK food editorial aesthetic.
+ *
+ * IMPORTANT: Never use brand names in prompts - causes watermark insertion.
+ *
+ * Anti-AI Artifact Screening:
+ * - Text/brand contamination prevention
+ * - Anatomical accuracy (WHOLE produce only, no cut views)
+ * - Structural integrity (no merged/floating objects)
+ * - Texture authenticity (no plastic/waxy look)
  *
  * @see https://docs.runware.ai/
  */
@@ -21,26 +28,46 @@ const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 /**
  * God-Tier Negative Prompt - Eliminates AI Artifacts
  *
- * Prevents: symmetry, plastic look, oversaturation, generic styling,
- * perfect lighting that screams "AI generated"
+ * Comprehensive screening for all known AI image generation issues:
+ * - Text/brand contamination
+ * - Structural/anatomical errors
+ * - Texture/material errors
+ * - Composition errors
+ * - Lighting errors
  */
 const EDITORIAL_GROCER_NEGATIVE = [
-  // Anti-AI artifacts
-  'artificial, fake, plastic, synthetic, CGI, 3D render, illustration, painting, drawing',
-  'oversaturated, hyperrealistic, too perfect, too symmetrical, unnatural colors',
-  'stock photo, generic, clipart, cartoon, anime',
+  // CRITICAL: Anti-text and brand contamination (most important)
+  'text, letters, words, writing, numbers, labels, signs, captions',
+  'watermark, logo, brand name, trademark, copyright symbol, stamp',
+  'Waitrose, Kinfolk, magazine name, publication name, any brand',
+  'price tag, barcode, QR code, sticker, packaging text',
+
+  // Anti-AI structural artifacts
+  'artificial, fake, plastic, synthetic, CGI, 3D render, illustration',
+  'painting, drawing, digital art, anime, cartoon, clipart',
+  'malformed, distorted, mutated, disfigured, anatomically incorrect',
+  'merged objects, blended items, fused together, melting into each other',
+  'extra objects, duplicate items, wrong count, floating objects',
+
+  // Anti-texture errors
+  'waxy, glossy, shiny plastic, artificial shine, vinyl texture',
+  'too smooth, too perfect, no imperfections, unnaturally clean',
+  'wrong material, incorrect texture, unrealistic surface',
+
   // Anti-composition errors
+  'oversaturated, hyperrealistic, too symmetrical, unnaturally perfect',
+  'stock photo, generic, boring composition, centered subject',
   'blurry, out of focus subject, motion blur, grainy, noisy, pixelated',
-  'cropped awkwardly, bad framing, centered subject, boring composition',
+  'cropped awkwardly, bad framing, cut off edges',
+
   // Anti-content pollution
-  'text, watermark, logo, signature, copyright, stamp, label, price tag',
-  'people, hands, fingers, face, body parts',
+  'people, hands, fingers, face, body parts, human elements',
   'plastic packaging, cellophane, supermarket shelf, fluorescent lighting',
-  // Anti-location errors
   'outdoor, garden, field, farm, church, building, architecture, landscape, sky',
+
   // Anti-lighting errors
-  'harsh shadows, direct flash, studio strobe, ring light, artificial lighting',
-  'overexposed, underexposed, high contrast, HDR look'
+  'harsh shadows, direct flash, studio strobe, ring light, multiple light sources',
+  'overexposed, underexposed, high contrast, HDR look, artificial lighting'
 ].join(', ')
 
 /**
@@ -65,58 +92,60 @@ const BRITISH_SEASONAL_LIGHTING: Record<number, string> = {
 }
 
 /**
- * Produce-Specific Tactile Details
+ * Produce-Specific Tactile Details + Anatomical Accuracy
  *
- * Each produce type gets specific "imperfection" instructions to avoid
- * the too-perfect AI look. These details make images feel real.
+ * Each produce type gets:
+ * 1. Tactile "imperfection" instructions to avoid AI-perfect look
+ * 2. Anatomical accuracy details for correct internal structures
+ * 3. "WHOLE ONLY" instruction to prevent cut/cross-section views that AI mangles
  */
 const PRODUCE_TACTILE_DETAILS: Record<string, string> = {
-  // Leafy greens
-  'kale': 'fine morning dew droplets on curled leaf edges, natural purple-green variegation, slightly irregular leaf shapes, visible leaf veins',
-  'purple-sprouting-broccoli': 'tiny water droplets on florets, natural purple and green color variation, slightly uneven stem thickness, authentic British PSB',
-  'leeks': 'fine soil particles near root end, natural gradient from white to dark green, slight outer leaf weathering, authentic allotment character',
-  'asparagus': 'tight purple-tinged tips with natural variation, slight stem curvature, subtle scale texture, freshly cut white ends',
+  // Leafy greens (always show whole)
+  'kale': 'WHOLE LEAVES ONLY never cut, fine morning dew droplets on curled leaf edges, natural purple-green variegation, slightly irregular leaf shapes, visible leaf veins, authentic curly kale bunch',
+  'purple-sprouting-broccoli': 'WHOLE STEMS ONLY never cut, tiny water droplets on florets, natural purple and green color variation, slightly uneven stem thickness, authentic British PSB with intact florets',
+  'leeks': 'WHOLE LEEKS ONLY never sliced, fine soil particles near root end, natural gradient from white to dark green, slight outer leaf weathering, intact root base and green tops',
+  'asparagus': 'WHOLE SPEARS ONLY never cut, tight purple-tinged tips with natural variation, slight stem curvature, subtle scale texture, bundled spears with natural size variation',
 
-  // Root vegetables
-  'beetroot': 'authentic earth residue on skin, natural skin blemishes and irregularities, deep purple-red color variation, intact root tail',
-  'parsnips': 'fine root hairs, natural skin marks and earth traces, cream color with brown spots, authentic wonky shapes',
-  'swede': 'natural purple and cream skin mottling, slight surface roughness, authentic farmgate appearance',
-  'carrots': 'fine root hairs, natural orange color variation, slight curvature, authentic soil traces near crown',
+  // Root vegetables (show whole to avoid cross-section errors)
+  'beetroot': 'WHOLE BEETROOT ONLY never sliced, authentic earth residue on skin, natural skin blemishes and irregularities, deep purple-red color variation, intact root tail and leaf stems',
+  'parsnips': 'WHOLE PARSNIPS ONLY never cut, fine root hairs, natural skin marks and earth traces, cream color with brown spots, authentic wonky tapered shapes',
+  'swede': 'WHOLE SWEDE ONLY never cut, natural purple and cream skin mottling, slight surface roughness, authentic farmgate appearance with intact root',
+  'carrots': 'WHOLE CARROTS ONLY never sliced, fine root hairs, natural orange color variation, slight curvature, green tops attached, authentic soil traces near crown',
 
-  // Fruits
-  'strawberries': 'natural seed texture, slight color variation from tip to shoulder, tiny imperfect shapes, authentic British variety',
-  'blackberries': 'individual drupelets with natural sheen variation, some slightly less ripe segments, authentic hedgerow appearance',
-  'raspberries': 'delicate individual drupelets, natural hollow center visible, slight color variation, fragile authentic appearance',
-  'apples': 'natural skin russeting, subtle color blush variation, authentic British heritage variety character',
-  'plums': 'natural waxy bloom on skin, slight color gradients, authentic Victoria or damson character',
-  'pears': 'natural skin freckling, subtle color variation, authentic Conference or Comice character',
+  // Fruits (CRITICAL: always whole to avoid mangled cores/seeds)
+  'strawberries': 'WHOLE STRAWBERRIES ONLY never cut or sliced, natural seed texture on surface, slight color variation from tip to shoulder, tiny imperfect shapes, green calyx attached, authentic British variety',
+  'blackberries': 'WHOLE BLACKBERRIES ONLY never cut, individual drupelets with natural sheen variation, some slightly less ripe segments, authentic hedgerow appearance with stems',
+  'raspberries': 'WHOLE RASPBERRIES ONLY never cut, delicate individual drupelets visible, slight color variation between berries, fragile authentic appearance',
+  'apples': 'WHOLE APPLES ONLY never cut never sliced no cross-section, natural skin russeting and subtle color blush, intact stem, authentic British heritage variety like Cox or Braeburn, slight natural blemishes',
+  'plums': 'WHOLE PLUMS ONLY never cut never halved, natural waxy bloom on unbroken skin, slight color gradients, authentic Victoria plum character, intact stem attached',
+  'pears': 'WHOLE PEARS ONLY never cut never sliced, natural skin freckling and subtle color variation, intact stem, authentic Conference or Comice character',
 
-  // Summer produce
-  'tomato': 'natural skin shine variation, visible stem scar, authentic vine-ripened imperfections, heritage variety character',
-  'sweetcorn': 'natural kernel size variation, authentic silk threads, slight husk weathering, freshly picked appearance',
-  'courgettes': 'natural skin texture and slight scarring, authentic flower end, subtle color variation',
-  'runner-beans': 'natural string texture, slight curve and twist, authentic British allotment character',
+  // Summer produce (whole to avoid internal structure errors)
+  'tomato': 'WHOLE TOMATOES ONLY never cut never sliced, natural skin shine variation, visible stem scar with green calyx, vine-ripened imperfections, heritage variety character, intact round shape',
+  'sweetcorn': 'WHOLE CORN COBS with husk partially pulled back, natural kernel size variation, authentic silk threads visible, slight husk weathering, freshly picked appearance, never shucked completely',
+  'courgettes': 'WHOLE COURGETTES ONLY never sliced, natural skin texture and slight scarring, authentic flower end visible, subtle green color variation, intact stem',
+  'runner-beans': 'WHOLE RUNNER BEANS ONLY never cut, natural string texture visible, slight curve and twist, authentic British allotment character, varied lengths in bunch',
 
-  // Winter produce
-  'pumpkins': 'natural ribbing depth variation, authentic stem attachment, subtle color mottling, harvest character',
-  'squash': 'natural skin texture variation, authentic stem end, subtle color gradients'
+  // Winter produce (whole to avoid cross-section errors)
+  'pumpkins': 'WHOLE PUMPKINS ONLY never carved never cut, natural ribbing depth variation, authentic woody stem attachment, subtle orange color mottling, harvest character',
+  'squash': 'WHOLE SQUASH ONLY never cut, natural skin texture variation, authentic stem end, subtle color gradients, butternut or acorn variety character'
 }
 
 /**
  * Composition Variations - Editorial Styling
  *
- * Each variation uses different professional food photography compositions
- * that would appear in high-end UK food magazines.
+ * Each variation uses different professional food photography compositions.
+ * NO BRAND NAMES to avoid watermark/logo insertion by AI.
  */
 const EDITORIAL_COMPOSITIONS = [
   // Variation 1: Classic overhead
-  'editorial overhead flat lay, asymmetric arrangement on aged oak surface, negative space for text overlay in top-left, Kinfolk magazine aesthetic',
+  'editorial overhead flat lay composition, asymmetric natural arrangement, negative space in top-left quadrant, professional food photography',
   // Variation 2: Hero macro
-  'intimate macro perspective at 45-degree angle, single hero subject with supporting elements, shallow focus fall-off, cookbook cover quality',
+  'intimate 45-degree angle perspective, single hero subject in sharp focus, supporting elements softly blurred, shallow depth of field',
   // Variation 3: Rustic still life
-  'Dutch masters inspired still life arrangement, layered depth with rustic props, dramatic side lighting, painterly quality',
+  'Dutch masters inspired still life arrangement, layered depth with rustic wooden props, dramatic natural side lighting from window',
   // Variation 4: Minimal modern
-  'minimalist Scandinavian composition, clean negative space, single perfect specimen, stark natural linen backdrop'
+  'minimalist clean composition, generous negative space, single specimen centered, neutral linen backdrop, Scandinavian simplicity'
 ]
 
 /**
@@ -224,28 +253,39 @@ export class ProduceImageGenerator {
 
     // Build the forensic photography prompt
     const promptParts = [
-      // Subject with tactile realism
-      `Macro photography of fresh British ${produceName} at seasonal peak`,
+      // CRITICAL: Structural integrity first
+      'photorealistic food photography, anatomically correct produce',
+      'physically accurate, no merged objects, no floating items',
+
+      // Subject with tactile realism (includes WHOLE ONLY instruction)
+      `Fresh British ${produceName} at seasonal peak`,
       tactileDetails,
+
+      // Anti-AI explicit instructions
+      'absolutely no text anywhere in image',
+      'no labels, no writing, no watermarks, no logos, no brand names',
+      'no signs, no tags, no stickers, no packaging with text',
 
       // Technical camera specs (forces AI to think like a camera)
       '50mm prime lens, f/2.8 aperture, shallow depth of field',
-      'sharp focus on hero subject, natural bokeh on background',
+      'sharp focus on hero subject, natural bokeh on background elements',
+      'single light source from window, consistent shadow direction',
 
       // Lighting (British atmospheric)
-      `soft natural window light, ${lighting}`,
-      'no artificial lighting, authentic daylight only',
+      `soft natural window light only, ${lighting}`,
+      'no artificial lighting, no flash, no studio lights',
 
-      // Surface and styling
+      // Surface and styling (no brand names)
       surface,
-      'professional food styling for UK culinary magazine',
+      'professional food styling, high-end culinary editorial',
 
-      // Composition
+      // Composition (brand-free)
       composition,
 
-      // Quality markers
-      'Kinfolk magazine editorial quality, Waitrose Food aesthetic',
-      'vibrant but natural colors, authentic British produce',
+      // Quality markers (NO BRAND NAMES)
+      'editorial food photography quality, luxury lifestyle aesthetic',
+      'vibrant but natural colors, authentic British seasonal produce',
+      'documentary realism, not illustration',
 
       // Safe zone for text overlay if requested
       options.safeZone
