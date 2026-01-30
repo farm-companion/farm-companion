@@ -6,6 +6,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FarmShop } from '@/types/farm'
 import { useClusteredMarkers, type ClusterOrPoint, type FarmCluster } from '../hooks/useClusteredMarkers'
 import { useMapLocation } from '../hooks/useMapLocation'
+import { getContrastTextColor } from '@/lib/contrast'
 import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } from '../lib/pin-icons'
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
@@ -234,36 +235,7 @@ export default function MapLibreShell({
     }
   }, [])
 
-  /**
-   * Calculate relative luminance of a hex color (WCAG formula)
-   * Returns value between 0 (black) and 1 (white)
-   */
-  const getLuminance = (hex: string): number => {
-    const rgb = hex.replace('#', '').match(/.{2}/g)?.map(x => {
-      const c = parseInt(x, 16) / 255
-      return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-    }) || [0, 0, 0]
-    return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
-  }
-
-  /**
-   * Get contrast-safe text color for a given background
-   * Uses WCAG 2.1 contrast ratio threshold of 4.5:1
-   */
-  const getContrastTextColor = (bgHex: string): string => {
-    const bgLum = getLuminance(bgHex)
-    const whiteLum = 1
-    const blackLum = 0
-
-    // Contrast ratio = (L1 + 0.05) / (L2 + 0.05) where L1 > L2
-    const whiteContrast = (whiteLum + 0.05) / (bgLum + 0.05)
-    const blackContrast = (bgLum + 0.05) / (blackLum + 0.05)
-
-    // Return color with better contrast (threshold 4.5:1 for AA)
-    return blackContrast > whiteContrast ? '#1a1816' : '#ffffff'
-  }
-
-  // Cluster style helper with WCAG AA compliant contrast
+  // Cluster style helper with WCAG AA compliant contrast (uses shared utility)
   const getClusterStyle = (count: number) => {
     // Harvest design system colors with enforced contrast
     if (count >= 50) {
