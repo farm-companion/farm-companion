@@ -23,10 +23,10 @@ export const PRODUCE: Produce[] = [
     slug: 'sweetcorn',
     name: 'Sweetcorn',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/1/main.webp', alt: 'Fresh UK sweetcorn on rustic wooden table' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/2/main.webp', alt: 'Golden sweetcorn kernels close-up' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/3/main.webp', alt: 'Fresh sweetcorn cobs with husks' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/4/main.webp', alt: 'British sweetcorn harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/1/main-CJEHOPHt26L4m5ik3aOfNa6yRWP6zA.webp', alt: 'Fresh UK sweetcorn on rustic wooden table' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/2/main-ZvyZLQ4FYrxVuy9NxDPxJ6gSUf0Ut3.webp', alt: 'Golden sweetcorn kernels close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/3/main-ZPv2dwfq110PEHzzZYW8dadjFRX0zY.webp', alt: 'Fresh sweetcorn cobs with husks' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/sweetcorn/4/main-AQMEgAgtuU5uow2XAWDZ50XhpotsW9.webp', alt: 'British sweetcorn harvest display' },
     ],
     monthsInSeason: [7, 8, 9],            // Jul–Sep
     peakMonths: [8],
@@ -72,10 +72,10 @@ export const PRODUCE: Produce[] = [
     slug: 'tomato',
     name: 'Tomatoes',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/1/main.webp', alt: 'Fresh vine-ripened British tomatoes' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/2/main.webp', alt: 'Heritage tomato varieties on wooden board' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/3/main.webp', alt: 'Bright red tomatoes with natural morning dew' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/4/main.webp', alt: 'Farm-fresh UK tomatoes close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/1/main-rAS2tDSYZKLOPfjunfzJxWVq9Dg6Nk.webp', alt: 'Fresh vine-ripened British tomatoes' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/2/main-kg0J5M0xCnhfcGJDSoT5FCAEqdnBTN.webp', alt: 'Heritage tomato varieties on wooden board' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/3/main-vh9wUDjwfrCX4ROkC6HbzmAqDq7jyh.webp', alt: 'Bright red tomatoes with natural morning dew' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/4/main-9pmm01Li6Tmg0Hz9dRGJCxjrtLOwyO.webp', alt: 'Farm-fresh UK tomatoes close-up' },
     ],
     monthsInSeason: [6, 7, 8, 9, 10],    // Jun–Oct
     peakMonths: [7, 8, 9],
@@ -121,10 +121,10 @@ export const PRODUCE: Produce[] = [
     slug: 'strawberries',
     name: 'Strawberries',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/1/main.webp', alt: 'Fresh British strawberries with morning dew' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/2/main.webp', alt: 'Ripe summer strawberries on natural linen' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/3/main.webp', alt: 'Hand-picked strawberries in rustic basket' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/4/main.webp', alt: 'Peak season strawberries close-up detail' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/1/main-8LLqLKKeN06MtaStm4NSWzn8YewmeF.webp', alt: 'Fresh British strawberries with morning dew' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/2/main-6LttC51ceLn8lhtlFkEnbJiN7dkRVI.webp', alt: 'Ripe summer strawberries on natural linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/3/main-knKWIaBcw4xVzEObGPZDWdvX8PFxyH.webp', alt: 'Hand-picked strawberries in rustic basket' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/4/main-qj8w4dcfoHrYjsZ9LarUBwPOLs3SUI.webp', alt: 'Peak season strawberries close-up detail' },
     ],
     monthsInSeason: [5, 6, 7, 8],        // May–Aug
     peakMonths: [6, 7],
@@ -170,10 +170,10 @@ export const PRODUCE: Produce[] = [
     slug: 'blackberries',
     name: 'Blackberries',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/1/main.webp', alt: 'Fresh wild blackberries with morning dew' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/2/main.webp', alt: 'Ripe blackberries in summer harvest' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/3/main.webp', alt: 'British blackberries macro detail' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/4/main.webp', alt: 'Plump blackberries on natural surface' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/1/main-YurfiUNYYDm6JttrLaEE6LJnOhP0MY.webp', alt: 'Fresh wild blackberries with morning dew' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/2/main-ixATRww1YVKjRwhvxQOnxDQllG8oyP.webp', alt: 'Ripe blackberries in summer harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/3/main-n4zTby5zV1onqK88xPPTPpnf78CtPq.webp', alt: 'British blackberries macro detail' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/4/main-8nQ4aHhiL2sC1IChrw3OXoY9D5kA26.webp', alt: 'Plump blackberries on natural surface' },
     ],
     monthsInSeason: [7, 8, 9],            // Jul–Sep
     peakMonths: [8],
@@ -219,10 +219,10 @@ export const PRODUCE: Produce[] = [
     slug: 'runner-beans',
     name: 'Runner Beans',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/1/main.webp', alt: 'Fresh runner beans from British gardens' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/2/main.webp', alt: 'Vibrant green runner bean pods' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/3/main.webp', alt: 'Summer runner bean harvest display' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/4/main.webp', alt: 'Crisp runner beans on rustic table' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/1/main-0YsX2J0vEimK3zH4a8yH2zeo8xuKKe.webp', alt: 'Fresh runner beans from British gardens' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/2/main-5JwSby7UGKUf1H0ImjkLmlv8zyXe9k.webp', alt: 'Vibrant green runner bean pods' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/3/main-mvgVaEhzl3pZyIJ6KfoqejIFoN278g.webp', alt: 'Summer runner bean harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/runner-beans/4/main-7sDtTGzYUQczuvvxrh8zOLjcSlsCit.webp', alt: 'Crisp runner beans on rustic table' },
     ],
     monthsInSeason: [7, 8, 9, 10],       // Jul–Oct
     peakMonths: [8, 9],
@@ -268,10 +268,10 @@ export const PRODUCE: Produce[] = [
     slug: 'plums',
     name: 'Plums',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/1/main.webp', alt: 'Fresh British plums in autumn harvest' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/2/main.webp', alt: 'Ripe purple plums with natural bloom' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/3/main.webp', alt: 'Victoria plums on rustic wooden board' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/4/main.webp', alt: 'Sweet plums with warm afternoon light' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/1/main-CHxa5eE8eNRa4fvRvVNDiwf9zAKaEc.webp', alt: 'Fresh British plums in autumn harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/2/main-MatTLOhCWf0OF3zSTX9yaIVCneq4YR.webp', alt: 'Ripe purple plums with natural bloom' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/3/main-v2OYv3ti0mSF0scJOJt8trwX8gD4HZ.webp', alt: 'Victoria plums on rustic wooden board' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/plums/4/main-Kro8WmwpSwoSDFh5Q4FpYuzzU3MI7C.webp', alt: 'Sweet plums with warm afternoon light' },
     ],
     monthsInSeason: [8, 9, 10],           // Aug–Oct
     peakMonths: [9],
@@ -317,10 +317,10 @@ export const PRODUCE: Produce[] = [
     slug: 'apples',
     name: 'Apples',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/1/main.webp', alt: 'Fresh British apples in autumn orchard' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/2/main.webp', alt: 'Heritage apple varieties close-up' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/3/main.webp', alt: 'Crisp eating apples on marble surface' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/4/main.webp', alt: 'Farm-fresh apples with rustic texture' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/1/main-LozihTdVJ1kjk6hMx9nGiUKxSNbmsr.webp', alt: 'Fresh British apples in autumn orchard' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/2/main-TRr4zZWPBj5djTwMsfNewyjSx1bvDZ.webp', alt: 'Heritage apple varieties close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/3/main-DNuxkMSjzIDEsIhyKH7YFCPbj9M5vI.webp', alt: 'Crisp eating apples on marble surface' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/4/main-yqBdP9nhTvpY7Nco3wIC743QAjYcKb.webp', alt: 'Farm-fresh apples with rustic texture' },
     ],
     monthsInSeason: [9, 10, 11, 12],     // Sep–Dec
     peakMonths: [10, 11],
@@ -366,10 +366,10 @@ export const PRODUCE: Produce[] = [
     slug: 'pumpkins',
     name: 'Pumpkins',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/1/main.webp', alt: 'Fresh British pumpkins on neutral linen' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/2/main.webp', alt: 'Orange pumpkins in autumn harvest' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/3/main.webp', alt: 'Heritage pumpkin varieties display' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/4/main.webp', alt: 'Farm pumpkins with golden hour light' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/1/main-YWLgCaePgJKWkYqkAv4Madye37f5NY.webp', alt: 'Fresh British pumpkins on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/2/main-hu38pVsnHKHhHaDVw36KUiTj1UhZyr.webp', alt: 'Orange pumpkins in autumn harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/3/main-ynuQhhl7dofarJecdVyB8SYNB1tGIx.webp', alt: 'Heritage pumpkin varieties display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pumpkins/4/main-mVwQHFe2Hg9c4etqXq7OgptBiYuW9F.webp', alt: 'Farm pumpkins with golden hour light' },
     ],
     monthsInSeason: [9, 10, 11],         // Sep–Nov
     peakMonths: [10],
@@ -415,10 +415,10 @@ export const PRODUCE: Produce[] = [
     slug: 'asparagus',
     name: 'Asparagus',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/1/main.webp', alt: 'Fresh British asparagus spears on neutral linen' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/2/main.webp', alt: 'Spring asparagus with tight green tips' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/3/main.webp', alt: 'UK asparagus season harvest display' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/4/main.webp', alt: 'Fresh asparagus spears close-up detail' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/1/main-MYkZCCl4geyqzvKHxqntAvh4VxJyZD.webp', alt: 'Fresh British asparagus spears on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/2/main-F431DIje1nPzXelA1zRnF8rSa3pv05.webp', alt: 'Spring asparagus with tight green tips' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/3/main-0zEewlS3zpkcCOJVoCdE7bQYLXFXmx.webp', alt: 'UK asparagus season harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/4/main-GgbHFd58DmcK4kMP17VDc5Zn7Trgm5.webp', alt: 'Fresh asparagus spears close-up detail' },
     ],
     monthsInSeason: [4, 5, 6],           // Apr–Jun
     peakMonths: [5],
@@ -464,10 +464,10 @@ export const PRODUCE: Produce[] = [
     slug: 'kale',
     name: 'Kale',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/1/main.webp', alt: 'Fresh British kale leaves with selective focus' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/2/main.webp', alt: 'Dark green curly kale in golden hour light' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/3/main.webp', alt: 'Winter kale harvest display' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/4/main.webp', alt: 'Organic kale leaves macro detail' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/1/main-AlVusGr0XchfYbG40lFufjV7Yfz6E9.webp', alt: 'Fresh British kale leaves with selective focus' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/2/main-7GyhmNWWtX0shg3DvHgToO7nZftgg0.webp', alt: 'Dark green curly kale in golden hour light' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/3/main-5fRYjIlXEq8FKTEJgaLoC9mYizrEiU.webp', alt: 'Winter kale harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/4/main-rXGP5Vi1XcJHUL8SIztS4ULU2ClGVo.webp', alt: 'Organic kale leaves macro detail' },
     ],
     monthsInSeason: [11, 12, 1, 2, 3, 4], // Nov–Apr
     peakMonths: [1, 2],
@@ -513,10 +513,10 @@ export const PRODUCE: Produce[] = [
     slug: 'leeks',
     name: 'Leeks',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/1/main.webp', alt: 'Fresh British leeks at farmers market' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/2/main.webp', alt: 'Winter leeks in wicker basket display' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/3/main.webp', alt: 'Fresh leeks with white and green layers' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/4/main.webp', alt: 'UK grown leeks close-up detail' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/1/main-FF99kZENJyLw3VQHXjhZIXahTuvziv.webp', alt: 'Fresh British leeks at farmers market' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/2/main-zkimhF8QnZ1rHwWi58sMzBbRTh2Zmq.webp', alt: 'Winter leeks in wicker basket display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/3/main-7VSuRyll3iUYmf3semPH6j36rBxzyb.webp', alt: 'Fresh leeks with white and green layers' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/leeks/4/main-3UhgiZADGxlnh6bna1iIYDLNHH38lG.webp', alt: 'UK grown leeks close-up detail' },
     ],
     monthsInSeason: [9, 10, 11, 12, 1, 2, 3, 4], // Sep–Apr
     peakMonths: [11, 12, 1],
@@ -562,10 +562,10 @@ export const PRODUCE: Produce[] = [
     slug: 'purple-sprouting-broccoli',
     name: 'Purple Sprouting Broccoli',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/1/main.webp', alt: 'Fresh purple sprouting broccoli on rustic wooden table' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/2/main.webp', alt: 'Vibrant PSB with purple-green florets' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/3/main.webp', alt: 'British purple sprouting broccoli harvest' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/4/main.webp', alt: 'Fresh PSB stems and florets close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/1/main-gS0sUMuKGUxfvsM3OESdrR4dYYN3pl.webp', alt: 'Fresh purple sprouting broccoli on rustic wooden table' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/2/main-ZM7wDS1wk6ZQKeVfGYAXaKqzKsYWuJ.webp', alt: 'Vibrant PSB with purple-green florets' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/3/main-4a1jzfaiga5yJIDkNSNr3vlHkmvxtj.webp', alt: 'British purple sprouting broccoli harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/purple-sprouting-broccoli/4/main-tKRaC46gFhX3lolTzkqud7d60N5dIy.webp', alt: 'Fresh PSB stems and florets close-up' },
     ],
     monthsInSeason: [1, 2, 3, 4],        // Jan–Apr
     peakMonths: [2, 3],
