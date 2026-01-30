@@ -137,26 +137,27 @@ function ProduceCard({ produce }: { produce: SeasonalProduce }) {
  * Season status badge with appropriate colors.
  */
 function SeasonStatusBadge({ status }: { status: SeasonalProduce['seasonStatus'] }) {
+  // WCAG AA compliant color combinations
   const config = {
     peak: {
       icon: Sparkles,
       label: 'Peak',
-      className: 'bg-emerald-500/90 text-white'
+      className: 'bg-status-open text-status-open-contrast' // Green with white
     },
     starting: {
       icon: Sunrise,
       label: 'Just Started',
-      className: 'bg-sky-500/90 text-white'
+      className: 'bg-sky-600 text-white' // Darkened for contrast
     },
     'in-season': {
       icon: Leaf,
       label: 'In Season',
-      className: 'bg-primary-500/90 text-white'
+      className: 'bg-primary-600 text-white' // Darkened for contrast
     },
     ending: {
       icon: Clock,
       label: 'Ending Soon',
-      className: 'bg-amber-500/90 text-white'
+      className: 'bg-amber-600 text-slate-900' // Dark text on amber for AA compliance
     }
   }
 

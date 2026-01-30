@@ -305,18 +305,23 @@ export function isCurrentlyOpen(openingHours?: unknown): boolean {
 
 /**
  * Get farm status color class for Tailwind
+ * Uses WCAG AA compliant contrast pairs from the design system
  * @param status - Farm status object
- * @returns Tailwind color class
+ * @returns Tailwind color class with guaranteed contrast
  */
 export function getStatusColorClass(status: FarmStatus): string {
   switch (status.color) {
     case 'success':
-      return 'bg-success text-white'
+      // Open status - green with white text (passes AA)
+      return 'bg-status-open text-status-open-contrast'
     case 'error':
-      return 'bg-error text-white'
+      // Closed status - red with white text (passes AA)
+      return 'bg-status-closed text-status-closed-contrast'
     case 'info':
+      // Info status - cyan with white text (passes AA)
       return 'bg-info text-white'
     default:
-      return 'bg-slate-500 text-white'
+      // Unknown status - neutral with white text
+      return 'bg-status-unknown text-status-unknown-contrast'
   }
 }

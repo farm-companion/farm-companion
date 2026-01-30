@@ -123,6 +123,43 @@ module.exports = {
           foreground: 'var(--info-foreground)',
         },
 
+        // Status indicators with WCAG AA enforced contrast pairs
+        // Use: bg-status-open text-status-open-contrast
+        'status-open': {
+          DEFAULT: 'var(--status-open)',
+          contrast: 'var(--status-open-text)',
+        },
+        'status-closed': {
+          DEFAULT: 'var(--status-closed)',
+          contrast: 'var(--status-closed-text)',
+        },
+        'status-unknown': {
+          DEFAULT: 'var(--status-unknown)',
+          contrast: 'var(--status-unknown-text)',
+        },
+
+        // Cluster marker tiers with enforced contrast
+        'cluster-low': {
+          DEFAULT: 'var(--marker-cluster-low)',
+          contrast: 'var(--marker-cluster-low-text)',
+        },
+        'cluster-medium': {
+          DEFAULT: 'var(--marker-cluster-medium)',
+          contrast: 'var(--marker-cluster-medium-text)',
+        },
+        'cluster-high': {
+          DEFAULT: 'var(--marker-cluster-high)',
+          contrast: 'var(--marker-cluster-high-text)',
+        },
+        'cluster-very-high': {
+          DEFAULT: 'var(--marker-cluster-very-high)',
+          contrast: 'var(--marker-cluster-very-high-text)',
+        },
+        'cluster-max': {
+          DEFAULT: 'var(--marker-cluster-max)',
+          contrast: 'var(--marker-cluster-max-text)',
+        },
+
         // =======================================================================
         // PRIMITIVE SCALES (For advanced use only - prefer semantics above)
         // =======================================================================

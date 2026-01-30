@@ -80,8 +80,8 @@ function FeaturedFarmCard({ farm, rank }: FeaturedFarmCardProps) {
       href={`/shop/${farm.slug}`}
       className="group relative bg-white dark:bg-slate-900 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300"
     >
-      {/* Rank badge */}
-      <div className="absolute top-3 left-3 z-10 w-8 h-8 rounded-full bg-amber-500 text-white font-bold flex items-center justify-center shadow-lg">
+      {/* Rank badge - uses dark text on amber for WCAG AA compliance */}
+      <div className="absolute top-3 left-3 z-10 w-8 h-8 rounded-full bg-amber-500 text-amber-950 font-bold flex items-center justify-center shadow-lg">
         {rank}
       </div>
 
