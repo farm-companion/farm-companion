@@ -48,17 +48,17 @@ interface MapLibreShellProps {
   onMapReady?: (map: maplibregl.Map) => void
 }
 
-// UK bounds for fallback
+// UK bounds - tighter focus on mainland Britain and Ireland
 const UK_BOUNDS = {
-  north: 61.0,
-  south: 49.8,
-  east: 2.0,
-  west: -10.5
+  north: 59.0,   // Northern Scotland (not Shetland)
+  south: 50.0,   // English Channel
+  east: 1.8,     // East Anglia coast
+  west: -8.5     // West Ireland
 }
 
 const UK_CENTER = {
-  lat: 54.5,
-  lng: -2.0
+  lat: 54.0,
+  lng: -2.5
 }
 
 interface MarkerState {
@@ -155,9 +155,14 @@ export default function MapLibreShell({
     const mapStyle = getMapStyle(false)
     console.log('[MapLibreShell] Using map style:', typeof mapStyle === 'string' ? mapStyle : 'OSM Raster Object')
 
-    // Calculate padding for initial bounds - account for sidebar on desktop (384px)
-    const rightPadding = typeof window !== 'undefined' && window.innerWidth >= 768 ? 400 : 20
-    const initialPadding = { top: 100, right: rightPadding, bottom: 100, left: 20 }
+    // Calculate padding for initial bounds - account for sidebar on desktop
+    const isDesktopView = typeof window !== 'undefined' && window.innerWidth >= 768
+    const initialPadding = {
+      top: 60,
+      right: isDesktopView ? 420 : 20,  // Sidebar width + margin
+      bottom: 60,
+      left: 20
+    }
 
     const map = new maplibregl.Map({
       container: mapContainerRef.current,
@@ -178,6 +183,23 @@ export default function MapLibreShell({
       setIsLoading(false)
       setMapInstance(map)
       mapRef.current = map
+
+      // Set initial bounds immediately so markers render on first load
+      // This is critical - without bounds, the clustering hook returns empty
+      const bounds = map.getBounds()
+      if (bounds) {
+        const initialBounds = {
+          north: bounds.getNorth(),
+          south: bounds.getSouth(),
+          east: bounds.getEast(),
+          west: bounds.getWest()
+        }
+        setCurrentBounds(initialBounds)
+        setCurrentZoom(map.getZoom())
+        onBoundsChange?.(initialBounds)
+        onZoomChange?.(map.getZoom())
+      }
+
       onMapLoad?.(map)
       onMapReady?.(map)
     })
