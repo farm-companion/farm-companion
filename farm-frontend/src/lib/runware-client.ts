@@ -82,19 +82,18 @@ export class RunwareClient {
       const payload = {
         taskType: 'imageInference',
         taskUUID: crypto.randomUUID(),
-        model: 'runware:flux-2-pro-ultra', // FLUX.2 Pro Ultra - best for commercial produce
+        // FLUX.1 [dev] - high quality, good for commercial produce
+        model: 'runware:100@1',
         positivePrompt: request.prompt,
         // Note: FLUX models ignore negativePrompt - control via positive prompt only
-        width: request.width || 2048,
-        height: request.height || 2048,
+        width: request.width || 1024,
+        height: request.height || 1024,
         seed: request.seed,
-        steps: request.steps || 45, // 40-50 optimal for produce texture refinement
-        CFGScale: request.cfgScale || 3.5, // FLUX.2 Pro handles higher CFG
-        scheduler: 'Euler Beta',
+        steps: request.steps || 28,
+        CFGScale: request.cfgScale || 3.5,
+        scheduler: 'FlowMatchEulerDiscreteScheduler',
         outputFormat: request.outputFormat || 'webp',
-        numberResults: request.numberResults || 1,
-        // RAW mode disables AI smoothing for authentic textures
-        rawMode: true
+        numberResults: request.numberResults || 1
       }
 
       const response = await axios.post(
@@ -134,9 +133,15 @@ export class RunwareClient {
       })
 
       return { images }
-    } catch (error) {
+    } catch (error: any) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      runwareLogger.error('Runware generation failed', { error: message })
+      // Log full error response for debugging
+      const responseData = error?.response?.data
+      runwareLogger.error('Runware generation failed', {
+        error: message,
+        status: error?.response?.status,
+        responseData: JSON.stringify(responseData)
+      })
       return null
     }
   }
