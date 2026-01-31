@@ -28,31 +28,37 @@ const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
  * Each category has specific descriptors that work better for that type
  */
 export type ProduceCategory =
-  | 'berries'      // strawberries, blackberries, raspberries
-  | 'citrus'       // oranges, lemons, limes
-  | 'leafy'        // kale, spinach, lettuce
-  | 'root'         // carrots, potatoes, beetroot
-  | 'stone_fruit'  // plums, peaches, cherries
-  | 'pome_fruit'   // apples, pears
-  | 'squash'       // pumpkins, butternut, courgettes
-  | 'stalks'       // asparagus, celery, rhubarb
-  | 'pods'         // runner beans, peas, broad beans
-  | 'brassicas'    // broccoli, cauliflower, cabbage
-  | 'alliums'      // leeks, onions, garlic
-  | 'nightshades'  // tomatoes, peppers, aubergines
-  | 'corn'         // sweetcorn
+  | 'berries'        // strawberries, blackberries, raspberries
+  | 'citrus'         // oranges, lemons, limes
+  | 'leafy_ruffled'  // kale, chard (curly leaves on stems)
+  | 'leafy_flat'     // spinach, lettuce (tender flat leaves)
+  | 'root'           // carrots, potatoes, beetroot
+  | 'stone_fruit'    // plums, peaches, cherries
+  | 'pome_fruit'     // apples, pears
+  | 'squash'         // pumpkins, butternut, courgettes
+  | 'stalks'         // asparagus, celery, rhubarb
+  | 'pods'           // runner beans, peas, broad beans
+  | 'brassicas'      // broccoli, cauliflower, cabbage
+  | 'alliums'        // leeks, onions, garlic
+  | 'tomatoes'       // tomatoes specifically (matte, not shiny)
+  | 'nightshades'    // peppers, aubergines (shiny skin OK)
+  | 'corn'           // sweetcorn
 
 /**
  * Category-specific prompt templates
  * Structure: Subject FIRST (FLUX weighs earlier words more heavily)
- * Based on BFL guide recommendations
+ * Based on BFL guide recommendations + feedback on specific produce issues
  */
 const CATEGORY_TEMPLATES: Record<ProduceCategory, string> = {
   berries: `Fresh ripe {NAME} arranged in a natural small pile, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, small water droplets on surface, visible seeds and authentic imperfections, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution, sharp focus on fruit details`,
 
   citrus: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, textured peel with visible pores, natural citrus sheen, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution, sharp focus on peel texture`,
 
-  leafy: `Fresh crisp {NAME} leaves, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural leaf folds and curves, fresh-cut stems visible, vibrant green color, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  // Kale, chard - explicitly describe structure to avoid broccoli confusion
+  leafy_ruffled: `Fresh {NAME}, leafy green vegetable with large ruffled leaves attached to long thick pale stems, NOT broccoli NOT florets, flat spreading leaf shape with curly edges, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting, deep blue-green leaf color, prominent leaf veins visible, fibrous pale green stems, shot from 45-degree angle above, commercial food photography, ultra high resolution`,
+
+  // Spinach, lettuce - tender flat leaves
+  leafy_flat: `Fresh {NAME} leaves, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, smooth delicate leaves with visible veins, tender stems, vibrant green color, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
 
   root: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, clean natural rough skin texture, earthy authentic appearance, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
 
@@ -60,7 +66,8 @@ const CATEGORY_TEMPLATES: Record<ProduceCategory, string> = {
 
   pome_fruit: `Fresh crisp {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural waxy sheen on skin, subtle color gradient, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
 
-  squash: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural ribbed texture and stem, rich autumn colors, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  // Pumpkins - explicitly describe the woody curved stem
+  squash: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting, thick woody curved stem on top with deep vertical ridges and rough brown-green texture, stem curves slightly to one side, ribbed skin with natural segments, matte surface with subtle texture variations, shot from 45-degree angle above, commercial food photography, ultra high resolution`,
 
   stalks: `Fresh {NAME} spears in a small bundle, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, tight compact tips, natural fiber texture visible, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
 
@@ -70,6 +77,10 @@ const CATEGORY_TEMPLATES: Record<ProduceCategory, string> = {
 
   alliums: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, crisp white and green layers visible, natural papery outer skin, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
 
+  // Tomatoes - matte, not shiny, farmers market look
+  tomatoes: `Fresh ripe {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, soft diffused lighting, matte skin with natural bloom, subtle imperfections and small blemishes visible, no artificial shine, authentic farmers market appearance, slight dust on surface, vine stem still attached, shot from 45-degree angle above, ultra high resolution`,
+
+  // Peppers, aubergines - glossy skin is natural for these
   nightshades: `Fresh ripe {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural glossy skin, vibrant color, small water droplets, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
 
   corn: `Fresh {NAME} cobs with husks partially pulled back, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, plump golden kernels visible, fresh silk strands, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`
@@ -101,11 +112,16 @@ const PRODUCE_CATEGORY_MAP: Record<string, ProduceCategory> = {
   'limes': 'citrus',
   'grapefruit': 'citrus',
 
-  // Leafy greens
-  'kale': 'leafy',
-  'spinach': 'leafy',
-  'lettuce': 'leafy',
-  'chard': 'leafy',
+  // Leafy greens - ruffled (curly leaves on thick stems)
+  'kale': 'leafy_ruffled',
+  'chard': 'leafy_ruffled',
+  'cavolo-nero': 'leafy_ruffled',
+
+  // Leafy greens - flat (tender delicate leaves)
+  'spinach': 'leafy_flat',
+  'lettuce': 'leafy_flat',
+  'rocket': 'leafy_flat',
+  'watercress': 'leafy_flat',
 
   // Root vegetables
   'carrots': 'root',
@@ -143,11 +159,14 @@ const PRODUCE_CATEGORY_MAP: Record<string, ProduceCategory> = {
   'garlic': 'alliums',
   'spring-onions': 'alliums',
 
-  // Nightshades
-  'tomato': 'nightshades',
-  'tomatoes': 'nightshades',
+  // Tomatoes - separate category (matte, not shiny)
+  'tomato': 'tomatoes',
+  'tomatoes': 'tomatoes',
+
+  // Nightshades (peppers, aubergines - glossy skin OK)
   'peppers': 'nightshades',
   'aubergines': 'nightshades',
+  'chillies': 'nightshades',
 
   // Corn
   'sweetcorn': 'corn'
