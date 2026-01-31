@@ -251,7 +251,7 @@ export function validateSeasonality(): Array<{
     const ukSet = new Set(ukMonths)
 
     const hasMissing = ukMonths.some(m => !produceSet.has(m))
-    const hasExtra = item.monthsInSeason.some(m => !ukSet.has(m))
+    const hasExtra = item.monthsInSeason.some(m => !ukSet.has(m as Month))
 
     let discrepancy: 'missing' | 'extra' | 'match' = 'match'
     if (hasMissing && hasExtra) {
