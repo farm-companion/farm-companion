@@ -17,8 +17,8 @@ import { getRunwareClient, HARVEST_STYLE } from './runware-client'
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
 /**
- * Harvest Visual Signature: Stock Photography Realism
- * Real produce photography as seen in Waitrose, Tesco, BBC Good Food
+ * Harvest Visual Signature: Clean Produce Photography
+ * Simple, recognizable, realistic produce images
  */
 const HARVEST_PRODUCE_NEGATIVE = [
   'cartoon, illustration, 3d render, digital art, painting',
@@ -105,7 +105,7 @@ export class ProduceImageGenerator {
 
   /**
    * Create realistic stock photography prompt for produce
-   * Targets: Waitrose, Tesco, BBC Good Food, Delicious Magazine style
+   * Clean, simple, recognizable produce photos
    */
   private createProducePrompt(produceName: string, options: ProduceImageOptions): string {
     const hash = this.hashString(produceName)
@@ -141,15 +141,15 @@ export class ProduceImageGenerator {
 
     // Stock photography style prompt - emphasize REAL and RECOGNIZABLE
     const parts = [
-      `Professional stock photograph of fresh ${produceName}`,
+      `Professional photograph of fresh ${produceName}`,
       selectedComposition,
       selectedBackground,
-      'DSLR photo, 50mm lens, f/2.8 aperture',
-      'soft natural daylight from window',
+      'DSLR camera photo, 50mm lens, f/2.8',
+      'soft natural daylight',
       'real vegetables, real fruit, actual produce',
-      'supermarket quality, grocery store fresh',
+      'clean image, no watermark, no text overlay',
       'photograph not illustration, real not CGI',
-      'sharp focus, high resolution, professional lighting',
+      'sharp focus, high resolution',
       options.styleHint
     ].filter(Boolean)
 
