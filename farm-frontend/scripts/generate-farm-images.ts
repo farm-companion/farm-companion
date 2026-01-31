@@ -27,6 +27,10 @@
  *   BLOB_READ_WRITE_TOKEN Vercel Blob token (optional for local dev)
  */
 
+// Load environment variables from .env file
+import { config } from 'dotenv'
+config()
+
 import { PrismaClient } from '@prisma/client'
 import * as fs from 'fs'
 import * as path from 'path'
