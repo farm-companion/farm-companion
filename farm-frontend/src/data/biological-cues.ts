@@ -19,7 +19,7 @@ export const BIOLOGICAL_CUES: Record<string, string> = {
 
   // B
   'beetroot': 'Earthy matte skin with soil-like patina, subtle rings near root scar, rough crown cut, slight irregularity.',
-  'blackberries': 'Non-uniform drupelets of varied size, matte and gloss mix, minor compression dents, subtle juice sheen.',
+  'blackberries': 'True blackberry morphology, slightly tapered irregular silhouette, no hollow center, drupelets are non-uniform domes with varied sizes and subtle compression dents, no blueberry-style crown or calyx holes, no repeated blossom-end cavities, natural matte-to-gloss variation with tiny juice sheen, minor bruising and realistic micro-scuffs.',
   'blackcurrants': 'Small translucent skins with subtle bloom, tiny dried blossom ends, natural cluster variation if stemmed.',
   'blueberries': 'Visible wax bloom, subtle crown at blossom end, varied berry sizes, gentle matte highlights.',
   'broad beans': 'Slightly fuzzy pods, gentle curvature, seam line visible, natural size variation.',

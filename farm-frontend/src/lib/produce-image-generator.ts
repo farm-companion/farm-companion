@@ -108,10 +108,10 @@ const ENHANCED_NEGATIVE = `deformed, misshapen, warped, stretched, melted, mutat
  * Per-produce negative overrides for known failure modes
  */
 const PRODUCE_NEGATIVE_OVERRIDES: Record<string, string> = {
-  'blackberries': 'no blueberry crown, no calyx holes, no blossom-end cavities, no hollow drupelets',
-  'raspberries': 'no solid center, no blueberry crown, maintain hollow cone structure',
-  'blueberries': 'no raspberry drupelets, maintain smooth skin with wax bloom',
-  'strawberries': 'no raspberry drupelets, maintain achene seed pattern on surface'
+  'blackberries': 'blueberry crown, calyx hole, blossom-end cavity, currant, grape, bead cluster, perfect spheres, toy fruit, over-polished, fused berries, extra berries',
+  'raspberries': 'solid center, blueberry crown, calyx holes, perfect spheres, bead cluster, fused berries',
+  'blueberries': 'raspberry drupelets, blackberry structure, hollow center, irregular drupelets',
+  'strawberries': 'raspberry drupelets, blackberry drupelets, smooth surface, missing seeds'
 }
 
 /**
