@@ -27,9 +27,13 @@
  *   BLOB_READ_WRITE_TOKEN Vercel Blob token (optional for local dev)
  */
 
-// Load environment variables from .env file
+// Load environment variables from .env.local (Vercel default) or .env
 import { config } from 'dotenv'
-config()
+import { resolve } from 'path'
+
+// Try .env.local first (Vercel), then fall back to .env
+config({ path: resolve(process.cwd(), '.env.local') })
+config({ path: resolve(process.cwd(), '.env') })
 
 import { PrismaClient } from '@prisma/client'
 import * as fs from 'fs'
