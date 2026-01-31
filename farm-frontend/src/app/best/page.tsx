@@ -57,23 +57,38 @@ export default function BestGuidesPage() {
         </div>
       </div>
 
-      {/* Hero Section */}
-      <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-        <div className="container mx-auto px-4 py-12 md:py-16">
+      {/* Hero Section with Background Image */}
+      <section className="relative border-b border-slate-200 dark:border-slate-800 overflow-hidden">
+        {/* Background Image */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1920&q=80"
+            alt=""
+            className="w-full h-full object-cover"
+          />
+          {/* Gradient overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/80" />
+        </div>
+
+        {/* Content */}
+        <div className="relative container mx-auto px-4 py-16 md:py-24 lg:py-32">
           <div className="max-w-4xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
+            <span className="inline-block px-4 py-1.5 mb-4 text-small font-medium text-amber-200 bg-amber-500/20 backdrop-blur-sm rounded-full border border-amber-400/30">
+              Curated by Local Experts
+            </span>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
               Best Farm Guides
             </h1>
-            <p className="text-body md:text-heading text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-body md:text-heading text-slate-200 mb-8 max-w-2xl mx-auto">
               Discover our expertly curated guides to the finest farms, farm shops, and agricultural
               experiences across the UK. From organic producers to pick your own farms, we&apos;ve
               handpicked the best destinations for every interest.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-4">
-              <Badge variant="default" size="lg">
+              <Badge variant="default" size="lg" className="bg-white/90 text-slate-900 backdrop-blur-sm">
                 {bestLists.length} Curated Guides
               </Badge>
-              <Badge variant="outline" size="lg">
+              <Badge variant="outline" size="lg" className="border-white/40 text-white backdrop-blur-sm">
                 Updated Regularly
               </Badge>
             </div>
