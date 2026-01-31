@@ -607,6 +607,552 @@ export const PRODUCE: Produce[] = [
     ],
     aliases: ['PSB', 'purple broccoli', 'sprouting broccoli'],
   },
+  {
+    slug: 'carrots',
+    name: 'Carrots',
+    images: [],
+    monthsInSeason: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // Year-round (stored)
+    peakMonths: [7, 8, 9, 10],
+    nutritionPer100g: { kcal: 41, protein: 0.9, carbs: 10, sugars: 4.7, fiber: 2.8, fat: 0.2 },
+    selectionTips: [
+      'Choose firm carrots with bright orange colour.',
+      'Avoid carrots with cracks or soft spots.',
+      'Smaller carrots tend to be sweeter.',
+      'If tops are attached, they should be fresh and green.',
+    ],
+    storageTips: [
+      'Remove green tops before storing to prevent moisture loss.',
+      'Store in the refrigerator for up to 3 weeks.',
+      'Keep in a plastic bag to retain moisture.',
+      'Can be frozen after blanching.',
+    ],
+    prepIdeas: [
+      'Roast with honey and thyme.',
+      'Grate raw into salads and slaws.',
+      'Make carrot and coriander soup.',
+      'Steam and glaze with butter.',
+    ],
+    recipeChips: [
+      {
+        title: 'Honey Roasted Carrots',
+        url: 'https://www.bbcgoodfood.com/recipes/honey-roasted-carrots',
+        description: 'Sweet and caramelised roasted carrots'
+      },
+      {
+        title: 'Carrot and Coriander Soup',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/carrot-coriander-soup/',
+        description: 'Classic British soup with warming spices'
+      }
+    ],
+    aliases: ['carrot', 'heritage carrots', 'baby carrots'],
+  },
+  {
+    slug: 'parsnips',
+    name: 'Parsnips',
+    images: [],
+    monthsInSeason: [1, 2, 3, 9, 10, 11, 12], // Sept-Mar
+    peakMonths: [11, 12, 1],
+    nutritionPer100g: { kcal: 75, protein: 1.2, carbs: 18, sugars: 4.8, fiber: 4.9, fat: 0.3 },
+    selectionTips: [
+      'Choose firm, smooth parsnips without blemishes.',
+      'Smaller ones are sweeter and less woody.',
+      'Avoid parsnips with soft spots or cracks.',
+      'Frost-kissed parsnips are sweeter.',
+    ],
+    storageTips: [
+      'Store unwashed in a cool, dark place for weeks.',
+      'Refrigerate in a plastic bag for up to 3 weeks.',
+      'Can be left in the ground over winter.',
+      'Blanch and freeze for longer storage.',
+    ],
+    prepIdeas: [
+      'Roast with honey and rosemary.',
+      'Make parsnip crisps.',
+      'Add to stews and casseroles.',
+      'Mash with butter and nutmeg.',
+    ],
+    recipeChips: [
+      {
+        title: 'Honey Roasted Parsnips',
+        url: 'https://www.bbcgoodfood.com/recipes/honey-roasted-parsnips',
+        description: 'Perfect Christmas side dish'
+      },
+      {
+        title: 'Parsnip Soup',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/parsnip-soup/',
+        description: 'Creamy winter warmer'
+      }
+    ],
+    aliases: ['parsnip'],
+  },
+  {
+    slug: 'brussels-sprouts',
+    name: 'Brussels Sprouts',
+    images: [],
+    monthsInSeason: [9, 10, 11, 12, 1, 2], // Sept-Feb
+    peakMonths: [11, 12],
+    nutritionPer100g: { kcal: 43, protein: 3.4, carbs: 9, sugars: 2.2, fiber: 3.8, fat: 0.3 },
+    selectionTips: [
+      'Choose tight, compact heads.',
+      'Look for bright green colour.',
+      'Smaller sprouts are sweeter.',
+      'Avoid yellowing or loose leaves.',
+    ],
+    storageTips: [
+      'Store unwashed in the fridge for up to a week.',
+      'Keep in a plastic bag in the crisper.',
+      'On the stalk, they last longer.',
+      'Blanch and freeze for up to 12 months.',
+    ],
+    prepIdeas: [
+      'Roast with bacon and chestnuts.',
+      'Shred raw for salads.',
+      'Pan-fry with butter and garlic.',
+      'Steam and toss with lemon zest.',
+    ],
+    recipeChips: [
+      {
+        title: 'Roasted Brussels with Bacon',
+        url: 'https://www.bbcgoodfood.com/recipes/roasted-sprouts-bacon',
+        description: 'The ultimate Christmas sprouts'
+      },
+      {
+        title: 'Shredded Sprout Salad',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/shredded-sprout-salad/',
+        description: 'Fresh and crunchy winter salad'
+      }
+    ],
+    aliases: ['sprouts', 'brussels', 'baby cabbages'],
+  },
+  {
+    slug: 'beetroot',
+    name: 'Beetroot',
+    images: [],
+    monthsInSeason: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // Year-round
+    peakMonths: [7, 8, 9, 10],
+    nutritionPer100g: { kcal: 43, protein: 1.6, carbs: 10, sugars: 7, fiber: 2.8, fat: 0.2 },
+    selectionTips: [
+      'Choose firm beets with smooth skin.',
+      'Small to medium size are most tender.',
+      'Fresh leaves indicate recently harvested.',
+      'Avoid beets with soft spots or wrinkles.',
+    ],
+    storageTips: [
+      'Remove leaves, leaving 2cm of stem.',
+      'Store unwashed in fridge for 2-3 weeks.',
+      'Cooked beetroot keeps for up to a week.',
+      'Can be pickled for longer preservation.',
+    ],
+    prepIdeas: [
+      'Roast whole wrapped in foil.',
+      'Grate raw into salads.',
+      'Make beetroot hummus.',
+      'Juice with apple and ginger.',
+    ],
+    recipeChips: [
+      {
+        title: 'Roasted Beetroot Salad',
+        url: 'https://www.bbcgoodfood.com/recipes/roasted-beetroot-salad-goats-cheese',
+        description: 'Classic combination with goats cheese'
+      },
+      {
+        title: 'Beetroot Soup (Borscht)',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/beetroot-soup/',
+        description: 'Vibrant Eastern European classic'
+      }
+    ],
+    aliases: ['beets', 'red beet', 'golden beetroot', 'chioggia'],
+  },
+  {
+    slug: 'rhubarb',
+    name: 'Rhubarb',
+    images: [],
+    monthsInSeason: [1, 2, 3, 4, 5, 6], // Jan-Jun (forced and outdoor)
+    peakMonths: [3, 4, 5],
+    nutritionPer100g: { kcal: 21, protein: 0.9, carbs: 4.5, sugars: 1.1, fiber: 1.8, fat: 0.2 },
+    selectionTips: [
+      'Choose firm, crisp stalks.',
+      'Bright colour indicates freshness.',
+      'Forced rhubarb is pink and tender.',
+      'Avoid limp or damaged stalks.',
+    ],
+    storageTips: [
+      'Wrap loosely in plastic and refrigerate.',
+      'Use within a week for best quality.',
+      'Chop and freeze for up to 12 months.',
+      'Do not eat the leaves - they are toxic.',
+    ],
+    prepIdeas: [
+      'Stew with sugar for compote.',
+      'Bake into crumbles and pies.',
+      'Make rhubarb fool with cream.',
+      'Roast with orange and vanilla.',
+    ],
+    recipeChips: [
+      {
+        title: 'Rhubarb Crumble',
+        url: 'https://www.bbcgoodfood.com/recipes/rhubarb-crumble',
+        description: 'Classic British dessert'
+      },
+      {
+        title: 'Rhubarb Fool',
+        url: 'https://www.jamieoliver.com/recipes/fruit-recipes/rhubarb-fool/',
+        description: 'Light and creamy spring pudding'
+      }
+    ],
+    aliases: ['forced rhubarb', 'Yorkshire rhubarb'],
+  },
+  {
+    slug: 'spinach',
+    name: 'Spinach',
+    images: [],
+    monthsInSeason: [3, 4, 5, 6, 7, 8, 9, 10], // Mar-Oct
+    peakMonths: [4, 5, 6],
+    nutritionPer100g: { kcal: 23, protein: 2.9, carbs: 3.6, sugars: 0.4, fiber: 2.2, fat: 0.4 },
+    selectionTips: [
+      'Look for dark green, crisp leaves.',
+      'Avoid yellowing or wilted leaves.',
+      'Baby spinach is more tender.',
+      'Check for sliminess or odour.',
+    ],
+    storageTips: [
+      'Store unwashed in the fridge.',
+      'Use within 3-5 days.',
+      'Keep in original container or plastic bag.',
+      'Blanch and freeze for cooking.',
+    ],
+    prepIdeas: [
+      'Wilt into pasta dishes.',
+      'Add to smoothies for nutrients.',
+      'Make creamed spinach.',
+      'Use raw in salads.',
+    ],
+    recipeChips: [
+      {
+        title: 'Creamed Spinach',
+        url: 'https://www.bbcgoodfood.com/recipes/creamed-spinach',
+        description: 'Rich and indulgent side dish'
+      },
+      {
+        title: 'Spinach and Ricotta Cannelloni',
+        url: 'https://www.jamieoliver.com/recipes/pasta-recipes/spinach-ricotta-cannelloni/',
+        description: 'Italian comfort food classic'
+      }
+    ],
+    aliases: ['baby spinach', 'leaf spinach'],
+  },
+  {
+    slug: 'broad-beans',
+    name: 'Broad Beans',
+    images: [],
+    monthsInSeason: [5, 6, 7, 8], // May-Aug
+    peakMonths: [6, 7],
+    nutritionPer100g: { kcal: 88, protein: 7.6, carbs: 11, sugars: 1.8, fiber: 6.5, fat: 0.7 },
+    selectionTips: [
+      'Choose plump, bright green pods.',
+      'Smaller beans are more tender.',
+      'Pods should feel full but not bulging.',
+      'Avoid yellowing or damaged pods.',
+    ],
+    storageTips: [
+      'Store in pods in the fridge for 3-4 days.',
+      'Shell and blanch before freezing.',
+      'Double-pod for extra tenderness.',
+      'Dried beans store for months.',
+    ],
+    prepIdeas: [
+      'Double-pod and toss with mint and feta.',
+      'Mash into a dip with lemon.',
+      'Add to risottos and pasta.',
+      'Serve simply with butter.',
+    ],
+    recipeChips: [
+      {
+        title: 'Broad Bean and Feta Salad',
+        url: 'https://www.bbcgoodfood.com/recipes/broad-bean-feta-dill-salad',
+        description: 'Fresh summer salad with herbs'
+      },
+      {
+        title: 'Broad Bean Bruschetta',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/broad-bean-bruschetta/',
+        description: 'Italian-style toast topper'
+      }
+    ],
+    aliases: ['fava beans', 'faba beans'],
+  },
+  {
+    slug: 'peas',
+    name: 'Garden Peas',
+    images: [],
+    monthsInSeason: [5, 6, 7, 8, 9], // May-Sep
+    peakMonths: [6, 7],
+    nutritionPer100g: { kcal: 81, protein: 5.4, carbs: 14, sugars: 5.7, fiber: 5.1, fat: 0.4 },
+    selectionTips: [
+      'Choose bright green, plump pods.',
+      'Pods should feel full of peas.',
+      'Avoid yellowing or flat pods.',
+      'Fresh peas squeak when rubbed together.',
+    ],
+    storageTips: [
+      'Use as soon as possible - sugars convert to starch.',
+      'Store in pods in fridge for 2-3 days.',
+      'Shell and freeze immediately for best flavour.',
+      'Frozen peas are often fresher than "fresh".',
+    ],
+    prepIdeas: [
+      'Eat raw straight from the pod.',
+      'Make fresh pea soup.',
+      'Mash with mint for a side.',
+      'Add to risotto at the last minute.',
+    ],
+    recipeChips: [
+      {
+        title: 'Pea and Mint Soup',
+        url: 'https://www.bbcgoodfood.com/recipes/pea-mint-soup',
+        description: 'Fresh and vibrant summer soup'
+      },
+      {
+        title: 'Pea Risotto',
+        url: 'https://www.jamieoliver.com/recipes/rice-recipes/pea-risotto/',
+        description: 'Creamy Italian rice with fresh peas'
+      }
+    ],
+    aliases: ['garden peas', 'shelling peas', 'English peas'],
+  },
+  {
+    slug: 'courgettes',
+    name: 'Courgettes',
+    images: [],
+    monthsInSeason: [6, 7, 8, 9, 10], // Jun-Oct
+    peakMonths: [7, 8],
+    nutritionPer100g: { kcal: 17, protein: 1.2, carbs: 3.1, sugars: 2.5, fiber: 1.0, fat: 0.3 },
+    selectionTips: [
+      'Choose firm courgettes with glossy skin.',
+      'Smaller ones have better flavour.',
+      'Avoid soft spots or wrinkled skin.',
+      'The flower end should be fresh.',
+    ],
+    storageTips: [
+      'Store in fridge for up to a week.',
+      'Do not wash until ready to use.',
+      'Can be frozen if grated first.',
+      'Best eaten fresh for texture.',
+    ],
+    prepIdeas: [
+      'Spiralize into courgetti.',
+      'Grill with olive oil and herbs.',
+      'Stuff and bake.',
+      'Grate into cakes and bread.',
+    ],
+    recipeChips: [
+      {
+        title: 'Stuffed Courgettes',
+        url: 'https://www.bbcgoodfood.com/recipes/stuffed-courgettes',
+        description: 'Mediterranean-style baked courgettes'
+      },
+      {
+        title: 'Courgette Fritters',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/courgette-fritters/',
+        description: 'Crispy vegetable pancakes'
+      }
+    ],
+    aliases: ['zucchini', 'summer squash', 'marrow'],
+  },
+  {
+    slug: 'raspberries',
+    name: 'Raspberries',
+    images: [],
+    monthsInSeason: [6, 7, 8, 9], // Jun-Sep
+    peakMonths: [7, 8],
+    nutritionPer100g: { kcal: 52, protein: 1.2, carbs: 12, sugars: 4.4, fiber: 6.5, fat: 0.7 },
+    selectionTips: [
+      'Choose plump, brightly coloured berries.',
+      'Avoid mushy or leaking berries.',
+      'Check for mould in the punnet.',
+      'Should have a sweet aroma.',
+    ],
+    storageTips: [
+      'Store unwashed in the fridge.',
+      'Use within 2-3 days.',
+      'Freeze in a single layer then bag.',
+      'Do not wash until ready to eat.',
+    ],
+    prepIdeas: [
+      'Eat fresh with cream.',
+      'Blend into smoothies.',
+      'Bake into tarts and muffins.',
+      'Make raspberry jam.',
+    ],
+    recipeChips: [
+      {
+        title: 'Raspberry Pavlova',
+        url: 'https://www.bbcgoodfood.com/recipes/raspberry-pavlova',
+        description: 'Classic British summer dessert'
+      },
+      {
+        title: 'Raspberry Jam',
+        url: 'https://www.jamieoliver.com/recipes/fruit-recipes/raspberry-jam/',
+        description: 'Homemade preserve'
+      }
+    ],
+    aliases: ['raspberry'],
+  },
+  {
+    slug: 'cherries',
+    name: 'Cherries',
+    images: [],
+    monthsInSeason: [6, 7, 8], // Jun-Aug
+    peakMonths: [7],
+    nutritionPer100g: { kcal: 63, protein: 1.1, carbs: 16, sugars: 13, fiber: 2.1, fat: 0.2 },
+    selectionTips: [
+      'Choose firm, glossy cherries.',
+      'Stems should be green and fresh.',
+      'Darker colour usually means sweeter.',
+      'Avoid soft or bruised fruit.',
+    ],
+    storageTips: [
+      'Store unwashed in the fridge.',
+      'Use within a week.',
+      'Pit and freeze for later use.',
+      'Bring to room temperature before eating.',
+    ],
+    prepIdeas: [
+      'Eat fresh as a snack.',
+      'Bake into clafoutis.',
+      'Make cherry compote.',
+      'Add to salads with goats cheese.',
+    ],
+    recipeChips: [
+      {
+        title: 'Cherry Clafoutis',
+        url: 'https://www.bbcgoodfood.com/recipes/cherry-clafoutis',
+        description: 'Classic French baked custard'
+      },
+      {
+        title: 'Cherry Pie',
+        url: 'https://www.jamieoliver.com/recipes/fruit-recipes/cherry-pie/',
+        description: 'Traditional fruit pie'
+      }
+    ],
+    aliases: ['sweet cherries', 'sour cherries', 'morello'],
+  },
+  {
+    slug: 'pears',
+    name: 'Pears',
+    images: [],
+    monthsInSeason: [8, 9, 10, 11, 12, 1, 2], // Aug-Feb
+    peakMonths: [9, 10, 11],
+    nutritionPer100g: { kcal: 57, protein: 0.4, carbs: 15, sugars: 10, fiber: 3.1, fat: 0.1 },
+    selectionTips: [
+      'Check the neck - it should give slightly when ripe.',
+      'Avoid pears with bruises or soft spots.',
+      'Conference and Comice are UK favourites.',
+      'Buy firm and ripen at home.',
+    ],
+    storageTips: [
+      'Ripen at room temperature.',
+      'Refrigerate once ripe to slow further ripening.',
+      'Use within 3-5 days once ripe.',
+      'Can be poached and frozen.',
+    ],
+    prepIdeas: [
+      'Poach in red wine and spices.',
+      'Slice into salads with blue cheese.',
+      'Bake into tarts.',
+      'Eat fresh as a snack.',
+    ],
+    recipeChips: [
+      {
+        title: 'Poached Pears',
+        url: 'https://www.bbcgoodfood.com/recipes/poached-pears-chocolate-sauce',
+        description: 'Elegant dessert with chocolate'
+      },
+      {
+        title: 'Pear and Blue Cheese Salad',
+        url: 'https://www.jamieoliver.com/recipes/fruit-recipes/pear-blue-cheese-salad/',
+        description: 'Classic autumn salad combination'
+      }
+    ],
+    aliases: ['conference pear', 'comice', 'williams'],
+  },
+  {
+    slug: 'broccoli',
+    name: 'Broccoli',
+    images: [],
+    monthsInSeason: [6, 7, 8, 9, 10, 11], // Jun-Nov
+    peakMonths: [7, 8, 9],
+    nutritionPer100g: { kcal: 34, protein: 2.8, carbs: 7, sugars: 1.7, fiber: 2.6, fat: 0.4 },
+    selectionTips: [
+      'Choose tight, dark green florets.',
+      'Avoid yellowing or flowering heads.',
+      'Stalks should be firm and crisp.',
+      'Smaller heads are often more tender.',
+    ],
+    storageTips: [
+      'Store unwashed in the fridge.',
+      'Use within 3-5 days.',
+      'Blanch and freeze for longer storage.',
+      'Keep in a perforated bag.',
+    ],
+    prepIdeas: [
+      'Steam until bright green.',
+      'Roast with garlic and parmesan.',
+      'Stir-fry with ginger.',
+      'Blend into soup.',
+    ],
+    recipeChips: [
+      {
+        title: 'Roasted Broccoli',
+        url: 'https://www.bbcgoodfood.com/recipes/roasted-broccoli-parmesan',
+        description: 'Crispy roasted florets with cheese'
+      },
+      {
+        title: 'Broccoli Soup',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/broccoli-soup/',
+        description: 'Healthy and vibrant green soup'
+      }
+    ],
+    aliases: ['calabrese', 'tenderstem'],
+  },
+  {
+    slug: 'cauliflower',
+    name: 'Cauliflower',
+    images: [],
+    monthsInSeason: [1, 2, 3, 6, 7, 8, 9, 10, 11, 12], // Most of year
+    peakMonths: [9, 10, 11],
+    nutritionPer100g: { kcal: 25, protein: 1.9, carbs: 5, sugars: 1.9, fiber: 2, fat: 0.3 },
+    selectionTips: [
+      'Choose compact, creamy white heads.',
+      'Avoid brown spots or loose florets.',
+      'Leaves should be fresh and green.',
+      'Head should feel heavy for its size.',
+    ],
+    storageTips: [
+      'Store stem-side up in the fridge.',
+      'Use within a week.',
+      'Blanch and freeze florets.',
+      'Keep in a plastic bag.',
+    ],
+    prepIdeas: [
+      'Roast whole with spices.',
+      'Make cauliflower cheese.',
+      'Blend into low-carb rice.',
+      'Char on the grill.',
+    ],
+    recipeChips: [
+      {
+        title: 'Cauliflower Cheese',
+        url: 'https://www.bbcgoodfood.com/recipes/best-cauliflower-cheese',
+        description: 'British classic comfort food'
+      },
+      {
+        title: 'Whole Roasted Cauliflower',
+        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/whole-roasted-cauliflower/',
+        description: 'Impressive centrepiece dish'
+      }
+    ],
+    aliases: ['cauli', 'romanesco'],
+  },
 ]
 
 // Helper functions
