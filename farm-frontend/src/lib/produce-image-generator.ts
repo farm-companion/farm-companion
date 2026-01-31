@@ -34,7 +34,9 @@ const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
  * Produce categories for template selection
  */
 export type ProduceCategory =
-  | 'berries'        // strawberries, blackberries, raspberries
+  | 'strawberries'   // strawberries specifically (achenes on receptacle)
+  | 'brambles'       // blackberries, raspberries (aggregate drupelets)
+  | 'blueberries'    // blueberries (true berries with bloom)
   | 'citrus'         // oranges, lemons, limes
   | 'leafy_ruffled'  // kale, chard (curly leaves on stems)
   | 'leafy_flat'     // spinach, lettuce (tender flat leaves)
@@ -43,7 +45,8 @@ export type ProduceCategory =
   | 'pome_fruit'     // apples, pears
   | 'squash'         // pumpkins, butternut, courgettes
   | 'stalks'         // asparagus, celery, rhubarb
-  | 'pods'           // runner beans, peas, broad beans
+  | 'runner_beans'   // runner beans specifically (long flat pods)
+  | 'pods'           // peas, broad beans, french beans
   | 'brassicas'      // broccoli, cauliflower, cabbage
   | 'alliums'        // leeks, onions, garlic
   | 'tomatoes'       // tomatoes specifically
@@ -60,7 +63,11 @@ const PHOTOGRAPHY_RIG = `Shot on a neutral matte stone surface with organic impe
  * These trigger the model's highest-tier texture maps
  */
 const PRODUCE_TEXTURES: Record<ProduceCategory, string> = {
-  berries: `extreme detail on the yellow achenes and succulent red flesh, natural wax bloom, microscopic water mist on surface`,
+  strawberries: `extreme detail on the tiny yellow achenes embedded in the bright red receptacle flesh, natural wax bloom creating subtle sheen, microscopic water droplets on surface, visible seed texture pattern, fresh green calyx attached`,
+
+  brambles: `extreme detail on the individual drupelets forming the aggregate fruit, each drupelet showing tiny hair-like structures and glossy surface, deep purple-black color with natural bloom, visible attachment point where berry connects to receptacle, authentic just-picked appearance`,
+
+  blueberries: `extreme detail on the dusty blue epicuticular wax bloom covering the berry surface, visible calyx scar at base, natural powder-blue coloration with subtle purple undertones, plump spherical shape, authentic wild-foraged appearance`,
 
   citrus: `extreme detail on the glistening juice vesicles, textured peel with visible oil glands and pith, natural citrus oils on surface`,
 
@@ -77,6 +84,8 @@ const PRODUCE_TEXTURES: Record<ProduceCategory, string> = {
   squash: `extreme detail on the thick woody peduncle with deep vertical ridges, ribbed pericarp with natural segments, matte rind texture`,
 
   stalks: `extreme detail on the tight terminal buds and fibrous vascular bundles, natural asparagine crystals visible on surface`,
+
+  runner_beans: `extreme detail on the long flat green pods with distinctive rough texture, visible bean shapes bulging through the pod wall, prominent stringy fibers along the seams, fresh stem attachment with small leaves, authentic British allotment appearance, pods should be 20-30cm long and slightly curved`,
 
   pods: `extreme detail on the crisp green pericarp and visible seed bumps, natural pod suture line, fresh calyx attachment`,
 
@@ -104,11 +113,15 @@ function buildProducePrompt(produceName: string, category: ProduceCategory): str
  * Map produce slugs to their categories
  */
 const PRODUCE_CATEGORY_MAP: Record<string, ProduceCategory> = {
-  // Berries
-  'strawberries': 'berries',
-  'blackberries': 'berries',
-  'raspberries': 'berries',
-  'blueberries': 'berries',
+  // Strawberries (achenes on receptacle)
+  'strawberries': 'strawberries',
+
+  // Brambles (aggregate drupelets)
+  'blackberries': 'brambles',
+  'raspberries': 'brambles',
+
+  // Blueberries (true berries with bloom)
+  'blueberries': 'blueberries',
 
   // Stone fruit
   'plums': 'stone_fruit',
@@ -154,8 +167,10 @@ const PRODUCE_CATEGORY_MAP: Record<string, ProduceCategory> = {
   'celery': 'stalks',
   'rhubarb': 'stalks',
 
-  // Pods/Legumes
-  'runner-beans': 'pods',
+  // Runner beans (long flat distinctive pods)
+  'runner-beans': 'runner_beans',
+
+  // Pods/Legumes (round pods)
   'broad-beans': 'pods',
   'peas': 'pods',
   'french-beans': 'pods',
@@ -245,7 +260,7 @@ export class ProduceImageGenerator {
    */
   private createProducePrompt(produceName: string, slug: string): string {
     // Get category for this produce, default to 'berries' as fallback
-    const category = PRODUCE_CATEGORY_MAP[slug] || 'berries'
+    const category = PRODUCE_CATEGORY_MAP[slug] || 'strawberries'
 
     // Build the complete prompt using the new god-tier structure
     const prompt = buildProducePrompt(produceName, category)
@@ -264,7 +279,7 @@ export class ProduceImageGenerator {
    * Get the category for a produce item
    */
   getProduceCategory(slug: string): ProduceCategory {
-    return PRODUCE_CATEGORY_MAP[slug] || 'berries'
+    return PRODUCE_CATEGORY_MAP[slug] || 'strawberries'
   }
 
   /**
