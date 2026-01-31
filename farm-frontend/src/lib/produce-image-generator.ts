@@ -17,22 +17,11 @@ import { getRunwareClient, HARVEST_STYLE } from './runware-client'
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
 /**
- * God-tier negative prompt for produce photography
- * Eliminates AI artifacts, fake textures, busy backgrounds
+ * NOTE: FLUX models (including Juggernaut Pro FLUX) IGNORE negative prompts!
+ * This constant is kept for documentation but has NO effect on generation.
+ * All control must be achieved through the positive prompt.
  */
-const HARVEST_PRODUCE_NEGATIVE = [
-  'kitchen, countertop, cabinets, appliances, sink, faucet',
-  'bowl, plate, basket, container, vase, decoration',
-  'table, wood grain, marble pattern, tiles',
-  'multiple subjects, duplicate items, extra objects',
-  'blurry, out of focus, bokeh background',
-  'plastic sheen, waxy, artificial, fake looking',
-  'oversaturated, neon, unnatural colors',
-  'cartoon, illustration, 3d render, cgi, digital art',
-  'watermark, text, logo, signature, border',
-  'hands, fingers, people, face',
-  'low quality, jpeg artifacts, noise, grain'
-].join(', ')
+const HARVEST_PRODUCE_NEGATIVE = 'Not used - FLUX ignores negative prompts'
 
 /**
  * Seasonal lighting based on British months
@@ -107,25 +96,34 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create god-tier produce photography prompt
-   * Macro close-up, isolated subject, natural texture
+   * Create god-tier produce photography prompt for Juggernaut Pro FLUX
+   * Note: FLUX models ignore negative prompts - all control is in positive prompt
    */
   private createProducePrompt(produceName: string, options: ProduceImageOptions): string {
-    // God-tier prompt: macro close-up on seamless white, fill frame with produce
+    // Juggernaut Pro FLUX prompt: be extremely specific, no negatives supported
     const prompt = [
-      `${produceName}`,
-      'extreme close-up macro photograph',
-      'filling entire frame',
-      'isolated on seamless pure white background',
-      'studio product photography',
-      'soft diffused lighting from above',
-      'visible natural texture and skin detail',
-      'tiny water droplets on surface',
-      'razor sharp focus',
-      'Canon EOS R5, 100mm macro lens, f/4',
-      'professional food photography',
-      'hyperrealistic, photorealistic',
-      '8k resolution'
+      // Subject - be very specific
+      `A single pile of fresh ripe ${produceName}`,
+      // Background - critical: pure white only
+      'photographed on a seamless pure white studio background',
+      'no other objects in frame',
+      `nothing else visible except the ${produceName}`,
+      // Composition
+      'centered in frame',
+      'shot from slightly above at 45 degree angle',
+      // Realism markers
+      'real photograph taken with Canon 5D Mark IV',
+      '100mm macro lens',
+      'f/5.6 aperture',
+      'professional studio strobe lighting',
+      // Texture and detail
+      'natural skin texture visible',
+      'small water droplets',
+      'authentic imperfections',
+      // Quality
+      'ultra high resolution',
+      'commercial food photography',
+      'as seen in supermarket advertisement'
     ].join(', ')
 
     return prompt

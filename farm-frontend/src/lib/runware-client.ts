@@ -82,14 +82,14 @@ export class RunwareClient {
       const payload = {
         taskType: 'imageInference',
         taskUUID: crypto.randomUUID(),
-        model: 'runware:100@1', // Flux.2 [dev] via Sonic Engine
+        model: 'rundiffusion:130@100', // Juggernaut Pro FLUX - best for photorealistic
         positivePrompt: request.prompt,
-        negativePrompt: request.negativePrompt || '',
+        // Note: FLUX models ignore negativePrompt - control via positive prompt only
         width: request.width || 1024,
         height: request.height || 1024,
         seed: request.seed,
-        steps: request.steps || 28,
-        CFGScale: request.cfgScale || 3.5,
+        steps: request.steps || 33, // Optimal for Juggernaut Pro FLUX
+        CFGScale: request.cfgScale || 2.5, // 2.5 for photorealistic, 3.5 for artistic
         outputFormat: request.outputFormat || 'webp',
         numberResults: request.numberResults || 1
       }
