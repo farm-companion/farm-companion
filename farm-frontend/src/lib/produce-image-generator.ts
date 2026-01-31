@@ -17,16 +17,18 @@ import { getRunwareClient, HARVEST_STYLE } from './runware-client'
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
 /**
- * Harvest Visual Signature: Editorial Grocer
- * Macro photography meets artisan grocery aesthetic
+ * Harvest Visual Signature: Stock Photography Realism
+ * Real produce photography as seen in Waitrose, Tesco, BBC Good Food
  */
 const HARVEST_PRODUCE_NEGATIVE = [
-  'no people, no faces, nobody',
-  'no watermark, no text, no logo',
-  'no abnormal shapes, no distorted produce',
-  'no artificial lighting, no harsh shadows',
-  'no plastic packaging, no supermarket shelves',
-  'no AI artifacts, no unrealistic colors'
+  'cartoon, illustration, 3d render, digital art, painting',
+  'plastic, fake, artificial, wax fruit',
+  'oversaturated, neon colors, unnatural colors',
+  'distorted, mutated, deformed, extra limbs',
+  'blurry, low quality, pixelated, grainy',
+  'watermark, text, logo, signature',
+  'people, hands, faces, fingers',
+  'busy background, cluttered, distracting elements'
 ].join(', ')
 
 /**
@@ -102,49 +104,52 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create Harvest Visual Signature prompt for produce
-   * "Editorial Grocer" - macro photography meets artisan grocery aesthetic
+   * Create realistic stock photography prompt for produce
+   * Targets: Waitrose, Tesco, BBC Good Food, Delicious Magazine style
    */
   private createProducePrompt(produceName: string, options: ProduceImageOptions): string {
     const hash = this.hashString(produceName)
     const month = options.month ?? new Date().getMonth() + 1
 
-    // Editorial Grocer compositions
+    // Stock photography compositions - simple, recognizable, real
     const compositions = [
-      'overhead flat lay on weathered oak table',
-      'macro close-up showing natural texture and dewdrops',
-      'editorial still life with soft window light',
-      'minimalist composition on natural linen',
-      'artisan market display in wicker basket',
-      'fresh harvest arrangement with garden herbs',
-      'rustic kitchen scene on vintage cutting board',
-      'Waitrose-style editorial food photography'
+      'single subject centered on plain white background',
+      'small pile on clean white surface, studio lighting',
+      'arranged neatly on light wooden chopping board',
+      'fresh from the garden on simple white plate',
+      'three or four pieces on marble countertop',
+      'in a small wooden bowl on kitchen table',
+      'on white background with soft shadow',
+      'simple arrangement on light grey surface'
     ]
 
-    // Backgrounds matching the site's soil-100 aesthetic
+    // Clean, minimal backgrounds for product clarity
     const backgrounds = [
-      'warm cream linen background',
-      'weathered light oak surface',
-      'natural pale stone countertop',
-      'soft oatmeal canvas backdrop',
-      'vintage whitewashed wood',
-      'neutral beige ceramic tile',
-      'light grey marble with subtle veining'
+      'pure white background',
+      'clean light grey seamless background',
+      'simple white marble surface',
+      'plain cream colored backdrop',
+      'light natural wood table',
+      'white kitchen counter',
+      'soft white studio backdrop',
+      'neutral off-white surface'
     ]
 
     const selectedComposition = compositions[hash % compositions.length]
     const selectedBackground = backgrounds[(hash + 5) % backgrounds.length]
     const seasonalLight = SEASONAL_LIGHTING[month] || SEASONAL_LIGHTING[6]
 
+    // Stock photography style prompt - emphasize REAL and RECOGNIZABLE
     const parts = [
-      `Fresh British ${produceName}`,
+      `Professional stock photograph of fresh ${produceName}`,
       selectedComposition,
-      HARVEST_STYLE.camera,
-      seasonalLight,
       selectedBackground,
-      'editorial food photography, magazine quality',
-      'natural organic appearance, authentic textures',
-      'sharp focus on produce details',
+      'DSLR photo, 50mm lens, f/2.8 aperture',
+      'soft natural daylight from window',
+      'real vegetables, real fruit, actual produce',
+      'supermarket quality, grocery store fresh',
+      'photograph not illustration, real not CGI',
+      'sharp focus, high resolution, professional lighting',
       options.styleHint
     ].filter(Boolean)
 
