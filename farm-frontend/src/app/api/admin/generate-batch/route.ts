@@ -1,14 +1,15 @@
 /**
  * Admin API: Comprehensive Batch Image Generation
  *
- * Generates images for produce (all seasons) and counties using Runware.
+ * Generates images for produce (all seasons), counties, and farms using Runware.
  * Requires ADMIN_API_KEY header for authorization.
  *
  * POST /api/admin/generate-batch
  *
  * Body:
- *   type: 'produce' | 'county' | 'all'
+ *   type: 'produce' | 'county' | 'farm' | 'all'
  *   limit?: number (default: 10)
+ *   offset?: number (default: 0, for farm pagination)
  *   force?: boolean (regenerate existing)
  *   dryRun?: boolean (don't upload, just test)
  */
@@ -16,8 +17,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ProduceImageGenerator } from '@/lib/produce-image-generator'
 import { CountyImageGenerator } from '@/lib/county-image-generator'
+import { FarmImageGenerator } from '@/lib/farm-image-generator'
 import { uploadProduceImage, produceImageExists } from '@/lib/produce-blob'
 import { uploadCountyImage, countyImageExists } from '@/lib/county-blob'
+import { uploadFarmImage, farmImageExists } from '@/lib/farm-blob'
 import { PRODUCE } from '@/data/produce'
 import { prisma } from '@/lib/prisma'
 import { createRouteLogger } from '@/lib/logger'
@@ -64,16 +67,18 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json()
-    const { type = 'all', limit = 10, force = false, dryRun = false } = body
+    const { type = 'all', limit = 10, offset = 0, force = false, dryRun = false } = body
 
-    logger.info('Starting comprehensive batch generation', { type, limit, force, dryRun })
+    logger.info('Starting comprehensive batch generation', { type, limit, offset, force, dryRun })
 
     const results: {
       produce: Array<{ slug: string; success: boolean; urls?: string[]; error?: string }>
       counties: Array<{ slug: string; success: boolean; url?: string; error?: string }>
+      farms: Array<{ slug: string; success: boolean; url?: string; error?: string }>
     } = {
       produce: [],
-      counties: []
+      counties: [],
+      farms: []
     }
 
     // Generate produce images with seasonal variations
@@ -208,14 +213,111 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Generate farm images
+    if (type === 'farm' || type === 'all') {
+      const farmGenerator = new FarmImageGenerator()
+
+      // Get farms from database with pagination
+      const farms = await prisma.farm.findMany({
+        where: { status: 'active' },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          county: true
+        },
+        orderBy: { createdAt: 'asc' },
+        skip: offset,
+        take: limit
+      })
+
+      logger.info(`Generating images for ${farms.length} farms (offset: ${offset})`)
+
+      for (const farm of farms) {
+        try {
+          // Check if exists
+          if (!force) {
+            const exists = await farmImageExists(farm.slug)
+            if (exists) {
+              logger.debug(`Skipping ${farm.slug} - already exists`)
+              results.farms.push({ slug: farm.slug, success: true })
+              continue
+            }
+          }
+
+          logger.debug(`Generating ${farm.name} (${farm.slug})`)
+
+          const buffer = await farmGenerator.generateFarmImage(
+            farm.name,
+            farm.slug,
+            { county: farm.county }
+          )
+
+          if (buffer) {
+            if (!dryRun) {
+              const uploadResult = await uploadFarmImage(buffer, farm.slug, {
+                farmName: farm.name,
+                generatedAt: new Date().toISOString(),
+                allowOverwrite: force
+              })
+
+              // Check if hero image already exists
+              const existingHero = await prisma.image.findFirst({
+                where: { farmId: farm.id, isHero: true }
+              })
+
+              if (existingHero) {
+                await prisma.image.update({
+                  where: { id: existingHero.id },
+                  data: {
+                    url: uploadResult.url,
+                    altText: `${farm.name} - British farm shop in ${farm.county}`,
+                    status: 'approved'
+                  }
+                })
+              } else {
+                await prisma.image.create({
+                  data: {
+                    farmId: farm.id,
+                    url: uploadResult.url,
+                    altText: `${farm.name} - British farm shop in ${farm.county}`,
+                    isHero: true,
+                    displayOrder: 0,
+                    uploadedBy: 'admin',
+                    status: 'approved'
+                  }
+                })
+              }
+
+              logger.info(`Uploaded ${farm.slug}`, { url: uploadResult.url })
+              results.farms.push({ slug: farm.slug, success: true, url: uploadResult.url })
+            } else {
+              results.farms.push({ slug: farm.slug, success: true, url: '[dry-run]' })
+            }
+          } else {
+            results.farms.push({ slug: farm.slug, success: false, error: 'Generation failed' })
+          }
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Unknown error'
+          logger.error(`Failed to generate ${farm.slug}`, { error: message })
+          results.farms.push({ slug: farm.slug, success: false, error: message })
+        }
+
+        // Rate limit
+        await sleep(1500)
+      }
+    }
+
     // Calculate summary
     const produceSuccess = results.produce.filter(r => r.success).length
     const produceErrors = results.produce.filter(r => !r.success).length
     const countySuccess = results.counties.filter(r => r.success).length
     const countyErrors = results.counties.filter(r => !r.success).length
+    const farmSuccess = results.farms.filter(r => r.success).length
+    const farmErrors = results.farms.filter(r => !r.success).length
 
     // Cost estimate: $0.0096 per image via Runware
-    const totalImages = (produceSuccess * 4) + countySuccess
+    const totalImages = (produceSuccess * 4) + countySuccess + farmSuccess
     const estimatedCost = totalImages * 0.0096
 
     logger.info('Batch generation complete', {
@@ -223,6 +325,8 @@ export async function POST(request: NextRequest) {
       produceErrors,
       countySuccess,
       countyErrors,
+      farmSuccess,
+      farmErrors,
       totalImages,
       estimatedCost
     })
@@ -239,6 +343,11 @@ export async function POST(request: NextRequest) {
           success: countySuccess,
           errors: countyErrors,
           imagesGenerated: countySuccess
+        },
+        farms: {
+          success: farmSuccess,
+          errors: farmErrors,
+          imagesGenerated: farmSuccess
         },
         total: {
           imagesGenerated: totalImages,
@@ -274,7 +383,12 @@ export async function GET(request: NextRequest) {
       where: { status: 'active' }
     })
 
-    // Check which have images already
+    // Get total farm count
+    const farmCount = await prisma.farm.count({
+      where: { status: 'active' }
+    })
+
+    // Check which have images already (sample first 20)
     let produceWithImages = 0
     for (const produce of PRODUCE.slice(0, 20)) {
       const exists = await produceImageExists(produce.slug, 1)
@@ -288,6 +402,17 @@ export async function GET(request: NextRequest) {
       if (exists) countiesWithImages++
     }
 
+    // Check farms with images in database
+    const farmsWithHeroImages = await prisma.image.count({
+      where: {
+        isHero: true,
+        status: 'approved',
+        farm: { status: 'active' }
+      }
+    })
+
+    const farmsNeedingImages = farmCount - farmsWithHeroImages
+
     return NextResponse.json({
       produce: {
         total: produceCount,
@@ -298,8 +423,13 @@ export async function GET(request: NextRequest) {
         total: countyData.length,
         needingImages: countyData.length - countiesWithImages
       },
-      estimatedTotalImages: ((produceCount - produceWithImages) * 4) + (countyData.length - countiesWithImages),
-      estimatedCost: `$${(((produceCount - produceWithImages) * 4) + (countyData.length - countiesWithImages)) * 0.0096}`
+      farms: {
+        total: farmCount,
+        withImages: farmsWithHeroImages,
+        needingImages: farmsNeedingImages
+      },
+      estimatedTotalImages: ((produceCount - produceWithImages) * 4) + (countyData.length - countiesWithImages) + farmsNeedingImages,
+      estimatedCost: `$${(((produceCount - produceWithImages) * 4) + (countyData.length - countiesWithImages) + farmsNeedingImages) * 0.0096}`
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error'
