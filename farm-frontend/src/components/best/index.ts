@@ -2,3 +2,5 @@ export { BentoGrid, ORGANIC_CRITERIA, PYO_CRITERIA, FARM_SHOP_CRITERIA } from '.
 export { FAQAccordion } from './FAQAccordion'
 export { addTipsToFAQs } from './faq-utils'
 export type { FAQ } from './faq-utils'
+export { SensoryHook } from './SensoryHook'
+export { StatsBar } from './StatsBar'

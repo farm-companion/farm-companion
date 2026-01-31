@@ -14,6 +14,8 @@ import {
   FARM_SHOP_CRITERIA,
   FAQAccordion,
   addTipsToFAQs,
+  SensoryHook,
+  StatsBar,
 } from '@/components/best'
 
 // Revalidate every 24 hours
@@ -229,6 +231,17 @@ export default async function BestPage({ params }: BestPageProps) {
           </div>
         </div>
       </section>
+
+      {/* Sensory Hook - Evocative Intro */}
+      <SensoryHook category={getFAQCategory()} />
+
+      {/* Stats Bar - Key Metrics */}
+      <StatsBar
+        farmsCount={farms.length}
+        regionsCount={12}
+        lastUpdated={list.updateDate}
+        featured={list.featured}
+      />
 
       {/* Selection Criteria Bento Grid */}
       <section className="py-16 bg-slate-50/50 dark:bg-slate-900/50">
