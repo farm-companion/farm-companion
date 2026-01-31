@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Award, ArrowRight, Sparkles, TrendingUp, MapPin, Leaf } from 'lucide-react'
 import { bestLists } from '@/data/best-lists'
 import { Badge } from '@/components/ui/Badge'
+import { RegionalRadar } from '@/components/best'
 
 // Guide category icons and colors
 const guideStyles: Record<string, { icon: typeof Leaf; color: string; label: string }> = {
@@ -276,6 +277,11 @@ export default function BestGuidesPage() {
             </div>
           </section>
         )}
+
+        {/* Regional Radar - UK Map */}
+        <section className="mb-16 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-8 md:p-12">
+          <RegionalRadar showFarmCounts linkToCounties />
+        </section>
 
         {/* Browse Other Ways */}
         <section className="bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-8 md:p-12">
