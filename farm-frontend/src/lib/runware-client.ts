@@ -82,14 +82,14 @@ export class RunwareClient {
       const payload = {
         taskType: 'imageInference',
         taskUUID: crypto.randomUUID(),
-        // FLUX.1 [dev] - high quality, good for commercial produce
-        model: 'runware:100@1',
+        // Juggernaut Pro Flux - best for photorealistic produce photography
+        model: 'rundiffusion:130@100',
         positivePrompt: request.prompt,
         // Note: FLUX models ignore negativePrompt - control via positive prompt only
         width: request.width || 1024,
         height: request.height || 1024,
         seed: request.seed,
-        steps: request.steps || 28,
+        steps: request.steps || 30,
         CFGScale: request.cfgScale || 3.5,
         scheduler: 'FlowMatchEulerDiscreteScheduler',
         outputFormat: request.outputFormat || 'webp',
