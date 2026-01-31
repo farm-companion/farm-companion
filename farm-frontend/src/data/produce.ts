@@ -610,7 +610,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'carrots',
     name: 'Carrots',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/carrots/1/main.webp', alt: 'Fresh British carrots on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/carrots/2/main.webp', alt: 'Heritage carrots with bright orange colour' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/carrots/3/main.webp', alt: 'Farm-fresh carrots with green tops' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/carrots/4/main.webp', alt: 'Crisp carrots close-up detail' },
+    ],
     monthsInSeason: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // Year-round (stored)
     peakMonths: [7, 8, 9, 10],
     nutritionPer100g: { kcal: 41, protein: 0.9, carbs: 10, sugars: 4.7, fiber: 2.8, fat: 0.2 },
@@ -649,7 +654,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'parsnips',
     name: 'Parsnips',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/parsnips/1/main.webp', alt: 'Fresh British parsnips on rustic wooden table' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/parsnips/2/main.webp', alt: 'Creamy white parsnips with natural texture' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/parsnips/3/main.webp', alt: 'Winter parsnips harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/parsnips/4/main.webp', alt: 'Sweet parsnips close-up detail' },
+    ],
     monthsInSeason: [1, 2, 3, 9, 10, 11, 12], // Sept-Mar
     peakMonths: [11, 12, 1],
     nutritionPer100g: { kcal: 75, protein: 1.2, carbs: 18, sugars: 4.8, fiber: 4.9, fat: 0.3 },
@@ -688,7 +698,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'brussels-sprouts',
     name: 'Brussels Sprouts',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/brussels-sprouts/1/main.webp', alt: 'Fresh Brussels sprouts on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/brussels-sprouts/2/main.webp', alt: 'Bright green Brussels sprouts harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/brussels-sprouts/3/main.webp', alt: 'Compact Brussels sprouts on the stalk' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/brussels-sprouts/4/main.webp', alt: 'Winter Brussels sprouts close-up' },
+    ],
     monthsInSeason: [9, 10, 11, 12, 1, 2], // Sept-Feb
     peakMonths: [11, 12],
     nutritionPer100g: { kcal: 43, protein: 3.4, carbs: 9, sugars: 2.2, fiber: 3.8, fat: 0.3 },
@@ -727,7 +742,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'beetroot',
     name: 'Beetroot',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/beetroot/1/main.webp', alt: 'Fresh British beetroot on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/beetroot/2/main.webp', alt: 'Deep red beetroot with natural earthy texture' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/beetroot/3/main.webp', alt: 'Farm-fresh beetroot with leafy tops' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/beetroot/4/main.webp', alt: 'Golden and red beetroot varieties' },
+    ],
     monthsInSeason: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12], // Year-round
     peakMonths: [7, 8, 9, 10],
     nutritionPer100g: { kcal: 43, protein: 1.6, carbs: 10, sugars: 7, fiber: 2.8, fat: 0.2 },
@@ -766,7 +786,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'rhubarb',
     name: 'Rhubarb',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/rhubarb/1/main.webp', alt: 'Fresh forced rhubarb stalks on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/rhubarb/2/main.webp', alt: 'Vibrant pink rhubarb from Yorkshire' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/rhubarb/3/main.webp', alt: 'Spring rhubarb harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/rhubarb/4/main.webp', alt: 'Crisp rhubarb stalks close-up' },
+    ],
     monthsInSeason: [1, 2, 3, 4, 5, 6], // Jan-Jun (forced and outdoor)
     peakMonths: [3, 4, 5],
     nutritionPer100g: { kcal: 21, protein: 0.9, carbs: 4.5, sugars: 1.1, fiber: 1.8, fat: 0.2 },
@@ -805,7 +830,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'spinach',
     name: 'Spinach',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/1/main.webp', alt: 'Fresh British spinach leaves on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/2/main.webp', alt: 'Dark green spinach with glossy texture' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/3/main.webp', alt: 'Baby spinach leaves close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/4/main.webp', alt: 'Farm-fresh spinach harvest' },
+    ],
     monthsInSeason: [3, 4, 5, 6, 7, 8, 9, 10], // Mar-Oct
     peakMonths: [4, 5, 6],
     nutritionPer100g: { kcal: 23, protein: 2.9, carbs: 3.6, sugars: 0.4, fiber: 2.2, fat: 0.4 },
@@ -844,7 +874,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'broad-beans',
     name: 'Broad Beans',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broad-beans/1/main.webp', alt: 'Fresh British broad beans on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broad-beans/2/main.webp', alt: 'Plump broad bean pods in summer' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broad-beans/3/main.webp', alt: 'Double-podded broad beans display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broad-beans/4/main.webp', alt: 'Fresh fava beans close-up' },
+    ],
     monthsInSeason: [5, 6, 7, 8], // May-Aug
     peakMonths: [6, 7],
     nutritionPer100g: { kcal: 88, protein: 7.6, carbs: 11, sugars: 1.8, fiber: 6.5, fat: 0.7 },
@@ -883,7 +918,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'peas',
     name: 'Garden Peas',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/peas/1/main.webp', alt: 'Fresh garden peas on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/peas/2/main.webp', alt: 'Bright green pea pods in summer' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/peas/3/main.webp', alt: 'Sweet garden peas freshly shelled' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/peas/4/main.webp', alt: 'British peas close-up detail' },
+    ],
     monthsInSeason: [5, 6, 7, 8, 9], // May-Sep
     peakMonths: [6, 7],
     nutritionPer100g: { kcal: 81, protein: 5.4, carbs: 14, sugars: 5.7, fiber: 5.1, fat: 0.4 },
@@ -922,7 +962,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'courgettes',
     name: 'Courgettes',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/courgettes/1/main.webp', alt: 'Fresh British courgettes on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/courgettes/2/main.webp', alt: 'Glossy green courgettes with flowers' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/courgettes/3/main.webp', alt: 'Summer courgette harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/courgettes/4/main.webp', alt: 'Fresh zucchini close-up' },
+    ],
     monthsInSeason: [6, 7, 8, 9, 10], // Jun-Oct
     peakMonths: [7, 8],
     nutritionPer100g: { kcal: 17, protein: 1.2, carbs: 3.1, sugars: 2.5, fiber: 1.0, fat: 0.3 },
@@ -961,7 +1006,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'raspberries',
     name: 'Raspberries',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/raspberries/1/main.webp', alt: 'Fresh British raspberries on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/raspberries/2/main.webp', alt: 'Plump red raspberries with morning dew' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/raspberries/3/main.webp', alt: 'Summer raspberry harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/raspberries/4/main.webp', alt: 'Sweet raspberries close-up' },
+    ],
     monthsInSeason: [6, 7, 8, 9], // Jun-Sep
     peakMonths: [7, 8],
     nutritionPer100g: { kcal: 52, protein: 1.2, carbs: 12, sugars: 4.4, fiber: 6.5, fat: 0.7 },
@@ -1000,7 +1050,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'cherries',
     name: 'Cherries',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/cherries/1/main.webp', alt: 'Fresh British cherries on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/cherries/2/main.webp', alt: 'Dark red cherries with stems' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/cherries/3/main.webp', alt: 'Summer cherry harvest display' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/cherries/4/main.webp', alt: 'Sweet cherries close-up' },
+    ],
     monthsInSeason: [6, 7, 8], // Jun-Aug
     peakMonths: [7],
     nutritionPer100g: { kcal: 63, protein: 1.1, carbs: 16, sugars: 13, fiber: 2.1, fat: 0.2 },
@@ -1039,7 +1094,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'pears',
     name: 'Pears',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pears/1/main.webp', alt: 'Fresh British pears on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pears/2/main.webp', alt: 'Conference pears with golden skin' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pears/3/main.webp', alt: 'Autumn pear harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/pears/4/main.webp', alt: 'Ripe pears close-up detail' },
+    ],
     monthsInSeason: [8, 9, 10, 11, 12, 1, 2], // Aug-Feb
     peakMonths: [9, 10, 11],
     nutritionPer100g: { kcal: 57, protein: 0.4, carbs: 15, sugars: 10, fiber: 3.1, fat: 0.1 },
@@ -1078,7 +1138,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'broccoli',
     name: 'Broccoli',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broccoli/1/main.webp', alt: 'Fresh British broccoli on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broccoli/2/main.webp', alt: 'Dark green broccoli florets' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broccoli/3/main.webp', alt: 'Calabrese broccoli harvest' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broccoli/4/main.webp', alt: 'Fresh broccoli close-up' },
+    ],
     monthsInSeason: [6, 7, 8, 9, 10, 11], // Jun-Nov
     peakMonths: [7, 8, 9],
     nutritionPer100g: { kcal: 34, protein: 2.8, carbs: 7, sugars: 1.7, fiber: 2.6, fat: 0.4 },
@@ -1117,7 +1182,12 @@ export const PRODUCE: Produce[] = [
   {
     slug: 'cauliflower',
     name: 'Cauliflower',
-    images: [],
+    images: [
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/cauliflower/1/main.webp', alt: 'Fresh British cauliflower on neutral linen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/cauliflower/2/main.webp', alt: 'Creamy white cauliflower head' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/cauliflower/3/main.webp', alt: 'Farm cauliflower with green leaves' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/cauliflower/4/main.webp', alt: 'Fresh cauliflower close-up' },
+    ],
     monthsInSeason: [1, 2, 3, 6, 7, 8, 9, 10, 11, 12], // Most of year
     peakMonths: [9, 10, 11],
     nutritionPer100g: { kcal: 25, protein: 1.9, carbs: 5, sugars: 1.9, fiber: 2, fat: 0.3 },
