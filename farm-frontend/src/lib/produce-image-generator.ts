@@ -1,8 +1,8 @@
 /**
  * Produce Image Generator
  *
- * Generates editorial food photography for seasonal produce using Runware.
- * Implements the Harvest Visual Signature: "Editorial Grocer" aesthetic.
+ * Generates anatomically correct, catalog-grade produce images via Runware.
+ * Uses shape-safe geometry-locking prompts to prevent deformation.
  *
  * @see https://docs.runware.ai/
  */
@@ -17,100 +17,110 @@ import { getRunwareClient, HARVEST_STYLE } from './runware-client'
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
 /**
- * GOD-TIER PRODUCE PHOTOGRAPHY PROMPTS
+ * SHAPE-SAFE PACKSHOT GENERATOR
  *
- * Strategy: Describe a closed-set commercial photography environment.
- * This forces FLUX.2 Pro Ultra to ignore "home" elements and focus on material physics.
+ * Strategy: Geometry-locking foundation prompt FIRST, then texture details.
+ * This prevents "monster fruit" outcomes by enforcing anatomical correctness.
  *
  * Key elements:
- * - Phase One XF (medium format camera triggers higher quality textures)
- * - Neutral matte stone surface (prevents kitchen hallucinations)
- * - f/11 aperture (edge-to-edge sharpness, no bokeh)
- * - Botanical terms for textures (achenes, vesicles, wax bloom)
- * - RAW mode enabled in Runware client for authentic textures
+ * - Shape-safe base prompt locks geometry before any details
+ * - Mandatory negative prompt bans deformation/mutation
+ * - Higher steps (50) for geometry stability
+ * - CFG 3.0 for shape consistency
+ * - RAW mode for authentic textures without smoothing
  */
 
-/**
- * Produce categories for template selection
- */
 export type ProduceCategory =
-  | 'strawberries'   // strawberries specifically (achenes on receptacle)
-  | 'brambles'       // blackberries, raspberries (aggregate drupelets)
-  | 'blueberries'    // blueberries (true berries with bloom)
-  | 'citrus'         // oranges, lemons, limes
-  | 'leafy_ruffled'  // kale, chard (curly leaves on stems)
-  | 'leafy_flat'     // spinach, lettuce (tender flat leaves)
-  | 'root'           // carrots, potatoes, beetroot
-  | 'stone_fruit'    // plums, peaches, cherries
-  | 'pome_fruit'     // apples, pears
-  | 'squash'         // pumpkins, butternut, courgettes
-  | 'stalks'         // asparagus, celery, rhubarb
-  | 'runner_beans'   // runner beans specifically (long flat pods)
-  | 'pods'           // peas, broad beans, french beans
-  | 'brassicas'      // broccoli, cauliflower, cabbage
-  | 'alliums'        // leeks, onions, garlic
-  | 'tomatoes'       // tomatoes specifically
-  | 'nightshades'    // peppers, aubergines
-  | 'corn'           // sweetcorn
+  | 'strawberries'
+  | 'brambles'
+  | 'blueberries'
+  | 'citrus'
+  | 'leafy_ruffled'
+  | 'leafy_flat'
+  | 'root'
+  | 'stone_fruit'
+  | 'pome_fruit'
+  | 'squash'
+  | 'stalks'
+  | 'runner_beans'
+  | 'pods'
+  | 'brassicas'
+  | 'alliums'
+  | 'tomatoes'
+  | 'nightshades'
+  | 'corn'
+
+export type ProduceVariant = 'whole' | 'sliced' | 'halved' | 'bunch' | 'cluster'
+export type LightingPreset = 'bright' | 'moody'
 
 /**
- * Universal photography rig - Phase One XF + Honeycomb Grid triggers closed-set studio
- * This prevents kitchen/home hallucinations by associating with commercial void/tabletop
+ * Shape-safe universal base prompt - GEOMETRY RULES FIRST
+ * This locks the shape before any texture details are applied
  */
-const PHOTOGRAPHY_RIG = `Captured on a Phase One XF Medium Format camera with a 100mm Schneider Kreuznach Macro lens. Subject is isolated on a neutral matte graphite slate surface. Focus is sharp from edge-to-edge at f/11. Lighting is a top-down honeycomb grid softbox creating deep micro-shadows and extreme three-dimensional form.`
+function getShapeSafeBasePrompt(produceName: string, variant: ProduceVariant = 'whole'): string {
+  const variantClause = {
+    whole: 'Single whole specimen displayed',
+    sliced: 'Single sliced specimen showing cross-section',
+    halved: 'Single halved specimen showing interior',
+    bunch: 'Small natural bunch of 3-5 specimens',
+    cluster: 'Natural cluster as grown on vine or stem'
+  }[variant]
 
-const POST_PROCESSING = `8k resolution, raw photography, zero post-smoothing, authentic organic imperfections, high-key commercial grade.`
-
-/**
- * Produce-specific texture descriptions using botanical terms
- * These trigger the model's highest-tier texture maps
- */
-const PRODUCE_TEXTURES: Record<ProduceCategory, string> = {
-  strawberries: `Glistening crimson achene-studded receptacle, tiny golden seeds embedded in succulent flesh, natural wax bloom creating subtle sheen, fresh green calyx with fine hairs attached`,
-
-  brambles: `Clustered obsidian-like drupelets, high-gloss specular highlights on each individual bead, deep indigo-black juice-filled vesicles, visible attachment point where berry connects to receptacle`,
-
-  blueberries: `Dusty blue epicuticular wax bloom covering spherical berry surface, visible calyx scar at base, powder-blue coloration with subtle purple undertones, authentic wild-foraged appearance`,
-
-  citrus: `Glistening juice vesicles visible through flesh, textured peel with visible oil glands and white pith, natural citrus oils creating subtle surface sheen`,
-
-  leafy_ruffled: `Botanical specimen photography. Prominent leaf venation with ruffled lamina edges, large spreading leaves attached to thick pale petioles, deep blue-green chlorophyll coloration, NOT broccoli NOT florets`,
-
-  leafy_flat: `Delicate leaf venation visible through tender lamina, smooth leaf margins, vibrant chlorophyll green, natural wilting resistance`,
-
-  root: `Natural root skin with visible lenticels and authentic soil marks, earthy texture with fine root hairs, organic imperfections`,
-
-  stone_fruit: `Soft pubescent skin with natural wax bloom, subtle color gradient from stem to tip, bruise-free appearance with visible suture line`,
-
-  pome_fruit: `Natural epicuticular wax coating with visible lenticels, subtle color gradient, woody stem attachment point clearly visible`,
-
-  squash: `Deeply recessed vertical ribs, waxy skin with corky tan scarring, heavy woody stem with drying fibrous texture, micro-pores and earth-dust`,
-
-  stalks: `Tight terminal buds with fibrous vascular bundles visible, natural asparagine crystals on surface, crisp snap-texture appearance`,
-
-  runner_beans: `Velvety fine-haired pubescence (peach fuzz) on pods, visible internal seed bulges, vibrant lime-green matte organic skin, crisp snap-texture`,
-
-  pods: `Crisp green pericarp with visible seed bumps, natural pod suture line, fresh calyx attachment, snap-fresh appearance`,
-
-  brassicas: `Botanical specimen photography. Dense fractal floret clusters, dusty matte purple tips, fibrous deep green stalks with realistic xylem texture and tiny leaf nodes`,
-
-  alliums: `Papery tunic layers with visible growth rings, fresh root plate with fine roots, natural allium sheen on outer skin`,
-
-  tomatoes: `Matte epicarp with natural bloom, visible locule structure through skin, calyx and pedicel attached, authentic farmers market appearance with slight dust`,
-
-  nightshades: `Glossy epicarp with natural cuticle shine, calyx intact, authentic color saturation, waxy surface texture`,
-
-  corn: `Plump endosperm-filled kernels in neat rows, fresh silk strands, partially pulled back husks revealing golden caryopsis, authentic harvest appearance`
+  return `A studio retail product catalog photograph of ${produceName}. ${variantClause}. Single subject only. Anatomically correct proportions. Standard supermarket grade shape. No deformation. No mutation. Symmetrical geometry appropriate to the real produce. True-to-life scale. Commercial packshot. Orthographic perspective. Neutral matte slate or stone surface. Controlled softbox lighting. 100mm macro lens. f/11 deep focus. Edge-to-edge sharpness. Color accurate. Natural texture detail only. Photorealistic.`
 }
 
 /**
- * Build the complete prompt for a produce item
- * Template: Subject + Camera + Surface + Texture + Lighting + Post-Processing
+ * Mandatory negative prompt - ALWAYS include to prevent monster fruit
  */
-function buildProducePrompt(produceName: string, category: ProduceCategory): string {
-  const textureDesc = PRODUCE_TEXTURES[category]
+const SHAPE_SAFE_NEGATIVE = `deformed, misshapen, warped, stretched, melted, mutated, fused fruit, extra fruit, doubled subject, extra stems, extra leaves, extra slices, asymmetry, irregular growth, uncanny shape, surreal, abstract, illustration, cartoon, CGI, plastic, waxy smoothing, oversharpening halos, artifacts, broken geometry`
 
-  return `${produceName} asset for a high-end commercial catalog. ${PHOTOGRAPHY_RIG} Technical Physics: ${textureDesc}. ${POST_PROCESSING}`
+/**
+ * Lighting presets for different catalog styles
+ */
+const LIGHTING_PRESETS: Record<LightingPreset, string> = {
+  bright: `High key soft daylight. Overhead diffusion panel. Even exposure across subject. Minimal shadow density. Clean white fill. Retail grocery catalog aesthetic.`,
+  moody: `Low key side softbox. Gentle falloff into shadows. Controlled contrast ratio. Dark slate background. Premium organic market aesthetic. Dramatic but natural.`
+}
+
+/**
+ * Produce-specific texture descriptions - applied AFTER geometry is locked
+ */
+const PRODUCE_TEXTURES: Record<ProduceCategory, string> = {
+  strawberries: `Glistening crimson achene-studded receptacle, tiny golden seeds embedded in succulent flesh, natural wax bloom, fresh green calyx`,
+
+  brambles: `Clustered obsidian-like drupelets, high-gloss specular highlights on each individual bead, deep indigo-black juice-filled vesicles`,
+
+  blueberries: `Dusty blue epicuticular wax bloom, visible calyx scar at base, powder-blue coloration with purple undertones`,
+
+  citrus: `Glistening juice vesicles, textured peel with visible oil glands and pith, natural citrus oils on surface`,
+
+  leafy_ruffled: `Botanical specimen. Prominent leaf venation, ruffled lamina edges, thick pale petioles, deep blue-green chlorophyll`,
+
+  leafy_flat: `Delicate leaf venation, smooth margins, vibrant chlorophyll green, natural texture`,
+
+  root: `Natural root skin with lenticels, authentic soil marks, fine root hairs, organic imperfections`,
+
+  stone_fruit: `Soft pubescent skin, natural wax bloom, subtle color gradient, visible suture line`,
+
+  pome_fruit: `Natural epicuticular wax, visible lenticels, subtle color gradient, woody stem attachment`,
+
+  squash: `Deeply recessed vertical ribs, waxy skin with corky tan scarring, heavy woody stem, micro-pores and earth-dust`,
+
+  stalks: `Tight terminal buds, fibrous vascular bundles, natural asparagine crystals, crisp snap-texture`,
+
+  runner_beans: `Velvety fine-haired pubescence on pods, visible internal seed bulges, vibrant lime-green matte skin, crisp snap-texture`,
+
+  pods: `Crisp green pericarp, visible seed bumps, natural pod suture line, snap-fresh appearance`,
+
+  brassicas: `Botanical specimen. Dense fractal floret clusters, dusty matte purple tips, fibrous stalks with xylem texture`,
+
+  alliums: `Papery tunic layers, visible growth rings, fresh root plate, natural allium sheen`,
+
+  tomatoes: `Matte epicarp with natural bloom, visible locule structure, calyx attached, farmers market appearance`,
+
+  nightshades: `Glossy epicarp, natural cuticle shine, calyx intact, authentic color saturation`,
+
+  corn: `Plump endosperm-filled kernels in rows, fresh silk strands, partially pulled husks, golden caryopsis`
 }
 
 /**
@@ -229,8 +239,9 @@ export class ProduceImageGenerator {
     try {
       imageGenLogger.info('Generating produce image', { produceName, slug })
 
-      const width = options.width ?? 1024
-      const height = options.height ?? 1024
+      // 1536px = optimal for geometry stability with FLUX
+      const width = options.width ?? 1536
+      const height = options.height ?? 1536
       const seed = options.seed ?? this.hashString(slug)
       const prompt = this.createProducePrompt(produceName, slug)
 
@@ -259,24 +270,39 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create god-tier produce photography prompt for FLUX.2 Pro Ultra
-   * Uses Phase One XF rig + botanical texture terms
+   * Create shape-safe produce photography prompt
+   * Geometry-locking rules FIRST, then texture details
    */
-  private createProducePrompt(produceName: string, slug: string): string {
-    // Get category for this produce, default to 'berries' as fallback
+  private createProducePrompt(
+    produceName: string,
+    slug: string,
+    variant: ProduceVariant = 'whole',
+    lighting: LightingPreset = 'bright'
+  ): string {
     const category = PRODUCE_CATEGORY_MAP[slug] || 'strawberries'
+    const texture = PRODUCE_TEXTURES[category]
+    const lightingDesc = LIGHTING_PRESETS[lighting]
 
-    // Build the complete prompt using the new god-tier structure
-    const prompt = buildProducePrompt(produceName, category)
+    // GEOMETRY RULES FIRST - then texture and lighting
+    const basePrompt = getShapeSafeBasePrompt(produceName, variant)
+    const prompt = `${basePrompt} Texture details: ${texture}. ${lightingDesc}`
 
-    imageGenLogger.debug('God-tier prompt generated', {
+    imageGenLogger.debug('Shape-safe prompt generated', {
       slug,
       category,
-      promptLength: prompt.length,
-      promptPreview: prompt.substring(0, 150)
+      variant,
+      lighting,
+      promptLength: prompt.length
     })
 
     return prompt
+  }
+
+  /**
+   * Get the mandatory negative prompt for shape safety
+   */
+  getNegativePrompt(): string {
+    return SHAPE_SAFE_NEGATIVE
   }
 
   /**
@@ -344,7 +370,8 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Call Runware API using Flux.2 [dev] via Sonic Engine
+   * Call Runware API with shape-safe parameters
+   * Steps 50 + CFG 3.0 = geometry stability
    */
   private async callRunware(
     prompt: string,
@@ -358,14 +385,15 @@ export class ProduceImageGenerator {
     }
 
     try {
-      // Note: FLUX models ignore negativePrompt - all control via positive prompt
+      // Shape-safe parameters: high steps + moderate CFG + negative prompt
       const buffer = await client.generateBuffer({
         prompt,
+        negativePrompt: SHAPE_SAFE_NEGATIVE,
         width: opts.width,
         height: opts.height,
         seed: opts.seed,
-        steps: 28,
-        cfgScale: 3.5,
+        steps: 50,       // Higher steps = geometry stability
+        cfgScale: 3.0,   // CFG 3.0 = shape consistency
         outputFormat: 'webp'
       })
 

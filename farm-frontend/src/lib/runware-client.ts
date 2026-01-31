@@ -85,16 +85,18 @@ export class RunwareClient {
         // Juggernaut Pro Flux - best for photorealistic produce photography
         model: 'rundiffusion:130@100',
         positivePrompt: request.prompt,
-        // Note: FLUX models ignore negativePrompt - control via positive prompt only
-        width: request.width || 1024,
-        height: request.height || 1024,
+        // Mandatory negative prompt for shape safety (bans deformation/mutation)
+        negativePrompt: request.negativePrompt || '',
+        // Shape-safe defaults: 1536px, steps 50, CFG 3.0
+        width: request.width || 1536,
+        height: request.height || 1536,
         seed: request.seed,
-        steps: request.steps || 30,
-        CFGScale: request.cfgScale || 3.5,
+        steps: request.steps || 50,      // Higher steps = geometry stability
+        CFGScale: request.cfgScale || 3.0, // CFG 3.0 = shape consistency
         scheduler: 'FlowMatchEulerDiscreteScheduler',
         outputFormat: request.outputFormat || 'webp',
         numberResults: request.numberResults || 1,
-        // Raw Mode prevents AI from smoothing complex textures (beans, broccoli, blackberries)
+        // Raw Mode prevents AI from smoothing complex textures
         rawMode: true
       }
 
