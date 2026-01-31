@@ -82,16 +82,22 @@ export class RunwareClient {
       const payload = {
         taskType: 'imageInference',
         taskUUID: crypto.randomUUID(),
-        model: 'runware:100@1', // Flux.2 [dev] via Sonic Engine
+        // Juggernaut Pro Flux - best for photorealistic produce photography
+        model: 'rundiffusion:130@100',
         positivePrompt: request.prompt,
+        // Mandatory negative prompt for shape safety (bans deformation/mutation)
         negativePrompt: request.negativePrompt || '',
-        width: request.width || 1024,
-        height: request.height || 1024,
+        // Shape-safe defaults: 1536px, steps 50, CFG 3.0
+        width: request.width || 1536,
+        height: request.height || 1536,
         seed: request.seed,
-        steps: request.steps || 28,
-        CFGScale: request.cfgScale || 3.5,
+        steps: request.steps || 50,      // Higher steps = geometry stability
+        CFGScale: request.cfgScale || 3.0, // CFG 3.0 = shape consistency
+        scheduler: 'FlowMatchEulerDiscreteScheduler',
         outputFormat: request.outputFormat || 'webp',
-        numberResults: request.numberResults || 1
+        numberResults: request.numberResults || 1,
+        // Raw Mode prevents AI from smoothing complex textures
+        rawMode: true
       }
 
       const response = await axios.post(
@@ -131,9 +137,15 @@ export class RunwareClient {
       })
 
       return { images }
-    } catch (error) {
+    } catch (error: any) {
       const message = error instanceof Error ? error.message : 'Unknown error'
-      runwareLogger.error('Runware generation failed', { error: message })
+      // Log full error response for debugging
+      const responseData = error?.response?.data
+      runwareLogger.error('Runware generation failed', {
+        error: message,
+        status: error?.response?.status,
+        responseData: JSON.stringify(responseData)
+      })
       return null
     }
   }

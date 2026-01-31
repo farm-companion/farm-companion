@@ -1,8 +1,11 @@
 /**
  * Produce Image Generator
  *
- * Generates editorial food photography for seasonal produce using Runware.
- * Implements the Harvest Visual Signature: "Editorial Grocer" aesthetic.
+ * Two-mode system for produce imagery:
+ * - NATURAL_PACKSHOT: Anatomically accurate retail catalog imagery
+ * - MAISON_STILL_LIFE: LV-style luxury brand studio still life
+ *
+ * Uses shape-safe geometry-locking prompts to prevent deformation.
  *
  * @see https://docs.runware.ai/
  */
@@ -12,40 +15,469 @@ import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import { uploadProduceImage } from './produce-blob'
 import { logger } from '@/lib/logger'
-import { getRunwareClient, HARVEST_STYLE } from './runware-client'
+import { getRunwareClient } from './runware-client'
+import { getBiologicalCue } from '@/data/biological-cues'
+import { v4 as uuidv4 } from 'uuid'
 
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
-/**
- * Harvest Visual Signature: Editorial Grocer
- * Macro photography meets artisan grocery aesthetic
- */
-const HARVEST_PRODUCE_NEGATIVE = [
-  'no people, no faces, nobody',
-  'no watermark, no text, no logo',
-  'no abnormal shapes, no distorted produce',
-  'no artificial lighting, no harsh shadows',
-  'no plastic packaging, no supermarket shelves',
-  'no AI artifacts, no unrealistic colors'
-].join(', ')
+// ============================================================================
+// TWO-MODE IMAGE GENERATION SYSTEM
+// ============================================================================
+
+export type ImageMode = 'NATURAL_PACKSHOT' | 'MAISON_STILL_LIFE'
+export type MaisonVariant = 'single' | 'whole+half' | 'pair' | 'stack3' | 'bundle'
+
+export interface ProduceInferenceOptions {
+  produceName: string
+  mode: ImageMode
+  variant?: MaisonVariant
+  lightingPreset?: 'bright' | 'moody'
+  seed?: number
+  width?: number
+  height?: number
+}
+
+export interface RunwareInferencePayload {
+  taskType: 'imageInference'
+  taskUUID: string
+  model: string
+  positivePrompt: string
+  negativePrompt: string
+  width: number
+  height: number
+  steps: number
+  CFGScale: number
+  scheduler: string
+  rawMode: boolean
+  numberResults: number
+  outputFormat: string
+}
 
 /**
- * Seasonal lighting based on British months
- * Cool tones for winter, warm golden for summer
+ * Geometry lock clause - ALWAYS FIRST in prompt
+ * Locks anatomical correctness before any styling
  */
-const SEASONAL_LIGHTING: Record<number, string> = {
-  1: 'cool overcast winter light, soft grey tones',
-  2: 'crisp late winter light, hints of warmth',
-  3: 'fresh spring morning light, cool and bright',
-  4: 'soft spring daylight, gentle warmth',
-  5: 'warm late spring light, golden undertones',
-  6: 'bright summer morning light, warm and inviting',
-  7: 'golden hour summer light, rich warm tones',
-  8: 'warm late summer afternoon light',
-  9: 'soft autumn morning light, amber tones',
-  10: 'warm autumn golden hour, rich ochre tones',
-  11: 'cool late autumn light, soft grey-gold',
-  12: 'cool winter daylight, soft and muted'
+function getGeometryLock(produceName: string, variant: MaisonVariant = 'single'): string {
+  const variantNote = variant === 'single'
+    ? 'Single subject only.'
+    : `Variant: ${variant}. Subject count matches variant specification only.`
+
+  return `A plain retail product photograph of ${produceName}. ${variantNote} True supermarket produce. Anatomically correct proportions for ${produceName}. Slight natural asymmetry and non-uniform micro-texture. No deformation. No mutation. True-to-life scale. Photorealistic.`
+}
+
+/**
+ * Mode style clauses
+ */
+const MODE_STYLE_CLAUSES: Record<ImageMode, string> = {
+  NATURAL_PACKSHOT: `Documentary catalog packshot. Neutral seamless background or neutral matte stone surface. Clean set. No props. Orthographic perspective. Boring retail clarity.`,
+
+  MAISON_STILL_LIFE: `Luxury brand studio still life. Clean cyclorama studio gradient background with smooth tonal falloff. Museum-like negative space. Minimal graphic composition, centered, deliberate balance. Premium editorial still life but still product-real and color accurate. No props.`
+}
+
+/**
+ * Camera rig clause - highest end
+ */
+const CAMERA_RIG = `Captured as a high-end commercial still life on a Phase One XF with IQ4 150MP digital back, Schneider Kreuznach 120mm Macro lens, tethered studio capture, color checker calibration, cross-polarized lighting to control specular highlights, f/11 deep focus, edge-to-edge sharpness.`
+
+/**
+ * Lighting clauses
+ */
+const LIGHTING_CLAUSES: Record<'bright' | 'moody', string> = {
+  bright: `High key soft daylight feel, overhead diffusion, even exposure, minimal shadow density, clean premium catalog lighting.`,
+  moody: `Low key side softbox, gentle falloff, controlled contrast, soft shadow edges, premium boutique lighting.`
+}
+
+/**
+ * Variant clauses for composition
+ */
+const VARIANT_CLAUSES: Record<MaisonVariant, string> = {
+  single: `One intact specimen, centered.`,
+  'whole+half': `One whole specimen plus one cleanly cut half to reveal interior structure. No juice mess.`,
+  pair: `Two specimens only, slight offset, same variety.`,
+  stack3: `Three specimens stacked with stable balance, minimal composition, no surreal floating.`,
+  bundle: `A small bundle of 3 to 5 only, tidy, no extra items.`
+}
+
+/**
+ * Enhanced universal negative prompt
+ */
+const ENHANCED_NEGATIVE = `deformed, misshapen, warped, stretched, melted, mutated, fused items, extra items, doubled subject, extra stems, extra leaves, extra slices, surreal, abstract, stylized, illustration, cartoon, CGI, plastic, waxy smoothing, oversharpening halos, artifacts, cinematic, shallow depth of field, bokeh, food styling, arranged messy composition, kitchen, bowls, plates, wooden boards, rustic props, broken slate tile, hands, people, text, watermark, logo`
+
+/**
+ * Per-produce negative overrides for known failure modes
+ */
+const PRODUCE_NEGATIVE_OVERRIDES: Record<string, string> = {
+  'blackberries': 'blueberry crown, calyx hole, blossom-end cavity, currant, grape, bead cluster, perfect spheres, toy fruit, over-polished, fused berries, extra berries',
+  'raspberries': 'solid center, blueberry crown, calyx holes, perfect spheres, bead cluster, fused berries',
+  'blueberries': 'raspberry drupelets, blackberry structure, hollow center, irregular drupelets',
+  'strawberries': 'raspberry drupelets, blackberry drupelets, smooth surface, missing seeds'
+}
+
+/**
+ * Category-based step tuning
+ */
+function getStepsForCategory(category: ProduceCategory): number {
+  switch (category) {
+    case 'strawberries':
+    case 'brambles':
+    case 'blueberries':
+      return 60 // Berries need higher steps
+    case 'leafy_ruffled':
+    case 'leafy_flat':
+      return 55 // Leafy greens
+    case 'root':
+      return 55 // Root vegetables
+    case 'squash':
+      return 50 // Large simple items
+    default:
+      return 55 // Default
+  }
+}
+
+/**
+ * Concept phrases based on produce category for Maison mode
+ */
+function getMaisonConcept(category: ProduceCategory, variant: MaisonVariant): string {
+  if (variant !== 'single') return '' // Concept only for single items
+
+  const concepts: Partial<Record<ProduceCategory, string>> = {
+    pome_fruit: 'balanced sculptural placement, subtle offset, clean negative space',
+    citrus: 'one whole plus one clean cut half to reveal interior geometry, juice vesicles crisp',
+    tomatoes: 'balanced stack of three, aligned vertical axis, slight offset, sculptural still life',
+    alliums: 'balanced stack of three, aligned vertical axis, slight offset, sculptural still life',
+    stalks: 'parallel alignment with slight stagger, graphic repetition, clean negative space',
+    root: 'parallel alignment with slight stagger, graphic repetition, clean negative space',
+    leafy_ruffled: 'single leaf cluster folded into a clean arc, sculptural drape, minimal composition',
+    leafy_flat: 'single leaf cluster folded into a clean arc, sculptural drape, minimal composition',
+    brambles: 'single cluster suspended or gently resting, controlled shadow, macro texture emphasis',
+    blueberries: 'single cluster suspended or gently resting, controlled shadow, macro texture emphasis',
+    strawberries: 'single specimen larger in frame, centered, calm gradient background, soft shadow'
+  }
+
+  return concepts[category] || ''
+}
+
+/**
+ * Generate Runware inference payload for produce image
+ * Returns JSON payload only - does not call API
+ */
+export function generateProduceInferenceTask(options: ProduceInferenceOptions): RunwareInferencePayload {
+  const {
+    produceName,
+    mode,
+    variant = 'single',
+    lightingPreset = 'bright',
+    seed = Date.now(),
+    width = 1536,
+    height = 1536
+  } = options
+
+  // Get category for this produce
+  const slug = produceName.toLowerCase().replace(/\s+/g, '-')
+  const category = PRODUCE_CATEGORY_MAP[slug] || 'pome_fruit'
+
+  // Build prompt parts in exact order
+  const parts: string[] = []
+
+  // 1. GEOMETRY_LOCK (always first)
+  parts.push(getGeometryLock(produceName, variant))
+
+  // 2. MODE_STYLE_CLAUSE
+  parts.push(MODE_STYLE_CLAUSES[mode])
+
+  // 3. CAMERA_RIG
+  parts.push(CAMERA_RIG)
+
+  // 4. LIGHTING_CLAUSE
+  parts.push(LIGHTING_CLAUSES[lightingPreset])
+
+  // 5. PRODUCE_BIO_CUE
+  const bioCue = getBiologicalCue(produceName)
+  parts.push(bioCue)
+
+  // 6. VARIANT_CLAUSE
+  parts.push(VARIANT_CLAUSES[variant])
+
+  // 7. MAISON concept (if applicable)
+  if (mode === 'MAISON_STILL_LIFE') {
+    const concept = getMaisonConcept(category, variant)
+    if (concept) {
+      parts.push(`Concept: ${concept}`)
+    }
+  }
+
+  const positivePrompt = parts.join(' ')
+
+  // Build negative prompt with per-produce overrides
+  let negativePrompt = ENHANCED_NEGATIVE
+  const override = PRODUCE_NEGATIVE_OVERRIDES[slug]
+  if (override) {
+    negativePrompt = `${negativePrompt}, ${override}`
+  }
+
+  // Get steps based on category
+  const steps = getStepsForCategory(category)
+
+  // CFG scale: 2.8-3.1 range
+  const CFGScale = mode === 'MAISON_STILL_LIFE' ? 2.8 : 3.0
+
+  const payload: RunwareInferencePayload = {
+    taskType: 'imageInference',
+    taskUUID: uuidv4(),
+    model: 'rundiffusion:130@100', // Juggernaut Pro Flux
+    positivePrompt,
+    negativePrompt,
+    width,
+    height,
+    steps,
+    CFGScale,
+    scheduler: 'FlowMatchEulerDiscreteScheduler',
+    rawMode: true,
+    numberResults: 1,
+    outputFormat: 'webp'
+  }
+
+  imageGenLogger.debug('Generated inference payload', {
+    produceName,
+    mode,
+    variant,
+    steps,
+    promptLength: positivePrompt.length
+  })
+
+  return payload
+}
+
+/**
+ * Generate both Natural and Maison images for a produce item
+ */
+export function generateDualModePayloads(
+  produceName: string,
+  seed?: number
+): { natural: RunwareInferencePayload; maison: RunwareInferencePayload } {
+  const baseSeed = seed ?? Date.now()
+
+  return {
+    natural: generateProduceInferenceTask({
+      produceName,
+      mode: 'NATURAL_PACKSHOT',
+      variant: 'single',
+      lightingPreset: 'bright',
+      seed: baseSeed
+    }),
+    maison: generateProduceInferenceTask({
+      produceName,
+      mode: 'MAISON_STILL_LIFE',
+      variant: 'single',
+      lightingPreset: 'moody',
+      seed: baseSeed + 1000
+    })
+  }
+}
+
+// ============================================================================
+// LEGACY PACKSHOT GENERATOR (preserved for backward compatibility)
+// ============================================================================
+
+/**
+ * SHAPE-SAFE PACKSHOT GENERATOR
+ *
+ * Strategy: Geometry-locking foundation prompt FIRST, then texture details.
+ * This prevents "monster fruit" outcomes by enforcing anatomical correctness.
+ *
+ * Key elements:
+ * - Shape-safe base prompt locks geometry before any details
+ * - Mandatory negative prompt bans deformation/mutation
+ * - Higher steps (50) for geometry stability
+ * - CFG 3.0 for shape consistency
+ * - RAW mode for authentic textures without smoothing
+ */
+
+export type ProduceCategory =
+  | 'strawberries'
+  | 'brambles'
+  | 'blueberries'
+  | 'citrus'
+  | 'leafy_ruffled'
+  | 'leafy_flat'
+  | 'root'
+  | 'stone_fruit'
+  | 'pome_fruit'
+  | 'squash'
+  | 'stalks'
+  | 'runner_beans'
+  | 'pods'
+  | 'brassicas'
+  | 'alliums'
+  | 'tomatoes'
+  | 'nightshades'
+  | 'corn'
+
+export type ProduceVariant = 'whole' | 'sliced' | 'halved' | 'bunch' | 'cluster'
+export type LightingPreset = 'bright' | 'moody'
+
+/**
+ * Packshot spine - GEOMETRY RULES FIRST
+ * Fixed foundation that locks shape before any produce-specific details
+ */
+function getPackshotSpine(produceName: string, variant: ProduceVariant = 'whole'): string {
+  const variantClause = {
+    whole: 'Single intact specimen displayed.',
+    sliced: 'Single sliced specimen showing cross-section.',
+    halved: 'Single halved specimen showing interior.',
+    bunch: 'Small natural bunch of 3-5 specimens.',
+    cluster: 'Natural cluster as grown on vine or stem.'
+  }[variant]
+
+  return `A plain retail grocery packshot photograph of ${produceName}. ${variantClause} Single subject only. True supermarket produce. Anatomically correct proportions for ${produceName}. Slight natural asymmetry and non-uniform micro-texture. No deformation. No mutation. True-to-life scale. Documentary product photography. Neutral matte stone or seamless paper surface. Clean set. No props. Orthographic perspective. 100mm macro lens. f/11 deep focus. Edge-to-edge sharpness. Color accurate. Photorealistic.`
+}
+
+/**
+ * Universal negative prompt - ALWAYS included
+ * Bans deformation, mutation, styling, and props
+ */
+const UNIVERSAL_NEGATIVE = `deformed, misshapen, warped, stretched, melted, mutated, fused items, extra items, doubled subject, extra stems, extra leaves, extra slices, surreal, abstract, stylized, illustration, cartoon, CGI, plastic, waxy smoothing, oversharpening halos, artifacts, cinematic, shallow depth of field, bokeh, food styling, arranged composition, props, broken slate tile`
+
+/**
+ * Lighting presets for different catalog styles
+ */
+const LIGHTING_PRESETS: Record<LightingPreset, string> = {
+  bright: `High key soft daylight. Overhead diffusion panel. Even exposure across subject. Minimal shadow density. Clean white fill. Retail grocery catalog aesthetic.`,
+  moody: `Low key side softbox. Gentle falloff into shadows. Controlled contrast ratio. Dark slate background. Premium organic market aesthetic. Dramatic but natural.`
+}
+
+/**
+ * Produce-specific texture descriptions - applied AFTER geometry is locked
+ */
+const PRODUCE_TEXTURES: Record<ProduceCategory, string> = {
+  strawberries: `Glistening crimson achene-studded receptacle, tiny golden seeds embedded in succulent flesh, natural wax bloom, fresh green calyx`,
+
+  brambles: `Clustered obsidian-like drupelets, high-gloss specular highlights on each individual bead, deep indigo-black juice-filled vesicles`,
+
+  blueberries: `Dusty blue epicuticular wax bloom, visible calyx scar at base, powder-blue coloration with purple undertones`,
+
+  citrus: `Glistening juice vesicles, textured peel with visible oil glands and pith, natural citrus oils on surface`,
+
+  leafy_ruffled: `Botanical specimen. Prominent leaf venation, ruffled lamina edges, thick pale petioles, deep blue-green chlorophyll`,
+
+  leafy_flat: `Delicate leaf venation, smooth margins, vibrant chlorophyll green, natural texture`,
+
+  root: `Natural root skin with lenticels, authentic soil marks, fine root hairs, organic imperfections`,
+
+  stone_fruit: `Soft pubescent skin, natural wax bloom, subtle color gradient, visible suture line`,
+
+  pome_fruit: `Natural epicuticular wax, visible lenticels, subtle color gradient, woody stem attachment`,
+
+  squash: `Deeply recessed vertical ribs, waxy skin with corky tan scarring, heavy woody stem, micro-pores and earth-dust`,
+
+  stalks: `Tight terminal buds, fibrous vascular bundles, natural asparagine crystals, crisp snap-texture`,
+
+  runner_beans: `Velvety fine-haired pubescence on pods, visible internal seed bulges, vibrant lime-green matte skin, crisp snap-texture`,
+
+  pods: `Crisp green pericarp, visible seed bumps, natural pod suture line, snap-fresh appearance`,
+
+  brassicas: `Botanical specimen. Dense fractal floret clusters, dusty matte purple tips, fibrous stalks with xylem texture`,
+
+  alliums: `Papery tunic layers, visible growth rings, fresh root plate, natural allium sheen`,
+
+  tomatoes: `Matte epicarp with natural bloom, visible locule structure, calyx attached, farmers market appearance`,
+
+  nightshades: `Glossy epicarp, natural cuticle shine, calyx intact, authentic color saturation`,
+
+  corn: `Plump endosperm-filled kernels in rows, fresh silk strands, partially pulled husks, golden caryopsis`
+}
+
+/**
+ * Map produce slugs to their categories
+ */
+const PRODUCE_CATEGORY_MAP: Record<string, ProduceCategory> = {
+  // Strawberries (achenes on receptacle)
+  'strawberries': 'strawberries',
+
+  // Brambles (aggregate drupelets)
+  'blackberries': 'brambles',
+  'raspberries': 'brambles',
+
+  // Blueberries (true berries with bloom)
+  'blueberries': 'blueberries',
+
+  // Stone fruit
+  'plums': 'stone_fruit',
+  'peaches': 'stone_fruit',
+  'cherries': 'stone_fruit',
+  'apricots': 'stone_fruit',
+
+  // Pome fruit
+  'apples': 'pome_fruit',
+  'pears': 'pome_fruit',
+
+  // Citrus
+  'oranges': 'citrus',
+  'lemons': 'citrus',
+  'limes': 'citrus',
+  'grapefruit': 'citrus',
+
+  // Leafy greens - ruffled (curly leaves on thick stems)
+  'kale': 'leafy_ruffled',
+  'chard': 'leafy_ruffled',
+  'cavolo-nero': 'leafy_ruffled',
+
+  // Leafy greens - flat (tender delicate leaves)
+  'spinach': 'leafy_flat',
+  'lettuce': 'leafy_flat',
+  'rocket': 'leafy_flat',
+  'watercress': 'leafy_flat',
+
+  // Root vegetables
+  'carrots': 'root',
+  'potatoes': 'root',
+  'beetroot': 'root',
+  'parsnips': 'root',
+  'turnips': 'root',
+
+  // Squash
+  'pumpkins': 'squash',
+  'butternut-squash': 'squash',
+  'courgettes': 'squash',
+
+  // Stalks
+  'asparagus': 'stalks',
+  'celery': 'stalks',
+  'rhubarb': 'stalks',
+
+  // Runner beans (long flat distinctive pods)
+  'runner-beans': 'runner_beans',
+
+  // Pods/Legumes (round pods)
+  'broad-beans': 'pods',
+  'peas': 'pods',
+  'french-beans': 'pods',
+
+  // Brassicas
+  'purple-sprouting-broccoli': 'brassicas',
+  'broccoli': 'brassicas',
+  'cauliflower': 'brassicas',
+  'cabbage': 'brassicas',
+  'brussels-sprouts': 'brassicas',
+
+  // Alliums
+  'leeks': 'alliums',
+  'onions': 'alliums',
+  'garlic': 'alliums',
+  'spring-onions': 'alliums',
+
+  // Tomatoes - separate category (matte, not shiny)
+  'tomato': 'tomatoes',
+  'tomatoes': 'tomatoes',
+
+  // Nightshades (peppers, aubergines - glossy skin OK)
+  'peppers': 'nightshades',
+  'aubergines': 'nightshades',
+  'chillies': 'nightshades',
+
+  // Corn
+  'sweetcorn': 'corn'
 }
 
 interface ProduceImageOptions {
@@ -72,15 +504,16 @@ export class ProduceImageGenerator {
     try {
       imageGenLogger.info('Generating produce image', { produceName, slug })
 
-      const width = options.width ?? 2048
-      const height = options.height ?? 2048
+      // 1536px = optimal for geometry stability with FLUX
+      const width = options.width ?? 1536
+      const height = options.height ?? 1536
       const seed = options.seed ?? this.hashString(slug)
-      const prompt = this.createProducePrompt(produceName, options)
+      const prompt = this.createProducePrompt(produceName, slug)
 
       imageGenLogger.debug('Prompt created', { promptPreview: prompt.substring(0, 120) })
 
       // Try Runware first (60% cheaper, 40% faster)
-      let imageBuffer = await this.callRunware(prompt, { width, height, seed })
+      let imageBuffer = await this.callRunware(prompt, { width, height, seed, slug })
 
       // Fallback to Pollinations if Runware fails
       if (!imageBuffer) {
@@ -102,53 +535,82 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create Harvest Visual Signature prompt for produce
-   * "Editorial Grocer" - macro photography meets artisan grocery aesthetic
+   * Create universal packshot prompt using new two-mode structure
+   * Order: (1) Geometry Lock, (2) Mode Style, (3) Camera Rig, (4) Lighting, (5) Biological cue
    */
-  private createProducePrompt(produceName: string, options: ProduceImageOptions): string {
-    const hash = this.hashString(produceName)
-    const month = options.month ?? new Date().getMonth() + 1
+  private createProducePrompt(
+    produceName: string,
+    slug: string,
+    variant: ProduceVariant = 'whole',
+    lighting: LightingPreset = 'bright',
+    mode: ImageMode = 'NATURAL_PACKSHOT'
+  ): string {
+    const parts: string[] = []
 
-    // Editorial Grocer compositions
-    const compositions = [
-      'overhead flat lay on weathered oak table',
-      'macro close-up showing natural texture and dewdrops',
-      'editorial still life with soft window light',
-      'minimalist composition on natural linen',
-      'artisan market display in wicker basket',
-      'fresh harvest arrangement with garden herbs',
-      'rustic kitchen scene on vintage cutting board',
-      'Waitrose-style editorial food photography'
-    ]
+    // 1. Geometry lock (always first)
+    parts.push(getGeometryLock(produceName, 'single'))
 
-    // Backgrounds matching the site's soil-100 aesthetic
-    const backgrounds = [
-      'warm cream linen background',
-      'weathered light oak surface',
-      'natural pale stone countertop',
-      'soft oatmeal canvas backdrop',
-      'vintage whitewashed wood',
-      'neutral beige ceramic tile',
-      'light grey marble with subtle veining'
-    ]
+    // 2. Mode style clause
+    parts.push(MODE_STYLE_CLAUSES[mode])
 
-    const selectedComposition = compositions[hash % compositions.length]
-    const selectedBackground = backgrounds[(hash + 5) % backgrounds.length]
-    const seasonalLight = SEASONAL_LIGHTING[month] || SEASONAL_LIGHTING[6]
+    // 3. Camera rig (highest end)
+    parts.push(CAMERA_RIG)
 
-    const parts = [
-      `Fresh British ${produceName}`,
-      selectedComposition,
-      HARVEST_STYLE.camera,
-      seasonalLight,
-      selectedBackground,
-      'editorial food photography, magazine quality',
-      'natural organic appearance, authentic textures',
-      'sharp focus on produce details',
-      options.styleHint
-    ].filter(Boolean)
+    // 4. Lighting preset
+    parts.push(LIGHTING_CLAUSES[lighting])
 
-    return parts.join(', ')
+    // 5. Biological cue from universal library
+    const biologicalCue = getBiologicalCue(produceName)
+    parts.push(biologicalCue)
+
+    // 6. Variant clause
+    const variantMap: Record<ProduceVariant, MaisonVariant> = {
+      whole: 'single',
+      sliced: 'whole+half',
+      halved: 'whole+half',
+      bunch: 'bundle',
+      cluster: 'bundle'
+    }
+    parts.push(VARIANT_CLAUSES[variantMap[variant]])
+
+    // 7. Maison concept if applicable
+    if (mode === 'MAISON_STILL_LIFE') {
+      const category = PRODUCE_CATEGORY_MAP[slug] || 'pome_fruit'
+      const concept = getMaisonConcept(category, 'single')
+      if (concept) {
+        parts.push(`Concept: ${concept}`)
+      }
+    }
+
+    const prompt = parts.join(' ')
+
+    imageGenLogger.debug('Two-mode packshot prompt generated', {
+      slug,
+      produceName,
+      mode,
+      lighting,
+      promptLength: prompt.length
+    })
+
+    return prompt
+  }
+
+  /**
+   * Get the enhanced negative prompt with per-produce overrides
+   */
+  getNegativePrompt(slug?: string): string {
+    let negative = ENHANCED_NEGATIVE
+    if (slug && PRODUCE_NEGATIVE_OVERRIDES[slug]) {
+      negative = `${negative}, ${PRODUCE_NEGATIVE_OVERRIDES[slug]}`
+    }
+    return negative
+  }
+
+  /**
+   * Get the category for a produce item
+   */
+  getProduceCategory(slug: string): ProduceCategory {
+    return PRODUCE_CATEGORY_MAP[slug] || 'strawberries'
   }
 
   /**
@@ -209,11 +671,12 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Call Runware API using Flux.2 [dev] via Sonic Engine
+   * Call Runware API with category-based parameters
+   * Uses enhanced negative prompt with produce-specific overrides
    */
   private async callRunware(
     prompt: string,
-    opts: { width: number; height: number; seed: number }
+    opts: { width: number; height: number; seed: number; slug: string }
   ): Promise<Buffer | null> {
     const client = getRunwareClient()
 
@@ -223,14 +686,21 @@ export class ProduceImageGenerator {
     }
 
     try {
+      // Get category-based steps
+      const category = PRODUCE_CATEGORY_MAP[opts.slug] || 'pome_fruit'
+      const steps = getStepsForCategory(category)
+
+      // Get enhanced negative prompt with produce-specific overrides
+      const negativePrompt = this.getNegativePrompt(opts.slug)
+
       const buffer = await client.generateBuffer({
         prompt,
-        negativePrompt: HARVEST_PRODUCE_NEGATIVE,
+        negativePrompt,
         width: opts.width,
         height: opts.height,
         seed: opts.seed,
-        steps: 28,
-        cfgScale: 3.5,
+        steps,           // Category-based steps (50-60)
+        cfgScale: 3.0,   // CFG 3.0 = shape consistency
         outputFormat: 'webp'
       })
 

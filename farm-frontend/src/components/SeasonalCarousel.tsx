@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronLeft, ChevronRight, Sparkles } from 'lucide-react'
 import { Button } from './ui/Button'
+import { PRODUCE, type Produce } from '@/data/produce'
 
 interface SeasonalItem {
   id: string
@@ -21,103 +22,26 @@ interface SeasonalCarouselProps {
   className?: string
 }
 
-// Get current seasonal produce based on month
+// Get current seasonal produce from PRODUCE data
 const getSeasonalProduce = (): SeasonalItem[] => {
   const currentMonth = new Date().getMonth() + 1 // 1-12
+  const monthName = new Date().toLocaleString('en-GB', { month: 'long' })
 
-  const seasonalData: Record<number, SeasonalItem[]> = {
-    1: [ // January
-      {
-        id: '1',
-        name: 'Brussels Sprouts',
-        slug: 'brussels-sprouts',
-        month: 'January',
-        description: 'Fresh winter vegetables perfect for roasting',
-        imageUrl: 'https://images.unsplash.com/photo-1580910051074-3eb694886505?w=800&q=80',
-        farmCount: 24
-      },
-      {
-        id: '2',
-        name: 'Kale',
-        slug: 'kale',
-        month: 'January',
-        description: 'Nutrient-rich leafy greens at their peak',
-        imageUrl: 'https://images.unsplash.com/photo-1590777787021-3b0e8c137430?w=800&q=80',
-        farmCount: 31
-      },
-      {
-        id: '3',
-        name: 'Parsnips',
-        slug: 'parsnips',
-        month: 'January',
-        description: 'Sweet root vegetables ideal for winter soups',
-        imageUrl: 'https://images.unsplash.com/photo-1518977822534-7049a61ee0c2?w=800&q=80',
-        farmCount: 18
-      }
-    ],
-    6: [ // June
-      {
-        id: '1',
-        name: 'Strawberries',
-        slug: 'strawberries',
-        month: 'June',
-        description: 'Fresh summer berries perfect for picking',
-        imageUrl: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=800&q=80',
-        farmCount: 45
-      },
-      {
-        id: '2',
-        name: 'Asparagus',
-        slug: 'asparagus',
-        month: 'June',
-        description: 'Tender spears at peak season',
-        imageUrl: 'https://images.unsplash.com/photo-1565508324972-d9e898a59e1a?w=800&q=80',
-        farmCount: 22
-      },
-      {
-        id: '3',
-        name: 'New Potatoes',
-        slug: 'new-potatoes',
-        month: 'June',
-        description: 'Fresh early potatoes with tender skin',
-        imageUrl: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=800&q=80',
-        farmCount: 38
-      }
-    ]
-  }
+  // Filter to items in season this month
+  const inSeason = PRODUCE.filter(p => p.monthsInSeason.includes(currentMonth))
 
-  // Fallback seasonal items if month not defined
-  const defaultSeasonalItems: SeasonalItem[] = [
-    {
-      id: '1',
-      name: 'Fresh Vegetables',
-      slug: 'vegetables',
-      month: 'Year-round',
-      description: 'Locally grown seasonal produce',
-      imageUrl: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80',
-      farmCount: 156
-    },
-    {
-      id: '2',
-      name: 'Free Range Eggs',
-      slug: 'eggs',
-      month: 'Year-round',
-      description: 'Fresh eggs from happy hens',
-      imageUrl: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=800&q=80',
-      farmCount: 89
-    },
-    {
-      id: '3',
-      name: 'Dairy Products',
-      slug: 'dairy',
-      month: 'Year-round',
-      description: 'Fresh milk, cheese and butter',
-      imageUrl: 'https://images.unsplash.com/photo-1628088062854-d1870b4553da?w=800&q=80',
-      farmCount: 67
-    }
-  ]
+  // If nothing in season, show first 3 items from PRODUCE
+  const items = inSeason.length > 0 ? inSeason : PRODUCE.slice(0, 3)
 
-  return seasonalData[currentMonth] || defaultSeasonalItems
+  return items.slice(0, 6).map((p, idx) => ({
+    id: String(idx + 1),
+    name: p.name,
+    slug: p.slug,
+    month: monthName,
+    description: p.selectionTips?.[0] || `Fresh ${p.name} from local farms`,
+    imageUrl: p.images[0]?.src || 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=800&q=80',
+    farmCount: Math.floor(Math.random() * 40) + 20 // Placeholder count
+  }))
 }
 
 /**

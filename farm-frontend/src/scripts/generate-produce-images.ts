@@ -21,10 +21,11 @@ config({ path: resolve(process.cwd(), '.env') })
 import { PRODUCE } from '../data/produce'
 import { ProduceImageGenerator } from '../lib/produce-image-generator'
 import { join } from 'path'
-import { existsSync } from 'fs'
+import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { produceImageExists } from '../lib/produce-blob'
 
 const PUBLIC_DIR = join(process.cwd(), 'public', 'images', 'produce')
+const PRODUCE_TS_PATH = join(process.cwd(), 'src', 'data', 'produce.ts')
 
 interface Options {
   produce?: string
@@ -165,35 +166,20 @@ async function generateImages() {
   console.log(`✅ Success: ${successCount} produce items`)
   console.log(`❌ Errors: ${errorCount} produce items`)
 
-  // Output TypeScript snippets for uploaded images
+  // Automatically update produce.ts with new image URLs
   if (options.upload && Object.keys(generatedData).length > 0) {
-    console.log('\n' + '='.repeat(50))
-    console.log('📝 TYPESCRIPT OUTPUT FOR produce.ts')
-    console.log('='.repeat(50))
-    console.log('\nCopy and paste the following into src/data/produce.ts:\n')
+    const updated = updateProduceTs(generatedData, produceItems)
 
-    for (const [slug, images] of Object.entries(generatedData)) {
-      const produce = produceItems.find(p => p.slug === slug)
-      console.log(`  // ${produce?.name}`)
-      console.log(`  images: [`)
-      for (const img of images) {
-        console.log(`    { src: '${img.url}', alt: 'Fresh ${produce?.name.toLowerCase()}' },`)
-      }
-      console.log(`  ],\n`)
+    if (updated) {
+      console.log('\n💡 NEXT STEPS:')
+      console.log('   1. Review changes: git diff src/data/produce.ts')
+      console.log('   2. Run pnpm build to verify')
+      console.log('   3. Commit changes to Git')
     }
-  }
-
-  // Next steps
-  console.log('\n💡 NEXT STEPS:')
-  if (options.upload) {
-    console.log('   1. Copy TypeScript snippets above into src/data/produce.ts')
-    console.log('   2. Update alt text for better accessibility')
-    console.log('   3. Run pnpm build to verify')
-    console.log('   4. Commit changes to Git')
-  } else {
+  } else if (!options.upload) {
+    console.log('\n💡 NEXT STEPS:')
     console.log('   1. Review generated images in public/images/produce/')
-    console.log('   2. Run with --upload flag to upload to Vercel Blob')
-    console.log('   3. Update produce.ts with generated URLs')
+    console.log('   2. Run with --upload flag to upload to Vercel Blob and auto-update produce.ts')
   }
 }
 
@@ -204,6 +190,61 @@ async function checkExistingImages(slug: string, count: number): Promise<number>
     if (exists) existingCount++
   }
   return existingCount
+}
+
+/**
+ * Automatically update produce.ts with new image URLs
+ */
+function updateProduceTs(
+  generatedData: Record<string, GeneratedImage[]>,
+  produceItems: typeof PRODUCE
+): boolean {
+  if (Object.keys(generatedData).length === 0) {
+    return false
+  }
+
+  try {
+    console.log('\n📝 Updating src/data/produce.ts automatically...')
+
+    let content = readFileSync(PRODUCE_TS_PATH, 'utf-8')
+    let updatedCount = 0
+
+    for (const [slug, images] of Object.entries(generatedData)) {
+      const produce = produceItems.find(p => p.slug === slug)
+      if (!produce) continue
+
+      // Build the new images array
+      const newImagesArray = images
+        .map(img => `      { src: '${img.url}', alt: 'Fresh ${produce.name.toLowerCase()}' }`)
+        .join(',\n')
+
+      // Find and replace the images array for this produce
+      // Match: images: [ ... ], (with multiline content)
+      const slugPattern = new RegExp(
+        `(slug:\\s*['"]${slug}['"][\\s\\S]*?images:\\s*\\[)[\\s\\S]*?(\\],)`,
+        'm'
+      )
+
+      if (slugPattern.test(content)) {
+        content = content.replace(slugPattern, `$1\n${newImagesArray},\n    $2`)
+        updatedCount++
+        console.log(`   ✅ Updated images for ${produce.name}`)
+      } else {
+        console.log(`   ⚠️  Could not find images array for ${slug}`)
+      }
+    }
+
+    if (updatedCount > 0) {
+      writeFileSync(PRODUCE_TS_PATH, content, 'utf-8')
+      console.log(`\n✅ Successfully updated ${updatedCount} produce entries in produce.ts`)
+      return true
+    }
+
+    return false
+  } catch (error: any) {
+    console.error(`\n❌ Failed to update produce.ts: ${error.message}`)
+    return false
+  }
 }
 
 // Run the script
