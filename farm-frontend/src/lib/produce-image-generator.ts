@@ -17,15 +17,21 @@ import { getRunwareClient, HARVEST_STYLE } from './runware-client'
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
 /**
- * NOTE: FLUX models (including Juggernaut Pro FLUX) IGNORE negative prompts!
- * All control must be achieved through the positive prompt.
- * Prompt structure follows BFL guide: Subject + Action + Style + Context
- * FLUX weighs earlier words more heavily - put critical info first.
+ * GOD-TIER PRODUCE PHOTOGRAPHY PROMPTS
+ *
+ * Strategy: Describe a closed-set commercial photography environment.
+ * This forces FLUX.2 Pro Ultra to ignore "home" elements and focus on material physics.
+ *
+ * Key elements:
+ * - Phase One XF (medium format camera triggers higher quality textures)
+ * - Neutral matte stone surface (prevents kitchen hallucinations)
+ * - f/11 aperture (edge-to-edge sharpness, no bokeh)
+ * - Botanical terms for textures (achenes, vesicles, wax bloom)
+ * - RAW mode enabled in Runware client for authentic textures
  */
 
 /**
  * Produce categories for template selection
- * Each category has specific descriptors that work better for that type
  */
 export type ProduceCategory =
   | 'berries'        // strawberries, blackberries, raspberries
@@ -40,50 +46,58 @@ export type ProduceCategory =
   | 'pods'           // runner beans, peas, broad beans
   | 'brassicas'      // broccoli, cauliflower, cabbage
   | 'alliums'        // leeks, onions, garlic
-  | 'tomatoes'       // tomatoes specifically (matte, not shiny)
-  | 'nightshades'    // peppers, aubergines (shiny skin OK)
+  | 'tomatoes'       // tomatoes specifically
+  | 'nightshades'    // peppers, aubergines
   | 'corn'           // sweetcorn
 
 /**
- * Category-specific prompt templates
- * Structure: Subject FIRST (FLUX weighs earlier words more heavily)
- * Based on BFL guide recommendations + feedback on specific produce issues
+ * Universal photography rig - stays constant across all produce
  */
-const CATEGORY_TEMPLATES: Record<ProduceCategory, string> = {
-  berries: `Fresh ripe {NAME} arranged in a natural small pile, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, small water droplets on surface, visible seeds and authentic imperfections, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution, sharp focus on fruit details`,
+const PHOTOGRAPHY_RIG = `Shot on a neutral matte stone surface with organic imperfections. Lighting: Large softbox side-lighting to create depth and 3D modeling. Captured with a Phase One XF, 100mm macro lens, f/11 for edge-to-edge sharpness. Ultra-high resolution, global illumination, ray-traced reflections, advertising-grade quality.`
 
-  citrus: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, textured peel with visible pores, natural citrus sheen, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution, sharp focus on peel texture`,
+/**
+ * Produce-specific texture descriptions using botanical terms
+ * These trigger the model's highest-tier texture maps
+ */
+const PRODUCE_TEXTURES: Record<ProduceCategory, string> = {
+  berries: `extreme detail on the yellow achenes and succulent red flesh, natural wax bloom, microscopic water mist on surface`,
 
-  // Kale, chard - explicitly describe structure to avoid broccoli confusion
-  leafy_ruffled: `Fresh {NAME}, leafy green vegetable with large ruffled leaves attached to long thick pale stems, NOT broccoli NOT florets, flat spreading leaf shape with curly edges, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting, deep blue-green leaf color, prominent leaf veins visible, fibrous pale green stems, shot from 45-degree angle above, commercial food photography, ultra high resolution`,
+  citrus: `extreme detail on the glistening juice vesicles, textured peel with visible oil glands and pith, natural citrus oils on surface`,
 
-  // Spinach, lettuce - tender flat leaves
-  leafy_flat: `Fresh {NAME} leaves, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, smooth delicate leaves with visible veins, tender stems, vibrant green color, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  leafy_ruffled: `extreme detail on the prominent leaf venation and ruffled lamina edges, NOT broccoli NOT florets, large spreading leaves attached to thick pale petioles, deep blue-green chlorophyll coloration`,
 
-  root: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, clean natural rough skin texture, earthy authentic appearance, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  leafy_flat: `extreme detail on the delicate leaf venation and tender lamina, smooth leaf margins, vibrant chlorophyll green`,
 
-  stone_fruit: `Fresh ripe {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, soft natural skin with subtle color gradient, authentic imperfections, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  root: `extreme detail on the natural root skin with lenticels and soil marks, authentic earthy texture, fine root hairs visible`,
 
-  pome_fruit: `Fresh crisp {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural waxy sheen on skin, subtle color gradient, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  stone_fruit: `extreme detail on the soft pubescent skin and natural wax bloom, subtle color gradient from stem to tip, authentic bruise-free appearance`,
 
-  // Pumpkins - explicitly describe the woody curved stem
-  squash: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting, thick woody curved stem on top with deep vertical ridges and rough brown-green texture, stem curves slightly to one side, ribbed skin with natural segments, matte surface with subtle texture variations, shot from 45-degree angle above, commercial food photography, ultra high resolution`,
+  pome_fruit: `extreme detail on the natural epicuticular wax coating and lenticels, subtle color gradient, stem attachment point visible`,
 
-  stalks: `Fresh {NAME} spears in a small bundle, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, tight compact tips, natural fiber texture visible, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  squash: `extreme detail on the thick woody peduncle with deep vertical ridges, ribbed pericarp with natural segments, matte rind texture`,
 
-  pods: `Fresh {NAME} pods, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, crisp bright green color, natural pod texture, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  stalks: `extreme detail on the tight terminal buds and fibrous vascular bundles, natural asparagine crystals visible on surface`,
 
-  brassicas: `Fresh {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, tight florets with natural color, crisp fresh stems, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  pods: `extreme detail on the crisp green pericarp and visible seed bumps, natural pod suture line, fresh calyx attachment`,
 
-  alliums: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, crisp white and green layers visible, natural papery outer skin, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  brassicas: `extreme detail on the tight floret structure and natural wax bloom on leaves, visible cell texture on buds`,
 
-  // Tomatoes - matte, not shiny, farmers market look
-  tomatoes: `Fresh ripe {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, soft diffused lighting, matte skin with natural bloom, subtle imperfections and small blemishes visible, no artificial shine, authentic farmers market appearance, slight dust on surface, vine stem still attached, shot from 45-degree angle above, ultra high resolution`,
+  alliums: `extreme detail on the papery tunic layers and visible growth rings, fresh root plate, natural allium sheen`,
 
-  // Peppers, aubergines - glossy skin is natural for these
-  nightshades: `Fresh ripe {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural glossy skin, vibrant color, small water droplets, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+  tomatoes: `extreme detail on the matte epicarp with natural bloom, visible locule structure through skin, calyx and pedicel attached, authentic farmers market appearance with slight dust`,
 
-  corn: `Fresh {NAME} cobs with husks partially pulled back, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, plump golden kernels visible, fresh silk strands, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`
+  nightshades: `extreme detail on the glossy epicarp and natural cuticle shine, calyx intact, authentic color saturation`,
+
+  corn: `extreme detail on the plump endosperm-filled kernels and fresh silk strands, partially pulled back husks revealing golden caryopsis rows`
+}
+
+/**
+ * Build the complete prompt for a produce item
+ */
+function buildProducePrompt(produceName: string, category: ProduceCategory): string {
+  const textureDesc = PRODUCE_TEXTURES[category]
+
+  return `A professional commercial food photography asset of ${produceName}. Subject is positioned as a hero shot with ${textureDesc}. ${PHOTOGRAPHY_RIG} Hyper-realistic micro-textures, microscopic water mist, authentic imperfections. 4K native resolution.`
 }
 
 /**
@@ -226,22 +240,21 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create category-specific produce photography prompt for Juggernaut Pro FLUX
-   * Uses BFL guide structure: Subject + Action + Style + Context
-   * Subject comes FIRST because FLUX weighs earlier words more heavily
+   * Create god-tier produce photography prompt for FLUX.2 Pro Ultra
+   * Uses Phase One XF rig + botanical texture terms
    */
   private createProducePrompt(produceName: string, slug: string): string {
     // Get category for this produce, default to 'berries' as fallback
     const category = PRODUCE_CATEGORY_MAP[slug] || 'berries'
-    const template = CATEGORY_TEMPLATES[category]
 
-    // Replace {NAME} placeholder with actual produce name
-    const prompt = template.replace(/{NAME}/g, produceName)
+    // Build the complete prompt using the new god-tier structure
+    const prompt = buildProducePrompt(produceName, category)
 
-    imageGenLogger.debug('Category prompt generated', {
+    imageGenLogger.debug('God-tier prompt generated', {
       slug,
       category,
-      promptLength: prompt.length
+      promptLength: prompt.length,
+      promptPreview: prompt.substring(0, 150)
     })
 
     return prompt

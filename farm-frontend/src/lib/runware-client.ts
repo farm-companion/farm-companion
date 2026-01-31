@@ -82,17 +82,19 @@ export class RunwareClient {
       const payload = {
         taskType: 'imageInference',
         taskUUID: crypto.randomUUID(),
-        model: 'rundiffusion:130@100', // Juggernaut Pro FLUX - best for photorealistic
+        model: 'runware:flux-2-pro-ultra', // FLUX.2 Pro Ultra - best for commercial produce
         positivePrompt: request.prompt,
         // Note: FLUX models ignore negativePrompt - control via positive prompt only
-        width: request.width || 1024,
-        height: request.height || 1024,
+        width: request.width || 2048,
+        height: request.height || 2048,
         seed: request.seed,
-        steps: request.steps || 33, // Runware documented recommendation
-        CFGScale: request.cfgScale || 3.0, // Runware recommendation for Juggernaut Pro
-        scheduler: 'Euler Beta', // Recommended in Runware Juggernaut Pro docs
+        steps: request.steps || 45, // 40-50 optimal for produce texture refinement
+        CFGScale: request.cfgScale || 3.5, // FLUX.2 Pro handles higher CFG
+        scheduler: 'Euler Beta',
         outputFormat: request.outputFormat || 'webp',
-        numberResults: request.numberResults || 1
+        numberResults: request.numberResults || 1,
+        // RAW mode disables AI smoothing for authentic textures
+        rawMode: true
       }
 
       const response = await axios.post(
