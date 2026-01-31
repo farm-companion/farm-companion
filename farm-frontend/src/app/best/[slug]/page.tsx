@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { bestLists } from '@/data/best-lists'
 import { getCachedFarmsByCategory, getCachedCategoryBySlug } from '@/lib/server-cache-categories'
@@ -161,14 +160,10 @@ export default async function BestPage({ params }: BestPageProps) {
       <section className="relative h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
         {/* Background Image */}
         <div className="absolute inset-0">
-          <Image
-            src="/counties.jpg"
-            alt="Beautiful UK farmland"
-            fill
-            className="object-cover object-center"
-            priority
-            sizes="100vw"
-            quality={85}
+          <img
+            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
+            alt="Fresh organic vegetables and produce in morning light"
+            className="w-full h-full object-cover object-center"
           />
           {/* Professional Overlay Gradients */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60" />

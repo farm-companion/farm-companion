@@ -1,6 +1,5 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Award, ArrowRight } from 'lucide-react'
 import { bestLists } from '@/data/best-lists'
 import { Badge } from '@/components/ui/Badge'
@@ -50,17 +49,10 @@ export default function BestGuidesPage() {
       <section className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
-          <Image
-            src="/counties.jpg"
-            alt="Panoramic view of rolling farmland across the UK countryside"
-            fill
-            className="object-cover object-center"
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            quality={85}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
+          <img
+            src="https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1920&q=80&auto=format"
+            alt="Golden hour sunlight over lush farmland with a rustic barn"
+            className="w-full h-full object-cover object-center"
           />
           {/* Professional Overlay Gradient */}
           <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
