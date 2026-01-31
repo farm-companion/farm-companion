@@ -487,6 +487,10 @@ interface ProduceImageOptions {
   seed?: number
   /** Month (1-12) for seasonal lighting */
   month?: number
+  /** Image mode: MAISON_STILL_LIFE for luxury, NATURAL_PACKSHOT for catalog */
+  mode?: ImageMode
+  /** Lighting preset */
+  lighting?: LightingPreset
 }
 
 export class ProduceImageGenerator {
@@ -502,13 +506,16 @@ export class ProduceImageGenerator {
     options: ProduceImageOptions = {}
   ): Promise<Buffer | null> {
     try {
-      imageGenLogger.info('Generating produce image', { produceName, slug })
+      const mode = options.mode ?? 'NATURAL_PACKSHOT'
+      const lighting = options.lighting ?? (mode === 'MAISON_STILL_LIFE' ? 'moody' : 'bright')
+
+      imageGenLogger.info('Generating produce image', { produceName, slug, mode })
 
       // 1536px = optimal for geometry stability with FLUX
       const width = options.width ?? 1536
       const height = options.height ?? 1536
       const seed = options.seed ?? this.hashString(slug)
-      const prompt = this.createProducePrompt(produceName, slug)
+      const prompt = this.createProducePrompt(produceName, slug, 'whole', lighting, mode)
 
       imageGenLogger.debug('Prompt created', { promptPreview: prompt.substring(0, 120) })
 
@@ -615,6 +622,7 @@ export class ProduceImageGenerator {
 
   /**
    * Generate multiple variations for a produce item
+   * First image is Maison-style (luxury still life), remaining are Natural packshots
    */
   async generateVariations(
     produceName: string,
@@ -625,7 +633,23 @@ export class ProduceImageGenerator {
 
     for (let i = 0; i < count; i++) {
       const seed = this.hashString(slug) + i * 9973
-      const buffer = await this.generateProduceImage(produceName, slug, { seed })
+
+      // First image (index 0) is Maison-style, rest are Natural
+      const mode: ImageMode = i === 0 ? 'MAISON_STILL_LIFE' : 'NATURAL_PACKSHOT'
+      const lighting: LightingPreset = i === 0 ? 'moody' : 'bright'
+
+      imageGenLogger.info('Generating variation', {
+        produceName,
+        index: i,
+        mode,
+        lighting
+      })
+
+      const buffer = await this.generateProduceImage(produceName, slug, {
+        seed,
+        mode,
+        lighting
+      })
 
       if (buffer) {
         buffers.push(buffer)
