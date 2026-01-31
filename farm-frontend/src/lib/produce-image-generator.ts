@@ -513,7 +513,7 @@ export class ProduceImageGenerator {
       imageGenLogger.debug('Prompt created', { promptPreview: prompt.substring(0, 120) })
 
       // Try Runware first (60% cheaper, 40% faster)
-      let imageBuffer = await this.callRunware(prompt, { width, height, seed })
+      let imageBuffer = await this.callRunware(prompt, { width, height, seed, slug })
 
       // Fallback to Pollinations if Runware fails
       if (!imageBuffer) {
@@ -535,49 +535,75 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create universal packshot prompt using biological cues
-   * Order: (1) Spine, (2) Lighting, (3) Biological cue
+   * Create universal packshot prompt using new two-mode structure
+   * Order: (1) Geometry Lock, (2) Mode Style, (3) Camera Rig, (4) Lighting, (5) Biological cue
    */
   private createProducePrompt(
     produceName: string,
     slug: string,
     variant: ProduceVariant = 'whole',
-    lighting: LightingPreset = 'bright'
+    lighting: LightingPreset = 'bright',
+    mode: ImageMode = 'NATURAL_PACKSHOT'
   ): string {
-    // 1. Packshot spine (geometry rules)
-    const spine = getPackshotSpine(produceName, variant)
+    const parts: string[] = []
 
-    // 2. Lighting preset
-    const lightingDesc = LIGHTING_PRESETS[lighting]
+    // 1. Geometry lock (always first)
+    parts.push(getGeometryLock(produceName, 'single'))
 
-    // 3. Biological cue from universal library
+    // 2. Mode style clause
+    parts.push(MODE_STYLE_CLAUSES[mode])
+
+    // 3. Camera rig (highest end)
+    parts.push(CAMERA_RIG)
+
+    // 4. Lighting preset
+    parts.push(LIGHTING_CLAUSES[lighting])
+
+    // 5. Biological cue from universal library
     const biologicalCue = getBiologicalCue(produceName)
+    parts.push(biologicalCue)
 
-    // Build complete prompt
-    let prompt = `${spine} ${lightingDesc} ${biologicalCue}`
+    // 6. Variant clause
+    const variantMap: Record<ProduceVariant, MaisonVariant> = {
+      whole: 'single',
+      sliced: 'whole+half',
+      halved: 'whole+half',
+      bunch: 'bundle',
+      cluster: 'bundle'
+    }
+    parts.push(VARIANT_CLAUSES[variantMap[variant]])
 
-    // Multi-item reinforcement for bunch/cluster variants
-    if (variant === 'bunch' || variant === 'cluster') {
-      prompt += ' Single variety only, no extra items, consistent specimens.'
+    // 7. Maison concept if applicable
+    if (mode === 'MAISON_STILL_LIFE') {
+      const category = PRODUCE_CATEGORY_MAP[slug] || 'pome_fruit'
+      const concept = getMaisonConcept(category, 'single')
+      if (concept) {
+        parts.push(`Concept: ${concept}`)
+      }
     }
 
-    imageGenLogger.debug('Universal packshot prompt generated', {
+    const prompt = parts.join(' ')
+
+    imageGenLogger.debug('Two-mode packshot prompt generated', {
       slug,
       produceName,
-      variant,
+      mode,
       lighting,
-      promptLength: prompt.length,
-      hasBiologicalCue: biologicalCue.length > 50
+      promptLength: prompt.length
     })
 
     return prompt
   }
 
   /**
-   * Get the universal negative prompt
+   * Get the enhanced negative prompt with per-produce overrides
    */
-  getNegativePrompt(): string {
-    return UNIVERSAL_NEGATIVE
+  getNegativePrompt(slug?: string): string {
+    let negative = ENHANCED_NEGATIVE
+    if (slug && PRODUCE_NEGATIVE_OVERRIDES[slug]) {
+      negative = `${negative}, ${PRODUCE_NEGATIVE_OVERRIDES[slug]}`
+    }
+    return negative
   }
 
   /**
@@ -645,12 +671,12 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Call Runware API with shape-safe parameters
-   * Steps 50 + CFG 3.0 = geometry stability
+   * Call Runware API with category-based parameters
+   * Uses enhanced negative prompt with produce-specific overrides
    */
   private async callRunware(
     prompt: string,
-    opts: { width: number; height: number; seed: number }
+    opts: { width: number; height: number; seed: number; slug: string }
   ): Promise<Buffer | null> {
     const client = getRunwareClient()
 
@@ -660,14 +686,20 @@ export class ProduceImageGenerator {
     }
 
     try {
-      // Universal packshot parameters: high steps + moderate CFG + negative prompt
+      // Get category-based steps
+      const category = PRODUCE_CATEGORY_MAP[opts.slug] || 'pome_fruit'
+      const steps = getStepsForCategory(category)
+
+      // Get enhanced negative prompt with produce-specific overrides
+      const negativePrompt = this.getNegativePrompt(opts.slug)
+
       const buffer = await client.generateBuffer({
         prompt,
-        negativePrompt: UNIVERSAL_NEGATIVE,
+        negativePrompt,
         width: opts.width,
         height: opts.height,
         seed: opts.seed,
-        steps: 50,       // Higher steps = geometry stability
+        steps,           // Category-based steps (50-60)
         cfgScale: 3.0,   // CFG 3.0 = shape consistency
         outputFormat: 'webp'
       })
