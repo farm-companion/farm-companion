@@ -17,18 +17,21 @@ import { getRunwareClient, HARVEST_STYLE } from './runware-client'
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
 /**
- * Harvest Visual Signature: Clean Produce Photography
- * Simple, recognizable, realistic produce images
+ * God-tier negative prompt for produce photography
+ * Eliminates AI artifacts, fake textures, busy backgrounds
  */
 const HARVEST_PRODUCE_NEGATIVE = [
-  'cartoon, illustration, 3d render, digital art, painting',
-  'plastic, fake, artificial, wax fruit',
-  'oversaturated, neon colors, unnatural colors',
-  'distorted, mutated, deformed, extra limbs',
-  'blurry, low quality, pixelated, grainy',
-  'watermark, text, logo, signature',
-  'people, hands, faces, fingers',
-  'busy background, cluttered, distracting elements'
+  'kitchen, countertop, cabinets, appliances, sink, faucet',
+  'bowl, plate, basket, container, vase, decoration',
+  'table, wood grain, marble pattern, tiles',
+  'multiple subjects, duplicate items, extra objects',
+  'blurry, out of focus, bokeh background',
+  'plastic sheen, waxy, artificial, fake looking',
+  'oversaturated, neon, unnatural colors',
+  'cartoon, illustration, 3d render, cgi, digital art',
+  'watermark, text, logo, signature, border',
+  'hands, fingers, people, face',
+  'low quality, jpeg artifacts, noise, grain'
 ].join(', ')
 
 /**
@@ -104,56 +107,28 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create realistic stock photography prompt for produce
-   * Clean, simple, recognizable produce photos
+   * Create god-tier produce photography prompt
+   * Macro close-up, isolated subject, natural texture
    */
   private createProducePrompt(produceName: string, options: ProduceImageOptions): string {
-    const hash = this.hashString(produceName)
-    const month = options.month ?? new Date().getMonth() + 1
+    // God-tier prompt: macro close-up on seamless white, fill frame with produce
+    const prompt = [
+      `${produceName}`,
+      'extreme close-up macro photograph',
+      'filling entire frame',
+      'isolated on seamless pure white background',
+      'studio product photography',
+      'soft diffused lighting from above',
+      'visible natural texture and skin detail',
+      'tiny water droplets on surface',
+      'razor sharp focus',
+      'Canon EOS R5, 100mm macro lens, f/4',
+      'professional food photography',
+      'hyperrealistic, photorealistic',
+      '8k resolution'
+    ].join(', ')
 
-    // Stock photography compositions - simple, recognizable, real
-    const compositions = [
-      'single subject centered on plain white background',
-      'small pile on clean white surface, studio lighting',
-      'arranged neatly on light wooden chopping board',
-      'fresh from the garden on simple white plate',
-      'three or four pieces on marble countertop',
-      'in a small wooden bowl on kitchen table',
-      'on white background with soft shadow',
-      'simple arrangement on light grey surface'
-    ]
-
-    // Clean, minimal backgrounds for product clarity
-    const backgrounds = [
-      'pure white background',
-      'clean light grey seamless background',
-      'simple white marble surface',
-      'plain cream colored backdrop',
-      'light natural wood table',
-      'white kitchen counter',
-      'soft white studio backdrop',
-      'neutral off-white surface'
-    ]
-
-    const selectedComposition = compositions[hash % compositions.length]
-    const selectedBackground = backgrounds[(hash + 5) % backgrounds.length]
-    const seasonalLight = SEASONAL_LIGHTING[month] || SEASONAL_LIGHTING[6]
-
-    // Stock photography style prompt - emphasize REAL and RECOGNIZABLE
-    const parts = [
-      `Professional photograph of fresh ${produceName}`,
-      selectedComposition,
-      selectedBackground,
-      'DSLR camera photo, 50mm lens, f/2.8',
-      'soft natural daylight',
-      'real vegetables, real fruit, actual produce',
-      'clean image, no watermark, no text overlay',
-      'photograph not illustration, real not CGI',
-      'sharp focus, high resolution',
-      options.styleHint
-    ].filter(Boolean)
-
-    return parts.join(', ')
+    return prompt
   }
 
   /**
