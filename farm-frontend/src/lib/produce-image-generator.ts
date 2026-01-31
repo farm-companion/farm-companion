@@ -12,7 +12,8 @@ import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
 import { uploadProduceImage } from './produce-blob'
 import { logger } from '@/lib/logger'
-import { getRunwareClient, HARVEST_STYLE } from './runware-client'
+import { getRunwareClient } from './runware-client'
+import { getBiologicalCue } from '@/data/biological-cues'
 
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
@@ -54,25 +55,26 @@ export type ProduceVariant = 'whole' | 'sliced' | 'halved' | 'bunch' | 'cluster'
 export type LightingPreset = 'bright' | 'moody'
 
 /**
- * Shape-safe universal base prompt - GEOMETRY RULES FIRST
- * This locks the shape before any texture details are applied
+ * Packshot spine - GEOMETRY RULES FIRST
+ * Fixed foundation that locks shape before any produce-specific details
  */
-function getShapeSafeBasePrompt(produceName: string, variant: ProduceVariant = 'whole'): string {
+function getPackshotSpine(produceName: string, variant: ProduceVariant = 'whole'): string {
   const variantClause = {
-    whole: 'Single whole specimen displayed',
-    sliced: 'Single sliced specimen showing cross-section',
-    halved: 'Single halved specimen showing interior',
-    bunch: 'Small natural bunch of 3-5 specimens',
-    cluster: 'Natural cluster as grown on vine or stem'
+    whole: 'Single intact specimen displayed.',
+    sliced: 'Single sliced specimen showing cross-section.',
+    halved: 'Single halved specimen showing interior.',
+    bunch: 'Small natural bunch of 3-5 specimens.',
+    cluster: 'Natural cluster as grown on vine or stem.'
   }[variant]
 
-  return `A studio retail product catalog photograph of ${produceName}. ${variantClause}. Single subject only. Anatomically correct proportions. Standard supermarket grade shape. No deformation. No mutation. Symmetrical geometry appropriate to the real produce. True-to-life scale. Commercial packshot. Orthographic perspective. Neutral matte slate or stone surface. Controlled softbox lighting. 100mm macro lens. f/11 deep focus. Edge-to-edge sharpness. Color accurate. Natural texture detail only. Photorealistic.`
+  return `A plain retail grocery packshot photograph of ${produceName}. ${variantClause} Single subject only. True supermarket produce. Anatomically correct proportions for ${produceName}. Slight natural asymmetry and non-uniform micro-texture. No deformation. No mutation. True-to-life scale. Documentary product photography. Neutral matte stone or seamless paper surface. Clean set. No props. Orthographic perspective. 100mm macro lens. f/11 deep focus. Edge-to-edge sharpness. Color accurate. Photorealistic.`
 }
 
 /**
- * Mandatory negative prompt - ALWAYS include to prevent monster fruit
+ * Universal negative prompt - ALWAYS included
+ * Bans deformation, mutation, styling, and props
  */
-const SHAPE_SAFE_NEGATIVE = `deformed, misshapen, warped, stretched, melted, mutated, fused fruit, extra fruit, doubled subject, extra stems, extra leaves, extra slices, asymmetry, irregular growth, uncanny shape, surreal, abstract, illustration, cartoon, CGI, plastic, waxy smoothing, oversharpening halos, artifacts, broken geometry`
+const UNIVERSAL_NEGATIVE = `deformed, misshapen, warped, stretched, melted, mutated, fused items, extra items, doubled subject, extra stems, extra leaves, extra slices, surreal, abstract, stylized, illustration, cartoon, CGI, plastic, waxy smoothing, oversharpening halos, artifacts, cinematic, shallow depth of field, bokeh, food styling, arranged composition, props, broken slate tile`
 
 /**
  * Lighting presets for different catalog styles
@@ -270,8 +272,8 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create shape-safe produce photography prompt
-   * Geometry-locking rules FIRST, then texture details
+   * Create universal packshot prompt using biological cues
+   * Order: (1) Spine, (2) Lighting, (3) Biological cue
    */
   private createProducePrompt(
     produceName: string,
@@ -279,30 +281,40 @@ export class ProduceImageGenerator {
     variant: ProduceVariant = 'whole',
     lighting: LightingPreset = 'bright'
   ): string {
-    const category = PRODUCE_CATEGORY_MAP[slug] || 'strawberries'
-    const texture = PRODUCE_TEXTURES[category]
+    // 1. Packshot spine (geometry rules)
+    const spine = getPackshotSpine(produceName, variant)
+
+    // 2. Lighting preset
     const lightingDesc = LIGHTING_PRESETS[lighting]
 
-    // GEOMETRY RULES FIRST - then texture and lighting
-    const basePrompt = getShapeSafeBasePrompt(produceName, variant)
-    const prompt = `${basePrompt} Texture details: ${texture}. ${lightingDesc}`
+    // 3. Biological cue from universal library
+    const biologicalCue = getBiologicalCue(produceName)
 
-    imageGenLogger.debug('Shape-safe prompt generated', {
+    // Build complete prompt
+    let prompt = `${spine} ${lightingDesc} ${biologicalCue}`
+
+    // Multi-item reinforcement for bunch/cluster variants
+    if (variant === 'bunch' || variant === 'cluster') {
+      prompt += ' Single variety only, no extra items, consistent specimens.'
+    }
+
+    imageGenLogger.debug('Universal packshot prompt generated', {
       slug,
-      category,
+      produceName,
       variant,
       lighting,
-      promptLength: prompt.length
+      promptLength: prompt.length,
+      hasBiologicalCue: biologicalCue.length > 50
     })
 
     return prompt
   }
 
   /**
-   * Get the mandatory negative prompt for shape safety
+   * Get the universal negative prompt
    */
   getNegativePrompt(): string {
-    return SHAPE_SAFE_NEGATIVE
+    return UNIVERSAL_NEGATIVE
   }
 
   /**
@@ -385,10 +397,10 @@ export class ProduceImageGenerator {
     }
 
     try {
-      // Shape-safe parameters: high steps + moderate CFG + negative prompt
+      // Universal packshot parameters: high steps + moderate CFG + negative prompt
       const buffer = await client.generateBuffer({
         prompt,
-        negativePrompt: SHAPE_SAFE_NEGATIVE,
+        negativePrompt: UNIVERSAL_NEGATIVE,
         width: opts.width,
         height: opts.height,
         seed: opts.seed,
