@@ -1,8 +1,15 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Award, ArrowRight } from 'lucide-react'
+import { Award, ArrowRight, Sparkles, TrendingUp, MapPin, Leaf } from 'lucide-react'
 import { bestLists } from '@/data/best-lists'
 import { Badge } from '@/components/ui/Badge'
+
+// Guide category icons and colors
+const guideStyles: Record<string, { icon: typeof Leaf; color: string; label: string }> = {
+  'organic-farms': { icon: Leaf, color: 'text-emerald-500 bg-emerald-500/10', label: 'Explore 20+ Locations' },
+  'pick-your-own': { icon: MapPin, color: 'text-amber-500 bg-amber-500/10', label: 'Find Seasonal Picks' },
+  'london': { icon: MapPin, color: 'text-blue-500 bg-blue-500/10', label: 'Within 60 Minutes' },
+}
 
 export const metadata: Metadata = {
   title: 'Best Farm Guides & Curated Lists | Farm Companion',
@@ -98,135 +105,233 @@ export default function BestGuidesPage() {
         </div>
       </section>
 
-      {/* Main Content */}
-      <div id="guides-content" className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Featured Guides */}
-          {featuredLists.length > 0 && (
-            <section className="mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-6">
+      {/* Discovery Engine - Main Content */}
+      <div id="guides-content" className="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+
+        {/* Featured Spotlight + Bento Grid */}
+        {featuredLists.length > 0 && (
+          <section className="mb-16">
+            <div className="flex items-center gap-3 mb-8">
+              <div className="p-2 rounded-lg bg-amber-500/10">
+                <TrendingUp className="w-6 h-6 text-amber-500" />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">
                 Featured Guides
               </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredLists.map((list) => (
+            </div>
+
+            {/* Bento Grid Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Featured Spotlight - Takes 2 columns */}
+              {featuredLists[0] && (
+                <Link
+                  href={`/best/${featuredLists[0].slug}`}
+                  className="group lg:col-span-2 lg:row-span-2 relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 to-slate-800 p-8 md:p-10 transition-all hover:shadow-2xl hover:shadow-brand-primary/10"
+                >
+                  {/* Background Pattern */}
+                  <div className="absolute inset-0 opacity-10">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(34,197,94,0.3),transparent_50%)]" />
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(59,130,246,0.2),transparent_50%)]" />
+                  </div>
+
+                  <div className="relative z-10">
+                    {/* Trending Badge */}
+                    <div className="inline-flex items-center gap-2 px-3 py-1.5 mb-6 rounded-full bg-amber-500/20 border border-amber-400/30">
+                      <Sparkles className="w-4 h-4 text-amber-300" />
+                      <span className="text-sm font-medium text-amber-200">Trending This Month</span>
+                    </div>
+
+                    <h3 className="text-2xl md:text-4xl font-bold text-white mb-4 group-hover:text-serum transition-colors">
+                      {featuredLists[0].title}
+                    </h3>
+
+                    <p className="text-lg text-white/80 mb-6 max-w-xl leading-relaxed">
+                      {featuredLists[0].intro}
+                    </p>
+
+                    {/* Stats Row */}
+                    <div className="flex flex-wrap items-center gap-4 mb-8">
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm">
+                        <MapPin className="w-4 h-4 text-emerald-400" />
+                        <span className="text-sm text-white/90">UK-Wide Coverage</span>
+                      </div>
+                      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm">
+                        <Award className="w-4 h-4 text-amber-400" />
+                        <span className="text-sm text-white/90">20+ Curated Farms</span>
+                      </div>
+                    </div>
+
+                    {/* CTA */}
+                    <div className="inline-flex items-center gap-2 text-serum font-semibold group-hover:gap-3 transition-all">
+                      <span>Explore the Collection</span>
+                      <ArrowRight className="w-5 h-5" />
+                    </div>
+                  </div>
+                </Link>
+              )}
+
+              {/* Secondary Cards - Varying Sizes */}
+              {featuredLists.slice(1).map((list, index) => {
+                const style = guideStyles[list.category || list.region || ''] || {
+                  icon: Award,
+                  color: 'text-brand-primary bg-brand-primary/10',
+                  label: 'Discover More',
+                }
+                const Icon = style.icon
+
+                return (
                   <Link
                     key={list.slug}
                     href={`/best/${list.slug}`}
-                    className="group bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 transition-all hover:shadow-lg hover:border-brand-primary"
+                    className={`group relative overflow-hidden rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/50 dark:border-slate-700/50 p-6 transition-all hover:shadow-xl hover:border-brand-primary/30 hover:-translate-y-1 ${
+                      index === 0 ? 'lg:row-span-1' : ''
+                    }`}
                   >
-                    <div className="mb-3">
-                      <Badge variant="default" size="sm">
-                        Editor&apos;s Choice
-                      </Badge>
-                    </div>
-                    <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
-                      {list.title}
-                    </h3>
-                    <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
-                      {list.intro}
-                    </p>
-                    <div className="flex items-center justify-between text-small text-slate-500">
-                      <span>
-                        Updated: {new Date(list.updateDate).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </span>
-                      <span className="text-brand-primary group-hover:translate-x-1 transition-transform">
-                        Read Guide →
-                      </span>
+                    {/* Glassmorphism effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/50 to-transparent dark:from-slate-800/50 opacity-0 group-hover:opacity-100 transition-opacity" />
+
+                    <div className="relative z-10">
+                      {/* Icon + Badge */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className={`p-2.5 rounded-xl ${style.color}`}>
+                          <Icon className="w-5 h-5" />
+                        </div>
+                        <Badge variant="outline" size="sm" className="text-xs">
+                          Editor&apos;s Pick
+                        </Badge>
+                      </div>
+
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
+                        {list.title}
+                      </h3>
+
+                      <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4">
+                        {list.intro}
+                      </p>
+
+                      {/* Dynamic Label */}
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs text-slate-500 dark:text-slate-400">
+                          {style.label}
+                        </span>
+                        <span className="text-brand-primary text-sm font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                          Explore <ArrowRight className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
                     </div>
                   </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* All Guides */}
-          {regularLists.length > 0 && (
-            <section>
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-6">
-                All Guides
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {regularLists.map((list) => (
-                  <Link
-                    key={list.slug}
-                    href={`/best/${list.slug}`}
-                    className="group bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 transition-all hover:shadow-lg hover:border-brand-primary"
-                  >
-                    <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
-                      {list.title}
-                    </h3>
-                    <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
-                      {list.intro}
-                    </p>
-                    <div className="flex items-center justify-between text-small text-slate-500">
-                      <span>
-                        Updated: {new Date(list.updateDate).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </span>
-                      <span className="text-brand-primary group-hover:translate-x-1 transition-transform">
-                        Read Guide →
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Browse Other Ways */}
-          <section className="mt-12 bg-slate-100 dark:bg-slate-800 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 text-center">
-              Browse Farms Other Ways
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-              <Link
-                href="/categories"
-                className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-md hover:border-brand-primary"
-              >
-                <div className="text-3xl mb-2">🏪</div>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
-                  By Category
-                </h3>
-                <p className="text-caption text-slate-600 dark:text-slate-400">
-                  Browse by farm type
-                </p>
-              </Link>
-
-              <Link
-                href="/counties"
-                className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-md hover:border-brand-primary"
-              >
-                <div className="text-3xl mb-2">📍</div>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
-                  By Location
-                </h3>
-                <p className="text-caption text-slate-600 dark:text-slate-400">
-                  Find farms in your county
-                </p>
-              </Link>
-
-              <Link
-                href="/map"
-                className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-md hover:border-brand-primary"
-              >
-                <div className="text-3xl mb-2">🗺️</div>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
-                  Map View
-                </h3>
-                <p className="text-caption text-slate-600 dark:text-slate-400">
-                  Explore farms on a map
-                </p>
-              </Link>
+                )
+              })}
             </div>
           </section>
-        </div>
+        )}
+
+        {/* All Guides - Refined Grid */}
+        {regularLists.length > 0 && (
+          <section className="mb-16">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-8">
+              All Guides
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {regularLists.map((list) => {
+                const style = guideStyles[list.category || list.region || ''] || {
+                  icon: Award,
+                  color: 'text-slate-500 bg-slate-500/10',
+                  label: 'Read Guide',
+                }
+                const Icon = style.icon
+
+                return (
+                  <Link
+                    key={list.slug}
+                    href={`/best/${list.slug}`}
+                    className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 transition-all hover:shadow-lg hover:border-brand-primary/50 hover:-translate-y-1"
+                  >
+                    <div className={`inline-flex p-2 rounded-lg mb-4 ${style.color}`}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
+                      {list.title}
+                    </h3>
+
+                    <p className="text-sm text-slate-600 dark:text-slate-400 line-clamp-2 mb-4">
+                      {list.intro}
+                    </p>
+
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="text-slate-400">
+                        {new Date(list.updateDate).toLocaleDateString('en-GB', {
+                          month: 'short',
+                          year: 'numeric'
+                        })}
+                      </span>
+                      <span className="text-brand-primary font-medium group-hover:translate-x-1 transition-transform inline-flex items-center gap-1">
+                        {style.label} <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* Browse Other Ways */}
+        <section className="bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-2xl p-8 md:p-12">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2 text-center">
+            Browse Farms Other Ways
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400 text-center mb-8">
+            Discover farms by category, location, or explore our interactive map.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
+            <Link
+              href="/categories"
+              className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-lg hover:border-brand-primary hover:-translate-y-1"
+            >
+              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <span className="text-2xl">🏪</span>
+              </div>
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
+                By Category
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Browse by farm type
+              </p>
+            </Link>
+
+            <Link
+              href="/counties"
+              className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-lg hover:border-brand-primary hover:-translate-y-1"
+            >
+              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <span className="text-2xl">📍</span>
+              </div>
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
+                By Location
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Find farms in your county
+              </p>
+            </Link>
+
+            <Link
+              href="/map"
+              className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-lg hover:border-brand-primary hover:-translate-y-1"
+            >
+              <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-amber-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <span className="text-2xl">🗺️</span>
+              </div>
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
+                Map View
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Explore farms on a map
+              </p>
+            </Link>
+          </div>
+        </section>
       </div>
     </main>
   )
