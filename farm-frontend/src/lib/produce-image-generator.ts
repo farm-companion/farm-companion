@@ -54,59 +54,63 @@ export type ProduceCategory =
   | 'corn'           // sweetcorn
 
 /**
- * Universal photography rig - stays constant across all produce
+ * Universal photography rig - Phase One XF + Honeycomb Grid triggers closed-set studio
+ * This prevents kitchen/home hallucinations by associating with commercial void/tabletop
  */
-const PHOTOGRAPHY_RIG = `Shot on a neutral matte stone surface with organic imperfections. Lighting: Large softbox side-lighting to create depth and 3D modeling. Captured with a Phase One XF, 100mm macro lens, f/11 for edge-to-edge sharpness. Ultra-high resolution, global illumination, ray-traced reflections, advertising-grade quality.`
+const PHOTOGRAPHY_RIG = `Captured on a Phase One XF Medium Format camera with a 100mm Schneider Kreuznach Macro lens. Subject is isolated on a neutral matte graphite slate surface. Focus is sharp from edge-to-edge at f/11. Lighting is a top-down honeycomb grid softbox creating deep micro-shadows and extreme three-dimensional form.`
+
+const POST_PROCESSING = `8k resolution, raw photography, zero post-smoothing, authentic organic imperfections, high-key commercial grade.`
 
 /**
  * Produce-specific texture descriptions using botanical terms
  * These trigger the model's highest-tier texture maps
  */
 const PRODUCE_TEXTURES: Record<ProduceCategory, string> = {
-  strawberries: `extreme detail on the tiny yellow achenes embedded in the bright red receptacle flesh, natural wax bloom creating subtle sheen, microscopic water droplets on surface, visible seed texture pattern, fresh green calyx attached`,
+  strawberries: `Glistening crimson achene-studded receptacle, tiny golden seeds embedded in succulent flesh, natural wax bloom creating subtle sheen, fresh green calyx with fine hairs attached`,
 
-  brambles: `extreme detail on the individual drupelets forming the aggregate fruit, each drupelet showing tiny hair-like structures and glossy surface, deep purple-black color with natural bloom, visible attachment point where berry connects to receptacle, authentic just-picked appearance`,
+  brambles: `Clustered obsidian-like drupelets, high-gloss specular highlights on each individual bead, deep indigo-black juice-filled vesicles, visible attachment point where berry connects to receptacle`,
 
-  blueberries: `extreme detail on the dusty blue epicuticular wax bloom covering the berry surface, visible calyx scar at base, natural powder-blue coloration with subtle purple undertones, plump spherical shape, authentic wild-foraged appearance`,
+  blueberries: `Dusty blue epicuticular wax bloom covering spherical berry surface, visible calyx scar at base, powder-blue coloration with subtle purple undertones, authentic wild-foraged appearance`,
 
-  citrus: `extreme detail on the glistening juice vesicles, textured peel with visible oil glands and pith, natural citrus oils on surface`,
+  citrus: `Glistening juice vesicles visible through flesh, textured peel with visible oil glands and white pith, natural citrus oils creating subtle surface sheen`,
 
-  leafy_ruffled: `extreme detail on the prominent leaf venation and ruffled lamina edges, NOT broccoli NOT florets, large spreading leaves attached to thick pale petioles, deep blue-green chlorophyll coloration`,
+  leafy_ruffled: `Botanical specimen photography. Prominent leaf venation with ruffled lamina edges, large spreading leaves attached to thick pale petioles, deep blue-green chlorophyll coloration, NOT broccoli NOT florets`,
 
-  leafy_flat: `extreme detail on the delicate leaf venation and tender lamina, smooth leaf margins, vibrant chlorophyll green`,
+  leafy_flat: `Delicate leaf venation visible through tender lamina, smooth leaf margins, vibrant chlorophyll green, natural wilting resistance`,
 
-  root: `extreme detail on the natural root skin with lenticels and soil marks, authentic earthy texture, fine root hairs visible`,
+  root: `Natural root skin with visible lenticels and authentic soil marks, earthy texture with fine root hairs, organic imperfections`,
 
-  stone_fruit: `extreme detail on the soft pubescent skin and natural wax bloom, subtle color gradient from stem to tip, authentic bruise-free appearance`,
+  stone_fruit: `Soft pubescent skin with natural wax bloom, subtle color gradient from stem to tip, bruise-free appearance with visible suture line`,
 
-  pome_fruit: `extreme detail on the natural epicuticular wax coating and lenticels, subtle color gradient, stem attachment point visible`,
+  pome_fruit: `Natural epicuticular wax coating with visible lenticels, subtle color gradient, woody stem attachment point clearly visible`,
 
-  squash: `extreme detail on the thick woody peduncle with deep vertical ridges, ribbed pericarp with natural segments, matte rind texture`,
+  squash: `Deeply recessed vertical ribs, waxy skin with corky tan scarring, heavy woody stem with drying fibrous texture, micro-pores and earth-dust`,
 
-  stalks: `extreme detail on the tight terminal buds and fibrous vascular bundles, natural asparagine crystals visible on surface`,
+  stalks: `Tight terminal buds with fibrous vascular bundles visible, natural asparagine crystals on surface, crisp snap-texture appearance`,
 
-  runner_beans: `extreme detail on the long flat green pods with distinctive rough texture, visible bean shapes bulging through the pod wall, prominent stringy fibers along the seams, fresh stem attachment with small leaves, authentic British allotment appearance, pods should be 20-30cm long and slightly curved`,
+  runner_beans: `Velvety fine-haired pubescence (peach fuzz) on pods, visible internal seed bulges, vibrant lime-green matte organic skin, crisp snap-texture`,
 
-  pods: `extreme detail on the crisp green pericarp and visible seed bumps, natural pod suture line, fresh calyx attachment`,
+  pods: `Crisp green pericarp with visible seed bumps, natural pod suture line, fresh calyx attachment, snap-fresh appearance`,
 
-  brassicas: `extreme detail on the tight floret structure and natural wax bloom on leaves, visible cell texture on buds`,
+  brassicas: `Botanical specimen photography. Dense fractal floret clusters, dusty matte purple tips, fibrous deep green stalks with realistic xylem texture and tiny leaf nodes`,
 
-  alliums: `extreme detail on the papery tunic layers and visible growth rings, fresh root plate, natural allium sheen`,
+  alliums: `Papery tunic layers with visible growth rings, fresh root plate with fine roots, natural allium sheen on outer skin`,
 
-  tomatoes: `extreme detail on the matte epicarp with natural bloom, visible locule structure through skin, calyx and pedicel attached, authentic farmers market appearance with slight dust`,
+  tomatoes: `Matte epicarp with natural bloom, visible locule structure through skin, calyx and pedicel attached, authentic farmers market appearance with slight dust`,
 
-  nightshades: `extreme detail on the glossy epicarp and natural cuticle shine, calyx intact, authentic color saturation`,
+  nightshades: `Glossy epicarp with natural cuticle shine, calyx intact, authentic color saturation, waxy surface texture`,
 
-  corn: `extreme detail on the plump endosperm-filled kernels and fresh silk strands, partially pulled back husks revealing golden caryopsis rows`
+  corn: `Plump endosperm-filled kernels in neat rows, fresh silk strands, partially pulled back husks revealing golden caryopsis, authentic harvest appearance`
 }
 
 /**
  * Build the complete prompt for a produce item
+ * Template: Subject + Camera + Surface + Texture + Lighting + Post-Processing
  */
 function buildProducePrompt(produceName: string, category: ProduceCategory): string {
   const textureDesc = PRODUCE_TEXTURES[category]
 
-  return `A professional commercial food photography asset of ${produceName}. Subject is positioned as a hero shot with ${textureDesc}. ${PHOTOGRAPHY_RIG} Hyper-realistic micro-textures, microscopic water mist, authentic imperfections. 4K native resolution.`
+  return `${produceName} asset for a high-end commercial catalog. ${PHOTOGRAPHY_RIG} Technical Physics: ${textureDesc}. ${POST_PROCESSING}`
 }
 
 /**

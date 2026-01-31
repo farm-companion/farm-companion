@@ -93,7 +93,9 @@ export class RunwareClient {
         CFGScale: request.cfgScale || 3.5,
         scheduler: 'FlowMatchEulerDiscreteScheduler',
         outputFormat: request.outputFormat || 'webp',
-        numberResults: request.numberResults || 1
+        numberResults: request.numberResults || 1,
+        // Raw Mode prevents AI from smoothing complex textures (beans, broccoli, blackberries)
+        rawMode: true
       }
 
       const response = await axios.post(
