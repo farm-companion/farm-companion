@@ -1,5 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
+import { Award, ArrowRight } from 'lucide-react'
 import { bestLists } from '@/data/best-lists'
 import { Badge } from '@/components/ui/Badge'
 
@@ -28,7 +30,7 @@ export default function BestGuidesPage() {
   const regularLists = bestLists.filter((list: { featured?: boolean }) => !list.featured)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+    <main className="bg-background-canvas">
       {/* Structured Data - CollectionPage */}
       <script
         type="application/ld+json"
@@ -44,59 +46,68 @@ export default function BestGuidesPage() {
         }}
       />
 
-      {/* Breadcrumbs */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
-        <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
-            <Link href="/" className="hover:text-brand-primary transition-colors">
-              Home
-            </Link>
-            <span>/</span>
-            <span className="font-medium text-slate-900 dark:text-slate-100">Best Of</span>
-          </nav>
-        </div>
-      </div>
-
-      {/* Hero Section with Background Image */}
-      <section className="relative border-b border-slate-200 dark:border-slate-800 overflow-hidden">
-        {/* Background Image */}
+      {/* Professional Hero Section matching Counties page */}
+      <section className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
+        {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1920&q=80"
-            alt=""
-            className="w-full h-full object-cover"
+          <Image
+            src="/counties.jpg"
+            alt="Panoramic view of rolling farmland across the UK countryside"
+            fill
+            className="object-cover object-center"
+            priority
+            fetchPriority="high"
+            sizes="100vw"
+            quality={85}
+            placeholder="blur"
+            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
-          {/* Gradient overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-slate-900/70 via-slate-900/60 to-slate-900/80" />
+          {/* Professional Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
+          {/* Subtle texture overlay for depth */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
         </div>
 
-        {/* Content */}
-        <div className="relative container mx-auto px-4 py-16 md:py-24 lg:py-32">
-          <div className="max-w-4xl mx-auto text-center">
-            <span className="inline-block px-4 py-1.5 mb-4 text-small font-medium text-amber-200 bg-amber-500/20 backdrop-blur-sm rounded-full border border-amber-400/30">
-              Curated by Local Experts
-            </span>
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 drop-shadow-lg">
-              Best Farm Guides
+        {/* Content Overlay */}
+        <div className="relative h-full flex items-center justify-center">
+          <div className="text-center max-w-4xl mx-auto px-6">
+            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
+              <Award className="w-10 h-10 text-white" />
+            </div>
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
+              Best Farm
+              <span className="block text-serum drop-shadow-lg">Guides</span>
             </h1>
-            <p className="text-body md:text-heading text-slate-200 mb-8 max-w-2xl mx-auto">
-              Discover our expertly curated guides to the finest farms, farm shops, and agricultural
-              experiences across the UK. From organic producers to pick your own farms, we&apos;ve
-              handpicked the best destinations for every interest.
+            <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+              Expertly curated guides to the finest farms across the UK.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-4">
-              <Badge variant="default" size="lg" className="bg-white/90 text-slate-900 backdrop-blur-sm">
-                {bestLists.length} Curated Guides
-              </Badge>
-              <Badge variant="outline" size="lg" className="border-white/40 text-white backdrop-blur-sm">
-                Updated Regularly
-              </Badge>
+            <p className="text-body text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
+              Handpicked recommendations for organic farms, pick your own, and farm cafes.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Link
+                href="#guides-content"
+                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
+              >
+                <Award className="w-5 h-5" />
+                Browse Guides
+              </Link>
+              <Link
+                href="/counties"
+                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+              >
+                Explore Counties
+                <ArrowRight className="w-5 h-5" />
+              </Link>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-8 md:py-12">
+      {/* Main Content */}
+      <div id="guides-content" className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-6xl mx-auto">
           {/* Featured Guides */}
           {featuredLists.length > 0 && (
@@ -225,6 +236,6 @@ export default function BestGuidesPage() {
           </section>
         </div>
       </div>
-    </div>
+    </main>
   )
 }
