@@ -97,8 +97,13 @@ export default function ClientProduceImages({
         </div>
       )}
 
-      {/* Display images based on selection */}
-      {displayApiImages ? (
+      {/* Display images - use static images from produce data */}
+      {staticImages && staticImages.length > 0 ? (
+        <ProduceGallery
+          images={staticImages.slice(0, maxImages)}
+          produceName={produceName}
+        />
+      ) : displayApiImages ? (
         <ApiProduceGallery
           produceSlug={produceSlug}
           produceName={produceName}
@@ -106,10 +111,17 @@ export default function ClientProduceImages({
           maxImages={maxImages}
         />
       ) : (
-        <ProduceGallery
-          images={staticImages}
-          produceName={produceName}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="aspect-video bg-background-surface border border-border-default rounded-lg flex items-center justify-center">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-background-canvas rounded-full mx-auto mb-2 flex items-center justify-center border border-border-default">
+                <span className="text-xl">🌱</span>
+              </div>
+              <p className="text-caption text-text-muted font-medium">{produceName}</p>
+              <p className="text-small text-text-muted mt-1">No images available</p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
