@@ -1,7 +1,10 @@
 /**
  * Produce Image Generator
  *
- * Generates anatomically correct, catalog-grade produce images via Runware.
+ * Two-mode system for produce imagery:
+ * - NATURAL_PACKSHOT: Anatomically accurate retail catalog imagery
+ * - MAISON_STILL_LIFE: LV-style luxury brand studio still life
+ *
  * Uses shape-safe geometry-locking prompts to prevent deformation.
  *
  * @see https://docs.runware.ai/
@@ -14,8 +17,268 @@ import { uploadProduceImage } from './produce-blob'
 import { logger } from '@/lib/logger'
 import { getRunwareClient } from './runware-client'
 import { getBiologicalCue } from '@/data/biological-cues'
+import { v4 as uuidv4 } from 'uuid'
 
 const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
+
+// ============================================================================
+// TWO-MODE IMAGE GENERATION SYSTEM
+// ============================================================================
+
+export type ImageMode = 'NATURAL_PACKSHOT' | 'MAISON_STILL_LIFE'
+export type MaisonVariant = 'single' | 'whole+half' | 'pair' | 'stack3' | 'bundle'
+
+export interface ProduceInferenceOptions {
+  produceName: string
+  mode: ImageMode
+  variant?: MaisonVariant
+  lightingPreset?: 'bright' | 'moody'
+  seed?: number
+  width?: number
+  height?: number
+}
+
+export interface RunwareInferencePayload {
+  taskType: 'imageInference'
+  taskUUID: string
+  model: string
+  positivePrompt: string
+  negativePrompt: string
+  width: number
+  height: number
+  steps: number
+  CFGScale: number
+  scheduler: string
+  rawMode: boolean
+  numberResults: number
+  outputFormat: string
+}
+
+/**
+ * Geometry lock clause - ALWAYS FIRST in prompt
+ * Locks anatomical correctness before any styling
+ */
+function getGeometryLock(produceName: string, variant: MaisonVariant = 'single'): string {
+  const variantNote = variant === 'single'
+    ? 'Single subject only.'
+    : `Variant: ${variant}. Subject count matches variant specification only.`
+
+  return `A plain retail product photograph of ${produceName}. ${variantNote} True supermarket produce. Anatomically correct proportions for ${produceName}. Slight natural asymmetry and non-uniform micro-texture. No deformation. No mutation. True-to-life scale. Photorealistic.`
+}
+
+/**
+ * Mode style clauses
+ */
+const MODE_STYLE_CLAUSES: Record<ImageMode, string> = {
+  NATURAL_PACKSHOT: `Documentary catalog packshot. Neutral seamless background or neutral matte stone surface. Clean set. No props. Orthographic perspective. Boring retail clarity.`,
+
+  MAISON_STILL_LIFE: `Luxury brand studio still life. Clean cyclorama studio gradient background with smooth tonal falloff. Museum-like negative space. Minimal graphic composition, centered, deliberate balance. Premium editorial still life but still product-real and color accurate. No props.`
+}
+
+/**
+ * Camera rig clause - highest end
+ */
+const CAMERA_RIG = `Captured as a high-end commercial still life on a Phase One XF with IQ4 150MP digital back, Schneider Kreuznach 120mm Macro lens, tethered studio capture, color checker calibration, cross-polarized lighting to control specular highlights, f/11 deep focus, edge-to-edge sharpness.`
+
+/**
+ * Lighting clauses
+ */
+const LIGHTING_CLAUSES: Record<'bright' | 'moody', string> = {
+  bright: `High key soft daylight feel, overhead diffusion, even exposure, minimal shadow density, clean premium catalog lighting.`,
+  moody: `Low key side softbox, gentle falloff, controlled contrast, soft shadow edges, premium boutique lighting.`
+}
+
+/**
+ * Variant clauses for composition
+ */
+const VARIANT_CLAUSES: Record<MaisonVariant, string> = {
+  single: `One intact specimen, centered.`,
+  'whole+half': `One whole specimen plus one cleanly cut half to reveal interior structure. No juice mess.`,
+  pair: `Two specimens only, slight offset, same variety.`,
+  stack3: `Three specimens stacked with stable balance, minimal composition, no surreal floating.`,
+  bundle: `A small bundle of 3 to 5 only, tidy, no extra items.`
+}
+
+/**
+ * Enhanced universal negative prompt
+ */
+const ENHANCED_NEGATIVE = `deformed, misshapen, warped, stretched, melted, mutated, fused items, extra items, doubled subject, extra stems, extra leaves, extra slices, surreal, abstract, stylized, illustration, cartoon, CGI, plastic, waxy smoothing, oversharpening halos, artifacts, cinematic, shallow depth of field, bokeh, food styling, arranged messy composition, kitchen, bowls, plates, wooden boards, rustic props, broken slate tile, hands, people, text, watermark, logo`
+
+/**
+ * Per-produce negative overrides for known failure modes
+ */
+const PRODUCE_NEGATIVE_OVERRIDES: Record<string, string> = {
+  'blackberries': 'no blueberry crown, no calyx holes, no blossom-end cavities, no hollow drupelets',
+  'raspberries': 'no solid center, no blueberry crown, maintain hollow cone structure',
+  'blueberries': 'no raspberry drupelets, maintain smooth skin with wax bloom',
+  'strawberries': 'no raspberry drupelets, maintain achene seed pattern on surface'
+}
+
+/**
+ * Category-based step tuning
+ */
+function getStepsForCategory(category: ProduceCategory): number {
+  switch (category) {
+    case 'strawberries':
+    case 'brambles':
+    case 'blueberries':
+      return 60 // Berries need higher steps
+    case 'leafy_ruffled':
+    case 'leafy_flat':
+      return 55 // Leafy greens
+    case 'root':
+      return 55 // Root vegetables
+    case 'squash':
+      return 50 // Large simple items
+    default:
+      return 55 // Default
+  }
+}
+
+/**
+ * Concept phrases based on produce category for Maison mode
+ */
+function getMaisonConcept(category: ProduceCategory, variant: MaisonVariant): string {
+  if (variant !== 'single') return '' // Concept only for single items
+
+  const concepts: Partial<Record<ProduceCategory, string>> = {
+    pome_fruit: 'balanced sculptural placement, subtle offset, clean negative space',
+    citrus: 'one whole plus one clean cut half to reveal interior geometry, juice vesicles crisp',
+    tomatoes: 'balanced stack of three, aligned vertical axis, slight offset, sculptural still life',
+    alliums: 'balanced stack of three, aligned vertical axis, slight offset, sculptural still life',
+    stalks: 'parallel alignment with slight stagger, graphic repetition, clean negative space',
+    root: 'parallel alignment with slight stagger, graphic repetition, clean negative space',
+    leafy_ruffled: 'single leaf cluster folded into a clean arc, sculptural drape, minimal composition',
+    leafy_flat: 'single leaf cluster folded into a clean arc, sculptural drape, minimal composition',
+    brambles: 'single cluster suspended or gently resting, controlled shadow, macro texture emphasis',
+    blueberries: 'single cluster suspended or gently resting, controlled shadow, macro texture emphasis',
+    strawberries: 'single specimen larger in frame, centered, calm gradient background, soft shadow'
+  }
+
+  return concepts[category] || ''
+}
+
+/**
+ * Generate Runware inference payload for produce image
+ * Returns JSON payload only - does not call API
+ */
+export function generateProduceInferenceTask(options: ProduceInferenceOptions): RunwareInferencePayload {
+  const {
+    produceName,
+    mode,
+    variant = 'single',
+    lightingPreset = 'bright',
+    seed = Date.now(),
+    width = 1536,
+    height = 1536
+  } = options
+
+  // Get category for this produce
+  const slug = produceName.toLowerCase().replace(/\s+/g, '-')
+  const category = PRODUCE_CATEGORY_MAP[slug] || 'pome_fruit'
+
+  // Build prompt parts in exact order
+  const parts: string[] = []
+
+  // 1. GEOMETRY_LOCK (always first)
+  parts.push(getGeometryLock(produceName, variant))
+
+  // 2. MODE_STYLE_CLAUSE
+  parts.push(MODE_STYLE_CLAUSES[mode])
+
+  // 3. CAMERA_RIG
+  parts.push(CAMERA_RIG)
+
+  // 4. LIGHTING_CLAUSE
+  parts.push(LIGHTING_CLAUSES[lightingPreset])
+
+  // 5. PRODUCE_BIO_CUE
+  const bioCue = getBiologicalCue(produceName)
+  parts.push(bioCue)
+
+  // 6. VARIANT_CLAUSE
+  parts.push(VARIANT_CLAUSES[variant])
+
+  // 7. MAISON concept (if applicable)
+  if (mode === 'MAISON_STILL_LIFE') {
+    const concept = getMaisonConcept(category, variant)
+    if (concept) {
+      parts.push(`Concept: ${concept}`)
+    }
+  }
+
+  const positivePrompt = parts.join(' ')
+
+  // Build negative prompt with per-produce overrides
+  let negativePrompt = ENHANCED_NEGATIVE
+  const override = PRODUCE_NEGATIVE_OVERRIDES[slug]
+  if (override) {
+    negativePrompt = `${negativePrompt}, ${override}`
+  }
+
+  // Get steps based on category
+  const steps = getStepsForCategory(category)
+
+  // CFG scale: 2.8-3.1 range
+  const CFGScale = mode === 'MAISON_STILL_LIFE' ? 2.8 : 3.0
+
+  const payload: RunwareInferencePayload = {
+    taskType: 'imageInference',
+    taskUUID: uuidv4(),
+    model: 'rundiffusion:130@100', // Juggernaut Pro Flux
+    positivePrompt,
+    negativePrompt,
+    width,
+    height,
+    steps,
+    CFGScale,
+    scheduler: 'FlowMatchEulerDiscreteScheduler',
+    rawMode: true,
+    numberResults: 1,
+    outputFormat: 'webp'
+  }
+
+  imageGenLogger.debug('Generated inference payload', {
+    produceName,
+    mode,
+    variant,
+    steps,
+    promptLength: positivePrompt.length
+  })
+
+  return payload
+}
+
+/**
+ * Generate both Natural and Maison images for a produce item
+ */
+export function generateDualModePayloads(
+  produceName: string,
+  seed?: number
+): { natural: RunwareInferencePayload; maison: RunwareInferencePayload } {
+  const baseSeed = seed ?? Date.now()
+
+  return {
+    natural: generateProduceInferenceTask({
+      produceName,
+      mode: 'NATURAL_PACKSHOT',
+      variant: 'single',
+      lightingPreset: 'bright',
+      seed: baseSeed
+    }),
+    maison: generateProduceInferenceTask({
+      produceName,
+      mode: 'MAISON_STILL_LIFE',
+      variant: 'single',
+      lightingPreset: 'moody',
+      seed: baseSeed + 1000
+    })
+  }
+}
+
+// ============================================================================
+// LEGACY PACKSHOT GENERATOR (preserved for backward compatibility)
+// ============================================================================
 
 /**
  * SHAPE-SAFE PACKSHOT GENERATOR
