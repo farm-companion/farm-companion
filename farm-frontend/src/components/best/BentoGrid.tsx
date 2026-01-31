@@ -35,7 +35,7 @@ const iconColors = {
 
 export function BentoGrid({ items, className }: BentoGridProps) {
   return (
-    <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4', className)}>
+    <div className={cn('grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5', className)}>
       {items.map((item, index) => {
         const Icon = iconMap[item.icon]
         const colorClasses = iconColors[item.icon]
@@ -45,26 +45,46 @@ export function BentoGrid({ items, className }: BentoGridProps) {
             key={index}
             className={cn(
               'group relative overflow-hidden rounded-2xl',
-              'bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm',
-              'border border-slate-200/50 dark:border-slate-700/50',
-              'p-6 transition-all duration-300',
-              'hover:shadow-xl hover:shadow-slate-200/50 dark:hover:shadow-slate-900/50',
-              'hover:border-slate-300 dark:hover:border-slate-600',
-              'hover:-translate-y-1'
+              // Enhanced glassmorphism
+              'bg-white/70 dark:bg-slate-900/70',
+              'backdrop-blur-xl backdrop-saturate-150',
+              // Multi-layer border for depth
+              'border border-white/50 dark:border-slate-700/50',
+              'ring-1 ring-slate-200/30 dark:ring-slate-700/30',
+              // Layered shadows for depth
+              'shadow-sm shadow-slate-200/50 dark:shadow-slate-900/50',
+              'p-6 transition-all duration-300 ease-out',
+              // Enhanced hover effects
+              'hover:shadow-2xl hover:shadow-slate-300/40 dark:hover:shadow-slate-900/60',
+              'hover:border-white/80 dark:hover:border-slate-600/80',
+              'hover:ring-2 hover:ring-serum/20',
+              'hover:-translate-y-1.5 hover:scale-[1.02]'
             )}
           >
-            {/* Subtle gradient background on hover */}
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-slate-100/50 dark:to-slate-800/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            {/* Glass shine effect */}
+            <div className="absolute inset-0 bg-gradient-to-br from-white/40 via-transparent to-transparent opacity-60 pointer-events-none" />
+
+            {/* Animated gradient on hover */}
+            <div className="absolute inset-0 bg-gradient-to-br from-serum/5 via-transparent to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+            {/* Inner glow on hover */}
+            <div className="absolute -inset-px rounded-2xl bg-gradient-to-br from-serum/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-sm" />
 
             {/* Content */}
             <div className="relative z-10">
-              {/* Icon */}
-              <div className={cn('inline-flex p-3 rounded-xl mb-4', colorClasses)}>
+              {/* Icon with glass effect */}
+              <div className={cn(
+                'inline-flex p-3.5 rounded-xl mb-4',
+                'backdrop-blur-sm',
+                'shadow-inner shadow-white/30 dark:shadow-black/20',
+                'ring-1 ring-white/30 dark:ring-slate-600/30',
+                colorClasses
+              )}>
                 <Icon className="w-6 h-6" />
               </div>
 
               {/* Title */}
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-slate-800 dark:group-hover:text-slate-100 transition-colors">
                 {item.title}
               </h3>
 
@@ -73,10 +93,10 @@ export function BentoGrid({ items, className }: BentoGridProps) {
                 {item.description}
               </p>
 
-              {/* Highlight badge */}
+              {/* Highlight badge with glass effect */}
               {item.highlight && (
-                <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-primary/10 text-brand-primary text-xs font-medium">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse" />
+                <div className="mt-4 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-serum/10 backdrop-blur-sm text-serum dark:text-serum text-xs font-medium border border-serum/20 shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-serum animate-pulse" />
                   {item.highlight}
                 </div>
               )}
