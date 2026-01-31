@@ -88,8 +88,9 @@ export class RunwareClient {
         width: request.width || 1024,
         height: request.height || 1024,
         seed: request.seed,
-        steps: request.steps || 33, // Optimal for Juggernaut Pro FLUX
-        CFGScale: request.cfgScale || 2.5, // 2.5 for photorealistic, 3.5 for artistic
+        steps: request.steps || 33, // Runware documented recommendation
+        CFGScale: request.cfgScale || 3.0, // Runware recommendation for Juggernaut Pro
+        scheduler: 'Euler Beta', // Recommended in Runware Juggernaut Pro docs
         outputFormat: request.outputFormat || 'webp',
         numberResults: request.numberResults || 1
       }

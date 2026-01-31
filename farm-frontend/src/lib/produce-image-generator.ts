@@ -18,28 +18,139 @@ const imageGenLogger = logger.child({ route: 'lib/produce-image-generator' })
 
 /**
  * NOTE: FLUX models (including Juggernaut Pro FLUX) IGNORE negative prompts!
- * This constant is kept for documentation but has NO effect on generation.
  * All control must be achieved through the positive prompt.
+ * Prompt structure follows BFL guide: Subject + Action + Style + Context
+ * FLUX weighs earlier words more heavily - put critical info first.
  */
-const HARVEST_PRODUCE_NEGATIVE = 'Not used - FLUX ignores negative prompts'
 
 /**
- * Seasonal lighting based on British months
- * Cool tones for winter, warm golden for summer
+ * Produce categories for template selection
+ * Each category has specific descriptors that work better for that type
  */
-const SEASONAL_LIGHTING: Record<number, string> = {
-  1: 'cool overcast winter light, soft grey tones',
-  2: 'crisp late winter light, hints of warmth',
-  3: 'fresh spring morning light, cool and bright',
-  4: 'soft spring daylight, gentle warmth',
-  5: 'warm late spring light, golden undertones',
-  6: 'bright summer morning light, warm and inviting',
-  7: 'golden hour summer light, rich warm tones',
-  8: 'warm late summer afternoon light',
-  9: 'soft autumn morning light, amber tones',
-  10: 'warm autumn golden hour, rich ochre tones',
-  11: 'cool late autumn light, soft grey-gold',
-  12: 'cool winter daylight, soft and muted'
+export type ProduceCategory =
+  | 'berries'      // strawberries, blackberries, raspberries
+  | 'citrus'       // oranges, lemons, limes
+  | 'leafy'        // kale, spinach, lettuce
+  | 'root'         // carrots, potatoes, beetroot
+  | 'stone_fruit'  // plums, peaches, cherries
+  | 'pome_fruit'   // apples, pears
+  | 'squash'       // pumpkins, butternut, courgettes
+  | 'stalks'       // asparagus, celery, rhubarb
+  | 'pods'         // runner beans, peas, broad beans
+  | 'brassicas'    // broccoli, cauliflower, cabbage
+  | 'alliums'      // leeks, onions, garlic
+  | 'nightshades'  // tomatoes, peppers, aubergines
+  | 'corn'         // sweetcorn
+
+/**
+ * Category-specific prompt templates
+ * Structure: Subject FIRST (FLUX weighs earlier words more heavily)
+ * Based on BFL guide recommendations
+ */
+const CATEGORY_TEMPLATES: Record<ProduceCategory, string> = {
+  berries: `Fresh ripe {NAME} arranged in a natural small pile, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, small water droplets on surface, visible seeds and authentic imperfections, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution, sharp focus on fruit details`,
+
+  citrus: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, textured peel with visible pores, natural citrus sheen, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution, sharp focus on peel texture`,
+
+  leafy: `Fresh crisp {NAME} leaves, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural leaf folds and curves, fresh-cut stems visible, vibrant green color, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  root: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, clean natural rough skin texture, earthy authentic appearance, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  stone_fruit: `Fresh ripe {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, soft natural skin with subtle color gradient, authentic imperfections, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  pome_fruit: `Fresh crisp {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural waxy sheen on skin, subtle color gradient, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  squash: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural ribbed texture and stem, rich autumn colors, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  stalks: `Fresh {NAME} spears in a small bundle, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, tight compact tips, natural fiber texture visible, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  pods: `Fresh {NAME} pods, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, crisp bright green color, natural pod texture, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  brassicas: `Fresh {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, tight florets with natural color, crisp fresh stems, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  alliums: `Fresh whole {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, crisp white and green layers visible, natural papery outer skin, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  nightshades: `Fresh ripe {NAME}, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, natural glossy skin, vibrant color, small water droplets, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`,
+
+  corn: `Fresh {NAME} cobs with husks partially pulled back, studio product photography, shot on Canon 5D Mark IV with 100mm macro lens at f/5.6, pure white seamless background, three-point softbox lighting with soft diffused highlights, plump golden kernels visible, fresh silk strands, shot from 45-degree angle above, commercial food photography for supermarket advertisement, ultra high resolution`
+}
+
+/**
+ * Map produce slugs to their categories
+ */
+const PRODUCE_CATEGORY_MAP: Record<string, ProduceCategory> = {
+  // Berries
+  'strawberries': 'berries',
+  'blackberries': 'berries',
+  'raspberries': 'berries',
+  'blueberries': 'berries',
+
+  // Stone fruit
+  'plums': 'stone_fruit',
+  'peaches': 'stone_fruit',
+  'cherries': 'stone_fruit',
+  'apricots': 'stone_fruit',
+
+  // Pome fruit
+  'apples': 'pome_fruit',
+  'pears': 'pome_fruit',
+
+  // Citrus
+  'oranges': 'citrus',
+  'lemons': 'citrus',
+  'limes': 'citrus',
+  'grapefruit': 'citrus',
+
+  // Leafy greens
+  'kale': 'leafy',
+  'spinach': 'leafy',
+  'lettuce': 'leafy',
+  'chard': 'leafy',
+
+  // Root vegetables
+  'carrots': 'root',
+  'potatoes': 'root',
+  'beetroot': 'root',
+  'parsnips': 'root',
+  'turnips': 'root',
+
+  // Squash
+  'pumpkins': 'squash',
+  'butternut-squash': 'squash',
+  'courgettes': 'squash',
+
+  // Stalks
+  'asparagus': 'stalks',
+  'celery': 'stalks',
+  'rhubarb': 'stalks',
+
+  // Pods/Legumes
+  'runner-beans': 'pods',
+  'broad-beans': 'pods',
+  'peas': 'pods',
+  'french-beans': 'pods',
+
+  // Brassicas
+  'purple-sprouting-broccoli': 'brassicas',
+  'broccoli': 'brassicas',
+  'cauliflower': 'brassicas',
+  'cabbage': 'brassicas',
+  'brussels-sprouts': 'brassicas',
+
+  // Alliums
+  'leeks': 'alliums',
+  'onions': 'alliums',
+  'garlic': 'alliums',
+  'spring-onions': 'alliums',
+
+  // Nightshades
+  'tomato': 'nightshades',
+  'tomatoes': 'nightshades',
+  'peppers': 'nightshades',
+  'aubergines': 'nightshades',
+
+  // Corn
+  'sweetcorn': 'corn'
 }
 
 interface ProduceImageOptions {
@@ -66,10 +177,10 @@ export class ProduceImageGenerator {
     try {
       imageGenLogger.info('Generating produce image', { produceName, slug })
 
-      const width = options.width ?? 2048
-      const height = options.height ?? 2048
+      const width = options.width ?? 1024
+      const height = options.height ?? 1024
       const seed = options.seed ?? this.hashString(slug)
-      const prompt = this.createProducePrompt(produceName, options)
+      const prompt = this.createProducePrompt(produceName, slug)
 
       imageGenLogger.debug('Prompt created', { promptPreview: prompt.substring(0, 120) })
 
@@ -96,37 +207,32 @@ export class ProduceImageGenerator {
   }
 
   /**
-   * Create god-tier produce photography prompt for Juggernaut Pro FLUX
-   * Note: FLUX models ignore negative prompts - all control is in positive prompt
+   * Create category-specific produce photography prompt for Juggernaut Pro FLUX
+   * Uses BFL guide structure: Subject + Action + Style + Context
+   * Subject comes FIRST because FLUX weighs earlier words more heavily
    */
-  private createProducePrompt(produceName: string, options: ProduceImageOptions): string {
-    // Juggernaut Pro FLUX prompt: be extremely specific, no negatives supported
-    const prompt = [
-      // Subject - be very specific
-      `A single pile of fresh ripe ${produceName}`,
-      // Background - critical: pure white only
-      'photographed on a seamless pure white studio background',
-      'no other objects in frame',
-      `nothing else visible except the ${produceName}`,
-      // Composition
-      'centered in frame',
-      'shot from slightly above at 45 degree angle',
-      // Realism markers
-      'real photograph taken with Canon 5D Mark IV',
-      '100mm macro lens',
-      'f/5.6 aperture',
-      'professional studio strobe lighting',
-      // Texture and detail
-      'natural skin texture visible',
-      'small water droplets',
-      'authentic imperfections',
-      // Quality
-      'ultra high resolution',
-      'commercial food photography',
-      'as seen in supermarket advertisement'
-    ].join(', ')
+  private createProducePrompt(produceName: string, slug: string): string {
+    // Get category for this produce, default to 'berries' as fallback
+    const category = PRODUCE_CATEGORY_MAP[slug] || 'berries'
+    const template = CATEGORY_TEMPLATES[category]
+
+    // Replace {NAME} placeholder with actual produce name
+    const prompt = template.replace(/{NAME}/g, produceName)
+
+    imageGenLogger.debug('Category prompt generated', {
+      slug,
+      category,
+      promptLength: prompt.length
+    })
 
     return prompt
+  }
+
+  /**
+   * Get the category for a produce item
+   */
+  getProduceCategory(slug: string): ProduceCategory {
+    return PRODUCE_CATEGORY_MAP[slug] || 'berries'
   }
 
   /**
