@@ -339,9 +339,9 @@ export class ProduceImageGenerator {
     }
 
     try {
+      // Note: FLUX models ignore negativePrompt - all control via positive prompt
       const buffer = await client.generateBuffer({
         prompt,
-        negativePrompt: HARVEST_PRODUCE_NEGATIVE,
         width: opts.width,
         height: opts.height,
         seed: opts.seed,
