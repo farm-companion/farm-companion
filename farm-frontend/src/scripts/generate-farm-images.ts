@@ -20,7 +20,7 @@ config({ path: resolve(process.cwd(), '.env') })
 
 import { PrismaClient } from '@prisma/client'
 import { FarmImageGenerator } from '../lib/farm-image-generator'
-import { uploadFarmImage, farmImageExists } from '../lib/farm-blob'
+import { uploadFarmImageToSupabase, farmImageExistsInSupabase } from '../lib/supabase-storage'
 import { join } from 'path'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
@@ -141,11 +141,11 @@ async function generateFarmImages() {
       console.log('-'.repeat(50))
 
       try {
-        // Check if AI image already exists in blob (for upload mode)
+        // Check if AI image already exists in storage (for upload mode)
         if (options.upload && !options.force) {
-          const exists = await farmImageExists(farm.slug)
+          const exists = await farmImageExistsInSupabase(farm.slug)
           if (exists) {
-            console.log(`⏭️  Skipping - AI image already exists in blob storage`)
+            console.log(`⏭️  Skipping - AI image already exists in Supabase storage`)
             console.log(`   Use --force to regenerate`)
             results.push({ slug: farm.slug, name: farm.name, success: true })
             continue
@@ -168,8 +168,8 @@ async function generateFarmImages() {
 
         // Upload or save
         if (options.upload) {
-          console.log(`📤 Uploading to Vercel Blob...`)
-          const { url } = await uploadFarmImage(buffer, farm.slug, {
+          console.log(`📤 Uploading to Supabase Storage...`)
+          const { url } = await uploadFarmImageToSupabase(buffer, farm.slug, {
             farmName: farm.name,
             generatedAt: new Date().toISOString(),
             allowOverwrite: options.force
