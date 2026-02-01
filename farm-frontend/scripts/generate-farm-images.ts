@@ -3,11 +3,14 @@
  * Batch Farm Image Generator
  *
  * Generates AI images for all farms in the database using Runware.
+ * Stores images in Supabase Storage (god-tier unified infrastructure).
+ *
  * Features:
  * - Checkpointing: Saves progress to resume after interruption
  * - Rate limiting: Respects API limits and prevents overload
  * - Database integration: Creates Image records linked to farms
  * - Cost tracking: Estimates and reports generation costs
+ * - Supabase Storage: Single infrastructure for DB + images
  *
  * Usage:
  *   npx tsx scripts/generate-farm-images.ts [options]
@@ -22,9 +25,10 @@
  *   --resume        Resume from last checkpoint
  *
  * Environment:
- *   DATABASE_URL    PostgreSQL connection string
- *   RUNWARE_API_KEY Runware API key
- *   BLOB_READ_WRITE_TOKEN Vercel Blob token (optional for local dev)
+ *   DATABASE_URL              PostgreSQL connection string
+ *   RUNWARE_API_KEY           Runware API key
+ *   SUPABASE_URL              Supabase project URL
+ *   SUPABASE_SERVICE_ROLE_KEY Supabase service role key (for storage)
  */
 
 // Load environment variables from .env.local (Vercel default) or .env
@@ -42,8 +46,12 @@ import * as path from 'path'
 // Dynamic imports for ESM compatibility
 const importModules = async () => {
   const { FarmImageGenerator } = await import('../src/lib/farm-image-generator')
-  const { uploadFarmImage, farmImageExists } = await import('../src/lib/farm-blob')
-  return { FarmImageGenerator, uploadFarmImage, farmImageExists }
+  const {
+    uploadFarmImageToSupabase,
+    farmImageExistsInSupabase,
+    ensureBucketExists
+  } = await import('../src/lib/supabase-storage')
+  return { FarmImageGenerator, uploadFarmImageToSupabase, farmImageExistsInSupabase, ensureBucketExists }
 }
 
 // Configuration
@@ -207,8 +215,13 @@ async function generateFarmImages(): Promise<void> {
   console.log('')
 
   // Import modules
-  const { FarmImageGenerator, uploadFarmImage, farmImageExists } = await importModules()
+  const { FarmImageGenerator, uploadFarmImageToSupabase, farmImageExistsInSupabase, ensureBucketExists } = await importModules()
   const generator = new FarmImageGenerator()
+
+  // Ensure Supabase bucket exists
+  console.log('Checking Supabase Storage bucket...')
+  await ensureBucketExists()
+  console.log('Supabase Storage ready.\n')
 
   try {
     // Get total farm count
@@ -294,7 +307,7 @@ async function generateFarmImages(): Promise<void> {
         try {
           // Check if image already exists (skip if not forcing)
           if (!options.force) {
-            const exists = await farmImageExists(farm.slug)
+            const exists = await farmImageExistsInSupabase(farm.slug)
             if (exists) {
               stats.skipped++
               stats.processed++
@@ -320,11 +333,9 @@ async function generateFarmImages(): Promise<void> {
 
           if (buffer) {
             if (!options.dryRun) {
-              // Upload to Vercel Blob
-              const uploadResult = await uploadFarmImage(buffer, farm.slug, {
-                farmName: farm.name,
-                generatedAt: new Date().toISOString(),
-                allowOverwrite: options.force
+              // Upload to Supabase Storage
+              const uploadResult = await uploadFarmImageToSupabase(buffer, farm.slug, {
+                upsert: options.force
               })
 
               // Check if hero image already exists for this farm
