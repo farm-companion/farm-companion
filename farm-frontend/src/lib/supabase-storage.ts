@@ -139,21 +139,33 @@ export async function deleteFarmImage(slug: string): Promise<boolean> {
 
 /**
  * Ensure the farm-images bucket exists with proper configuration
+ * Note: On self-hosted Supabase, this may fail if bucket already exists or JWT issues
  */
 export async function ensureBucketExists(): Promise<void> {
-  const { data: buckets } = await supabase.storage.listBuckets()
+  try {
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets()
 
-  const bucketExists = buckets?.some(b => b.name === BUCKET_NAME)
-
-  if (!bucketExists) {
-    const { error } = await supabase.storage.createBucket(BUCKET_NAME, {
-      public: true,
-      fileSizeLimit: 5 * 1024 * 1024, // 5MB max
-      allowedMimeTypes: ['image/webp', 'image/jpeg', 'image/png']
-    })
-
-    if (error && !error.message.includes('already exists')) {
-      throw new Error(`Failed to create bucket: ${error.message}`)
+    if (listError) {
+      console.warn('Could not list buckets (may be fine if bucket exists):', listError.message)
+      return // Continue anyway, upload will fail with clear error if bucket missing
     }
+
+    const bucketExists = buckets?.some(b => b.name === BUCKET_NAME)
+
+    if (!bucketExists) {
+      const { error } = await supabase.storage.createBucket(BUCKET_NAME, {
+        public: true,
+        fileSizeLimit: 5 * 1024 * 1024, // 5MB max
+        allowedMimeTypes: ['image/webp', 'image/jpeg', 'image/png']
+      })
+
+      if (error && !error.message.includes('already exists')) {
+        console.warn('Could not create bucket:', error.message)
+        // Don't throw - bucket might exist, let upload fail with clear error
+      }
+    }
+  } catch (err) {
+    console.warn('Bucket check failed (continuing anyway):', err)
+    // Continue - upload will fail with clear error if there's a real problem
   }
 }
