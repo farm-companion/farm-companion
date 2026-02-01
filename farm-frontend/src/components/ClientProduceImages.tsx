@@ -28,7 +28,8 @@ export default function ClientProduceImages({
   maxImages = 6,
   fallbackToAnyMonth = true // Default to true for better UX
 }: ClientProduceImagesProps) {
-  const [useApiImages, setUseApiImages] = useState(true)
+  // Default to static images from produce.ts (which have correct Vercel Blob URLs)
+  const [useApiImages, setUseApiImages] = useState(false)
   const [effectiveMonth, setEffectiveMonth] = useState(month)
 
   const checkAndSetEffectiveMonth = useCallback(async () => {
@@ -68,8 +69,8 @@ export default function ClientProduceImages({
     }
   }, [month, fallbackToAnyMonth, checkAndSetEffectiveMonth])
 
-  // Always show API images by default, only show toggle if explicitly requested
-  const displayApiImages = showToggle ? useApiImages : true
+  // Use static images by default (they have correct Vercel Blob URLs)
+  const displayApiImages = showToggle ? useApiImages : false
 
   return (
     <div className={className}>
@@ -147,11 +148,12 @@ export function ClientProduceImage({
   alt,
   fallbackToAnyMonth = true
 }: ClientProduceImageProps) {
-  const [useApiImage, setUseApiImage] = useState(true)
+  // Default to static images from produce.ts (which have correct Vercel Blob URLs)
+  const [useApiImage, setUseApiImage] = useState(false)
   const [effectiveMonth, setEffectiveMonth] = useState(month)
 
-  // Always show API image by default, only show toggle if explicitly requested
-  const displayApiImage = showToggle ? useApiImage : true
+  // Use static images by default (they have correct Vercel Blob URLs)
+  const displayApiImage = showToggle ? useApiImage : false
 
   return (
     <div className={className}>
