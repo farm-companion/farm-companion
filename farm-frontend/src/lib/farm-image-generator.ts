@@ -128,6 +128,57 @@ export class FarmImageGenerator {
   }
 
   /**
+   * Generate farm image and return URL directly (no download)
+   * More efficient for batch processing - saves Runware CDN URL to database
+   */
+  async generateFarmImageUrl(
+    farmName: string,
+    slug: string,
+    options: FarmImageOptions = {}
+  ): Promise<string | null> {
+    try {
+      imageGenLogger.info('Generating farm image URL', { farmName, slug })
+
+      const width = options.width ?? 2048
+      const height = options.height ?? 1152 // 16:9 aspect
+      const seed = options.seed ?? this.hashString(slug)
+      const prompt = this.createFarmPrompt(farmName, options)
+
+      imageGenLogger.debug('Prompt created', { promptPreview: prompt.substring(0, 120) })
+
+      // Get URL directly from Runware (no buffer download)
+      const client = getRunwareClient()
+      if (!client.isConfigured()) {
+        imageGenLogger.warn('RUNWARE_API_KEY not configured')
+        return null
+      }
+
+      const result = await client.generate({
+        prompt,
+        negativePrompt: HARVEST_FARM_NEGATIVE,
+        width,
+        height,
+        seed,
+        steps: 28,
+        cfgScale: 3.5,
+        outputFormat: 'webp'
+      })
+
+      if (result?.images?.[0]?.imageURL) {
+        const imageUrl = result.images[0].imageURL
+        imageGenLogger.info('Farm image URL generated', { farmName, url: imageUrl.substring(0, 80) })
+        return imageUrl
+      }
+
+      imageGenLogger.warn('Farm image URL generation returned null', { farmName })
+      return null
+    } catch (error) {
+      imageGenLogger.error('Farm image URL generation failed', { farmName }, error as Error)
+      return null
+    }
+  }
+
+  /**
    * Create Harvest Visual Signature prompt for farm shops
    * "Real Places" - authentic British farm shop architecture
    */

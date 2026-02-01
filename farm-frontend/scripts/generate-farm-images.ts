@@ -2,15 +2,8 @@
 /**
  * Batch Farm Image Generator
  *
- * Generates AI images for all farms in the database using Runware.
- * Stores images in Supabase Storage (god-tier unified infrastructure).
- *
- * Features:
- * - Checkpointing: Saves progress to resume after interruption
- * - Rate limiting: Respects API limits and prevents overload
- * - Database integration: Creates Image records linked to farms
- * - Cost tracking: Estimates and reports generation costs
- * - Supabase Storage: Single infrastructure for DB + images
+ * Generates AI images for all farms using Runware and saves URLs directly to database.
+ * No storage layer needed - Runware URLs are CDN-backed and persistent.
  *
  * Usage:
  *   npx tsx scripts/generate-farm-images.ts [options]
@@ -19,40 +12,25 @@
  *   --limit N       Process only N farms (default: all)
  *   --offset N      Start from farm N (default: 0)
  *   --force         Regenerate existing images
- *   --dry-run       Test without uploading or database writes
+ *   --dry-run       Test without database writes
  *   --batch-size N  Process N farms per batch (default: 50)
  *   --delay N       Delay between images in ms (default: 1500)
  *   --resume        Resume from last checkpoint
  *
  * Environment:
- *   DATABASE_URL              PostgreSQL connection string
- *   RUNWARE_API_KEY           Runware API key
- *   SUPABASE_URL              Supabase project URL
- *   SUPABASE_SERVICE_ROLE_KEY Supabase service role key (for storage)
+ *   DATABASE_URL    PostgreSQL connection string
+ *   RUNWARE_API_KEY Runware API key
  */
 
-// Load environment variables from .env.local (Vercel default) or .env
+// Load environment variables
 import { config } from 'dotenv'
 import { resolve } from 'path'
-
-// Try .env.local first (Vercel), then fall back to .env
 config({ path: resolve(process.cwd(), '.env.local') })
 config({ path: resolve(process.cwd(), '.env') })
 
 import { PrismaClient } from '@prisma/client'
 import * as fs from 'fs'
 import * as path from 'path'
-
-// Dynamic imports for ESM compatibility
-const importModules = async () => {
-  const { FarmImageGenerator } = await import('../src/lib/farm-image-generator')
-  const {
-    uploadFarmImageToSupabase,
-    farmImageExistsInSupabase,
-    ensureBucketExists
-  } = await import('../src/lib/supabase-storage')
-  return { FarmImageGenerator, uploadFarmImageToSupabase, farmImageExistsInSupabase, ensureBucketExists }
-}
 
 // Configuration
 const CONFIG = {
@@ -62,7 +40,6 @@ const CONFIG = {
   costPerImage: 0.0096
 }
 
-// Types
 interface Checkpoint {
   lastProcessedIndex: number
   processedSlugs: string[]
@@ -87,16 +64,7 @@ interface FarmRecord {
   county: string
 }
 
-// Parse command line arguments
-function parseArgs(): {
-  limit?: number
-  offset: number
-  force: boolean
-  dryRun: boolean
-  batchSize: number
-  delay: number
-  resume: boolean
-} {
+function parseArgs() {
   const args = process.argv.slice(2)
   const options = {
     limit: undefined as number | undefined,
@@ -110,27 +78,13 @@ function parseArgs(): {
 
   for (let i = 0; i < args.length; i++) {
     switch (args[i]) {
-      case '--limit':
-        options.limit = parseInt(args[++i], 10)
-        break
-      case '--offset':
-        options.offset = parseInt(args[++i], 10)
-        break
-      case '--force':
-        options.force = true
-        break
-      case '--dry-run':
-        options.dryRun = true
-        break
-      case '--batch-size':
-        options.batchSize = parseInt(args[++i], 10)
-        break
-      case '--delay':
-        options.delay = parseInt(args[++i], 10)
-        break
-      case '--resume':
-        options.resume = true
-        break
+      case '--limit': options.limit = parseInt(args[++i], 10); break
+      case '--offset': options.offset = parseInt(args[++i], 10); break
+      case '--force': options.force = true; break
+      case '--dry-run': options.dryRun = true; break
+      case '--batch-size': options.batchSize = parseInt(args[++i], 10); break
+      case '--delay': options.delay = parseInt(args[++i], 10); break
+      case '--resume': options.resume = true; break
       case '--help':
         console.log(`
 Farm Image Generator - Generate AI images for all farms
@@ -141,7 +95,7 @@ Options:
   --limit N       Process only N farms (default: all)
   --offset N      Start from farm N (default: 0)
   --force         Regenerate existing images
-  --dry-run       Test without uploading or database writes
+  --dry-run       Test without database writes
   --batch-size N  Process N farms per batch (default: 50)
   --delay N       Delay between images in ms (default: 1500)
   --resume        Resume from last checkpoint
@@ -150,16 +104,13 @@ Options:
         process.exit(0)
     }
   }
-
   return options
 }
 
-// Checkpoint management
 function loadCheckpoint(): Checkpoint | null {
   try {
     if (fs.existsSync(CONFIG.checkpointFile)) {
-      const data = fs.readFileSync(CONFIG.checkpointFile, 'utf-8')
-      return JSON.parse(data)
+      return JSON.parse(fs.readFileSync(CONFIG.checkpointFile, 'utf-8'))
     }
   } catch (error) {
     console.warn('Failed to load checkpoint:', error)
@@ -173,17 +124,13 @@ function saveCheckpoint(checkpoint: Checkpoint): void {
 }
 
 function clearCheckpoint(): void {
-  if (fs.existsSync(CONFIG.checkpointFile)) {
-    fs.unlinkSync(CONFIG.checkpointFile)
-  }
+  if (fs.existsSync(CONFIG.checkpointFile)) fs.unlinkSync(CONFIG.checkpointFile)
 }
 
-// Progress display
 function displayProgress(stats: GenerationStats, currentFarm: string): void {
   const percent = ((stats.processed / stats.total) * 100).toFixed(1)
   const bar = '='.repeat(Math.floor(stats.processed / stats.total * 40))
   const empty = ' '.repeat(40 - bar.length)
-
   process.stdout.write(
     `\r[${bar}${empty}] ${percent}% | ` +
     `${stats.processed}/${stats.total} | ` +
@@ -193,17 +140,15 @@ function displayProgress(stats: GenerationStats, currentFarm: string): void {
   )
 }
 
-// Sleep utility
 function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
-// Main generation function
 async function generateFarmImages(): Promise<void> {
   const options = parseArgs()
   const prisma = new PrismaClient()
 
-  console.log('\n=== Farm Image Generator ===\n')
+  console.log('\n=== Farm Image Generator (Direct URL Mode) ===\n')
   console.log('Configuration:')
   console.log(`  Limit: ${options.limit ?? 'all'}`)
   console.log(`  Offset: ${options.offset}`)
@@ -214,24 +159,14 @@ async function generateFarmImages(): Promise<void> {
   console.log(`  Resume: ${options.resume}`)
   console.log('')
 
-  // Import modules
-  const { FarmImageGenerator, uploadFarmImageToSupabase, farmImageExistsInSupabase, ensureBucketExists } = await importModules()
+  // Import generator
+  const { FarmImageGenerator } = await import('../src/lib/farm-image-generator')
   const generator = new FarmImageGenerator()
 
-  // Ensure Supabase bucket exists
-  console.log('Checking Supabase Storage bucket...')
-  await ensureBucketExists()
-  console.log('Supabase Storage ready.\n')
-
   try {
-    // Get total farm count
-    const totalCount = await prisma.farm.count({
-      where: { status: 'active' }
-    })
-
+    const totalCount = await prisma.farm.count({ where: { status: 'active' } })
     console.log(`Total active farms in database: ${totalCount}`)
 
-    // Load or create checkpoint
     let checkpoint: Checkpoint | null = null
     let startIndex = options.offset
 
@@ -240,21 +175,18 @@ async function generateFarmImages(): Promise<void> {
       if (checkpoint) {
         startIndex = checkpoint.lastProcessedIndex + 1
         console.log(`Resuming from checkpoint at index ${startIndex}`)
-        console.log(`Previously processed: ${checkpoint.processedSlugs.length} farms`)
       }
     }
 
-    // Initialize stats
     const stats: GenerationStats = checkpoint?.stats ?? {
       total: options.limit ? Math.min(options.limit, totalCount - options.offset) : totalCount - options.offset,
-      processed: checkpoint?.stats.processed ?? 0,
-      generated: checkpoint?.stats.generated ?? 0,
-      skipped: checkpoint?.stats.skipped ?? 0,
-      failed: checkpoint?.stats.failed ?? 0,
-      estimatedCost: checkpoint?.stats.estimatedCost ?? 0
+      processed: 0,
+      generated: 0,
+      skipped: 0,
+      failed: 0,
+      estimatedCost: 0
     }
 
-    // Create initial checkpoint
     if (!checkpoint) {
       checkpoint = {
         lastProcessedIndex: startIndex - 1,
@@ -265,14 +197,12 @@ async function generateFarmImages(): Promise<void> {
       }
     }
 
-    // Fetch farms in batches
     let currentOffset = startIndex
     const endIndex = options.limit ? startIndex + options.limit : totalCount
 
     console.log(`\nProcessing farms ${startIndex} to ${endIndex - 1}...`)
     console.log('Press Ctrl+C to pause (progress will be saved)\n')
 
-    // Handle graceful shutdown
     let shouldStop = false
     process.on('SIGINT', () => {
       console.log('\n\nReceived interrupt signal. Saving checkpoint...')
@@ -282,15 +212,9 @@ async function generateFarmImages(): Promise<void> {
     while (currentOffset < endIndex && !shouldStop) {
       const batchSize = Math.min(options.batchSize, endIndex - currentOffset)
 
-      // Fetch batch of farms
       const farms: FarmRecord[] = await prisma.farm.findMany({
         where: { status: 'active' },
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          county: true
-        },
+        select: { id: true, name: true, slug: true, county: true },
         orderBy: { createdAt: 'asc' },
         skip: currentOffset,
         take: batchSize
@@ -298,70 +222,57 @@ async function generateFarmImages(): Promise<void> {
 
       if (farms.length === 0) break
 
-      // Process each farm in batch
       for (const farm of farms) {
         if (shouldStop) break
 
         displayProgress(stats, farm.name)
 
         try {
-          // Check if image already exists (skip if not forcing)
+          // Check if hero image already exists
           if (!options.force) {
-            const exists = await farmImageExistsInSupabase(farm.slug)
-            if (exists) {
+            const existingHero = await prisma.image.findFirst({
+              where: { farmId: farm.id, isHero: true, status: 'approved' }
+            })
+            if (existingHero) {
               stats.skipped++
               stats.processed++
               checkpoint.processedSlugs.push(farm.slug)
               checkpoint.lastProcessedIndex = currentOffset
               checkpoint.stats = stats
-
-              if (stats.processed % 10 === 0) {
-                saveCheckpoint(checkpoint)
-              }
-
+              if (stats.processed % 10 === 0) saveCheckpoint(checkpoint)
               currentOffset++
               continue
             }
           }
 
-          // Generate image
-          const buffer = await generator.generateFarmImage(
+          // Generate image and get URL directly
+          const imageUrl = await generator.generateFarmImageUrl(
             farm.name,
             farm.slug,
             { county: farm.county }
           )
 
-          if (buffer) {
+          if (imageUrl) {
             if (!options.dryRun) {
-              // Upload to Supabase Storage
-              const uploadResult = await uploadFarmImageToSupabase(buffer, farm.slug, {
-                upsert: options.force
-              })
-
-              // Check if hero image already exists for this farm
+              // Check if hero image already exists
               const existingHero = await prisma.image.findFirst({
-                where: {
-                  farmId: farm.id,
-                  isHero: true
-                }
+                where: { farmId: farm.id, isHero: true }
               })
 
               if (existingHero) {
-                // Update existing hero image URL
                 await prisma.image.update({
                   where: { id: existingHero.id },
                   data: {
-                    url: uploadResult.url,
+                    url: imageUrl,
                     altText: `${farm.name} - British farm shop in ${farm.county}`,
                     status: 'approved'
                   }
                 })
               } else {
-                // Create Image record in database
                 await prisma.image.create({
                   data: {
                     farmId: farm.id,
-                    url: uploadResult.url,
+                    url: imageUrl,
                     altText: `${farm.name} - British farm shop in ${farm.county}`,
                     isHero: true,
                     displayOrder: 0,
@@ -387,34 +298,24 @@ async function generateFarmImages(): Promise<void> {
         checkpoint.lastProcessedIndex = currentOffset
         checkpoint.stats = stats
 
-        // Save checkpoint every 10 farms
-        if (stats.processed % 10 === 0) {
-          saveCheckpoint(checkpoint)
-        }
-
+        if (stats.processed % 10 === 0) saveCheckpoint(checkpoint)
         currentOffset++
-
-        // Rate limiting
         await sleep(options.delay)
       }
     }
 
-    // Final checkpoint save
     saveCheckpoint(checkpoint)
 
-    // Display final stats
     console.log('\n\n=== Generation Complete ===\n')
     console.log(`Total processed: ${stats.processed}`)
     console.log(`Generated: ${stats.generated}`)
     console.log(`Skipped (existing): ${stats.skipped}`)
     console.log(`Failed: ${stats.failed}`)
     console.log(`Estimated cost: $${stats.estimatedCost.toFixed(4)}`)
-    console.log(`\nCheckpoint saved to: ${CONFIG.checkpointFile}`)
 
     if (shouldStop) {
       console.log('\nGeneration paused. Run with --resume to continue.')
     } else {
-      // Clear checkpoint on successful completion
       clearCheckpoint()
       console.log('\nAll farms processed successfully!')
     }
@@ -423,7 +324,6 @@ async function generateFarmImages(): Promise<void> {
   }
 }
 
-// Run
 generateFarmImages().catch(error => {
   console.error('Fatal error:', error)
   process.exit(1)
