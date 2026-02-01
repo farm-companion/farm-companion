@@ -1,23 +1,28 @@
 // src/lib/supabase-storage.ts
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 import sharp from 'sharp'
 import { logger } from '@/lib/logger'
 
 const storageLogger = logger.child({ route: 'lib/supabase-storage' })
 
-// Initialize Supabase client with service role key for storage operations
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-if (!supabaseUrl || !supabaseServiceKey) {
-  storageLogger.warn('Supabase credentials not configured')
-}
-
-const supabase = supabaseUrl && supabaseServiceKey
-  ? createClient(supabaseUrl, supabaseServiceKey)
-  : null
-
 const BUCKET_NAME = 'farm-images'
+
+// Lazy initialization of Supabase client
+let _supabase: SupabaseClient | null = null
+
+function getSupabaseClient(): SupabaseClient {
+  if (_supabase) return _supabase
+
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!supabaseUrl || !supabaseServiceKey) {
+    throw new Error('Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
+  }
+
+  _supabase = createClient(supabaseUrl, supabaseServiceKey)
+  return _supabase
+}
 
 /**
  * Build object path for farm images
@@ -49,7 +54,7 @@ export async function processFarmImage(buffer: Buffer): Promise<Buffer> {
  * Ensure the farm-images bucket exists
  */
 async function ensureBucketExists(): Promise<void> {
-  if (!supabase) throw new Error('Supabase not configured')
+  const supabase = getSupabaseClient()
 
   const { data: buckets } = await supabase.storage.listBuckets()
   const bucketExists = buckets?.some(b => b.name === BUCKET_NAME)
@@ -79,9 +84,7 @@ export async function uploadFarmImageToSupabase(
     allowOverwrite?: boolean
   }
 ): Promise<{ url: string; path: string }> {
-  if (!supabase) {
-    throw new Error('Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY')
-  }
+  const supabase = getSupabaseClient()
 
   try {
     storageLogger.info('Processing farm image for Supabase', { slug })
@@ -134,9 +137,8 @@ export async function uploadFarmImageToSupabase(
  * Check if farm image exists in Supabase Storage
  */
 export async function farmImageExistsInSupabase(slug: string): Promise<boolean> {
-  if (!supabase) return false
-
   try {
+    const supabase = getSupabaseClient()
     const path = buildFarmObjectPath(slug)
     const { data } = await supabase.storage
       .from(BUCKET_NAME)
@@ -152,23 +154,25 @@ export async function farmImageExistsInSupabase(slug: string): Promise<boolean> 
  * Get farm image URL from Supabase Storage
  */
 export function getFarmImageUrlFromSupabase(slug: string): string | null {
-  if (!supabase) return null
+  try {
+    const supabase = getSupabaseClient()
+    const path = buildFarmObjectPath(slug)
+    const { data } = supabase.storage
+      .from(BUCKET_NAME)
+      .getPublicUrl(path)
 
-  const path = buildFarmObjectPath(slug)
-  const { data } = supabase.storage
-    .from(BUCKET_NAME)
-    .getPublicUrl(path)
-
-  return data.publicUrl
+    return data.publicUrl
+  } catch {
+    return null
+  }
 }
 
 /**
  * Delete farm image from Supabase Storage
  */
 export async function deleteFarmImageFromSupabase(slug: string): Promise<boolean> {
-  if (!supabase) return false
-
   try {
+    const supabase = getSupabaseClient()
     const path = buildFarmObjectPath(slug)
     const { error } = await supabase.storage
       .from(BUCKET_NAME)
