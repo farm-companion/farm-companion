@@ -19,8 +19,7 @@ config({ path: resolve(process.cwd(), '.env.local') })
 config({ path: resolve(process.cwd(), '.env') })
 
 import { PrismaClient } from '@prisma/client'
-import { FarmImageGenerator } from '../lib/farm-image-generator'
-import { uploadFarmImageToSupabase, farmImageExistsInSupabase } from '../lib/supabase-storage'
+import { getRunwareClient, buildHarvestPrompt, HARVEST_STYLE } from '../lib/runware-client'
 import { join } from 'path'
 import { writeFile, mkdir } from 'fs/promises'
 import { existsSync } from 'fs'
@@ -62,9 +61,35 @@ function parseArgs(): Options {
   return options
 }
 
+// Hash string to number for deterministic seed
+function hashString(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = ((hash << 5) - hash) + char
+    hash = hash & hash
+  }
+  return Math.abs(hash)
+}
+
+// Regional styles for prompts
+const REGIONAL_STYLES: Record<string, string> = {
+  cornwall: 'Cornish granite and slate, coastal charm',
+  devon: 'Devon cob walls and thatch, red sandstone',
+  somerset: 'golden Ham stone, traditional orchards',
+  kent: 'traditional oast houses, white weatherboard',
+  yorkshire: 'grey millstone grit, Yorkshire moorland',
+  default: 'traditional British countryside'
+}
+
 async function generateFarmImages() {
   const options = parseArgs()
-  const generator = new FarmImageGenerator()
+  const runware = getRunwareClient()
+
+  if (!runware.isConfigured()) {
+    console.error('❌ RUNWARE_API_KEY not configured')
+    process.exit(1)
+  }
 
   console.log('🌾 Farm Companion - Farm Shop Image Generator')
   console.log('='.repeat(50))
@@ -123,11 +148,11 @@ async function generateFarmImages() {
       return
     }
 
-    const mode = options.upload ? 'Upload to Vercel Blob' : 'Local dry-run'
+    const mode = options.upload ? 'Save URL to database' : 'Dry-run (no save)'
     console.log(`📋 Mode: ${mode}`)
     console.log(`📦 Processing ${farms.length} farms without images`)
     if (!options.upload) {
-      console.log('💡 Add --upload flag to upload to Vercel Blob')
+      console.log('💡 Add --upload flag to save URLs to database')
     }
     console.log('')
 
@@ -141,45 +166,44 @@ async function generateFarmImages() {
       console.log('-'.repeat(50))
 
       try {
-        // Check if AI image already exists in storage (for upload mode)
-        if (options.upload && !options.force) {
-          const exists = await farmImageExistsInSupabase(farm.slug)
-          if (exists) {
-            console.log(`⏭️  Skipping - AI image already exists in Supabase storage`)
-            console.log(`   Use --force to regenerate`)
-            results.push({ slug: farm.slug, name: farm.name, success: true })
-            continue
-          }
-        }
+        // Build prompt for this farm
+        const countyKey = farm.county?.toLowerCase() || 'default'
+        const regionalStyle = REGIONAL_STYLES[countyKey] || REGIONAL_STYLES.default
 
-        // Generate image
-        console.log(`🎨 Generating AI image...`)
-        const buffer = await generator.generateFarmImage(farm.name, farm.slug, {
-          county: farm.county
+        const prompt = buildHarvestPrompt(
+          `authentic rural British farm shop exterior`,
+          regionalStyle,
+          {
+            lighting: HARVEST_STYLE.lighting,
+            background: 'green countryside, natural setting'
+          }
+        )
+
+        // Generate image via Runware (returns URL directly)
+        console.log(`🎨 Generating AI image via Runware...`)
+        const result = await runware.generate({
+          prompt,
+          negativePrompt: HARVEST_STYLE.negative,
+          width: 2048,
+          height: 1152,
+          seed: hashString(farm.slug)
         })
 
-        if (!buffer) {
+        if (!result || result.images.length === 0) {
           console.warn(`⚠️  No image generated for ${farm.name}`)
           results.push({ slug: farm.slug, name: farm.name, success: false, error: 'Generation failed' })
           continue
         }
 
-        console.log(`✅ Generated image buffer (${Math.round(buffer.length / 1024)}KB)`)
+        const imageUrl = result.images[0].imageURL
+        console.log(`✅ Generated image URL: ${imageUrl}`)
 
-        // Upload or save
+        // Save URL to database
         if (options.upload) {
-          console.log(`📤 Uploading to Supabase Storage...`)
-          const { url } = await uploadFarmImageToSupabase(buffer, farm.slug, {
-            farmName: farm.name,
-            generatedAt: new Date().toISOString(),
-            allowOverwrite: options.force
-          })
-
-          // Update farm in database with new image
           await prisma.image.create({
             data: {
               farmId: farm.id,
-              url: url,
+              url: imageUrl,
               altText: `${farm.name} farm shop`,
               uploadedBy: 'ai_generator',
               status: 'approved',
@@ -187,18 +211,12 @@ async function generateFarmImages() {
             }
           })
 
-          console.log(`✅ Uploaded and saved to database`)
-          console.log(`   URL: ${url}`)
-          results.push({ slug: farm.slug, name: farm.name, url, success: true })
+          console.log(`✅ Saved to database`)
+          results.push({ slug: farm.slug, name: farm.name, url: imageUrl, success: true })
         } else {
-          // Dry-run: save locally
-          if (!existsSync(PUBLIC_DIR)) {
-            await mkdir(PUBLIC_DIR, { recursive: true })
-          }
-          const filepath = join(PUBLIC_DIR, `${farm.slug}.webp`)
-          await writeFile(filepath, buffer)
-          console.log(`✅ Saved locally: ${filepath}`)
-          results.push({ slug: farm.slug, name: farm.name, success: true })
+          // Dry-run: just show the URL
+          console.log(`🔗 Would save URL: ${imageUrl}`)
+          results.push({ slug: farm.slug, name: farm.name, url: imageUrl, success: true })
         }
 
         // Rate limit between generations
