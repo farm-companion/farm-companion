@@ -1,9 +1,9 @@
 #!/usr/bin/env npx tsx
 /**
- * Batch Farm Image Generator
+ * Batch Farm Image Generator - God-tier Supabase Storage
  *
- * Generates AI images for all farms using Runware and saves URLs directly to database.
- * No storage layer needed - Runware URLs are CDN-backed and persistent.
+ * Generates AI images for all farms using Runware.
+ * Stores images in Supabase Storage (unified infrastructure with database).
  *
  * Usage:
  *   npx tsx scripts/generate-farm-images.ts [options]
@@ -18,8 +18,10 @@
  *   --resume        Resume from last checkpoint
  *
  * Environment:
- *   DATABASE_URL    PostgreSQL connection string
- *   RUNWARE_API_KEY Runware API key
+ *   DATABASE_URL              PostgreSQL connection string
+ *   RUNWARE_API_KEY           Runware API key
+ *   NEXT_PUBLIC_SUPABASE_URL  Supabase URL
+ *   SUPABASE_SERVICE_ROLE_KEY Service role key (generate with correct JWT secret)
  */
 
 // Load environment variables
@@ -87,7 +89,7 @@ function parseArgs() {
       case '--resume': options.resume = true; break
       case '--help':
         console.log(`
-Farm Image Generator - Generate AI images for all farms
+Farm Image Generator - God-tier Supabase Storage
 
 Usage: npx tsx scripts/generate-farm-images.ts [options]
 
@@ -148,7 +150,7 @@ async function generateFarmImages(): Promise<void> {
   const options = parseArgs()
   const prisma = new PrismaClient()
 
-  console.log('\n=== Farm Image Generator (Direct URL Mode) ===\n')
+  console.log('\n=== Farm Image Generator (Supabase Storage) ===\n')
   console.log('Configuration:')
   console.log(`  Limit: ${options.limit ?? 'all'}`)
   console.log(`  Offset: ${options.offset}`)
@@ -159,9 +161,20 @@ async function generateFarmImages(): Promise<void> {
   console.log(`  Resume: ${options.resume}`)
   console.log('')
 
-  // Import generator
+  // Import modules
   const { FarmImageGenerator } = await import('../src/lib/farm-image-generator')
+  const {
+    uploadFarmImageToSupabase,
+    farmImageExistsInSupabase,
+    ensureBucketExists
+  } = await import('../src/lib/supabase-storage')
+
   const generator = new FarmImageGenerator()
+
+  // Ensure bucket exists
+  console.log('Checking Supabase Storage bucket...')
+  await ensureBucketExists()
+  console.log('Supabase Storage ready.\n')
 
   try {
     const totalCount = await prisma.farm.count({ where: { status: 'active' } })
@@ -228,12 +241,10 @@ async function generateFarmImages(): Promise<void> {
         displayProgress(stats, farm.name)
 
         try {
-          // Check if hero image already exists
+          // Check if image already exists in Supabase
           if (!options.force) {
-            const existingHero = await prisma.image.findFirst({
-              where: { farmId: farm.id, isHero: true, status: 'approved' }
-            })
-            if (existingHero) {
+            const exists = await farmImageExistsInSupabase(farm.slug)
+            if (exists) {
               stats.skipped++
               stats.processed++
               checkpoint.processedSlugs.push(farm.slug)
@@ -245,16 +256,21 @@ async function generateFarmImages(): Promise<void> {
             }
           }
 
-          // Generate image and get URL directly
-          const imageUrl = await generator.generateFarmImageUrl(
+          // Generate image buffer
+          const buffer = await generator.generateFarmImage(
             farm.name,
             farm.slug,
             { county: farm.county }
           )
 
-          if (imageUrl) {
+          if (buffer) {
             if (!options.dryRun) {
-              // Check if hero image already exists
+              // Upload to Supabase Storage
+              const uploadResult = await uploadFarmImageToSupabase(buffer, farm.slug, {
+                upsert: options.force
+              })
+
+              // Check if hero image record exists
               const existingHero = await prisma.image.findFirst({
                 where: { farmId: farm.id, isHero: true }
               })
@@ -263,7 +279,7 @@ async function generateFarmImages(): Promise<void> {
                 await prisma.image.update({
                   where: { id: existingHero.id },
                   data: {
-                    url: imageUrl,
+                    url: uploadResult.url,
                     altText: `${farm.name} - British farm shop in ${farm.county}`,
                     status: 'approved'
                   }
@@ -272,7 +288,7 @@ async function generateFarmImages(): Promise<void> {
                 await prisma.image.create({
                   data: {
                     farmId: farm.id,
-                    url: imageUrl,
+                    url: uploadResult.url,
                     altText: `${farm.name} - British farm shop in ${farm.county}`,
                     isHero: true,
                     displayOrder: 0,
