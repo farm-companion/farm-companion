@@ -75,7 +75,7 @@ function SystemStatus() {
         <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${online ? 'bg-emerald-400' : 'bg-amber-400'}`} />
         <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${online ? 'bg-emerald-500' : 'bg-amber-500'}`} />
       </span>
-      <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-500 dark:text-zinc-400">
+      <span className="text-[11px] font-medium uppercase tracking-[0.08em] text-zinc-600 dark:text-zinc-300">
         {online ? 'All Systems Online' : 'Offline Mode'}
       </span>
     </div>
@@ -88,7 +88,7 @@ function VersionDisplay() {
   const status = 'Stable'
 
   return (
-    <div className="flex items-center gap-2 text-[11px] text-zinc-500 dark:text-zinc-400">
+    <div className="flex items-center gap-2 text-[11px] text-zinc-600 dark:text-zinc-300">
       <span className="font-medium uppercase tracking-[0.08em]">Version</span>
       <span className="font-mono tabular-nums">{version}</span>
       <span className="px-1.5 py-0.5 rounded bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 text-[10px] font-semibold uppercase tracking-wider">
@@ -105,7 +105,7 @@ function CoordinateDisplay() {
   const lon = '-2.0000'
 
   return (
-    <div className="hidden lg:flex items-center gap-3 text-[11px] text-zinc-500 dark:text-zinc-400">
+    <div className="hidden lg:flex items-center gap-3 text-[11px] text-zinc-600 dark:text-zinc-300">
       <MapPin className="h-3.5 w-3.5" />
       <div className="flex items-center gap-2 font-mono tabular-nums">
         <span>{lat}N</span>
@@ -196,7 +196,7 @@ export default function Footer() {
               href="https://x.com/farmcompanion"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
+              className="text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
               aria-label="Follow us on X"
             >
               <XIcon className="h-5 w-5" />
@@ -205,7 +205,7 @@ export default function Footer() {
               href="https://bsky.app/profile/farmcompanion.bsky.social"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
+              className="text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
               aria-label="Follow us on Bluesky"
             >
               <BlueskyIcon className="h-5 w-5" />
@@ -214,7 +214,7 @@ export default function Footer() {
               href="https://t.me/farmcompanion"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
+              className="text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
               aria-label="Join our Telegram channel"
             >
               <TelegramIcon className="h-5 w-5" />
@@ -236,9 +236,9 @@ export default function Footer() {
                 >
                   <h3 className="text-[12px] font-semibold dark:font-medium uppercase tracking-[0.08em] text-zinc-900 dark:text-zinc-50">{section.title}</h3>
                   {isExpanded ? (
-                    <ChevronUp className="h-5 w-5 text-zinc-400" />
+                    <ChevronUp className="h-5 w-5 text-zinc-600 dark:text-zinc-300" />
                   ) : (
-                    <ChevronDown className="h-5 w-5 text-zinc-400" />
+                    <ChevronDown className="h-5 w-5 text-zinc-600 dark:text-zinc-300" />
                   )}
                 </button>
 
@@ -298,7 +298,7 @@ export default function Footer() {
                 href="https://x.com/farmcompanion"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
+                className="text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
                 aria-label="Follow us on X"
               >
                 <XIcon className="h-5 w-5" />
@@ -307,7 +307,7 @@ export default function Footer() {
                 href="https://bsky.app/profile/farmcompanion.bsky.social"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
+                className="text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
                 aria-label="Follow us on Bluesky"
               >
                 <BlueskyIcon className="h-5 w-5" />
@@ -316,7 +316,7 @@ export default function Footer() {
                 href="https://t.me/farmcompanion"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
+                className="text-zinc-600 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
                 aria-label="Join our Telegram channel"
               >
                 <TelegramIcon className="h-5 w-5" />
@@ -327,7 +327,7 @@ export default function Footer() {
           {/* Desktop sections - High-density link columns */}
           {footerSections.map((section) => (
             <div key={section.title} className="space-y-4">
-              <h3 className="text-[11px] font-semibold dark:font-medium uppercase tracking-[0.1em] text-zinc-500 dark:text-zinc-400">{section.title}</h3>
+              <h3 className="text-[11px] font-semibold dark:font-medium uppercase tracking-[0.1em] text-zinc-600 dark:text-zinc-300">{section.title}</h3>
               <ul className="space-y-2.5 text-[13px]">
                 {section.links.map((link) => (
                   <li key={link.label}>
@@ -356,7 +356,7 @@ export default function Footer() {
 
           {/* Instrument Panel Column - Version & Coordinates */}
           <div className="space-y-4">
-            <h3 className="text-[11px] font-semibold dark:font-medium uppercase tracking-[0.1em] text-zinc-500 dark:text-zinc-400">System</h3>
+            <h3 className="text-[11px] font-semibold dark:font-medium uppercase tracking-[0.1em] text-zinc-600 dark:text-zinc-300">System</h3>
             <div className="space-y-3">
               <VersionDisplay />
               <CoordinateDisplay />
@@ -368,7 +368,7 @@ export default function Footer() {
         <div className="mt-10 border-t border-zinc-200 dark:border-white/[0.06] pt-6">
           <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
             {/* Copyright with tabular year */}
-            <div className="text-[12px] text-zinc-500 dark:text-zinc-400">
+            <div className="text-[12px] text-zinc-600 dark:text-zinc-300">
               <span className="font-mono tabular-nums">{currentYear}</span>
               <span className="ml-1">Farm Companion Ltd. All rights reserved.</span>
             </div>
@@ -379,7 +379,7 @@ export default function Footer() {
             </div>
 
             {/* Right side - Meta info */}
-            <div className="flex items-center gap-4 text-[11px] text-zinc-400 dark:text-zinc-500">
+            <div className="flex items-center gap-4 text-[11px] text-zinc-600 dark:text-zinc-300">
               <span className="uppercase tracking-[0.08em]">Open Source</span>
               <span className="text-zinc-300 dark:text-zinc-600">|</span>
               <span className="uppercase tracking-[0.08em]">Made in UK</span>

@@ -53,7 +53,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
     const baseInputClasses = [
       'block w-full rounded-xl px-4 py-3 text-[15px]',
       'text-slate-900 dark:text-slate-50',
-      'placeholder:text-slate-400 dark:placeholder:text-slate-500',
+      'placeholder:text-slate-600 dark:placeholder:text-slate-300',
       'transition-all duration-200 ease-out',
       'min-h-[48px]', // WCAG AAA touch target
       'focus:outline-none focus:ring-2 focus:ring-offset-0',
@@ -96,7 +96,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
 
         <div className="relative">
           {leftIcon && (
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 pointer-events-none">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 dark:text-slate-300 pointer-events-none">
               {leftIcon}
             </div>
           )}
@@ -125,7 +125,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
           />
 
           {rightIcon && (
-            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500">
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 dark:text-slate-300">
               {rightIcon}
             </div>
           )}
@@ -145,7 +145,7 @@ const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         )}
 
         {helperText && !hasError && (
-          <p id={helperId} className="text-[13px] text-slate-500 dark:text-slate-400">
+          <p id={helperId} className="text-[13px] text-slate-600 dark:text-slate-300">
             {helperText}
           </p>
         )}

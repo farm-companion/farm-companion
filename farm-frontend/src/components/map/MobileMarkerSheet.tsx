@@ -178,7 +178,7 @@ export function MobileMarkerSheet({
                 <DrawerTitle className="text-lg font-semibold text-slate-900 dark:text-white truncate">
                   {farm.name}
                 </DrawerTitle>
-                <DrawerDescription className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-400 mt-0.5">
+                <DrawerDescription className="flex items-center gap-1 text-sm text-slate-600 dark:text-slate-300 mt-0.5">
                   <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
                   <span className="truncate">
                     {farm.location?.city || farm.location?.address}
@@ -187,7 +187,7 @@ export function MobileMarkerSheet({
               </div>
               <button
                 onClick={handleFavorite}
-                className="p-2 -mt-1 rounded-full text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="p-2 -mt-1 rounded-full text-slate-600 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                 aria-label="Add to favorites"
               >
                 <Heart className="w-5 h-5" />
@@ -212,7 +212,7 @@ export function MobileMarkerSheet({
               {isOpenNow ? 'Open now' : 'Closed'}
             </span>
             {distance && (
-              <span className="text-sm text-slate-500 dark:text-slate-400">
+              <span className="text-sm text-slate-600 dark:text-slate-300">
                 {distance} away
               </span>
             )}
@@ -242,9 +242,9 @@ export function MobileMarkerSheet({
               {farm.contact?.phone && (
                 <a
                   href={`tel:${farm.contact.phone}`}
-                  className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 hover:text-brand-primary"
+                  className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300 hover:text-brand-primary"
                 >
-                  <Phone className="w-4 h-4 text-slate-400" />
+                  <Phone className="w-4 h-4 text-slate-600 dark:text-slate-300" />
                   {farm.contact.phone}
                 </a>
               )}
@@ -253,9 +253,9 @@ export function MobileMarkerSheet({
                   href={farm.contact.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400 hover:text-brand-primary"
+                  className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-300 hover:text-brand-primary"
                 >
-                  <Globe className="w-4 h-4 text-slate-400" />
+                  <Globe className="w-4 h-4 text-slate-600 dark:text-slate-300" />
                   Visit website
                   <ExternalLink className="w-3 h-3 ml-auto" />
                 </a>
@@ -266,8 +266,8 @@ export function MobileMarkerSheet({
           {/* Opening Hours */}
           {todayHours && (
             <div className="mb-4">
-              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-2">
-                <Clock className="w-4 h-4 text-slate-400" />
+              <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 mb-2">
+                <Clock className="w-4 h-4 text-slate-600 dark:text-slate-300" />
                 <span className="font-medium">Today's hours</span>
               </div>
               <p className="text-sm text-slate-700 dark:text-slate-300 pl-6">

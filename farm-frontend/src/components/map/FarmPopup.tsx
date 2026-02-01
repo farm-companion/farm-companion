@@ -120,7 +120,7 @@ function PopupContent({
         </h3>
 
         {/* Location */}
-        <div className="flex items-start gap-1.5 text-sm text-zinc-600 dark:text-zinc-400 mb-2">
+        <div className="flex items-start gap-1.5 text-sm text-zinc-600 dark:text-zinc-300 mb-2">
           <MapPin className="w-3.5 h-3.5 mt-0.5 flex-shrink-0" />
           <span className="line-clamp-1">
             {farm.location.city || farm.location.address}
@@ -130,13 +130,13 @@ function PopupContent({
         {/* Distance and status row */}
         <div className="flex items-center gap-2 text-sm mb-3">
           {distance && (
-            <span className="inline-flex items-center gap-1 text-zinc-600 dark:text-zinc-400">
+            <span className="inline-flex items-center gap-1 text-zinc-600 dark:text-zinc-300">
               <Navigation className="w-3.5 h-3.5" />
               {distance}
             </span>
           )}
           {!isOpen && nextOpen && (
-            <span className="inline-flex items-center gap-1 text-zinc-500 dark:text-zinc-500">
+            <span className="inline-flex items-center gap-1 text-zinc-600 dark:text-zinc-300">
               <Clock className="w-3.5 h-3.5" />
               {nextOpen}
             </span>
@@ -157,7 +157,7 @@ function PopupContent({
             className="inline-flex items-center justify-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
             aria-label="Get directions"
           >
-            <Navigation className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+            <Navigation className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
           </button>
           {farm.contact?.phone && (
             <a
@@ -165,7 +165,7 @@ function PopupContent({
               className="inline-flex items-center justify-center p-2 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-zinc-500"
               aria-label="Call farm"
             >
-              <Phone className="w-4 h-4 text-zinc-600 dark:text-zinc-400" />
+              <Phone className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
             </a>
           )}
         </div>

@@ -228,14 +228,14 @@ export default function ClusterPreview({
                     </div>
                   </div>
                   {userLocation && (
-                    <div className="text-xs text-gray-500 ml-2">
+                    <div className="text-xs text-gray-600 dark:text-gray-300 ml-2">
                       {getDistanceFromUser(farm.location.lat, farm.location.lng)}
                     </div>
                   )}
                 </div>
               ))}
               {farms.length > 5 && (
-                <div className="text-center text-xs text-gray-500 py-2">
+                <div className="text-center text-xs text-gray-600 dark:text-gray-300 py-2">
                   +{farms.length - 5} more farms
                 </div>
               )}
@@ -247,11 +247,11 @@ export default function ClusterPreview({
             <div className="text-xs text-gray-600 mb-2">Cluster Information</div>
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-gray-500">Total Farms:</span>
+                <span className="text-gray-600 dark:text-gray-300">Total Farms:</span>
                 <span className="ml-2 font-medium">{farms.length}</span>
               </div>
               <div>
-                <span className="text-gray-500">Area Radius:</span>
+                <span className="text-gray-600 dark:text-gray-300">Area Radius:</span>
                 <span className="ml-2 font-medium">~{Math.round(clusterInfo?.radius || 0)}m</span>
               </div>
             </div>
@@ -262,7 +262,7 @@ export default function ClusterPreview({
         <div className="px-6 pb-6">
           <button
             onClick={onClose}
-            className="w-full py-3 text-gray-500 hover:text-gray-700 transition-colors"
+            className="w-full py-3 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors"
           >
             Close
           </button>

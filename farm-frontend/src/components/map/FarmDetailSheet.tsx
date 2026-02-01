@@ -169,7 +169,7 @@ export function FarmDetailSheet({
 
                 {/* Distance */}
                 {distance && (
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                  <span className="text-xs text-zinc-600 dark:text-zinc-300">
                     {distance} away
                   </span>
                 )}
@@ -181,7 +181,7 @@ export function FarmDetailSheet({
         <div className="px-6 pb-6 space-y-4">
           {/* Today's hours */}
           {todayHours && (
-            <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-300">
               <Clock className="w-4 h-4 flex-shrink-0" />
               <span>
                 {isOpen_ ? `Open until ${todayHours}` : nextOpen || `Hours: ${todayHours}`}
@@ -207,7 +207,7 @@ export function FarmDetailSheet({
                 className="flex items-center justify-center p-3 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                 aria-label="Call farm"
               >
-                <Phone className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                <Phone className="w-5 h-5 text-zinc-600 dark:text-zinc-300" />
               </a>
             )}
 
@@ -220,7 +220,7 @@ export function FarmDetailSheet({
                 className="flex items-center justify-center p-3 border border-zinc-200 dark:border-zinc-700 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
                 aria-label="Visit website"
               >
-                <Globe className="w-5 h-5 text-zinc-600 dark:text-zinc-400" />
+                <Globe className="w-5 h-5 text-zinc-600 dark:text-zinc-300" />
               </a>
             )}
           </div>
@@ -237,7 +237,7 @@ export function FarmDetailSheet({
                 </span>
               ))}
               {farm.offerings.length > 5 && (
-                <span className="px-2 py-0.5 text-xs text-zinc-500">
+                <span className="px-2 py-0.5 text-xs text-zinc-600 dark:text-zinc-300">
                   +{farm.offerings.length - 5} more
                 </span>
               )}
@@ -254,7 +254,7 @@ export function FarmDetailSheet({
                 <ExternalLink className="w-4 h-4" />
                 View Full Details
               </span>
-              <ChevronRight className="w-4 h-4 text-zinc-400" />
+              <ChevronRight className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
             </button>
           ) : (
             <Link
@@ -265,7 +265,7 @@ export function FarmDetailSheet({
                 <ExternalLink className="w-4 h-4" />
                 View Full Details
               </span>
-              <ChevronRight className="w-4 h-4 text-zinc-400" />
+              <ChevronRight className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
             </Link>
           )}
         </div>
