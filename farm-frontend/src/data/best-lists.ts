@@ -582,11 +582,31 @@ Beyond ice cream, these farms often offer:
   },
   {
     slug: 'best-cheese-makers-uk',
-    title: 'Best Artisan Cheese Makers in the UK',
-    metaTitle: 'Top 15 Best Cheese Makers in the UK (2026) | Artisan Cheese',
+    title: 'Artisan Cheese & Ice Cream Farms in the UK',
+    metaTitle: 'Best Artisan Cheese Makers in the UK (2026) | Farmhouse Dairy',
     metaDescription: 'Discover the UK\'s finest artisan cheese makers. From traditional farmhouse cheddar to innovative new varieties, find award-winning British cheese.',
-    heading: 'Top Artisan Cheese Makers & Farmhouse Dairies',
-    intro: 'Explore the UK\'s thriving artisan cheese scene with these exceptional cheese makers. From traditional farmhouse cheddar to innovative new varieties, British cheese makers are producing world-class cheeses that rival any in Europe.',
+    heading: 'Artisan Cheese & Ice Cream Farms in the UK',
+    intro: 'Explore the UK\'s thriving artisan cheese scene with these exceptional cheese makers. British cheese is in the midst of a renaissance that has been decades in the making.',
+    articleNumber: 2,
+    persona: 'The Dairy Connoisseur',
+    approach: 'Artisan Excellence',
+    editorialIntro: `British cheese is in the midst of a renaissance that has been decades in the making. The post-war consolidation of dairy into industrial creameries nearly destroyed a tradition stretching back to medieval monastic farming. What has survived, and what a new generation of makers is building, is a canon of cheese that stands comparison with anything produced in France or Italy. At the same time, British farm ice cream has moved beyond seaside novelty into serious dairy craft. Both are expressions of terroir: the grass, the breed, the microclimate, and the skill of the maker.`,
+    farmProfiles: [
+      {
+        name: 'Lincolnshire Poacher',
+        location: 'Ulceby Grange Farm, Lincolnshire Wolds',
+        description: `Made by Simon and Tim Jones at Ulceby Grange Farm in the Lincolnshire Wolds, Lincolnshire Poacher is a raw-milk, thermophilic cheese that matures for fourteen to twenty-two months. The milk comes exclusively from the farm's own herd of Holstein-Friesians, and the cheese is made using a recipe that draws on West Country cheddar and Alpine Comte traditions without being a direct copy of either. The result is a cheese of remarkable complexity: nutty, fruity, with a long savoury finish that develops in the mouth.
+
+Lincolnshire Poacher has won Supreme Champion at the British Cheese Awards and is widely regarded by cheesemongers as one of the finest British territorial cheeses currently in production. The use of raw (unpasteurised) milk is critical: it carries the native bacterial cultures of the farm, giving the cheese a microbial signature that pasteurised alternatives cannot replicate.`,
+      },
+      {
+        name: "Montgomery's Cheddar",
+        location: 'Manor Farm, North Cadbury, Somerset',
+        description: `If there is a single cheese that embodies the idea of "real" cheddar, it is Jamie Montgomery's production at Manor Farm, North Cadbury, Somerset. Montgomery's is one of only three remaining producers of traditional cloth-bound, unpasteurised cheddar made with the farm's own milk using animal rennet and pint starters. The cheese is matured for twelve to eighteen months in the farm's own stores, developing a deep, earthy, almost meaty intensity that bears no resemblance to the industrially produced block cheddar that accounts for the vast majority of UK consumption.
+
+The rind of a Montgomery's wheel is a living ecosystem, the microbiome of moulds and bacteria that develops over the maturation period is unique to the farm's environment and contributes substantially to the final flavour. It is a cheese that rewards patience, both in its making and its eating.`,
+      },
+    ],
     content: `## British Artisan Cheese
 
 The UK has a rich cheese-making heritage, and today's artisan cheese makers combine traditional methods with innovation to create award-winning cheeses. Many operate on small farms, using milk from their own herds.
