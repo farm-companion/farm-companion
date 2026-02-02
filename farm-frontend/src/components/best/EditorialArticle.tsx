@@ -185,8 +185,8 @@ const FALLBACK_IMAGES = [
     alt: 'Dairy cows grazing in green pasture'
   },
   {
-    src: 'https://images.unsplash.com/photo-1499002238440-d264f04f1758?w=1600&q=80&auto=format',
-    alt: 'Lavender fields stretching to horizon'
+    src: 'https://images.unsplash.com/photo-1468327768560-75b778cbb551?w=1600&q=80&auto=format',
+    alt: 'Purple lavender fields stretching to the horizon'
   }
 ]
 

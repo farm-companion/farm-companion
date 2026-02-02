@@ -54,8 +54,8 @@ const EDITORIAL_IMAGES: Record<string, { src: string; alt: string }> = {
     alt: 'Rustic farmhouse cafe with morning light',
   },
   'best-lavender-farms': {
-    src: 'https://images.unsplash.com/photo-1499002238440-d264f04f1758?w=1200&q=80&auto=format',
-    alt: 'Rolling lavender fields in summer bloom',
+    src: 'https://images.unsplash.com/photo-1468327768560-75b778cbb551?w=1200&q=80&auto=format',
+    alt: 'Purple lavender fields stretching to the horizon',
   },
   'best-farmers-markets-uk': {
     src: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80&auto=format',
