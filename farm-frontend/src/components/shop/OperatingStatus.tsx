@@ -367,9 +367,16 @@ export function OperatingStatusCompact({
   hours,
   className = '',
 }: Pick<OperatingStatusProps, 'hours' | 'className'>) {
-  const status = getFarmStatus(hours)
+  const [status, setStatus] = useState<FarmStatus | null>(null)
+  const [mounted, setMounted] = useState(false)
 
-  if (status.status === 'unknown') return null
+  useEffect(() => {
+    setMounted(true)
+    setStatus(getFarmStatus(hours))
+  }, [hours])
+
+  // SSR: render nothing to avoid hydration mismatch
+  if (!mounted || !status || status.status === 'unknown') return null
 
   const isOpen = status.status === 'open'
 
