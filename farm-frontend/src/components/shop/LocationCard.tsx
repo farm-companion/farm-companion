@@ -152,13 +152,13 @@ export function LocationCard({
             <h3 className="text-caption font-semibold dark:font-medium text-slate-900 dark:text-zinc-50 mb-1">
               Location
             </h3>
-            <p className="text-caption text-slate-600 dark:text-zinc-400 leading-relaxed">
+            <p className="text-caption text-slate-600 dark:text-zinc-300 leading-relaxed">
               {fullAddress}
             </p>
           </div>
           <button
             onClick={handleCopyAddress}
-            className="flex-shrink-0 p-2 rounded-lg bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/[0.10] text-slate-600 dark:text-zinc-400 transition-colors"
+            className="flex-shrink-0 p-2 rounded-lg bg-slate-100 dark:bg-white/[0.06] hover:bg-slate-200 dark:hover:bg-white/[0.10] text-slate-600 dark:text-zinc-300 transition-colors"
             title="Copy address"
           >
             {copied ? (
@@ -193,7 +193,7 @@ export function LocationCard({
             {contact.phone && (
               <a
                 href={`tel:${contact.phone}`}
-                className="flex items-center gap-2.5 text-caption text-slate-600 dark:text-zinc-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2.5 text-caption text-slate-600 dark:text-zinc-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 <Phone className="w-4 h-4" />
                 <span>{contact.phone}</span>
@@ -202,7 +202,7 @@ export function LocationCard({
             {contact.email && (
               <a
                 href={`mailto:${contact.email}`}
-                className="flex items-center gap-2.5 text-caption text-slate-600 dark:text-zinc-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2.5 text-caption text-slate-600 dark:text-zinc-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 <Mail className="w-4 h-4" />
                 <span className="truncate">{contact.email}</span>
@@ -213,7 +213,7 @@ export function LocationCard({
                 href={contact.website.startsWith('http') ? contact.website : `https://${contact.website}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-2.5 text-caption text-slate-600 dark:text-zinc-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                className="flex items-center gap-2.5 text-caption text-slate-600 dark:text-zinc-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 <Globe className="w-4 h-4" />
                 <span className="truncate">{contact.website.replace(/^https?:\/\//, '')}</span>
@@ -239,7 +239,7 @@ export function LocationCompact({
     : location.county
 
   return (
-    <div className={`flex items-center gap-1.5 text-caption text-slate-600 dark:text-zinc-400 ${className}`}>
+    <div className={`flex items-center gap-1.5 text-caption text-slate-600 dark:text-zinc-300 ${className}`}>
       <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
       <span className="truncate">{displayLocation}</span>
     </div>
@@ -265,7 +265,7 @@ export function LocationWithDistance({
 
   return (
     <div className={`flex items-center gap-2 text-caption ${className}`}>
-      <div className="flex items-center gap-1.5 text-slate-600 dark:text-zinc-400">
+      <div className="flex items-center gap-1.5 text-slate-600 dark:text-zinc-300">
         <MapPin className="w-3.5 h-3.5" />
         <span className="truncate">{displayLocation}</span>
       </div>

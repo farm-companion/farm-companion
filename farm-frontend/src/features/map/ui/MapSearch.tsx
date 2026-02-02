@@ -275,7 +275,7 @@ export default function MapSearch({
     return (
       <div className={`flex gap-2 ${className}`}>
         <div className="relative flex-1">
-          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-400 w-3 h-3 z-10" />
+          <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-300 w-3 h-3 z-10" />
           <input
             ref={searchRef}
             type="text"
@@ -307,7 +307,7 @@ export default function MapSearch({
                 setSuggestions([])
                 setShowSuggestions(false)
               }}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 z-10"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 z-10"
               aria-label="Clear search"
             >
               <X className="w-3 h-3" />
@@ -390,7 +390,7 @@ export default function MapSearch({
       {/* Search Bar */}
       <div className="flex gap-2 mb-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 dark:text-gray-500 w-4 h-4 z-10" />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-300 w-4 h-4 z-10" />
           <input
             ref={searchRef}
             type="text"
@@ -422,7 +422,7 @@ export default function MapSearch({
                 handleKeyDown(e)
               }
             }}
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-500 dark:bg-gray-800 dark:text-white dark:placeholder-gray-400 dark:border-gray-600"
+            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-serum focus:border-transparent outline-none transition-all bg-white text-gray-900 placeholder-gray-600 dark:bg-gray-800 dark:text-white dark:placeholder-gray-300 dark:border-gray-600"
             aria-label={searchType === 'w3w' ? 'Enter what3words address' : 'Search farms'}
             aria-expanded={showSuggestions}
             aria-haspopup="listbox"
@@ -437,7 +437,7 @@ export default function MapSearch({
                 setSuggestions([])
                 setShowSuggestions(false)
               }}
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 z-10"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100 z-10"
               aria-label="Clear search"
             >
               <X className="w-4 h-4" />
@@ -452,7 +452,7 @@ export default function MapSearch({
               role="listbox"
             >
               {isLoadingSuggestions && suggestions.length === 0 && (
-                <div className="flex items-center justify-center py-4 text-gray-500 dark:text-gray-400">
+                <div className="flex items-center justify-center py-4 text-gray-600 dark:text-gray-300">
                   <Loader2 className="w-4 h-4 animate-spin mr-2" />
                   <span className="text-sm">Searching...</span>
                 </div>
@@ -490,7 +490,7 @@ export default function MapSearch({
                     <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
                       {suggestion.displayName}
                     </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                    <p className="text-xs text-gray-600 dark:text-gray-300">
                       {suggestion.type === 'farm' && 'Farm shop'}
                       {suggestion.type === 'postcode' && 'Postcode'}
                       {suggestion.type === 'place' && 'Location'}
@@ -500,7 +500,7 @@ export default function MapSearch({
               ))}
 
               {!isLoadingSuggestions && suggestions.length === 0 && query.length >= 2 && (
-                <div className="px-4 py-3 text-sm text-gray-500 dark:text-gray-400">
+                <div className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300">
                   No suggestions found for &ldquo;{query}&rdquo;
                 </div>
               )}
@@ -591,7 +591,7 @@ export default function MapSearch({
         {hasActiveFilters && (
           <button
             onClick={clearFilters}
-            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+            className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 transition-colors"
           >
             Clear all
           </button>

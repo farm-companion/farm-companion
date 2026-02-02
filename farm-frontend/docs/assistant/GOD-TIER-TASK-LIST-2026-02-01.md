@@ -13,17 +13,6 @@ Prioritized from most critical to least critical for achieving a god-tier, Apple
 - **Pattern:** text-*-400/500 -> text-*-600 dark:text-*-300
 - **Contrast:** Improved from 2.38-3.15:1 to 5.74-7.0:1
 
-### 2. Database Connection (DONE)
-- **Status:** Fixed and working in production
-- **Issue:** Self-hosted Supabase on Coolify needed proper connection string
-- **Solution:** Updated DATABASE_URL to postgresql://postgres:***@134.122.102.159:5432/postgres
-- **Verified:** 1299 farms loading in production
-
-### 3. Server/Client Component Fix (DONE)
-- **Status:** Fixed and pushed
-- **Issue:** addTipsToFAQs was in 'use client' file but called from server component
-- **Solution:** Moved to separate faq-utils.ts file
-
 ---
 
 ## PRIORITY 1: CRITICAL (User-Visible Issues)
