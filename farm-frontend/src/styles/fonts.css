@@ -11,8 +11,8 @@
   /* Manrope: Body & Content (modern, geometric, maximum legibility) */
   --font-body: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 
-  /* IBM Plex Sans Condensed: UI Labels & Buttons (tight, functional) */
-  --font-accent: "IBM Plex Sans Condensed", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  /* IBM Plex Sans: UI Labels & Buttons (tight, functional) */
+  --font-accent: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
 
   /* IBM Plex Mono: Data & Metrics (technical, precise, tabular) */
   --font-mono: "IBM Plex Mono", "SF Mono", "Monaco", "Inconsolata", "Fira Mono", monospace;
@@ -86,7 +86,7 @@
   }
 }
 
-/* Body text uses Manrope (loaded via Google Fonts) */
+/* Body text uses Manrope (self-hosted via @fontsource) */
 @layer base {
   body, p, li, .body-text {
     font-family: var(--font-body);
@@ -94,7 +94,7 @@
     line-height: 1.6;
   }
 
-  /* UI elements use IBM Plex Sans Condensed (loaded via Google Fonts) */
+  /* UI elements use IBM Plex Sans (self-hosted via @fontsource) */
   button, .filter, .ui-label, .cta, .btn, .button {
     font-family: var(--font-accent);
     font-weight: 600;

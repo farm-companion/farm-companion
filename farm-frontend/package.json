@@ -13,6 +13,10 @@
     "generate:county-images": "tsx src/scripts/generate-county-images.ts"
   },
   "dependencies": {
+    "@fontsource/crimson-pro": "^5.2.8",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@fontsource/ibm-plex-sans": "^5.2.8",
+    "@fontsource/manrope": "^5.2.8",
     "@googlemaps/js-api-loader": "^2.0.2",
     "@googlemaps/markerclusterer": "^2.6.2",
     "@next/third-parties": "^16.1.3",
