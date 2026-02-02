@@ -230,18 +230,18 @@ export default async function BestPage({ params }: BestPageProps) {
       />
 
       {/* Breadcrumb - Minimal, wide-tracked */}
-      <div className="bg-[#F9F9F9] py-8">
+      <div className="bg-background-secondary py-8">
         <nav className="max-w-2xl mx-auto px-6">
-          <div className="flex items-center gap-3 text-xs tracking-[0.15em] uppercase text-[#6B6B6B]">
-            <Link href="/" className="hover:text-[#1A1A1A] transition-colors">
+          <div className="flex items-center gap-3 text-xs tracking-[0.15em] uppercase text-foreground-muted">
+            <Link href="/" className="hover:text-foreground transition-colors">
               Home
             </Link>
-            <span className="w-4 h-px bg-[#E5E5E5]" />
-            <Link href="/best" className="hover:text-[#1A1A1A] transition-colors">
+            <span className="w-4 h-px bg-border" />
+            <Link href="/best" className="hover:text-foreground transition-colors">
               Guides
             </Link>
-            <span className="w-4 h-px bg-[#E5E5E5]" />
-            <span className="text-[#1A1A1A]">{list.title}</span>
+            <span className="w-4 h-px bg-border" />
+            <span className="text-foreground">{list.title}</span>
           </div>
         </nav>
       </div>
@@ -250,16 +250,16 @@ export default async function BestPage({ params }: BestPageProps) {
       <div id="content">
         {/* Selection Criteria - Only show if NO editorial content */}
         {!(list.editorialIntro || list.farmProfiles) && (
-          <section className="py-16 md:py-24 bg-white">
+          <section className="py-16 md:py-24 bg-card">
             <div className="max-w-6xl mx-auto px-6">
               <div className="text-center mb-16">
-                <p className="text-xs tracking-[0.2em] uppercase text-[#6B6B6B] mb-4">
+                <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
                   Selection Criteria
                 </p>
-                <h2 className="font-serif text-3xl md:text-4xl text-[#1A1A1A] mb-4">
+                <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
                   What Makes These Farms Special
                 </h2>
-                <p className="text-[#6B6B6B] max-w-2xl mx-auto">
+                <p className="text-foreground-muted max-w-2xl mx-auto">
                   Every farm on this list has been carefully selected based on these key criteria.
                 </p>
               </div>
@@ -285,17 +285,17 @@ export default async function BestPage({ params }: BestPageProps) {
 
         {/* Featured Farms - Only show if no editorial farm profiles */}
         {farms.length > 0 && !list.farmProfiles && (
-          <section id="featured-farms" className="py-16 md:py-24 bg-white">
+          <section id="featured-farms" className="py-16 md:py-24 bg-card">
             <div className="max-w-6xl mx-auto px-6">
               {/* Section header */}
               <div className="text-center mb-16">
-                <p className="text-xs tracking-[0.2em] uppercase text-[#6B6B6B] mb-4">
+                <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
                   Featured Farms
                 </p>
-                <h2 className="font-serif text-3xl md:text-4xl text-[#1A1A1A] mb-4">
+                <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
                   {farms.length} Outstanding Farms
                 </h2>
-                <div className="w-16 h-px bg-[#E5E5E5] mx-auto" />
+                <div className="w-16 h-px bg-border mx-auto" />
               </div>
 
               {/* Farm grid */}
@@ -310,7 +310,7 @@ export default async function BestPage({ params }: BestPageProps) {
                 <div className="text-center">
                   <Link
                     href={`/categories/${list.category}`}
-                    className="inline-block text-xs tracking-[0.15em] uppercase text-[#1A1A1A] border-b border-[#1A1A1A] pb-1 hover:opacity-70 transition-opacity"
+                    className="inline-block text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity"
                   >
                     View All {categoryInfo?.name || 'Farms'}
                   </Link>
@@ -322,13 +322,13 @@ export default async function BestPage({ params }: BestPageProps) {
 
         {/* FAQ Section */}
         {list.faqs && list.faqs.length > 0 && (
-          <section className="py-16 md:py-24 bg-[#F9F9F9]">
+          <section className="py-16 md:py-24 bg-background-secondary">
             <div className="max-w-3xl mx-auto px-6">
               <div className="text-center mb-16">
-                <p className="text-xs tracking-[0.2em] uppercase text-[#6B6B6B] mb-4">
+                <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
                   Common Questions
                 </p>
-                <h2 className="font-serif text-3xl md:text-4xl text-[#1A1A1A]">
+                <h2 className="font-serif text-3xl md:text-4xl text-foreground">
                   The Essential Guide
                 </h2>
               </div>
@@ -346,20 +346,20 @@ export default async function BestPage({ params }: BestPageProps) {
         )}
 
         {/* Article meta footer */}
-        <div className="py-16 bg-[#F9F9F9]">
+        <div className="py-16 bg-background-secondary">
           <div className="max-w-2xl mx-auto px-6 text-center">
-            <div className="w-px h-12 bg-[#E5E5E5] mx-auto mb-8" />
-            <p className="text-xs tracking-[0.15em] uppercase text-[#6B6B6B] mb-2">
+            <div className="w-px h-12 bg-border mx-auto mb-8" />
+            <p className="text-xs tracking-[0.15em] uppercase text-foreground-muted mb-2">
               Last Updated
             </p>
-            <p className="text-sm text-[#1A1A1A]">
+            <p className="text-sm text-foreground">
               {new Date(list.updateDate).toLocaleDateString('en-GB', {
                 day: 'numeric',
                 month: 'long',
                 year: 'numeric',
               })}
             </p>
-            <div className="w-px h-12 bg-[#E5E5E5] mx-auto mt-8" />
+            <div className="w-px h-12 bg-border mx-auto mt-8" />
           </div>
         </div>
       </div>

@@ -3,6 +3,8 @@
  *
  * Full-bleed immersive hero with minimalist typography and scroll indicator.
  * Follows "Rule of One": single focal point (the title).
+ *
+ * WCAG AA Compliant: Uses semantic color system for dark/light mode support.
  */
 
 'use client'
@@ -22,7 +24,7 @@ interface EditorialHeroProps {
 
 export function EditorialHero({ title, subtitle, image, scrollTarget = '#content' }: EditorialHeroProps) {
   return (
-    <section className="relative h-screen min-h-[600px] max-h-[900px] overflow-hidden bg-[#F9F9F9]">
+    <section className="relative h-screen min-h-[600px] max-h-[900px] overflow-hidden bg-background-secondary">
       {/* Full-bleed background image */}
       <div className="absolute inset-0">
         <Image

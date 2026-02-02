@@ -3,6 +3,8 @@
  *
  * Horizontal carousel with square aspect-ratio images and hidden scrollbars.
  * For footer navigation to other guides.
+ *
+ * WCAG AA Compliant: Uses semantic color system for dark/light mode support.
  */
 
 'use client'
@@ -39,12 +41,12 @@ export function PillarCarousel({ items, title, className = '' }: PillarCarouselP
   }
 
   return (
-    <section className={`py-16 md:py-24 bg-white ${className}`}>
+    <section className={`py-16 md:py-24 bg-card ${className}`}>
       {/* Header with title and navigation */}
       <div className="max-w-6xl mx-auto px-6 mb-8">
         <div className="flex items-center justify-between">
           {title && (
-            <h2 className="text-xs tracking-[0.2em] uppercase text-[#6B6B6B]">
+            <h2 className="text-xs tracking-[0.2em] uppercase text-foreground-muted">
               {title}
             </h2>
           )}
@@ -53,7 +55,7 @@ export function PillarCarousel({ items, title, className = '' }: PillarCarouselP
           <div className="flex gap-4">
             <button
               onClick={() => scroll('left')}
-              className="w-10 h-10 flex items-center justify-center text-[#1A1A1A] opacity-40 hover:opacity-100 transition-opacity"
+              className="w-10 h-10 flex items-center justify-center text-foreground opacity-40 hover:opacity-100 transition-opacity"
               aria-label="Scroll left"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -62,7 +64,7 @@ export function PillarCarousel({ items, title, className = '' }: PillarCarouselP
             </button>
             <button
               onClick={() => scroll('right')}
-              className="w-10 h-10 flex items-center justify-center text-[#1A1A1A] opacity-40 hover:opacity-100 transition-opacity"
+              className="w-10 h-10 flex items-center justify-center text-foreground opacity-40 hover:opacity-100 transition-opacity"
               aria-label="Scroll right"
             >
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -95,7 +97,7 @@ export function PillarCarousel({ items, title, className = '' }: PillarCarouselP
             className="group flex-shrink-0 w-64 md:w-72"
           >
             {/* Square image container */}
-            <div className="relative aspect-square overflow-hidden bg-[#F9F9F9] mb-4">
+            <div className="relative aspect-square overflow-hidden bg-background-secondary mb-4">
               <Image
                 src={item.image.src}
                 alt={item.image.alt}
@@ -106,7 +108,7 @@ export function PillarCarousel({ items, title, className = '' }: PillarCarouselP
             </div>
 
             {/* Title */}
-            <h3 className="text-sm tracking-[0.05em] text-[#1A1A1A] group-hover:opacity-70 transition-opacity duration-300 line-clamp-2">
+            <h3 className="text-sm tracking-[0.05em] text-foreground group-hover:opacity-70 transition-opacity duration-300 line-clamp-2">
               {item.title}
             </h3>
           </Link>

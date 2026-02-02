@@ -3,6 +3,8 @@
  *
  * Oversized thin-weight numbers paired with tiny caption text.
  * Inspired by LV's climate reporting design.
+ *
+ * WCAG AA Compliant: Uses semantic color system for dark/light mode support.
  */
 
 interface DataPoint {
@@ -19,11 +21,11 @@ interface DataCalloutProps {
 
 export function DataCallout({ data, title, className = '' }: DataCalloutProps) {
   return (
-    <section className={`py-16 md:py-24 bg-[#F9F9F9] ${className}`}>
+    <section className={`py-16 md:py-24 bg-background-secondary ${className}`}>
       <div className="max-w-6xl mx-auto px-6">
         {/* Section title */}
         {title && (
-          <h2 className="text-xs tracking-[0.2em] uppercase text-[#6B6B6B] text-center mb-16">
+          <h2 className="text-xs tracking-[0.2em] uppercase text-foreground-muted text-center mb-16">
             {title}
           </h2>
         )}
@@ -34,20 +36,20 @@ export function DataCallout({ data, title, className = '' }: DataCalloutProps) {
             <div key={idx} className="text-center">
               {/* Oversized number - thin weight */}
               <div
-                className="text-5xl md:text-6xl lg:text-7xl font-light text-[#1A1A1A] leading-none mb-3"
+                className="text-5xl md:text-6xl lg:text-7xl font-light text-foreground leading-none mb-3"
                 style={{ fontWeight: 200 }}
               >
                 {item.value}
               </div>
 
               {/* Label - tiny, high-density */}
-              <div className="text-xs tracking-[0.1em] uppercase text-[#6B6B6B]">
+              <div className="text-xs tracking-[0.1em] uppercase text-foreground-muted">
                 {item.label}
               </div>
 
               {/* Sublabel - even smaller */}
               {item.sublabel && (
-                <div className="text-[10px] tracking-wide text-[#6B6B6B]/60 mt-1">
+                <div className="text-[10px] tracking-wide text-foreground-muted/60 mt-1">
                   {item.sublabel}
                 </div>
               )}
@@ -69,10 +71,10 @@ interface DataCalloutInlineProps {
 export function DataCalloutInline({ value, label, className = '' }: DataCalloutInlineProps) {
   return (
     <div className={`flex items-baseline gap-3 ${className}`}>
-      <span className="text-4xl md:text-5xl font-light text-[#1A1A1A]" style={{ fontWeight: 200 }}>
+      <span className="text-4xl md:text-5xl font-light text-foreground" style={{ fontWeight: 200 }}>
         {value}
       </span>
-      <span className="text-xs tracking-[0.1em] uppercase text-[#6B6B6B]">
+      <span className="text-xs tracking-[0.1em] uppercase text-foreground-muted">
         {label}
       </span>
     </div>

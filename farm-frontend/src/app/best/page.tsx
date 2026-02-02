@@ -125,7 +125,7 @@ export default function BestGuidesPage() {
   ]
 
   return (
-    <main className="bg-[#F9F9F9]">
+    <main className="bg-background-secondary">
       {/* Structured Data */}
       <script
         type="application/ld+json"
@@ -153,13 +153,13 @@ export default function BestGuidesPage() {
       />
 
       {/* Main Content */}
-      <div id="content" className="bg-[#F9F9F9]">
+      <div id="content" className="bg-background-secondary">
         {/* Featured Guide - Full width editorial treatment */}
         {heroGuide && (
           <section className="py-16 md:py-24">
             <div className="max-w-6xl mx-auto px-6">
               {/* Section label */}
-              <div className="text-xs tracking-[0.2em] uppercase text-[#6B6B6B] mb-12">
+              <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-12">
                 Featured Guide
               </div>
 
@@ -168,7 +168,7 @@ export default function BestGuidesPage() {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
                   {/* Image - 60% */}
                   <div className="lg:col-span-7">
-                    <div className="relative aspect-[4/3] overflow-hidden bg-[#E5E5E5]">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-border">
                       <Image
                         src={EDITORIAL_IMAGES[heroGuide.slug]?.src || DEFAULT_IMAGE.src}
                         alt={EDITORIAL_IMAGES[heroGuide.slug]?.alt || DEFAULT_IMAGE.alt}
@@ -183,25 +183,25 @@ export default function BestGuidesPage() {
                   {/* Content - 40% */}
                   <div className="lg:col-span-5 space-y-6">
                     {/* Meta */}
-                    <div className="text-xs tracking-[0.15em] uppercase text-[#6B6B6B]">
+                    <div className="text-xs tracking-[0.15em] uppercase text-foreground-muted">
                       {heroGuide.category?.replace(/-/g, ' ') || 'Guide'}
                     </div>
 
                     {/* Title */}
-                    <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-[#1A1A1A] leading-tight group-hover:opacity-70 transition-opacity duration-300">
+                    <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground leading-tight group-hover:opacity-70 transition-opacity duration-300">
                       {heroGuide.title}
                     </h2>
 
                     {/* Excerpt */}
-                    <p className="text-[#6B6B6B] text-lg leading-relaxed group-hover:opacity-70 transition-opacity duration-300">
+                    <p className="text-foreground-muted text-lg leading-relaxed group-hover:opacity-70 transition-opacity duration-300">
                       {heroGuide.intro}
                     </p>
 
                     {/* Thin horizontal rule */}
-                    <div className="w-16 h-px bg-[#E5E5E5]" />
+                    <div className="w-16 h-px bg-border" />
 
                     {/* Read more */}
-                    <div className="text-xs tracking-[0.15em] uppercase text-[#1A1A1A] opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                    <div className="text-xs tracking-[0.15em] uppercase text-foreground opacity-60 group-hover:opacity-100 transition-opacity duration-300">
                       Read Article
                     </div>
                   </div>
@@ -213,14 +213,14 @@ export default function BestGuidesPage() {
 
         {/* Horizontal divider */}
         <div className="max-w-6xl mx-auto px-6">
-          <div className="h-px bg-[#E5E5E5]" />
+          <div className="h-px bg-border" />
         </div>
 
         {/* All Guides - Asymmetrical grid */}
         <section className="py-16 md:py-24">
           <div className="max-w-6xl mx-auto px-6">
             {/* Section label */}
-            <div className="text-xs tracking-[0.2em] uppercase text-[#6B6B6B] mb-12">
+            <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-12">
               All Guides
             </div>
 
