@@ -9,9 +9,10 @@ Prioritized from most critical to least critical for achieving a god-tier, Apple
 
 ### 1. WCAG AA Contrast Fixes (DONE)
 - **Status:** Fixed and pushed
-- **Files:** 10 user-facing components
+- **Files:** 10+ user-facing components including seasonal and county components
 - **Pattern:** text-*-400/500 -> text-*-600 dark:text-*-300
 - **Contrast:** Improved from 2.38-3.15:1 to 5.74-7.0:1
+- **Additional:** InSeasonNow, FindStockists, RegionFilter, CuratorsChoice, CountyDensityBadge
 
 ### 2. Database Connection (DONE)
 - **Status:** Fixed and working in production
@@ -24,12 +25,42 @@ Prioritized from most critical to least critical for achieving a god-tier, Apple
 - **Issue:** addTipsToFAQs was in 'use client' file but called from server component
 - **Solution:** Moved to separate faq-utils.ts file
 
+### 4. Google Fonts Build Failure (DONE)
+- **Status:** Fixed and pushed
+- **Solution:** Self-hosted fonts using @fontsource packages
+- **Fonts:** Manrope, IBM Plex Sans, IBM Plex Mono, Crimson Pro
+- **Commit:** `fix: Self-host Google Fonts to avoid build failures`
+
+### 5. Security Vulnerabilities - Partial (DONE)
+- **Status:** Critical vulnerabilities fixed
+- **Next.js:** Updated 16.1.3 -> 16.1.6 (fixes 3 vulnerabilities)
+- **ESLint:** Updated in twitter-workflow (fixes GHSA-p5wg-g6qr-c7cg)
+- **Remaining:** 11 vulnerabilities on default branch (needs further review)
+
+### 6. React Hydration Error #418 (DONE)
+- **Status:** Fixed and pushed
+- **Issue:** Server/client HTML mismatch from Date() calls during render
+- **Files Fixed:**
+  - Footer.tsx: currentYear moved to useEffect
+  - OperatingStatusCompact: Added mounted state pattern
+- **Commit:** `fix: Resolve React hydration error #418`
+
+### 7. Produce Images - LV-Style Variety (DONE)
+- **Status:** Code complete - ready to run
+- **Feature:** 4 distinct shot types per produce item (like Louis Vuitton product pages)
+  1. Hero - Luxury single specimen, moody lighting
+  2. Cross-section - Interior view with cut half
+  3. Macro - Texture close-up
+  4. Composition - 3 items artistic arrangement
+- **Append Mode:** --append flag to add missing shots without regenerating existing
+- **Run:** `pnpm run generate:produce-images --force --upload`
+
 ---
 
 ## PRIORITY 1: CRITICAL (User-Visible Issues)
 
 ### 1.1 Farm Images Missing
-**Status:** Investigation complete - solution available
+**Status:** Investigation complete - needs database access to run
 
 **Root Cause:**
 - Farms in database have no approved images
@@ -72,24 +103,17 @@ curl -X POST "https://www.farmcompanion.co.uk/api/admin/generate-images?limit=10
 
 ## PRIORITY 2: HIGH (Functionality)
 
-### 2.1 Google Fonts Build Failure
-**Status:** Build failing due to network issues in build environment
+### 2.1 Google Fonts Build Failure - DONE
+**Status:** COMPLETED - See item #4 in Completed section
 
-**Issue:** Next.js build fails to fetch fonts from Google Fonts CDN
-```
-Failed to fetch `Crimson Pro` from Google Fonts
-Failed to fetch `IBM Plex Mono` from Google Fonts
-```
+### 2.2 Remaining Contrast Issues - MOSTLY DONE
+**Status:** Core user-facing components fixed
 
-**Solution Options:**
-1. Self-host fonts (download to /public/fonts)
-2. Add timeout/retry configuration to next.config.js
-3. Use Vercel's Edge CDN caching for fonts
-
-### 2.2 Remaining Contrast Issues (Lower Priority)
-**Files not yet fixed:**
-- Seasonal components: SeasonProgress, MonthWheel, InSeasonNow, FindStockists
+**Fixed:**
+- Seasonal components: InSeasonNow, FindStockists
 - County components: RegionFilter, CuratorsChoice, CountyDensityBadge
+
+**Still Needs Work (Lower Priority):**
 - Best/Category pages: best/page.tsx, categories/page.tsx, BentoGrid, FAQAccordion
 - Admin pages (80+ replacements, internal users only)
 
