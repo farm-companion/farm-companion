@@ -21,7 +21,6 @@ interface EditorialArticleProps {
   title: string
   persona?: string
   approach?: string
-  seoKeywords?: string[]
   editorialIntro?: string
   farmProfiles?: FarmProfile[]
   farms?: FarmShop[] // Database farms with images
@@ -42,7 +41,6 @@ export function EditorialArticle({
   title,
   persona,
   approach,
-  seoKeywords,
   editorialIntro,
   farmProfiles,
   farms = [],
@@ -98,20 +96,6 @@ export function EditorialArticle({
         {/* Vertical line accent */}
         <div className="w-px h-12 bg-[#E5E5E5] mx-auto mt-8" aria-hidden="true" />
       </header>
-
-      {/* SEO Keywords - Subtle inline */}
-      {seoKeywords && seoKeywords.length > 0 && (
-        <div className="max-w-2xl mx-auto px-6 mb-16">
-          <div className="border-l-2 border-[#E5E5E5] pl-6">
-            <p className="text-xs tracking-[0.1em] uppercase text-[#6B6B6B]">
-              <span className="font-medium">Keywords</span>
-            </p>
-            <p className="text-xs tracking-wide text-[#6B6B6B] mt-2">
-              {seoKeywords.join(' · ')}
-            </p>
-          </div>
-        </div>
-      )}
 
       {/* Editorial Introduction - Narrow column with drop cap */}
       {editorialIntro && (
