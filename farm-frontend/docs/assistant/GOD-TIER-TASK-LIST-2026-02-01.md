@@ -173,15 +173,19 @@ curl -X POST "https://www.farmcompanion.co.uk/api/admin/generate-images?limit=10
 
 ---
 
-## PRIORITY 5: SECURITY (Already Addressed)
+## PRIORITY 5: SECURITY (Partially Addressed)
 
 ### 5.1 GitHub Security Alerts
-**Status:** 11 vulnerabilities detected on default branch
-- 2 critical
-- 3 high
-- 6 moderate
+**Status:** 11 vulnerabilities on default branch (via nested dependencies)
+- farm-frontend: 1 moderate (lodash-es via lighthouse dev dependency)
+- twitter-workflow: 0 vulnerabilities
+- Most vulnerabilities are in transitive dependencies
 
-**Action:** Review https://github.com/farm-companion/farm-companion/security/dependabot
+**Fixed:**
+- Next.js 16.1.3 -> 16.1.6 (3 vulnerabilities fixed)
+- ESLint in twitter-workflow (GHSA-p5wg-g6qr-c7cg)
+
+**Remaining:** Nested dependency vulnerabilities requiring upstream fixes
 
 ---
 
