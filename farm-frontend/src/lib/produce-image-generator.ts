@@ -622,7 +622,11 @@ export class ProduceImageGenerator {
 
   /**
    * Generate multiple variations for a produce item
-   * First image is Maison-style (luxury still life), remaining are Natural packshots
+   * Creates 4 distinctly different views like a luxury product page:
+   * 1. Hero shot - Luxury single specimen (MAISON_STILL_LIFE)
+   * 2. Cross-section - Interior view showing freshness (whole+half)
+   * 3. Macro detail - Extreme close-up of texture
+   * 4. Artistic composition - Multiple items arranged
    */
   async generateVariations(
     produceName: string,
@@ -630,25 +634,64 @@ export class ProduceImageGenerator {
     count: number = 4
   ): Promise<Buffer[]> {
     const buffers: Buffer[] = []
+    const baseSeed = this.hashString(slug)
 
-    for (let i = 0; i < count; i++) {
-      const seed = this.hashString(slug) + i * 9973
+    // Define 4 distinct shot types for variety
+    const shotTypes: Array<{
+      mode: ImageMode
+      lighting: LightingPreset
+      variant: MaisonVariant
+      concept: string
+    }> = [
+      {
+        // Shot 1: Hero - Clean luxury beauty shot
+        mode: 'MAISON_STILL_LIFE',
+        lighting: 'moody',
+        variant: 'single',
+        concept: 'Hero shot. Centered subject, dramatic lighting, clean negative space.'
+      },
+      {
+        // Shot 2: Cross-section - Interior view showing freshness
+        mode: 'NATURAL_PACKSHOT',
+        lighting: 'bright',
+        variant: 'whole+half',
+        concept: 'Interior reveal. One whole specimen plus one cleanly cut half showing fresh interior structure, juice vesicles, seeds, or flesh texture.'
+      },
+      {
+        // Shot 3: Macro detail - Extreme close-up of texture
+        mode: 'MAISON_STILL_LIFE',
+        lighting: 'moody',
+        variant: 'single',
+        concept: 'Macro texture detail. Extreme close-up showing surface texture, skin pores, seeds, veins, or natural patterns. Fill the frame with textural detail.'
+      },
+      {
+        // Shot 4: Composition - Multiple items artistic arrangement
+        mode: 'MAISON_STILL_LIFE',
+        lighting: 'bright',
+        variant: 'stack3',
+        concept: 'Artistic composition. Three specimens arranged with intentional balance, slight overlap, sculptural still life aesthetic.'
+      }
+    ]
 
-      // First image (index 0) is Maison-style, rest are Natural
-      const mode: ImageMode = i === 0 ? 'MAISON_STILL_LIFE' : 'NATURAL_PACKSHOT'
-      const lighting: LightingPreset = i === 0 ? 'moody' : 'bright'
+    for (let i = 0; i < Math.min(count, shotTypes.length); i++) {
+      const shot = shotTypes[i]
+      const seed = baseSeed + i * 9973
 
       imageGenLogger.info('Generating variation', {
         produceName,
         index: i,
-        mode,
-        lighting
+        mode: shot.mode,
+        lighting: shot.lighting,
+        variant: shot.variant,
+        shotType: ['Hero', 'Cross-section', 'Macro', 'Composition'][i]
       })
 
-      const buffer = await this.generateProduceImage(produceName, slug, {
+      const buffer = await this.generateProduceImageWithShot(produceName, slug, {
         seed,
-        mode,
-        lighting
+        mode: shot.mode,
+        lighting: shot.lighting,
+        variant: shot.variant,
+        conceptOverride: shot.concept
       })
 
       if (buffer) {
@@ -662,6 +705,138 @@ export class ProduceImageGenerator {
     }
 
     return buffers
+  }
+
+  /**
+   * Generate a produce image with specific shot type configuration
+   */
+  private async generateProduceImageWithShot(
+    produceName: string,
+    slug: string,
+    options: {
+      seed: number
+      mode: ImageMode
+      lighting: LightingPreset
+      variant: MaisonVariant
+      conceptOverride?: string
+    }
+  ): Promise<Buffer | null> {
+    try {
+      imageGenLogger.info('Generating produce image with shot config', { produceName, slug, ...options })
+
+      const width = 1536
+      const height = 1536
+      const prompt = this.createProducePromptWithVariant(produceName, slug, options)
+
+      // Try Runware first
+      let imageBuffer = await this.callRunwareWithVariant(prompt, {
+        width,
+        height,
+        seed: options.seed,
+        slug
+      })
+
+      // Fallback to Pollinations if Runware fails
+      if (!imageBuffer) {
+        imageGenLogger.info('Falling back to Pollinations', { produceName })
+        imageBuffer = await this.callPollinations(prompt, { width, height, seed: options.seed, maxAttempts: 3 })
+      }
+
+      if (imageBuffer) {
+        imageGenLogger.info('Image generated successfully', { produceName, bytes: imageBuffer.length })
+        return imageBuffer
+      }
+
+      return null
+    } catch (error) {
+      imageGenLogger.error('Image generation failed', { produceName }, error as Error)
+      return null
+    }
+  }
+
+  /**
+   * Create prompt with specific variant and concept override
+   */
+  private createProducePromptWithVariant(
+    produceName: string,
+    slug: string,
+    options: {
+      mode: ImageMode
+      lighting: LightingPreset
+      variant: MaisonVariant
+      conceptOverride?: string
+    }
+  ): string {
+    const parts: string[] = []
+
+    // 1. Geometry lock with variant
+    parts.push(getGeometryLock(produceName, options.variant))
+
+    // 2. Mode style clause
+    parts.push(MODE_STYLE_CLAUSES[options.mode])
+
+    // 3. Camera rig
+    parts.push(CAMERA_RIG)
+
+    // 4. Lighting preset
+    parts.push(LIGHTING_CLAUSES[options.lighting])
+
+    // 5. Biological cue
+    const biologicalCue = getBiologicalCue(produceName)
+    parts.push(biologicalCue)
+
+    // 6. Variant clause
+    parts.push(VARIANT_CLAUSES[options.variant])
+
+    // 7. Concept override (specific shot type direction)
+    if (options.conceptOverride) {
+      parts.push(`Shot concept: ${options.conceptOverride}`)
+    }
+
+    return parts.join(' ')
+  }
+
+  /**
+   * Call Runware with variant-aware parameters
+   */
+  private async callRunwareWithVariant(
+    prompt: string,
+    opts: { width: number; height: number; seed: number; slug: string }
+  ): Promise<Buffer | null> {
+    const client = getRunwareClient()
+
+    if (!client.isConfigured()) {
+      imageGenLogger.warn('RUNWARE_API_KEY not configured, skipping Runware')
+      return null
+    }
+
+    try {
+      const category = PRODUCE_CATEGORY_MAP[opts.slug] || 'pome_fruit'
+      const steps = getStepsForCategory(category)
+      const negativePrompt = this.getNegativePrompt(opts.slug)
+
+      const buffer = await client.generateBuffer({
+        prompt,
+        negativePrompt,
+        width: opts.width,
+        height: opts.height,
+        seed: opts.seed,
+        steps,
+        cfgScale: 3.0,
+        outputFormat: 'webp'
+      })
+
+      if (buffer) {
+        imageGenLogger.info('Runware generated produce image', { bytes: buffer.length })
+        return buffer
+      }
+
+      return null
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error'
+      imageGenLogger.warn('Runware attempt failed', { error: message })
+      return null
+    }
   }
 
   /**

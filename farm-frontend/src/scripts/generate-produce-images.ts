@@ -193,6 +193,21 @@ async function checkExistingImages(slug: string, count: number): Promise<number>
 }
 
 /**
+ * Generate descriptive alt text for each shot type
+ * Creates distinct descriptions for accessibility and SEO
+ */
+function getAltTextForShot(produceName: string, variationId: number): string {
+  const name = produceName.toLowerCase()
+  const shotAlts: Record<number, string> = {
+    1: `Fresh British ${name} - beautiful whole specimen`,
+    2: `${produceName} cross-section showing fresh interior`,
+    3: `${produceName} macro detail - natural texture close-up`,
+    4: `Artistic arrangement of fresh ${name}`
+  }
+  return shotAlts[variationId] || `Fresh ${name}`
+}
+
+/**
  * Automatically update produce.ts with new image URLs
  */
 function updateProduceTs(
@@ -213,9 +228,12 @@ function updateProduceTs(
       const produce = produceItems.find(p => p.slug === slug)
       if (!produce) continue
 
-      // Build the new images array
+      // Build the new images array with distinct alt text per shot type
       const newImagesArray = images
-        .map(img => `      { src: '${img.url}', alt: 'Fresh ${produce.name.toLowerCase()}' }`)
+        .map(img => {
+          const alt = getAltTextForShot(produce.name, img.variationId)
+          return `      { src: '${img.url}', alt: '${alt}' }`
+        })
         .join(',\n')
 
       // Find and replace the images array for this produce
