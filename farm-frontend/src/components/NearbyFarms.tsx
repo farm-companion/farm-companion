@@ -50,15 +50,23 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   const [permissionState, setPermissionState] = useState<'prompt' | 'granted' | 'denied' | 'unknown'>('unknown')
   const [showLocationHelp, setShowLocationHelp] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
 
-  // Get current month for seasonal headline
-  const currentMonth = new Date().getMonth()
+  // Get current month for seasonal headline - client-side only
+  const [currentMonth, setCurrentMonth] = useState(0)
+
+  useEffect(() => {
+    setMounted(true)
+    setCurrentMonth(new Date().getMonth())
+  }, [])
+
   const seasonal = SEASONAL_HEADLINES[currentMonth]
 
   // Count how many farms are currently open
   const openFarmsCount = useMemo(() => {
+    if (!mounted) return 0
     return farms.filter(farm => isCurrentlyOpen(farm.hours)).length
-  }, [farms])
+  }, [farms, mounted])
 
   // Check geolocation permission state
   useEffect(() => {

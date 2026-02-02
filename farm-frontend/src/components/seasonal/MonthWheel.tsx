@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 
 interface MonthWheelProps {
   selectedMonth: number // 1-12
@@ -58,7 +58,11 @@ export function MonthWheel({
   size = 280,
   className = '',
 }: MonthWheelProps) {
-  const currentMonth = new Date().getMonth() + 1
+  const [currentMonth, setCurrentMonth] = useState(1) // Default for SSR
+
+  useEffect(() => {
+    setCurrentMonth(new Date().getMonth() + 1)
+  }, [])
 
   // Calculate segment paths
   const segments = useMemo(() => {
@@ -248,7 +252,11 @@ export function MonthSelector({
   peakMonths = [],
   className = '',
 }: Omit<MonthWheelProps, 'size'>) {
-  const currentMonth = new Date().getMonth() + 1
+  const [currentMonth, setCurrentMonth] = useState(1) // Default for SSR
+
+  useEffect(() => {
+    setCurrentMonth(new Date().getMonth() + 1)
+  }, [])
 
   return (
     <div className={`flex flex-wrap justify-center gap-1.5 ${className}`}>
