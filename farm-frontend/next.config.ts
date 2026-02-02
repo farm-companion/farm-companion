@@ -121,6 +121,13 @@ const nextConfig: NextConfig = {
         port: '3001',
         pathname: '/storage/**',
       },
+      // Runware AI-generated images
+      {
+        protocol: 'https',
+        hostname: 'im.runware.ai',
+        port: '',
+        pathname: '/**',
+      },
     ],
     // Enable modern image formats
     formats: ['image/webp', 'image/avif'],
