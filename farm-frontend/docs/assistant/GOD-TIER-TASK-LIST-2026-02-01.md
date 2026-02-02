@@ -174,19 +174,25 @@ curl -X POST "https://www.farmcompanion.co.uk/api/admin/generate-images?limit=10
 
 ---
 
-## PRIORITY 5: SECURITY (Partially Addressed)
+## PRIORITY 5: SECURITY (Mostly Addressed)
 
 ### 5.1 GitHub Security Alerts
-**Status:** 11 vulnerabilities on default branch (via nested dependencies)
-- farm-frontend: 1 moderate (lodash-es via lighthouse dev dependency)
+**Status:** Fixed all fixable vulnerabilities across the monorepo
+
+**Audit Results (after fixes):**
+- farm-frontend: 1 moderate (lodash-es via lighthouse dev dependency - not fixable)
+- farm-produce-images: 0 vulnerabilities (was 4)
 - twitter-workflow: 0 vulnerabilities
-- Most vulnerabilities are in transitive dependencies
+- farm-pipeline (root): Updated pnpm to fix path traversal
 
 **Fixed:**
-- Next.js 16.1.3 -> 16.1.6 (3 vulnerabilities fixed)
-- ESLint in twitter-workflow (GHSA-p5wg-g6qr-c7cg)
+- Next.js 16.1.3 -> 16.1.6 (farm-frontend + farm-produce-images)
+- @vercel/blob 1.1.1 -> 2.0.1 (fixes undici vulnerability)
+- @supabase/supabase-js 2.90.1 -> 2.93.3
+- pnpm 10.0.0 -> 10.29.0 (fixes path traversal)
+- axios, zod, and other minor updates
 
-**Remaining:** Nested dependency vulnerabilities requiring upstream fixes
+**Remaining:** 1 moderate in lodash-es (lighthouse dev dependency - requires upstream fix)
 
 ---
 
