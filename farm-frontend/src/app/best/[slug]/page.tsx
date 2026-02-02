@@ -23,18 +23,14 @@ import {
 } from '@/components/best'
 import { EditorialHero, PillarCarousel } from '@/components/best/editorial'
 
-// Revalidate every 24 hours
+// Use dynamic rendering to avoid connection pool exhaustion during build
+export const dynamic = 'force-dynamic'
+
+// Revalidate every 24 hours when cached
 export const revalidate = 86400
 
 interface BestPageProps {
   params: Promise<{ slug: string }>
-}
-
-// Generate static params for all best-of lists
-export async function generateStaticParams() {
-  return bestLists.map((list: { slug: string }) => ({
-    slug: list.slug,
-  }))
 }
 
 // Generate metadata for SEO
