@@ -43,7 +43,13 @@ Prioritized from most critical to least critical for achieving a god-tier, Apple
 - **Files Fixed:**
   - Footer.tsx: currentYear moved to useEffect
   - OperatingStatusCompact: Added mounted state pattern
-- **Commit:** `fix: Resolve React hydration error #418`
+  - NearbyFarms.tsx: currentMonth moved to useEffect
+  - SeasonalShowcase.tsx: currentMonth moved to useEffect
+  - MonthWheel.tsx: currentMonth moved to useEffect (both components)
+  - SeasonalGrid.tsx: currentMonth passed as prop
+- **Commits:**
+  - `fix: Resolve React hydration error #418`
+  - `fix: Resolve additional React hydration errors from Date() calls`
 
 ### 7. Produce Images - LV-Style Variety (DONE)
 - **Status:** Code complete - ready to run
