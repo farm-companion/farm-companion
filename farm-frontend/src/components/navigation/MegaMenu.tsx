@@ -77,10 +77,10 @@ export function MegaMenu({
         className={cn(
           'px-4 py-2 rounded-lg text-[12px] font-semibold dark:font-medium uppercase tracking-[0.06em] transition-all duration-200',
           inverted
-            ? 'text-white/90 hover:text-white hover:bg-white/10'
+            ? 'text-white hover:text-white hover:bg-white/20'
             : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-white/[0.04]',
           isOpen && !inverted && 'bg-zinc-100 dark:bg-white/[0.04]',
-          isOpen && inverted && 'bg-white/10',
+          isOpen && inverted && 'bg-white/20',
           className
         )}
         aria-expanded={isOpen}

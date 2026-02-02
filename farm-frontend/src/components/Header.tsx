@@ -97,7 +97,7 @@ function Brand({ inverted }: { inverted: boolean }) {
         )}>Farm Companion</span>
         <span className={cx(
           'hidden text-[11px] font-medium tracking-[0.08em] uppercase sm:block transition-colors',
-          inverted ? 'text-white/70' : 'text-zinc-500 dark:text-zinc-400'
+          inverted ? 'text-white/90' : 'text-zinc-500 dark:text-zinc-400'
         )}>Real food, real places</span>
       </div>
     </Link>
@@ -123,7 +123,7 @@ function CommandTrigger({ inverted }: { inverted: boolean }) {
         'hidden lg:inline-flex items-center gap-2 h-9 px-3 rounded-lg border transition-all duration-200',
         'text-[13px] font-medium',
         inverted
-          ? 'border-white/20 text-white/70 hover:bg-white/10 hover:text-white'
+          ? 'border-white/30 text-white/90 hover:bg-white/20 hover:text-white'
           : 'border-zinc-200 dark:border-white/[0.08] text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-white/[0.04] hover:text-zinc-700 dark:hover:text-zinc-200'
       )}
       aria-label="Open command palette"
@@ -133,7 +133,7 @@ function CommandTrigger({ inverted }: { inverted: boolean }) {
       <kbd className={cx(
         'ml-1 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[11px] font-mono',
         inverted
-          ? 'bg-white/10 text-white/60'
+          ? 'bg-white/20 text-white/80'
           : 'bg-zinc-100 dark:bg-white/[0.06] text-zinc-400 dark:text-zinc-500'
       )}>
         {isMac ? <Command className="h-3 w-3" /> : 'Ctrl'}
@@ -325,7 +325,7 @@ export default function Header() {
             // Command Center glass surface
             scrolled
               ? inverted
-                ? 'border border-white/20 bg-zinc-900/80 backdrop-blur-xl shadow-lg'
+                ? 'border border-white/30 bg-zinc-900/90 backdrop-blur-xl shadow-lg'
                 : [
                     // Light mode: shadow depth
                     'border border-zinc-200/60 bg-white/70 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]',
@@ -333,7 +333,7 @@ export default function Header() {
                     'dark:border-white/[0.08] dark:bg-[#050505]/70 dark:shadow-none'
                   ].join(' ')
               : inverted
-                ? 'border border-transparent bg-zinc-900/40 backdrop-blur-lg'
+                ? 'border border-white/20 bg-zinc-900/80 backdrop-blur-xl shadow-lg'
                 : 'border border-transparent bg-white/60 dark:bg-[#050505]/60 backdrop-blur-lg'
           )}
         >
@@ -357,7 +357,7 @@ export default function Header() {
               className={cx(
                 'px-4 py-2 rounded-lg text-[12px] font-semibold dark:font-medium uppercase tracking-[0.06em] transition-all duration-200',
                 inverted
-                  ? 'text-white/90 hover:text-white hover:bg-white/10'
+                  ? 'text-white hover:text-white hover:bg-white/20'
                   : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-white/[0.04]'
               )}
             >
@@ -380,7 +380,7 @@ export default function Header() {
               className={cx(
                 'px-4 py-2 rounded-lg text-[12px] font-semibold dark:font-medium uppercase tracking-[0.06em] transition-all duration-200',
                 inverted
-                  ? 'text-white/90 hover:text-white hover:bg-white/10'
+                  ? 'text-white hover:text-white hover:bg-white/20'
                   : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-white/[0.04]'
               )}
             >
