@@ -38,8 +38,8 @@ export const metadata: Metadata = {
 // IMPORTANT: No images of people, pigs, or bacon allowed
 const EDITORIAL_IMAGES: Record<string, { src: string; alt: string }> = {
   'best-organic-farms-uk': {
-    src: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=1200&q=80&auto=format',
-    alt: 'Rows of organic vegetables in rich soil',
+    src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&q=80&auto=format',
+    alt: 'Greenhouse rows with organic seedlings in afternoon light',
   },
   'top-pick-your-own-farms': {
     src: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1200&q=80&auto=format',

@@ -164,8 +164,8 @@ interface FarmProfileSectionProps {
 // IMPORTANT: No images of people, pigs, or bacon
 const FALLBACK_IMAGES = [
   {
-    src: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=1600&q=80&auto=format',
-    alt: 'Rows of organic vegetables in rich soil'
+    src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80&auto=format',
+    alt: 'Greenhouse rows with organic seedlings in afternoon light'
   },
   {
     src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1600&q=80&auto=format',
