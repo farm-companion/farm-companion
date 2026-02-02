@@ -261,6 +261,7 @@ export default async function BestPage({ params }: BestPageProps) {
             seoKeywords={list.seoKeywords}
             editorialIntro={list.editorialIntro}
             farmProfiles={list.farmProfiles}
+            farms={farms}
           />
         </section>
       )}

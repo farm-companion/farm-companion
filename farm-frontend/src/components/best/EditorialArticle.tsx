@@ -7,6 +7,7 @@
 
 import Image from 'next/image'
 import { type FarmProfile } from '@/data/best-lists'
+import { type FarmShop, getImageUrl } from '@/types/farm'
 
 interface EditorialImage {
   src: string
@@ -22,6 +23,7 @@ interface EditorialArticleProps {
   seoKeywords?: string[]
   editorialIntro?: string
   farmProfiles?: FarmProfile[]
+  farms?: FarmShop[] // Database farms with images
   heroImage?: EditorialImage
   className?: string
 }
@@ -37,6 +39,7 @@ export function EditorialArticle({
   seoKeywords,
   editorialIntro,
   farmProfiles,
+  farms = [],
   heroImage,
   className = ''
 }: EditorialArticleProps) {
@@ -138,6 +141,7 @@ export function EditorialArticle({
             <FarmProfileSection
               key={idx}
               farm={farm}
+              farms={farms}
               index={idx}
               showImage={idx % 2 === 0} // Show image every 2nd profile for richer visuals
             />
@@ -150,12 +154,13 @@ export function EditorialArticle({
 
 interface FarmProfileSectionProps {
   farm: FarmProfile
+  farms: FarmShop[]
   index: number
   showImage?: boolean
 }
 
-// Curated organic produce images from blob storage
-const ORGANIC_IMAGES = [
+// Fallback produce images from blob storage (used if no farm image available)
+const FALLBACK_IMAGES = [
   {
     src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/1/main.webp',
     alt: 'Fresh vine-ripened British tomatoes'
@@ -190,9 +195,17 @@ const ORGANIC_IMAGES = [
   }
 ]
 
-function FarmProfileSection({ farm, index, showImage }: FarmProfileSectionProps) {
-  // Get image based on index (cycles through available images)
-  const imageData = ORGANIC_IMAGES[index % ORGANIC_IMAGES.length]
+function FarmProfileSection({ farm, farms, index, showImage }: FarmProfileSectionProps) {
+  // Try to find matching farm from database by slug
+  const matchedFarm = farm.slug ? farms.find(f => f.slug === farm.slug) : undefined
+
+  // Get farm image URL if available
+  const farmImageUrl = matchedFarm?.images?.[0] ? getImageUrl(matchedFarm.images[0]) : undefined
+
+  // Use farm image if available, otherwise fall back to produce images
+  const imageData = farmImageUrl
+    ? { src: farmImageUrl, alt: `${farm.name} farm` }
+    : FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]
 
   return (
     <section>

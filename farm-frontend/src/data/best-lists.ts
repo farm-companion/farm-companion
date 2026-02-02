@@ -7,6 +7,7 @@
 
 export interface FarmProfile {
   name: string
+  slug?: string // Database slug to link to actual farm for images
   location: string // e.g., "Tetbury, Gloucestershire"
   description: string // Rich narrative description
 }
