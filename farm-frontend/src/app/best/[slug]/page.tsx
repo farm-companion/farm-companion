@@ -14,6 +14,7 @@ import {
   FARM_SHOP_CRITERIA,
   FAQAccordion,
   addTipsToFAQs,
+  EditorialArticle,
 } from '@/components/best'
 
 // Revalidate every 24 hours
@@ -246,6 +247,23 @@ export default async function BestPage({ params }: BestPageProps) {
           </div>
         </div>
       </section>
+
+      {/* Editorial Article Section - Shows if editorial content exists */}
+      {(list.editorialIntro || list.farmProfiles) && (
+        <section className="py-16 bg-white dark:bg-slate-950">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <EditorialArticle
+              articleNumber={list.articleNumber}
+              title={list.title}
+              persona={list.persona}
+              approach={list.approach}
+              seoKeywords={list.seoKeywords}
+              editorialIntro={list.editorialIntro}
+              farmProfiles={list.farmProfiles}
+            />
+          </div>
+        </section>
+      )}
 
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="max-w-6xl mx-auto">

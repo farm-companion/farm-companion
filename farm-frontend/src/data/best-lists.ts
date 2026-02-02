@@ -5,6 +5,12 @@
  * Each list is manually curated to provide genuine value to users.
  */
 
+export interface FarmProfile {
+  name: string
+  location: string // e.g., "Tetbury, Gloucestershire"
+  description: string // Rich narrative description
+}
+
 export interface BestList {
   slug: string
   title: string
@@ -18,6 +24,13 @@ export interface BestList {
   featured: boolean
   publishDate: string
   updateDate: string
+  // Editorial fields
+  articleNumber?: number
+  persona?: string // e.g., "The Investigative Journalist"
+  approach?: string // e.g., "Radical Transparency"
+  seoKeywords?: string[] // Target SEO keywords
+  editorialIntro?: string // Long-form editorial introduction
+  farmProfiles?: FarmProfile[] // Detailed farm write-ups
   faqs: Array<{
     question: string
     answer: string
@@ -27,10 +40,10 @@ export interface BestList {
 export const bestLists: BestList[] = [
   {
     slug: 'best-organic-farms-uk',
-    title: 'Best Organic Farms in the UK',
+    title: 'The Best Organic Farms in the UK',
     metaTitle: 'Top 20 Best Organic Farms in the UK (2026) | Farm Companion',
     metaDescription: 'Discover the best organic farms in the UK. From certified organic producers to biodynamic farms, find top-rated organic farms near you.',
-    heading: '20 Best Organic Farms in the UK',
+    heading: 'The Best Organic Farms in the UK',
     intro: 'Discover the finest organic farms across the UK, from certified organic producers to pioneering biodynamic farms. These farms are committed to sustainable agriculture, animal welfare, and producing the highest quality organic food.',
     content: `## Why Choose Organic?
 
@@ -51,7 +64,60 @@ We've included organic farms from across the UK, ensuring representation from En
     category: 'organic-farms',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    // Editorial fields
+    articleNumber: 1,
+    persona: 'The Investigative Journalist',
+    approach: 'Radical Transparency',
+    seoKeywords: [
+      'best organic farms UK',
+      'organic farm shops near me',
+      'Soil Association certified farms',
+      'regenerative farming UK',
+      'organic meat delivery UK'
+    ],
+    editorialIntro: `## The New Gold Standard: Why UK Organic Farming Deserves Your Attention
+
+Organic farming in Britain is no longer a niche pursuit for the affluent or the idealistic. It is a measurable, auditable system of land stewardship that directly affects soil carbon, pollinator populations, and the nutritional profile of the food on your plate. The Soil Association, which certifies the majority of UK organic producers, requires farms to meet standards that go well beyond the absence of synthetic pesticides: crop rotations, restricted antibiotic use, and minimum periods of outdoor grazing are all mandated. Understanding what sits behind the logo is the first step toward spending your food budget with genuine intention.
+
+What follows is not a ranking but a curated selection of farms whose practices have been independently verified and whose contributions to British agriculture are substantive. Each has been chosen for transparency, innovation, and the quality of what they produce.`,
+    farmProfiles: [
+      {
+        name: 'Duchy Home Farm (Broadfield Farm)',
+        location: 'Tetbury, Gloucestershire',
+        description: `If any single operation can be said to have legitimised organic farming in the British mainstream, it is the Duchy Home Farm. Situated at Broadfield Farm near Tetbury, this is the agricultural heart of the Duchy of Cornwall estate. The conversion to organic methods began in 1986 under farm manager David Wilson, and the entire holding achieved full Soil Association organic status by 1996. Today the farm extends to approximately 1,120 acres in-hand, with a further 800 acres of share-farmed land managed organically.
+
+The system is a textbook example of mixed farming: livestock are integrated with herbal leys and arable rotations, building soil fertility without synthetic inputs. Rare breed cattle and heritage grain varieties are maintained alongside the commercial operation, and the farm has long been associated with the Soil Association at a governance level. For consumers, produce from the estate is available through the Duchy Organic range and the Duchy Home Farm box scheme. It is a working proof-of-concept that organic mixed farming can operate at meaningful commercial scale.`
+      },
+      {
+        name: 'Forest Farm Dairy',
+        location: 'Kinellar, Aberdeenshire',
+        description: `Scotland's oldest organic dairy, Forest Farm has been certified organic since 1998, when Anthony and Anne Willis converted what was then known as Glasgoforest Farm. The family's commitment to organic principles runs deep, with the herd grazing permanent pastures that have never seen synthetic fertiliser.
+
+The dairy produces award-winning organic milk, cream, and butter, all processed on-site in their own facility. Their herd of Ayrshire and Holstein-Friesian crosses are known for producing rich, creamy milk with a distinctive flavour that reflects the Scottish terroir. The farm shop welcomes visitors and offers a window into genuine organic dairy production.`
+      },
+      {
+        name: 'Riverford Organic Farmers',
+        location: 'Buckfastleigh, Devon',
+        description: `What began as Guy Watson delivering vegetables from his wheelbarrow in 1987 has become one of Britain's largest organic vegetable box schemes. Riverford now delivers to over 50,000 households weekly from its network of sister farms across the country. The main farm at Wash Barn in Devon remains the heart of operations.
+
+Beyond scale, Riverford is notable for its employee ownership model, adopted in 2018, which transferred 74% of shares to staff. The Field Kitchen restaurant on the Devon farm showcases produce at its peak, while farm tours offer unvarnished insight into commercial organic vegetable production. The operation proves that ethical business structures and organic certification can coexist with genuine commercial success.`
+      },
+      {
+        name: 'Yeo Valley Organic',
+        location: 'Blagdon, Somerset',
+        description: `The Mead family has farmed at Holt Farm in the Yeo Valley since 1961. Organic conversion began in 1994, driven by Tim Mead's conviction that sustainable dairy farming was both commercially viable and environmentally essential. Today Yeo Valley Organic is the UK's largest organic dairy brand.
+
+The farm itself remains a working demonstration of organic principles: 1,500 acres supporting a mixed system of dairy, beef, and arable production. Wildlife corridors, restored hedgerows, and extensive tree planting reflect the company's commitment to biodiversity. The Yeo Valley Organic Garden, open to visitors, showcases organic horticulture principles alongside the commercial dairy operation.`
+      },
+      {
+        name: 'Daylesford Organic',
+        location: 'Kingham, Cotswolds',
+        description: `Daylesford represents perhaps the most comprehensive organic estate in Britain. Under the stewardship of Carole Bamford, the farm has developed an integrated system encompassing dairy, beef, lamb, pigs, poultry, market garden, bakery, and creamery across 2,350 acres in the Cotswolds plus additional land in Staffordshire.
+
+The on-site farm shop and cafe have become a destination in their own right, though the real substance lies in the farming itself. Soil Association certification covers the entire operation, from the heritage grain varieties grown for the bakery to the raw milk cheese aged in the estate's own cellars. It demonstrates what organic farming can achieve when resources permit comprehensive integration.`
+      }
+    ],
     faqs: [
       {
         question: 'What does organic certification mean?',
