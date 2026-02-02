@@ -169,8 +169,8 @@ const FALLBACK_IMAGES = [
     alt: 'Fresh harvest arranged on rustic table'
   },
   {
-    src: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format',
-    alt: 'Pastoral British countryside'
+    src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1600&q=80&auto=format',
+    alt: 'Rolling green hills and countryside landscape'
   },
   {
     src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80&auto=format',
@@ -181,8 +181,8 @@ const FALLBACK_IMAGES = [
     alt: 'Artisan produce display'
   },
   {
-    src: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1600&q=80&auto=format',
-    alt: 'Dairy cows grazing in green pasture'
+    src: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=1600&q=80&auto=format',
+    alt: 'Artisan ice cream in waffle cone'
   },
   {
     src: 'https://images.unsplash.com/photo-1468327768560-75b778cbb551?w=1600&q=80&auto=format',

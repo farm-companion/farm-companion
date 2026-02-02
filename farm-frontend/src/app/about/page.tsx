@@ -143,8 +143,8 @@ export default function AboutPage() {
           <figure className="relative w-screen left-1/2 -translate-x-1/2 mb-16">
             <div className="relative h-[40vh] min-h-[300px] max-h-[500px]">
               <Image
-                src="https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1920&q=80&auto=format"
-                alt="Pastoral British countryside"
+                src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1920&q=80&auto=format"
+                alt="Rolling green hills and countryside landscape"
                 fill
                 className="object-cover"
                 sizes="100vw"

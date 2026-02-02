@@ -99,12 +99,12 @@ const HERO_IMAGES: Record<string, { src: string; alt: string }> = {
     alt: 'Fresh seasonal harvest in rustic wooden crate',
   },
   'best-farm-school-visits-uk': {
-    src: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1920&q=80&auto=format',
-    alt: 'Idyllic British farmland with grazing livestock',
+    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format',
+    alt: 'Fresh vegetables and produce in educational farm setting',
   },
   'top-ice-cream-farms-uk': {
-    src: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1920&q=80&auto=format',
-    alt: 'Dairy herd in verdant pasture at dawn',
+    src: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=1920&q=80&auto=format',
+    alt: 'Artisan ice cream scoops in waffle cone',
   },
   'best-cheese-makers-uk': {
     src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1920&q=80&auto=format',
