@@ -112,7 +112,7 @@ export function LocationContext({
 
   const textColor = inverted
     ? 'text-white/90'
-    : 'text-slate-500 dark:text-slate-400'
+    : 'text-slate-600 dark:text-slate-300'
 
   const accentColor = inverted
     ? 'text-white font-medium'

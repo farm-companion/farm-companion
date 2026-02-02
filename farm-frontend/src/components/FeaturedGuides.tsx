@@ -55,7 +55,7 @@ export function FeaturedGuides() {
                 </p>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between text-xs sm:text-caption text-slate-500">
+                <div className="flex items-center justify-between text-xs sm:text-caption text-slate-600 dark:text-slate-400">
                   <span>
                     {guide.faqs?.length || 0} {guide.faqs?.length === 1 ? 'FAQ' : 'FAQs'}
                   </span>

@@ -246,7 +246,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
                       >
                         <div className="flex items-center justify-between">
                           <span>{county.name}</span>
-                          <span className="text-small text-slate-500">({county.farmCount})</span>
+                          <span className="text-small text-slate-600 dark:text-slate-400">({county.farmCount})</span>
                         </div>
                       </Link>
                     ))}

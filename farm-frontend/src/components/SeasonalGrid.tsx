@@ -313,7 +313,7 @@ function ProduceCardItem({ produce, index, currentMonth }: ProduceCardItemProps)
                     style={{ width: `${seasonProgress}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-slate-500 font-medium">
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">
                   {seasonProgress}%
                 </span>
               </div>
