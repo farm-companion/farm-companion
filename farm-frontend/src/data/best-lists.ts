@@ -227,7 +227,33 @@ This guide includes farms in:
     region: 'london',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    articleNumber: 5,
+    persona: 'The Discerning Londoner',
+    approach: 'Provenance First',
+    editorialIntro: `## The Larder of the Home Counties: Real Provenance Within Reach
+
+The proliferation of "premium" supermarket ranges has blurred the line between genuine provenance and clever branding. A farm shop, at its best, eliminates that ambiguity entirely. You can see where the beef was raised, ask the butcher which field the lamb came from, and buy vegetables that were in the ground that morning. For Londoners willing to make a short journey, or combine it with a weekend walk, the Home Counties offer farm shops of exceptional quality.
+
+What distinguishes a genuine farm shop from a rural deli selling bought-in produce is the depth of connection to the land. The shops featured here either farm their own livestock and grow their own vegetables, or maintain direct relationships with named producers whose practices they can vouch for. The result is food with a story, and a quality that justifies the journey.
+
+The economics of farm retail have shifted significantly since the pandemic. Consumer appetite for traceable, local food has grown, while the challenges of supplying supermarkets have pushed many farms toward direct sales. The beneficiaries are shoppers who value knowing exactly what they are eating and where it came from.`,
+    farmProfiles: [
+      {
+        name: 'Windsor Farm Shop',
+        location: 'Old Windsor, Berkshire',
+        description: `Founded by Prince Philip, Duke of Edinburgh, in 2001, the Windsor Farm Shop occupies converted Victorian potting sheds on the edge of the Windsor Estate's Home Park. It is perhaps the most storied farm shop in Britain, and its provenance credentials are unimpeachable: beef and pork come directly from the Windsor Farms, lamb from Bagshot Park, and seasonal game, venison, pheasant, partridge, from the wider estate. The butchery counter is the centrepiece, with handmade sausages crafted from Windsor Farm pork each week.
+
+The delicatessen stocks artisanal British cheeses, homemade pies, and quiches baked on site. Fresh bread arrives daily from local bakers. The attached cafe serves light meals in a farm kitchen setting. A note of honesty: following the management transfer to the Crown Estate in late 2024, some regular visitors have noted changes to the range and atmosphere. It remains, however, a destination of genuine quality and historical significance.`
+      },
+      {
+        name: 'Farm Shop at Durslade Farm (Hauser & Wirth)',
+        location: 'Bruton, Somerset, and Mayfair, London',
+        description: `If the Windsor Farm Shop represents heritage, Farm Shop represents the intersection of agriculture and contemporary culture. Established on the edge of the 1,000-acre Durslade Farm in Bruton, home to the internationally acclaimed Hauser & Wirth gallery, the Somerset shop opened in 2020 with an in-house forager, butchery counter, and produce drawn from the farm's own herds of Aberdeen Angus, Hereford, and Wagyu-cross cattle.
+
+In 2024, the Artfarm hospitality group (Hauser & Wirth's food and drink arm) opened a second Farm Shop at 64 South Audley Street in Mayfair. The 4,000-square-foot venue includes a butchery, cheese room, deli, and a forty-cover wine bar in the basement. Products include wine from the estate's own Durslade Vineyards and a hyper-seasonal wild food range from in-house foraging. It brings genuine farm provenance to central London without compromise.`
+      }
+    ],
     faqs: [
       {
         question: 'How far from London are these farm shops?',
