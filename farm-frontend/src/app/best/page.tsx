@@ -35,10 +35,11 @@ export const metadata: Metadata = {
 }
 
 // Curated editorial images - atmospheric, magazine-quality photography
+// IMPORTANT: No images of people, pigs, or bacon allowed
 const EDITORIAL_IMAGES: Record<string, { src: string; alt: string }> = {
   'best-organic-farms-uk': {
-    src: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1200&q=80&auto=format',
-    alt: 'Organic vegetable garden rows at golden hour',
+    src: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=1200&q=80&auto=format',
+    alt: 'Rows of organic vegetables in rich soil',
   },
   'top-pick-your-own-farms': {
     src: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1200&q=80&auto=format',

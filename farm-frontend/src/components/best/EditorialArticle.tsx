@@ -161,10 +161,11 @@ interface FarmProfileSectionProps {
 }
 
 // Editorial fallback images - atmospheric farm and produce photography
+// IMPORTANT: No images of people, pigs, or bacon
 const FALLBACK_IMAGES = [
   {
-    src: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1600&q=80&auto=format',
-    alt: 'Organic vegetable garden in morning mist'
+    src: 'https://images.unsplash.com/photo-1523348837708-15d4a09cfac2?w=1600&q=80&auto=format',
+    alt: 'Rows of organic vegetables in rich soil'
   },
   {
     src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1600&q=80&auto=format',
