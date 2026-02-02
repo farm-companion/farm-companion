@@ -83,8 +83,8 @@ const HERO_IMAGES: Record<string, { src: string; alt: string }> = {
     alt: 'Artisan produce beautifully arranged in rustic farm shop',
   },
   'top-farm-cafes-uk': {
-    src: 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1920&q=80&auto=format',
-    alt: 'Warm morning light in a countryside farmhouse cafe',
+    src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920&q=80&auto=format',
+    alt: 'Elegant farm-to-table dining with fresh seasonal produce',
   },
   'best-lavender-farms': {
     src: 'https://images.unsplash.com/photo-1468327768560-75b778cbb551?w=1920&q=80&auto=format',

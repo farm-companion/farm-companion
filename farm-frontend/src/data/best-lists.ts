@@ -334,7 +334,33 @@ Beyond the food, farm cafés offer:
     category: 'farm-cafes',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    articleNumber: 7,
+    persona: 'The Gastronome',
+    approach: 'Culinary Excellence',
+    editorialIntro: `## The New British Table: Where Fields Meet Fine Dining
+
+There is a particular magic to eating within sight of where your food was grown, watching kitchen gardeners harvest lettuces metres from your table, or knowing the lamb on your plate grazed the fields you drove past to reach the restaurant. Britain's farm cafe scene has matured dramatically, evolving from simple tearoom fare into some of the country's most exciting dining destinations. From three-Michelin-starred establishments with their own biodynamic farms to family-run operations where you will find chickens wandering past the terrace, these fifteen venues represent the best of British farm-to-table dining.
+
+The economics of farm dining have shifted fundamentally. Rising food costs and supply chain fragility have made self-sufficiency not just philosophically appealing but commercially sensible. Restaurants that once relied entirely on suppliers now grow significant portions of their own produce, raising their own livestock, and foraging from their own land. The result is menus of unprecedented freshness and seasonality, dishes that could not exist anywhere else because they depend on ingredients that travel metres rather than miles.
+
+What distinguishes genuine farm-to-table from marketing rhetoric is measurable proximity. The restaurants featured here can tell you not just which farm supplied your vegetables, but which field, which row, which morning they were picked. This is cooking with a postcode, and it represents the most significant development in British dining since the gastropub revolution.`,
+    farmProfiles: [
+      {
+        name: "L'Enclume",
+        location: 'Cartmel, Cumbria',
+        description: `At the pinnacle of the farm-to-table movement sits L'Enclume in Cartmel, Cumbria, the only restaurant in the North to hold three Michelin stars. Chef Simon Rogan's nearby twelve-acre Our Farm supplies over ninety percent of the kitchen's produce, with harvest to plate often measured in minutes rather than hours. The farm, designed by chefs for chefs, grows everything from Japanese wineberries to elkhorn fern, while rare-breed sheep and cattle graze rotationally.
+
+The twenty-course tasting menu, priced at two hundred and sixty-five pounds, represents British produce-driven cooking at its absolute zenith. Dishes emerge from the garden's daily yield, meaning no two visits are identical. Rogan's approach treats the farm as an extension of the kitchen, with growing decisions made to serve culinary rather than agricultural logic. It is a model that has influenced a generation of British chefs.`
+      },
+      {
+        name: 'The Black Swan at Oldstead',
+        location: 'Oldstead, North Yorkshire',
+        description: `In North Yorkshire, The Black Swan at Oldstead showcases what happens when farming families turn to fine dining. The Banks family have farmed around Oldstead for generations, and chef Tommy Banks, Britain's youngest Michelin-starred chef when he earned the accolade in 2013, draws from a 160-acre family farm and two-acre kitchen garden adjoining the sixteenth-century inn.
+
+The restaurant holds a Michelin star and a Green Star for sustainability, and was once rated the world's best restaurant by TripAdvisor. Preservation techniques allow the team to serve garden produce year-round, with dinner priced at one hundred and seventy-five pounds. The setting, a converted village pub in the North York Moors, belies the sophistication of the cooking. This is destination dining that remains rooted in its agricultural origins.`
+      }
+    ],
     faqs: [
       {
         question: 'Do farm cafés cater to dietary requirements?',
