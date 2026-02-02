@@ -118,7 +118,7 @@ const nextConfig: NextConfig = {
       {
         protocol: 'http',
         hostname: '134.122.102.159',
-        port: '3001',
+        port: '8000',
         pathname: '/storage/**',
       },
       // Runware AI-generated images
