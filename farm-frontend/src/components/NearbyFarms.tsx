@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { FarmCard } from './FarmCard'
 import { Button } from './ui/Button'
 import { MapPin, Navigation, Compass, Clock } from 'lucide-react'
@@ -32,14 +33,10 @@ const SEASONAL_HEADLINES: Record<number, { headline: string; subtext: string }> 
 }
 
 /**
- * God-Tier NearbyFarms Section
+ * NearbyFarms - Luxury Editorial Section
  *
- * Design principles:
- * 1. Maximum contrast - white background, dark text
- * 2. Clear visual hierarchy - prominent heading, readable description
- * 3. Spacious layout - breathing room between elements
- * 4. WCAG AAA compliant - all text passes 7:1 contrast
- * 5. Clear CTAs - obvious buttons with proper affordance
+ * LV-inspired design with full-bleed background image,
+ * sophisticated gradient overlay, and elegant typography.
  */
 export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   const router = useRouter()
@@ -187,25 +184,39 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     requestLocation()
   }
 
-  // Loading skeleton - matches new card design
+  // Loading skeleton with background
   if (isLoading) {
     return (
-      <section className={`py-16 md:py-24 bg-white dark:bg-slate-950 ${className}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <div className="h-10 w-64 bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse mx-auto mb-4" />
-            <div className="h-6 w-96 max-w-full bg-slate-200 dark:bg-slate-800 rounded-lg animate-pulse mx-auto" />
+      <section className={`relative py-24 md:py-32 lg:py-40 overflow-hidden ${className}`}>
+        {/* Background */}
+        <div className="absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
+            alt=""
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
+        </div>
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <div className="w-px h-12 bg-white/40 mx-auto mb-8" />
+            <div className="h-12 w-64 bg-white/20 rounded-lg animate-pulse mx-auto mb-4" />
+            <div className="h-6 w-96 max-w-full bg-white/10 rounded-lg animate-pulse mx-auto" />
+            <div className="w-px h-12 bg-white/40 mx-auto mt-8" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-slate-200 dark:border-slate-700 overflow-hidden">
-                <div className="h-36 bg-slate-200 dark:bg-slate-800 animate-pulse" />
-                <div className="p-5 space-y-3">
-                  <div className="h-6 w-3/4 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
-                  <div className="h-4 w-1/2 bg-slate-200 dark:bg-slate-800 rounded animate-pulse" />
+              <div key={i} className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
+                <div className="h-44 bg-white/5 animate-pulse" />
+                <div className="p-6 space-y-3">
+                  <div className="h-6 w-3/4 bg-white/10 rounded animate-pulse" />
+                  <div className="h-4 w-1/2 bg-white/10 rounded animate-pulse" />
                   <div className="flex gap-3 pt-2">
-                    <div className="flex-1 h-11 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
-                    <div className="w-24 h-11 bg-slate-200 dark:bg-slate-800 rounded-xl animate-pulse" />
+                    <div className="flex-1 h-11 bg-white/10 rounded-xl animate-pulse" />
+                    <div className="w-11 h-11 bg-white/10 rounded-xl animate-pulse" />
                   </div>
                 </div>
               </div>
@@ -218,10 +229,20 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
 
   if (error) {
     return (
-      <section className={`py-16 md:py-24 bg-white dark:bg-slate-950 ${className}`}>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className={`relative py-24 md:py-32 overflow-hidden ${className}`}>
+        <div className="absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
+            alt=""
+            fill
+            className="object-cover"
+            sizes="100vw"
+          />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
+        </div>
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <EmptyState
-            icon={<MapPin className="w-16 h-16" />}
+            icon={<MapPin className="w-16 h-16 text-white/60" />}
             title="Unable to load nearby farms"
             description={error}
             action={{
@@ -236,27 +257,45 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   }
 
   return (
-    <section className={`py-16 md:py-24 bg-white dark:bg-slate-950 ${className}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header - Seasonal and Dynamic */}
-        <div className="text-center mb-12">
+    <section className={`relative py-24 md:py-32 lg:py-40 overflow-hidden ${className}`}>
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0">
+        <Image
+          src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
+          alt=""
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority={false}
+        />
+        {/* Sophisticated multi-layer overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="text-center mb-16 md:mb-20">
+          {/* Vertical line accent */}
+          <div className="w-px h-12 bg-white/40 mx-auto mb-8" aria-hidden="true" />
+
           {/* Seasonal Tag */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 mb-6">
-            <span className="text-amber-600 dark:text-amber-400 font-semibold text-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
+            <span className="text-amber-300 font-medium text-sm">
               {seasonal.headline}
             </span>
-            <span className="text-amber-700 dark:text-amber-300 text-sm">
+            <span className="text-white/70 text-sm">
               {seasonal.subtext}
             </span>
           </div>
 
-          {/* Heading - slate-900 for maximum contrast (16.8:1) */}
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-50 mb-4">
+          {/* Heading */}
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal text-white mb-4 tracking-tight">
             {locationDenied ? 'Popular Farms Near London' : 'Farms Near You'}
           </h2>
 
-          {/* Description with live status - slate-700 for high contrast (8.6:1) */}
-          <p className="text-lg text-slate-700 dark:text-slate-300 max-w-2xl mx-auto mb-4">
+          {/* Description */}
+          <p className="text-base sm:text-lg text-white/70 max-w-2xl mx-auto mb-6 leading-relaxed">
             {locationDenied
               ? 'Discover these popular farm shops. Enable location to see farms closest to you.'
               : 'Discover local farm shops close to your location with fresh produce and more.'}
@@ -267,28 +306,30 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             <div className="inline-flex items-center gap-2 text-sm mb-6">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
               </span>
-              <span className="text-slate-600 dark:text-slate-400">
-                <span className="font-semibold text-emerald-600 dark:text-emerald-400">{openFarmsCount}</span>
+              <span className="text-white/70">
+                <span className="font-semibold text-emerald-400">{openFarmsCount}</span>
                 {' '}of {farms.length} farms open now
               </span>
-              <Clock className="w-4 h-4 text-slate-400 dark:text-slate-500 ml-1" />
+              <Clock className="w-4 h-4 text-white/50 ml-1" />
             </div>
           )}
 
+          {/* Vertical line accent */}
+          <div className="w-px h-12 bg-white/40 mx-auto mt-2" aria-hidden="true" />
+
           {/* Enable Location CTA */}
           {locationDenied && !showLocationHelp && (
-            <div className="inline-flex flex-col items-center gap-3">
-              <Button
-                variant="primary"
-                size="lg"
+            <div className="inline-flex flex-col items-center gap-3 mt-8">
+              <button
                 onClick={handleEnableLocation}
+                className="inline-flex items-center justify-center gap-2 h-12 px-6 bg-white text-slate-900 rounded-full text-sm font-medium transition-all hover:bg-white/90 hover:shadow-lg active:scale-[0.98]"
               >
-                <MapPin className="w-5 h-5 mr-2" />
+                <MapPin className="w-4 h-4" />
                 Enable Location
-              </Button>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              </button>
+              <p className="text-sm text-white/60">
                 {permissionState === 'denied'
                   ? 'Location was previously blocked. Click to see how to enable it.'
                   : 'Click "Allow" when your browser asks for permission'}
@@ -296,67 +337,63 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             </div>
           )}
 
-          {/* Location Help Panel - shown when permission is denied */}
+          {/* Location Help Panel */}
           {showLocationHelp && (
-            <div className="max-w-md mx-auto bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 text-left">
+            <div className="max-w-md mx-auto mt-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-left">
               <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 bg-amber-100 dark:bg-amber-900/30 rounded-lg">
-                  <Compass className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                <div className="p-2 bg-amber-500/20 rounded-lg">
+                  <Compass className="w-5 h-5 text-amber-300" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
+                  <h3 className="font-semibold text-white mb-1">
                     Enable Location Access
                   </h3>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                  <p className="text-sm text-white/60">
                     Location access was previously blocked. To enable it:
                   </p>
                 </div>
               </div>
 
-              <ol className="space-y-2 text-sm text-slate-700 dark:text-slate-300 mb-4 pl-4">
+              <ol className="space-y-2 text-sm text-white/80 mb-4 pl-4">
                 <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center justify-center">1</span>
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">1</span>
                   <span>Click the <strong>lock icon</strong> in your browser&apos;s address bar</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center justify-center">2</span>
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">2</span>
                   <span>Find <strong>Location</strong> in the permissions list</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center justify-center">3</span>
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">3</span>
                   <span>Change from &quot;Block&quot; to <strong>Allow</strong></span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center justify-center">4</span>
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">4</span>
                   <span>Refresh the page</span>
                 </li>
               </ol>
 
               <div className="flex gap-3">
-                <Button
-                  variant="secondary"
-                  size="sm"
+                <button
                   onClick={() => setShowLocationHelp(false)}
-                  className="flex-1"
+                  className="flex-1 h-10 px-4 bg-white/10 border border-white/20 text-white rounded-lg text-sm font-medium hover:bg-white/20 transition-colors"
                 >
                   Close
-                </Button>
-                <Button
-                  variant="primary"
-                  size="sm"
+                </button>
+                <button
                   onClick={() => window.location.reload()}
-                  className="flex-1"
+                  className="flex-1 h-10 px-4 bg-white text-slate-900 rounded-lg text-sm font-medium hover:bg-white/90 transition-colors"
                 >
                   Refresh Page
-                </Button>
+                </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Farm Grid - 4 columns on large screens */}
+        {/* Farm Grid */}
         {farms.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 md:mb-16">
             {farms.map((farm) => (
               <FarmCard
                 key={farm.id}
@@ -365,29 +402,29 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             ))}
           </div>
         ) : (
-          <EmptyState
-            icon={<MapPin className="w-16 h-16" />}
-            title="No farms found nearby"
-            description="Try exploring all farms or adjusting your location"
-            action={{
-              label: 'View all farms',
-              onClick: () => router.push('/shop'),
-              variant: 'primary'
-            }}
-          />
+          <div className="text-center py-12">
+            <MapPin className="w-16 h-16 text-white/40 mx-auto mb-4" />
+            <h3 className="text-xl font-medium text-white mb-2">No farms found nearby</h3>
+            <p className="text-white/60 mb-6">Try exploring all farms or adjusting your location</p>
+            <button
+              onClick={() => router.push('/shop')}
+              className="inline-flex items-center justify-center gap-2 h-12 px-6 bg-white text-slate-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors"
+            >
+              View all farms
+            </button>
+          </div>
         )}
 
         {/* Explore All CTA */}
         {farms.length > 0 && (
           <div className="text-center">
-            <Button
-              variant="secondary"
-              size="lg"
+            <button
               onClick={handleExploreAll}
+              className="inline-flex items-center justify-center gap-3 h-14 px-8 bg-white text-slate-900 rounded-full text-sm tracking-[0.05em] font-medium transition-all duration-300 hover:bg-white/90 hover:shadow-lg hover:shadow-white/20 active:scale-[0.98]"
             >
-              <Navigation className="w-5 h-5 mr-2" />
+              <Navigation className="w-4 h-4" />
               Explore All Farms on Map
-            </Button>
+            </button>
           </div>
         )}
       </div>
