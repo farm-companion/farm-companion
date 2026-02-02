@@ -76,9 +76,9 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
   const apiImage = apiImages[0]
   
   // Use API image if available and preferred, otherwise fall back to static
-  const displayImage = (useApiImage && hasApiImages) ? apiImage : staticImage
-  const imageUrl = displayImage?.url || displayImage?.src
-  const imageAlt = displayImage?.alt || `${produce.name} image`
+  const showApiImage = useApiImage && hasApiImages
+  const imageUrl = showApiImage ? apiImage?.url : staticImage?.src
+  const imageAlt = showApiImage ? (apiImage?.alt || `${produce.name} image`) : (staticImage?.alt || `${produce.name} image`)
 
   return (
     <Link

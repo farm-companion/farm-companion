@@ -2,15 +2,6 @@ import Link from 'next/link'
 import { getCachedTopCategories } from '@/lib/server-cache-categories'
 import { Badge } from './ui/Badge'
 
-interface CategoryWithCount {
-  id: string
-  name: string
-  slug: string
-  description: string | null
-  icon: string | null
-  farmCount: number
-}
-
 interface CategoryGridProps {
   limit?: number
   featured?: boolean
@@ -39,7 +30,7 @@ export async function CategoryGrid({ limit = 12, featured = false }: CategoryGri
 
         {/* Category Grid */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-          {categories.map((category: CategoryWithCount) => (
+          {categories.map((category) => (
             <Link
               key={category.id}
               href={`/categories/${category.slug}`}
