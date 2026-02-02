@@ -300,11 +300,11 @@ Beyond the food, farm cafés offer:
   },
   {
     slug: 'best-lavender-farms',
-    title: 'Best Lavender Farms in the UK',
+    title: 'Top Farm Cafés & Lavender Fields in the UK',
     metaTitle: 'Best Lavender Farms in the UK (2026) | Visit & Pick',
     metaDescription: 'Discover the best lavender farms in the UK. Walk through fragrant purple fields, pick your own lavender, and browse artisan lavender products.',
-    heading: 'Top Lavender Farms for a Fragrant Day Out',
-    intro: 'Experience the beauty and fragrance of lavender at these outstanding farms across the UK. From walking through purple fields in bloom to picking your own stems and browsing artisan products, these farms offer unforgettable sensory experiences.',
+    heading: 'Top Farm Cafés & Lavender Fields in the UK',
+    intro: 'Experience the beauty and fragrance of lavender at these outstanding farms across the UK, paired with exceptional farm cafes serving lavender-infused menus and seasonal produce.',
     content: `## Why Visit a Lavender Farm?
 
 Lavender farms have become increasingly popular destinations in the UK. The stunning purple fields provide incredible photo opportunities, the fragrance is calming and uplifting, and many farms offer pick-your-own experiences alongside artisan lavender products.
@@ -344,7 +344,40 @@ Lavender farms typically offer:
     category: 'lavender-farms',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-27',
+    updateDate: '2026-02-02',
+    articleNumber: 4,
+    persona: 'The Aesthetic Seeker',
+    approach: 'Sensory Immersion',
+    editorialIntro: `## Purple Vales and Field Plates: Britain's Most Photogenic Flavours
+
+The British lavender season is brief, intense, and extraordinarily beautiful. For roughly six weeks between late June and mid-August, a handful of farms across the UK transform into rolling carpets of purple and blue, attracting photographers, wellness seekers, and families in equal measure. Paired with the growing farm cafe movement, which puts the harvest at the centre of the plate, these are among the most visually and gastronomically rewarding day trips Britain offers.
+
+What distinguishes the best lavender destinations from mere photo opportunities is the depth of experience on offer. The farms featured here have developed programmes that go well beyond walking between the rows: distilleries producing essential oils, cafes serving lavender-infused menus, wellness experiences from yoga to wild swimming, and overnight stays that allow visitors to experience the fields at dawn and dusk when the light is most extraordinary.
+
+The economics of lavender farming in Britain are marginal without diversification. A pure agricultural operation cannot compete with imports from Provence or Bulgaria. What British growers have realised is that the experience itself, the chance to stand in a purple field with bees humming and the scent rising in the summer heat, has value that transcends the commodity price of dried lavender. The farms that have thrived are those that have built complete visitor experiences around their crops.`,
+    farmProfiles: [
+      {
+        name: 'Mayfield Lavender Farm',
+        location: 'Banstead, Surrey',
+        description: `Fifteen miles from central London and accessible by a thirty-minute train from Victoria, Mayfield is the UK's only certified organic lavender farm. The 25-acre site grows three varieties of French and English lavender across gently undulating fields that have become one of the most photographed landscapes in the South East. Strategic props, a red telephone box, a vintage tractor, a caravan, are placed throughout the fields, creating ready-made compositions for every level of photographer.
+
+Beyond the visual appeal, Mayfield runs bee safari experiences, sunset yoga sessions, and guided farm tours during the season. The on-site cafe serves lavender-infused cream teas and a homemade lavender cider that is worth the journey alone. Peak bloom is typically the first three weeks of July, though this varies with weather. Weekday mornings offer the best combination of light and space.`
+      },
+      {
+        name: "Farmers' Welsh Lavender",
+        location: 'Builth Wells, Powys',
+        description: `For a markedly different lavender experience, Welsh Lavender sits at 1,100 feet in the hills north of the Brecon Beacons, one of the highest-altitude lavender operations in Britain. The remote setting means fewer crowds and a dramatically different atmosphere: rolling Welsh hills, distant mountain views, and a sense of genuine isolation. Self-guided tours take in the fields, a distillery where essential oils are extracted, and a wild swimming pond fed by a natural spring.
+
+The products, balms, lotions, and soaps made from the high-altitude lavender, are available on-site and through a dedicated shop in Hay-on-Wye. For visitors willing to go further, glamping in a converted removal van among the lavender fields is available for overnight stays.`
+      },
+      {
+        name: 'Riverford Field Kitchen',
+        location: 'Buckfastleigh, Devon',
+        description: `While not a lavender farm, Riverford's Field Kitchen represents the pinnacle of the farm cafe movement that pairs naturally with lavender tourism. The restaurant sits at the heart of Riverford's organic vegetable operation, serving a daily-changing menu built entirely around what has been harvested that morning. Long communal tables encourage conversation between strangers, and the format, a set menu with dishes placed family-style in the centre, creates a sense of shared occasion.
+
+The kitchen sources from the surrounding fields, visible through floor-to-ceiling windows, and from the broader network of Riverford's partner farms. Seasonal specials might include broad beans picked hours earlier, heritage tomatoes at peak ripeness, or squash roasted with herbs grown meters from the dining room. It is farm-to-table dining with genuine proximity, not marketing abstraction.`
+      }
+    ],
     faqs: [
       {
         question: 'When is the best time to visit a lavender farm?',
