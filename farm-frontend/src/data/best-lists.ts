@@ -171,7 +171,33 @@ Most PYO farms provide:
     category: 'pick-your-own',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    articleNumber: 6,
+    persona: 'The Family Explorer',
+    approach: 'Hands-On Discovery',
+    editorialIntro: `## From Earth to Basket: The Renaissance of PYO
+
+There is something fundamentally corrective about standing in a field with a punnet in your hand and stained fingers. In an era where children can navigate a tablet before they can identify a broad bean, pick-your-own farms offer something no app can replicate: the weight of a sun-warmed strawberry, the satisfying snap of a runner bean from its vine, and the realisation that food is seasonal, finite, and worth a small effort. The PYO sector has grown significantly since 2020, driven by families seeking outdoor, screen-free experiences with tangible rewards.
+
+What distinguishes the best PYO operations from simple fruit fields is the completeness of the experience. The farms featured here have invested in visitor infrastructure, educational signage, and complementary offerings that transform a picking trip into a full day out. Farm shops stocked with produce from the same fields, cafes serving what was harvested that morning, and seasonal events that bring families back year after year.
+
+The economics of PYO have also evolved. Labour costs for fruit picking have risen sharply, making customer-harvested produce increasingly attractive to growers. The result is a genuine alignment of interests: farms reduce their labour burden while visitors gain access to fresher produce at competitive prices, picked at the precise moment of ripeness rather than days before.`,
+    farmProfiles: [
+      {
+        name: 'Crockford Bridge Farm',
+        location: 'Addlestone, Surrey',
+        description: `Situated within the Surrey Metropolitan Green Belt and just off Junction 11 of the M25, Crockford Bridge Farm is one of the most accessible PYO operations for Londoners. The farm grows over twenty seasonal crops across its fields, from asparagus in April through to pumpkins in October. Their integrated crop management policy uses natural predators for pest control, reducing reliance on chemical intervention.
+
+Crockford Bridge operates on a pre-booked Farm Pass system, which helps manage footfall across the growing season. The farm shop stocks locally sourced produce year-round, and the Pumpkin Festival in October has become a fixture in the family events calendar for the Home Counties. Practical note: buggies are not permitted in the picking fields due to irrigation damage, so bring a baby carrier if you have young children.`
+      },
+      {
+        name: 'Trevaskis Farm',
+        location: 'Connor Downs, Cornwall',
+        description: `Trevaskis is a destination rather than a detour. Set across 28 acres of Cornish countryside near Hayle, it has been run by the same family for over forty years and offers more than a hundred crops across the growing season. The PYO fields are complemented by a substantial farm shop and butchery selling the farm's own home-reared meats, and the Farmhouse Kitchen Restaurant is renowned for its generous portions and daily-changing menus built around what has just been harvested.
+
+What sets Trevaskis apart is its educational ethos. Information signs are placed throughout the farm to help visitors understand crop cycles, and the operation has been established as a key educational resource for schools in the South West. The strawberry trestles are raised off the ground, making them accessible for wheelchair users and those with limited mobility, a thoughtful detail that too many PYO operations overlook.`
+      }
+    ],
     faqs: [
       {
         question: 'When is PYO season?',
