@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getProduceImages } from '@/lib/produce-integration'
+import { getProduceImages, type ProduceImageResponse } from '@/lib/produce-integration'
+import { type ImageSource } from '@/lib/image-utils'
 
 interface ProduceCardProps {
   produce: {
     slug: string
     name: string
-    images: any[]
+    images: ImageSource[]
     monthsInSeason?: number[]
   }
   month: number
@@ -17,7 +18,7 @@ interface ProduceCardProps {
 }
 
 export default function ProduceCard({ produce, month, className = '' }: ProduceCardProps) {
-  const [apiImages, setApiImages] = useState<any[]>([])
+  const [apiImages, setApiImages] = useState<ProduceImageResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [useApiImage, setUseApiImage] = useState(true)
   const [effectiveMonth, setEffectiveMonth] = useState(month)

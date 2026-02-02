@@ -6,11 +6,12 @@ import ApiProduceImage, { ApiProduceGallery } from '@/components/ApiProduceImage
 import { Button } from '@/components/ui/Button'
 import { Camera, Image as ImageIcon } from 'lucide-react'
 import { getProduceImages } from '@/lib/produce-integration'
+import { type ImageSource } from '@/lib/image-utils'
 
 interface ClientProduceImagesProps {
   produceSlug: string
   produceName: string
-  staticImages: any[]
+  staticImages: ImageSource[]
   month?: number
   showToggle?: boolean
   className?: string
@@ -119,7 +120,7 @@ export default function ClientProduceImages({
 interface ClientProduceImageProps {
   produceSlug: string
   produceName: string
-  staticImage: any
+  staticImage: ImageSource
   month?: number
   showToggle?: boolean
   className?: string
