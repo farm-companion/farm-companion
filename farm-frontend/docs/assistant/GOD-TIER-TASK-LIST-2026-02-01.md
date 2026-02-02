@@ -116,10 +116,11 @@ curl -X POST "https://www.farmcompanion.co.uk/api/admin/generate-images?limit=10
 **Status:** All user-facing components fixed
 
 **Fixed:**
-- Seasonal components: InSeasonNow, FindStockists
-- County components: RegionFilter, CuratorsChoice, CountyDensityBadge
+- Seasonal components: InSeasonNow, FindStockists, SeasonProgress.tsx, SeasonalGrid.tsx
+- County components: RegionFilter, CuratorsChoice, CountyDensityBadge, counties/[slug]/page.tsx
 - Header/Navigation: Header.tsx, MegaMenu.tsx, LocationContext.tsx (inverted mode)
 - Best pages: best/page.tsx (text-slate-500 -> text-slate-600 dark:text-slate-300)
+- FeaturedGuides.tsx: Added dark mode to footer text
 - categories/page.tsx, BentoGrid, FAQAccordion: Already compliant (text-slate-600 dark:text-slate-400)
 
 **Remaining (Low Priority - Internal Only):**
