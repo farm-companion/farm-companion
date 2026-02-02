@@ -176,39 +176,39 @@ interface FarmProfileSectionProps {
   showImage?: boolean
 }
 
-// Fallback produce images from blob storage
+// Editorial fallback images - atmospheric farm and produce photography
 const FALLBACK_IMAGES = [
   {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/1/main.webp',
-    alt: 'Fresh vine-ripened British tomatoes'
+    src: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1600&q=80&auto=format',
+    alt: 'Organic vegetable garden in morning mist'
   },
   {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/1/main.webp',
-    alt: 'Fresh British kale leaves'
+    src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1600&q=80&auto=format',
+    alt: 'Golden hour light across farmland'
   },
   {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/carrots/1/main.webp',
-    alt: 'Fresh orange British carrots with green tops'
+    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80&auto=format',
+    alt: 'Fresh harvest arranged on rustic table'
   },
   {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/1/main.webp',
-    alt: 'Fresh British asparagus spears'
+    src: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format',
+    alt: 'Pastoral British countryside'
   },
   {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/1/main.webp',
-    alt: 'Fresh British strawberries with morning dew'
+    src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80&auto=format',
+    alt: 'Greenhouse rows in afternoon light'
   },
   {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/1/main.webp',
-    alt: 'Fresh British apples in autumn orchard'
+    src: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=80&auto=format',
+    alt: 'Artisan produce display'
   },
   {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broad-beans/1/main.webp',
-    alt: 'Fresh broad beans in pods'
+    src: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1600&q=80&auto=format',
+    alt: 'Dairy cows grazing in green pasture'
   },
   {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/1/main.webp',
-    alt: 'Fresh dark green spinach leaves'
+    src: 'https://images.unsplash.com/photo-1499002238440-d264f04f1758?w=1600&q=80&auto=format',
+    alt: 'Lavender fields stretching to horizon'
   }
 ]
 

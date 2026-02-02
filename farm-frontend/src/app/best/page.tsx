@@ -34,54 +34,54 @@ export const metadata: Metadata = {
   },
 }
 
-// Curated images for editorial cards
+// Curated editorial images - atmospheric, magazine-quality photography
 const EDITORIAL_IMAGES: Record<string, { src: string; alt: string }> = {
   'best-organic-farms-uk': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/1/main.webp',
-    alt: 'Fresh organic kale leaves',
+    src: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1200&q=80&auto=format',
+    alt: 'Organic vegetable garden rows at golden hour',
   },
   'top-pick-your-own-farms': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/1/main.webp',
-    alt: 'Fresh strawberries with morning dew',
+    src: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1200&q=80&auto=format',
+    alt: 'Sun-drenched strawberry fields ready for harvest',
   },
   'best-farm-shops-london': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/1/main.webp',
-    alt: 'Fresh vine-ripened tomatoes',
+    src: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80&auto=format',
+    alt: 'Artisan produce display in rustic farm shop',
   },
   'top-farm-cafes-uk': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/1/main.webp',
-    alt: 'Fresh British apples',
+    src: 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1200&q=80&auto=format',
+    alt: 'Rustic farmhouse cafe with morning light',
   },
   'best-lavender-farms': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/1/main.webp',
-    alt: 'Fresh asparagus spears',
+    src: 'https://images.unsplash.com/photo-1499002238440-d264f04f1758?w=1200&q=80&auto=format',
+    alt: 'Rolling lavender fields in summer bloom',
   },
   'best-farmers-markets-uk': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/carrots/1/main.webp',
-    alt: 'Fresh orange carrots',
+    src: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80&auto=format',
+    alt: 'Vibrant farmers market stall at dawn',
   },
   'top-veg-box-schemes-uk': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broad-beans/1/main.webp',
-    alt: 'Fresh broad beans',
+    src: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1200&q=80&auto=format',
+    alt: 'Freshly harvested seasonal vegetables in wooden crate',
   },
   'best-farm-school-visits-uk': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/peas/1/main.webp',
-    alt: 'Fresh garden peas',
+    src: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1200&q=80&auto=format',
+    alt: 'Pastoral farmland with grazing sheep',
   },
   'top-ice-cream-farms-uk': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/raspberries/1/main.webp',
-    alt: 'Fresh raspberries',
+    src: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1200&q=80&auto=format',
+    alt: 'Dairy cows in lush green pasture',
   },
   'best-cheese-makers-uk': {
-    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/1/main.webp',
-    alt: 'Fresh spinach leaves',
+    src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1200&q=80&auto=format',
+    alt: 'Artisan cheese wheels aging in cellar',
   },
 }
 
-// Default image for guides without specific images
+// Default image - atmospheric farm landscape
 const DEFAULT_IMAGE = {
-  src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/2/main.webp',
-  alt: 'Fresh farm produce',
+  src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1200&q=80&auto=format',
+  alt: 'Golden hour over British farmland',
 }
 
 export default function BestGuidesPage() {

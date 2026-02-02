@@ -71,33 +71,53 @@ export async function generateMetadata({ params }: BestPageProps): Promise<Metad
   }
 }
 
-// Curated hero images for each guide
+// Curated hero images - dramatic, atmospheric editorial photography
 const HERO_IMAGES: Record<string, { src: string; alt: string }> = {
   'best-organic-farms-uk': {
-    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format',
-    alt: 'Fresh organic vegetables in morning light',
+    src: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1920&q=80&auto=format',
+    alt: 'Organic vegetable garden rows stretching toward misty hills',
   },
   'top-pick-your-own-farms': {
-    src: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=1920&q=80&auto=format',
-    alt: 'Strawberry fields ready for picking',
+    src: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1920&q=80&auto=format',
+    alt: 'Golden sunlight filtering through strawberry fields',
   },
   'best-farm-shops-london': {
-    src: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1920&q=80&auto=format',
-    alt: 'Fresh produce display at a farm shop',
+    src: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&q=80&auto=format',
+    alt: 'Artisan produce beautifully arranged in rustic farm shop',
   },
   'top-farm-cafes-uk': {
-    src: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1920&q=80&auto=format',
-    alt: 'Rustic farm cafe interior',
+    src: 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1920&q=80&auto=format',
+    alt: 'Warm morning light in a countryside farmhouse cafe',
   },
   'best-lavender-farms': {
     src: 'https://images.unsplash.com/photo-1499002238440-d264f04f1758?w=1920&q=80&auto=format',
-    alt: 'Purple lavender fields in bloom',
+    alt: 'Endless rows of purple lavender under summer sky',
+  },
+  'best-farmers-markets-uk': {
+    src: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1920&q=80&auto=format',
+    alt: 'Early morning at the farmers market',
+  },
+  'top-veg-box-schemes-uk': {
+    src: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1920&q=80&auto=format',
+    alt: 'Fresh seasonal harvest in rustic wooden crate',
+  },
+  'best-farm-school-visits-uk': {
+    src: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1920&q=80&auto=format',
+    alt: 'Idyllic British farmland with grazing livestock',
+  },
+  'top-ice-cream-farms-uk': {
+    src: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1920&q=80&auto=format',
+    alt: 'Dairy herd in verdant pasture at dawn',
+  },
+  'best-cheese-makers-uk': {
+    src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1920&q=80&auto=format',
+    alt: 'Aged artisan cheese wheels in traditional cellar',
   },
 }
 
 const DEFAULT_HERO = {
   src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1920&q=80&auto=format',
-  alt: 'Golden hour sunlight over British farmland',
+  alt: 'Golden hour light sweeping across British farmland',
 }
 
 export default async function BestPage({ params }: BestPageProps) {
