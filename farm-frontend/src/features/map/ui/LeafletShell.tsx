@@ -256,8 +256,6 @@ export default function LeafletShell({
       onMapLoad?.(map)
       onMapReady?.(map)
 
-      console.log('[LeafletShell] Map initialized successfully')
-
     } catch (err) {
       console.error('[LeafletShell] Failed to initialize map:', err)
       setError('Failed to load map')
@@ -312,8 +310,6 @@ export default function LeafletShell({
 
       clusterGroup.addLayer(marker)
     })
-
-    console.log(`[LeafletShell] Added ${farms.length} markers`)
   }, [farms, selectedFarmId, hoveredFarmId, handleMarkerClick, onFarmHover])
 
   // Pan to selected farm

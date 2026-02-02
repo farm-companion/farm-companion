@@ -48,7 +48,6 @@ export default function ClientProduceImages({
         
         const testImages = await getProduceImages(produceSlug, testMonth)
         if (testImages.length > 0) {
-          console.log(`Found ${testImages.length} images for ${produceSlug} in month ${testMonth}, using those instead of month ${month}`)
           setEffectiveMonth(testMonth)
           return
         }

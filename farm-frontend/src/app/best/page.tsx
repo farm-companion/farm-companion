@@ -125,7 +125,7 @@ export default function BestGuidesPage() {
                     <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
                       {list.intro}
                     </p>
-                    <div className="flex items-center justify-between text-small text-slate-500">
+                    <div className="flex items-center justify-between text-small text-slate-600 dark:text-slate-300">
                       <span>
                         Updated: {new Date(list.updateDate).toLocaleDateString('en-GB', {
                           day: 'numeric',
@@ -162,7 +162,7 @@ export default function BestGuidesPage() {
                     <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
                       {list.intro}
                     </p>
-                    <div className="flex items-center justify-between text-small text-slate-500">
+                    <div className="flex items-center justify-between text-small text-slate-600 dark:text-slate-300">
                       <span>
                         Updated: {new Date(list.updateDate).toLocaleDateString('en-GB', {
                           day: 'numeric',

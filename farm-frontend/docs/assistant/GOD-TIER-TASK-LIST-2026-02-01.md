@@ -112,16 +112,18 @@ curl -X POST "https://www.farmcompanion.co.uk/api/admin/generate-images?limit=10
 ### 2.1 Google Fonts Build Failure - DONE
 **Status:** COMPLETED - See item #4 in Completed section
 
-### 2.2 Remaining Contrast Issues - MOSTLY DONE
-**Status:** Core user-facing components fixed
+### 2.2 Remaining Contrast Issues - DONE
+**Status:** All user-facing components fixed
 
 **Fixed:**
 - Seasonal components: InSeasonNow, FindStockists
 - County components: RegionFilter, CuratorsChoice, CountyDensityBadge
+- Header/Navigation: Header.tsx, MegaMenu.tsx, LocationContext.tsx (inverted mode)
+- Best pages: best/page.tsx (text-slate-500 -> text-slate-600 dark:text-slate-300)
+- categories/page.tsx, BentoGrid, FAQAccordion: Already compliant (text-slate-600 dark:text-slate-400)
 
-**Still Needs Work (Lower Priority):**
-- Best/Category pages: best/page.tsx, categories/page.tsx, BentoGrid, FAQAccordion
-- Admin pages (80+ replacements, internal users only)
+**Remaining (Low Priority - Internal Only):**
+- Admin pages (80+ replacements, internal users only - not user-facing)
 
 ---
 
@@ -150,10 +152,15 @@ curl -X POST "https://www.farmcompanion.co.uk/api/admin/generate-images?limit=10
 
 ## PRIORITY 4: LOW (Polish)
 
-### 4.1 Console Logs Cleanup
-- 57 console.logs remain in codebase
-- 4 in MapLibreShell.tsx (debug/warnings)
-- 2 in LeafletShell.tsx
+### 4.1 Console Logs Cleanup - DONE (User-Facing)
+- Removed debug logs from user-facing components:
+  - MapLibreShell.tsx: 4 debug logs removed
+  - LeafletShell.tsx: 2 debug logs removed
+  - ClientProduceImages.tsx: 1 debug log removed
+  - ProduceCard.tsx: 1 debug log removed
+  - QuickActions.tsx: 1 debug log removed
+  - claim/page.tsx: 4 debug logs removed
+- Remaining: Scripts (acceptable), Admin pages (internal), Error handlers (needed)
 
 ### 4.2 TypeScript Type Coverage
 - ~350 type issues (mostly `any` types)

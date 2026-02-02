@@ -37,7 +37,6 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
             
             const testImages = await getProduceImages(produce.slug, testMonth)
             if (testImages.length > 0) {
-              console.log(`Found ${testImages.length} images for ${produce.slug} in month ${testMonth}, using those instead of month ${month}`)
               images = testImages
               setEffectiveMonth(testMonth)
               break
