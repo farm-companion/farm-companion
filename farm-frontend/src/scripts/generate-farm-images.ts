@@ -207,6 +207,7 @@ async function generateFarmImages() {
               altText: `${farm.name} farm shop`,
               uploadedBy: 'ai_generator',
               status: 'approved',
+              isHero: true,
               displayOrder: 0
             }
           })
