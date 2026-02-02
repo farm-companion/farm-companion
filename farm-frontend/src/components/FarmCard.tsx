@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { MapPin, Navigation, CheckCircle, ExternalLink } from 'lucide-react'
@@ -35,8 +35,9 @@ export function FarmCard({
   onDirections,
   selected = false,
 }: FarmCardProps) {
+  const [imageError, setImageError] = useState(false)
   const firstImageUrl = farm.images?.[0] ? getImageUrl(farm.images[0]) : undefined
-  const hasPhotos = !!firstImageUrl
+  const hasPhotos = !!firstImageUrl && !imageError
   const isVerified = farm.verified || false
 
   const handleDirections = (e: React.MouseEvent) => {
@@ -78,6 +79,7 @@ export function FarmCard({
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700">
