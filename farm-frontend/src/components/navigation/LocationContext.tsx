@@ -111,11 +111,11 @@ export function LocationContext({
   }
 
   const textColor = inverted
-    ? 'text-white/70'
-    : 'text-slate-500 dark:text-slate-400'
+    ? 'text-white/90'
+    : 'text-slate-600 dark:text-slate-300'
 
   const accentColor = inverted
-    ? 'text-white'
+    ? 'text-white font-medium'
     : 'text-primary-600 dark:text-primary-400'
 
   if (variant === 'minimal') {

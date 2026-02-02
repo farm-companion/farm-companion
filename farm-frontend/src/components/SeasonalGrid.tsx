@@ -141,7 +141,7 @@ export default function SeasonalGrid({
               </span>
             </span>
           </div>
-          <ProduceGrid items={inSeasonItems} />
+          <ProduceGrid items={inSeasonItems} currentMonth={selectedMonth === 0 ? currentMonth : selectedMonth} />
         </section>
       )}
 
@@ -161,7 +161,7 @@ export default function SeasonalGrid({
               </span>
             </span>
           </div>
-          <ProduceGrid items={comingSoonItems} />
+          <ProduceGrid items={comingSoonItems} currentMonth={currentMonth} />
         </section>
       )}
 
@@ -179,9 +179,10 @@ export default function SeasonalGrid({
 
 interface ProduceGridProps {
   items: (EnrichedProduce & { isInSeasonForMonth?: boolean; isPeakForMonth?: boolean })[]
+  currentMonth: number
 }
 
-function ProduceGrid({ items }: ProduceGridProps) {
+function ProduceGrid({ items, currentMonth }: ProduceGridProps) {
   return (
     <motion.div
       layout
@@ -193,6 +194,7 @@ function ProduceGrid({ items }: ProduceGridProps) {
             key={produce.slug}
             produce={produce}
             index={index}
+            currentMonth={currentMonth}
           />
         ))}
       </AnimatePresence>
@@ -203,9 +205,10 @@ function ProduceGrid({ items }: ProduceGridProps) {
 interface ProduceCardItemProps {
   produce: EnrichedProduce & { isInSeasonForMonth?: boolean; isPeakForMonth?: boolean }
   index: number
+  currentMonth: number
 }
 
-function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
+function ProduceCardItem({ produce, index, currentMonth }: ProduceCardItemProps) {
   const seasonColors = SEASON_COLORS[produce.primarySeason]
   const imageUrl = produce.images?.[0]?.src || '/placeholder-produce.jpg'
   const altText = produce.images?.[0]?.alt || `Fresh ${produce.name}`
@@ -219,8 +222,7 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
   // Get category for this produce
   const category = produce.category || getProduceCategory(produce.slug)
 
-  // Calculate season progress if in season
-  const currentMonth = new Date().getMonth() + 1
+  // Calculate season progress if in season (using passed currentMonth to avoid hydration mismatch)
   const isCurrentlyInSeason = produce.monthsInSeason.includes(currentMonth)
   const monthIndex = produce.monthsInSeason.indexOf(currentMonth)
   const seasonProgress = isCurrentlyInSeason
@@ -311,7 +313,7 @@ function ProduceCardItem({ produce, index }: ProduceCardItemProps) {
                     style={{ width: `${seasonProgress}%` }}
                   />
                 </div>
-                <span className="text-[10px] text-slate-500 font-medium">
+                <span className="text-[10px] text-slate-600 dark:text-slate-400 font-medium">
                   {seasonProgress}%
                 </span>
               </div>

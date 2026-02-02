@@ -133,7 +133,7 @@ export function SeasonProgress({
         </div>
 
         {daysRemaining !== null && (
-          <span className="text-slate-500 dark:text-slate-500">
+          <span className="text-slate-600 dark:text-slate-400">
             {formatDaysRemaining(daysRemaining)}
           </span>
         )}

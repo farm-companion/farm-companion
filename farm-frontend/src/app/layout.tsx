@@ -1,7 +1,20 @@
 import './globals.css'
 
+// Self-hosted fonts via @fontsource (avoids Google Fonts API dependency)
+import '@fontsource/manrope/400.css'
+import '@fontsource/manrope/500.css'
+import '@fontsource/manrope/600.css'
+import '@fontsource/manrope/700.css'
+import '@fontsource/ibm-plex-sans/400.css'
+import '@fontsource/ibm-plex-sans/600.css'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
+import '@fontsource/ibm-plex-mono/600.css'
+import '@fontsource/crimson-pro/400.css'
+import '@fontsource/crimson-pro/600.css'
+import '@fontsource/crimson-pro/700.css'
+
 import type { Metadata } from 'next'
-import { Manrope, IBM_Plex_Sans, IBM_Plex_Mono, Crimson_Pro } from 'next/font/google'
 import Script from 'next/script'
 // import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
@@ -18,38 +31,7 @@ import { SITE_URL } from '@/lib/site'
 // Modern Swiss Minimalism Font Stack
 // Primary: Clash Display (self-hosted via CSS @font-face)
 // Note: Clash Display is loaded via CSS in fonts.css, no need for Next.js font loader
-
-// Secondary: Manrope (geometric sans, ultra-readable)
-const manrope = Manrope({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-body',
-  weight: ['400', '500', '600', '700'],
-})
-
-// Accent: IBM Plex Sans Condensed (tight, functional)
-const plexCondensed = IBM_Plex_Sans({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '600'],
-  variable: '--font-accent',
-})
-
-// Mono: IBM Plex Mono (technical, precise, tabular figures for metrics)
-const plexMono = IBM_Plex_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '500', '600'],
-  variable: '--font-mono',
-})
-
-// Serif: Crimson Pro (editorial, magazine-style)
-const crimsonPro = Crimson_Pro({
-  subsets: ['latin'],
-  display: 'swap',
-  weight: ['400', '600', '700'],
-  variable: '--font-serif',
-})
+// All other fonts loaded via @fontsource packages (self-hosted, no external API calls)
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -147,7 +129,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   }
 
   return (
-    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${plexCondensed.variable} ${plexMono.variable} ${crimsonPro.variable}`}>
+    <html lang="en" suppressHydrationWarning>
       <head>
         {/* Site-wide structured data - optimized with next/script */}
         <Script

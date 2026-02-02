@@ -1,6 +1,12 @@
 import Script from 'next/script'
 
-const JsonLd = ({ data }: { data: any }) => (
+interface JsonLdData {
+  '@context': string
+  '@type': string
+  [key: string]: unknown
+}
+
+const JsonLd = ({ data }: { data: JsonLdData }) => (
   <Script
     id="jsonld"
     type="application/ld+json"

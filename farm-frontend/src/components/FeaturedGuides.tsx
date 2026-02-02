@@ -1,8 +1,15 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { bestLists } from '@/data/best-lists'
 import { Badge } from './ui/Badge'
 import { BookOpen, ArrowRight } from 'lucide-react'
 
+/**
+ * FeaturedGuides - Luxury Editorial Section
+ *
+ * LV-inspired design with full-bleed background image,
+ * sophisticated gradient overlay, and elegant card styling.
+ */
 export function FeaturedGuides() {
   // Get featured guides only
   const featuredGuides = bestLists.filter((list) => list.featured).slice(0, 3)
@@ -12,62 +19,87 @@ export function FeaturedGuides() {
   }
 
   return (
-    <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-950">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <section className="relative py-24 md:py-32 lg:py-40 overflow-hidden">
+      {/* Background Image with Overlay */}
+      <div className="absolute inset-0">
+        <Image
+          src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1920&q=80&auto=format"
+          alt=""
+          fill
+          className="object-cover"
+          sizes="100vw"
+          priority={false}
+        />
+        {/* Sophisticated multi-layer overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
+        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
+      </div>
+
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
         {/* Section Header */}
-        <div className="text-center mb-8 md:mb-12">
-          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 bg-brand-primary/10 rounded-full mb-3 sm:mb-4">
-            <BookOpen className="w-7 h-7 sm:w-8 sm:h-8 text-brand-primary" />
+        <div className="text-center mb-16 md:mb-20">
+          {/* Vertical line accent */}
+          <div className="w-px h-12 bg-white/40 mx-auto mb-8" aria-hidden="true" />
+
+          <div className="inline-flex items-center justify-center w-16 h-16 border border-white/30 rounded-full mb-6">
+            <BookOpen className="w-7 h-7 text-white/90" />
           </div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-text-heading mb-3 md:mb-4">
+
+          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal text-white mb-4 tracking-tight">
             Curated Farm Guides
           </h2>
-          <p className="text-body sm:text-lg text-text-muted max-w-2xl mx-auto px-4">
+
+          <p className="text-base sm:text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
             Expert recommendations and comprehensive guides to help you discover the best farms across the UK
           </p>
+
+          {/* Vertical line accent */}
+          <div className="w-px h-12 bg-white/40 mx-auto mt-8" aria-hidden="true" />
         </div>
 
         {/* Featured Guides Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-8 md:mb-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 mb-12 md:mb-16">
           {featuredGuides.map((guide) => (
             <Link
               key={guide.slug}
               href={`/best/${guide.slug}`}
-              className="group relative bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-1 hover:border-brand-primary dark:hover:border-brand-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+              className="group relative bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden transition-all duration-500 hover:bg-white/15 hover:border-white/40 hover:-translate-y-1 active:scale-[0.98]"
             >
               {/* Card Content */}
-              <div className="p-5 sm:p-6">
+              <div className="p-6 sm:p-8">
                 {/* Badge */}
-                <div className="mb-3 sm:mb-4">
-                  <Badge variant="default" size="sm">
+                <div className="mb-4">
+                  <span className="inline-flex items-center px-3 py-1 text-xs tracking-[0.1em] uppercase bg-white/20 text-white/90 rounded-full">
                     Editor&apos;s Choice
-                  </Badge>
+                  </span>
                 </div>
 
                 {/* Title */}
-                <h3 className="text-lg sm:text-xl font-semibold text-slate-900 dark:text-white mb-2 sm:mb-3 group-hover:text-brand-primary transition-colors leading-tight">
+                <h3 className="font-serif text-xl sm:text-2xl font-normal text-white mb-3 group-hover:text-white/90 transition-colors leading-tight">
                   {guide.title}
                 </h3>
 
                 {/* Intro */}
-                <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-3 sm:mb-4">
+                <p className="text-sm text-white/60 line-clamp-3 mb-6 leading-relaxed">
                   {guide.intro}
                 </p>
 
                 {/* Footer */}
-                <div className="flex items-center justify-between text-xs sm:text-caption text-slate-500">
+                <div className="flex items-center justify-between text-xs text-white/50">
                   <span>
                     {guide.faqs?.length || 0} {guide.faqs?.length === 1 ? 'FAQ' : 'FAQs'}
                   </span>
-                  <span className="inline-flex items-center gap-1 text-brand-primary font-medium group-hover:gap-2 transition-all">
+                  <span className="inline-flex items-center gap-2 text-white/80 font-medium group-hover:gap-3 transition-all">
                     Read Guide
-                    <ArrowRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <ArrowRight className="w-4 h-4" />
                   </span>
                 </div>
               </div>
 
-              {/* Decorative Element */}
-              <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-bl-full transform translate-x-8 -translate-y-8 group-hover:scale-150 transition-transform duration-500" />
+              {/* Subtle hover glow */}
+              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                <div className="absolute inset-0 bg-gradient-to-t from-white/5 to-transparent" />
+              </div>
             </Link>
           ))}
         </div>
@@ -76,10 +108,10 @@ export function FeaturedGuides() {
         <div className="text-center">
           <Link
             href="/best"
-            className="inline-flex items-center justify-center gap-2 h-12 sm:h-14 px-6 sm:px-8 bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white rounded-lg text-caption sm:text-body font-medium transition-all hover:border-brand-primary hover:shadow-md active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+            className="inline-flex items-center justify-center gap-3 h-14 px-8 bg-white text-slate-900 rounded-full text-sm tracking-[0.05em] font-medium transition-all duration-300 hover:bg-white/90 hover:shadow-lg hover:shadow-white/20 active:scale-[0.98]"
           >
             View All Guides
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
+            <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
       </div>

@@ -5,6 +5,13 @@
  * Each list is manually curated to provide genuine value to users.
  */
 
+export interface FarmProfile {
+  name: string
+  slug?: string // Database slug to link to actual farm for images
+  location: string // e.g., "Tetbury, Gloucestershire"
+  description: string // Rich narrative description
+}
+
 export interface BestList {
   slug: string
   title: string
@@ -18,6 +25,13 @@ export interface BestList {
   featured: boolean
   publishDate: string
   updateDate: string
+  // Editorial fields
+  articleNumber?: number
+  persona?: string // e.g., "The Investigative Journalist"
+  approach?: string // e.g., "Radical Transparency"
+  seoKeywords?: string[] // Target SEO keywords
+  editorialIntro?: string // Long-form editorial introduction
+  farmProfiles?: FarmProfile[] // Detailed farm write-ups
   faqs: Array<{
     question: string
     answer: string
@@ -27,10 +41,10 @@ export interface BestList {
 export const bestLists: BestList[] = [
   {
     slug: 'best-organic-farms-uk',
-    title: 'Best Organic Farms in the UK',
+    title: 'The Best Organic Farms in the UK',
     metaTitle: 'Top 20 Best Organic Farms in the UK (2026) | Farm Companion',
     metaDescription: 'Discover the best organic farms in the UK. From certified organic producers to biodynamic farms, find top-rated organic farms near you.',
-    heading: '20 Best Organic Farms in the UK',
+    heading: 'The Best Organic Farms in the UK',
     intro: 'Discover the finest organic farms across the UK, from certified organic producers to pioneering biodynamic farms. These farms are committed to sustainable agriculture, animal welfare, and producing the highest quality organic food.',
     content: `## Why Choose Organic?
 
@@ -51,7 +65,60 @@ We've included organic farms from across the UK, ensuring representation from En
     category: 'organic-farms',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    // Editorial fields
+    articleNumber: 1,
+    persona: 'The Investigative Journalist',
+    approach: 'Radical Transparency',
+    seoKeywords: [
+      'best organic farms UK',
+      'organic farm shops near me',
+      'Soil Association certified farms',
+      'regenerative farming UK',
+      'organic meat delivery UK'
+    ],
+    editorialIntro: `## The New Gold Standard: Why UK Organic Farming Deserves Your Attention
+
+Organic farming in Britain is no longer a niche pursuit for the affluent or the idealistic. It is a measurable, auditable system of land stewardship that directly affects soil carbon, pollinator populations, and the nutritional profile of the food on your plate. The Soil Association, which certifies the majority of UK organic producers, requires farms to meet standards that go well beyond the absence of synthetic pesticides: crop rotations, restricted antibiotic use, and minimum periods of outdoor grazing are all mandated. Understanding what sits behind the logo is the first step toward spending your food budget with genuine intention.
+
+What follows is not a ranking but a curated selection of farms whose practices have been independently verified and whose contributions to British agriculture are substantive. Each has been chosen for transparency, innovation, and the quality of what they produce.`,
+    farmProfiles: [
+      {
+        name: 'Duchy Home Farm (Broadfield Farm)',
+        location: 'Tetbury, Gloucestershire',
+        description: `If any single operation can be said to have legitimised organic farming in the British mainstream, it is the Duchy Home Farm. Situated at Broadfield Farm near Tetbury, this is the agricultural heart of the Duchy of Cornwall estate. The conversion to organic methods began in 1986 under farm manager David Wilson, and the entire holding achieved full Soil Association organic status by 1996. Today the farm extends to approximately 1,120 acres in-hand, with a further 800 acres of share-farmed land managed organically.
+
+The system is a textbook example of mixed farming: livestock are integrated with herbal leys and arable rotations, building soil fertility without synthetic inputs. Rare breed cattle and heritage grain varieties are maintained alongside the commercial operation, and the farm has long been associated with the Soil Association at a governance level. For consumers, produce from the estate is available through the Duchy Organic range and the Duchy Home Farm box scheme. It is a working proof-of-concept that organic mixed farming can operate at meaningful commercial scale.`
+      },
+      {
+        name: 'Forest Farm Dairy',
+        location: 'Kinellar, Aberdeenshire',
+        description: `Scotland's oldest organic dairy, Forest Farm has been certified organic since 1998, when Anthony and Anne Willis converted what was then known as Glasgoforest Farm. The family's commitment to organic principles runs deep, with the herd grazing permanent pastures that have never seen synthetic fertiliser.
+
+The dairy produces award-winning organic milk, cream, and butter, all processed on-site in their own facility. Their herd of Ayrshire and Holstein-Friesian crosses are known for producing rich, creamy milk with a distinctive flavour that reflects the Scottish terroir. The farm shop welcomes visitors and offers a window into genuine organic dairy production.`
+      },
+      {
+        name: 'Riverford Organic Farmers',
+        location: 'Buckfastleigh, Devon',
+        description: `What began as Guy Watson delivering vegetables from his wheelbarrow in 1987 has become one of Britain's largest organic vegetable box schemes. Riverford now delivers to over 50,000 households weekly from its network of sister farms across the country. The main farm at Wash Barn in Devon remains the heart of operations.
+
+Beyond scale, Riverford is notable for its employee ownership model, adopted in 2018, which transferred 74% of shares to staff. The Field Kitchen restaurant on the Devon farm showcases produce at its peak, while farm tours offer unvarnished insight into commercial organic vegetable production. The operation proves that ethical business structures and organic certification can coexist with genuine commercial success.`
+      },
+      {
+        name: 'Yeo Valley Organic',
+        location: 'Blagdon, Somerset',
+        description: `The Mead family has farmed at Holt Farm in the Yeo Valley since 1961. Organic conversion began in 1994, driven by Tim Mead's conviction that sustainable dairy farming was both commercially viable and environmentally essential. Today Yeo Valley Organic is the UK's largest organic dairy brand.
+
+The farm itself remains a working demonstration of organic principles: 1,500 acres supporting a mixed system of dairy, beef, and arable production. Wildlife corridors, restored hedgerows, and extensive tree planting reflect the company's commitment to biodiversity. The Yeo Valley Organic Garden, open to visitors, showcases organic horticulture principles alongside the commercial dairy operation.`
+      },
+      {
+        name: 'Daylesford Organic',
+        location: 'Kingham, Cotswolds',
+        description: `Daylesford represents perhaps the most comprehensive organic estate in Britain. Under the stewardship of Carole Bamford, the farm has developed an integrated system encompassing dairy, beef, lamb, pigs, poultry, market garden, bakery, and creamery across 2,350 acres in the Cotswolds plus additional land in Staffordshire.
+
+The on-site farm shop and cafe have become a destination in their own right, though the real substance lies in the farming itself. Soil Association certification covers the entire operation, from the heritage grain varieties grown for the bakery to the raw milk cheese aged in the estate's own cellars. It demonstrates what organic farming can achieve when resources permit comprehensive integration.`
+      }
+    ],
     faqs: [
       {
         question: 'What does organic certification mean?',
@@ -104,7 +171,33 @@ Most PYO farms provide:
     category: 'pick-your-own',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    articleNumber: 6,
+    persona: 'The Family Explorer',
+    approach: 'Hands-On Discovery',
+    editorialIntro: `## From Earth to Basket: The Renaissance of PYO
+
+There is something fundamentally corrective about standing in a field with a punnet in your hand and stained fingers. In an era where children can navigate a tablet before they can identify a broad bean, pick-your-own farms offer something no app can replicate: the weight of a sun-warmed strawberry, the satisfying snap of a runner bean from its vine, and the realisation that food is seasonal, finite, and worth a small effort. The PYO sector has grown significantly since 2020, driven by families seeking outdoor, screen-free experiences with tangible rewards.
+
+What distinguishes the best PYO operations from simple fruit fields is the completeness of the experience. The farms featured here have invested in visitor infrastructure, educational signage, and complementary offerings that transform a picking trip into a full day out. Farm shops stocked with produce from the same fields, cafes serving what was harvested that morning, and seasonal events that bring families back year after year.
+
+The economics of PYO have also evolved. Labour costs for fruit picking have risen sharply, making customer-harvested produce increasingly attractive to growers. The result is a genuine alignment of interests: farms reduce their labour burden while visitors gain access to fresher produce at competitive prices, picked at the precise moment of ripeness rather than days before.`,
+    farmProfiles: [
+      {
+        name: 'Crockford Bridge Farm',
+        location: 'Addlestone, Surrey',
+        description: `Situated within the Surrey Metropolitan Green Belt and just off Junction 11 of the M25, Crockford Bridge Farm is one of the most accessible PYO operations for Londoners. The farm grows over twenty seasonal crops across its fields, from asparagus in April through to pumpkins in October. Their integrated crop management policy uses natural predators for pest control, reducing reliance on chemical intervention.
+
+Crockford Bridge operates on a pre-booked Farm Pass system, which helps manage footfall across the growing season. The farm shop stocks locally sourced produce year-round, and the Pumpkin Festival in October has become a fixture in the family events calendar for the Home Counties. Practical note: buggies are not permitted in the picking fields due to irrigation damage, so bring a baby carrier if you have young children.`
+      },
+      {
+        name: 'Trevaskis Farm',
+        location: 'Connor Downs, Cornwall',
+        description: `Trevaskis is a destination rather than a detour. Set across 28 acres of Cornish countryside near Hayle, it has been run by the same family for over forty years and offers more than a hundred crops across the growing season. The PYO fields are complemented by a substantial farm shop and butchery selling the farm's own home-reared meats, and the Farmhouse Kitchen Restaurant is renowned for its generous portions and daily-changing menus built around what has just been harvested.
+
+What sets Trevaskis apart is its educational ethos. Information signs are placed throughout the farm to help visitors understand crop cycles, and the operation has been established as a key educational resource for schools in the South West. The strawberry trestles are raised off the ground, making them accessible for wheelchair users and those with limited mobility, a thoughtful detail that too many PYO operations overlook.`
+      }
+    ],
     faqs: [
       {
         question: 'When is PYO season?',
@@ -160,7 +253,33 @@ This guide includes farms in:
     region: 'london',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    articleNumber: 5,
+    persona: 'The Discerning Londoner',
+    approach: 'Provenance First',
+    editorialIntro: `## The Larder of the Home Counties: Real Provenance Within Reach
+
+The proliferation of "premium" supermarket ranges has blurred the line between genuine provenance and clever branding. A farm shop, at its best, eliminates that ambiguity entirely. You can see where the beef was raised, ask the butcher which field the lamb came from, and buy vegetables that were in the ground that morning. For Londoners willing to make a short journey, or combine it with a weekend walk, the Home Counties offer farm shops of exceptional quality.
+
+What distinguishes a genuine farm shop from a rural deli selling bought-in produce is the depth of connection to the land. The shops featured here either farm their own livestock and grow their own vegetables, or maintain direct relationships with named producers whose practices they can vouch for. The result is food with a story, and a quality that justifies the journey.
+
+The economics of farm retail have shifted significantly since the pandemic. Consumer appetite for traceable, local food has grown, while the challenges of supplying supermarkets have pushed many farms toward direct sales. The beneficiaries are shoppers who value knowing exactly what they are eating and where it came from.`,
+    farmProfiles: [
+      {
+        name: 'Windsor Farm Shop',
+        location: 'Old Windsor, Berkshire',
+        description: `Founded by Prince Philip, Duke of Edinburgh, in 2001, the Windsor Farm Shop occupies converted Victorian potting sheds on the edge of the Windsor Estate's Home Park. It is perhaps the most storied farm shop in Britain, and its provenance credentials are unimpeachable: beef and pork come directly from the Windsor Farms, lamb from Bagshot Park, and seasonal game, venison, pheasant, partridge, from the wider estate. The butchery counter is the centrepiece, with handmade sausages crafted from Windsor Farm pork each week.
+
+The delicatessen stocks artisanal British cheeses, homemade pies, and quiches baked on site. Fresh bread arrives daily from local bakers. The attached cafe serves light meals in a farm kitchen setting. A note of honesty: following the management transfer to the Crown Estate in late 2024, some regular visitors have noted changes to the range and atmosphere. It remains, however, a destination of genuine quality and historical significance.`
+      },
+      {
+        name: 'Farm Shop at Durslade Farm (Hauser & Wirth)',
+        location: 'Bruton, Somerset, and Mayfair, London',
+        description: `If the Windsor Farm Shop represents heritage, Farm Shop represents the intersection of agriculture and contemporary culture. Established on the edge of the 1,000-acre Durslade Farm in Bruton, home to the internationally acclaimed Hauser & Wirth gallery, the Somerset shop opened in 2020 with an in-house forager, butchery counter, and produce drawn from the farm's own herds of Aberdeen Angus, Hereford, and Wagyu-cross cattle.
+
+In 2024, the Artfarm hospitality group (Hauser & Wirth's food and drink arm) opened a second Farm Shop at 64 South Audley Street in Mayfair. The 4,000-square-foot venue includes a butchery, cheese room, deli, and a forty-cover wine bar in the basement. Products include wine from the estate's own Durslade Vineyards and a hyper-seasonal wild food range from in-house foraging. It brings genuine farm provenance to central London without compromise.`
+      }
+    ],
     faqs: [
       {
         question: 'How far from London are these farm shops?',
@@ -215,7 +334,33 @@ Beyond the food, farm cafés offer:
     category: 'farm-cafes',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    articleNumber: 7,
+    persona: 'The Gastronome',
+    approach: 'Culinary Excellence',
+    editorialIntro: `## The New British Table: Where Fields Meet Fine Dining
+
+There is a particular magic to eating within sight of where your food was grown, watching kitchen gardeners harvest lettuces metres from your table, or knowing the lamb on your plate grazed the fields you drove past to reach the restaurant. Britain's farm cafe scene has matured dramatically, evolving from simple tearoom fare into some of the country's most exciting dining destinations. From three-Michelin-starred establishments with their own biodynamic farms to family-run operations where you will find chickens wandering past the terrace, these fifteen venues represent the best of British farm-to-table dining.
+
+The economics of farm dining have shifted fundamentally. Rising food costs and supply chain fragility have made self-sufficiency not just philosophically appealing but commercially sensible. Restaurants that once relied entirely on suppliers now grow significant portions of their own produce, raising their own livestock, and foraging from their own land. The result is menus of unprecedented freshness and seasonality, dishes that could not exist anywhere else because they depend on ingredients that travel metres rather than miles.
+
+What distinguishes genuine farm-to-table from marketing rhetoric is measurable proximity. The restaurants featured here can tell you not just which farm supplied your vegetables, but which field, which row, which morning they were picked. This is cooking with a postcode, and it represents the most significant development in British dining since the gastropub revolution.`,
+    farmProfiles: [
+      {
+        name: "L'Enclume",
+        location: 'Cartmel, Cumbria',
+        description: `At the pinnacle of the farm-to-table movement sits L'Enclume in Cartmel, Cumbria, the only restaurant in the North to hold three Michelin stars. Chef Simon Rogan's nearby twelve-acre Our Farm supplies over ninety percent of the kitchen's produce, with harvest to plate often measured in minutes rather than hours. The farm, designed by chefs for chefs, grows everything from Japanese wineberries to elkhorn fern, while rare-breed sheep and cattle graze rotationally.
+
+The twenty-course tasting menu, priced at two hundred and sixty-five pounds, represents British produce-driven cooking at its absolute zenith. Dishes emerge from the garden's daily yield, meaning no two visits are identical. Rogan's approach treats the farm as an extension of the kitchen, with growing decisions made to serve culinary rather than agricultural logic. It is a model that has influenced a generation of British chefs.`
+      },
+      {
+        name: 'The Black Swan at Oldstead',
+        location: 'Oldstead, North Yorkshire',
+        description: `In North Yorkshire, The Black Swan at Oldstead showcases what happens when farming families turn to fine dining. The Banks family have farmed around Oldstead for generations, and chef Tommy Banks, Britain's youngest Michelin-starred chef when he earned the accolade in 2013, draws from a 160-acre family farm and two-acre kitchen garden adjoining the sixteenth-century inn.
+
+The restaurant holds a Michelin star and a Green Star for sustainability, and was once rated the world's best restaurant by TripAdvisor. Preservation techniques allow the team to serve garden produce year-round, with dinner priced at one hundred and seventy-five pounds. The setting, a converted village pub in the North York Moors, belies the sophistication of the cooking. This is destination dining that remains rooted in its agricultural origins.`
+      }
+    ],
     faqs: [
       {
         question: 'Do farm cafés cater to dietary requirements?',
@@ -233,11 +378,11 @@ Beyond the food, farm cafés offer:
   },
   {
     slug: 'best-lavender-farms',
-    title: 'Best Lavender Farms in the UK',
+    title: 'Top Farm Cafés & Lavender Fields in the UK',
     metaTitle: 'Best Lavender Farms in the UK (2026) | Visit & Pick',
     metaDescription: 'Discover the best lavender farms in the UK. Walk through fragrant purple fields, pick your own lavender, and browse artisan lavender products.',
-    heading: 'Top Lavender Farms for a Fragrant Day Out',
-    intro: 'Experience the beauty and fragrance of lavender at these outstanding farms across the UK. From walking through purple fields in bloom to picking your own stems and browsing artisan products, these farms offer unforgettable sensory experiences.',
+    heading: 'Top Farm Cafés & Lavender Fields in the UK',
+    intro: 'Experience the beauty and fragrance of lavender at these outstanding farms across the UK, paired with exceptional farm cafes serving lavender-infused menus and seasonal produce.',
     content: `## Why Visit a Lavender Farm?
 
 Lavender farms have become increasingly popular destinations in the UK. The stunning purple fields provide incredible photo opportunities, the fragrance is calming and uplifting, and many farms offer pick-your-own experiences alongside artisan lavender products.
@@ -277,7 +422,40 @@ Lavender farms typically offer:
     category: 'lavender-farms',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-27',
+    updateDate: '2026-02-02',
+    articleNumber: 4,
+    persona: 'The Aesthetic Seeker',
+    approach: 'Sensory Immersion',
+    editorialIntro: `## Purple Vales and Field Plates: Britain's Most Photogenic Flavours
+
+The British lavender season is brief, intense, and extraordinarily beautiful. For roughly six weeks between late June and mid-August, a handful of farms across the UK transform into rolling carpets of purple and blue, attracting photographers, wellness seekers, and families in equal measure. Paired with the growing farm cafe movement, which puts the harvest at the centre of the plate, these are among the most visually and gastronomically rewarding day trips Britain offers.
+
+What distinguishes the best lavender destinations from mere photo opportunities is the depth of experience on offer. The farms featured here have developed programmes that go well beyond walking between the rows: distilleries producing essential oils, cafes serving lavender-infused menus, wellness experiences from yoga to wild swimming, and overnight stays that allow visitors to experience the fields at dawn and dusk when the light is most extraordinary.
+
+The economics of lavender farming in Britain are marginal without diversification. A pure agricultural operation cannot compete with imports from Provence or Bulgaria. What British growers have realised is that the experience itself, the chance to stand in a purple field with bees humming and the scent rising in the summer heat, has value that transcends the commodity price of dried lavender. The farms that have thrived are those that have built complete visitor experiences around their crops.`,
+    farmProfiles: [
+      {
+        name: 'Mayfield Lavender Farm',
+        location: 'Banstead, Surrey',
+        description: `Fifteen miles from central London and accessible by a thirty-minute train from Victoria, Mayfield is the UK's only certified organic lavender farm. The 25-acre site grows three varieties of French and English lavender across gently undulating fields that have become one of the most photographed landscapes in the South East. Strategic props, a red telephone box, a vintage tractor, a caravan, are placed throughout the fields, creating ready-made compositions for every level of photographer.
+
+Beyond the visual appeal, Mayfield runs bee safari experiences, sunset yoga sessions, and guided farm tours during the season. The on-site cafe serves lavender-infused cream teas and a homemade lavender cider that is worth the journey alone. Peak bloom is typically the first three weeks of July, though this varies with weather. Weekday mornings offer the best combination of light and space.`
+      },
+      {
+        name: "Farmers' Welsh Lavender",
+        location: 'Builth Wells, Powys',
+        description: `For a markedly different lavender experience, Welsh Lavender sits at 1,100 feet in the hills north of the Brecon Beacons, one of the highest-altitude lavender operations in Britain. The remote setting means fewer crowds and a dramatically different atmosphere: rolling Welsh hills, distant mountain views, and a sense of genuine isolation. Self-guided tours take in the fields, a distillery where essential oils are extracted, and a wild swimming pond fed by a natural spring.
+
+The products, balms, lotions, and soaps made from the high-altitude lavender, are available on-site and through a dedicated shop in Hay-on-Wye. For visitors willing to go further, glamping in a converted removal van among the lavender fields is available for overnight stays.`
+      },
+      {
+        name: 'Riverford Field Kitchen',
+        location: 'Buckfastleigh, Devon',
+        description: `While not a lavender farm, Riverford's Field Kitchen represents the pinnacle of the farm cafe movement that pairs naturally with lavender tourism. The restaurant sits at the heart of Riverford's organic vegetable operation, serving a daily-changing menu built entirely around what has been harvested that morning. Long communal tables encourage conversation between strangers, and the format, a set menu with dishes placed family-style in the centre, creates a sense of shared occasion.
+
+The kitchen sources from the surrounding fields, visible through floor-to-ceiling windows, and from the broader network of Riverford's partner farms. Seasonal specials might include broad beans picked hours earlier, heritage tomatoes at peak ripeness, or squash roasted with herbs grown meters from the dining room. It is farm-to-table dining with genuine proximity, not marketing abstraction.`
+      }
+    ],
     faqs: [
       {
         question: 'When is the best time to visit a lavender farm?',
@@ -325,7 +503,33 @@ Farmers markets are social events:
 - Often include live music or entertainment`,
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    articleNumber: 8,
+    persona: 'The Local Food Advocate',
+    approach: 'Community Connection',
+    editorialIntro: `## Where Local Really Means Something
+
+In an era of identikit supermarket aisles and vacuum-sealed anonymity, Britain's farmers markets remain gloriously defiant. Muddy carrots still clinging to the earth, eggs warm from the nest, and cheeses so pungent they demand conversation. Since Bath opened the UK's first farmers market in 1997, the movement has blossomed to over 600 markets nationwide, offering a direct line between field and fork. From Victorian market halls to castle-shadowed car parks, these markets are where food tells its story and producers become neighbours. Here we celebrate fifteen markets where local really means something.
+
+The resurgence of farmers markets reflects a broader cultural shift toward provenance and transparency. Shoppers increasingly want to know not just where their food comes from, but who grew it, how it was raised, and what the animal ate. These questions, unanswerable in a supermarket aisle, are the currency of market conversation. The producer behind the stall has answers because they were there, in the field at dawn, in the dairy at midnight, at the slaughterhouse they chose for its ethics.
+
+What distinguishes the best markets from mere assemblies of stalls is curation and commitment. The finest enforce strict local sourcing rules, reject resellers, and require producers to attend in person. The result is authenticity that cannot be faked: seasonal gaps when crops fail, excited announcements when new varieties succeed, and the gradual building of relationships that transcend transaction.`,
+    farmProfiles: [
+      {
+        name: 'Bath Farmers\' Market, Somerset',
+        location: 'Green Park Station, Bath BA1 1JB | Saturdays, 9am-1.30pm',
+        description: `Where it all began. In September 1997, Bath and North East Somerset Council launched what became the UK's first farmers market, responding to Local Agenda 21's call for sustainable development. What started as a monthly affair beneath the magnificent Victorian train shed roof has grown into a weekly institution, with producers travelling from across the South West to sell directly to the city's discerning shoppers.
+
+Almost everything comes from within a 40-mile radius. Somerset Charcuterie with their Saddleback pork, Wild Venison from local estates, and Tunley Farm's free-range poultry. The market became a limited company in 1998 and went weekly in 2002 due to overwhelming demand. Today, stalls laden with Duskin's single-variety apple juices and artisan cheeses fill the space where Victorian travellers once caught trains to the North.`
+      },
+      {
+        name: 'Borough Market, London',
+        location: '8 Southwark Street, London SE1 1TL | Tuesday-Sunday (check hours)',
+        description: `Borough Market claims roots stretching back over 1,000 years, with the first documented mention in 1276, though the market itself believes trading occurred as early as 1014 when Southwark was described as a 'great market town.' The current Victorian buildings date from the 1850s, with the stunning portico salvaged from the old Royal Opera House's Floral Hall in 2004.
+
+After decades as a wholesale operation supplying London's greengrocers, the market reinvented itself in the late 1990s when Henrietta Green's Food Lovers' Fair attracted specialty traders including Neal's Yard Dairy and Monmouth Coffee Company. Today, over 100 traders make it Britain's most celebrated food market, a destination that draws tourists and chefs alike to its cathedral of gastronomy beneath the railway arches.`
+      }
+    ],
     faqs: [
       {
         question: 'How do farmers markets differ from regular markets?',
@@ -343,11 +547,11 @@ Farmers markets are social events:
   },
   {
     slug: 'top-veg-box-schemes-uk',
-    title: 'Top Vegetable Box Delivery Schemes',
+    title: 'Vegetable Boxes & Farm School Visits',
     metaTitle: 'Best Veg Box Schemes in the UK (2026) | Organic Vegetable Delivery',
     metaDescription: 'Find the best vegetable box delivery schemes in the UK. Get fresh, local, often organic vegetables delivered to your door weekly.',
-    heading: 'Best Vegetable Box Schemes for Home Delivery',
-    intro: 'Discover the convenience of fresh, seasonal vegetables delivered directly to your door. These top-rated veg box schemes source from local farms, offer organic options, and make eating seasonally easy and affordable.',
+    heading: 'Vegetable Boxes & Farm School Visits',
+    intro: 'Discover the convenience of fresh, seasonal vegetables delivered directly to your door, and explore educational farm experiences that connect children with where food comes from.',
     content: `## What is a Veg Box Scheme?
 
 Vegetable box schemes deliver fresh, seasonal produce directly from farms to your door, usually weekly or fortnightly. They're an easy way to eat more vegetables, support local farmers, and reduce food miles.
@@ -383,7 +587,62 @@ Consider:
     category: 'veg-box-schemes',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    articleNumber: 3,
+    persona: 'The Family Strategist',
+    approach: 'Practical Discovery',
+    editorialIntro: `## The Future of the Family Table: Subscription and Education
+
+The weekly vegetable box has quietly become one of the most significant shifts in British domestic food culture since the supermarket revolution of the 1960s. What began as a lifeline for small organic growers struggling to compete with retail giants has evolved into a mainstream option that now reaches hundreds of thousands of households. Simultaneously, educational farm visits have moved beyond novelty school trips to become structured curriculum experiences that teach children not just where food comes from, but the science, economics, and ecology of food production.
+
+These two developments share a common thread: they represent an active rejection of food ignorance. The veg box forces engagement with seasonality and cooking from scratch. The farm visit creates tangible connections between soil, animal husbandry, and the food on the plate. Together, they are reshaping how British families relate to food.
+
+## Vegetable Boxes: Beyond the Big Two
+
+The UK veg box market is dominated by two employee-owned cooperatives, Riverford and Abel & Cole, which between them deliver to over 100,000 households weekly. Both have built their businesses on organic certification, ethical sourcing, and the elimination of single-use plastic. Riverford, founded by Guy Watson in Devon in 1987, pioneered the modern box scheme model and remains notable for its farm tours, recipe development, and commitment to seasonal UK produce even when imports would be more profitable.
+
+Abel & Cole, established in 1988, has carved a complementary niche with a broader product range that includes meat, dairy, and household goods alongside vegetables. Their logistics operation, centred on electric delivery vehicles in urban areas, has made organic food accessible to time-poor city households who might never visit a farmers market.
+
+Beyond these two, a network of regional and hyper-local schemes operates across the UK. Many are run directly by single farms, delivering within a fifteen-mile radius and offering produce picked the same morning it arrives. These micro-schemes often provide the freshest vegetables available anywhere in the British food system, though their limited scale means availability can be unpredictable.
+
+## The Economics of the Box
+
+A medium organic veg box from a major scheme typically costs between fourteen and eighteen pounds and contains enough produce for a household of three to four people for a week. Compared to supermarket organic vegetables, this represents a saving of twenty to thirty percent. Compared to supermarket conventional produce, the premium is modest, typically three to five pounds per week. The real cost saving, however, lies in reduced food waste: surveys consistently show that veg box subscribers waste significantly less food than average households, because the box creates meal planning discipline.
+
+## Farm School Visits: STEM in the Soil
+
+Educational farm visits have undergone a transformation from petting zoos to structured learning environments. The best farms now offer curriculum-linked programmes that align with national curriculum objectives in science, geography, mathematics, and personal development. A single farm visit can address learning objectives spanning biology, environmental science, economics, and nutrition.
+
+Cotswold Farm Park, founded by rare breeds conservationist Adam Henson, exemplifies this evolution. The farm's education programme hosts over 30,000 school children annually, with sessions designed by qualified teachers and aligned to specific Key Stage objectives. Children count livestock, measure feed quantities, observe life cycles, and learn about sustainable land management through direct experience rather than textbook description.`,
+    farmProfiles: [
+      {
+        name: 'Riverford Organic',
+        location: 'Wash Barn, Buckfastleigh, Devon',
+        description: `Riverford's story begins with Guy Watson delivering vegetables from a wheelbarrow in 1987. Today the company delivers over 50,000 boxes weekly from a network of sister farms across the UK. The Devon headquarters at Wash Barn remains the operational and philosophical heart of the business.
+
+The 2018 transition to employee ownership transferred seventy-four percent of shares to staff, making Riverford one of the largest employee-owned businesses in the UK food sector. This structure has enabled the company to resist the short-term profit pressures that have compromised many organic pioneers. The Field Kitchen restaurant on site showcases produce at peak seasonality, while farm tours offer unvarnished insight into the realities of commercial organic vegetable production.
+
+Riverford's box contents are dictated by what grows well in British conditions at any given time. This means purple sprouting broccoli in March, broad beans in June, squash in October. The accompanying recipe cards have become collector's items for regular subscribers, teaching a generation of home cooks to embrace seasonal constraints as creative opportunities.`
+      },
+      {
+        name: 'Abel & Cole',
+        location: 'Wimbledon, London',
+        description: `Abel & Cole has succeeded in making organic food convenient for urban households who might otherwise default to supermarket shopping. Founded in 1988 by Keith Abel selling potatoes door-to-door in London, the company now serves over 50,000 customers weekly across England and Wales.
+
+The company's logistics innovation has been as significant as its produce sourcing. Electric delivery vehicles now cover much of London and other urban centres, while the elimination of single-use plastic packaging predates similar moves by major retailers by several years. The product range extends well beyond vegetables to include dairy, meat, fish, bread, and household goods, allowing customers to do a substantial weekly shop from a single ethical source.
+
+Abel & Cole sources from over 150 suppliers, prioritising organic certification and UK origin where seasonally possible. Their farm partnership model provides growers with guaranteed orders and fair prices, creating stability that allows small producers to invest in sustainable practices.`
+      },
+      {
+        name: 'Cotswold Farm Park',
+        location: 'Guiting Power, Cheltenham, Gloucestershire',
+        description: `Founded in 1971 by Joe Henson and now run by his son Adam, Cotswold Farm Park is both a working farm and a rare breeds conservation centre. The farm maintains breeding populations of over fifty rare and traditional British livestock breeds, many of which would otherwise face extinction.
+
+The education programme has evolved from informal farm visits into a structured curriculum offering. Over 30,000 school children visit annually, participating in sessions designed by qualified educators and aligned to specific national curriculum objectives. Children engage with mathematics through feed calculations, biology through animal life cycles, geography through food miles and land use, and personal development through responsibility for animal welfare.
+
+The farm demonstrates that conservation, education, and commercial viability can coexist. The rare breed livestock are not museum pieces but working animals whose meat is sold through the farm shop and local butchers. Educational visits generate revenue that supports the conservation mission. It is a model of sustainable diversification that many smaller farms are now seeking to emulate.`
+      }
+    ],
     faqs: [
       {
         question: 'Can I choose what\'s in my veg box?',
@@ -515,11 +774,31 @@ Beyond ice cream, these farms often offer:
   },
   {
     slug: 'best-cheese-makers-uk',
-    title: 'Best Artisan Cheese Makers in the UK',
-    metaTitle: 'Top 15 Best Cheese Makers in the UK (2026) | Artisan Cheese',
+    title: 'Artisan Cheese & Ice Cream Farms in the UK',
+    metaTitle: 'Best Artisan Cheese Makers in the UK (2026) | Farmhouse Dairy',
     metaDescription: 'Discover the UK\'s finest artisan cheese makers. From traditional farmhouse cheddar to innovative new varieties, find award-winning British cheese.',
-    heading: 'Top Artisan Cheese Makers & Farmhouse Dairies',
-    intro: 'Explore the UK\'s thriving artisan cheese scene with these exceptional cheese makers. From traditional farmhouse cheddar to innovative new varieties, British cheese makers are producing world-class cheeses that rival any in Europe.',
+    heading: 'Artisan Cheese & Ice Cream Farms in the UK',
+    intro: 'Explore the UK\'s thriving artisan cheese scene with these exceptional cheese makers. British cheese is in the midst of a renaissance that has been decades in the making.',
+    articleNumber: 2,
+    persona: 'The Dairy Connoisseur',
+    approach: 'Artisan Excellence',
+    editorialIntro: `British cheese is in the midst of a renaissance that has been decades in the making. The post-war consolidation of dairy into industrial creameries nearly destroyed a tradition stretching back to medieval monastic farming. What has survived, and what a new generation of makers is building, is a canon of cheese that stands comparison with anything produced in France or Italy. At the same time, British farm ice cream has moved beyond seaside novelty into serious dairy craft. Both are expressions of terroir: the grass, the breed, the microclimate, and the skill of the maker.`,
+    farmProfiles: [
+      {
+        name: 'Lincolnshire Poacher',
+        location: 'Ulceby Grange Farm, Lincolnshire Wolds',
+        description: `Made by Simon and Tim Jones at Ulceby Grange Farm in the Lincolnshire Wolds, Lincolnshire Poacher is a raw-milk, thermophilic cheese that matures for fourteen to twenty-two months. The milk comes exclusively from the farm's own herd of Holstein-Friesians, and the cheese is made using a recipe that draws on West Country cheddar and Alpine Comte traditions without being a direct copy of either. The result is a cheese of remarkable complexity: nutty, fruity, with a long savoury finish that develops in the mouth.
+
+Lincolnshire Poacher has won Supreme Champion at the British Cheese Awards and is widely regarded by cheesemongers as one of the finest British territorial cheeses currently in production. The use of raw (unpasteurised) milk is critical: it carries the native bacterial cultures of the farm, giving the cheese a microbial signature that pasteurised alternatives cannot replicate.`,
+      },
+      {
+        name: "Montgomery's Cheddar",
+        location: 'Manor Farm, North Cadbury, Somerset',
+        description: `If there is a single cheese that embodies the idea of "real" cheddar, it is Jamie Montgomery's production at Manor Farm, North Cadbury, Somerset. Montgomery's is one of only three remaining producers of traditional cloth-bound, unpasteurised cheddar made with the farm's own milk using animal rennet and pint starters. The cheese is matured for twelve to eighteen months in the farm's own stores, developing a deep, earthy, almost meaty intensity that bears no resemblance to the industrially produced block cheddar that accounts for the vast majority of UK consumption.
+
+The rind of a Montgomery's wheel is a living ecosystem, the microbiome of moulds and bacteria that develops over the maturation period is unique to the farm's environment and contributes substantially to the final flavour. It is a cheese that rewards patience, both in its making and its eating.`,
+      },
+    ],
     content: `## British Artisan Cheese
 
 The UK has a rich cheese-making heritage, and today's artisan cheese makers combine traditional methods with innovation to create award-winning cheeses. Many operate on small farms, using milk from their own herds.

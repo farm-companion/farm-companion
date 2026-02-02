@@ -153,7 +153,6 @@ export default function MapLibreShell({
     if (!mapContainerRef.current || mapRef.current) return
 
     const mapStyle = getMapStyle(false)
-    console.log('[MapLibreShell] Using map style:', typeof mapStyle === 'string' ? mapStyle : 'OSM Raster Object')
 
     // Calculate padding for initial bounds - account for sidebar on desktop
     const isDesktopView = typeof window !== 'undefined' && window.innerWidth >= 768
@@ -239,15 +238,6 @@ export default function MapLibreShell({
       }
     })
 
-    // Debug: log when style is loaded
-    map.on('styledata', () => {
-      console.log('[MapLibreShell] Style loaded successfully')
-    })
-
-    // Debug: log tile errors
-    map.on('sourcedataerror', (e) => {
-      console.warn('[MapLibreShell] Source error:', e.sourceId, e.error)
-    })
 
     return () => {
       if (moveTimeout) clearTimeout(moveTimeout)
@@ -361,7 +351,6 @@ export default function MapLibreShell({
       // Validate coordinates before creating marker
       const [lng, lat] = item.geometry.coordinates
       if (!Number.isFinite(lng) || !Number.isFinite(lat) || lng === 0 && lat === 0) {
-        console.warn('[MapLibreShell] Invalid coordinates, skipping marker:', { lng, lat, item })
         return
       }
 

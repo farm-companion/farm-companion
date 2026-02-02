@@ -13,6 +13,9 @@ import type { Metadata } from 'next'
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
 
+// Use dynamic rendering to prevent connection pool exhaustion during build
+export const dynamic = 'force-dynamic'
+
 // Metadata for SEO and clarity
 export const metadata: Metadata = {
   title: 'Farm Shops by County | Farm Companion',

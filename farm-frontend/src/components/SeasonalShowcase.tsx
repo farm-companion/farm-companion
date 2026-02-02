@@ -59,10 +59,16 @@ export function SeasonalShowcase({ className = '' }: SeasonalShowcaseProps) {
     setCurrentIndex(prev => (prev + 1) % seasonalItems.length)
   }
 
+  // Get current month name - client-side only to avoid hydration mismatch
+  const [currentMonth, setCurrentMonth] = useState('January')
+
+  useEffect(() => {
+    setCurrentMonth(new Date().toLocaleString('en-GB', { month: 'long' }))
+  }, [])
+
   if (seasonalItems.length === 0) return null
 
   const currentProduce = seasonalItems[currentIndex]
-  const currentMonth = new Date().toLocaleString('en-GB', { month: 'long' })
 
   // Fallback image if produce has no images
   const imageUrl = currentProduce.images[0]?.src ||

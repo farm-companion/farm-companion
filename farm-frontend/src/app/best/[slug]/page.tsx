@@ -1,12 +1,17 @@
+/**
+ * Best Farm Guide Article Page
+ *
+ * Luxury editorial design with Paper White (#F9F9F9) and Deep Charcoal (#1A1A1A).
+ * Follows "The Luxury of Space" principle with minimal UI and maximum visual impact.
+ */
+
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowRight, Sparkles } from 'lucide-react'
 import { bestLists } from '@/data/best-lists'
 import { getCachedFarmsByCategory, getCachedCategoryBySlug } from '@/lib/server-cache-categories'
 import { getCachedFarmsByCounty } from '@/lib/server-cache-counties'
 import { FarmCard } from '@/components/FarmCard'
-import { Badge } from '@/components/ui/Badge'
 import {
   BentoGrid,
   ORGANIC_CRITERIA,
@@ -14,20 +19,18 @@ import {
   FARM_SHOP_CRITERIA,
   FAQAccordion,
   addTipsToFAQs,
+  EditorialArticle,
 } from '@/components/best'
+import { EditorialHero, PillarCarousel } from '@/components/best/editorial'
 
-// Revalidate every 24 hours
+// Use dynamic rendering to avoid connection pool exhaustion during build
+export const dynamic = 'force-dynamic'
+
+// Revalidate every 24 hours when cached
 export const revalidate = 86400
 
 interface BestPageProps {
   params: Promise<{ slug: string }>
-}
-
-// Generate static params for all best-of lists
-export async function generateStaticParams() {
-  return bestLists.map((list: { slug: string }) => ({
-    slug: list.slug,
-  }))
 }
 
 // Generate metadata for SEO
@@ -64,6 +67,56 @@ export async function generateMetadata({ params }: BestPageProps): Promise<Metad
   }
 }
 
+// Curated hero images - dramatic, atmospheric editorial photography
+// IMPORTANT: No images of people, pigs, or bacon allowed
+const HERO_IMAGES: Record<string, { src: string; alt: string }> = {
+  'best-organic-farms-uk': {
+    src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1920&q=80&auto=format',
+    alt: 'Greenhouse rows with organic seedlings in afternoon light',
+  },
+  'top-pick-your-own-farms': {
+    src: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1920&q=80&auto=format',
+    alt: 'Golden sunlight filtering through strawberry fields',
+  },
+  'best-farm-shops-london': {
+    src: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1920&q=80&auto=format',
+    alt: 'Artisan produce beautifully arranged in rustic farm shop',
+  },
+  'top-farm-cafes-uk': {
+    src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1920&q=80&auto=format',
+    alt: 'Elegant farm-to-table dining with fresh seasonal produce',
+  },
+  'best-lavender-farms': {
+    src: 'https://images.unsplash.com/photo-1468327768560-75b778cbb551?w=1920&q=80&auto=format',
+    alt: 'Purple lavender fields stretching to the horizon',
+  },
+  'best-farmers-markets-uk': {
+    src: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1920&q=80&auto=format',
+    alt: 'Early morning at the farmers market',
+  },
+  'top-veg-box-schemes-uk': {
+    src: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1920&q=80&auto=format',
+    alt: 'Fresh seasonal harvest in rustic wooden crate',
+  },
+  'best-farm-school-visits-uk': {
+    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format',
+    alt: 'Fresh vegetables and produce in educational farm setting',
+  },
+  'top-ice-cream-farms-uk': {
+    src: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=1920&q=80&auto=format',
+    alt: 'Artisan ice cream scoops in waffle cone',
+  },
+  'best-cheese-makers-uk': {
+    src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1920&q=80&auto=format',
+    alt: 'Aged artisan cheese wheels in traditional cellar',
+  },
+}
+
+const DEFAULT_HERO = {
+  src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1920&q=80&auto=format',
+  alt: 'Golden hour light sweeping across British farmland',
+}
+
 export default async function BestPage({ params }: BestPageProps) {
   const { slug } = await params
   const list = bestLists.find((l: { slug: string }) => l.slug === slug)
@@ -81,7 +134,6 @@ export default async function BestPage({ params }: BestPageProps) {
     farms = result.farms
     categoryInfo = await getCachedCategoryBySlug(list.category)
   } else if (list.region === 'london') {
-    // For London, get farms from nearby counties
     const londonCounties = ['surrey', 'kent', 'essex', 'hertfordshire', 'buckinghamshire']
     const farmPromises = londonCounties.map((county: string) =>
       getCachedFarmsByCounty(county, { limit: 5 })
@@ -90,12 +142,12 @@ export default async function BestPage({ params }: BestPageProps) {
     farms = results.flatMap((r) => r.farms).slice(0, 20)
   }
 
-  // Determine which criteria set to use based on category
+  // Determine which criteria set to use
   const getCriteriaForCategory = () => {
     if (list.category === 'organic-farms') return ORGANIC_CRITERIA
     if (list.category === 'pick-your-own') return PYO_CRITERIA
     if (list.region === 'london') return FARM_SHOP_CRITERIA
-    return ORGANIC_CRITERIA // default
+    return ORGANIC_CRITERIA
   }
 
   // Get FAQ category for tips
@@ -105,8 +157,21 @@ export default async function BestPage({ params }: BestPageProps) {
     return 'farm-shop'
   }
 
+  // Get hero image
+  const heroImage = HERO_IMAGES[slug] || DEFAULT_HERO
+
+  // Related guides for pillar carousel
+  const relatedGuides = bestLists
+    .filter((l) => l.slug !== slug && l.featured)
+    .slice(0, 4)
+    .map((l) => ({
+      href: `/best/${l.slug}`,
+      title: l.title,
+      image: HERO_IMAGES[l.slug] || DEFAULT_HERO,
+    }))
+
   return (
-    <main className="bg-background-canvas">
+    <main className="bg-[#F9F9F9]">
       {/* Structured Data - Article */}
       <script
         type="application/ld+json"
@@ -116,7 +181,7 @@ export default async function BestPage({ params }: BestPageProps) {
             '@type': 'Article',
             headline: list.title,
             description: list.metaDescription,
-            image: 'https://farmcompanion.co.uk/og-image.jpg',
+            image: heroImage.src,
             datePublished: list.publishDate,
             dateModified: list.updateDate,
             author: {
@@ -156,177 +221,146 @@ export default async function BestPage({ params }: BestPageProps) {
         />
       )}
 
-      {/* God-Tier Hero Section */}
-      <section className="relative h-[60vh] min-h-[500px] max-h-[700px] overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
-            alt="Fresh organic vegetables and produce in morning light"
-            className="w-full h-full object-cover object-center"
-          />
-          {/* Professional Overlay Gradients */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-black/60" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        </div>
+      {/* Editorial Hero */}
+      <EditorialHero
+        title={list.heading}
+        subtitle={list.category?.replace(/-/g, ' ').toUpperCase() || 'FARM GUIDE'}
+        image={heroImage}
+        scrollTarget="#content"
+      />
 
-        {/* Hero Content - Split Layout */}
-        <div className="relative h-full flex items-center">
-          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="max-w-4xl">
-              {/* Breadcrumbs */}
-              <nav className="flex items-center gap-2 text-sm text-white/70 mb-6">
-                <Link href="/" className="hover:text-white transition-colors">
-                  Home
-                </Link>
-                <span>/</span>
-                <Link href="/best" className="hover:text-white transition-colors">
-                  Best Of
-                </Link>
-                <span>/</span>
-                <span className="text-white font-medium">{list.title}</span>
-              </nav>
+      {/* Breadcrumb - Minimal, wide-tracked */}
+      <div className="bg-background-secondary py-8">
+        <nav className="max-w-2xl mx-auto px-6">
+          <div className="flex items-center gap-3 text-xs tracking-[0.15em] uppercase text-foreground-muted">
+            <Link href="/" className="hover:text-foreground transition-colors">
+              Home
+            </Link>
+            <span className="w-4 h-px bg-border" />
+            <Link href="/best" className="hover:text-foreground transition-colors">
+              Guides
+            </Link>
+            <span className="w-4 h-px bg-border" />
+            <span className="text-foreground">{list.title}</span>
+          </div>
+        </nav>
+      </div>
 
-              {/* Editor's Badge */}
-              {list.featured && (
-                <div className="inline-flex items-center gap-2 px-4 py-2 mb-4 rounded-full bg-amber-500/20 backdrop-blur-sm border border-amber-400/30">
-                  <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span className="text-sm font-medium text-amber-200">Editor&apos;s Choice</span>
-                </div>
-              )}
-
-              {/* Heading */}
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-white mb-6 leading-tight drop-shadow-lg">
-                {list.heading}
-              </h1>
-
-              {/* Intro */}
-              <p className="text-lg md:text-xl text-white/90 mb-8 max-w-2xl leading-relaxed">
-                {list.intro}
-              </p>
-
-              {/* CTA Buttons */}
-              <div className="flex flex-col sm:flex-row gap-4">
-                <Link
-                  href="#featured-farms"
-                  className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl"
-                >
-                  <span>Explore {farms.length} Farms</span>
-                  <ArrowRight className="w-5 h-5" />
-                </Link>
-                <div className="flex items-center gap-3 px-4 py-2 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
-                  <span className="text-white/80 text-sm">Last updated:</span>
-                  <span className="text-white font-medium text-sm">
-                    {new Date(list.updateDate).toLocaleDateString('en-GB', {
-                      day: 'numeric',
-                      month: 'short',
-                      year: 'numeric'
-                    })}
-                  </span>
-                </div>
+      {/* Main Content */}
+      <div id="content">
+        {/* Selection Criteria - Only show if NO editorial content */}
+        {!(list.editorialIntro || list.farmProfiles) && (
+          <section className="py-16 md:py-24 bg-card">
+            <div className="max-w-6xl mx-auto px-6">
+              <div className="text-center mb-16">
+                <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
+                  Selection Criteria
+                </p>
+                <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
+                  What Makes These Farms Special
+                </h2>
+                <p className="text-foreground-muted max-w-2xl mx-auto">
+                  Every farm on this list has been carefully selected based on these key criteria.
+                </p>
               </div>
+              <BentoGrid items={getCriteriaForCategory()} />
             </div>
-          </div>
-        </div>
-      </section>
+          </section>
+        )}
 
-      {/* Selection Criteria Bento Grid */}
-      <section className="py-16 bg-slate-50/50 dark:bg-slate-900/50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-                What Makes These Farms Special
-              </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                Every farm on this list has been carefully selected based on these key criteria.
-              </p>
-            </div>
-            <BentoGrid items={getCriteriaForCategory()} />
-          </div>
-        </div>
-      </section>
+        {/* Editorial Article Section */}
+        {(list.editorialIntro || list.farmProfiles) && (
+          <section className="py-16 md:py-24 overflow-hidden">
+            <EditorialArticle
+              articleNumber={list.articleNumber}
+              title={list.title}
+              persona={list.persona}
+              approach={list.approach}
+              editorialIntro={list.editorialIntro}
+              farmProfiles={list.farmProfiles}
+              farms={farms}
+            />
+          </section>
+        )}
 
-      <div className="container mx-auto px-4 py-12 md:py-16">
-        <div className="max-w-6xl mx-auto">
-
-          {/* Featured Farms Section */}
-          {farms.length > 0 && (
-            <section id="featured-farms" className="mb-16 scroll-mt-8">
-              <div className="flex items-center justify-between mb-8">
-                <div>
-                  <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-2">
-                    Featured {list.title}
-                  </h2>
-                  <p className="text-slate-600 dark:text-slate-400">
-                    {farms.length} outstanding farms exemplifying the very best.
-                  </p>
-                </div>
-                {list.category && (
-                  <Link
-                    href={`/categories/${list.category}`}
-                    className="hidden md:inline-flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg font-medium transition-all hover:bg-slate-200 dark:hover:bg-slate-700"
-                  >
-                    View All
-                    <ArrowRight className="w-4 h-4" />
-                  </Link>
-                )}
+        {/* Featured Farms - Only show if no editorial farm profiles */}
+        {farms.length > 0 && !list.farmProfiles && (
+          <section id="featured-farms" className="py-16 md:py-24 bg-card">
+            <div className="max-w-6xl mx-auto px-6">
+              {/* Section header */}
+              <div className="text-center mb-16">
+                <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
+                  Featured Farms
+                </p>
+                <h2 className="font-serif text-3xl md:text-4xl text-foreground mb-4">
+                  {farms.length} Outstanding Farms
+                </h2>
+                <div className="w-16 h-px bg-border mx-auto" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              {/* Farm grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
                 {farms.map((farm: any) => (
                   <FarmCard key={farm.id} farm={farm} />
                 ))}
               </div>
 
+              {/* View all link */}
               {list.category && (
-                <div className="text-center md:hidden">
+                <div className="text-center">
                   <Link
                     href={`/categories/${list.category}`}
-                    className="inline-flex items-center gap-2 px-6 py-3 bg-brand-primary text-white rounded-lg font-medium transition-all hover:bg-brand-primary/90 hover:shadow-md"
+                    className="inline-block text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity"
                   >
                     View All {categoryInfo?.name || 'Farms'}
-                    <ArrowRight className="w-5 h-5" />
                   </Link>
                 </div>
               )}
-            </section>
-          )}
-
-          {/* FAQ Section with Accordion */}
-          {list.faqs && list.faqs.length > 0 && (
-            <FAQAccordion
-              faqs={addTipsToFAQs(list.faqs, getFAQCategory())}
-              title="The Organic Intel"
-              className="mb-16"
-            />
-          )}
-
-          {/* Related Lists */}
-          <section>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
-              More Curated Lists
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {bestLists
-                .filter((l: { slug: string; featured?: boolean }) => l.slug !== slug && l.featured)
-                .slice(0, 3)
-                .map((relatedList: { slug: string; title: string; intro: string; updateDate: string }) => (
-                  <Link
-                    key={relatedList.slug}
-                    href={`/best/${relatedList.slug}`}
-                    className="group bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 transition-all hover:shadow-lg hover:border-brand-primary hover:-translate-y-1"
-                  >
-                    <h3 className="text-body font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
-                      {relatedList.title}
-                    </h3>
-                    <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-2">
-                      {relatedList.intro}
-                    </p>
-                  </Link>
-                ))}
             </div>
           </section>
+        )}
+
+        {/* FAQ Section */}
+        {list.faqs && list.faqs.length > 0 && (
+          <section className="py-16 md:py-24 bg-background-secondary">
+            <div className="max-w-3xl mx-auto px-6">
+              <div className="text-center mb-16">
+                <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
+                  Common Questions
+                </p>
+                <h2 className="font-serif text-3xl md:text-4xl text-foreground">
+                  The Essential Guide
+                </h2>
+              </div>
+              <FAQAccordion
+                faqs={addTipsToFAQs(list.faqs, getFAQCategory())}
+                title=""
+              />
+            </div>
+          </section>
+        )}
+
+        {/* Related Guides - Pillar Carousel */}
+        {relatedGuides.length > 0 && (
+          <PillarCarousel items={relatedGuides} title="More Guides" />
+        )}
+
+        {/* Article meta footer */}
+        <div className="py-16 bg-background-secondary">
+          <div className="max-w-2xl mx-auto px-6 text-center">
+            <div className="w-px h-12 bg-border mx-auto mb-8" />
+            <p className="text-xs tracking-[0.15em] uppercase text-foreground-muted mb-2">
+              Last Updated
+            </p>
+            <p className="text-sm text-foreground">
+              {new Date(list.updateDate).toLocaleDateString('en-GB', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+              })}
+            </p>
+            <div className="w-px h-12 bg-border mx-auto mt-8" />
+          </div>
         </div>
       </div>
     </main>

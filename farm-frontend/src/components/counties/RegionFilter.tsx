@@ -142,7 +142,7 @@ export function RegionFilter({
         }`}
       >
         <span className="font-medium">All Regions</span>
-        <span className="text-small text-slate-500 dark:text-slate-400">
+        <span className="text-small text-slate-600 dark:text-slate-300">
           {totalFarms} farms
         </span>
       </button>
@@ -176,7 +176,7 @@ export function RegionFilter({
                   }`}
                 >
                   <span className="font-medium">{region.label}</span>
-                  <span className={`text-small ${isSelected ? 'text-primary-600' : 'text-slate-500 dark:text-slate-400'}`}>
+                  <span className={`text-small ${isSelected ? 'text-primary-600' : 'text-slate-600 dark:text-slate-300'}`}>
                     {region.farmCount}
                   </span>
                 </button>
@@ -189,10 +189,10 @@ export function RegionFilter({
                     <a
                       key={county.slug}
                       href={`/counties/${county.slug}`}
-                      className="block px-10 py-1.5 text-small text-slate-600 dark:text-slate-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                      className="block px-10 py-1.5 text-small text-slate-600 dark:text-slate-300 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                     >
                       {county.name}
-                      <span className="text-slate-400 dark:text-slate-500 ml-1">
+                      <span className="text-slate-500 dark:text-slate-400 ml-1">
                         ({county.farmCount})
                       </span>
                     </a>

@@ -9,16 +9,64 @@ Prioritized from most critical to least critical for achieving a god-tier, Apple
 
 ### 1. WCAG AA Contrast Fixes (DONE)
 - **Status:** Fixed and pushed
-- **Files:** 10 user-facing components
+- **Files:** 10+ user-facing components including seasonal and county components
 - **Pattern:** text-*-400/500 -> text-*-600 dark:text-*-300
 - **Contrast:** Improved from 2.38-3.15:1 to 5.74-7.0:1
+- **Additional:** InSeasonNow, FindStockists, RegionFilter, CuratorsChoice, CountyDensityBadge
+
+### 2. Database Connection (DONE)
+- **Status:** Fixed and working in production
+- **Issue:** Self-hosted Supabase on Coolify needed proper connection string
+- **Solution:** Updated DATABASE_URL to postgresql://postgres:***@134.122.102.159:5432/postgres
+- **Verified:** 1299 farms loading in production
+
+### 3. Server/Client Component Fix (DONE)
+- **Status:** Fixed and pushed
+- **Issue:** addTipsToFAQs was in 'use client' file but called from server component
+- **Solution:** Moved to separate faq-utils.ts file
+
+### 4. Google Fonts Build Failure (DONE)
+- **Status:** Fixed and pushed
+- **Solution:** Self-hosted fonts using @fontsource packages
+- **Fonts:** Manrope, IBM Plex Sans, IBM Plex Mono, Crimson Pro
+- **Commit:** `fix: Self-host Google Fonts to avoid build failures`
+
+### 5. Security Vulnerabilities - Partial (DONE)
+- **Status:** Critical vulnerabilities fixed
+- **Next.js:** Updated 16.1.3 -> 16.1.6 (fixes 3 vulnerabilities)
+- **ESLint:** Updated in twitter-workflow (fixes GHSA-p5wg-g6qr-c7cg)
+- **Remaining:** 11 vulnerabilities on default branch (needs further review)
+
+### 6. React Hydration Error #418 (DONE)
+- **Status:** Fixed and pushed
+- **Issue:** Server/client HTML mismatch from Date() calls during render
+- **Files Fixed:**
+  - Footer.tsx: currentYear moved to useEffect
+  - OperatingStatusCompact: Added mounted state pattern
+  - NearbyFarms.tsx: currentMonth moved to useEffect
+  - SeasonalShowcase.tsx: currentMonth moved to useEffect
+  - MonthWheel.tsx: currentMonth moved to useEffect (both components)
+  - SeasonalGrid.tsx: currentMonth passed as prop
+- **Commits:**
+  - `fix: Resolve React hydration error #418`
+  - `fix: Resolve additional React hydration errors from Date() calls`
+
+### 7. Produce Images - LV-Style Variety (DONE)
+- **Status:** Code complete - ready to run
+- **Feature:** 4 distinct shot types per produce item (like Louis Vuitton product pages)
+  1. Hero - Luxury single specimen, moody lighting
+  2. Cross-section - Interior view with cut half
+  3. Macro - Texture close-up
+  4. Composition - 3 items artistic arrangement
+- **Append Mode:** --append flag to add missing shots without regenerating existing
+- **Run:** `pnpm run generate:produce-images --force --upload`
 
 ---
 
 ## PRIORITY 1: CRITICAL (User-Visible Issues)
 
 ### 1.1 Farm Images Missing
-**Status:** Investigation complete - solution available
+**Status:** Investigation complete - needs database access to run
 
 **Root Cause:**
 - Farms in database have no approved images
@@ -61,26 +109,22 @@ curl -X POST "https://www.farmcompanion.co.uk/api/admin/generate-images?limit=10
 
 ## PRIORITY 2: HIGH (Functionality)
 
-### 2.1 Google Fonts Build Failure
-**Status:** Build failing due to network issues in build environment
+### 2.1 Google Fonts Build Failure - DONE
+**Status:** COMPLETED - See item #4 in Completed section
 
-**Issue:** Next.js build fails to fetch fonts from Google Fonts CDN
-```
-Failed to fetch `Crimson Pro` from Google Fonts
-Failed to fetch `IBM Plex Mono` from Google Fonts
-```
+### 2.2 Remaining Contrast Issues - DONE
+**Status:** All user-facing components fixed
 
-**Solution Options:**
-1. Self-host fonts (download to /public/fonts)
-2. Add timeout/retry configuration to next.config.js
-3. Use Vercel's Edge CDN caching for fonts
+**Fixed:**
+- Seasonal components: InSeasonNow, FindStockists, SeasonProgress.tsx, SeasonalGrid.tsx
+- County components: RegionFilter, CuratorsChoice, CountyDensityBadge, counties/[slug]/page.tsx
+- Header/Navigation: Header.tsx, MegaMenu.tsx, LocationContext.tsx (inverted mode)
+- Best pages: best/page.tsx (text-slate-500 -> text-slate-600 dark:text-slate-300)
+- FeaturedGuides.tsx: Added dark mode to footer text
+- categories/page.tsx, BentoGrid, FAQAccordion: Already compliant (text-slate-600 dark:text-slate-400)
 
-### 2.2 Remaining Contrast Issues (Lower Priority)
-**Files not yet fixed:**
-- Seasonal components: SeasonProgress, MonthWheel, InSeasonNow, FindStockists
-- County components: RegionFilter, CuratorsChoice, CountyDensityBadge
-- Best/Category pages: best/page.tsx, categories/page.tsx, BentoGrid, FAQAccordion
-- Admin pages (80+ replacements, internal users only)
+**Remaining (Low Priority - Internal Only):**
+- Admin pages (80+ replacements, internal users only - not user-facing)
 
 ---
 
@@ -109,14 +153,25 @@ Failed to fetch `IBM Plex Mono` from Google Fonts
 
 ## PRIORITY 4: LOW (Polish)
 
-### 4.1 Console Logs Cleanup
-- 57 console.logs remain in codebase
-- 4 in MapLibreShell.tsx (debug/warnings)
-- 2 in LeafletShell.tsx
+### 4.1 Console Logs Cleanup - DONE (User-Facing)
+- Removed debug logs from user-facing components:
+  - MapLibreShell.tsx: 4 debug logs removed
+  - LeafletShell.tsx: 2 debug logs removed
+  - ClientProduceImages.tsx: 1 debug log removed
+  - ProduceCard.tsx: 1 debug log removed
+  - QuickActions.tsx: 1 debug log removed
+  - claim/page.tsx: 4 debug logs removed
+- Remaining: Scripts (acceptable), Admin pages (internal), Error handlers (needed)
 
-### 4.2 TypeScript Type Coverage
-- ~350 type issues (mostly `any` types)
-- Non-blocking but reduces type safety
+### 4.2 TypeScript Type Coverage - PARTIAL
+- Started: ~350 type issues (mostly `any` types)
+- **Fixed (13 instances):**
+  - CategoryGrid.tsx: Added CategoryWithCount interface
+  - categories/page.tsx: Added Category interface (9 instances)
+  - ClientProduceImages.tsx: Use ImageSource type
+  - ProduceCard.tsx: Use ImageSource and ProduceImageResponse
+  - JsonLd.tsx: Added JsonLdData interface
+- Remaining: ~337 type issues (non-blocking)
 
 ### 4.3 TODO Comments
 - MapLibreShell.tsx:531 - Implement favorites feature
@@ -125,15 +180,25 @@ Failed to fetch `IBM Plex Mono` from Google Fonts
 
 ---
 
-## PRIORITY 5: SECURITY (Already Addressed)
+## PRIORITY 5: SECURITY (Mostly Addressed)
 
 ### 5.1 GitHub Security Alerts
-**Status:** 11 vulnerabilities detected on default branch
-- 2 critical
-- 3 high
-- 6 moderate
+**Status:** Fixed all fixable vulnerabilities across the monorepo
 
-**Action:** Review https://github.com/farm-companion/farm-companion/security/dependabot
+**Audit Results (after fixes):**
+- farm-frontend: 1 moderate (lodash-es via lighthouse dev dependency - not fixable)
+- farm-produce-images: 0 vulnerabilities (was 4)
+- twitter-workflow: 0 vulnerabilities
+- farm-pipeline (root): Updated pnpm to fix path traversal
+
+**Fixed:**
+- Next.js 16.1.3 -> 16.1.6 (farm-frontend + farm-produce-images)
+- @vercel/blob 1.1.1 -> 2.0.1 (fixes undici vulnerability)
+- @supabase/supabase-js 2.90.1 -> 2.93.3
+- pnpm 10.0.0 -> 10.29.0 (fixes path traversal)
+- axios, zod, and other minor updates
+
+**Remaining:** 1 moderate in lodash-es (lighthouse dev dependency - requires upstream fix)
 
 ---
 

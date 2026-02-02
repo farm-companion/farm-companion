@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { getProduceImages } from '@/lib/produce-integration'
+import { getProduceImages, type ProduceImageResponse } from '@/lib/produce-integration'
+import { type ImageSource } from '@/lib/image-utils'
 
 interface ProduceCardProps {
   produce: {
     slug: string
     name: string
-    images: any[]
+    images: ImageSource[]
     monthsInSeason?: number[]
   }
   month: number
@@ -17,7 +18,7 @@ interface ProduceCardProps {
 }
 
 export default function ProduceCard({ produce, month, className = '' }: ProduceCardProps) {
-  const [apiImages, setApiImages] = useState<any[]>([])
+  const [apiImages, setApiImages] = useState<ProduceImageResponse[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [useApiImage, setUseApiImage] = useState(true)
   const [effectiveMonth, setEffectiveMonth] = useState(month)
@@ -37,7 +38,6 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
             
             const testImages = await getProduceImages(produce.slug, testMonth)
             if (testImages.length > 0) {
-              console.log(`Found ${testImages.length} images for ${produce.slug} in month ${testMonth}, using those instead of month ${month}`)
               images = testImages
               setEffectiveMonth(testMonth)
               break
@@ -76,9 +76,9 @@ export default function ProduceCard({ produce, month, className = '' }: ProduceC
   const apiImage = apiImages[0]
   
   // Use API image if available and preferred, otherwise fall back to static
-  const displayImage = (useApiImage && hasApiImages) ? apiImage : staticImage
-  const imageUrl = displayImage?.url || displayImage?.src
-  const imageAlt = displayImage?.alt || `${produce.name} image`
+  const showApiImage = useApiImage && hasApiImages
+  const imageUrl = showApiImage ? apiImage?.url : staticImage?.src
+  const imageAlt = showApiImage ? (apiImage?.alt || `${produce.name} image`) : (staticImage?.alt || `${produce.name} image`)
 
   return (
     <Link

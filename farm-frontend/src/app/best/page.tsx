@@ -1,232 +1,265 @@
+/**
+ * Best Farm Guides - Luxury Editorial Index
+ *
+ * Design principles:
+ * - Paper White (#F9F9F9) and Deep Charcoal (#1A1A1A)
+ * - Rule of 80/20: 80% visual, 20% functional
+ * - Staggered asymmetry with large gutters
+ * - No shadows, no rounded corners, clean horizontal rules
+ */
+
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { Award, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
 import { bestLists } from '@/data/best-lists'
-import { Badge } from '@/components/ui/Badge'
+import {
+  EditorialHero,
+  AsymmetricalGrid,
+  EditorialCard,
+  DataCallout,
+  PillarCarousel,
+} from '@/components/best/editorial'
 
 export const metadata: Metadata = {
-  title: 'Best Farm Guides & Curated Lists | Farm Companion',
-  description: 'Discover our curated guides to the best farms, farm shops, and agricultural experiences across the UK. Expert recommendations for organic farms, pick your own, farm cafés, and more.',
+  title: 'Best Farm Guides | Farm Companion',
+  description: 'Expertly curated guides to the finest farms across the UK. Handpicked recommendations for organic farms, pick your own, and farm cafes.',
   openGraph: {
-    title: 'Best Farm Guides & Curated Lists | Farm Companion',
-    description: 'Discover our curated guides to the best farms, farm shops, and agricultural experiences across the UK.',
+    title: 'Best Farm Guides | Farm Companion',
+    description: 'Expertly curated guides to the finest farms across the UK.',
     type: 'website',
     url: 'https://farmcompanion.co.uk/best',
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Best Farm Guides & Curated Lists | Farm Companion',
-    description: 'Discover our curated guides to the best farms, farm shops, and agricultural experiences across the UK.',
   },
   alternates: {
     canonical: 'https://farmcompanion.co.uk/best',
   },
 }
 
+// Curated editorial images - atmospheric, magazine-quality photography
+// IMPORTANT: No images of people, pigs, or bacon allowed
+const EDITORIAL_IMAGES: Record<string, { src: string; alt: string }> = {
+  'best-organic-farms-uk': {
+    src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1200&q=80&auto=format',
+    alt: 'Greenhouse rows with organic seedlings in afternoon light',
+  },
+  'top-pick-your-own-farms': {
+    src: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1200&q=80&auto=format',
+    alt: 'Sun-drenched strawberry fields ready for harvest',
+  },
+  'best-farm-shops-london': {
+    src: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80&auto=format',
+    alt: 'Artisan produce display in rustic farm shop',
+  },
+  'top-farm-cafes-uk': {
+    src: 'https://images.unsplash.com/photo-1445116572660-236099ec97a0?w=1200&q=80&auto=format',
+    alt: 'Rustic farmhouse cafe with morning light',
+  },
+  'best-lavender-farms': {
+    src: 'https://images.unsplash.com/photo-1468327768560-75b778cbb551?w=1200&q=80&auto=format',
+    alt: 'Purple lavender fields stretching to the horizon',
+  },
+  'best-farmers-markets-uk': {
+    src: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80&auto=format',
+    alt: 'Vibrant farmers market stall at dawn',
+  },
+  'top-veg-box-schemes-uk': {
+    src: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1200&q=80&auto=format',
+    alt: 'Freshly harvested seasonal vegetables in wooden crate',
+  },
+  'best-farm-school-visits-uk': {
+    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1200&q=80&auto=format',
+    alt: 'Fresh vegetables and produce in educational farm setting',
+  },
+  'top-ice-cream-farms-uk': {
+    src: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=1200&q=80&auto=format',
+    alt: 'Artisan ice cream scoops in waffle cone',
+  },
+  'best-cheese-makers-uk': {
+    src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1200&q=80&auto=format',
+    alt: 'Artisan cheese wheels aging in cellar',
+  },
+}
+
+// Default image - atmospheric farm landscape
+const DEFAULT_IMAGE = {
+  src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1200&q=80&auto=format',
+  alt: 'Golden hour over British farmland',
+}
+
 export default function BestGuidesPage() {
-  // Separate featured and regular lists
-  const featuredLists = bestLists.filter((list: { featured?: boolean }) => list.featured)
-  const regularLists = bestLists.filter((list: { featured?: boolean }) => !list.featured)
+  const featuredLists = bestLists.filter((list) => list.featured)
+  const allLists = bestLists
+
+  // Get first featured guide for hero
+  const heroGuide = featuredLists[0]
+
+  // Stats for data callout
+  const stats = [
+    { value: `${bestLists.length}`, label: 'Curated Guides', sublabel: 'And growing' },
+    { value: '1,300+', label: 'Farms Listed', sublabel: 'Across the UK' },
+    { value: '92', label: 'Counties', sublabel: 'Full coverage' },
+    { value: '100%', label: 'Independent', sublabel: 'No paid listings' },
+  ]
+
+  // Items for pillar carousel (related sections)
+  const pillarItems = [
+    {
+      href: '/categories',
+      title: 'Browse by Category',
+      image: EDITORIAL_IMAGES['best-organic-farms-uk'] || DEFAULT_IMAGE,
+    },
+    {
+      href: '/counties',
+      title: 'Explore by County',
+      image: EDITORIAL_IMAGES['top-pick-your-own-farms'] || DEFAULT_IMAGE,
+    },
+    {
+      href: '/map',
+      title: 'Interactive Map',
+      image: EDITORIAL_IMAGES['best-farm-shops-london'] || DEFAULT_IMAGE,
+    },
+    {
+      href: '/seasonal',
+      title: 'Seasonal Guide',
+      image: EDITORIAL_IMAGES['top-farm-cafes-uk'] || DEFAULT_IMAGE,
+    },
+  ]
 
   return (
-    <main className="bg-background-canvas">
-      {/* Structured Data - CollectionPage */}
+    <main className="bg-background-secondary">
+      {/* Structured Data */}
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify({
             '@context': 'https://schema.org',
             '@type': 'CollectionPage',
-            name: 'Best Farm Guides & Curated Lists',
-            description: 'Curated guides to the best farms and agricultural experiences across the UK',
+            name: 'Best Farm Guides',
+            description: 'Curated guides to the finest farms across the UK',
             url: 'https://farmcompanion.co.uk/best',
             numberOfItems: bestLists.length,
           }),
         }}
       />
 
-      {/* Professional Hero Section matching Counties page */}
-      <section className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
-        {/* Background Image with Professional Handling */}
-        <div className="absolute inset-0">
-          <img
-            src="https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1920&q=80&auto=format"
-            alt="Golden hour sunlight over lush farmland with a rustic barn"
-            className="w-full h-full object-cover object-center"
-          />
-          {/* Professional Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
-          {/* Subtle texture overlay for depth */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
-        </div>
-
-        {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center">
-          <div className="text-center max-w-4xl mx-auto px-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
-              <Award className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
-              Best Farm
-              <span className="block text-serum drop-shadow-lg">Guides</span>
-            </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Expertly curated guides to the finest farms across the UK.
-            </p>
-            <p className="text-body text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Handpicked recommendations for organic farms, pick your own, and farm cafes.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link
-                href="#guides-content"
-                className="bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
-              >
-                <Award className="w-5 h-5" />
-                Browse Guides
-              </Link>
-              <Link
-                href="/counties"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
-              >
-                Explore Counties
-                <ArrowRight className="w-5 h-5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Editorial Hero */}
+      <EditorialHero
+        title="Best Farm Guides"
+        subtitle="Expertly curated guides to the finest farms across the UK"
+        image={{
+          src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1920&q=80&auto=format',
+          alt: 'Golden hour sunlight over British farmland',
+        }}
+        scrollTarget="#content"
+      />
 
       {/* Main Content */}
-      <div id="guides-content" className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-6xl mx-auto">
-          {/* Featured Guides */}
-          {featuredLists.length > 0 && (
-            <section className="mb-12">
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-6">
-                Featured Guides
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredLists.map((list) => (
-                  <Link
-                    key={list.slug}
-                    href={`/best/${list.slug}`}
-                    className="group bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 transition-all hover:shadow-lg hover:border-brand-primary"
-                  >
-                    <div className="mb-3">
-                      <Badge variant="default" size="sm">
-                        Editor&apos;s Choice
-                      </Badge>
-                    </div>
-                    <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
-                      {list.title}
-                    </h3>
-                    <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
-                      {list.intro}
-                    </p>
-                    <div className="flex items-center justify-between text-small text-slate-500">
-                      <span>
-                        Updated: {new Date(list.updateDate).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </span>
-                      <span className="text-brand-primary group-hover:translate-x-1 transition-transform">
-                        Read Guide →
-                      </span>
-                    </div>
-                  </Link>
-                ))}
+      <div id="content" className="bg-background-secondary">
+        {/* Featured Guide - Full width editorial treatment */}
+        {heroGuide && (
+          <section className="py-16 md:py-24">
+            <div className="max-w-6xl mx-auto px-6">
+              {/* Section label */}
+              <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-12">
+                Featured Guide
               </div>
-            </section>
-          )}
 
-          {/* All Guides */}
-          {regularLists.length > 0 && (
-            <section>
-              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-6">
-                All Guides
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {regularLists.map((list) => (
-                  <Link
-                    key={list.slug}
-                    href={`/best/${list.slug}`}
-                    className="group bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 transition-all hover:shadow-lg hover:border-brand-primary"
-                  >
-                    <h3 className="text-heading font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-brand-primary transition-colors">
-                      {list.title}
-                    </h3>
-                    <p className="text-caption text-slate-600 dark:text-slate-400 line-clamp-3 mb-4">
-                      {list.intro}
-                    </p>
-                    <div className="flex items-center justify-between text-small text-slate-500">
-                      <span>
-                        Updated: {new Date(list.updateDate).toLocaleDateString('en-GB', {
-                          day: 'numeric',
-                          month: 'short',
-                          year: 'numeric'
-                        })}
-                      </span>
-                      <span className="text-brand-primary group-hover:translate-x-1 transition-transform">
-                        Read Guide →
-                      </span>
+              {/* Featured article - asymmetric layout */}
+              <Link href={`/best/${heroGuide.slug}`} className="group block">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16 items-center">
+                  {/* Image - 60% */}
+                  <div className="lg:col-span-7">
+                    <div className="relative aspect-[4/3] overflow-hidden bg-border">
+                      <Image
+                        src={EDITORIAL_IMAGES[heroGuide.slug]?.src || DEFAULT_IMAGE.src}
+                        alt={EDITORIAL_IMAGES[heroGuide.slug]?.alt || DEFAULT_IMAGE.alt}
+                        fill
+                        className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                        sizes="(max-width: 1024px) 100vw, 60vw"
+                        priority
+                      />
                     </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          )}
+                  </div>
 
-          {/* Browse Other Ways */}
-          <section className="mt-12 bg-slate-100 dark:bg-slate-800 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4 text-center">
-              Browse Farms Other Ways
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto">
-              <Link
-                href="/categories"
-                className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-md hover:border-brand-primary"
-              >
-                <div className="text-3xl mb-2">🏪</div>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
-                  By Category
-                </h3>
-                <p className="text-caption text-slate-600 dark:text-slate-400">
-                  Browse by farm type
-                </p>
-              </Link>
+                  {/* Content - 40% */}
+                  <div className="lg:col-span-5 space-y-6">
+                    {/* Meta */}
+                    <div className="text-xs tracking-[0.15em] uppercase text-foreground-muted">
+                      {heroGuide.category?.replace(/-/g, ' ') || 'Guide'}
+                    </div>
 
-              <Link
-                href="/counties"
-                className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-md hover:border-brand-primary"
-              >
-                <div className="text-3xl mb-2">📍</div>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
-                  By Location
-                </h3>
-                <p className="text-caption text-slate-600 dark:text-slate-400">
-                  Find farms in your county
-                </p>
-              </Link>
+                    {/* Title */}
+                    <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl text-foreground leading-tight group-hover:opacity-70 transition-opacity duration-300">
+                      {heroGuide.title}
+                    </h2>
 
-              <Link
-                href="/map"
-                className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6 text-center transition-all hover:shadow-md hover:border-brand-primary"
-              >
-                <div className="text-3xl mb-2">🗺️</div>
-                <h3 className="font-semibold text-slate-900 dark:text-white mb-1">
-                  Map View
-                </h3>
-                <p className="text-caption text-slate-600 dark:text-slate-400">
-                  Explore farms on a map
-                </p>
+                    {/* Excerpt */}
+                    <p className="text-foreground-muted text-lg leading-relaxed group-hover:opacity-70 transition-opacity duration-300">
+                      {heroGuide.intro}
+                    </p>
+
+                    {/* Thin horizontal rule */}
+                    <div className="w-16 h-px bg-border" />
+
+                    {/* Read more */}
+                    <div className="text-xs tracking-[0.15em] uppercase text-foreground opacity-60 group-hover:opacity-100 transition-opacity duration-300">
+                      Read Article
+                    </div>
+                  </div>
+                </div>
               </Link>
             </div>
           </section>
+        )}
+
+        {/* Horizontal divider */}
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="h-px bg-border" />
         </div>
+
+        {/* All Guides - Asymmetrical grid */}
+        <section className="py-16 md:py-24">
+          <div className="max-w-6xl mx-auto px-6">
+            {/* Section label */}
+            <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-12">
+              All Guides
+            </div>
+
+            {/* Staggered asymmetric grid */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-y-16">
+              {allLists.slice(1).map((list, idx) => {
+                // Alternate between wide (7 cols) and narrow (5 cols)
+                const isWide = idx % 3 !== 2
+                const colSpan = isWide ? 'md:col-span-7' : 'md:col-span-5'
+                const colStart = idx % 2 === 0 ? 'md:col-start-1' : 'md:col-start-6'
+
+                return (
+                  <div key={list.slug} className={`col-span-12 ${colSpan} ${idx % 2 !== 0 ? colStart : ''}`}>
+                    <EditorialCard
+                      href={`/best/${list.slug}`}
+                      title={list.title}
+                      excerpt={list.intro}
+                      image={EDITORIAL_IMAGES[list.slug] || DEFAULT_IMAGE}
+                      meta={{
+                        category: list.category?.replace(/-/g, ' '),
+                        date: new Date(list.updateDate).toLocaleDateString('en-GB', {
+                          month: 'short',
+                          year: 'numeric',
+                        }),
+                      }}
+                      variant={isWide ? 'featured' : 'standard'}
+                    />
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* Data Callout */}
+        <DataCallout data={stats} title="By the Numbers" />
+
+        {/* Pillar Carousel - Related sections */}
+        <PillarCarousel items={pillarItems} title="Explore More" />
       </div>
     </main>
   )

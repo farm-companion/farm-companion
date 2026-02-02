@@ -31,7 +31,7 @@ export async function getAllCategories() {
     },
   })
 
-  return categories.map((cat: { _count: { farms: number } }) => ({
+  return categories.map((cat) => ({
     ...cat,
     farmCount: cat._count.farms,
   }))
@@ -354,7 +354,7 @@ export async function getTopCategories(limit = 12) {
     take: limit,
   })
 
-  return categories.map((cat: { _count: { farms: number } }) => ({
+  return categories.map((cat) => ({
     ...cat,
     farmCount: cat._count.farms,
   }))

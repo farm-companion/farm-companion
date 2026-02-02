@@ -30,8 +30,8 @@ export default function QuickActions({ farm, className = '', variant = 'full' }:
     if (navigator.share && navigator.canShare(shareData)) {
       try {
         await navigator.share(shareData)
-      } catch (error) {
-        console.log('Share cancelled or failed')
+      } catch {
+        // Share was cancelled or failed - this is expected behavior
       }
     } else {
       // Fallback: copy to clipboard

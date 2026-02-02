@@ -153,23 +153,18 @@ function ClaimPageContent() {
         }
         
         const apiResponse = await response.json()
-        console.log('🔍 API response received:', apiResponse)
-        
+
         // Extract farms array from API response
         const rawFarms = apiResponse.farms || []
-        console.log('🔍 Raw farm data loaded:', rawFarms.length, 'farms')
-        
+
         // Validate that we received an array
         if (!Array.isArray(rawFarms)) {
           throw new Error(`Expected farms array, but received: ${typeof rawFarms}`)
         }
-        
+
         // Apply comprehensive validation and deduplication (same as map page)
-        const { farms: validFarms, stats } = dedupeFarms(rawFarms)
-        
-        console.log('📊 Farm data processing:', stats)
-        console.log('✅ Valid farms after validation and deduplication:', validFarms.length, 'out of', rawFarms.length)
-        
+        const { farms: validFarms } = dedupeFarms(rawFarms)
+
         setFilteredFarms(validFarms)
         setStats({ farmCount: validFarms.length, countyCount: 92 }) // Use fixed county count: 39 England + 6 NI + 34 Scotland + 13 Wales = 92
       } catch (error) {

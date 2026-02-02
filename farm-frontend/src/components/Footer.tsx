@@ -158,8 +158,12 @@ const footerSections: FooterSection[] = [
 ]
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
+  const [currentYear, setCurrentYear] = useState(2026) // Default for SSR
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear())
+  }, [])
 
   const toggleSection = (sectionTitle: string) => {
     const newExpanded = new Set(expandedSections)

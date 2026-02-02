@@ -42,7 +42,7 @@ function getDensityConfig(level: DensityLevel) {
   const configs = {
     low: {
       bgClass: 'bg-slate-100 dark:bg-slate-800',
-      textClass: 'text-slate-600 dark:text-slate-400',
+      textClass: 'text-slate-600 dark:text-slate-300',
       ringClass: '',
       label: 'Few shops',
     },
@@ -91,7 +91,7 @@ export function CountyDensityBadge({
         >
           {count} {count === 1 ? 'shop' : 'shops'}
         </span>
-        <span className="text-small text-slate-500 dark:text-slate-400">
+        <span className="text-small text-slate-600 dark:text-slate-300">
           {config.label}
         </span>
       </div>
@@ -122,7 +122,7 @@ export function CountyDensityLegend({ className = '' }: { className?: string }) 
 
   return (
     <div className={`flex flex-wrap items-center gap-4 ${className}`}>
-      <span className="text-caption text-slate-600 dark:text-slate-400 font-medium">
+      <span className="text-caption text-slate-600 dark:text-slate-300 font-medium">
         Density:
       </span>
       {levels.map((level) => {
@@ -135,7 +135,7 @@ export function CountyDensityLegend({ className = '' }: { className?: string }) 
                 ${config.bgClass} ${config.ringClass}
               `}
             />
-            <span className="text-small text-slate-600 dark:text-slate-400">
+            <span className="text-small text-slate-600 dark:text-slate-300">
               {config.label}
             </span>
           </div>

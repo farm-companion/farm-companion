@@ -62,7 +62,7 @@ export function InSeasonNow({ limit = 4, month }: InSeasonNowProps) {
             >
               In Season Now
             </h2>
-            <p className="text-caption text-slate-600 dark:text-slate-400">
+            <p className="text-caption text-slate-600 dark:text-slate-300">
               Fresh picks for {monthName}
             </p>
           </div>
@@ -110,7 +110,7 @@ function ProduceCard({ produce }: { produce: SeasonalProduce }) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <Leaf className="w-8 h-8 text-slate-400 dark:text-slate-500" />
+            <Leaf className="w-8 h-8 text-slate-500 dark:text-slate-400" />
           </div>
         )}
 
@@ -125,7 +125,7 @@ function ProduceCard({ produce }: { produce: SeasonalProduce }) {
         <h3 className="text-body font-semibold text-slate-900 dark:text-slate-50 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
           {produce.name}
         </h3>
-        <p className="text-small text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-small text-slate-600 dark:text-slate-300 mt-1">
           {formatSeasonMonths(produce.monthsInSeason)}
         </p>
       </div>
