@@ -163,9 +163,15 @@ curl -X POST "https://www.farmcompanion.co.uk/api/admin/generate-images?limit=10
   - claim/page.tsx: 4 debug logs removed
 - Remaining: Scripts (acceptable), Admin pages (internal), Error handlers (needed)
 
-### 4.2 TypeScript Type Coverage
-- ~350 type issues (mostly `any` types)
-- Non-blocking but reduces type safety
+### 4.2 TypeScript Type Coverage - PARTIAL
+- Started: ~350 type issues (mostly `any` types)
+- **Fixed (13 instances):**
+  - CategoryGrid.tsx: Added CategoryWithCount interface
+  - categories/page.tsx: Added Category interface (9 instances)
+  - ClientProduceImages.tsx: Use ImageSource type
+  - ProduceCard.tsx: Use ImageSource and ProduceImageResponse
+  - JsonLd.tsx: Added JsonLdData interface
+- Remaining: ~337 type issues (non-blocking)
 
 ### 4.3 TODO Comments
 - MapLibreShell.tsx:531 - Implement favorites feature
