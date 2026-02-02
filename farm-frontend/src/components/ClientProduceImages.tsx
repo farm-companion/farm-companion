@@ -23,12 +23,13 @@ export default function ClientProduceImages({
   produceName,
   staticImages,
   month,
-  showToggle = false, // Changed default to false
+  showToggle = false,
   className = '',
   maxImages = 6,
-  fallbackToAnyMonth = true // Default to true for better UX
+  fallbackToAnyMonth = false // Disabled - use static images from produce.ts
 }: ClientProduceImagesProps) {
-  const [useApiImages, setUseApiImages] = useState(true)
+  // Use static images by default (they point to correct blob storage URLs)
+  const [useApiImages, setUseApiImages] = useState(false)
   const [effectiveMonth, setEffectiveMonth] = useState(month)
 
   const checkAndSetEffectiveMonth = useCallback(async () => {
@@ -68,8 +69,8 @@ export default function ClientProduceImages({
     }
   }, [month, fallbackToAnyMonth, checkAndSetEffectiveMonth])
 
-  // Always show API images by default, only show toggle if explicitly requested
-  const displayApiImages = showToggle ? useApiImages : true
+  // Use static images by default, API images only when toggled
+  const displayApiImages = showToggle ? useApiImages : false
 
   return (
     <div className={className}>
@@ -137,7 +138,7 @@ export function ClientProduceImage({
   produceName,
   staticImage,
   month,
-  showToggle = false, // Changed default to false
+  showToggle = false,
   className = '',
   sizes,
   priority = false,
@@ -145,13 +146,14 @@ export function ClientProduceImage({
   width,
   height,
   alt,
-  fallbackToAnyMonth = true
+  fallbackToAnyMonth = false // Disabled - use static images from produce.ts
 }: ClientProduceImageProps) {
-  const [useApiImage, setUseApiImage] = useState(true)
+  // Use static images by default (they point to correct blob storage URLs)
+  const [useApiImage, setUseApiImage] = useState(false)
   const [effectiveMonth, setEffectiveMonth] = useState(month)
 
-  // Always show API image by default, only show toggle if explicitly requested
-  const displayApiImage = showToggle ? useApiImage : true
+  // Use static images by default, API images only when toggled
+  const displayApiImage = showToggle ? useApiImage : false
 
   return (
     <div className={className}>
