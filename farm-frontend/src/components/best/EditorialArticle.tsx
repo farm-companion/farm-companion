@@ -1,11 +1,18 @@
 /**
  * EditorialArticle Component
  *
- * Apple-level editorial design for farm guides.
- * Features investigative journalism style with olive/sage green accents.
+ * Luxury editorial design inspired by Louis Vuitton magazine layouts.
+ * Features: narrow text columns, full-bleed images, pull quotes, drop caps.
  */
 
+import Image from 'next/image'
 import { type FarmProfile } from '@/data/best-lists'
+
+interface EditorialImage {
+  src: string
+  alt: string
+  caption?: string
+}
 
 interface EditorialArticleProps {
   articleNumber?: number
@@ -15,11 +22,12 @@ interface EditorialArticleProps {
   seoKeywords?: string[]
   editorialIntro?: string
   farmProfiles?: FarmProfile[]
+  heroImage?: EditorialImage
   className?: string
 }
 
-// Olive/sage green color from the design
-const EDITORIAL_GREEN = '#6b7c3f'
+// Olive/sage green accent color
+const ACCENT_COLOR = '#5d6d3f'
 
 export function EditorialArticle({
   articleNumber,
@@ -29,75 +37,93 @@ export function EditorialArticle({
   seoKeywords,
   editorialIntro,
   farmProfiles,
+  heroImage,
   className = ''
 }: EditorialArticleProps) {
   return (
-    <article className={`max-w-4xl mx-auto ${className}`}>
-      {/* Article Header */}
-      <header className="mb-8">
+    <article className={className}>
+      {/* Hero Image - Full bleed */}
+      {heroImage && (
+        <figure className="relative w-screen left-1/2 -translate-x-1/2 mb-16">
+          <div className="relative h-[50vh] min-h-[400px] max-h-[600px]">
+            <Image
+              src={heroImage.src}
+              alt={heroImage.alt}
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+          {heroImage.caption && (
+            <figcaption className="max-w-2xl mx-auto px-6 mt-4 text-sm text-slate-500 dark:text-slate-400 italic">
+              {heroImage.caption}
+            </figcaption>
+          )}
+        </figure>
+      )}
+
+      {/* Article Header - Centered, elegant */}
+      <header className="max-w-2xl mx-auto px-6 mb-16 text-center">
         {articleNumber && (
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
+          <p className="text-xs font-medium tracking-[0.2em] uppercase text-slate-400 dark:text-slate-500 mb-6">
             Article {articleNumber}
           </p>
         )}
 
-        {/* Title - Serif font for editorial feel */}
-        <h1
-          className="text-3xl md:text-4xl lg:text-5xl font-serif font-bold mb-3"
-          style={{ color: EDITORIAL_GREEN }}
+        <h2
+          className="font-serif text-3xl md:text-4xl lg:text-5xl font-normal leading-tight mb-6"
+          style={{ color: ACCENT_COLOR }}
         >
           {title}
-        </h1>
+        </h2>
 
-        {/* Persona & Approach */}
         {(persona || approach) && (
-          <p className="text-sm text-slate-600 dark:text-slate-400 italic">
-            {persona && <span>Persona: {persona}</span>}
-            {persona && approach && <span className="mx-2">|</span>}
-            {approach && <span>Approach: {approach}</span>}
+          <p className="text-sm tracking-wide text-slate-500 dark:text-slate-400">
+            {persona && <span className="italic">{persona}</span>}
+            {persona && approach && <span className="mx-3 text-slate-300">|</span>}
+            {approach && <span className="italic">{approach}</span>}
           </p>
         )}
       </header>
 
-      {/* SEO Keywords Box */}
+      {/* SEO Keywords - Subtle inline */}
       {seoKeywords && seoKeywords.length > 0 && (
-        <div
-          className="p-4 rounded-lg mb-10"
-          style={{ backgroundColor: `${EDITORIAL_GREEN}15` }}
-        >
-          <p className="text-sm">
-            <span
-              className="font-semibold"
-              style={{ color: EDITORIAL_GREEN }}
-            >
-              Target SEO Keywords:
-            </span>{' '}
-            <span className="text-slate-700 dark:text-slate-300">
-              {seoKeywords.join(', ')}
-            </span>
+        <div className="max-w-2xl mx-auto px-6 mb-12">
+          <p className="text-xs tracking-wide text-slate-400 dark:text-slate-500 border-l-2 pl-4" style={{ borderColor: ACCENT_COLOR }}>
+            <span className="font-medium uppercase">Keywords:</span>{' '}
+            {seoKeywords.join(' · ')}
           </p>
         </div>
       )}
 
-      {/* Editorial Introduction */}
+      {/* Editorial Introduction - Narrow column with drop cap */}
       {editorialIntro && (
-        <div className="prose prose-lg prose-slate dark:prose-invert max-w-none mb-12">
+        <div className="max-w-2xl mx-auto px-6 mb-20">
           {editorialIntro.split('\n\n').map((paragraph, idx) => {
-            // Check if paragraph is a heading (starts with ##)
             if (paragraph.startsWith('## ')) {
               const headingText = paragraph.replace('## ', '')
               return (
-                <h2
+                <h3
                   key={idx}
-                  className="text-xl md:text-2xl font-serif font-bold mt-10 mb-4"
-                  style={{ color: EDITORIAL_GREEN }}
+                  className="font-serif text-2xl md:text-3xl font-normal mt-16 mb-8"
+                  style={{ color: ACCENT_COLOR }}
                 >
                   {headingText}
-                </h2>
+                </h3>
               )
             }
+
+            // First paragraph gets drop cap
+            const isFirst = idx === 0 || editorialIntro.split('\n\n')[idx - 1]?.startsWith('## ')
+
             return (
-              <p key={idx} className="text-slate-700 dark:text-slate-300 leading-relaxed mb-4">
+              <p
+                key={idx}
+                className={`text-lg leading-[1.8] text-slate-700 dark:text-slate-300 mb-6 ${
+                  isFirst ? 'first-letter:text-5xl first-letter:font-serif first-letter:float-left first-letter:mr-3 first-letter:mt-1' : ''
+                }`}
+                style={isFirst ? { ['--tw-first-letter-color' as string]: ACCENT_COLOR } : {}}
+              >
                 {paragraph}
               </p>
             )
@@ -105,11 +131,16 @@ export function EditorialArticle({
         </div>
       )}
 
-      {/* Farm Profiles */}
+      {/* Farm Profiles - Alternating layout with images */}
       {farmProfiles && farmProfiles.length > 0 && (
-        <div className="space-y-10">
+        <div className="space-y-24">
           {farmProfiles.map((farm, idx) => (
-            <FarmProfileCard key={idx} farm={farm} />
+            <FarmProfileSection
+              key={idx}
+              farm={farm}
+              index={idx}
+              showImage={idx % 3 === 0} // Show image every 3rd profile
+            />
           ))}
         </div>
       )}
@@ -117,35 +148,88 @@ export function EditorialArticle({
   )
 }
 
-function FarmProfileCard({ farm }: { farm: FarmProfile }) {
-  return (
-    <section className="border-t border-slate-200 dark:border-slate-700 pt-8">
-      {/* Farm Name & Location */}
-      <h3
-        className="text-xl md:text-2xl font-serif font-bold mb-4"
-        style={{ color: EDITORIAL_GREEN }}
-      >
-        {farm.name}
-        {farm.location && (
-          <span className="font-normal text-slate-600 dark:text-slate-400">
-            , {farm.location}
-          </span>
-        )}
-      </h3>
+interface FarmProfileSectionProps {
+  farm: FarmProfile
+  index: number
+  showImage?: boolean
+}
 
-      {/* Farm Description - Multi-paragraph support */}
-      <div className="prose prose-slate dark:prose-invert max-w-none">
-        {farm.description.split('\n\n').map((paragraph, idx) => (
-          <p
-            key={idx}
-            className="text-slate-700 dark:text-slate-300 leading-relaxed mb-4"
+function FarmProfileSection({ farm, index, showImage }: FarmProfileSectionProps) {
+  // Farm images based on type/name
+  const farmImages: Record<string, string> = {
+    'Duchy Home Farm': 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1600&q=80',
+    'Riverford': 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1600&q=80',
+    'Daylesford': 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80',
+  }
+
+  const imageUrl = Object.entries(farmImages).find(([key]) =>
+    farm.name.toLowerCase().includes(key.toLowerCase())
+  )?.[1]
+
+  return (
+    <section>
+      {/* Full-bleed image for select profiles */}
+      {showImage && imageUrl && (
+        <figure className="relative w-screen left-1/2 -translate-x-1/2 mb-12">
+          <div className="relative h-[40vh] min-h-[300px] max-h-[500px]">
+            <Image
+              src={imageUrl}
+              alt={`${farm.name} organic farm`}
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          </div>
+        </figure>
+      )}
+
+      {/* Farm content - narrow column */}
+      <div className="max-w-2xl mx-auto px-6">
+        {/* Farm Name & Location */}
+        <header className="mb-8">
+          <h3
+            className="font-serif text-2xl md:text-3xl font-normal mb-2"
+            style={{ color: ACCENT_COLOR }}
           >
-            {paragraph}
-          </p>
-        ))}
+            {farm.name}
+          </h3>
+          {farm.location && (
+            <p className="text-sm tracking-wide text-slate-500 dark:text-slate-400 uppercase">
+              {farm.location}
+            </p>
+          )}
+        </header>
+
+        {/* Farm Description */}
+        <div className="space-y-6">
+          {farm.description.split('\n\n').map((paragraph, pIdx) => (
+            <p
+              key={pIdx}
+              className="text-lg leading-[1.8] text-slate-700 dark:text-slate-300"
+            >
+              {paragraph}
+            </p>
+          ))}
+        </div>
+
+        {/* Pull quote from first paragraph if long enough */}
+        {index % 2 === 1 && farm.description.length > 300 && (
+          <blockquote
+            className="my-12 py-8 border-y text-xl md:text-2xl font-serif italic text-center"
+            style={{ borderColor: `${ACCENT_COLOR}30`, color: ACCENT_COLOR }}
+          >
+            "{extractPullQuote(farm.description)}"
+          </blockquote>
+        )}
       </div>
     </section>
   )
+}
+
+// Extract a meaningful sentence for pull quote
+function extractPullQuote(text: string): string {
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 40 && s.trim().length < 150)
+  return sentences[0]?.trim() || text.slice(0, 100).trim()
 }
 
 export default EditorialArticle

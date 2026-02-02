@@ -231,45 +231,45 @@ export default async function BestPage({ params }: BestPageProps) {
         </div>
       </section>
 
-      {/* Selection Criteria Bento Grid */}
-      <section className="py-16 bg-slate-50/50 dark:bg-slate-900/50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
-                What Makes These Farms Special
-              </h2>
-              <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                Every farm on this list has been carefully selected based on these key criteria.
-              </p>
-            </div>
-            <BentoGrid items={getCriteriaForCategory()} />
-          </div>
-        </div>
-      </section>
-
-      {/* Editorial Article Section - Shows if editorial content exists */}
-      {(list.editorialIntro || list.farmProfiles) && (
-        <section className="py-16 bg-white dark:bg-slate-950">
+      {/* Selection Criteria Bento Grid - Only show if NO editorial content */}
+      {!(list.editorialIntro || list.farmProfiles) && (
+        <section className="py-16 bg-slate-50/50 dark:bg-slate-900/50">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-            <EditorialArticle
-              articleNumber={list.articleNumber}
-              title={list.title}
-              persona={list.persona}
-              approach={list.approach}
-              seoKeywords={list.seoKeywords}
-              editorialIntro={list.editorialIntro}
-              farmProfiles={list.farmProfiles}
-            />
+            <div className="max-w-6xl mx-auto">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-4">
+                  What Makes These Farms Special
+                </h2>
+                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+                  Every farm on this list has been carefully selected based on these key criteria.
+                </p>
+              </div>
+              <BentoGrid items={getCriteriaForCategory()} />
+            </div>
           </div>
+        </section>
+      )}
+
+      {/* Editorial Article Section - Full width for luxury layout */}
+      {(list.editorialIntro || list.farmProfiles) && (
+        <section className="py-20 bg-white dark:bg-slate-950 overflow-hidden">
+          <EditorialArticle
+            articleNumber={list.articleNumber}
+            title={list.title}
+            persona={list.persona}
+            approach={list.approach}
+            seoKeywords={list.seoKeywords}
+            editorialIntro={list.editorialIntro}
+            farmProfiles={list.farmProfiles}
+          />
         </section>
       )}
 
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="max-w-6xl mx-auto">
 
-          {/* Featured Farms Section */}
-          {farms.length > 0 && (
+          {/* Featured Farms Section - Only show if no editorial farm profiles */}
+          {farms.length > 0 && !list.farmProfiles && (
             <section id="featured-farms" className="mb-16 scroll-mt-8">
               <div className="flex items-center justify-between mb-8">
                 <div>
