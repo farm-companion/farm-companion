@@ -410,11 +410,11 @@ Farmers markets are social events:
   },
   {
     slug: 'top-veg-box-schemes-uk',
-    title: 'Top Vegetable Box Delivery Schemes',
+    title: 'Vegetable Boxes & Farm School Visits',
     metaTitle: 'Best Veg Box Schemes in the UK (2026) | Organic Vegetable Delivery',
     metaDescription: 'Find the best vegetable box delivery schemes in the UK. Get fresh, local, often organic vegetables delivered to your door weekly.',
-    heading: 'Best Vegetable Box Schemes for Home Delivery',
-    intro: 'Discover the convenience of fresh, seasonal vegetables delivered directly to your door. These top-rated veg box schemes source from local farms, offer organic options, and make eating seasonally easy and affordable.',
+    heading: 'Vegetable Boxes & Farm School Visits',
+    intro: 'Discover the convenience of fresh, seasonal vegetables delivered directly to your door, and explore educational farm experiences that connect children with where food comes from.',
     content: `## What is a Veg Box Scheme?
 
 Vegetable box schemes deliver fresh, seasonal produce directly from farms to your door, usually weekly or fortnightly. They're an easy way to eat more vegetables, support local farmers, and reduce food miles.
@@ -450,7 +450,62 @@ Consider:
     category: 'veg-box-schemes',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-02',
+    articleNumber: 3,
+    persona: 'The Family Strategist',
+    approach: 'Practical Discovery',
+    editorialIntro: `## The Future of the Family Table: Subscription and Education
+
+The weekly vegetable box has quietly become one of the most significant shifts in British domestic food culture since the supermarket revolution of the 1960s. What began as a lifeline for small organic growers struggling to compete with retail giants has evolved into a mainstream option that now reaches hundreds of thousands of households. Simultaneously, educational farm visits have moved beyond novelty school trips to become structured curriculum experiences that teach children not just where food comes from, but the science, economics, and ecology of food production.
+
+These two developments share a common thread: they represent an active rejection of food ignorance. The veg box forces engagement with seasonality and cooking from scratch. The farm visit creates tangible connections between soil, animal husbandry, and the food on the plate. Together, they are reshaping how British families relate to food.
+
+## Vegetable Boxes: Beyond the Big Two
+
+The UK veg box market is dominated by two employee-owned cooperatives, Riverford and Abel & Cole, which between them deliver to over 100,000 households weekly. Both have built their businesses on organic certification, ethical sourcing, and the elimination of single-use plastic. Riverford, founded by Guy Watson in Devon in 1987, pioneered the modern box scheme model and remains notable for its farm tours, recipe development, and commitment to seasonal UK produce even when imports would be more profitable.
+
+Abel & Cole, established in 1988, has carved a complementary niche with a broader product range that includes meat, dairy, and household goods alongside vegetables. Their logistics operation, centred on electric delivery vehicles in urban areas, has made organic food accessible to time-poor city households who might never visit a farmers market.
+
+Beyond these two, a network of regional and hyper-local schemes operates across the UK. Many are run directly by single farms, delivering within a fifteen-mile radius and offering produce picked the same morning it arrives. These micro-schemes often provide the freshest vegetables available anywhere in the British food system, though their limited scale means availability can be unpredictable.
+
+## The Economics of the Box
+
+A medium organic veg box from a major scheme typically costs between fourteen and eighteen pounds and contains enough produce for a household of three to four people for a week. Compared to supermarket organic vegetables, this represents a saving of twenty to thirty percent. Compared to supermarket conventional produce, the premium is modest, typically three to five pounds per week. The real cost saving, however, lies in reduced food waste: surveys consistently show that veg box subscribers waste significantly less food than average households, because the box creates meal planning discipline.
+
+## Farm School Visits: STEM in the Soil
+
+Educational farm visits have undergone a transformation from petting zoos to structured learning environments. The best farms now offer curriculum-linked programmes that align with national curriculum objectives in science, geography, mathematics, and personal development. A single farm visit can address learning objectives spanning biology, environmental science, economics, and nutrition.
+
+Cotswold Farm Park, founded by rare breeds conservationist Adam Henson, exemplifies this evolution. The farm's education programme hosts over 30,000 school children annually, with sessions designed by qualified teachers and aligned to specific Key Stage objectives. Children count livestock, measure feed quantities, observe life cycles, and learn about sustainable land management through direct experience rather than textbook description.`,
+    farmProfiles: [
+      {
+        name: 'Riverford Organic',
+        location: 'Wash Barn, Buckfastleigh, Devon',
+        description: `Riverford's story begins with Guy Watson delivering vegetables from a wheelbarrow in 1987. Today the company delivers over 50,000 boxes weekly from a network of sister farms across the UK. The Devon headquarters at Wash Barn remains the operational and philosophical heart of the business.
+
+The 2018 transition to employee ownership transferred seventy-four percent of shares to staff, making Riverford one of the largest employee-owned businesses in the UK food sector. This structure has enabled the company to resist the short-term profit pressures that have compromised many organic pioneers. The Field Kitchen restaurant on site showcases produce at peak seasonality, while farm tours offer unvarnished insight into the realities of commercial organic vegetable production.
+
+Riverford's box contents are dictated by what grows well in British conditions at any given time. This means purple sprouting broccoli in March, broad beans in June, squash in October. The accompanying recipe cards have become collector's items for regular subscribers, teaching a generation of home cooks to embrace seasonal constraints as creative opportunities.`
+      },
+      {
+        name: 'Abel & Cole',
+        location: 'Wimbledon, London',
+        description: `Abel & Cole has succeeded in making organic food convenient for urban households who might otherwise default to supermarket shopping. Founded in 1988 by Keith Abel selling potatoes door-to-door in London, the company now serves over 50,000 customers weekly across England and Wales.
+
+The company's logistics innovation has been as significant as its produce sourcing. Electric delivery vehicles now cover much of London and other urban centres, while the elimination of single-use plastic packaging predates similar moves by major retailers by several years. The product range extends well beyond vegetables to include dairy, meat, fish, bread, and household goods, allowing customers to do a substantial weekly shop from a single ethical source.
+
+Abel & Cole sources from over 150 suppliers, prioritising organic certification and UK origin where seasonally possible. Their farm partnership model provides growers with guaranteed orders and fair prices, creating stability that allows small producers to invest in sustainable practices.`
+      },
+      {
+        name: 'Cotswold Farm Park',
+        location: 'Guiting Power, Cheltenham, Gloucestershire',
+        description: `Founded in 1971 by Joe Henson and now run by his son Adam, Cotswold Farm Park is both a working farm and a rare breeds conservation centre. The farm maintains breeding populations of over fifty rare and traditional British livestock breeds, many of which would otherwise face extinction.
+
+The education programme has evolved from informal farm visits into a structured curriculum offering. Over 30,000 school children visit annually, participating in sessions designed by qualified educators and aligned to specific national curriculum objectives. Children engage with mathematics through feed calculations, biology through animal life cycles, geography through food miles and land use, and personal development through responsibility for animal welfare.
+
+The farm demonstrates that conservation, education, and commercial viability can coexist. The rare breed livestock are not museum pieces but working animals whose meat is sold through the farm shop and local butchers. Educational visits generate revenue that supports the conservation mission. It is a model of sustainable diversification that many smaller farms are now seeking to emulate.`
+      }
+    ],
     faqs: [
       {
         question: 'Can I choose what\'s in my veg box?',
