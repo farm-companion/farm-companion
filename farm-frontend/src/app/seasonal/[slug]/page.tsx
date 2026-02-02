@@ -100,7 +100,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
 
       {/* HERO */}
       <section className="rounded-3xl overflow-hidden relative border border-border-default/30 shadow-sm">
-        <div className="relative aspect-[16/9] min-h-[256px] sm:min-h-[320px]">
+        <div className="relative aspect-[4/3] sm:aspect-[3/2] min-h-[280px] sm:min-h-[360px]">
           {heroImage ? (
             <ClientProduceImage
               produceSlug={p.slug}
@@ -109,7 +109,7 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
               month={m}
               showToggle={false}
               fill
-              className="object-cover"
+              className="object-contain bg-[#f5f0e8]"
               priority
             />
           ) : (
