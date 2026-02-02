@@ -621,6 +621,51 @@ export class ProduceImageGenerator {
   }
 
   /**
+   * Shot type definitions for 4 distinctly different views
+   * Used by both generateVariations and generateSpecificShot
+   */
+  private static readonly SHOT_TYPES: Array<{
+    mode: ImageMode
+    lighting: LightingPreset
+    variant: MaisonVariant
+    concept: string
+    name: string
+  }> = [
+    {
+      // Shot 1: Hero - Clean luxury beauty shot
+      mode: 'MAISON_STILL_LIFE',
+      lighting: 'moody',
+      variant: 'single',
+      concept: 'Hero shot. Centered subject, dramatic lighting, clean negative space.',
+      name: 'Hero'
+    },
+    {
+      // Shot 2: Cross-section - Interior view showing freshness
+      mode: 'NATURAL_PACKSHOT',
+      lighting: 'bright',
+      variant: 'whole+half',
+      concept: 'Interior reveal. One whole specimen plus one cleanly cut half showing fresh interior structure, juice vesicles, seeds, or flesh texture.',
+      name: 'Cross-section'
+    },
+    {
+      // Shot 3: Macro detail - Extreme close-up of texture
+      mode: 'MAISON_STILL_LIFE',
+      lighting: 'moody',
+      variant: 'single',
+      concept: 'Macro texture detail. Extreme close-up showing surface texture, skin pores, seeds, veins, or natural patterns. Fill the frame with textural detail.',
+      name: 'Macro'
+    },
+    {
+      // Shot 4: Composition - Multiple items artistic arrangement
+      mode: 'MAISON_STILL_LIFE',
+      lighting: 'bright',
+      variant: 'stack3',
+      concept: 'Artistic composition. Three specimens arranged with intentional balance, slight overlap, sculptural still life aesthetic.',
+      name: 'Composition'
+    }
+  ]
+
+  /**
    * Generate multiple variations for a produce item
    * Creates 4 distinctly different views like a luxury product page:
    * 1. Hero shot - Luxury single specimen (MAISON_STILL_LIFE)
@@ -635,43 +680,7 @@ export class ProduceImageGenerator {
   ): Promise<Buffer[]> {
     const buffers: Buffer[] = []
     const baseSeed = this.hashString(slug)
-
-    // Define 4 distinct shot types for variety
-    const shotTypes: Array<{
-      mode: ImageMode
-      lighting: LightingPreset
-      variant: MaisonVariant
-      concept: string
-    }> = [
-      {
-        // Shot 1: Hero - Clean luxury beauty shot
-        mode: 'MAISON_STILL_LIFE',
-        lighting: 'moody',
-        variant: 'single',
-        concept: 'Hero shot. Centered subject, dramatic lighting, clean negative space.'
-      },
-      {
-        // Shot 2: Cross-section - Interior view showing freshness
-        mode: 'NATURAL_PACKSHOT',
-        lighting: 'bright',
-        variant: 'whole+half',
-        concept: 'Interior reveal. One whole specimen plus one cleanly cut half showing fresh interior structure, juice vesicles, seeds, or flesh texture.'
-      },
-      {
-        // Shot 3: Macro detail - Extreme close-up of texture
-        mode: 'MAISON_STILL_LIFE',
-        lighting: 'moody',
-        variant: 'single',
-        concept: 'Macro texture detail. Extreme close-up showing surface texture, skin pores, seeds, veins, or natural patterns. Fill the frame with textural detail.'
-      },
-      {
-        // Shot 4: Composition - Multiple items artistic arrangement
-        mode: 'MAISON_STILL_LIFE',
-        lighting: 'bright',
-        variant: 'stack3',
-        concept: 'Artistic composition. Three specimens arranged with intentional balance, slight overlap, sculptural still life aesthetic.'
-      }
-    ]
+    const shotTypes = ProduceImageGenerator.SHOT_TYPES
 
     for (let i = 0; i < Math.min(count, shotTypes.length); i++) {
       const shot = shotTypes[i]
@@ -683,7 +692,7 @@ export class ProduceImageGenerator {
         mode: shot.mode,
         lighting: shot.lighting,
         variant: shot.variant,
-        shotType: ['Hero', 'Cross-section', 'Macro', 'Composition'][i]
+        shotType: shot.name
       })
 
       const buffer = await this.generateProduceImageWithShot(produceName, slug, {
@@ -705,6 +714,60 @@ export class ProduceImageGenerator {
     }
 
     return buffers
+  }
+
+  /**
+   * Generate a specific shot by variation ID (1-4)
+   * Used for append mode to generate only missing shots
+   *
+   * @param produceName - Display name of the produce
+   * @param slug - URL slug for the produce
+   * @param variationId - 1-based shot number (1=Hero, 2=Cross-section, 3=Macro, 4=Composition)
+   */
+  async generateSpecificShot(
+    produceName: string,
+    slug: string,
+    variationId: number
+  ): Promise<Buffer | null> {
+    const shotTypes = ProduceImageGenerator.SHOT_TYPES
+    const index = variationId - 1
+
+    if (index < 0 || index >= shotTypes.length) {
+      imageGenLogger.warn('Invalid variation ID', { variationId, validRange: '1-4' })
+      return null
+    }
+
+    const shot = shotTypes[index]
+    const baseSeed = this.hashString(slug)
+    const seed = baseSeed + index * 9973
+
+    imageGenLogger.info('Generating specific shot', {
+      produceName,
+      variationId,
+      shotType: shot.name,
+      mode: shot.mode,
+      lighting: shot.lighting,
+      variant: shot.variant
+    })
+
+    return this.generateProduceImageWithShot(produceName, slug, {
+      seed,
+      mode: shot.mode,
+      lighting: shot.lighting,
+      variant: shot.variant,
+      conceptOverride: shot.concept
+    })
+  }
+
+  /**
+   * Get shot type name by variation ID
+   */
+  static getShotTypeName(variationId: number): string {
+    const index = variationId - 1
+    if (index >= 0 && index < ProduceImageGenerator.SHOT_TYPES.length) {
+      return ProduceImageGenerator.SHOT_TYPES[index].name
+    }
+    return `Shot ${variationId}`
   }
 
   /**

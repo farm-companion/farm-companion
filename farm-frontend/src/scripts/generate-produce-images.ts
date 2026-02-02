@@ -3,12 +3,20 @@
 /**
  * Generate AI images for seasonal produce items
  * Usage:
- *   pnpm run generate:produce-images [--produce=slug] [--count=4] [--upload]
+ *   pnpm run generate:produce-images [--produce=slug] [--count=4] [--upload] [--append]
+ *
+ * Options:
+ *   --produce=slug  Generate images for a specific produce item only
+ *   --count=N       Number of images per item (1-4, default: 4)
+ *   --upload        Upload to Vercel Blob and update produce.ts
+ *   --append        Only generate missing shots (2, 3, 4) for items that already have shot 1
+ *   --force         Regenerate even if images already exist
  *
  * Examples:
  *   pnpm run generate:produce-images --produce=strawberries --count=2
  *   pnpm run generate:produce-images --produce=sweetcorn --count=4 --upload
  *   pnpm run generate:produce-images --count=4 --upload
+ *   pnpm run generate:produce-images --append --upload  # Add shots 2-4 to existing items
  */
 
 import { config } from 'dotenv'
@@ -32,6 +40,7 @@ interface Options {
   count?: number
   force?: boolean
   upload?: boolean
+  append?: boolean
 }
 
 interface GeneratedImage {
@@ -41,7 +50,7 @@ interface GeneratedImage {
 
 function parseArgs(): Options {
   const args = process.argv.slice(2)
-  const options: Options = { count: 4, upload: false }
+  const options: Options = { count: 4, upload: false, append: false }
 
   for (const arg of args) {
     if (arg.startsWith('--produce=')) {
@@ -52,6 +61,8 @@ function parseArgs(): Options {
       options.force = true
     } else if (arg === '--upload') {
       options.upload = true
+    } else if (arg === '--append') {
+      options.append = true
     }
   }
 
@@ -76,9 +87,14 @@ async function generateImages() {
   }
 
   const mode = options.upload ? 'Upload to Vercel Blob' : 'Local dry-run'
-  console.log(`📋 Mode: ${mode}`)
+  const appendMode = options.append ? ' (append mode - adding missing shots)' : ''
+  console.log(`📋 Mode: ${mode}${appendMode}`)
   console.log(`📦 Processing ${produceItems.length} produce items`)
-  console.log(`🎨 Creating ${options.count} variations per item`)
+  if (options.append) {
+    console.log(`🎨 Adding missing shots (2-4) to items with existing shot 1`)
+  } else {
+    console.log(`🎨 Creating ${options.count} variations per item`)
+  }
   if (!options.upload) {
     console.log('💡 Add --upload flag to upload to Vercel Blob')
   }
@@ -94,23 +110,65 @@ async function generateImages() {
     console.log('-'.repeat(50))
 
     try {
-      // Check if images already exist (for upload mode)
-      if (options.upload && !options.force) {
-        const existingCount = await checkExistingImages(produce.slug, options.count!)
-        if (existingCount > 0) {
-          console.log(`⏭️  Skipping - ${existingCount} images already exist in blob storage`)
-          console.log(`   Use --force to regenerate`)
+      // Determine which shots to generate
+      let shotsToGenerate: number[] = []
+
+      if (options.append) {
+        // Append mode: find missing shots (2, 3, 4)
+        const existingShots = await findExistingShots(produce.slug, 4)
+        const allShots = [1, 2, 3, 4]
+        shotsToGenerate = allShots.filter(s => !existingShots.includes(s) && s <= options.count!)
+
+        if (shotsToGenerate.length === 0) {
+          console.log(`⏭️  Skipping - all shots already exist`)
           continue
         }
+        console.log(`📸 Missing shots: ${shotsToGenerate.join(', ')}`)
+        console.log(`   Existing shots: ${existingShots.length > 0 ? existingShots.join(', ') : 'none'}`)
+      } else {
+        // Normal mode: check if we should skip entirely
+        if (options.upload && !options.force) {
+          const existingCount = await checkExistingImages(produce.slug, options.count!)
+          if (existingCount > 0) {
+            console.log(`⏭️  Skipping - ${existingCount} images already exist in blob storage`)
+            console.log(`   Use --force to regenerate`)
+            continue
+          }
+        }
+        // Generate all requested shots
+        shotsToGenerate = Array.from({ length: options.count! }, (_, i) => i + 1)
       }
 
-      // Generate variations
-      console.log(`🎨 Generating ${options.count} variations...`)
-      const buffers = await generator.generateVariations(
-        produce.name,
-        produce.slug,
-        options.count
-      )
+      // Generate images for the required shots
+      const buffers: Array<{ buffer: Buffer; variationId: number }> = []
+
+      if (options.append) {
+        // Append mode: generate specific shots one by one
+        console.log(`🎨 Generating ${shotsToGenerate.length} missing shots...`)
+        for (const variationId of shotsToGenerate) {
+          const shotName = getShotTypeName(variationId)
+          console.log(`  [${variationId}/4] Generating ${shotName}...`)
+          const buffer = await generator.generateSpecificShot(
+            produce.name,
+            produce.slug,
+            variationId
+          )
+          if (buffer) {
+            buffers.push({ buffer, variationId })
+          }
+        }
+      } else {
+        // Normal mode: generate all variations at once
+        console.log(`🎨 Generating ${options.count} variations...`)
+        const allBuffers = await generator.generateVariations(
+          produce.name,
+          produce.slug,
+          options.count
+        )
+        allBuffers.forEach((buffer, i) => {
+          buffers.push({ buffer, variationId: i + 1 })
+        })
+      }
 
       if (buffers.length === 0) {
         console.warn(`⚠️  No images generated for ${produce.name}`)
@@ -125,12 +183,12 @@ async function generateImages() {
         console.log(`📤 Uploading to Vercel Blob...`)
         const urls: GeneratedImage[] = []
 
-        for (let i = 0; i < buffers.length; i++) {
-          const variationId = i + 1
-          console.log(`  [${variationId}/${buffers.length}] Uploading variation ${variationId}...`)
+        for (const { buffer, variationId } of buffers) {
+          const shotName = getShotTypeName(variationId)
+          console.log(`  [${variationId}/4] Uploading ${shotName}...`)
 
           const url = await generator.uploadImage(
-            buffers[i],
+            buffer,
             produce.slug,
             variationId,
             produce.name,
@@ -144,10 +202,10 @@ async function generateImages() {
         console.log(`✅ Uploaded ${urls.length} images for ${produce.name}`)
       } else {
         // Dry-run: save to local filesystem
-        for (let i = 0; i < buffers.length; i++) {
-          const filename = `${produce.slug}-${i + 1}.jpg`
+        for (const { buffer, variationId } of buffers) {
+          const filename = `${produce.slug}-${variationId}.jpg`
           const filepath = join(PUBLIC_DIR, filename)
-          await generator.saveImage(buffers[i], filepath)
+          await generator.saveImage(buffer, filepath)
         }
         console.log(`✅ Saved ${buffers.length} images locally`)
       }
@@ -168,7 +226,7 @@ async function generateImages() {
 
   // Automatically update produce.ts with new image URLs
   if (options.upload && Object.keys(generatedData).length > 0) {
-    const updated = updateProduceTs(generatedData, produceItems)
+    const updated = updateProduceTs(generatedData, produceItems, options.append)
 
     if (updated) {
       console.log('\n💡 NEXT STEPS:')
@@ -193,6 +251,31 @@ async function checkExistingImages(slug: string, count: number): Promise<number>
 }
 
 /**
+ * Find which shot numbers already exist for a produce item
+ */
+async function findExistingShots(slug: string, maxShots: number): Promise<number[]> {
+  const existingShots: number[] = []
+  for (let i = 1; i <= maxShots; i++) {
+    const exists = await produceImageExists(slug, i)
+    if (exists) existingShots.push(i)
+  }
+  return existingShots
+}
+
+/**
+ * Get human-readable shot type name
+ */
+function getShotTypeName(variationId: number): string {
+  const names: Record<number, string> = {
+    1: 'Hero',
+    2: 'Cross-section',
+    3: 'Macro',
+    4: 'Composition'
+  }
+  return names[variationId] || `Shot ${variationId}`
+}
+
+/**
  * Generate descriptive alt text for each shot type
  * Creates distinct descriptions for accessibility and SEO
  */
@@ -208,11 +291,45 @@ function getAltTextForShot(produceName: string, variationId: number): string {
 }
 
 /**
+ * Parse existing images from produce.ts for a given slug
+ */
+function parseExistingImages(content: string, slug: string): Array<{ src: string; alt: string; variationId?: number }> {
+  // Match the images array for this slug
+  const slugPattern = new RegExp(
+    `slug:\\s*['"]${slug}['"][\\s\\S]*?images:\\s*\\[([\\s\\S]*?)\\]`,
+    'm'
+  )
+
+  const match = content.match(slugPattern)
+  if (!match) return []
+
+  const imagesContent = match[1]
+  const images: Array<{ src: string; alt: string; variationId?: number }> = []
+
+  // Parse each image object
+  const imageRegex = /\{\s*src:\s*['"]([^'"]+)['"]\s*,\s*alt:\s*['"]([^'"]+)['"]\s*\}/g
+  let imageMatch
+  let index = 1
+
+  while ((imageMatch = imageRegex.exec(imagesContent)) !== null) {
+    images.push({
+      src: imageMatch[1],
+      alt: imageMatch[2],
+      variationId: index++
+    })
+  }
+
+  return images
+}
+
+/**
  * Automatically update produce.ts with new image URLs
+ * In append mode, merges new images with existing ones
  */
 function updateProduceTs(
   generatedData: Record<string, GeneratedImage[]>,
-  produceItems: typeof PRODUCE
+  produceItems: typeof PRODUCE,
+  appendMode: boolean = false
 ): boolean {
   if (Object.keys(generatedData).length === 0) {
     return false
@@ -224,27 +341,57 @@ function updateProduceTs(
     let content = readFileSync(PRODUCE_TS_PATH, 'utf-8')
     let updatedCount = 0
 
-    for (const [slug, images] of Object.entries(generatedData)) {
+    for (const [slug, newImages] of Object.entries(generatedData)) {
       const produce = produceItems.find(p => p.slug === slug)
       if (!produce) continue
 
-      // Build the new images array with distinct alt text per shot type
-      const newImagesArray = images
-        .map(img => {
-          const alt = getAltTextForShot(produce.name, img.variationId)
-          return `      { src: '${img.url}', alt: '${alt}' }`
+      let finalImages: Array<{ src: string; alt: string; variationId: number }>
+
+      if (appendMode) {
+        // Append mode: merge new images with existing ones
+        const existingImages = parseExistingImages(content, slug)
+        const imageMap = new Map<number, { src: string; alt: string }>()
+
+        // Add existing images to map
+        existingImages.forEach((img, index) => {
+          const variationId = img.variationId || (index + 1)
+          imageMap.set(variationId, { src: img.src, alt: img.alt })
         })
+
+        // Add/update with new images
+        newImages.forEach(img => {
+          const alt = getAltTextForShot(produce.name, img.variationId)
+          imageMap.set(img.variationId, { src: img.url, alt })
+        })
+
+        // Convert map to sorted array
+        finalImages = Array.from(imageMap.entries())
+          .sort((a, b) => a[0] - b[0])
+          .map(([variationId, { src, alt }]) => ({ src, alt, variationId }))
+
+        console.log(`   📸 Merged: ${existingImages.length} existing + ${newImages.length} new = ${finalImages.length} total`)
+      } else {
+        // Replace mode: use only new images
+        finalImages = newImages.map(img => ({
+          src: img.url,
+          alt: getAltTextForShot(produce.name, img.variationId),
+          variationId: img.variationId
+        }))
+      }
+
+      // Build the images array string
+      const imagesArrayStr = finalImages
+        .map(img => `      { src: '${img.src}', alt: '${img.alt}' }`)
         .join(',\n')
 
       // Find and replace the images array for this produce
-      // Match: images: [ ... ], (with multiline content)
       const slugPattern = new RegExp(
         `(slug:\\s*['"]${slug}['"][\\s\\S]*?images:\\s*\\[)[\\s\\S]*?(\\],)`,
         'm'
       )
 
       if (slugPattern.test(content)) {
-        content = content.replace(slugPattern, `$1\n${newImagesArray},\n    $2`)
+        content = content.replace(slugPattern, `$1\n${imagesArrayStr},\n    $2`)
         updatedCount++
         console.log(`   ✅ Updated images for ${produce.name}`)
       } else {
