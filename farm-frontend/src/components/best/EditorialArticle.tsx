@@ -2,6 +2,7 @@
  * EditorialArticle Component
  *
  * Luxury editorial design inspired by Louis Vuitton magazine layouts.
+ * Uses Paper White (#F9F9F9) and Deep Charcoal (#1A1A1A) palette.
  * Features: narrow text columns, full-bleed images, pull quotes, drop caps.
  */
 
@@ -28,8 +29,13 @@ interface EditorialArticleProps {
   className?: string
 }
 
-// Olive/sage green accent color
-const ACCENT_COLOR = '#5d6d3f'
+// Luxury editorial color palette
+const COLORS = {
+  paperWhite: '#F9F9F9',
+  deepCharcoal: '#1A1A1A',
+  warmGray: '#6B6B6B',
+  divider: '#E5E5E5',
+}
 
 export function EditorialArticle({
   articleNumber,
@@ -44,7 +50,7 @@ export function EditorialArticle({
   className = ''
 }: EditorialArticleProps) {
   return (
-    <article className={className}>
+    <article className={`bg-[#F9F9F9] ${className}`}>
       {/* Hero Image - Full bleed */}
       {heroImage && (
         <figure className="relative w-screen left-1/2 -translate-x-1/2 mb-16">
@@ -55,10 +61,11 @@ export function EditorialArticle({
               fill
               className="object-cover"
               priority
+              sizes="100vw"
             />
           </div>
           {heroImage.caption && (
-            <figcaption className="max-w-2xl mx-auto px-6 mt-4 text-sm text-slate-500 dark:text-slate-400 italic">
+            <figcaption className="max-w-2xl mx-auto px-6 mt-4 text-xs tracking-[0.1em] text-[#6B6B6B] text-center">
               {heroImage.caption}
             </figcaption>
           )}
@@ -67,49 +74,55 @@ export function EditorialArticle({
 
       {/* Article Header - Centered, elegant */}
       <header className="max-w-2xl mx-auto px-6 mb-16 text-center">
+        {/* Vertical line accent */}
+        <div className="w-px h-12 bg-[#E5E5E5] mx-auto mb-8" aria-hidden="true" />
+
         {articleNumber && (
-          <p className="text-xs font-medium tracking-[0.2em] uppercase text-slate-400 dark:text-slate-500 mb-6">
+          <p className="text-xs tracking-[0.2em] uppercase text-[#6B6B6B] mb-6">
             Article {articleNumber}
           </p>
         )}
 
-        <h2
-          className="font-serif text-3xl md:text-4xl lg:text-5xl font-normal leading-tight mb-6"
-          style={{ color: ACCENT_COLOR }}
-        >
+        <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-normal leading-tight mb-6 text-[#1A1A1A]">
           {title}
         </h2>
 
         {(persona || approach) && (
-          <p className="text-sm tracking-wide text-slate-500 dark:text-slate-400">
-            {persona && <span className="italic">{persona}</span>}
-            {persona && approach && <span className="mx-3 text-slate-300">|</span>}
-            {approach && <span className="italic">{approach}</span>}
+          <p className="text-xs tracking-[0.15em] uppercase text-[#6B6B6B]">
+            {persona && <span>{persona}</span>}
+            {persona && approach && <span className="mx-4 inline-block w-6 h-px bg-[#E5E5E5] align-middle" />}
+            {approach && <span>{approach}</span>}
           </p>
         )}
+
+        {/* Vertical line accent */}
+        <div className="w-px h-12 bg-[#E5E5E5] mx-auto mt-8" aria-hidden="true" />
       </header>
 
       {/* SEO Keywords - Subtle inline */}
       {seoKeywords && seoKeywords.length > 0 && (
-        <div className="max-w-2xl mx-auto px-6 mb-12">
-          <p className="text-xs tracking-wide text-slate-400 dark:text-slate-500 border-l-2 pl-4" style={{ borderColor: ACCENT_COLOR }}>
-            <span className="font-medium uppercase">Keywords:</span>{' '}
-            {seoKeywords.join(' · ')}
-          </p>
+        <div className="max-w-2xl mx-auto px-6 mb-16">
+          <div className="border-l-2 border-[#E5E5E5] pl-6">
+            <p className="text-xs tracking-[0.1em] uppercase text-[#6B6B6B]">
+              <span className="font-medium">Keywords</span>
+            </p>
+            <p className="text-xs tracking-wide text-[#6B6B6B] mt-2">
+              {seoKeywords.join(' · ')}
+            </p>
+          </div>
         </div>
       )}
 
       {/* Editorial Introduction - Narrow column with drop cap */}
       {editorialIntro && (
-        <div className="max-w-2xl mx-auto px-6 mb-20">
+        <div className="max-w-2xl mx-auto px-6 mb-24">
           {editorialIntro.split('\n\n').map((paragraph, idx) => {
             if (paragraph.startsWith('## ')) {
               const headingText = paragraph.replace('## ', '')
               return (
                 <h3
                   key={idx}
-                  className="font-serif text-2xl md:text-3xl font-normal mt-16 mb-8"
-                  style={{ color: ACCENT_COLOR }}
+                  className="font-serif text-2xl md:text-3xl font-normal mt-20 mb-8 text-[#1A1A1A]"
                 >
                   {headingText}
                 </h3>
@@ -122,10 +135,9 @@ export function EditorialArticle({
             return (
               <p
                 key={idx}
-                className={`text-lg leading-[1.8] text-slate-700 dark:text-slate-300 mb-6 ${
-                  isFirst ? 'first-letter:text-5xl first-letter:font-serif first-letter:float-left first-letter:mr-3 first-letter:mt-1' : ''
+                className={`text-lg leading-[1.9] text-[#1A1A1A] mb-6 ${
+                  isFirst ? 'first-letter:text-6xl first-letter:font-serif first-letter:float-left first-letter:mr-4 first-letter:mt-1 first-letter:text-[#1A1A1A]' : ''
                 }`}
-                style={isFirst ? { ['--tw-first-letter-color' as string]: ACCENT_COLOR } : {}}
               >
                 {paragraph}
               </p>
@@ -136,18 +148,23 @@ export function EditorialArticle({
 
       {/* Farm Profiles - Alternating layout with images */}
       {farmProfiles && farmProfiles.length > 0 && (
-        <div className="space-y-24">
+        <div className="space-y-32">
           {farmProfiles.map((farm, idx) => (
             <FarmProfileSection
               key={idx}
               farm={farm}
               farms={farms}
               index={idx}
-              showImage={idx % 2 === 0} // Show image every 2nd profile for richer visuals
+              showImage={idx % 2 === 0}
             />
           ))}
         </div>
       )}
+
+      {/* Bottom accent */}
+      <div className="max-w-2xl mx-auto px-6 pt-24">
+        <div className="w-16 h-px bg-[#E5E5E5] mx-auto" aria-hidden="true" />
+      </div>
     </article>
   )
 }
@@ -159,7 +176,7 @@ interface FarmProfileSectionProps {
   showImage?: boolean
 }
 
-// Fallback produce images from blob storage (used if no farm image available)
+// Fallback produce images from blob storage
 const FALLBACK_IMAGES = [
   {
     src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/1/main.webp',
@@ -212,7 +229,7 @@ function FarmProfileSection({ farm, farms, index, showImage }: FarmProfileSectio
       {/* Full-bleed image for select profiles */}
       {showImage && imageData && (
         <figure className="relative w-screen left-1/2 -translate-x-1/2 mb-12">
-          <div className="relative h-[40vh] min-h-[300px] max-h-[500px]">
+          <div className="relative h-[50vh] min-h-[350px] max-h-[550px] overflow-hidden">
             <Image
               src={imageData.src}
               alt={imageData.alt}
@@ -220,9 +237,8 @@ function FarmProfileSection({ farm, farms, index, showImage }: FarmProfileSectio
               className="object-cover"
               sizes="100vw"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           </div>
-          <figcaption className="max-w-2xl mx-auto px-6 mt-4 text-sm text-slate-500 dark:text-slate-400 italic text-center">
+          <figcaption className="max-w-2xl mx-auto px-6 mt-6 text-xs tracking-[0.1em] text-[#6B6B6B] text-center">
             {imageData.alt}
           </figcaption>
         </figure>
@@ -231,15 +247,12 @@ function FarmProfileSection({ farm, farms, index, showImage }: FarmProfileSectio
       {/* Farm content - narrow column */}
       <div className="max-w-2xl mx-auto px-6">
         {/* Farm Name & Location */}
-        <header className="mb-8">
-          <h3
-            className="font-serif text-2xl md:text-3xl font-normal mb-2"
-            style={{ color: ACCENT_COLOR }}
-          >
+        <header className="mb-10">
+          <h3 className="font-serif text-2xl md:text-3xl font-normal mb-3 text-[#1A1A1A]">
             {farm.name}
           </h3>
           {farm.location && (
-            <p className="text-sm tracking-wide text-slate-500 dark:text-slate-400 uppercase">
+            <p className="text-xs tracking-[0.15em] uppercase text-[#6B6B6B]">
               {farm.location}
             </p>
           )}
@@ -250,20 +263,19 @@ function FarmProfileSection({ farm, farms, index, showImage }: FarmProfileSectio
           {farm.description.split('\n\n').map((paragraph, pIdx) => (
             <p
               key={pIdx}
-              className="text-lg leading-[1.8] text-slate-700 dark:text-slate-300"
+              className="text-lg leading-[1.9] text-[#1A1A1A]"
             >
               {paragraph}
             </p>
           ))}
         </div>
 
-        {/* Pull quote from first paragraph if long enough */}
+        {/* Pull quote for alternate profiles */}
         {index % 2 === 1 && farm.description.length > 300 && (
-          <blockquote
-            className="my-12 py-8 border-y text-xl md:text-2xl font-serif italic text-center"
-            style={{ borderColor: `${ACCENT_COLOR}30`, color: ACCENT_COLOR }}
-          >
-            "{extractPullQuote(farm.description)}"
+          <blockquote className="my-16 py-10 border-t border-b border-[#E5E5E5]">
+            <p className="text-xl md:text-2xl font-serif italic text-center text-[#1A1A1A] leading-relaxed">
+              &ldquo;{extractPullQuote(farm.description)}&rdquo;
+            </p>
           </blockquote>
         )}
       </div>
