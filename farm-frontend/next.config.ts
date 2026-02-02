@@ -100,6 +100,20 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
+      // Supabase Storage (hosted)
+      {
+        protocol: 'https',
+        hostname: '*.supabase.co',
+        port: '',
+        pathname: '/storage/**',
+      },
+      // Supabase Storage (self-hosted) - add your domain here or use env var
+      ...(process.env.NEXT_PUBLIC_SUPABASE_URL ? [{
+        protocol: 'https' as const,
+        hostname: new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).hostname,
+        port: '',
+        pathname: '/storage/**',
+      }] : []),
     ],
     // Enable modern image formats
     formats: ['image/webp', 'image/avif'],
