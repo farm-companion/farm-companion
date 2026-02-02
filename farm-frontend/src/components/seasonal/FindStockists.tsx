@@ -82,7 +82,7 @@ export function FindStockists({
           <h3 className="text-heading font-semibold text-slate-900 dark:text-slate-100 mb-1">
             Where to Buy {produceName}
           </h3>
-          <p className="text-body text-slate-600 dark:text-slate-400">
+          <p className="text-body text-slate-600 dark:text-slate-300">
             {categoryMessages[category]}
           </p>
         </div>
@@ -90,13 +90,13 @@ export function FindStockists({
 
       {/* Nearby Farms */}
       {(loading || locationLoading) ? (
-        <div className="flex items-center gap-2 text-caption text-slate-500 dark:text-slate-400 mb-4">
+        <div className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-300 mb-4">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span>Finding nearby farms...</span>
         </div>
       ) : nearbyFarms.length > 0 ? (
         <div className="space-y-2 mb-4">
-          <p className="text-small text-slate-500 dark:text-slate-500 font-medium uppercase tracking-wide">
+          <p className="text-small text-slate-600 dark:text-slate-300 font-medium uppercase tracking-wide">
             Farms near you
           </p>
           <div className="space-y-2">
@@ -114,7 +114,7 @@ export function FindStockists({
                     <p className="text-body font-medium text-slate-900 dark:text-slate-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
                       {farm.name}
                     </p>
-                    <p className="text-small text-slate-500 dark:text-slate-400">
+                    <p className="text-small text-slate-600 dark:text-slate-300">
                       {farm.county}
                       {farm.distance && ` - ${formatDistance(farm.distance)}`}
                     </p>
@@ -127,7 +127,7 @@ export function FindStockists({
         </div>
       ) : !location ? (
         <div className="mb-4 p-3 bg-white/50 dark:bg-slate-800/50 rounded-xl">
-          <p className="text-caption text-slate-600 dark:text-slate-400">
+          <p className="text-caption text-slate-600 dark:text-slate-300">
             Enable location to see farms near you
           </p>
         </div>
@@ -162,7 +162,7 @@ export function FindStockists({
       </div>
 
       {/* Seasonal tip */}
-      <p className="mt-4 text-small text-slate-500 dark:text-slate-500 text-center">
+      <p className="mt-4 text-small text-slate-600 dark:text-slate-300 text-center">
         Ask your local farm shop about seasonal availability
       </p>
     </div>
