@@ -139,7 +139,7 @@ export function EditorialArticle({
               key={idx}
               farm={farm}
               index={idx}
-              showImage={idx % 3 === 0} // Show image every 3rd profile
+              showImage={idx % 2 === 0} // Show image every 2nd profile for richer visuals
             />
           ))}
         </div>
@@ -154,32 +154,64 @@ interface FarmProfileSectionProps {
   showImage?: boolean
 }
 
-function FarmProfileSection({ farm, index, showImage }: FarmProfileSectionProps) {
-  // Farm images based on type/name
-  const farmImages: Record<string, string> = {
-    'Duchy Home Farm': 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1600&q=80',
-    'Riverford': 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1600&q=80',
-    'Daylesford': 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80',
+// Curated organic produce images from blob storage
+const ORGANIC_IMAGES = [
+  {
+    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/tomato/1/main.webp',
+    alt: 'Fresh vine-ripened British tomatoes'
+  },
+  {
+    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/1/main.webp',
+    alt: 'Fresh British kale leaves'
+  },
+  {
+    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/carrots/1/main.webp',
+    alt: 'Fresh orange British carrots with green tops'
+  },
+  {
+    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/asparagus/1/main.webp',
+    alt: 'Fresh British asparagus spears'
+  },
+  {
+    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/1/main.webp',
+    alt: 'Fresh British strawberries with morning dew'
+  },
+  {
+    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/apples/1/main.webp',
+    alt: 'Fresh British apples in autumn orchard'
+  },
+  {
+    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/broad-beans/1/main.webp',
+    alt: 'Fresh broad beans in pods'
+  },
+  {
+    src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/1/main.webp',
+    alt: 'Fresh dark green spinach leaves'
   }
+]
 
-  const imageUrl = Object.entries(farmImages).find(([key]) =>
-    farm.name.toLowerCase().includes(key.toLowerCase())
-  )?.[1]
+function FarmProfileSection({ farm, index, showImage }: FarmProfileSectionProps) {
+  // Get image based on index (cycles through available images)
+  const imageData = ORGANIC_IMAGES[index % ORGANIC_IMAGES.length]
 
   return (
     <section>
       {/* Full-bleed image for select profiles */}
-      {showImage && imageUrl && (
+      {showImage && imageData && (
         <figure className="relative w-screen left-1/2 -translate-x-1/2 mb-12">
           <div className="relative h-[40vh] min-h-[300px] max-h-[500px]">
             <Image
-              src={imageUrl}
-              alt={`${farm.name} organic farm`}
+              src={imageData.src}
+              alt={imageData.alt}
               fill
               className="object-cover"
+              sizes="100vw"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
           </div>
+          <figcaption className="max-w-2xl mx-auto px-6 mt-4 text-sm text-slate-500 dark:text-slate-400 italic text-center">
+            {imageData.alt}
+          </figcaption>
         </figure>
       )}
 
