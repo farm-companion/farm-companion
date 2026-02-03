@@ -9,39 +9,32 @@ import { FeaturedGuides } from '@/components/FeaturedGuides'
 import { CategoryGrid } from '@/components/CategoryGrid'
 import { AnimatedHero } from '@/components/AnimatedHero'
 
-// Lazy-load below-fold client components to reduce initial bundle size
-// and prevent concurrent database/API calls during static builds.
+// Lazy-load below-fold client components to reduce initial bundle size.
+// These produce separate JS chunks loaded on demand rather than in the
+// main page bundle. ssr:false is not used because this is a Server Component.
 const AnimatedStats = dynamic(
-  () => import('@/components/AnimatedStats').then(m => m.AnimatedStats),
-  { ssr: false }
+  () => import('@/components/AnimatedStats').then(m => m.AnimatedStats)
 )
 const AnimatedFeatures = dynamic(
-  () => import('@/components/AnimatedFeatures').then(m => m.AnimatedFeatures),
-  { ssr: false }
+  () => import('@/components/AnimatedFeatures').then(m => m.AnimatedFeatures)
 )
 const SeasonalShowcase = dynamic(
-  () => import('@/components/SeasonalShowcase').then(m => m.SeasonalShowcase),
-  { ssr: false }
+  () => import('@/components/SeasonalShowcase').then(m => m.SeasonalShowcase)
 )
 const NearbyFarms = dynamic(
-  () => import('@/components/NearbyFarms').then(m => m.NearbyFarms),
-  { ssr: false }
+  () => import('@/components/NearbyFarms').then(m => m.NearbyFarms)
 )
 const WeekendPlanner = dynamic(
-  () => import('@/components/WeekendPlanner').then(m => m.WeekendPlanner),
-  { ssr: false }
+  () => import('@/components/WeekendPlanner').then(m => m.WeekendPlanner)
 )
 const SocialProofTicker = dynamic(
-  () => import('@/components/SocialProofTicker').then(m => m.SocialProofTicker),
-  { ssr: false }
+  () => import('@/components/SocialProofTicker').then(m => m.SocialProofTicker)
 )
 const OpenNowCTA = dynamic(
-  () => import('@/components/OpenNowCTA').then(m => m.OpenNowCTA),
-  { ssr: false }
+  () => import('@/components/OpenNowCTA').then(m => m.OpenNowCTA)
 )
 const NewsletterSignup = dynamic(
-  () => import('@/components/NewsletterSignup'),
-  { ssr: false }
+  () => import('@/components/NewsletterSignup')
 )
 
 export async function generateMetadata(): Promise<Metadata> {
