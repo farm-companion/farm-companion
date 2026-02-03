@@ -72,33 +72,29 @@ function Brand({ inverted }: { inverted: boolean }) {
     <Link
       href="/"
       aria-label="Farm Companion - Home"
-      className="group inline-flex items-center gap-3 rounded-lg px-1 py-1 -ml-1 transition-all duration-200 hover:bg-zinc-100/50 dark:hover:bg-white/[0.04]"
+      className="group inline-flex items-center gap-3 py-1 transition-colors duration-200"
     >
-      {/* Logo mark - Obsidian surface with specular highlight */}
+      {/* Logo mark - clean flat square */}
       <div
         className={cx(
-          'relative flex h-10 w-10 items-center justify-center rounded-xl shadow-sm transition-all duration-200 group-hover:shadow-md group-hover:scale-105 overflow-hidden',
+          'flex h-9 w-9 items-center justify-center rounded-lg transition-colors duration-200',
           inverted
-            ? 'bg-white/95 shadow-white/20'
-            : 'bg-zinc-900 dark:bg-zinc-50 shadow-zinc-900/20'
+            ? 'bg-white'
+            : 'bg-text-heading'
         )}
       >
-        {/* Specular highlight overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none" />
-        <Leaf className={cx('h-5 w-5 transition-transform duration-200 group-hover:rotate-6 relative z-10', inverted ? 'text-zinc-900' : 'text-white dark:text-zinc-900')} />
+        <Leaf className={cx('h-4 w-4', inverted ? 'text-zinc-900' : 'text-background-canvas')} />
       </div>
-      {/* Brand text - Clash Display typography */}
+      {/* Brand text */}
       <div className="leading-tight">
         <span className={cx(
-          'block text-[15px] tracking-tight transition-colors',
-          // Adaptive font weight: semibold in light, medium in dark
-          'font-semibold dark:font-medium',
-          inverted ? 'text-white' : 'text-zinc-900 dark:text-zinc-50'
+          'block text-[15px] tracking-tight font-semibold dark:font-medium transition-colors',
+          inverted ? 'text-white' : 'text-text-heading'
         )}>Farm Companion</span>
         <span className={cx(
-          'hidden text-[11px] font-medium tracking-[0.08em] uppercase sm:block transition-colors',
-          inverted ? 'text-white/90' : 'text-zinc-500 dark:text-zinc-400'
-        )}>Real food, real places</span>
+          'hidden text-[10px] font-medium tracking-[0.12em] uppercase sm:block transition-colors',
+          inverted ? 'text-white/80' : 'text-text-muted'
+        )}>Real Food, Real Places</span>
       </div>
     </Link>
   )
@@ -316,29 +312,20 @@ export default function Header() {
         hide ? '-translate-y-full opacity-0' : 'translate-y-0 opacity-100'
       )}
     >
-      {/* Command Center - Glass surface with specular edge */}
-      <div className="px-4 sm:px-6 lg:px-8 pt-2 sm:pt-3">
+      {/* LV-style flat navigation bar */}
+      <div className="px-0">
         <div
           className={cx(
-            'relative mx-auto flex max-w-6xl items-center justify-between rounded-2xl px-4 sm:px-6 transition-all duration-300',
+            'relative mx-auto flex max-w-7xl items-center justify-between px-6 sm:px-8 lg:px-10 transition-all duration-300',
             'h-14 sm:h-16',
-            // Command Center glass surface
-            scrolled
-              ? inverted
-                ? 'border border-white/30 bg-zinc-900/90 backdrop-blur-xl shadow-lg'
-                : [
-                    // Light mode: shadow depth
-                    'border border-zinc-200/60 bg-white/70 backdrop-blur-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]',
-                    // Dark mode: Obsidian surface with border luminance
-                    'dark:border-white/[0.08] dark:bg-[#050505]/70 dark:shadow-none'
-                  ].join(' ')
-              : inverted
-                ? 'border border-white/20 bg-zinc-900/80 backdrop-blur-xl shadow-lg'
-                : 'border border-transparent bg-white/60 dark:bg-[#050505]/60 backdrop-blur-lg'
+            // Solid background with bottom rule
+            inverted
+              ? 'bg-zinc-900/95 backdrop-blur-sm'
+              : 'bg-background-canvas dark:bg-[#0C0A09]',
+            // Bottom rule appears on scroll
+            scrolled && !inverted ? 'border-b border-border-default' : ''
           )}
         >
-          {/* Specular edge highlight (dark mode only) */}
-          <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/[0.06] to-transparent dark:block hidden pointer-events-none rounded-t-2xl" />
 
           {/* Brand + Location Context */}
           <div className="flex items-center gap-4">
