@@ -253,7 +253,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Middle Eastern Runner Beans',
-        url: 'https://www.riverford.co.uk/recipes/middle-eastern-style-runner-beans?srsltid=AfmBOoorbptoOUwoGLQPEslUJmZHt4zyU58PQIqxFcHLSPsF77mkD6m5',
+        url: 'https://www.riverford.co.uk/recipes/middle-eastern-style-runner-beans',
         description: 'Spiced runner beans with exotic flavours'
       },
       {
@@ -444,7 +444,7 @@ export const PRODUCE: Produce[] = [
     recipeChips: [
       {
         title: 'Asparagus with Lemon Butter',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/simply-asparagus/',
+        url: 'https://www.greatbritishchefs.com/how-to-cook/how-to-roast-asparagus',
         description: 'Classic British asparagus with lemon and butter'
       },
       {
@@ -493,7 +493,7 @@ export const PRODUCE: Produce[] = [
     recipeChips: [
       {
         title: 'Kale Caesar Salad',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/kale-caesar-salad/',
+        url: 'https://www.olivemagazine.com/recipes/healthy/crispy-chickpea-and-kale-caesar-salad/',
         description: 'Healthy twist on the classic Caesar salad'
       },
       {
@@ -547,7 +547,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Braised Leeks',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/braised-leeks/',
+        url: 'https://www.olivemagazine.com/recipes/vegetarian/buttered-leeks-with-pangritata/',
         description: 'Tender leeks cooked in butter and stock'
       },
       {
@@ -596,12 +596,12 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'PSB with Chilli and Garlic',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/purple-sprouting-broccoli-with-chilli-garlic/',
+        url: 'https://www.olivemagazine.com/recipes/vegetarian/broccoli-stir-fry/',
         description: 'Quick and flavourful PSB side dish'
       },
       {
         title: 'PSB and Pasta',
-        url: 'https://www.rivercottage.net/recipes/purple-sprouting-broccoli-pasta',
+        url: 'https://www.olivemagazine.com/recipes/quick-and-easy/orecchiette-with-anchovies-and-purple-sprouting-broccoli/',
         description: 'Spring pasta with purple sprouting broccoli'
       }
     ],
@@ -645,7 +645,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Carrot and Coriander Soup',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/carrot-coriander-soup/',
+        url: 'https://www.greatbritishchefs.com/recipes/carrot-coriander-soup-recipe',
         description: 'Classic British soup with warming spices'
       }
     ],
@@ -689,7 +689,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Parsnip Soup',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/parsnip-soup/',
+        url: 'https://www.olivemagazine.com/recipes/quick-and-easy/spiced-parsnip-soup/',
         description: 'Creamy winter warmer'
       }
     ],
@@ -733,7 +733,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Shredded Sprout Salad',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/shredded-sprout-salad/',
+        url: 'https://www.olivemagazine.com/recipes/quick-and-easy/italian-style-shredded-brussels-salad/',
         description: 'Fresh and crunchy winter salad'
       }
     ],
@@ -777,7 +777,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Beetroot Soup (Borscht)',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/beetroot-soup/',
+        url: 'https://www.olivemagazine.com/recipes/healthy/borscht/',
         description: 'Vibrant Eastern European classic'
       }
     ],
@@ -821,7 +821,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Rhubarb Fool',
-        url: 'https://www.jamieoliver.com/recipes/fruit-recipes/rhubarb-fool/',
+        url: 'https://www.olivemagazine.com/recipes/baking-and-desserts/rhubarb-and-ginger-fool/',
         description: 'Light and creamy spring pudding'
       }
     ],
@@ -864,7 +864,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Spinach and Ricotta Cannelloni',
-        url: 'https://www.jamieoliver.com/recipes/pasta-recipes/spinach-ricotta-cannelloni/',
+        url: 'https://www.jamieoliver.com/recipes/pasta/spinach-ricotta-cannelloni/',
         description: 'Italian comfort food classic'
       }
     ],
@@ -908,7 +908,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Broad Bean Bruschetta',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/broad-bean-bruschetta/',
+        url: 'https://www.olivemagazine.com/recipes/crushed-broad-bean-and-mint-bruschetta/',
         description: 'Italian-style toast topper'
       }
     ],
@@ -952,7 +952,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Pea Risotto',
-        url: 'https://www.jamieoliver.com/recipes/rice-recipes/pea-risotto/',
+        url: 'https://www.bbcgoodfoodme.com/recipes/creamy-pea-and-chive-risotto/',
         description: 'Creamy Italian rice with fresh peas'
       }
     ],
@@ -996,7 +996,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Courgette Fritters',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/courgette-fritters/',
+        url: 'https://www.greatbritishchefs.com/recipes/easy-courgette-fritters-recipe',
         description: 'Crispy vegetable pancakes'
       }
     ],
@@ -1040,7 +1040,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Raspberry Jam',
-        url: 'https://www.jamieoliver.com/recipes/fruit-recipes/raspberry-jam/',
+        url: 'https://www.greatbritishchefs.com/recipes/easy-raspberry-jam-recipe',
         description: 'Homemade preserve'
       }
     ],
@@ -1084,7 +1084,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Cherry Pie',
-        url: 'https://www.jamieoliver.com/recipes/fruit-recipes/cherry-pie/',
+        url: 'https://www.greatbritishchefs.com/recipes/cherry-pie-recipe',
         description: 'Traditional fruit pie'
       }
     ],
@@ -1128,7 +1128,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Pear and Blue Cheese Salad',
-        url: 'https://www.jamieoliver.com/recipes/fruit-recipes/pear-blue-cheese-salad/',
+        url: 'https://www.olivemagazine.com/recipes/quick-and-easy/pear-chicory-and-blue-cheese-salad/',
         description: 'Classic autumn salad combination'
       }
     ],
@@ -1172,7 +1172,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Broccoli Soup',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/broccoli-soup/',
+        url: 'https://www.jamieoliver.com/recipes/vegetables/broccoli-soup/',
         description: 'Healthy and vibrant green soup'
       }
     ],
@@ -1216,7 +1216,7 @@ export const PRODUCE: Produce[] = [
       },
       {
         title: 'Whole Roasted Cauliflower',
-        url: 'https://www.jamieoliver.com/recipes/vegetables-recipes/whole-roasted-cauliflower/',
+        url: 'https://www.jamieoliver.com/recipes/vegetables/whole-roasted-cauliflower/',
         description: 'Impressive centrepiece dish'
       }
     ],
