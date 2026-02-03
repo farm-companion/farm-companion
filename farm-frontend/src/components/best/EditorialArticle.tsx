@@ -158,7 +158,7 @@ interface FarmProfileSectionProps {
 }
 
 // Editorial fallback images - atmospheric farm and produce photography
-// IMPORTANT: No images of people, pigs, or bacon
+// IMPORTANT: No images of people, pigs, bacon, alcohol, or non-UK imagery
 const FALLBACK_IMAGES = [
   {
     src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80&auto=format',
@@ -303,6 +303,7 @@ const EDUCATIONAL_FARM_IMAGES = [
 ]
 
 // Farm cafe and restaurant images - dining, kitchen gardens, plated food
+// Rules: no people, no alcohol, no non-UK imagery
 const FARM_CAFE_IMAGES = [
   {
     src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=80&auto=format',
@@ -329,8 +330,8 @@ const FARM_CAFE_IMAGES = [
     alt: 'Herb garden with fresh rosemary and thyme'
   },
   {
-    src: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1600&q=80&auto=format',
-    alt: 'Freshly harvested vegetables in a wicker basket'
+    src: 'https://images.unsplash.com/photo-1595855759920-86582396756a?w=1600&q=80&auto=format',
+    alt: 'Devon countryside with rolling green hills'
   },
   {
     src: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1600&q=80&auto=format',
@@ -345,8 +346,8 @@ const FARM_CAFE_IMAGES = [
     alt: 'Artisan sourdough bread fresh from the oven'
   },
   {
-    src: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&q=80&auto=format',
-    alt: 'Wine glass on rustic dining table'
+    src: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=1600&q=80&auto=format',
+    alt: 'Fresh herbs and vegetables on a wooden cutting board'
   },
   {
     src: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=80&auto=format',
@@ -361,8 +362,8 @@ const FARM_CAFE_IMAGES = [
     alt: 'Restaurant interior with warm ambient lighting'
   },
   {
-    src: 'https://images.unsplash.com/photo-1592861956120-e524fc739696?w=1600&q=80&auto=format',
-    alt: 'Rustic outdoor dining table set for a farm feast'
+    src: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=1600&q=80&auto=format',
+    alt: 'Misty morning over green farmland with hedgerows'
   }
 ]
 
