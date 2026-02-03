@@ -41,6 +41,16 @@ const DEFAULT_CONFIG: SitemapConfig = {
   includeVideo: false
 }
 
+/** Escape text for safe use inside XML elements (e.g. URLs with & in query params). */
+function escapeXml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 // Pages that should be excluded from sitemap
 const EXCLUDED_PATHS = [
   '/admin',
@@ -253,9 +263,9 @@ export function generateSitemapXML(entries: SitemapEntry[]): string {
   const urlsetClose = '</urlset>'
 
   const urlEntries = entries.map(entry => {
-    const url = `${SITE_URL}${entry.url}`
-    const lastmod = entry.lastModified?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]
-    const changefreq = entry.changeFrequency || 'weekly'
+    const url = escapeXml(`${SITE_URL}${entry.url}`)
+    const lastmod = escapeXml(entry.lastModified?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0])
+    const changefreq = escapeXml(entry.changeFrequency || 'weekly')
     const priority = entry.priority || 0.5
 
     let urlContent = `  <url>
@@ -269,26 +279,26 @@ export function generateSitemapXML(entries: SitemapEntry[]): string {
       entry.images.forEach(image => {
         urlContent += `
     <image:image>
-      <image:loc>${image.url}</image:loc>`
+      <image:loc>${escapeXml(image.url)}</image:loc>`
         
         if (image.caption) {
           urlContent += `
-      <image:caption>${image.caption}</image:caption>`
+      <image:caption>${escapeXml(image.caption)}</image:caption>`
         }
         
         if (image.title) {
           urlContent += `
-      <image:title>${image.title}</image:title>`
+      <image:title>${escapeXml(image.title)}</image:title>`
         }
         
         if (image.geoLocation) {
           urlContent += `
-      <image:geo_location>${image.geoLocation}</image:geo_location>`
+      <image:geo_location>${escapeXml(image.geoLocation)}</image:geo_location>`
         }
         
         if (image.license) {
           urlContent += `
-      <image:license>${image.license}</image:license>`
+      <image:license>${escapeXml(image.license)}</image:license>`
         }
         
         urlContent += `
@@ -315,8 +325,8 @@ export function generateSitemapIndexXML(indexEntries: SitemapEntry[]): string {
   const sitemapindexClose = '</sitemapindex>'
 
   const sitemapEntries = indexEntries.map(entry => {
-    const url = `${SITE_URL}${entry.url}`
-    const lastmod = entry.lastModified?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]
+    const url = escapeXml(`${SITE_URL}${entry.url}`)
+    const lastmod = escapeXml(entry.lastModified?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0])
 
     return `  <sitemap>
     <loc>${url}</loc>
