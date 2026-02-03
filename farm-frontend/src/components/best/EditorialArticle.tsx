@@ -302,11 +302,76 @@ const EDUCATIONAL_FARM_IMAGES = [
   }
 ]
 
+// Farm cafe and restaurant images - dining, kitchen gardens, plated food
+const FARM_CAFE_IMAGES = [
+  {
+    src: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1600&q=80&auto=format',
+    alt: 'Fine dining table set with plated dishes'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=1600&q=80&auto=format',
+    alt: 'Kitchen garden rows with fresh vegetables growing'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1600&q=80&auto=format',
+    alt: 'Beautifully plated farm-to-table dish'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1600&q=80&auto=format',
+    alt: 'Cosy cafe interior with warm lighting'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80&auto=format',
+    alt: 'Sunrise over golden farmland'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1600&q=80&auto=format',
+    alt: 'Herb garden with fresh rosemary and thyme'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1600&q=80&auto=format',
+    alt: 'Freshly harvested vegetables in a wicker basket'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1600&q=80&auto=format',
+    alt: 'Country kitchen with seasonal ingredients'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1473773508845-188df298d2d1?w=1600&q=80&auto=format',
+    alt: 'Winding country lane through green countryside'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600&q=80&auto=format',
+    alt: 'Artisan sourdough bread fresh from the oven'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1600&q=80&auto=format',
+    alt: 'Wine glass on rustic dining table'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=80&auto=format',
+    alt: 'Morning coffee in a sunlit cafe'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1600&q=80&auto=format',
+    alt: 'Walled garden path lined with flowers'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80&auto=format',
+    alt: 'Restaurant interior with warm ambient lighting'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1592861956120-e524fc739696?w=1600&q=80&auto=format',
+    alt: 'Rustic outdoor dining table set for a farm feast'
+  }
+]
+
 // Select the right image set based on article category
 const CATEGORY_IMAGES: Record<string, typeof FALLBACK_IMAGES> = {
   'ice-cream-farms': ICE_CREAM_IMAGES,
   'farmers-markets': FARMERS_MARKET_IMAGES,
   'educational-visits': EDUCATIONAL_FARM_IMAGES,
+  'farm-cafes': FARM_CAFE_IMAGES,
 }
 
 function FarmProfileSection({ farm, farms, index, showImage, category }: FarmProfileSectionProps) {
