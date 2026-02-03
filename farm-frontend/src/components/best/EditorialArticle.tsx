@@ -329,8 +329,8 @@ const FARM_CAFE_IMAGES = [
     alt: 'Herb garden with fresh rosemary and thyme'
   },
   {
-    src: 'https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=1600&q=80&auto=format',
-    alt: 'Freshly harvested vegetables in a wicker basket'
+    src: 'https://images.unsplash.com/photo-1595855759920-86582396756a?w=1600&q=80&auto=format',
+    alt: 'Devon countryside with rolling green hills'
   },
   {
     src: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1600&q=80&auto=format',
