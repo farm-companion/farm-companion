@@ -41,31 +41,25 @@ export default async function AdminPhotosPage() {
   const client = await ensureConnection()
   const pendingIds = await client.lRange('moderation:queue', 0, -1)
   
-  console.log('Debug: Pending photo IDs:', pendingIds)
-  
   const pending = await Promise.all(pendingIds.map(async (id: string) => {
     try {
       const photoData = await client.hGetAll(`photo:${id}`)
-      console.log(`Debug: Photo ${id} data:`, photoData)
-      
+
       if (!photoData || Object.keys(photoData).length === 0) return null
-      
+
       // Convert Redis hash to object
       const photo: Record<string, string> = {}
       for (const [key, value] of Object.entries(photoData)) {
         photo[key] = String(value)
       }
-      
-      console.log(`Debug: Processed photo ${id}:`, photo)
+
       return photo
-    } catch (error) {
-      console.error('Error fetching photo data:', { photoId: id, error })
+    } catch {
       return null
     }
   }))
 
   const validPhotos = pending.filter(Boolean)
-  console.log('Debug: Valid photos:', validPhotos.length)
 
   // Get farm upload statistics and quota information
   const farmStats = await getFarmUploadStats(client)

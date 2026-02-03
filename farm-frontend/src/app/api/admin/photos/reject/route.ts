@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureConnection } from '@/lib/redis'
-// import { sendPhotoRejectedEmail } from '@/lib/email'
 import { revalidatePath } from 'next/cache'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
@@ -56,18 +55,6 @@ export async function POST(req: NextRequest) {
       farmSlug: photo.farmSlug,
       authorEmail: photo.authorEmail
     })
-
-    // TODO: Send rejection email when PhotoRejected template is implemented
-    // if (photo.authorEmail) {
-    //   await sendPhotoRejectedEmail({
-    //     to: photo.authorEmail,
-    //     farmName: photo.farmSlug, // TODO: Get actual farm name
-    //     farmSlug: photo.farmSlug,
-    //     rejectReason: 'Photo did not meet our guidelines', // TODO: Add reason input
-    //     photoUrl: photo.url,
-    //     caption: photo.caption
-    //   })
-    // }
 
     return NextResponse.json({ success: true })
 

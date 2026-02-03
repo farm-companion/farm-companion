@@ -194,6 +194,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="preconnect" href="https://maps.gstatic.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         
+        {/* Google Search Console Verification */}
+        <meta name="google-site-verification" content={process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || ''} />
+
         {/* Bing Webmaster Tools Verification */}
         <meta name="msvalidate.01" content="D5F792E19E823EAE982BA6AB25F2B588" />
         

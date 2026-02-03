@@ -4,62 +4,26 @@ import { useState } from 'react'
 
 export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [debugInfo, setDebugInfo] = useState<string>('')
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setIsSubmitting(true)
-    
-    const formData = new FormData(e.currentTarget)
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
-    
-    // Log what's being submitted
-    console.log('=== LOGIN DEBUG ===')
-    console.log('Email being submitted:', email)
-    console.log('Password length:', password.length)
-    console.log('Password preview:', password.substring(0, 4) + '...')
-    console.log('==================')
-    
-    setDebugInfo(`Submitting: ${email} (password length: ${password.length})`)
-    
+
     try {
-      // First, test the authentication
-      const testResponse = await fetch('/api/admin/test-auth', {
+      const formData = new FormData(e.currentTarget)
+
+      const loginResponse = await fetch('/api/admin/login', {
         method: 'POST',
         body: formData
       })
-      
-      if (testResponse.ok) {
-        const testResult = await testResponse.json()
-        console.log('Auth test result:', testResult)
-        setDebugInfo(`Test: Email match: ${testResult.match.email}, Password match: ${testResult.match.password}`)
-        
-        // If test passes, proceed with actual login
-        if (testResult.match.email && testResult.match.password) {
-          const loginResponse = await fetch('/api/admin/login', {
-            method: 'POST',
-            body: formData
-          })
-          
-          if (loginResponse.redirected) {
-            window.location.href = loginResponse.url
-          } else {
-            const result = await loginResponse.text()
-            console.log('Login response:', result)
-            setDebugInfo(`Login response: ${result}`)
-          }
-        } else {
-          setDebugInfo(`Authentication failed: Email match: ${testResult.match.email}, Password match: ${testResult.match.password}`)
-        }
-      } else {
-        const testError = await testResponse.text()
-        console.log('Test error:', testError)
-        setDebugInfo(`Test error: ${testError}`)
+
+      if (loginResponse.redirected) {
+        window.location.href = loginResponse.url
+      } else if (!loginResponse.ok) {
+        window.location.reload()
       }
-    } catch (error) {
-      console.error('Login error:', error)
-      setDebugInfo(`Error: ${error}`)
+    } catch {
+      window.location.reload()
     } finally {
       setIsSubmitting(false)
     }
@@ -87,26 +51,6 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
         </div>
       )}
 
-      {debugInfo && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <h3 className="text-caption font-medium text-blue-800 dark:text-blue-200">
-                Debug Info
-              </h3>
-              <p className="mt-1 text-caption text-blue-700 dark:text-blue-300">
-                {debugInfo}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
       <div className="space-y-4">
         <div>
           <label htmlFor="email" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
@@ -119,11 +63,10 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
             autoComplete="email"
             required
             className="mt-1 appearance-none relative block w-full px-3 py-2 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white bg-white dark:bg-gray-800 rounded-md focus:outline-none focus:ring-brand-primary focus:border-brand-primary focus:z-10 sm:text-sm"
-            placeholder="hello@farmcompanion.co.uk"
-            defaultValue="hello@farmcompanion.co.uk"
+            placeholder="Enter your email"
           />
         </div>
-        
+
         <div>
           <label htmlFor="password" className="block text-caption font-medium text-gray-700 dark:text-gray-300">
             Password
@@ -155,25 +98,6 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
         </button>
       </div>
 
-      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-caption font-medium text-blue-800 dark:text-blue-200">
-              Admin Credentials
-            </h3>
-            <p className="mt-1 text-caption text-blue-700 dark:text-blue-300">
-              Email: <strong>hello@farmcompanion.co.uk</strong><br/>
-              Password: <strong>mifxa2-ziwdyc-vEbkov</strong>
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
         <div className="flex">
           <div className="flex-shrink-0">
@@ -186,7 +110,7 @@ export function AdminLoginForm({ errorMessage }: { errorMessage?: string | null 
               Admin Access Only
             </h3>
             <p className="mt-1 text-caption text-yellow-700 dark:text-yellow-300">
-              This area is restricted to authorized administrators only. 
+              This area is restricted to authorized administrators only.
               Unauthorized access attempts will be logged.
             </p>
           </div>

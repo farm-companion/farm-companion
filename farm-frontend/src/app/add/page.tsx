@@ -836,9 +836,7 @@ export default function AddFarmPage() {
           <PhotoSubmissionForm 
             farmSlug={slug}
             farmName={form.name}
-            onSuccess={() => {
-              console.log('Photo submitted successfully for new farm shop')
-            }}
+            onSuccess={() => {}}
           />
         </section>
       )}

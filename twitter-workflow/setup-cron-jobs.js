@@ -9,12 +9,18 @@
 
 import axios from 'axios';
 
-const CRON_API_KEY = '/KG+kIyq34axG3s8WNZdR5gmybvGhhkqhV5t84axrLg=';
+const CRON_API_KEY = process.env.CRON_JOB_ORG_API_KEY;
+if (!CRON_API_KEY) {
+  console.error('CRON_JOB_ORG_API_KEY environment variable is required');
+  process.exit(1);
+}
 const BASE_URL = 'https://api.cron-job.org';
-const VERCEL_URL = 'https://twitter-workflow-g1mxjvgoo-abdur-rahman-morris-projects.vercel.app/api/cron/dual-farm-spotlight';
-
-// You'll need to set this in your Vercel environment variables
-const CRON_SECRET = 'your-secure-cron-secret-here'; // Replace with your actual secret
+const VERCEL_URL = process.env.CRON_VERCEL_URL || 'https://your-app.vercel.app/api/cron/dual-farm-spotlight';
+const CRON_SECRET = process.env.CRON_SECRET;
+if (!CRON_SECRET) {
+  console.error('CRON_SECRET environment variable is required');
+  process.exit(1);
+}
 
 async function setupCronJobs() {
   console.log('🚀 Setting up cron jobs on cron-job.org...\n');
