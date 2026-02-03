@@ -26,6 +26,7 @@ interface EditorialArticleProps {
   farmProfiles?: FarmProfile[]
   farms?: FarmShop[] // Database farms with images
   heroImage?: EditorialImage
+  category?: string
   className?: string
 }
 
@@ -38,6 +39,7 @@ export function EditorialArticle({
   farmProfiles,
   farms = [],
   heroImage,
+  category,
   className = ''
 }: EditorialArticleProps) {
   return (
@@ -133,6 +135,7 @@ export function EditorialArticle({
               farms={farms}
               index={idx}
               showImage={idx % 2 === 0}
+              category={category}
             />
           ))}
         </div>
@@ -151,6 +154,7 @@ interface FarmProfileSectionProps {
   farms: FarmShop[]
   index: number
   showImage?: boolean
+  category?: string
 }
 
 // Editorial fallback images - atmospheric farm and produce photography
@@ -173,34 +177,78 @@ const FALLBACK_IMAGES = [
     alt: 'Rolling green hills and countryside landscape'
   },
   {
-    src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80&auto=format',
-    alt: 'Greenhouse rows in afternoon light'
-  },
-  {
     src: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=80&auto=format',
     alt: 'Artisan produce display'
   },
   {
-    src: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=1600&q=80&auto=format',
-    alt: 'Artisan ice cream in waffle cone'
-  },
-  {
     src: 'https://images.unsplash.com/photo-1468327768560-75b778cbb551?w=1600&q=80&auto=format',
     alt: 'Purple lavender fields stretching to the horizon'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1600&q=80&auto=format',
+    alt: 'Early morning at the farmers market'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1600&q=80&auto=format',
+    alt: 'Golden sunlight filtering through fields'
   }
 ]
 
-function FarmProfileSection({ farm, farms, index, showImage }: FarmProfileSectionProps) {
+// Ice cream specific images for dairy and ice cream farm articles
+const ICE_CREAM_IMAGES = [
+  {
+    src: 'https://images.unsplash.com/photo-1570197788417-0e82375c9371?w=1600&q=80&auto=format',
+    alt: 'Artisan ice cream scoops in a waffle cone'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=1600&q=80&auto=format',
+    alt: 'Rainbow ice cream cone against a blue sky'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1563805042-7684c019e1cb?w=1600&q=80&auto=format',
+    alt: 'Colourful gelato scoops in a display'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1501443762994-82bd5dace89a?w=1600&q=80&auto=format',
+    alt: 'Creamy ice cream cone on a summer day'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1579954115545-a95591f28bfc?w=1600&q=80&auto=format',
+    alt: 'Fresh strawberry ice cream with berries'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1576506295286-5cda18df43e7?w=1600&q=80&auto=format',
+    alt: 'Rich chocolate ice cream in a bowl'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1560008581-09826d1de69e?w=1600&q=80&auto=format',
+    alt: 'Gelato display case with rows of flavours'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1587563871167-1ee9c731aefb?w=1600&q=80&auto=format',
+    alt: 'Hand-scooped ice cream cone with sprinkles'
+  }
+]
+
+// Select the right image set based on article category
+const CATEGORY_IMAGES: Record<string, typeof FALLBACK_IMAGES> = {
+  'ice-cream-farms': ICE_CREAM_IMAGES,
+}
+
+function FarmProfileSection({ farm, farms, index, showImage, category }: FarmProfileSectionProps) {
   // Try to find matching farm from database by slug
   const matchedFarm = farm.slug ? farms.find(f => f.slug === farm.slug) : undefined
 
   // Get farm image URL if available
   const farmImageUrl = matchedFarm?.images?.[0] ? getImageUrl(matchedFarm.images[0]) : undefined
 
-  // Use farm image if available, otherwise fall back to produce images
+  // Pick category-specific images when available, otherwise generic fallbacks
+  const images = (category && CATEGORY_IMAGES[category]) || FALLBACK_IMAGES
+
+  // Use farm image if available, otherwise fall back to category or generic images
   const imageData = farmImageUrl
     ? { src: farmImageUrl, alt: `${farm.name} farm` }
-    : FALLBACK_IMAGES[index % FALLBACK_IMAGES.length]
+    : images[index % images.length]
 
   return (
     <section>
