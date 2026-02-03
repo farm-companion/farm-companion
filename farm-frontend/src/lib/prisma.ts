@@ -30,10 +30,22 @@ const globalForPrisma = global as unknown as {
   prisma: PrismaClient | undefined
 }
 
+// Append connection_limit to the datasource URL to prevent pool exhaustion
+// during Next.js static builds where multiple pages prerender concurrently.
+function getDatasourceUrl(): string | undefined {
+  const base = process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL
+  if (!base) return undefined
+  const separator = base.includes('?') ? '&' : '?'
+  // Limit each Prisma instance to 2 connections to stay within DB limits
+  if (!base.includes('connection_limit')) {
+    return `${base}${separator}connection_limit=2`
+  }
+  return base
+}
+
 // Connection pool configuration
 const CONNECTION_POOL_CONFIG = {
-  // Use pooler URL if available (recommended for production)
-  datasourceUrl: process.env.DATABASE_POOLER_URL || process.env.DATABASE_URL,
+  datasourceUrl: getDatasourceUrl(),
 
   // Logging configuration
   log: (process.env.NODE_ENV === 'development'
@@ -45,9 +57,8 @@ export const prisma =
   globalForPrisma.prisma ??
   new PrismaClient(CONNECTION_POOL_CONFIG)
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma
-}
+// Cache singleton in ALL environments including production builds
+globalForPrisma.prisma = prisma
 
 // Graceful shutdown for serverless environments
 if (process.env.NODE_ENV === 'production') {
