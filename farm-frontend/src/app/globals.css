@@ -870,6 +870,11 @@ body {
 .dark .bg-zinc-100 { background-color: #1F1F23; }
 .dark .bg-zinc-200 { background-color: #27272A; }
 
+/* Slate backgrounds - missing from original overrides */
+.dark .bg-slate-50 { background-color: #18181B; }
+.dark .bg-slate-100 { background-color: #1F1F23; }
+.dark .bg-slate-200 { background-color: #27272A; }
+
 /* White backgrounds - darken for dark mode */
 .dark .bg-white { background-color: #121214; }
 
@@ -885,6 +890,26 @@ body {
 .dark .border-zinc-200 { border-color: rgba(255, 255, 255, 0.08); }
 .dark .border-zinc-300 { border-color: rgba(255, 255, 255, 0.12); }
 
+/* Slate borders - missing from original overrides */
+.dark .border-slate-100 { border-color: rgba(255, 255, 255, 0.06); }
+.dark .border-slate-200 { border-color: rgba(255, 255, 255, 0.08); }
+.dark .border-slate-300 { border-color: rgba(255, 255, 255, 0.12); }
+.dark .border-slate-700 { border-color: rgba(255, 255, 255, 0.12); }
+
+/* ==========================================================================
+   DARK MODE PROSE / CONTENT CONTRAST FIX
+   Ensure Tailwind Typography prose elements adapt to dark mode
+   ========================================================================== */
+
+.dark .prose { color: var(--text-body); }
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4 { color: var(--text-heading); }
+.dark .prose p { color: var(--text-body); }
+.dark .prose strong { color: var(--text-heading); }
+.dark .prose a { color: var(--serum); }
+
 /* High contrast mode */
 @media (prefers-contrast: high) {
   :root {
@@ -892,6 +917,12 @@ body {
     --text-body: #000000;
     --background-canvas: #ffffff;
     --border-default: #000000;
+  }
+  .dark {
+    --text-heading: #FFFFFF;
+    --text-body: #FFFFFF;
+    --background-canvas: #000000;
+    --border-default: #FFFFFF;
   }
 }
 
