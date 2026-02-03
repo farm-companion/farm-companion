@@ -230,9 +230,46 @@ const ICE_CREAM_IMAGES = [
   }
 ]
 
+// Farmers market images - stalls, produce displays, market atmosphere
+const FARMERS_MARKET_IMAGES = [
+  {
+    src: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1600&q=80&auto=format',
+    alt: 'Fresh produce stalls at a farmers market'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=80&auto=format',
+    alt: 'Artisan produce beautifully arranged at market'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80&auto=format',
+    alt: 'Fresh harvest arranged on rustic table'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1600&q=80&auto=format',
+    alt: 'Seasonal vegetables in rustic wooden crate'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1573246123716-6b1782bfc499?w=1600&q=80&auto=format',
+    alt: 'Colourful display of fresh vegetables at market'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=1600&q=80&auto=format',
+    alt: 'Boxes of ripe tomatoes and fresh produce'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1506484381205-f7945b8db2e0?w=1600&q=80&auto=format',
+    alt: 'Artisan bread loaves on display'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1600&q=80&auto=format',
+    alt: 'Wheels of aged artisan cheese'
+  }
+]
+
 // Select the right image set based on article category
 const CATEGORY_IMAGES: Record<string, typeof FALLBACK_IMAGES> = {
   'ice-cream-farms': ICE_CREAM_IMAGES,
+  'farmers-markets': FARMERS_MARKET_IMAGES,
 }
 
 function FarmProfileSection({ farm, farms, index, showImage, category }: FarmProfileSectionProps) {
