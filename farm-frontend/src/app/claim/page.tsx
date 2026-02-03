@@ -1,471 +1,237 @@
-'use client'
-
-import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
-import Head from 'next/head'
-import { MapPin, Shield, CheckCircle, Plus, ArrowRight } from 'lucide-react'
-import type { FarmShop } from '@/types/farm'
-import { dedupeFarms } from '@/lib/schemas'
+import { MapPin, Shield, Search, Plus, ArrowRight, CheckCircle } from 'lucide-react'
+import { prisma } from '@/lib/prisma'
+import { ClaimSearch } from '@/components/ClaimSearch'
 
-import BackToTopButton from '@/components/BackToTopButton'
-
-// Clean farm card component with simple styling
-function FarmCard({ farm }: { farm: FarmShop }) {
-  return (
-    <article className="bg-white dark:bg-obsidian rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-shadow duration-200">
-      {/* Status indicator */}
-      <div className="absolute top-4 right-4">
-        {farm.verified ? (
-          <div className="flex items-center gap-1 text-small bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 px-2 py-1 rounded-full">
-            <CheckCircle className="w-3 h-3 fill-current" />
-            <span>Verified</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-1 text-small bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-2 py-1 rounded-full">
-            <Shield className="w-3 h-3" />
-            <span>Available</span>
-          </div>
-        )}
-      </div>
-      
-      <div className="p-6">
-        {/* Header with name and location */}
-        <div className="mb-4">
-          <h3 className="text-body font-semibold text-obsidian dark:text-sandstone mb-2">
-            {farm.name}
-          </h3>
-          
-          {/* Simple location display */}
-          <div className="flex items-center gap-2 text-caption text-gray-600 dark:text-gray-400">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span className="truncate">{farm.location.address}</span>
-            {farm.location.county && (
-              <>
-                <span className="text-gray-300">•</span>
-                <span className="text-serum font-medium">{farm.location.county}</span>
-              </>
-            )}
-          </div>
-        </div>
-
-        {/* Farm details */}
-        <div className="space-y-2 mb-4">
-          {/* Contact info */}
-          {farm.contact?.phone && (
-            <div className="flex items-center gap-2 text-caption text-gray-600 dark:text-gray-400">
-              <div className="w-1.5 h-1.5 bg-gray-400 rounded-full" />
-              <span>{farm.contact.phone}</span>
-            </div>
-          )}
-          
-          {/* Hours info */}
-          {farm.hours && farm.hours.length > 0 && (
-            <div className="flex items-center gap-2 text-caption text-gray-600 dark:text-gray-400">
-              <div className="w-1.5 h-1.5 bg-green-500 rounded-full" />
-              <span>Open for business</span>
-            </div>
-          )}
-          
-          {/* Simple offerings display */}
-          {farm.offerings && farm.offerings.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {farm.offerings.slice(0, 3).map((offering, index) => (
-                <span 
-                  key={index}
-                  className="inline-flex items-center px-2 py-1 text-small bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded"
-                >
-                  {offering}
-                </span>
-              ))}
-              {farm.offerings.length > 3 && (
-                <span className="inline-flex items-center px-2 py-1 text-small bg-serum/10 text-serum rounded">
-                  +{farm.offerings.length - 3} more
-                </span>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Simple action buttons */}
-        <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
-          <Link
-            href={`/shop/${farm.slug}`}
-            className="text-serum hover:text-serum/80 font-medium text-caption flex items-center gap-1"
-          >
-            View Details
-            <ArrowRight className="w-4 h-4" />
-          </Link>
-          
-          <Link
-            href={`/claim/${farm.slug}`}
-            className="bg-serum text-black px-4 py-2 rounded-lg font-semibold text-caption hover:bg-serum/90 transition-colors duration-200"
-          >
-            Claim This Shop
-          </Link>
-        </div>
-      </div>
-    </article>
-  )
+export const metadata = {
+  title: 'Claim Your Farm Shop Listing | Farm Companion',
+  description: 'Find and claim your farm shop listing on Farm Companion. Update your information, add photos, and connect with local customers across the UK.',
+  robots: { index: true, follow: true },
 }
 
-// County section component
-function CountySection({ county, farms }: { county: string; farms: FarmShop[] }) {
-  return (
-    <div className="border-b border-sandstone/20 dark:border-gray-700 pb-12 last:border-b-0">
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="w-1 h-8 bg-gradient-to-b from-serum to-solar rounded-full" />
-          <h3 className="text-2xl font-heading font-bold text-obsidian dark:text-sandstone">
-            {county}
-          </h3>
-        </div>
-        <span className="text-caption font-semibold text-serum bg-serum/10 dark:bg-serum/20 px-4 py-2 rounded-full border border-serum/20 dark:border-serum/30">
-          {farms.length} farm{farms.length !== 1 ? 's' : ''}
-        </span>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {farms.map((farm, index) => (
-          <FarmCard key={`${farm.id}-${county}-${index}`} farm={farm} />
-        ))}
-      </div>
-    </div>
-  )
+// Lightweight shape for the claim listing - only what we display
+interface ClaimFarm {
+  id: string
+  name: string
+  slug: string
+  county: string
+  postcode: string
+  address: string
+  phone: string | null
+  verified: boolean
 }
 
-// Main claim page component
-function ClaimPageContent() {
-  const [filteredFarms, setFilteredFarms] = useState<FarmShop[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [stats, setStats] = useState({ farmCount: 0, countyCount: 92 }) // 39 England + 6 NI + 34 Scotland + 13 Wales = 92
+async function getClaimFarms(): Promise<{ farms: ClaimFarm[]; total: number; countyCount: number }> {
+  const farms = await prisma.farm.findMany({
+    where: { status: 'active' },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      county: true,
+      postcode: true,
+      address: true,
+      phone: true,
+      verified: true,
+    },
+    orderBy: [{ county: 'asc' }, { name: 'asc' }],
+  })
 
-  // Fetch farm data on client side
-  useEffect(() => {
-    async function fetchFarms() {
-      try {
-        // Use the same approach as the map page - fetch from API and apply deduplication
-        const response = await fetch('/api/farms?limit=2000', { 
-          cache: 'no-store'
-        })
-        
-        if (!response.ok) {
-          throw new Error(`Failed to fetch farms data: ${response.status} ${response.statusText}`)
-        }
-        
-        const apiResponse = await response.json()
+  const counties = new Set(farms.map(f => f.county))
 
-        // Extract farms array from API response
-        const rawFarms = apiResponse.farms || []
+  return {
+    farms: farms.map(f => ({
+      id: f.id,
+      name: f.name,
+      slug: f.slug,
+      county: f.county,
+      postcode: f.postcode,
+      address: f.address,
+      phone: f.phone,
+      verified: f.verified,
+    })),
+    total: farms.length,
+    countyCount: counties.size,
+  }
+}
 
-        // Validate that we received an array
-        if (!Array.isArray(rawFarms)) {
-          throw new Error(`Expected farms array, but received: ${typeof rawFarms}`)
-        }
+export default async function ClaimPage() {
+  const { farms, total, countyCount } = await getClaimFarms()
 
-        // Apply comprehensive validation and deduplication (same as map page)
-        const { farms: validFarms } = dedupeFarms(rawFarms)
-
-        setFilteredFarms(validFarms)
-        setStats({ farmCount: validFarms.length, countyCount: 92 }) // Use fixed county count: 39 England + 6 NI + 34 Scotland + 13 Wales = 92
-      } catch (error) {
-        console.error('Error fetching farms:', error)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    fetchFarms()
-  }, [])
-
-  // Group farms by county for better organization
-  const farmsByCounty = useMemo(() => {
-    return filteredFarms.reduce((acc: Record<string, FarmShop[]>, farm: FarmShop) => {
-      const county = farm.location.county || 'Other'
-      if (!acc[county]) {
-        acc[county] = []
-      }
-      acc[county].push(farm)
-      return acc
-    }, {})
-  }, [filteredFarms])
-
+  // Group by county for the listing
+  const farmsByCounty: Record<string, ClaimFarm[]> = {}
+  for (const farm of farms) {
+    const county = farm.county || 'Other'
+    if (!farmsByCounty[county]) farmsByCounty[county] = []
+    farmsByCounty[county].push(farm)
+  }
   const sortedCounties = Object.keys(farmsByCounty).sort()
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background-canvas dark:bg-gray-900">
-        <div className="animate-pulse">
-          <div className="bg-background-surface py-16">
-            <div className="max-w-7xl mx-auto px-6">
-              <div className="h-12 bg-gray-200 rounded-lg mb-4 max-w-2xl mx-auto"></div>
-              <div className="h-6 bg-gray-200 rounded mb-8 max-w-3xl mx-auto"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
-    <>
-      <Head>
-        <meta name="robots" content="noindex,follow" />
-      </Head>
-      <main className="min-h-screen bg-background-canvas dark:bg-gray-900">
-        {/* Professional Hero Section with Claim Page Image */}
-        <section data-header-invert className="relative h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden">
-        {/* Background Image with Professional Handling */}
-        <div className="absolute inset-0">
-          <Image
-            src="/share.jpg"
-            alt="Professional farm shop management interface showing business owner updating their listing with fresh produce and customer information"
-            fill
-            className="object-cover object-center"
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            quality={85}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-          />
-          {/* Professional Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
-          {/* Subtle texture overlay for depth */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
-        </div>
-        
-        {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center pt-20 pb-20">
-          <div className="text-center max-w-4xl mx-auto px-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
-              <Shield className="w-10 h-10 text-white" />
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+      {/* Hero */}
+      <section className="relative overflow-hidden border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(0,194,178,0.06),transparent_60%)]" />
+        <div className="container mx-auto px-4 py-16 md:py-24 relative">
+          <div className="max-w-3xl mx-auto text-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300 text-[13px] font-semibold border border-primary-200 dark:border-primary-700 mb-8">
+              <Shield className="h-4 w-4" />
+              Free to claim
             </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
-              Claim Your Farm
-              <span className="block text-serum drop-shadow-lg">Shop Listing</span>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-6 tracking-tight">
+              Claim your farm shop listing
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Take control of your farm shop&apos;s online presence. Update information, add photos, and connect with customers.
+
+            <p className="text-lg text-slate-600 dark:text-slate-400 mb-4 max-w-2xl mx-auto">
+              Take control of your listing on Farm Companion. Update your details,
+              add photos, and connect with customers across the UK.
             </p>
-            <p className="text-body text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Join {stats.farmCount}+ farm shops already managing their listings on Farm Companion.
-            </p>
-            
+
             {/* Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-2xl mx-auto mb-8">
+            <div className="flex items-center justify-center gap-8 md:gap-12 mt-10 mb-12">
               <div className="text-center">
-                <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">{stats.farmCount}+</div>
-                <div className="text-white/80 text-caption md:text-body">Active Listings</div>
+                <div className="text-3xl font-bold text-slate-900 dark:text-white">{total.toLocaleString()}</div>
+                <div className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">Active Listings</div>
               </div>
+              <div className="w-px h-10 bg-slate-200 dark:bg-slate-700" />
               <div className="text-center">
-                <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">{stats.countyCount}</div>
-                <div className="text-white/80 text-caption md:text-body">UK Counties</div>
+                <div className="text-3xl font-bold text-slate-900 dark:text-white">{countyCount}</div>
+                <div className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">UK Counties</div>
               </div>
+              <div className="w-px h-10 bg-slate-200 dark:bg-slate-700" />
               <div className="text-center">
-                <div className="text-3xl md:text-4xl font-heading font-bold text-serum mb-2 drop-shadow-lg">100%</div>
-                <div className="text-white/80 text-caption md:text-body">Free to Claim</div>
+                <div className="text-3xl font-bold text-primary-600 dark:text-primary-400">Free</div>
+                <div className="text-[13px] text-slate-500 dark:text-slate-400 mt-1">Always</div>
               </div>
             </div>
+
+            {/* Search */}
+            <ClaimSearch farms={farms} />
           </div>
         </div>
       </section>
 
-      {/* Benefits Section */}
-      <section className="py-16 bg-background-surface dark:bg-gray-800">
-        <div className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading dark:text-white mb-4">
-              Why Claim Your Listing?
-            </h2>
-            <p className="text-heading text-text-muted dark:text-gray-300 max-w-3xl mx-auto">
-              Take control of your farm shop&apos;s online presence and connect with customers who are actively looking for local produce.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {/* Benefit 1 */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
-                <CheckCircle className="w-6 h-6 text-serum" />
+      {/* How it works - compact */}
+      <section className="border-b border-slate-200 dark:border-slate-800">
+        <div className="container mx-auto px-4 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            {[
+              { step: '1', title: 'Search', desc: 'Find your farm shop below' },
+              { step: '2', title: 'Claim', desc: 'Click the claim button' },
+              { step: '3', title: 'Verify', desc: 'Confirm your identity' },
+              { step: '4', title: 'Manage', desc: 'Update your listing' },
+            ].map((item) => (
+              <div key={item.step} className="flex items-start gap-3">
+                <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 text-[13px] font-bold flex-shrink-0">
+                  {item.step}
+                </span>
+                <div>
+                  <div className="text-[14px] font-semibold text-slate-900 dark:text-white">{item.title}</div>
+                  <div className="text-[13px] text-slate-500 dark:text-slate-400">{item.desc}</div>
+                </div>
               </div>
-              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
-                Update Your Information
-              </h3>
-              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
-                Keep your opening hours, contact details, and product offerings up to date. Customers always see your latest information.
-              </p>
-            </div>
-            
-            {/* Benefit 2 */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
-                <MapPin className="w-6 h-6 text-serum" />
-              </div>
-              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
-                Reach Local Customers
-              </h3>
-              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
-                Get discovered by customers searching for farm shops in your area. Our map helps people find you when they need fresh produce.
-              </p>
-            </div>
-            
-            {/* Benefit 3 */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
-                <Plus className="w-6 h-6 text-serum" />
-              </div>
-              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
-                Add Your Photos
-              </h3>
-              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
-                Showcase your farm shop with beautiful photos. Let customers see your fresh produce, friendly staff, and welcoming atmosphere.
-              </p>
-            </div>
-            
-            {/* Benefit 4 */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
-                <Shield className="w-6 h-6 text-serum" />
-              </div>
-              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
-                Build Trust & Credibility
-              </h3>
-              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
-                Verified listings get more customer trust. Show that you&apos;re a legitimate, active farm shop that cares about customer experience.
-              </p>
-            </div>
-            
-            {/* Benefit 5 */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
-                <ArrowRight className="w-6 h-6 text-serum" />
-              </div>
-              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
-                Free Marketing
-              </h3>
-              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
-                Get free exposure to customers actively looking for farm shops. No monthly fees, no hidden costs—just results.
-              </p>
-            </div>
-            
-            {/* Benefit 6 */}
-            <div className="bg-white dark:bg-gray-900 rounded-2xl p-8 border border-border-default/30 shadow-sm hover:shadow-md transition-shadow">
-              <div className="w-12 h-12 bg-serum/10 rounded-lg flex items-center justify-center mb-6">
-                <CheckCircle className="w-6 h-6 text-serum" />
-              </div>
-              <h3 className="text-heading font-heading font-semibold text-text-heading dark:text-white mb-4">
-                Easy Management
-              </h3>
-              <p className="text-text-muted dark:text-gray-300 leading-relaxed">
-                Simple dashboard to manage your listing. Update information, add photos, and respond to customer inquiries—all in one place.
-              </p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* How to claim section */}
-      <section className="py-16 bg-background-canvas dark:bg-gray-900">
-        <div className="max-w-4xl mx-auto px-6">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl border border-border-default/30 shadow-sm p-8 mb-12">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="p-2 bg-serum/10 rounded-lg">
-                <Shield className="w-6 h-6 text-serum" />
-              </div>
-              <h2 className="text-2xl font-heading font-semibold text-text-heading dark:text-white">
-                How to Claim Your Listing
-              </h2>
-            </div>
-            <ol className="space-y-4">
-              <li className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-caption">
-                  1
-                </div>
-                <div>
-                  <p className="text-text-body dark:text-gray-300">
-                    Find your farm shop in the list below (organized by county)
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-caption">
-                  2
-                </div>
-                <div>
-                  <p className="text-text-body dark:text-gray-300">
-                    Click &quot;Claim This Shop&quot; next to your listing
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-caption">
-                  3
-                </div>
-                <div>
-                  <p className="text-text-body dark:text-gray-300">
-                    Fill out the claim form with your contact information
-                  </p>
-                </div>
-              </li>
-              <li className="flex items-start gap-4">
-                <div className="flex-shrink-0 w-8 h-8 bg-serum text-black rounded-full flex items-center justify-center font-semibold text-caption">
-                  4
-                </div>
-                <div>
-                  <p className="text-text-body dark:text-gray-300">
-                    We&apos;ll verify your ownership and grant you access to manage your listing
-                  </p>
-                </div>
-              </li>
-            </ol>
-          </div>
-
-
-          
-          {/* Farms by county */}
-          <div className="space-y-8">
+      {/* Farm listings by county */}
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          {/* County jump nav */}
+          <div className="mb-8 flex flex-wrap gap-2">
             {sortedCounties.map((county) => (
-              <CountySection 
-                key={county} 
-                county={county} 
-                farms={farmsByCounty[county]} 
-              />
+              <a
+                key={county}
+                href={`#county-${county.toLowerCase().replace(/\s+/g, '-')}`}
+                className="text-[12px] px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary-300 hover:text-primary-600 dark:hover:border-primary-600 dark:hover:text-primary-400 transition-colors"
+              >
+                {county} ({farmsByCounty[county].length})
+              </a>
             ))}
           </div>
 
-          {/* Add new farm section */}
-          <div className="mt-16 bg-gradient-to-r from-serum/10 to-solar/10 rounded-2xl border border-serum/20 p-8 text-center">
-            <div className="flex justify-center mb-4">
-              <div className="p-3 bg-serum/20 rounded-full">
-                <Plus className="w-8 h-8 text-serum" />
-              </div>
+          {/* County sections */}
+          <div className="space-y-10">
+            {sortedCounties.map((county) => (
+              <section key={county} id={`county-${county.toLowerCase().replace(/\s+/g, '-')}`}>
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-200 dark:border-slate-800">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">{county}</h2>
+                  <span className="text-[13px] font-medium text-primary-600 dark:text-primary-400 bg-primary-50 dark:bg-primary-900/30 px-3 py-1 rounded-full">
+                    {farmsByCounty[county].length} farm{farmsByCounty[county].length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+
+                <div className="space-y-2">
+                  {farmsByCounty[county].map((farm) => (
+                    <div
+                      key={farm.id}
+                      className="flex items-center justify-between gap-4 p-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-colors"
+                    >
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-[15px] font-semibold text-slate-900 dark:text-white truncate">
+                            {farm.name}
+                          </h3>
+                          {farm.verified && (
+                            <CheckCircle className="h-4 w-4 text-green-500 flex-shrink-0" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 text-[13px] text-slate-500 dark:text-slate-400">
+                          <span className="truncate">{farm.address}</span>
+                          {farm.postcode && (
+                            <>
+                              <span className="text-slate-300 dark:text-slate-600">|</span>
+                              <span className="flex-shrink-0">{farm.postcode}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <Link
+                          href={`/shop/${farm.slug}`}
+                          className="hidden sm:inline-flex items-center h-9 px-4 text-[13px] font-medium text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        >
+                          View
+                        </Link>
+                        <Link
+                          href={`/claim/${farm.slug}`}
+                          className="inline-flex items-center h-9 px-4 text-[13px] font-semibold text-white bg-slate-900 dark:bg-slate-50 dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors"
+                        >
+                          Claim
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </div>
+
+          {/* Can't find your farm */}
+          <div className="mt-16 bg-white dark:bg-slate-900 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 md:p-12 text-center">
+            <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-primary-50 dark:bg-primary-900/30 mb-6">
+              <Plus className="h-6 w-6 text-primary-600 dark:text-primary-400" />
             </div>
-            <h2 className="text-2xl font-heading font-semibold text-text-heading dark:text-white mb-4">
-              Don&apos;t See Your Farm Shop?
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+              Can't find your farm shop?
             </h2>
-            <p className="text-text-muted dark:text-gray-300 mb-6 max-w-2xl mx-auto">
-              If your farm shop isn&apos;t listed above, you can add it to our directory and start managing it right away.
+            <p className="text-body text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
+              If your farm shop is not listed, you can add it to our directory
+              and start managing it straight away.
             </p>
             <Link
               href="/add"
-              className="inline-flex items-center gap-2 bg-serum text-black px-8 py-4 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+              className="inline-flex items-center gap-2 h-12 px-8 text-[14px] font-semibold text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-400 rounded-xl transition-colors"
             >
               Add Your Farm Shop
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="h-4 w-4" />
             </Link>
           </div>
         </div>
-      </section>
-      
-      {/* Back to Top Button */}
-      <BackToTopButton />
-    </main>
-    </>
+      </div>
+    </div>
   )
-}
-
-export default function ClaimPage() {
-  return <ClaimPageContent />
 }
