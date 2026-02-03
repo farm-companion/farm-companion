@@ -16,6 +16,7 @@ export type Produce = {
 
 // IMPORTANT: All recipe links must be family-friendly and non-alcoholic
 // No alcoholic beverages, wine-making, or cocktail recipes allowed
+// No pork products (bacon, ham, prosciutto, pancetta, sausage, chorizo, lard)
 // Focus on fresh, healthy, family-appropriate recipes only
 
 export const PRODUCE: Produce[] = [
@@ -437,7 +438,7 @@ export const PRODUCE: Produce[] = [
     ],
     prepIdeas: [
       'Steam or griddle with butter and lemon.',
-      'Wrap in prosciutto and roast.',
+      'Toss with olive oil and roast until charred.',
       'Add to spring risotto and pasta.',
       'Make creamy asparagus soup.',
     ],
@@ -551,9 +552,9 @@ export const PRODUCE: Produce[] = [
         description: 'Tender leeks cooked in butter and stock'
       },
       {
-        title: 'Leek and Bacon Pasta',
-        url: 'https://www.bbcgoodfood.com/recipes/leek-bacon-pasta',
-        description: 'Creamy pasta with leeks and crispy bacon'
+        title: 'Leek Gratin',
+        url: 'https://www.greatbritishchefs.com/recipes/leek-gratin-recipe',
+        description: 'Golden baked leeks with a cheesy crust'
       }
     ],
     aliases: ['leek', 'baby leeks', 'spring leeks'],
@@ -720,20 +721,20 @@ export const PRODUCE: Produce[] = [
       'Blanch and freeze for up to 12 months.',
     ],
     prepIdeas: [
-      'Roast with bacon and chestnuts.',
+      'Roast with chestnuts and honey.',
       'Shred raw for salads.',
       'Pan-fry with butter and garlic.',
       'Steam and toss with lemon zest.',
     ],
     recipeChips: [
       {
-        title: 'Roasted Brussels with Bacon',
-        url: 'https://www.bbcgoodfood.com/recipes/roasted-sprouts-bacon',
+        title: 'Honey Mustard Roasted Sprouts',
+        url: 'https://www.bbcgoodfood.com/recipes/honey-mustard-sprouts',
         description: 'The ultimate Christmas sprouts'
       },
       {
-        title: 'Shredded Sprout Salad',
-        url: 'https://www.olivemagazine.com/recipes/quick-and-easy/italian-style-shredded-brussels-salad/',
+        title: 'Sprout Salad with Citrus and Pomegranate',
+        url: 'https://www.bbcgoodfoodme.com/recipes/sprout-salad-citrus-pomegranate/',
         description: 'Fresh and crunchy winter salad'
       }
     ],
