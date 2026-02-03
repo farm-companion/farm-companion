@@ -78,6 +78,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: 'https',
+        hostname: 'upload.wikimedia.org',
+        port: '',
+        pathname: '/wikipedia/commons/**',
+      },
+      {
+        protocol: 'https',
         hostname: 'cdn.farmcompanion.co.uk',
         port: '',
         pathname: '/**',
