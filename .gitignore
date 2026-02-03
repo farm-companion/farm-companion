@@ -125,3 +125,11 @@ data.ms/
 
 # MCP configuration (may contain connection strings)
 .mcp.json
+
+# Never commit env or secret files
+.env
+.env.*
+*.env
+*.env.*
+*.env.txt
+*.env.vercel
