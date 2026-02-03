@@ -169,8 +169,8 @@ const FALLBACK_IMAGES = [
     alt: 'Golden hour light across farmland'
   },
   {
-    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80&auto=format',
-    alt: 'Fresh harvest arranged on rustic table'
+    src: 'https://images.unsplash.com/photo-1470252649378-9c29740c9fa8?w=1600&q=80&auto=format',
+    alt: 'Morning light over green farmland'
   },
   {
     src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1600&q=80&auto=format',
@@ -241,8 +241,8 @@ const FARMERS_MARKET_IMAGES = [
     alt: 'Artisan produce beautifully arranged at market'
   },
   {
-    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80&auto=format',
-    alt: 'Fresh harvest arranged on rustic table'
+    src: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600&q=80&auto=format',
+    alt: 'Freshly baked artisan bread loaves'
   },
   {
     src: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1600&q=80&auto=format',
@@ -257,8 +257,8 @@ const FARMERS_MARKET_IMAGES = [
     alt: 'Boxes of ripe tomatoes and fresh produce'
   },
   {
-    src: 'https://images.unsplash.com/photo-1506484381205-f7945b8db2e0?w=1600&q=80&auto=format',
-    alt: 'Artisan bread loaves on display'
+    src: 'https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?w=1600&q=80&auto=format',
+    alt: 'Fresh herbs and seasonal produce'
   },
   {
     src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1600&q=80&auto=format',
@@ -269,36 +269,28 @@ const FARMERS_MARKET_IMAGES = [
 // Educational farm visit images - animals, countryside, hands-on learning
 const EDUCATIONAL_FARM_IMAGES = [
   {
-    src: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=1600&q=80&auto=format',
-    alt: 'Cows grazing in green countryside pasture'
-  },
-  {
     src: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format',
-    alt: 'Sheep in a rolling hillside field'
+    alt: 'Sheep grazing on a hillside'
   },
   {
     src: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=1600&q=80&auto=format',
-    alt: 'Chickens roaming freely on a farm'
+    alt: 'Chickens roaming on a farm'
   },
   {
     src: 'https://images.unsplash.com/photo-1591965481557-2fccc8dcdf6c?w=1600&q=80&auto=format',
-    alt: 'Highland cattle with long horns in field'
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1444212477490-ca407925f3a4?w=1600&q=80&auto=format',
-    alt: 'Tractor in golden harvest field'
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=80&auto=format',
-    alt: 'Goats in a farm paddock'
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80&auto=format',
-    alt: 'Fresh vegetables and produce from the farm'
+    alt: 'Cattle in a green field'
   },
   {
     src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1600&q=80&auto=format',
-    alt: 'Golden hour light sweeping across British farmland'
+    alt: 'British farmland at golden hour'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1600&q=80&auto=format',
+    alt: 'Rolling green countryside'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80&auto=format',
+    alt: 'Seedlings growing in a greenhouse'
   }
 ]
 
@@ -330,8 +322,8 @@ const FARM_CAFE_IMAGES = [
     alt: 'Herb garden with fresh rosemary and thyme'
   },
   {
-    src: 'https://images.unsplash.com/photo-1595855759920-86582396756a?w=1600&q=80&auto=format',
-    alt: 'Devon countryside with rolling green hills'
+    src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1600&q=80&auto=format',
+    alt: 'Countryside with rolling green hills'
   },
   {
     src: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1600&q=80&auto=format',
@@ -346,8 +338,8 @@ const FARM_CAFE_IMAGES = [
     alt: 'Artisan sourdough bread fresh from the oven'
   },
   {
-    src: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=1600&q=80&auto=format',
-    alt: 'Fresh herbs and vegetables on a wooden cutting board'
+    src: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1600&q=80&auto=format',
+    alt: 'Seasonal vegetables and fresh produce'
   },
   {
     src: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1600&q=80&auto=format',
@@ -386,6 +378,7 @@ function FarmProfileSection({ farm, farms, index, showImage, category }: FarmPro
   const images = (category && CATEGORY_IMAGES[category]) || FALLBACK_IMAGES
 
   // Use farm image if available, otherwise fall back to category or generic images
+  const isFarmImage = !!farmImageUrl
   const imageData = farmImageUrl
     ? { src: farmImageUrl, alt: `${farm.name} farm` }
     : images[index % images.length]
@@ -404,9 +397,11 @@ function FarmProfileSection({ farm, farms, index, showImage, category }: FarmPro
               sizes="100vw"
             />
           </div>
-          <figcaption className="max-w-2xl mx-auto px-6 mt-6 text-xs tracking-[0.1em] text-foreground-muted text-center">
-            {imageData.alt}
-          </figcaption>
+          {isFarmImage && (
+            <figcaption className="max-w-2xl mx-auto px-6 mt-6 text-xs tracking-[0.1em] text-foreground-muted text-center">
+              {imageData.alt}
+            </figcaption>
+          )}
         </figure>
       )}
 
