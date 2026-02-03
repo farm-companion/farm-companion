@@ -155,7 +155,7 @@ export async function POST(request: NextRequest) {
         orderBy: { _count: { id: 'desc' } }
       })
 
-      const counties = countyData.slice(0, limit).map(c => ({
+      const counties = countyData.slice(0, limit).map((c: { county: string }) => ({
         name: c.county,
         slug: slugifyCounty(c.county)
       }))
