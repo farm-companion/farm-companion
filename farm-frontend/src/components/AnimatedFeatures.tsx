@@ -9,18 +9,18 @@ export function AnimatedFeatures() {
   const features = [
     {
       icon: Leaf,
-      title: 'Fresh & Local',
-      description: 'Direct from farm to table, ensuring maximum freshness and flavor.',
+      title: "What's Good Near You",
+      description: "Butchers who age their own beef. Dairies with milk from this morning. Orchards where you can taste before you buy. See what's close.",
     },
     {
       icon: Calendar,
-      title: 'Seasonal Selection',
-      description: "Discover what's in season and at its peak flavor throughout the year.",
+      title: 'In Season This Month',
+      description: "February means forced rhubarb, purple sprouting broccoli, and the last of the stored apples. Here's where to find them at their best.",
     },
     {
       icon: Heart,
-      title: 'Family Values',
-      description: 'Support local families and sustainable farming practices.',
+      title: 'Properly Vetted',
+      description: 'We verify every listing. Own livestock, named suppliers, opening hours checked. No glorified delis pretending to be farm shops.',
     },
   ]
 
@@ -74,7 +74,7 @@ export function AnimatedFeatures() {
             variants={fadeInUp}
             className="text-base sm:text-lg text-white/70 max-w-2xl mx-auto leading-relaxed"
           >
-            Experience the difference of truly fresh, local produce from family-run farms across the UK.
+            Fresh produce, named suppliers, and opening hours you can trust. From farm gate to your kitchen.
           </motion.p>
 
           {/* Vertical line accent */}
