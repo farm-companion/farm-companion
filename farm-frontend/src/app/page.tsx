@@ -147,62 +147,41 @@ export default async function HomePage() {
       {/* Animated Features Section */}
       <AnimatedFeatures />
 
-      {/* CTA Section with Stylish Parallax */}
-      <section className="relative py-20 md:py-28 lg:py-32 overflow-hidden">
-        {/* Multi-layer Parallax Background */}
+      {/* CTA Section - LV editorial with landscape */}
+      <section className="relative py-24 md:py-32 lg:py-40 overflow-hidden">
         <div className="absolute inset-0">
-          {/* Primary background with parallax */}
           <Image
             src="/counties.jpg"
             alt="UK countryside landscape with rolling hills and farmland"
             fill
-            className="object-cover object-center transform scale-110 transition-transform duration-1000 ease-out"
+            className="object-cover object-center"
             sizes="100vw"
             quality={80}
             priority
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
-          
-          {/* Animated overlay gradients */}
-          <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/40" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
-          
-          {/* Static texture - animations removed for performance */}
-          <div className="absolute inset-0 opacity-20">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.1),transparent_50%)]" />
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.05),transparent_50%)]" />
-          </div>
+          <div className="absolute inset-0 bg-black/50" />
         </div>
 
-        {/* Content with enhanced styling */}
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 text-center">
-          {/* Icon - static for performance */}
-          <div className="inline-flex items-center justify-center w-20 h-20 sm:w-24 sm:h-24 bg-white/10 backdrop-blur-sm rounded-full mb-6 sm:mb-8 border border-white/20">
-            <MapPin className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
-          </div>
-
-          {/* Enhanced typography with staggered animation */}
-          <h2 className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 sm:mb-8 leading-tight text-white drop-shadow-2xl animate-fade-in">
-            Ready to
-            <span className="block text-serum drop-shadow-2xl animate-slide-up" style={{ animationDelay: '0.2s' }}>Explore?</span>
-          </h2>
-
-          <p className="text-body sm:text-heading md:text-2xl mb-8 sm:mb-12 text-white/95 drop-shadow-lg max-w-3xl mx-auto animate-fade-in px-4" style={{ animationDelay: '0.4s' }}>
-            Start your journey to discover amazing local farm shops today.
+        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
+          <p className="text-xs uppercase tracking-[0.2em] text-white/60 mb-6 font-accent">
+            Explore the Map
           </p>
-
-          {/* Enhanced CTA button with hover effects */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.6s' }}>
-            <Link
-              href="/map"
-              className="group bg-serum text-black h-14 sm:h-16 px-8 sm:px-10 rounded-xl text-caption sm:text-body font-semibold hover:bg-serum/90 transition-all duration-300 inline-flex items-center justify-center gap-2 sm:gap-3 shadow-2xl hover:shadow-serum/25 hover:scale-105 active:scale-95 backdrop-blur-sm border border-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-serum focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              <MapPin className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:scale-110" />
-              Find Farms Near You
-              <ArrowRight className="w-5 h-5 sm:w-6 sm:h-6 transition-transform group-hover:translate-x-1" />
-            </Link>
-          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold mb-6 leading-tight text-white">
+            Ready to Explore?
+          </h2>
+          <div className="w-12 h-px bg-white/30 mx-auto mb-8" />
+          <p className="text-lg mb-12 text-white/80 max-w-xl mx-auto leading-relaxed">
+            Start your journey to discover local farm shops across the UK.
+          </p>
+          <Link
+            href="/map"
+            className="group inline-flex h-12 items-center justify-center gap-3 px-8 bg-white text-text-heading text-[13px] font-semibold uppercase tracking-[0.06em] transition-all duration-200 hover:bg-zinc-100 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          >
+            Find Farms Near You
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </Link>
         </div>
       </section>
 
@@ -217,9 +196,9 @@ export default async function HomePage() {
 
       {/* SEO Content Section - LV Editorial */}
       <section className="bg-background-canvas dark:bg-[#0C0A09] border-t border-border-default section-lazy">
-        <div className="max-w-3xl mx-auto px-6 sm:px-8 py-24 md:py-32">
+        <div className="max-w-3xl mx-auto px-6 sm:px-8 py-20 md:py-28">
           {/* Heading block */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted mb-4 font-accent">
               The Directory
             </p>
@@ -230,14 +209,14 @@ export default async function HomePage() {
           </div>
 
           {/* Intro */}
-          <p className="text-center text-text-body leading-relaxed mb-20 max-w-2xl mx-auto">
+          <p className="text-center text-text-body leading-relaxed mb-14 max-w-2xl mx-auto">
             Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated
             a directory of over <span className="font-semibold text-text-heading">{farmCount}</span> authentic farm shops across <span className="font-semibold text-text-heading">{countyCount}</span> counties,
             helping you discover the freshest local produce and connect with real farmers.
           </p>
 
           {/* Feature list */}
-          <div className="space-y-16">
+          <div className="space-y-10">
             <div className="flex gap-5">
               <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background-surface dark:bg-background-elevated border border-border-default flex items-center justify-center">
                 <MapPin className="w-4 h-4 text-text-muted" />
