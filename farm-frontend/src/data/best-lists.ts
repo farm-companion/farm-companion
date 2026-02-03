@@ -718,57 +718,179 @@ Educational farm visits typically include:
     slug: 'top-ice-cream-farms-uk',
     title: 'Best Ice Cream Farms in the UK',
     metaTitle: 'Top 15 Best Ice Cream Farms in the UK (2026) | Farm-Made Ice Cream',
-    metaDescription: 'Discover the UK\'s best ice cream farms making their own ice cream from fresh milk. Find award-winning flavors and farm experiences.',
-    heading: 'Top Ice Cream Farms for Homemade Treats',
-    intro: 'Indulge in the finest farm-made ice cream at these exceptional dairy farms across the UK. Using fresh milk from their own herds, these farms create award-winning ice cream with unique flavors you won\'t find anywhere else.',
+    metaDescription: 'Discover the UK\'s best ice cream farms making their own ice cream from fresh milk. Find award-winning flavours and farm experiences across Britain.',
+    heading: 'Best Ice Cream Farms in the UK: A Comprehensive Guide',
+    intro: 'From Cornwall\'s organic pastures to Yorkshire\'s rolling dales, these ice cream farms offer far more than a simple scoop. Many feature play areas, animal encounters, and farm tours, making them perfect for family days out. Here is our guide to the best ice cream farms worth visiting across Britain.',
     content: `## Farm-Made Ice Cream
 
-When ice cream is made on a dairy farm using milk from the farm's own cows, it's fresher, creamier, and more flavorful than mass-produced alternatives. Many of these farms have won national awards for their exceptional ice cream.
+There is something magical about enjoying ice cream at the very farm where it is made, watching cows graze in nearby fields while tucking into a cone crafted from their creamy milk just hours earlier. Across the UK, family-run dairy farms have diversified into ice cream production, creating destinations that combine delicious artisan treats with authentic agricultural experiences.
 
 ## What Makes Farm Ice Cream Special?
 
 - **Ultra-fresh milk**: Often just hours from cow to cone
-- **Higher quality**: More cream, less air, better ingredients
-- **Unique flavors**: Creative combinations using local ingredients
-- **Seasonal specials**: Changing flavors throughout the year
+- **Higher cream content**: More cream, less air, better ingredients
+- **Unique flavours**: Creative combinations using local ingredients
+- **Seasonal specials**: Changing flavours throughout the year
 - **Transparency**: See the cows that produce the milk
-- **Family recipes**: Traditional methods passed down
+- **Family recipes**: Traditional methods passed down through generations
 
-## Typical Offerings
+## Regional Guide
 
-Farm ice cream shops usually have:
-- **Classic Flavors**: Vanilla, chocolate, strawberry
-- **Specialty Flavors**: Unique combinations, 30-50+ varieties
-- **Seasonal Specials**: Pumpkin spice, elderflower, rhubarb crumble
-- **Dairy-Free**: Many now offer vegan options
-- **Sorbets**: Fruit-based options
-- **Sundaes & Milkshakes**: Full dessert menu
+### South West England
+Cornwall, Wiltshire, and Dorset are home to some of Britain's finest dairy farms, with rich pastures producing exceptionally creamy milk ideal for ice cream making.
+
+### Cheshire and The North West
+The Cheshire countryside supports a remarkable concentration of ice cream farms, including the holder of the Guinness World Record for the World's Largest Ice Cream Shop.
+
+### Yorkshire and The North
+From the Dales to the Vale of York, northern farms produce distinctive ice cream from heritage breed herds grazing some of England's most beautiful countryside.
+
+### East Midlands
+Derby and the surrounding countryside offer farm parks where ice cream making sits alongside animal encounters and outdoor play.
 
 ## The Full Experience
 
 Beyond ice cream, these farms often offer:
 - Meet the cows that produce the milk
-- Farm tours and activities
-- Play areas for children
-- Farm shops with other products
-- Beautiful countryside settings
-- Picnic areas`,
+- Farm tours and seasonal activities
+- Play areas and soft play for children
+- Farm shops with other dairy products
+- Beautiful countryside settings and nature trails
+- Picnic areas and farm cafes`,
     category: 'ice-cream-farms',
     featured: true,
     publishDate: '2026-01-16',
-    updateDate: '2026-01-16',
+    updateDate: '2026-02-03',
+    articleNumber: 9,
+    persona: 'The Family Explorer',
+    approach: 'Sensory Discovery',
+    seoKeywords: [
+      'best ice cream farms UK',
+      'farm ice cream near me',
+      'ice cream farm days out',
+      'artisan ice cream UK',
+      'dairy farm visits UK'
+    ],
+    editorialIntro: `## From Pasture to Parlour: The Rise of British Farm Ice Cream
+
+There is something magical about enjoying ice cream at the very farm where it is made. Across the UK, family-run dairy farms have diversified into ice cream production, creating destinations that combine delicious artisan treats with authentic agricultural experiences. The story behind most of these farms is remarkably similar: the introduction of milk quotas in the 1980s and 1990s forced dairy farmers to find alternative revenue streams, and ice cream, with its higher margins and direct-to-consumer appeal, became a natural choice.
+
+What distinguishes genuine farm ice cream from commercial alternatives is measurable. Farm ice cream typically contains twenty to twenty-five percent butterfat compared to the legal minimum of five percent for standard ice cream. The overrun, the amount of air whipped in during production, is significantly lower, meaning you get more ice cream and less air per scoop. And the milk travels metres rather than miles, often going from milking parlour to production facility within hours.
+
+The farms featured here represent the best of British farm ice cream, from organic producers in Cornwall to Guinness World Record holders in Cheshire. Each makes ice cream from their own herd's milk, and most offer farm experiences that make a visit far more than a simple scoop.`,
+    farmProfiles: [
+      {
+        name: "Roskilly's",
+        location: 'Tregellast Barton Farm, St Keverne, Helston, Cornwall TR12 6NX',
+        description: `Roskilly's occupies a special place in Cornwall's food heritage. The Roskilly family has farmed this 200-acre organic holding on the Lizard Peninsula since the 1950s, when Joe Roskilly inherited a modest 40-acre farm with just 30 cows. Ice cream production began in 1987, born from the need to diversify following the introduction of milk quotas.
+
+Today, over 100 Jersey cows provide the rich, golden milk that makes Roskilly's ice cream distinctively creamy. The farm achieved full Soil Association organic certification in 1995 and has maintained that status ever since. No pesticides or artificial fertilisers touch this land.
+
+What to expect: Free entry to the farm, over 30 ice cream flavours including Cream Tea, Golden Fudge, and Banoffee, frozen yoghurts and sorbets, two miles of woodland walks and pond trails, the Croust House Restaurant serving wood-fired pizzas and farm-reared meat, and on-site pottery. The farm is open year-round.`
+      },
+      {
+        name: 'Marshfield Farm',
+        location: 'Oldfield Farm, Marshfield, Chippenham, Wiltshire SN14 8LE',
+        description: `Marshfield Farm represents three generations of the Hawking family's dedication to quality ice cream. Will Hawking created his first batch of vanilla in the farmhouse kitchen in 1988, using nothing but milk from the family's cows and the finest natural ingredients. That kitchen operation has grown into a B Corp certified business supplying ice cream parlours, restaurants, and farm shops nationwide.
+
+The farm spans 1,100 acres of Cotswold countryside, home to around 250 British Friesian cows. Certified organic for over 20 years, Marshfield has invested in robotic milking systems that allow cows to choose when they are milked, reducing stress and improving welfare. The milk travels less than 100 metres from cow to creamery.
+
+What to expect: Ice cream parlour open weekends Easter to October, over 30 flavours including Clotted Cream, Salted Caramel, and Blackcurrant in Clotted Cream, take-home tubs at factory prices, views of cows grazing in surrounding fields, ride-on tractors for children, national and local home delivery available, and dog-friendly ice cream named Scoop's after the family dog. Top tip: the parlour is just off the A46 between Bath and the M4.`
+      },
+      {
+        name: 'Purbeck Ice Cream',
+        location: 'Lower Scoles Farm, Kingston, Corfe Castle, Dorset',
+        description: `Peter and Hazel Hartle started Purbeck Ice Cream over 30 years ago on their 126-acre farm overlooking Corfe Castle. Like many dairy farmers, they faced challenges when milk quotas were introduced, and their passion for "ice cream crawls" inspired a new direction. They were determined to create ice cream "sooooo much better" than anything they had encountered on their travels, utterly natural, with no artificial additives or colours.
+
+Purbeck Ice Cream uses 60% local Purbeck milk and 22% Dorset double cream. Everything is gluten-free, egg-free, suitable for vegetarians, and Halal certified (except alcoholic flavours). The business has achieved carbon neutral accreditation, with solar panels powering the cold rooms.
+
+Award-winning flavours include Dorset Gingerbread (Great Taste winner), with multiple Great Taste Awards for consistent quality. Available at National Trust properties, hotels, beach parlours, and farm shops throughout Dorset, with traditional Dorset apple orchards planted across the farm and British waffle cones used throughout.`
+      },
+      {
+        name: 'The Ice Cream Farm, Tattenhall',
+        location: 'Drumlan Hall Farm, Newton Lane, Tattenhall, Chester CH3 9NE',
+        description: `The Fell family has been creating Cheshire Farm Ice Cream for over 30 years, transforming what began as a small on-site parlour into the UK's most visited free-entry attraction of its kind. Following a five million pound redevelopment in 2014, The Ice Cream Farm now holds a Guinness World Record for the World's Largest Ice Cream Shop and welcomes over 800,000 visitors annually.
+
+The farm produces up to 10,000 litres of ice cream daily, supplying over 1,000 outlets across the UK while maintaining its commitment to real dairy quality.
+
+What to expect: Free entry with pay-as-you-go activities, over 50 ice cream and sorbet flavours, Daisy's Garden-free outdoor play area with bubble-spouting tree, Honeycomb Canyon (Europe's largest sand and water play area, indoor), Fun Factory ice cream themed soft play, Strawberry Falls mini golf, Silvercone go-karts, Rocky Road mini Land Rovers, Fudge Farm with animals to meet, and The Ice Cream Drive In to order from your car next door. Open 9.30am to 5.30pm daily (closed Christmas Day, Boxing Day, New Year's Day).`
+      },
+      {
+        name: "Snugbury's",
+        location: 'Park Farm, Chester Road, Hurleston, Nantwich CW5 6BU',
+        description: `Snugbury's began in 1986 when Chris and Cheryl Sadler started making ice cream in their Cheshire farmhouse kitchen using fresh cream, quality ingredients, and an old Kenwood Chef mixer. They soon outgrew selling from their kitchen window and converted an old barn in the cobbled courtyard. Today, daughters Hannah, Kitty, and Cleo run the business, welcoming over 300,000 visitors annually.
+
+Beyond ice cream, Snugbury's is famous for its spectacular 40-foot straw sculptures, a tradition since 1998 when they created a Millennium Dome. The sculptures, reinforced with steel, change annually and raise money for charity. The 2015 Dalek earned a Guinness World Record for "Largest Dalek sculpture."
+
+What to expect: 55-pan display with over 35 handmade flavours, British cream as the main ingredient, unique flavours like Damson and Sloe Gin, Toffee Crumble, and Yum Yum, farm animals in the courtyard, giant straw sculpture (new design annually), drive-thru option, second location at Snugburys on the River in Chester (opened 2019), and third location at Lakeside Cafe, Trentham Estate (opened 2016). Located near the Llangollen Canal, perfect to combine with a towpath walk.`
+      },
+      {
+        name: 'Ice Cream Farm, Great Budworth',
+        location: 'Quarter mile outside Great Budworth village, Cheshire',
+        description: `Not to be confused with the larger Tattenhall attraction, this charming farm offers a more traditional ice cream farm experience in the pretty village of Great Budworth. The farm produces ice cream from the milk of their own cows, maintaining the authentic "cow to cone" experience.
+
+What to expect: Traditional ice cream parlour, farm animals to meet and feed, a cafe serving hot and cold snacks, scenic village location with timbered cottages to explore, and a short walk to the historic Great Budworth church.`
+      },
+      {
+        name: 'Bidlea Dairy',
+        location: 'The Orchards, Twemlow Lane, Holmes Chapel, Cheshire CW4 8DS',
+        description: `Three generations of farmers have worked Bidlea Farm, building a herd of Holstein-Friesian cows that have won both national and European awards. The farm diversified into ice cream, using their cows' fresh milk and cream.
+
+What to expect: Ice cream made on-site from award-winning herd, views of the Lovell Telescope at Jodrell Bank across the fields, nature trail, dog-friendly facilities (lactose-free dog ice cream available for two pounds fifty), and they encourage custom flavour suggestions from visitors.`
+      },
+      {
+        name: 'Brymor Ice Cream Parlour',
+        location: 'High Jervaulx Farm, Masham, North Yorkshire HG4 4PG',
+        description: `Nestled in lower Wensleydale, Brymor has been making real dairy ice cream since 1984. The secret to their distinctive richness lies in their cherished herd of pedigree Guernsey cows, famous for producing golden, creamy milk that is far richer than other dairy breeds. This whole milk is combined with double cream and natural ingredients to create an indulgent finished product.
+
+The recipe has not changed in over 30 years, and they have not needed it to.
+
+What to expect: Over 25 flavours including award-winning Black Cherry Whim Wham, Yorkshire-inspired flavours like Wensleydale and Ginger Cheesecake and Rhubarb Crumble, parlour open daily 10am to 5pm (food until 3pm), indoor and outdoor play areas, Pets Corner with goats, Shetland ponies, rabbits, and guinea pigs, heifers in the barn, secure dog exercise field with agility equipment, new footpath to Jervaulx Abbey (2-minute walk), gift shop with Yorkshire produce, and six acres of outdoor space.`
+      },
+      {
+        name: 'Wensleydale Ice Cream',
+        location: 'Hardbanks Barn, Manor Farm, Thornton Rust, Leyburn, North Yorkshire DL8 3AS',
+        description: `Set in a tastefully converted barn just off the A684 between Leyburn and Hawes, Wensleydale Ice Cream uses milk from their locally grazed Jersey cows. Manor Farm's pedigree red and white herd produces rich, creamy milk that is lightly pasteurised to retain natural taste.
+
+What to expect: 24 ice cream flavours made from Jersey cow milk, coffee shop with cakes, scones, and toasties, milkshakes and sorbets, fresh whole milk available to purchase, and beautiful Dales countryside setting.`
+      },
+      {
+        name: 'Yorvale',
+        location: 'Fossfield Farm, Acaster Malbis, York YO23 2XA',
+        description: `York's only real dairy ice cream manufacturer, Yorvale has been producing premium ice cream on Fossfield Farm since 1989. Ian Hawking still milks the Friesian cows himself twice daily, and the milk travels less than 100 metres to the on-site dairy. Within 90 minutes of leaving the cow, it is being made into ice cream.
+
+Yorvale has achieved BRC AA accreditation (the highest food safety standard) and supplies Harvey Nichols Leeds, Saga cruise ships, and stockists throughout Yorkshire. Notably, they sell 40% more ice cream in London than in York.
+
+What to expect: Production facility with wholesale and trade focus, over 22 flavours including Lemon Curd, Salted Caramel, and Caramel Honeycomb, real fruit sorbets, frozen kefir and kefir drinking yogurt, available at farm shops, visitor attractions, and retailers throughout Yorkshire.`
+      },
+      {
+        name: 'Bluebell Dairy',
+        location: 'Brunswood Farm, Locko Road, Spondon, Derby DE21 7AR',
+        description: `The Brown family has farmed at Brunswood Farm, Locko Park for over 60 years, milking cows since 1953. Now a third-generation farm park, Bluebell Dairy produces all its luxury artisan ice cream on-site using fresh milk that travels less than 20 metres from the milking parlour. Oliver Brown handcrafts each batch using only the finest ingredients.
+
+What to expect: 25 ice cream flavours including Banoffee Pie, Cookies and Cream, Sticky Toffee Fudge, and Devilishly Chocolate, "Muckshakes" (signature milkshakes) and sundaes, farm park with animals including alpacas, Highland cows, goats, rabbits, and donkeys, 45-minute animal experiences (feeding, brushing, learning), indoor and outdoor play areas, seasonal events throughout the year, and a farm shop and cafe.`
+      }
+    ],
     faqs: [
       {
-        question: 'Is farm ice cream more expensive?',
-        answer: 'Farm ice cream typically costs slightly more than supermarket brands but less than premium brands. The quality, freshness, and experience make it excellent value.',
+        question: 'Is farm ice cream more expensive than supermarket brands?',
+        answer: 'Farm ice cream typically costs slightly more per scoop than supermarket brands but less than premium brands. The higher butterfat content, lower overrun (less air), and freshness make it significantly better value on a quality-per-pound basis. Many farms also sell take-home tubs at factory prices.',
       },
       {
         question: 'Can I buy farm ice cream to take home?',
-        answer: 'Yes! Most farms sell tubs to take home, usually 500ml or 1 liter sizes. Some also distribute to local shops and offer online ordering.',
+        answer: 'Yes. Most farms sell tubs to take home, usually 500ml or 1 litre sizes. Some, like Marshfield Farm, offer national delivery. Others distribute through local farm shops, delis, and National Trust properties.',
       },
       {
-        question: 'Do farms make dairy-free ice cream?',
-        answer: 'Increasingly, yes. Many ice cream farms now offer dairy-free options made with oat, coconut, or almond milk to cater to all dietary needs.',
+        question: 'Do ice cream farms cater for dietary requirements?',
+        answer: 'Increasingly, yes. Many farms now offer dairy-free sorbets, and some produce vegan ice cream using oat or coconut milk. Purbeck Ice Cream, for example, is entirely gluten-free, egg-free, and Halal certified (except alcoholic flavours). Always check with individual farms for specific dietary needs.',
+      },
+      {
+        question: 'What is the best time of year to visit an ice cream farm?',
+        answer: 'Most ice cream farms are open year-round, though some parlours operate seasonally from Easter to October. Summer holidays are busiest. For a quieter experience with the full range of activities, visit on a weekday during term time. Spring is ideal for seeing newborn calves alongside your ice cream.',
+      },
+      {
+        question: 'Are ice cream farms suitable for young children?',
+        answer: 'Ice cream farms are among the most family-friendly days out available. Most offer play areas, animal encounters, and child-friendly dining alongside the ice cream. The Ice Cream Farm at Tattenhall, for example, features Europe\'s largest indoor sand and water play area, soft play, mini golf, and go-karts, all with free entry.',
       },
     ],
   },
