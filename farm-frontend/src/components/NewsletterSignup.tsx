@@ -146,10 +146,10 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
       <div className="text-center mb-6">
         <Mail className="w-8 h-8 text-brand-primary mx-auto mb-3" />
         <h2 className="text-2xl sm:text-3xl font-bold text-text-heading mb-2">
-          Stay Updated
+          Seasonal alerts. No spam.
         </h2>
         <p className="text-text-muted">
-          Get seasonal updates, new farm shop discoveries, and exclusive offers delivered to your inbox.
+          One email per month: what's ripe, what's rare, and which farm shops are doing something worth knowing about.
         </p>
       </div>
 
@@ -194,7 +194,7 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
             value={formData.email}
             onChange={handleInputChange('email')}
             className="w-full px-4 py-3 border border-border-default rounded-md bg-background-canvas text-text-body placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary"
-            placeholder="Enter your email"
+            placeholder="Your email address"
             required
             disabled={formState.isLoading}
           />
@@ -241,14 +241,14 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
           ) : (
             <>
               <Mail className="w-4 h-4 mr-2" />
-              Subscribe to Newsletter
+              Subscribe
             </>
           )}
         </Button>
       </form>
 
       <p className="text-small text-text-muted mt-4 text-center">
-        We respect your privacy. Unsubscribe at any time.
+        Unsubscribe anytime. We don't sell data.
       </p>
     </div>
   )

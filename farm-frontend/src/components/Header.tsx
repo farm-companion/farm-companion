@@ -184,9 +184,10 @@ function Sheet({ open, onClose, labelledBy }: { open: boolean; onClose: () => vo
   if (!open) return null
 
   const navItems = [
-    { href: '/map', icon: MapPin, label: 'Farm Map', desc: 'Find farm shops near you' },
-    { href: '/seasonal', icon: Calendar, label: "What's in Season", desc: 'Fresh produce calendar' },
-    { href: '/about', icon: Info, label: 'About', desc: 'Our story and mission' },
+    { href: '/map', icon: MapPin, label: 'Find a Farm Shop', desc: 'Search by location or postcode' },
+    { href: '/seasonal', icon: Calendar, label: 'Seasonal Guides', desc: "What's ripe and where to find it" },
+    { href: '/best', icon: Info, label: "Editor's Picks", desc: 'Farm shops we keep going back to' },
+    { href: '/about', icon: Info, label: 'About', desc: 'How we choose and verify' },
     { href: '/contact', icon: MessageSquare, label: 'Feedback', desc: 'Share your thoughts' },
   ]
 
@@ -348,17 +349,30 @@ export default function Header() {
                   : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-white/[0.04]'
               )}
             >
-              Map
+              Find a Farm Shop
+            </Link>
+
+            {/* Seasonal Guides with Mega Menu */}
+            <MegaMenu label="Seasonal Guides" href="/seasonal" inverted={inverted}>
+              <SeasonalPreview />
+            </MegaMenu>
+
+            {/* Editor's Picks link */}
+            <Link
+              href="/best"
+              className={cx(
+                'px-4 py-2 rounded-lg text-[12px] font-semibold dark:font-medium uppercase tracking-[0.06em] transition-all duration-200',
+                inverted
+                  ? 'text-white hover:text-white hover:bg-white/20'
+                  : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 hover:bg-zinc-100 dark:hover:bg-white/[0.04]'
+              )}
+            >
+              Editor&apos;s Picks
             </Link>
 
             {/* Counties with Mega Menu */}
             <MegaMenu label="Counties" href="/counties" inverted={inverted}>
               <CountiesPreview />
-            </MegaMenu>
-
-            {/* Seasonal with Mega Menu */}
-            <MegaMenu label="Seasonal" href="/seasonal" inverted={inverted}>
-              <SeasonalPreview />
             </MegaMenu>
 
             {/* About link */}

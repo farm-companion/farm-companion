@@ -46,11 +46,11 @@ export function FeaturedGuides() {
           </div>
 
           <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal text-white mb-4 tracking-tight">
-            Curated Farm Guides
+            Farm Shops We Keep Going Back To
           </h2>
 
           <p className="text-base sm:text-lg text-white/70 max-w-2xl mx-auto leading-relaxed">
-            Expert recommendations and comprehensive guides to help you discover the best farms across the UK
+            Any directory can list addresses. We visit, we taste, we ask questions. These are the places that made us drive an extra twenty minutes, fill the boot, and tell everyone we know.
           </p>
 
           {/* Vertical line accent */}
@@ -110,7 +110,7 @@ export function FeaturedGuides() {
             href="/best"
             className="inline-flex items-center justify-center gap-3 h-14 px-8 bg-white text-slate-900 rounded-full text-sm tracking-[0.05em] font-medium transition-all duration-300 hover:bg-white/90 hover:shadow-lg hover:shadow-white/20 active:scale-[0.98]"
           >
-            View All Guides
+            See All Recommendations
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

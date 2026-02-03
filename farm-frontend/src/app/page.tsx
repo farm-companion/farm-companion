@@ -169,11 +169,11 @@ export default async function HomePage() {
             Explore the Map
           </p>
           <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold mb-6 leading-tight text-white">
-            Ready to Explore?
+            Find the Farm Shops Worth the Detour
           </h2>
           <div className="w-12 h-px bg-white/30 mx-auto mb-8" />
           <p className="text-lg mb-12 text-white/80 max-w-xl mx-auto leading-relaxed">
-            Start your journey to discover local farm shops across the UK.
+            Search by location, by what's in season, or by what you're craving.
           </p>
           <Link
             href="/map"
@@ -200,7 +200,7 @@ export default async function HomePage() {
           {/* Heading block */}
           <div className="text-center mb-12">
             <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted mb-4 font-accent">
-              The Directory
+              How It Works
             </p>
             <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading mb-6 leading-tight">
               UK Farm Shops Directory
@@ -210,9 +210,8 @@ export default async function HomePage() {
 
           {/* Intro */}
           <p className="text-center text-text-body leading-relaxed mb-14 max-w-2xl mx-auto">
-            Welcome to Farm Companion, your comprehensive guide to UK farm shops. We&apos;ve curated
-            a directory of over <span className="font-semibold text-text-heading">{farmCount}</span> authentic farm shops across <span className="font-semibold text-text-heading">{countyCount}</span> counties,
-            helping you discover the freshest local produce and connect with real farmers.
+            Over <span className="font-semibold text-text-heading">{farmCount}</span> verified farm shops across <span className="font-semibold text-text-heading">{countyCount}</span> counties.
+            Search by location, by what's in season, or by what you're craving.
           </p>
 
           {/* Feature list */}
@@ -223,12 +222,11 @@ export default async function HomePage() {
               </div>
               <div>
                 <h3 className="text-lg font-heading font-semibold text-text-heading mb-2">
-                  Find Farm Shops Near You
+                  Search by Location
                 </h3>
                 <p className="text-text-body leading-relaxed">
-                  Search for farm shops near you to buy fresh vegetables, organic meat, artisanal cheese,
-                  and homemade preserves. Our interactive map shows verified contact details, opening hours,
-                  and what each farm sells locally.
+                  Enter a postcode or town and see verified farm shops on the map. Each listing shows
+                  contact details, opening hours, and what they sell.
                 </p>
               </div>
             </div>
@@ -244,9 +242,8 @@ export default async function HomePage() {
                   Seasonal Produce Guides
                 </h3>
                 <p className="text-text-body leading-relaxed">
-                  Buy seasonal UK fruit and vegetables at their peak flavour and nutritional value.
-                  Our guides show what&apos;s in season each month, with tips on choosing, storing,
-                  and cooking the freshest local produce.
+                  See what's in season each month and where to find it at its best.
+                  Tips on choosing, storing, and cooking what's ripe right now.
                 </p>
               </div>
             </div>
@@ -259,12 +256,11 @@ export default async function HomePage() {
               </div>
               <div>
                 <h3 className="text-lg font-heading font-semibold text-text-heading mb-2">
-                  Support Local Farmers
+                  Every Listing Verified
                 </h3>
                 <p className="text-text-body leading-relaxed">
-                  By choosing to shop at local farm shops, you&apos;re supporting British farmers and
-                  contributing to sustainable, local food systems. You&apos;ll enjoy fresher produce,
-                  reduce food miles, and help maintain the UK&apos;s rich agricultural heritage.
+                  We check opening hours, confirm named suppliers, and verify that each shop
+                  sells produce with a genuine connection to farming. No glorified delis.
                 </p>
               </div>
             </div>
