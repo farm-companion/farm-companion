@@ -23,7 +23,6 @@ import FooterWrapper from '@/components/FooterWrapper'
 import AnalyticsLoader from '@/components/AnalyticsLoader'
 import { AriaLiveRegion } from '@/components/accessibility/AriaLiveRegion'
 import { SkipLinks } from '@/components/accessibility/SkipLinks'
-import { BottomNav } from '@/components/navigation/BottomNav'
 import { CommandPalette } from '@/components/search'
 import { ThemeProvider } from '@/components/ThemeProvider'
 import { SITE_URL } from '@/lib/site'
@@ -217,8 +216,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           {/* Page content */}
           <main id="main-content" className="flex-1" role="main">{children}</main>
 
-          {/* Mobile Bottom Navigation */}
-          <BottomNav />
 
           {/* Consent */}
           <ConsentBanner />
