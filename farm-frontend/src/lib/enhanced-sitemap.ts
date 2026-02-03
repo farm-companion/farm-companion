@@ -9,6 +9,16 @@ import { logger } from '@/lib/logger'
 
 const sitemapLogger = logger.child({ route: 'lib/enhanced-sitemap' })
 
+/** Escape special characters for safe XML text node interpolation. */
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 export interface SitemapEntry {
   url: string
   lastModified?: Date
@@ -253,9 +263,9 @@ export function generateSitemapXML(entries: SitemapEntry[]): string {
   const urlsetClose = '</urlset>'
 
   const urlEntries = entries.map(entry => {
-    const url = `${SITE_URL}${entry.url}`
-    const lastmod = entry.lastModified?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]
-    const changefreq = entry.changeFrequency || 'weekly'
+    const url = escapeXml(`${SITE_URL}${entry.url}`)
+    const lastmod = escapeXml(entry.lastModified?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0])
+    const changefreq = escapeXml(entry.changeFrequency || 'weekly')
     const priority = entry.priority || 0.5
 
     let urlContent = `  <url>
@@ -269,28 +279,28 @@ export function generateSitemapXML(entries: SitemapEntry[]): string {
       entry.images.forEach(image => {
         urlContent += `
     <image:image>
-      <image:loc>${image.url}</image:loc>`
-        
+      <image:loc>${escapeXml(image.url)}</image:loc>`
+
         if (image.caption) {
           urlContent += `
-      <image:caption>${image.caption}</image:caption>`
+      <image:caption>${escapeXml(image.caption)}</image:caption>`
         }
-        
+
         if (image.title) {
           urlContent += `
-      <image:title>${image.title}</image:title>`
+      <image:title>${escapeXml(image.title)}</image:title>`
         }
-        
+
         if (image.geoLocation) {
           urlContent += `
-      <image:geo_location>${image.geoLocation}</image:geo_location>`
+      <image:geo_location>${escapeXml(image.geoLocation)}</image:geo_location>`
         }
-        
+
         if (image.license) {
           urlContent += `
-      <image:license>${image.license}</image:license>`
+      <image:license>${escapeXml(image.license)}</image:license>`
         }
-        
+
         urlContent += `
     </image:image>`
       })
@@ -315,8 +325,8 @@ export function generateSitemapIndexXML(indexEntries: SitemapEntry[]): string {
   const sitemapindexClose = '</sitemapindex>'
 
   const sitemapEntries = indexEntries.map(entry => {
-    const url = `${SITE_URL}${entry.url}`
-    const lastmod = entry.lastModified?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]
+    const url = escapeXml(`${SITE_URL}${entry.url}`)
+    const lastmod = escapeXml(entry.lastModified?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0])
 
     return `  <sitemap>
     <loc>${url}</loc>
@@ -375,8 +385,8 @@ export function generateNewsSitemap(newsEntries: Array<{
   const urlsetClose = '</urlset>'
 
   const urlEntries = newsEntries.map(entry => {
-    const url = `${SITE_URL}${entry.url}`
-    const publicationDate = entry.publicationDate.toISOString()
+    const url = escapeXml(`${SITE_URL}${entry.url}`)
+    const publicationDate = escapeXml(entry.publicationDate.toISOString())
 
     return `  <url>
     <loc>${url}</loc>
@@ -386,8 +396,8 @@ export function generateNewsSitemap(newsEntries: Array<{
         <news:language>en</news:language>
       </news:publication>
       <news:publication_date>${publicationDate}</news:publication_date>
-      <news:title>${entry.title}</news:title>${entry.keywords ? `
-      <news:keywords>${entry.keywords.join(', ')}</news:keywords>` : ''}
+      <news:title>${escapeXml(entry.title)}</news:title>${entry.keywords ? `
+      <news:keywords>${escapeXml(entry.keywords.join(', '))}</news:keywords>` : ''}
     </news:news>
   </url>`
   }).join('\n')
