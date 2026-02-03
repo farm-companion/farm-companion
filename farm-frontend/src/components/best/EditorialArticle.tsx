@@ -257,8 +257,8 @@ const FARMERS_MARKET_IMAGES = [
     alt: 'Boxes of ripe tomatoes and fresh produce'
   },
   {
-    src: 'https://images.unsplash.com/photo-1506484381205-f7945b8db2e0?w=1600&q=80&auto=format',
-    alt: 'Artisan bread loaves on display'
+    src: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600&q=80&auto=format',
+    alt: 'Freshly baked artisan bread loaves'
   },
   {
     src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1600&q=80&auto=format',
@@ -281,12 +281,12 @@ const EDUCATIONAL_FARM_IMAGES = [
     alt: 'Chickens roaming freely on a farm'
   },
   {
-    src: 'https://images.unsplash.com/photo-1591965481557-2fccc8dcdf6c?w=1600&q=80&auto=format',
-    alt: 'Highland cattle with long horns in field'
+    src: 'https://images.unsplash.com/photo-1570303345338-e1f0eddf4946?w=1600&q=80&auto=format',
+    alt: 'Highland cattle in a green Scottish field'
   },
   {
-    src: 'https://images.unsplash.com/photo-1444212477490-ca407925f3a4?w=1600&q=80&auto=format',
-    alt: 'Tractor in golden harvest field'
+    src: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80&auto=format',
+    alt: 'Golden wheat field at sunset'
   },
   {
     src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=80&auto=format',
