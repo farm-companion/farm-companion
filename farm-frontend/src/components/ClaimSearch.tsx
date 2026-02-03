@@ -63,7 +63,7 @@ export function ClaimSearch({ farms }: ClaimSearchProps) {
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsFocused(true)}
           placeholder="Search by farm name, postcode, or county..."
-          className="w-full h-14 pl-12 pr-12 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-[15px] placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:focus:border-primary-400 dark:focus:ring-primary-400/20 transition-all shadow-sm"
+          className="w-full h-14 pl-12 pr-12 rounded-lg border-2 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-[15px] placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-500/20 dark:focus:border-primary-400 dark:focus:ring-primary-400/20 transition-all shadow-sm"
         />
         {query && (
           <button
@@ -77,7 +77,7 @@ export function ClaimSearch({ farms }: ClaimSearchProps) {
 
       {/* Results dropdown */}
       {showResults && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-xl z-50 overflow-hidden">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 shadow-xl z-50 overflow-hidden">
           {results.length === 0 ? (
             <div className="p-6 text-center">
               <p className="text-[14px] text-slate-500 dark:text-slate-400 mb-3">
