@@ -162,7 +162,7 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   ]
 
   return (
-    <main className="min-h-screen bg-background-canvas">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
       {/* SEO: LocalBusiness JSON-LD + Breadcrumbs */}
       <script
         type="application/ld+json"
