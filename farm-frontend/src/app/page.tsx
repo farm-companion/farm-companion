@@ -1,20 +1,48 @@
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import Image from 'next/image'
 import { MapPin, ArrowRight, Leaf, Calendar, Heart, TrendingUp, Award, Clock } from 'lucide-react'
-import NewsletterSignup from '@/components/NewsletterSignup'
 import { getFarmStats } from '@/lib/farm-data'
 import { SITE_URL } from '@/lib/site'
 import { FeaturedGuides } from '@/components/FeaturedGuides'
 import { CategoryGrid } from '@/components/CategoryGrid'
 import { AnimatedHero } from '@/components/AnimatedHero'
-import { AnimatedStats } from '@/components/AnimatedStats'
-import { AnimatedFeatures } from '@/components/AnimatedFeatures'
-import { SeasonalShowcase } from '@/components/SeasonalShowcase'
-import { NearbyFarms } from '@/components/NearbyFarms'
-import { OpenNowCTA } from '@/components/OpenNowCTA'
-import { WeekendPlanner } from '@/components/WeekendPlanner'
-import { SocialProofTicker } from '@/components/SocialProofTicker'
+
+// Lazy-load below-fold client components to reduce initial bundle size
+// and prevent concurrent database/API calls during static builds.
+const AnimatedStats = dynamic(
+  () => import('@/components/AnimatedStats').then(m => m.AnimatedStats),
+  { ssr: false }
+)
+const AnimatedFeatures = dynamic(
+  () => import('@/components/AnimatedFeatures').then(m => m.AnimatedFeatures),
+  { ssr: false }
+)
+const SeasonalShowcase = dynamic(
+  () => import('@/components/SeasonalShowcase').then(m => m.SeasonalShowcase),
+  { ssr: false }
+)
+const NearbyFarms = dynamic(
+  () => import('@/components/NearbyFarms').then(m => m.NearbyFarms),
+  { ssr: false }
+)
+const WeekendPlanner = dynamic(
+  () => import('@/components/WeekendPlanner').then(m => m.WeekendPlanner),
+  { ssr: false }
+)
+const SocialProofTicker = dynamic(
+  () => import('@/components/SocialProofTicker').then(m => m.SocialProofTicker),
+  { ssr: false }
+)
+const OpenNowCTA = dynamic(
+  () => import('@/components/OpenNowCTA').then(m => m.OpenNowCTA),
+  { ssr: false }
+)
+const NewsletterSignup = dynamic(
+  () => import('@/components/NewsletterSignup'),
+  { ssr: false }
+)
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
