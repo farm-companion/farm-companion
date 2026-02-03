@@ -73,9 +73,6 @@ model Farm {
   // Payment Methods (stored as JSON)
   paymentMethods Json?
 
-  // AI-generated image URL (stored directly, migrated to Image table)
-  imageUrl String? @db.Text
-
   // Relationships
   categories FarmCategory[]
   products   Product[]
