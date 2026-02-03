@@ -59,7 +59,7 @@ export async function getFarmData(): Promise<FarmShop[]> {
         offerings: farm.categories.map((fc) => fc.category.name),
         images: farm.images.length > 0
           ? [farm.images[0].url]
-          : (farm.imageUrl ? [farm.imageUrl] : undefined),
+          : undefined,
         verified: farm.verified,
       }))
 
