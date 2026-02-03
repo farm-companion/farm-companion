@@ -279,6 +279,7 @@ export default async function BestPage({ params }: BestPageProps) {
               editorialIntro={list.editorialIntro}
               farmProfiles={list.farmProfiles}
               farms={farms}
+              category={list.category}
             />
           </section>
         )}
