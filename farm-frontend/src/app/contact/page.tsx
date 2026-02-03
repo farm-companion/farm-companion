@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowRight } from 'lucide-react'
 import ContactForm from '@/components/forms/ContactForm'
+import ObfuscatedEmail from '@/components/ObfuscatedEmail'
 
 export default function ContactPage() {
   const enabled = process.env.NEXT_PUBLIC_CONTACT_FORM_ENABLED === 'true'
@@ -118,12 +119,9 @@ export default function ContactPage() {
                     </div>
                     <div>
                       <h3 className="font-medium text-text-heading mb-1">Email</h3>
-                      <a 
-                        href="mailto:hello@farmcompanion.co.uk" 
+                      <ObfuscatedEmail
                         className="text-text-link hover:underline transition-colors"
-                      >
-                        hello@farmcompanion.co.uk
-                      </a>
+                      />
                     </div>
                   </div>
 

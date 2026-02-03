@@ -12,6 +12,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { SITE_URL } from '@/lib/site'
 import { ScrollIndicator } from '@/components/best/editorial/ScrollIndicator'
+import ObfuscatedEmail from '@/components/ObfuscatedEmail'
 
 export const metadata: Metadata = {
   title: 'About Farm Companion | UK Farm Shops Directory',
@@ -362,12 +363,9 @@ export default function AboutPage() {
 
           <p className="text-lg text-foreground text-center">
             Suggestions or corrections? Email us at{' '}
-            <a
-              href="mailto:hello@farmcompanion.co.uk"
+            <ObfuscatedEmail
               className="border-b border-foreground hover:opacity-70 transition-opacity"
-            >
-              hello@farmcompanion.co.uk
-            </a>
+            />
           </p>
         </section>
 
