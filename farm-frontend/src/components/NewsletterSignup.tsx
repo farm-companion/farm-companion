@@ -1,11 +1,6 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Button } from '@/components/ui'
-import { Mail } from 'lucide-react'
-import { CheckCircle } from 'lucide-react'
-import { AlertCircle } from 'lucide-react'
-import { Loader2 } from 'lucide-react'
 
 interface NewsletterSignupProps {
   className?: string
@@ -32,7 +27,7 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
     honeypot: '',
     consent: false
   })
-  
+
   const [formState, setFormState] = useState<FormState>({
     isLoading: false,
     isSuccess: false,
@@ -46,7 +41,7 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
       ...prev,
       [field]: e.target.type === 'checkbox' ? e.target.checked : e.target.value
     }))
-    
+
     // Clear error when user starts typing
     if (formState.error) {
       setFormState(prev => ({ ...prev, error: null }))
@@ -57,32 +52,31 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
     if (!formData.email) return 'Email address is required'
     if (!formData.name.trim()) return 'Name is required'
     if (!formData.consent) return 'Please agree to receive emails'
-    
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(formData.email)) {
       return 'Please enter a valid email address'
     }
-    
+
     // Honeypot check
     if (formData.honeypot) {
-      console.warn('Bot detected via honeypot field')
       return 'Invalid submission'
     }
-    
+
     return null
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     const validationError = validateForm()
     if (validationError) {
       setFormState(prev => ({ ...prev, error: validationError }))
       return
     }
-    
+
     setFormState(prev => ({ ...prev, isLoading: true, error: null }))
-    
+
     try {
       const response = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
@@ -95,15 +89,15 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
           consent: formData.consent
         })
       })
-      
+
       const data = await response.json()
-      
+
       if (!response.ok) {
         throw new Error(data.error || 'Subscription failed')
       }
-      
+
       setFormState(prev => ({ ...prev, isLoading: false, isSuccess: true }))
-      
+
       // Reset form
       setFormData({
         email: '',
@@ -111,14 +105,13 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
         honeypot: '',
         consent: false
       })
-      
+
       // Auto-hide success message after 5 seconds
       setTimeout(() => {
         setFormState(prev => ({ ...prev, isSuccess: false }))
       }, 5000)
-      
+
     } catch (error) {
-      console.error('Newsletter subscription error:', error)
       setFormState(prev => ({
         ...prev,
         isLoading: false,
@@ -129,31 +122,39 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
 
   if (formState.isSuccess) {
     return (
-      <div className={`text-center p-6 bg-green-50 border border-green-200 rounded-lg ${className}`}>
-        <CheckCircle className="w-8 h-8 text-green-600 mx-auto mb-3" />
-        <h3 className="text-body font-semibold text-green-800 mb-2">
-          Successfully Subscribed!
-        </h3>
-        <p className="text-green-700">
-          Welcome to Farm Companion! Check your email for a welcome message.
+      <div className={`text-center ${className}`}>
+        <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
+        <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-6">
+          Thank You
         </p>
+        <h3 className="font-serif text-2xl md:text-3xl font-normal text-foreground mb-4">
+          Welcome to Farm Companion
+        </h3>
+        <p className="text-lg leading-[1.9] text-foreground-muted">
+          Check your email for a welcome message.
+        </p>
+        <div className="w-px h-12 bg-border mx-auto mt-8" aria-hidden="true" />
       </div>
     )
   }
 
   return (
-    <div className={`bg-background-surface rounded-lg p-6 sm:p-8 ${className}`}>
-      <div className="text-center mb-6">
-        <Mail className="w-8 h-8 text-brand-primary mx-auto mb-3" />
-        <h2 className="text-2xl sm:text-3xl font-bold text-text-heading mb-2">
+    <div className={`${className}`}>
+      {/* Header */}
+      <div className="text-center mb-12">
+        <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
+        <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-6">
+          Newsletter
+        </p>
+        <h2 className="font-serif text-3xl md:text-4xl font-normal leading-tight text-foreground mb-4">
           Stay Updated
         </h2>
-        <p className="text-text-muted">
-          Get seasonal updates, new farm shop discoveries, and exclusive offers delivered to your inbox.
+        <p className="text-lg leading-[1.9] text-foreground-muted max-w-lg mx-auto">
+          Seasonal updates, new farm shop discoveries, and curated guides delivered to your inbox.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} className="max-w-md mx-auto space-y-6">
         {/* Honeypot field - hidden from users but visible to bots */}
         <div className="absolute -left-[9999px] opacity-0 pointer-events-none">
           <input
@@ -168,15 +169,18 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
 
         {/* Name Field */}
         <div>
-          <label htmlFor="newsletter-name" className="block text-caption font-medium text-text-heading mb-2">
-            Your Name *
+          <label
+            htmlFor="newsletter-name"
+            className="block text-xs tracking-[0.15em] uppercase text-foreground-muted mb-3"
+          >
+            Your Name
           </label>
           <input
             id="newsletter-name"
             type="text"
             value={formData.name}
             onChange={handleInputChange('name')}
-            className="w-full px-4 py-3 border border-border-default rounded-md bg-background-canvas text-text-body placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary"
+            className="w-full px-0 py-3 bg-transparent text-foreground text-lg border-0 border-b border-border placeholder:text-foreground-muted/50 focus:outline-none focus:border-foreground transition-colors"
             placeholder="Enter your name"
             required
             disabled={formState.isLoading}
@@ -185,15 +189,18 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
 
         {/* Email Field */}
         <div>
-          <label htmlFor="newsletter-email" className="block text-caption font-medium text-text-heading mb-2">
-            Email Address *
+          <label
+            htmlFor="newsletter-email"
+            className="block text-xs tracking-[0.15em] uppercase text-foreground-muted mb-3"
+          >
+            Email Address
           </label>
           <input
             id="newsletter-email"
             type="email"
             value={formData.email}
             onChange={handleInputChange('email')}
-            className="w-full px-4 py-3 border border-border-default rounded-md bg-background-canvas text-text-body placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-brand-primary"
+            className="w-full px-0 py-3 bg-transparent text-foreground text-lg border-0 border-b border-border placeholder:text-foreground-muted/50 focus:outline-none focus:border-foreground transition-colors"
             placeholder="Enter your email"
             required
             disabled={formState.isLoading}
@@ -201,55 +208,50 @@ export default function NewsletterSignup({ className = '', source = 'homepage' }
         </div>
 
         {/* Consent Checkbox */}
-        <div className="flex items-start space-x-3">
+        <div className="flex items-start gap-3 pt-2">
           <input
             id="newsletter-consent"
             type="checkbox"
             checked={formData.consent}
             onChange={handleInputChange('consent')}
-            className="mt-1 h-4 w-4 text-brand-primary focus:ring-brand-primary border-border-default rounded"
+            className="mt-0.5 h-4 w-4 accent-current text-foreground border-border"
             required
             disabled={formState.isLoading}
           />
-          <label htmlFor="newsletter-consent" className="text-caption text-text-muted">
+          <label
+            htmlFor="newsletter-consent"
+            className="text-sm leading-relaxed text-foreground-muted"
+          >
             I agree to receive email updates from Farm Companion. I can unsubscribe at any time.
-            <span className="text-brand-danger ml-1" aria-hidden="true">*</span>
           </label>
         </div>
 
         {/* Error Message */}
         {formState.error && (
-          <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-200 rounded-md">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-            <p className="text-caption text-red-700">{formState.error}</p>
+          <div className="border-t border-b border-border py-4">
+            <p className="text-sm text-foreground">{formState.error}</p>
           </div>
         )}
 
         {/* Submit Button */}
-        <Button
+        <button
           type="submit"
-          variant="primary"
-          size="lg"
-          className="w-full"
           disabled={formState.isLoading}
+          className="inline-flex items-center justify-center gap-3 w-full py-4 text-xs tracking-[0.15em] uppercase bg-foreground text-background hover:opacity-80 transition-opacity duration-300 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {formState.isLoading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Subscribing...
-            </>
+            <span>Subscribing...</span>
           ) : (
-            <>
-              <Mail className="w-4 h-4 mr-2" />
-              Subscribe to Newsletter
-            </>
+            <span>Subscribe</span>
           )}
-        </Button>
+        </button>
       </form>
 
-      <p className="text-small text-text-muted mt-4 text-center">
+      <p className="text-xs tracking-[0.1em] text-foreground-muted text-center mt-8">
         We respect your privacy. Unsubscribe at any time.
       </p>
+
+      <div className="w-16 h-px bg-border mx-auto mt-8" aria-hidden="true" />
     </div>
   )
 }

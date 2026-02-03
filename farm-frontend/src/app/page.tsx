@@ -209,8 +209,8 @@ export default async function HomePage() {
 
 
       {/* Newsletter Section */}
-      <section className="py-12 md:py-16 section-lazy">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
+      <section className="py-16 md:py-24 bg-background-secondary section-lazy">
+        <div className="max-w-2xl mx-auto px-6">
           <NewsletterSignup />
         </div>
       </section>
