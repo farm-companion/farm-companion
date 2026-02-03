@@ -464,10 +464,10 @@ export const PRODUCE: Produce[] = [
     slug: 'kale',
     name: 'Kale',
     images: [
+      { src: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Kale-Bundle.jpg', alt: 'Fresh curly kale bundle tied with stems visible' },
       { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/1/main.webp', alt: 'Fresh British kale leaves with selective focus' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/2/main.webp', alt: 'Dark green curly kale in golden hour light' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/3/main.webp', alt: 'Winter kale harvest display' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/4/main.webp', alt: 'Organic kale leaves macro detail' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/kale/2/main.webp', alt: 'Single curly kale leaf showing prominent veins' },
+      { src: 'https://upload.wikimedia.org/wikipedia/commons/2/20/Boerenkool.jpg', alt: 'Curly kale plant with dense ruffled green leaves' },
     ],
     monthsInSeason: [11, 12, 1, 2, 3, 4], // Nov–Apr
     peakMonths: [1, 2],
