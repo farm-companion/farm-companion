@@ -230,9 +230,83 @@ const ICE_CREAM_IMAGES = [
   }
 ]
 
+// Farmers market images - stalls, produce displays, market atmosphere
+const FARMERS_MARKET_IMAGES = [
+  {
+    src: 'https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1600&q=80&auto=format',
+    alt: 'Fresh produce stalls at a farmers market'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=80&auto=format',
+    alt: 'Artisan produce beautifully arranged at market'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80&auto=format',
+    alt: 'Fresh harvest arranged on rustic table'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1540420773420-3366772f4999?w=1600&q=80&auto=format',
+    alt: 'Seasonal vegetables in rustic wooden crate'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1573246123716-6b1782bfc499?w=1600&q=80&auto=format',
+    alt: 'Colourful display of fresh vegetables at market'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1550989460-0adf9ea622e2?w=1600&q=80&auto=format',
+    alt: 'Boxes of ripe tomatoes and fresh produce'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1506484381205-f7945b8db2e0?w=1600&q=80&auto=format',
+    alt: 'Artisan bread loaves on display'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1600&q=80&auto=format',
+    alt: 'Wheels of aged artisan cheese'
+  }
+]
+
+// Educational farm visit images - animals, countryside, hands-on learning
+const EDUCATIONAL_FARM_IMAGES = [
+  {
+    src: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=1600&q=80&auto=format',
+    alt: 'Cows grazing in green countryside pasture'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format',
+    alt: 'Sheep in a rolling hillside field'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=1600&q=80&auto=format',
+    alt: 'Chickens roaming freely on a farm'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1591965481557-2fccc8dcdf6c?w=1600&q=80&auto=format',
+    alt: 'Highland cattle with long horns in field'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1444212477490-ca407925f3a4?w=1600&q=80&auto=format',
+    alt: 'Tractor in golden harvest field'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=80&auto=format',
+    alt: 'Goats in a farm paddock'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80&auto=format',
+    alt: 'Fresh vegetables and produce from the farm'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1600&q=80&auto=format',
+    alt: 'Golden hour light sweeping across British farmland'
+  }
+]
+
 // Select the right image set based on article category
 const CATEGORY_IMAGES: Record<string, typeof FALLBACK_IMAGES> = {
   'ice-cream-farms': ICE_CREAM_IMAGES,
+  'farmers-markets': FARMERS_MARKET_IMAGES,
+  'educational-visits': EDUCATIONAL_FARM_IMAGES,
 }
 
 function FarmProfileSection({ farm, farms, index, showImage, category }: FarmProfileSectionProps) {
