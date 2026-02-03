@@ -831,7 +831,6 @@ export const PRODUCE: Produce[] = [
     slug: 'spinach',
     name: 'Spinach',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/1/main.webp', alt: 'Fresh dark green spinach leaves' },
       { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/2/main.webp', alt: 'Baby spinach in bowl' },
       { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/3/main.webp', alt: 'Organic spinach close-up' },
       { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/spinach/4/main.webp', alt: 'British spinach harvest' },
