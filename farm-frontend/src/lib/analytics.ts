@@ -41,7 +41,6 @@ export function trackEvent(action: string, parameters?: Record<string, any>): vo
   if (!isAnalyticsEnabled() || typeof window === 'undefined' || !window.gtag) return
   
   window.gtag('event', action, parameters)
-  console.log('📊 Event tracked:', action, parameters)
 }
 
 // Track page views

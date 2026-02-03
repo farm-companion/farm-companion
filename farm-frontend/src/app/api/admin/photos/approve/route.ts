@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureConnection } from '@/lib/redis'
-// import { sendPhotoApprovedEmail } from '@/lib/email'
 import { revalidatePath } from 'next/cache'
 import { trackContentChange, createFarmChangeEvent } from '@/lib/content-change-tracker'
 import { createRouteLogger } from '@/lib/logger'
@@ -169,22 +168,6 @@ export async function POST(req: NextRequest) {
         // Don't fail the main operation if content change tracking fails
       }
     })()
-
-    // TODO: Send approval email when PhotoApproved template is implemented
-    // if (photo.authorEmail) {
-    //   await sendPhotoApprovedEmail({
-    //     to: photo.authorEmail,
-    //     farmName: photo.farmSlug, // TODO: Get actual farm name
-    //     farmSlug: photo.farmSlug,
-    //     photoUrl: photo.url,
-    //     caption: photo.caption,
-    //     replacedPhoto: replacedPhotoData ? {
-    //       id: replacedPhotoId,
-    //       caption: replacedPhotoData.caption,
-    //       authorName: replacedPhotoData.authorName
-    //     } : undefined
-    //   })
-    // }
 
     return NextResponse.json({ 
       success: true,
