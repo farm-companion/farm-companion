@@ -121,15 +121,15 @@ export default function AddFarmPage() {
   // Early return for disabled form - must be after all hooks
   if (!isFormEnabled) {
     return (
-      <main className="bg-background-canvas min-h-screen flex items-center justify-center">
+      <main className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md mx-auto px-6">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-6">
             <AlertCircle className="w-8 h-8 text-red-600" />
           </div>
-          <h1 className="text-2xl font-bold text-text-heading mb-4">
+          <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
             Form Temporarily Unavailable
           </h1>
-          <p className="text-text-body mb-6">
+          <p className="text-slate-700 dark:text-slate-300 mb-6">
             The farm submission form is currently being updated. Please check back later or contact us directly.
           </p>
           <Link href="/">
@@ -290,19 +290,9 @@ export default function AddFarmPage() {
   }
 
   return (
-    <main className="bg-background-canvas">
-      {/* Enhanced Hero Section - PuredgeOS 3.0 Premium */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-background-surface via-background-canvas to-background-surface">
-        {/* Static background patterns - animations removed for performance */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(0,194,178,0.04),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,255,79,0.03),transparent_50%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(30,31,35,0.02),transparent_70%)]" />
-
-        {/* Static accent elements - animations removed for performance */}
-        <div className="absolute top-20 left-10 w-2 h-2 bg-serum rounded-full opacity-40" />
-        <div className="absolute top-32 right-20 w-1 h-1 bg-solar rounded-full opacity-30" />
-        <div className="absolute bottom-40 left-1/4 w-1.5 h-1.5 bg-serum rounded-full opacity-35" />
-        
+    <main className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+      {/* Hero Section */}
+      <section className="relative overflow-hidden">
         {/* Hero Image Header */}
         <div data-header-invert className="relative w-full h-[80vh] min-h-[700px] max-h-[900px] overflow-hidden">
           <Image
@@ -315,12 +305,8 @@ export default function AddFarmPage() {
             sizes="100vw"
             quality={85}
           />
-          {/* Professional Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
-          {/* Subtle texture overlay for depth */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
+          {/* Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
           
           {/* Hero Content Overlay */}
           <div className="relative h-full flex items-center justify-center">
@@ -330,7 +316,7 @@ export default function AddFarmPage() {
               </div>
               <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
                 Add Your Farm
-                <span className="block text-serum drop-shadow-lg">Shop</span>
+                <span className="block text-primary-400 drop-shadow-lg">Shop</span>
               </h1>
               <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
                 Help customers find you, learn your story, and visit with confidence.
@@ -342,43 +328,37 @@ export default function AddFarmPage() {
           </div>
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-6 py-8">
-          {/* Additional Content Below Hero */}
-          <div className="text-center mb-8">
-            {/* You can add additional content here if needed */}
-          </div>
-        </div>
       </section>
 
       {/* Value Proposition Section */}
-      <section id="why-add" className="bg-gradient-to-b from-background-surface to-background-canvas py-16">
+      <section id="why-add" className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 py-16">
         <div className="max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading mb-4 flex items-center justify-center gap-3">
-              <Sparkles className="w-8 h-8 text-serum" />
+            <h2 className="text-3xl md:text-4xl font-heading font-bold text-slate-900 dark:text-white mb-4 flex items-center justify-center gap-3">
+              <Sparkles className="w-8 h-8 text-primary-600 dark:text-primary-400" />
               Why Add Your Farm Shop?
             </h2>
-            <p className="text-body text-text-muted max-w-2xl mx-auto mb-12">
-              Every farm has a story. By sharing yours, you invite customers to discover 
+            <p className="text-body text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-12">
+              Every farm has a story. By sharing yours, you invite customers to discover
               the people, produce, and passion behind your work.
             </p>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="text-center p-8 rounded-3xl bg-gradient-to-br from-background-surface to-background-canvas border border-border-default/30 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
-              <div className="w-16 h-16 bg-gradient-to-br from-serum/20 to-teal-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Leaf className="w-8 h-8 text-serum" />
+            <div className="text-center p-8 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-700">
+              <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Leaf className="w-8 h-8 text-primary-600 dark:text-primary-400" />
               </div>
-              <h3 className="text-heading font-heading font-semibold text-text-heading mb-3">Reach New Customers</h3>
-              <p className="text-text-muted leading-relaxed">Appear in search results and on our interactive UK-wide map designed for farmers and food lovers.</p>
+              <h3 className="text-heading font-heading font-semibold text-slate-900 dark:text-white mb-3">Reach New Customers</h3>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">Appear in search results and on our interactive UK-wide map designed for farmers and food lovers.</p>
             </div>
-            
-            <div className="text-center p-8 rounded-3xl bg-gradient-to-br from-background-surface to-background-canvas border border-border-default/30 shadow-2xl hover:shadow-3xl transition-all duration-500 transform hover:scale-105 hover:-translate-y-2">
-              <div className="w-16 h-16 bg-gradient-to-br from-serum/20 to-teal-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                <Leaf className="w-8 h-8 text-serum" />
+
+            <div className="text-center p-8 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-700">
+              <div className="w-16 h-16 bg-primary-100 dark:bg-primary-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <Leaf className="w-8 h-8 text-primary-600 dark:text-primary-400" />
               </div>
-              <h3 className="text-heading font-heading font-semibold text-text-heading mb-3">Tell Your Story</h3>
-              <p className="text-text-muted leading-relaxed">Share what makes your farm special and highlight your offerings in one trusted place.</p>
+              <h3 className="text-heading font-heading font-semibold text-slate-900 dark:text-white mb-3">Tell Your Story</h3>
+              <p className="text-slate-600 dark:text-slate-400 leading-relaxed">Share what makes your farm special and highlight your offerings in one trusted place.</p>
             </div>
           </div>
         </div>
@@ -451,22 +431,22 @@ export default function AddFarmPage() {
           </div>
 
           {/* Basic Information */}
-          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
-            <h2 className="text-heading font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
-              <span className="w-2 h-2 bg-serum rounded-full"></span>
+          <section className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 className="text-heading font-heading font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+              <span className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></span>
               <span>Basic Information</span>
             </h2>
             
             <div className="space-y-6">
               <div>
-                <label htmlFor="farm-name" className="block text-caption font-medium text-text-heading mb-2">
+                <label htmlFor="farm-name" className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                   Farm shop name *
                 </label>
                 <input 
                   id="farm-name"
                   name="name"
-                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
-                    touched && !form.name ? 'border-red-500' : 'border-border-default'
+                  className={`w-full rounded-lg border px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors ${
+                    touched && !form.name ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
                   }`}
                   value={form.name} 
                   onChange={onChange('name')}
@@ -483,14 +463,14 @@ export default function AddFarmPage() {
               </div>
 
               <div>
-                <label htmlFor="farm-address" className="block text-caption font-medium text-text-heading mb-2">
+                <label htmlFor="farm-address" className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                   Address *
                 </label>
                 <input 
                   id="farm-address"
                   name="address"
-                  className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
-                    touched && !form.address ? 'border-red-500' : 'border-border-default'
+                  className={`w-full rounded-lg border px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors ${
+                    touched && !form.address ? 'border-red-500' : 'border-slate-200 dark:border-slate-800'
                   }`}
                   value={form.address} 
                   onChange={onChange('address')}
@@ -508,8 +488,8 @@ export default function AddFarmPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="farm-postcode" className="block text-caption font-medium text-text-heading mb-2">
-                    Postcode * <span className="text-text-muted font-normal">(auto-fills county and coordinates)</span>
+                  <label htmlFor="farm-postcode" className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
+                    Postcode * <span className="text-slate-600 dark:text-slate-400 font-normal">(auto-fills county and coordinates)</span>
                   </label>
                   <AddressAutocomplete
                     initialPostcode={form.postcode}
@@ -532,14 +512,14 @@ export default function AddFarmPage() {
                   )}
                 </div>
                 <div>
-                  <label htmlFor="farm-county" className="block text-caption font-medium text-text-heading mb-2">
+                  <label htmlFor="farm-county" className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                     County * {form.county && <span className="text-green-600 text-small font-normal">(auto-filled)</span>}
                   </label>
                   <input
                     id="farm-county"
                     name="county"
-                    className={`w-full rounded-lg border px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors ${
-                      touched && !form.county ? 'border-red-500' : form.county ? 'border-green-500 bg-green-50/50 dark:bg-green-950/20' : 'border-border-default'
+                    className={`w-full rounded-lg border px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors ${
+                      touched && !form.county ? 'border-red-500' : form.county ? 'border-green-500 bg-green-50/50 dark:bg-green-950/20' : 'border-slate-200 dark:border-slate-800'
                     }`}
                     value={form.county}
                     onChange={onChange('county')}
@@ -557,11 +537,11 @@ export default function AddFarmPage() {
               </div>
 
               <div>
-                <label className="block text-caption font-medium text-text-heading mb-2">
-                  URL Slug <span className="text-text-muted font-normal">(auto-generated from name)</span>
+                <label className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
+                  URL Slug <span className="text-slate-600 dark:text-slate-400 font-normal">(auto-generated from name)</span>
                 </label>
                 <input
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-surface text-text-muted cursor-not-allowed"
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 px-4 py-3 bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 cursor-not-allowed"
                   value={slug}
                   readOnly
                 />
@@ -570,19 +550,19 @@ export default function AddFarmPage() {
           </section>
 
           {/* Contact Information */}
-                  <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
-          <h2 className="text-heading font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
-            <span className="w-2 h-2 bg-serum rounded-full"></span>
+                  <section className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm mt-8">
+          <h2 className="text-heading font-heading font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+            <span className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></span>
             <span>Contact Information</span>
           </h2>
             
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-caption font-medium text-text-heading mb-2">
+                <label className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                   Website
                 </label>
                 <input 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors" 
                   value={form.website || ''} 
                   onChange={onChange('website')}
                   placeholder="https://..."
@@ -595,11 +575,11 @@ export default function AddFarmPage() {
                 )}
               </div>
               <div>
-                <label className="block text-caption font-medium text-text-heading mb-2">
+                <label className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                   Email
                 </label>
                 <input 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors" 
                   value={form.email || ''} 
                   onChange={onChange('email')}
                   placeholder="hello@example.org"
@@ -613,11 +593,11 @@ export default function AddFarmPage() {
                 )}
               </div>
               <div>
-                <label className="block text-caption font-medium text-text-heading mb-2">
+                <label className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                   Phone
                 </label>
                 <input 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors" 
                   value={form.phone || ''} 
                   onChange={onChange('phone')}
                   placeholder="+44 ..."
@@ -627,20 +607,20 @@ export default function AddFarmPage() {
           </section>
 
           {/* Additional Details */}
-          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
-            <h2 className="text-heading font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
-              <span className="w-2 h-2 bg-serum rounded-full"></span>
+          <section className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+            <h2 className="text-heading font-heading font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+              <span className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></span>
               <span>Additional Details</span>
             </h2>
             
             <div className="space-y-6">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-caption font-medium text-text-heading mb-2">
+                  <label className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                     Latitude (optional)
                   </label>
                   <input 
-                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors" 
                     value={form.lat || ''} 
                     onChange={onChange('lat')}
                     placeholder="e.g. 51.507"
@@ -649,11 +629,11 @@ export default function AddFarmPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-caption font-medium text-text-heading mb-2">
+                  <label className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                     Longitude (optional)
                   </label>
                   <input 
-                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors" 
                     value={form.lng || ''} 
                     onChange={onChange('lng')}
                     placeholder="-0.127"
@@ -662,11 +642,11 @@ export default function AddFarmPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-caption font-medium text-text-heading mb-2">
+                  <label className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                     Offerings (comma-separated)
                   </label>
                   <input 
-                    className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors" 
+                    className="w-full rounded-lg border border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors" 
                     value={form.offerings || ''} 
                     onChange={onChange('offerings')}
                     placeholder="Apples, Cheese, Eggs"
@@ -675,11 +655,11 @@ export default function AddFarmPage() {
               </div>
 
               <div>
-                <label className="block text-caption font-medium text-text-heading mb-2">
+                <label className="block text-caption font-medium text-slate-900 dark:text-white mb-2">
                   Farm story (optional)
                 </label>
                 <textarea 
-                  className="w-full rounded-lg border border-border-default px-4 py-3 bg-background-canvas text-text-body focus:outline-none focus:ring-2 focus:ring-serum focus:border-serum transition-colors min-h-[100px] resize-vertical" 
+                  className="w-full rounded-lg border border-slate-200 dark:border-slate-800 px-4 py-3 bg-slate-50 dark:bg-slate-950 text-slate-700 dark:text-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-400 focus:border-slate-400 transition-colors min-h-[100px] resize-vertical" 
                   value={form.story || ''} 
                   onChange={onChange('story')}
                   placeholder="Tell us about your farm, your story, what makes you special..."
@@ -689,10 +669,10 @@ export default function AddFarmPage() {
           </section>
 
           {/* Opening Hours */}
-          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
-            <h2 className="text-heading font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
-              <span className="w-2 h-2 bg-serum rounded-full"></span>
-              <span>Opening Hours <span className="text-text-muted font-normal">(optional)</span></span>
+          <section className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm mt-8">
+            <h2 className="text-heading font-heading font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+              <span className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></span>
+              <span>Opening Hours <span className="text-slate-600 dark:text-slate-400 font-normal">(optional)</span></span>
             </h2>
 
             <OpeningHoursBuilder
@@ -702,9 +682,9 @@ export default function AddFarmPage() {
           </section>
 
           {/* Farm Images */}
-          <section className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl mt-8">
-            <h2 className="text-heading font-heading font-semibold text-text-heading mb-6 flex items-center gap-3">
-              <span className="w-2 h-2 bg-serum rounded-full"></span>
+          <section className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm mt-8">
+            <h2 className="text-heading font-heading font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-3">
+              <span className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></span>
               <span>Farm Images (Optional)</span>
             </h2>
             
@@ -716,11 +696,11 @@ export default function AddFarmPage() {
           </section>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-6 mt-8">
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting || !valid}
-              className="flex-1 group bg-gradient-to-r from-serum to-teal-500 text-black px-10 py-5 rounded-2xl font-bold text-body hover:from-teal-500 hover:to-serum transition-all duration-300 shadow-2xl hover:shadow-3xl transform hover:scale-105 hover:-translate-y-1"
+              className="flex-1 inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 text-sm font-semibold transition-all duration-200 hover:bg-slate-800 dark:hover:bg-white hover:shadow-md active:scale-[0.98] disabled:opacity-50"
               variant="primary"
               size="lg"
             >
@@ -731,20 +711,20 @@ export default function AddFarmPage() {
                 </>
               ) : (
                 <>
-                  <CheckCircle className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+                  <CheckCircle className="w-5 h-5 mr-2" />
                   Submit Farm Shop
                 </>
               )}
             </Button>
-            
+
             <Button
               onClick={handleDownload}
               disabled={!valid}
               variant="secondary"
               size="lg"
-              className="group border-2 border-serum text-serum dark:text-serum px-10 py-5 rounded-2xl font-bold text-body hover:bg-serum hover:text-black dark:hover:bg-serum dark:hover:text-black transition-all duration-300 backdrop-blur-sm bg-background-surface/30 hover:shadow-xl transform hover:scale-105 hover:-translate-y-1"
+              className="inline-flex items-center justify-center gap-2 h-12 px-8 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-white text-sm font-semibold transition-all duration-200 hover:bg-slate-50 dark:hover:bg-slate-800 hover:shadow-md active:scale-[0.98] disabled:opacity-50"
             >
-              <Download className="w-5 h-5 mr-2 group-hover:scale-110 transition-transform" />
+              <Download className="w-5 h-5 mr-2" />
               Download JSON
             </Button>
           </div>
@@ -761,7 +741,7 @@ export default function AddFarmPage() {
         <div className="lg:col-span-1">
           <div className="sticky top-6 lg:top-24 max-h-[calc(100vh-3rem)] lg:max-h-[calc(100vh-6rem)] overflow-y-auto space-y-6">
             {/* Progress Tracker */}
-            <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-6 border border-border-default/30 shadow-2xl">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
               <FormProgress
                 variant="vertical"
                 sections={[
@@ -776,31 +756,31 @@ export default function AddFarmPage() {
             </div>
 
             {/* Preview Card */}
-            <div className="bg-gradient-to-br from-background-surface to-background-canvas rounded-3xl p-8 border border-border-default/30 shadow-2xl">
-              <h3 className="text-body font-heading font-semibold text-text-heading mb-4 flex items-center gap-3">
-                <span className="w-2 h-2 bg-serum rounded-full"></span>
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <h3 className="text-body font-heading font-semibold text-slate-900 dark:text-white mb-4 flex items-center gap-3">
+                <span className="w-2 h-2 bg-primary-600 dark:bg-primary-400 rounded-full"></span>
                 <span>Preview</span>
               </h3>
               
               <div className="space-y-4">
-                <div className="p-4 bg-background-canvas rounded-lg border border-border-default">
-                  <h4 className="font-semibold text-text-heading mb-2">
+                <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800">
+                  <h4 className="font-semibold text-slate-900 dark:text-white mb-2">
                     {form.name || 'Farm Shop Name'}
                   </h4>
-                  <p className="text-caption text-text-muted mb-2">
+                  <p className="text-caption text-slate-600 dark:text-slate-400 mb-2">
                     {form.address || 'Address'} • {form.county || 'County'}
                   </p>
-                  <p className="text-caption text-text-muted">
+                  <p className="text-caption text-slate-600 dark:text-slate-400">
                     {form.postcode || 'Postcode'}
                   </p>
                 </div>
 
                 {form.offerings && (
-                  <div className="p-4 bg-background-canvas rounded-lg border border-border-default">
-                    <h5 className="font-medium text-text-heading mb-2">Offerings</h5>
+                  <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-lg border border-slate-200 dark:border-slate-800">
+                    <h5 className="font-medium text-slate-900 dark:text-white mb-2">Offerings</h5>
                     <div className="flex flex-wrap gap-1">
                       {csvToArray(form.offerings).map((offering, i) => (
-                        <span key={i} className="px-2 py-1 bg-serum/10 text-serum text-small rounded-full">
+                        <span key={i} className="px-2 py-1 bg-primary-100 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 text-small rounded-full">
                           {offering}
                         </span>
                       ))}
@@ -808,11 +788,11 @@ export default function AddFarmPage() {
                   </div>
                 )}
 
-                <details className="rounded-lg border border-border-default overflow-hidden">
-                  <summary className="cursor-pointer p-4 bg-background-canvas font-medium text-text-heading hover:bg-background-surface transition-colors">
+                <details className="rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
+                  <summary className="cursor-pointer p-4 bg-slate-50 dark:bg-slate-950 font-medium text-slate-900 dark:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                     JSON Preview
                   </summary>
-                  <pre className="p-4 text-small leading-relaxed overflow-auto max-h-64 bg-background-surface">
+                  <pre className="p-4 text-small leading-relaxed overflow-auto max-h-64 bg-white dark:bg-slate-900">
                     {JSON.stringify(json, null, 2)}
                   </pre>
                 </details>
@@ -824,16 +804,16 @@ export default function AddFarmPage() {
 
       {/* Photo Submission Section */}
       {form.name && (
-        <section className="mt-12 border-t border-border-default pt-8">
+        <section className="mt-12 border-t border-slate-200 dark:border-slate-800 pt-8">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-text-heading font-heading mb-4">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-white font-heading mb-4">
               Add Photos (Optional)
             </h2>
-            <p className="text-text-body max-w-2xl mx-auto">
+            <p className="text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
               Help showcase your farm shop by adding photos. These will be reviewed before being added to your listing.
             </p>
           </div>
-          <PhotoSubmissionForm 
+          <PhotoSubmissionForm
             farmSlug={slug}
             farmName={form.name}
             onSuccess={() => {}}
@@ -842,8 +822,8 @@ export default function AddFarmPage() {
       )}
 
       {/* Footer */}
-      <footer className="mt-12 text-center">
-        <p className="text-caption text-text-muted">
+      <footer className="mt-12 pb-8 text-center">
+        <p className="text-caption text-slate-600 dark:text-slate-400">
           By submitting, you confirm the details are accurate and you have permission to share them.
         </p>
       </footer>
