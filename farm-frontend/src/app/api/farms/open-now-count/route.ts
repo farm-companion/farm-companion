@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { isCurrentlyOpen } from '@/lib/farm-status'
 import { createRouteLogger } from '@/lib/logger'
@@ -14,11 +15,11 @@ export async function GET() {
   const startTime = Date.now()
 
   try {
-    // Fetch farms with opening hours
+    // Fetch active farms that have non-null opening hours
     const farms = await prisma.farm.findMany({
       where: {
         status: 'active',
-        NOT: { openingHours: { equals: undefined } },
+        openingHours: { not: Prisma.DbNull },
       },
       select: {
         id: true,
@@ -27,19 +28,27 @@ export async function GET() {
     })
 
     // Count currently open farms
-    const now = new Date()
     let openCount = 0
+    let withValidHours = 0
 
     for (const farm of farms) {
-      if (farm.openingHours && isCurrentlyOpen(farm.openingHours)) {
+      const hours = farm.openingHours
+      // Skip null, empty arrays, and empty objects
+      if (!hours) continue
+      if (Array.isArray(hours) && hours.length === 0) continue
+      if (typeof hours === 'object' && !Array.isArray(hours) && Object.keys(hours).length === 0) continue
+
+      withValidHours++
+      if (isCurrentlyOpen(hours)) {
         openCount++
       }
     }
 
-    const totalCount = farms.length
+    const totalCount = await prisma.farm.count({ where: { status: 'active' } })
 
     logger.info('open now count calculated', {
       openCount,
+      withValidHours,
       totalCount,
       durationMs: Date.now() - startTime,
     })
