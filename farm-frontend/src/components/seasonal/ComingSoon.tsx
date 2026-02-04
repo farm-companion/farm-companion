@@ -1,8 +1,8 @@
 'use client'
 
-import Image from 'next/image'
 import type { ComingNextContent } from '@/data/seasonal-content'
 import type { Produce } from '@/data/produce'
+import { ProduceImage } from './ProduceImage'
 
 interface ComingSoonProps {
   content: ComingNextContent
@@ -28,31 +28,24 @@ export function ComingSoon({ content, allProduce }: ComingSoonProps) {
         <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
           {content.previews.map(preview => {
             const produce = allProduce.find(p => p.slug === preview.slug)
-            const imageUrl = produce?.images?.[0]?.src
-            const altText = produce?.images?.[0]?.alt || preview.name
+            const images = produce?.images || []
 
             return (
               <div
                 key={`${preview.slug}-${preview.month}`}
                 className="flex-shrink-0 w-[140px] md:w-[160px]"
               >
-                <div className="relative h-[100px] rounded-lg overflow-hidden bg-[#F5F5F5] mb-2">
-                  {imageUrl ? (
-                    <Image
-                      src={imageUrl}
-                      alt={altText}
-                      fill
+                <div className="relative rounded-lg overflow-hidden mb-2">
+                  <div className="grayscale opacity-80">
+                    <ProduceImage
+                      images={images}
+                      name={preview.name}
+                      height="h-[100px]"
                       sizes="160px"
-                      className="object-cover grayscale opacity-80"
-                      loading="lazy"
                     />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-xs text-[#8C8C8C]">
-                      {preview.name}
-                    </div>
-                  )}
+                  </div>
                   {/* Month overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-2 py-1">
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-2 py-1 z-10">
                     <span className="text-xs text-white font-medium">
                       {preview.month}
                     </span>

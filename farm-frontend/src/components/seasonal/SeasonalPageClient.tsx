@@ -9,6 +9,7 @@ import { SeasonalHero } from './SeasonalHero'
 import { SeasonalStars } from './SeasonalStars'
 import { SeasonalProduceGrid } from './SeasonalProduceGrid'
 import { ComingSoon } from './ComingSoon'
+import { getValidImageUrl } from './ProduceImage'
 
 interface SeasonalPageClientProps {
   allProduce: Produce[]
@@ -32,11 +33,15 @@ export function SeasonalPageClient({ allProduce, currentMonth }: SeasonalPageCli
 
   // Hero image: use the first star's produce image so the hero
   // always shows produce that is actually in season this month.
+  // Skips blocked URLs (Runware placeholders) and tries subsequent stars.
   const heroImageUrl = useMemo(() => {
-    const firstStar = content.stars[0]
-    if (!firstStar) return undefined
-    const produce = allProduce.find(p => p.slug === firstStar.slug)
-    return produce?.images?.[0]?.src
+    for (const star of content.stars) {
+      const produce = allProduce.find(p => p.slug === star.slug)
+      if (!produce?.images?.length) continue
+      const validUrl = getValidImageUrl(produce.images)
+      if (validUrl) return validUrl
+    }
+    return undefined
   }, [content.stars, allProduce])
 
   return (

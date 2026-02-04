@@ -1,11 +1,11 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import type { Produce } from '@/data/produce'
 import { getProduceHook, PRODUCE_FILTERS, type ProduceFilter } from '@/data/seasonal-content'
 import { getProduceCategory } from '@/lib/seasonal-utils'
+import { ProduceImage } from './ProduceImage'
 
 interface SeasonalProduceGridProps {
   produce: Produce[]
@@ -76,8 +76,6 @@ interface ProduceCardProps {
 }
 
 function ProduceCard({ produce, selectedMonth }: ProduceCardProps) {
-  const imageUrl = produce.images?.[0]?.src
-  const altText = produce.images?.[0]?.alt || `Fresh ${produce.name}`
   const isPeak = produce.peakMonths?.includes(selectedMonth) ?? false
   const hook = getProduceHook(produce.slug)
 
@@ -91,23 +89,13 @@ function ProduceCard({ produce, selectedMonth }: ProduceCardProps) {
       href={`/seasonal/${produce.slug}`}
       className="group block bg-white border border-[#EDEDED] rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200"
     >
-      {/* Image */}
-      <div className="relative h-[140px] bg-[#F5F5F5] overflow-hidden">
-        {imageUrl ? (
-          <Image
-            src={imageUrl}
-            alt={altText}
-            fill
-            sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            loading="lazy"
-          />
-        ) : (
-          <div className="absolute inset-0 flex items-center justify-center text-sm text-[#8C8C8C]">
-            {produce.name}
-          </div>
-        )}
-      </div>
+      {/* Image with blocklist-aware fallback */}
+      <ProduceImage
+        images={produce.images || []}
+        name={produce.name}
+        height="h-[140px]"
+        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 20vw"
+      />
 
       {/* Content */}
       <div className="p-3 md:p-4">
