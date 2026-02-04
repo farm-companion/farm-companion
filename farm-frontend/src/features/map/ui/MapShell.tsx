@@ -9,7 +9,7 @@ import type { ClusterClickEvent, MarkerState, FarmMarkerExtended, WindowWithMapU
 import { createSmartClusterRenderer, getClusterTargetZoom, CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getPinForFarm, generateCategoryMarkerSVG } from '../lib/pin-icons'
 import MarkerActions from './MarkerActions'
-import MapMarkerPopover from './MapMarkerPopover'
+
 import ClusterPreview from './ClusterPreview'
 
 interface UserLocation {
@@ -1035,19 +1035,7 @@ export default function MapShell({
         />
       )}
 
-      {/* Marker Popover - Desktop Only */}
-      {isDesktop && (
-        <MapMarkerPopover
-          farm={markerState.selected}
-          isVisible={markerState.showActions}
-          onClose={handleCloseMarkerActions}
-          onNavigate={handleNavigate}
-          onFavorite={handleFavorite}
-          onShare={handleShare}
-          userLocation={userLocation ? { latitude: userLocation.latitude, longitude: userLocation.longitude } : null}
-          position={popoverPosition}
-        />
-      )}
+      {/* Desktop marker interaction handled by FarmPreviewCard in page.tsx */}
 
       {/* Cluster Preview */}
       <ClusterPreview

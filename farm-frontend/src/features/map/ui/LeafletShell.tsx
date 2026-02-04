@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import type { FarmShop } from '@/types/farm'
 import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS } from '../lib/pin-icons'
 import MarkerActions from './MarkerActions'
-import MapMarkerPopover from './MapMarkerPopover'
+
 
 // Leaflet imports - client-side only
 import L from 'leaflet'
@@ -456,22 +456,7 @@ export default function LeafletShell({
         />
       )}
 
-      {/* Marker Popover - Desktop Only */}
-      {isDesktop && (
-        <MapMarkerPopover
-          farm={markerState.selected}
-          isVisible={markerState.showActions}
-          onClose={handleCloseMarkerActions}
-          onNavigate={handleNavigate}
-          onFavorite={handleFavorite}
-          onShare={handleShare}
-          userLocation={externalUserLocation ? {
-            latitude: externalUserLocation.latitude,
-            longitude: externalUserLocation.longitude
-          } : null}
-          position={popoverPosition}
-        />
-      )}
+      {/* Desktop marker interaction handled by FarmPreviewCard in page.tsx */}
     </div>
   )
 }
