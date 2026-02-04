@@ -257,8 +257,8 @@ const FARMERS_MARKET_IMAGES = [
     alt: 'Boxes of ripe tomatoes and fresh produce'
   },
   {
-    src: 'https://images.unsplash.com/photo-1506484381205-f7945b8db2e0?w=1600&q=80&auto=format',
-    alt: 'Artisan bread loaves on display'
+    src: 'https://images.unsplash.com/photo-1509440159596-0249088772ff?w=1600&q=80&auto=format',
+    alt: 'Artisan sourdough bread fresh from the oven'
   },
   {
     src: 'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=1600&q=80&auto=format',
@@ -266,39 +266,40 @@ const FARMERS_MARKET_IMAGES = [
   }
 ]
 
-// Educational farm visit images - animals, countryside, hands-on learning
+// Educational farm visit images - countryside, farmland, produce
+// Uses verified images from FALLBACK_IMAGES to avoid content mismatches
 const EDUCATIONAL_FARM_IMAGES = [
   {
-    src: 'https://images.unsplash.com/photo-1516467508483-a7212febe31a?w=1600&q=80&auto=format',
-    alt: 'Cows grazing in green countryside pasture'
+    src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1600&q=80&auto=format',
+    alt: 'Golden hour light sweeping across British farmland'
   },
   {
-    src: 'https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=1600&q=80&auto=format',
-    alt: 'Sheep in a rolling hillside field'
+    src: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1600&q=80&auto=format',
+    alt: 'Rolling green hills and countryside landscape'
   },
   {
-    src: 'https://images.unsplash.com/photo-1548550023-2bdb3c5beed7?w=1600&q=80&auto=format',
-    alt: 'Chickens roaming freely on a farm'
+    src: 'https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=1600&q=80&auto=format',
+    alt: 'Greenhouse rows with organic seedlings in afternoon light'
   },
   {
-    src: 'https://images.unsplash.com/photo-1591965481557-2fccc8dcdf6c?w=1600&q=80&auto=format',
-    alt: 'Highland cattle with long horns in field'
+    src: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=1600&q=80&auto=format',
+    alt: 'Golden sunlight filtering through fields'
   },
   {
-    src: 'https://images.unsplash.com/photo-1444212477490-ca407925f3a4?w=1600&q=80&auto=format',
-    alt: 'Tractor in golden harvest field'
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1600&q=80&auto=format',
-    alt: 'Goats in a farm paddock'
+    src: 'https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=80&auto=format',
+    alt: 'Sunrise over golden farmland'
   },
   {
     src: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=80&auto=format',
     alt: 'Fresh vegetables and produce from the farm'
   },
   {
-    src: 'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=1600&q=80&auto=format',
-    alt: 'Golden hour light sweeping across British farmland'
+    src: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=1600&q=80&auto=format',
+    alt: 'Artisan produce display'
+  },
+  {
+    src: 'https://images.unsplash.com/photo-1468327768560-75b778cbb551?w=1600&q=80&auto=format',
+    alt: 'Purple lavender fields stretching to the horizon'
   }
 ]
 
@@ -354,8 +355,8 @@ const FARM_CAFE_IMAGES = [
     alt: 'Morning coffee in a sunlit cafe'
   },
   {
-    src: 'https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=1600&q=80&auto=format',
-    alt: 'Walled garden path lined with flowers'
+    src: 'https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=1600&q=80&auto=format',
+    alt: 'Kitchen garden rows with fresh vegetables growing'
   },
   {
     src: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1600&q=80&auto=format',
