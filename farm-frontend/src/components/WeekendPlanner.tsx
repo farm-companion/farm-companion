@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Calendar, MapPin, Clock, Sparkles, ChevronRight, Sun, Cloud } from 'lucide-react'
-import { getImageUrl } from '@/types/farm'
 
 interface WeekendActivity {
   type: 'pyo' | 'market' | 'event' | 'cafe' | 'tour'
@@ -24,22 +22,6 @@ interface WeekendFarm {
 
 type DayOfWeek = 'saturday' | 'sunday' | 'both'
 
-const ACTIVITY_ICONS: Record<WeekendActivity['type'], string> = {
-  pyo: '🍓',
-  market: '🛒',
-  event: '🎉',
-  cafe: '☕',
-  tour: '🚜',
-}
-
-const ACTIVITY_COLORS: Record<WeekendActivity['type'], string> = {
-  pyo: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
-  market: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  event: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-  cafe: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300',
-  tour: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
-}
-
 interface WeekendPlannerProps {
   className?: string
   limit?: number
@@ -47,7 +29,10 @@ interface WeekendPlannerProps {
 
 /**
  * Weekend Planner Module
- * Shows farms with weekend activities, markets, and events.
+ *
+ * Luxury editorial design. Fetches farms with weekend activities
+ * from /api/farms/weekend (Prisma, cached 1h). Weekend dates are
+ * dynamically computed. Weather banner is static.
  */
 export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProps) {
   const [farms, setFarms] = useState<WeekendFarm[]>([])
@@ -62,7 +47,6 @@ export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProp
   useEffect(() => {
     setMounted(true)
 
-    // Calculate upcoming weekend dates
     const today = new Date()
     const dayOfWeek = today.getDay()
     const daysUntilSaturday = dayOfWeek === 0 ? 6 : 6 - dayOfWeek
@@ -76,7 +60,6 @@ export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProp
       sunday: sunday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
     })
 
-    // Fetch weekend farms
     const fetchWeekendFarms = async () => {
       try {
         const response = await fetch(`/api/farms/weekend?limit=${limit}`)
@@ -94,192 +77,172 @@ export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProp
     fetchWeekendFarms()
   }, [limit])
 
-  // SSR loading state
-  if (!mounted) {
-    return (
-      <div className={`animate-pulse ${className}`}>
-        <div className="h-64 bg-zinc-100 dark:bg-zinc-800 rounded-2xl" />
-      </div>
-    )
-  }
-
   const isWeekendNow = () => {
     const day = new Date().getDay()
     return day === 0 || day === 6
   }
 
+  // SSR placeholder
+  if (!mounted) {
+    return (
+      <div className={`max-w-2xl mx-auto px-6 ${className}`}>
+        <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
+        <div className="h-6 w-48 bg-border/30 mx-auto mb-4" />
+        <div className="h-8 w-64 bg-border/30 mx-auto mb-4" />
+        <div className="h-4 w-80 bg-border/30 mx-auto" />
+      </div>
+    )
+  }
+
+  const dayLabels: { key: DayOfWeek; label: string }[] = [
+    { key: 'both', label: 'Both Days' },
+    { key: 'saturday', label: 'Sat' },
+    { key: 'sunday', label: 'Sun' },
+  ]
+
+  const getHoursDisplay = (farm: WeekendFarm): string | null => {
+    if (selectedDay === 'saturday' && farm.saturdayHours) return `Sat ${farm.saturdayHours}`
+    if (selectedDay === 'sunday' && farm.sundayHours) return `Sun ${farm.sundayHours}`
+    if (selectedDay === 'both') {
+      const parts: string[] = []
+      if (farm.saturdayHours) parts.push(`Sat ${farm.saturdayHours}`)
+      if (farm.sundayHours) parts.push(`Sun ${farm.sundayHours}`)
+      return parts.length > 0 ? parts.join(' / ') : null
+    }
+    return null
+  }
+
   return (
-    <section className={`${className}`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <section className={className}>
+      <div className="max-w-2xl mx-auto px-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <Calendar className="w-5 h-5 text-primary-600 dark:text-primary-400" />
-              <span className="text-small font-medium text-primary-600 dark:text-primary-400 uppercase tracking-wide">
-                {isWeekendNow() ? 'This Weekend' : 'Upcoming Weekend'}
-              </span>
-              {isWeekendNow() && (
-                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-small rounded-full">
-                  <span className="relative flex h-1.5 w-1.5">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
-                  </span>
-                  Now
-                </span>
-              )}
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-heading font-bold text-text-heading">
-              Plan Your Farm Visit
-            </h2>
-            <p className="text-body text-text-body mt-1">
-              Markets, pick-your-own, and farm experiences this {weekendDates.saturday} - {weekendDates.sunday}
-            </p>
+        <div className="text-center mb-12">
+          <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
+
+          <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
+            {isWeekendNow() ? 'This Weekend' : 'Upcoming Weekend'}
           </div>
 
-          {/* Day filter */}
-          <div className="flex items-center gap-1 p-1 bg-zinc-100 dark:bg-zinc-800 rounded-lg">
-            {(['both', 'saturday', 'sunday'] as DayOfWeek[]).map((day) => (
-              <button
-                key={day}
-                onClick={() => setSelectedDay(day)}
-                className={`px-3 py-1.5 text-caption font-medium rounded-md transition-colors ${
-                  selectedDay === day
-                    ? 'bg-white dark:bg-zinc-700 text-text-heading shadow-sm'
-                    : 'text-text-muted hover:text-text-body'
-                }`}
-              >
-                {day === 'both' ? 'Both Days' : day === 'saturday' ? 'Sat' : 'Sun'}
-              </button>
-            ))}
-          </div>
+          <h2 className="font-serif text-2xl md:text-3xl font-normal text-foreground tracking-tight">
+            Plan Your Farm Visit
+          </h2>
+
+          <p className="mt-4 text-foreground-muted">
+            Markets, pick-your-own, and farm experiences this {weekendDates.saturday} - {weekendDates.sunday}
+          </p>
         </div>
 
-        {/* Weather hint */}
-        <div className="flex items-center gap-2 mb-6 p-3 bg-sky-50 dark:bg-sky-900/20 rounded-lg border border-sky-200 dark:border-sky-800">
-          <Sun className="w-5 h-5 text-amber-500" />
-          <span className="text-caption text-text-body">
-            Perfect weather for outdoor farm activities this weekend
-          </span>
+        {/* Day filter */}
+        <div className="flex items-center justify-center gap-6 mb-12">
+          {dayLabels.map(({ key, label }) => (
+            <button
+              key={key}
+              onClick={() => setSelectedDay(key)}
+              className={`text-xs tracking-[0.15em] uppercase pb-1 transition-opacity duration-300 ${
+                selectedDay === key
+                  ? 'text-foreground border-b border-foreground'
+                  : 'text-foreground-muted hover:opacity-70'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
 
-        {/* Farm grid */}
+        {/* Farm listings */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-8">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-48 bg-zinc-200 dark:bg-zinc-700 rounded-xl mb-3" />
-                <div className="h-4 bg-zinc-200 dark:bg-zinc-700 rounded w-3/4 mb-2" />
-                <div className="h-3 bg-zinc-200 dark:bg-zinc-700 rounded w-1/2" />
+              <div key={i} className="py-6 border-t border-border">
+                <div className="h-4 w-48 bg-border/30 mb-3" />
+                <div className="h-3 w-32 bg-border/30" />
               </div>
             ))}
           </div>
         ) : farms.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {farms.map((farm) => (
+          <div className="space-y-0">
+            {farms.map((farm, index) => (
               <Link
                 key={farm.slug}
                 href={`/shop/${farm.slug}`}
-                className="group relative bg-background-card rounded-xl overflow-hidden border border-border-default
-                  hover:border-primary-500 hover:shadow-lg transition-all duration-200"
+                className="group block py-8 border-t border-border hover:opacity-70 transition-opacity duration-300"
               >
-                {/* Image */}
-                <div className="relative h-36 bg-zinc-100 dark:bg-zinc-800">
-                  {farm.image ? (
-                    <Image
-                      src={farm.image}
-                      alt={farm.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-300"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <Sparkles className="w-8 h-8 text-zinc-300 dark:text-zinc-600" />
+                <div className="flex flex-col md:flex-row md:items-start gap-6">
+                  {/* Image */}
+                  {farm.image && (
+                    <div className="relative w-full md:w-40 h-48 md:h-28 flex-shrink-0 overflow-hidden bg-background-secondary">
+                      <Image
+                        src={farm.image}
+                        alt={farm.name}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 768px) 100vw, 160px"
+                      />
                     </div>
                   )}
-                  {/* Activity badges */}
-                  <div className="absolute bottom-2 left-2 flex flex-wrap gap-1">
-                    {farm.activities.slice(0, 3).map((activity, i) => (
-                      <span
-                        key={i}
-                        className={`px-2 py-0.5 text-small font-medium rounded-full ${ACTIVITY_COLORS[activity.type]}`}
-                      >
-                        {ACTIVITY_ICONS[activity.type]} {activity.label}
-                      </span>
-                    ))}
-                  </div>
-                </div>
 
-                {/* Content */}
-                <div className="p-4">
-                  <h3 className="font-heading font-semibold text-text-heading group-hover:text-primary-600 transition-colors line-clamp-1">
-                    {farm.name}
-                  </h3>
-                  <div className="flex items-center gap-2 mt-1 text-caption text-text-muted">
-                    <MapPin className="w-3.5 h-3.5" />
-                    <span>{farm.county}</span>
-                    {farm.distance && (
-                      <>
-                        <span className="text-border-default">|</span>
-                        <span>{farm.distance.toFixed(1)} mi</span>
-                      </>
+                  {/* Content */}
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-serif text-xl md:text-2xl font-normal text-foreground leading-tight mb-2">
+                      {farm.name}
+                    </h3>
+
+                    <div className="text-xs tracking-[0.15em] uppercase text-foreground-muted mb-3">
+                      {farm.county}
+                      {farm.distance != null && ` / ${farm.distance.toFixed(1)} mi`}
+                    </div>
+
+                    {/* Activities */}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
+                      {farm.activities.slice(0, 3).map((activity, i) => (
+                        <span
+                          key={i}
+                          className="text-xs tracking-[0.1em] uppercase text-foreground-muted"
+                        >
+                          {activity.label}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Hours */}
+                    {getHoursDisplay(farm) && (
+                      <p className="text-sm text-foreground-muted">
+                        {getHoursDisplay(farm)}
+                      </p>
                     )}
                   </div>
-
-                  {/* Hours */}
-                  {(farm.saturdayHours || farm.sundayHours) && (
-                    <div className="mt-2 pt-2 border-t border-border-default">
-                      <div className="flex items-center gap-1 text-small text-text-muted">
-                        <Clock className="w-3 h-3" />
-                        {selectedDay === 'saturday' && farm.saturdayHours && (
-                          <span>Sat: {farm.saturdayHours}</span>
-                        )}
-                        {selectedDay === 'sunday' && farm.sundayHours && (
-                          <span>Sun: {farm.sundayHours}</span>
-                        )}
-                        {selectedDay === 'both' && (
-                          <span>
-                            {farm.saturdayHours && `Sat ${farm.saturdayHours}`}
-                            {farm.saturdayHours && farm.sundayHours && ' | '}
-                            {farm.sundayHours && `Sun ${farm.sundayHours}`}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </Link>
             ))}
+
+            {/* Bottom border */}
+            <div className="border-t border-border" aria-hidden="true" />
           </div>
         ) : (
-          <div className="text-center py-12 bg-background-card rounded-xl border border-border-default">
-            <Calendar className="w-12 h-12 mx-auto text-text-muted mb-3" />
-            <h3 className="font-heading font-semibold text-text-heading mb-1">
+          <div className="py-12 text-center border-t border-border">
+            <p className="text-lg leading-[1.9] text-foreground mb-4">
               No weekend activities found
-            </h3>
-            <p className="text-caption text-text-muted mb-4">
-              Check back later for upcoming farm events and markets
+            </p>
+            <p className="text-foreground-muted text-sm mb-8">
+              Check back later for upcoming farm events and markets.
             </p>
             <Link
               href="/map"
-              className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 font-medium hover:underline"
+              className="text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity duration-300"
             >
-              Browse all farms
-              <ChevronRight className="w-4 h-4" />
+              Browse All Farms
             </Link>
           </div>
         )}
 
         {/* View all link */}
         {farms.length > 0 && (
-          <div className="mt-6 text-center">
+          <div className="mt-12 text-center">
             <Link
               href="/map?filter=weekend"
-              className="inline-flex items-center gap-2 text-primary-600 dark:text-primary-400 font-medium hover:underline"
+              className="text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity duration-300"
             >
-              View all weekend activities
-              <ChevronRight className="w-4 h-4" />
+              View All Weekend Activities
             </Link>
           </div>
         )}
