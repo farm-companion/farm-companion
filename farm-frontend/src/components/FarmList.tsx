@@ -1,11 +1,11 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { MapPin, Phone, Globe, Clock, Star, Navigation, Circle } from 'lucide-react'
+import { useCallback } from 'react'
+import { MapPin, ChevronRight, Leaf } from 'lucide-react'
 import { Virtuoso } from 'react-virtuoso'
 import type { FarmShop } from '@/types/farm'
+import { getImageUrl } from '@/types/farm'
 import { formatOpeningStatus } from '@/lib/opening-hours'
-import QuickActions from './QuickActions'
 
 interface FarmListProps {
   farms: FarmShop[]
@@ -32,38 +32,48 @@ export default function FarmList({
   className = '',
   formatDistance
 }: FarmListProps) {
-  const [expandedFarmId, setExpandedFarmId] = useState<string | null>(null)
-
   const handleFarmClick = useCallback((farmId: string) => {
     onFarmSelect(farmId)
-    setExpandedFarmId(expandedFarmId === farmId ? null : farmId)
-  }, [onFarmSelect, expandedFarmId])
+  }, [onFarmSelect])
 
   const FarmCard = useCallback(({ farm }: { farm: FarmShop; index: number }) => {
     const isSelected = selectedFarmId === farm.id
     const isHovered = hoveredFarmId === farm.id
-    const isExpanded = expandedFarmId === farm.id
-    const hasContact = farm.contact?.phone || farm.contact?.website
     const hasHours = farm.hours && farm.hours.length > 0
     const hasDistance = farm.distance !== undefined && formatDistance
     const openingStatus = hasHours ? formatOpeningStatus(farm.hours!) : null
+    const heroImage = farm.images?.[0] ? getImageUrl(farm.images[0]) : undefined
+    const hook = farm.description ? farm.description.slice(0, 100) : undefined
+
+    // Build distance + status line
+    const metaParts: string[] = []
+    if (hasDistance) metaParts.push(formatDistance(farm.distance!))
+    if (openingStatus) {
+      if (openingStatus.isOpen) {
+        metaParts.push('Open now')
+      } else if (openingStatus.nextOpening) {
+        metaParts.push(openingStatus.nextOpening)
+      } else {
+        metaParts.push('Closed')
+      }
+    }
 
     return (
       <div
         data-farm-id={farm.id}
-        className={`p-4 border-b border-gray-100 cursor-pointer transition-all duration-200 ${
-          isSelected
-            ? 'bg-serum/5 border-l-4 border-l-serum'
+        className={`mx-3 my-1.5 p-4 rounded-xl border cursor-pointer transition-all duration-150
+          ${isSelected
+            ? 'border-[#2D5016] shadow-[0_2px_8px_rgba(0,0,0,0.08)] bg-[#2D5016]/[0.03]'
             : isHovered
-              ? 'bg-cyan-50 dark:bg-cyan-900/20 border-l-4 border-l-cyan-400'
-              : 'hover:bg-gray-50 dark:hover:bg-gray-800'
-        }`}
+              ? 'border-[#2D5016] shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
+              : 'border-[#EDEDED] hover:border-[#2D5016] hover:shadow-[0_2px_8px_rgba(0,0,0,0.08)]'
+          }`}
         onClick={() => handleFarmClick(farm.id)}
         onMouseEnter={() => onFarmHover?.(farm.id)}
         onMouseLeave={() => onFarmHover?.(null)}
         role="button"
         tabIndex={0}
-        aria-label={`Select ${farm.name}`}
+        aria-label={`View ${farm.name}`}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
@@ -71,149 +81,76 @@ export default function FarmList({
           }
         }}
       >
-        {/* Farm Header */}
-        <div className="flex items-start justify-between mb-2">
+        <div className="flex gap-3">
+          {/* Thumbnail */}
+          <div className="w-[72px] h-[72px] rounded-lg bg-[#F5F5F5] dark:bg-gray-800 flex-shrink-0 overflow-hidden">
+            {heroImage ? (
+              <img
+                src={heroImage}
+                alt={farm.name}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Leaf className="w-6 h-6 text-[#CCCCCC]" />
+              </div>
+            )}
+          </div>
+
+          {/* Content */}
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-gray-900 dark:text-white truncate">{farm.name}</h3>
-            <div className="flex items-center gap-1 text-caption text-gray-600 mt-1">
-              <MapPin className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">
-                {farm.location.address}, {farm.location.county}
-              </span>
-            </div>
-          </div>
-          
-          <div className="flex flex-col items-end gap-1">
-            {/* Opening Status */}
-            {openingStatus && (
-              <div className={`flex items-center gap-1 text-small px-2 py-1 rounded-full ${
-                openingStatus.isOpen 
-                  ? 'bg-green-50 text-green-600' 
-                  : 'bg-gray-50 text-gray-600'
-              }`}>
-                <Circle className={`w-2 h-2 ${openingStatus.isOpen ? 'fill-current' : ''}`} />
-                <span className="hidden sm:inline">
-                  {openingStatus.isOpen ? 'Open' : 'Closed'}
-                </span>
-              </div>
-            )}
-            
-            {/* Verified Badge */}
-            {farm.verified && (
-              <div className="flex items-center gap-1 text-small text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                <Star className="w-3 h-3" />
-                <span className="hidden sm:inline">Verified</span>
-              </div>
-            )}
-            
-            {/* Distance Badge */}
-            {hasDistance && (
-              <div className="flex items-center gap-1 text-small text-serum bg-serum/10 px-2 py-1 rounded-full">
-                <Navigation className="w-3 h-3" />
-                <span>{formatDistance(farm.distance!)}</span>
-              </div>
-            )}
-          </div>
-        </div>
+            <h3 className="text-[17px] font-medium text-[#1A1A1A] dark:text-white truncate">
+              {farm.name}
+            </h3>
 
-        {/* Farm Details */}
-        <div className="space-y-2">
-          {/* Offerings */}
-          {farm.offerings && farm.offerings.length > 0 && (
-            <div className="flex flex-wrap gap-1">
-              {farm.offerings.slice(0, 3).map((offering, idx) => (
-                <span
-                  key={idx}
-                  className="inline-block px-2 py-1 bg-serum/10 text-serum text-small rounded-full"
-                >
-                  {offering}
-                </span>
-              ))}
-              {farm.offerings.length > 3 && (
-                <span className="inline-block px-2 py-1 bg-gray-100 text-gray-600 text-small rounded-full">
-                  +{farm.offerings.length - 3} more
-                </span>
+            {/* Distance + Status */}
+            <p className={`text-sm mt-0.5 ${
+              openingStatus && !openingStatus.isOpen ? 'text-[#8C8C8C]' : 'text-[#8C8C8C]'
+            }`}>
+              {metaParts.length > 0 ? metaParts.join(' \u00B7 ') : farm.location.county}
+              {openingStatus && !openingStatus.isOpen && (
+                <span className="text-[#CC0000]"> {openingStatus.status === 'Closed' && !openingStatus.nextOpening ? '\u00B7 Closed today' : ''}</span>
               )}
-            </div>
-          )}
+            </p>
 
-          {/* Contact Info */}
-          {hasContact && (
-            <div className="flex items-center gap-4 text-caption text-gray-600">
-              {farm.contact?.phone && (
-                <div className="flex items-center gap-1">
-                  <Phone className="w-3 h-3" />
-                  <span className="truncate">{farm.contact.phone}</span>
-                </div>
-              )}
-              {farm.contact?.website && (
-                <a
-                  href={farm.contact.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-serum hover:text-serum/80 transition-colors"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <Globe className="w-3 h-3" />
-                  <span className="truncate">Website</span>
-                </a>
-              )}
-            </div>
-          )}
-
-          {/* Opening Hours */}
-          {hasHours && farm.hours && (
-            <div className="flex items-start gap-1 text-caption text-gray-600">
-              <Clock className="w-3 h-3 mt-0.5 flex-shrink-0" />
-              <div className="min-w-0">
-                {openingStatus && !openingStatus.isOpen && openingStatus.nextOpening && (
-                  <div className="text-orange-600 font-medium mb-1">
-                    {openingStatus.nextOpening}
-                  </div>
-                )}
-                {farm.hours.slice(0, 2).map((hour, idx) => (
-                  <div key={idx} className="truncate">
-                    {hour.day}: {hour.open} - {hour.close}
-                  </div>
-                ))}
-                {farm.hours.length > 2 && (
-                  <span className="text-gray-500">+{farm.hours.length - 2} more days</span>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Description (expanded view) */}
-          {isExpanded && farm.description && (
-            <div className="mt-3 pt-3 border-t border-gray-100">
-              <p className="text-caption text-gray-700 leading-relaxed">
-                {farm.description}
+            {/* Hook / editorial description */}
+            {hook && (
+              <p className="text-sm italic text-[#5C5C5C] dark:text-gray-400 mt-1 line-clamp-2">
+                &ldquo;{hook}&rdquo;
               </p>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        {/* Distance indicator (if available) */}
-        {hasDistance && (
-          <div className="mt-2 text-small text-gray-500 flex items-center gap-1">
-            <Navigation className="w-3 h-3" />
-            <span>{formatDistance(farm.distance!)} away</span>
+        {/* Tags + arrow row */}
+        <div className="flex items-center justify-between mt-3">
+          <div className="flex flex-wrap gap-1">
+            {farm.offerings?.slice(0, 2).map((offering, idx) => (
+              <span
+                key={idx}
+                className="inline-block px-2 py-0.5 bg-[#2D5016]/10 text-[#2D5016] text-[11px] font-semibold rounded-full uppercase tracking-wide"
+              >
+                {offering}
+              </span>
+            ))}
+            {farm.offerings && farm.offerings.length > 2 && (
+              <span className="inline-block px-2 py-0.5 bg-gray-100 dark:bg-gray-700 text-[#8C8C8C] text-[11px] font-semibold rounded-full">
+                +{farm.offerings.length - 2}
+              </span>
+            )}
           </div>
-        )}
-
-        {/* Quick Actions */}
-        <div className="mt-3 pt-3 border-t border-gray-100">
-          <QuickActions farm={farm} variant="compact" />
+          <ChevronRight className="w-5 h-5 text-[#CCCCCC] flex-shrink-0" />
         </div>
       </div>
     )
-  }, [selectedFarmId, hoveredFarmId, expandedFarmId, handleFarmClick, onFarmHover, formatDistance])
+  }, [selectedFarmId, hoveredFarmId, handleFarmClick, onFarmHover, formatDistance])
 
   const EmptyState = useCallback(() => (
-    <div className="flex flex-col items-center justify-center py-12 text-center">
-      <MapPin className="w-12 h-12 text-gray-300 mb-4" />
-      <h3 className="text-body font-medium text-gray-900 dark:text-white mb-2">No farms found</h3>
-      <p className="text-gray-600 max-w-sm">
+    <div className="flex flex-col items-center justify-center py-12 text-center px-6">
+      <MapPin className="w-10 h-10 text-[#CCCCCC] mb-3" />
+      <h3 className="text-[17px] font-medium text-[#1A1A1A] dark:text-white mb-1">No farms found</h3>
+      <p className="text-sm text-[#8C8C8C]">
         Try adjusting your search or filters to find farm shops in your area.
       </p>
     </div>
@@ -221,7 +158,6 @@ export default function FarmList({
 
   return (
     <div className={`h-full flex flex-col ${className}`}>
-      {/* Farm List */}
       <div className="flex-1 overflow-hidden">
         {farms.length === 0 ? (
           <EmptyState />
@@ -232,7 +168,7 @@ export default function FarmList({
             overscan={5}
             className="h-full"
             components={{
-              Footer: () => <div className="h-4" /> // Bottom padding
+              Footer: () => <div className="h-4" />
             }}
           />
         )}
