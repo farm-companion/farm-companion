@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import type { Produce } from '@/data/produce'
-import { MONTH_CONTENT, getMonthContent } from '@/data/seasonal-content'
+import { getMonthContent } from '@/data/seasonal-content'
 import { MonthBar } from './MonthBar'
 import { SeasonalHero } from './SeasonalHero'
 import { SeasonalStars } from './SeasonalStars'
@@ -30,6 +30,15 @@ export function SeasonalPageClient({ allProduce, currentMonth }: SeasonalPageCli
     [allProduce, selectedMonth]
   )
 
+  // Hero image: use the first star's produce image so the hero
+  // always shows produce that is actually in season this month.
+  const heroImageUrl = useMemo(() => {
+    const firstStar = content.stars[0]
+    if (!firstStar) return undefined
+    const produce = allProduce.find(p => p.slug === firstStar.slug)
+    return produce?.images?.[0]?.src
+  }, [content.stars, allProduce])
+
   return (
     <>
       {/* Sticky month selector */}
@@ -39,8 +48,8 @@ export function SeasonalPageClient({ allProduce, currentMonth }: SeasonalPageCli
         onMonthSelect={setSelectedMonth}
       />
 
-      {/* Dynamic hero */}
-      <SeasonalHero content={content} />
+      {/* Dynamic hero -- image changes per month */}
+      <SeasonalHero content={content} heroImageUrl={heroImageUrl} />
 
       {/* Stars: Worth seeking out */}
       <SeasonalStars stars={content.stars} allProduce={allProduce} />
