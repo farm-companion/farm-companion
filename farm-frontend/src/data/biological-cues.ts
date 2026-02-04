@@ -60,7 +60,7 @@ export const BIOLOGICAL_CUES: Record<string, string> = {
   'jerusalem artichokes': 'Knobbly tuber form, thin skin with root scars, irregular lobes, earthy matte texture.',
 
   // K
-  'kale': 'Curly green kale, Brassica oleracea var. sabellica. Deeply lobed fractal-ruffled lamina with tight crenulated edges. Thick fibrous pale-green midrib running full length. Blue-green waxy cuticle with visible epicuticular wax bloom. Pinnate secondary veins branching at 45 degrees. Leaf blade curls away from midrib in three dimensions. Natural minor tears and insect nibbles on outer edges. Bunch of 4-6 leaves with stalks gathered at base.',
+  'kale': 'Curly green kale LEAVES, Brassica oleracea var. sabellica. This is a LEAFY GREEN, NOT broccoli, NOT cauliflower, NOT a floret vegetable. Flat open ruffled leaves on long pale stems. Deeply lobed fractal-ruffled lamina with tight crenulated edges like parsley but much larger. Thick fibrous pale-green midrib running full length of each leaf. Blue-green waxy cuticle. Leaf blade curls away from midrib in three dimensions. A loose bunch of 4-6 individual kale LEAVES with long stalks gathered at base, photographed as you would find them in a supermarket bag. No dense rounded head. No florets. No tree-like shape.',
   'kohlrabi': 'Bulb with leaf scar points, smooth matte skin, subtle color gradient, trimmed stems.',
 
   // L

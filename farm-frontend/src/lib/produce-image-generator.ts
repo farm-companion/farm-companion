@@ -112,7 +112,7 @@ const PRODUCE_NEGATIVE_OVERRIDES: Record<string, string> = {
   'raspberries': 'solid center, blueberry crown, calyx holes, perfect spheres, bead cluster, fused berries',
   'blueberries': 'raspberry drupelets, blackberry structure, hollow center, irregular drupelets',
   'strawberries': 'raspberry drupelets, blackberry drupelets, smooth surface, missing seeds',
-  'kale': 'smooth leaves, flat leaves, cabbage head, lettuce, spinach, chard, generic green leaf, solid head, iceberg, romaine, unidentifiable green, abstract green texture, micro close-up without context',
+  'kale': 'broccoli, cauliflower, florets, tree-like shape, dense rounded head, compact head vegetable, smooth leaves, cabbage head, lettuce, spinach, chard, generic green leaf, solid head, iceberg, romaine, unidentifiable green, abstract green texture, micro close-up without context, brassica floret',
   'cavolo-nero': 'curly kale, ruffled edges, cabbage head, lettuce, spinach, bright green, generic green leaf, round leaves',
   'spinach': 'kale, chard, curly leaves, ruffled edges, thick stems, cabbage, lobed leaves, generic green leaf',
   'rocket': 'round leaves, smooth margins, lettuce, spinach, cabbage, basil, generic green leaf, broad leaves',
@@ -130,8 +130,9 @@ function getStepsForCategory(category: ProduceCategory): number {
     case 'blueberries':
       return 60 // Berries need higher steps
     case 'leafy_ruffled':
+      return 60 // Ruffled leafy greens need higher steps to resolve correct species
     case 'leafy_flat':
-      return 55 // Leafy greens
+      return 55 // Flat leafy greens
     case 'root':
       return 55 // Root vegetables
     case 'squash':
@@ -365,7 +366,7 @@ const PRODUCE_TEXTURES: Record<ProduceCategory, string> = {
 
   citrus: `Glistening juice vesicles, textured peel with visible oil glands and pith, natural citrus oils on surface`,
 
-  leafy_ruffled: `Botanical specimen of a specific brassica cultivar. Deeply lobed fractal-ruffled lamina, thick fibrous midrib contrasting with blade, visible epicuticular wax bloom, blue-green waxy cuticle, three-dimensional curl away from midrib`,
+  leafy_ruffled: `Loose leafy green vegetable, NOT broccoli, NOT cauliflower, NOT florets. Open ruffled LEAVES on long stems, deeply lobed lamina, thick fibrous midrib, visible epicuticular wax bloom, blue-green waxy cuticle, three-dimensional curl away from midrib`,
 
   leafy_flat: `Botanical specimen of a specific salad leaf. Smooth or gently undulating margins, tender succulent blade, visible venation pattern, natural moisture sheen, species-specific leaf silhouette clearly identifiable`,
 
