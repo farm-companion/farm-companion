@@ -139,6 +139,17 @@
 - [x] Slice 20.4: Month Navigation Wheel (MonthWheel.tsx SVG + MonthSelector compact)
 - [x] Slice 20.5: "Find Stockists" Bridge (FindStockists.tsx + FindStockistsCompact)
 - [x] Slice 20.6: Nutrition Radial Charts (NutritionRadial.tsx + NutritionBars + NutritionPills)
+- [x] Slice 20.7: God-Tier Seasonal Page Redesign
+  - Created seasonal-content.ts: 12 months editorial copy, stars per month, produce hooks, coming-next previews
+  - Created MonthBar.tsx: Sticky month selector with horizontal scroll on mobile, 44px tap targets
+  - Created SeasonalHero.tsx: Dynamic hero with season-tinted background image overlay, monthly editorial copy
+  - Created SeasonalStars.tsx: "Worth seeking out" section with 3 highlighted items per month
+  - Created SeasonalProduceGrid.tsx: Simplified cards (removed nutrition/percentages, added editorial hooks)
+  - Created ComingSoon.tsx: "Coming next month" teaser with greyscale preview cards
+  - Created SeasonalPageClient.tsx: Client orchestrator wiring month state to all sections
+  - Rewrote seasonal/page.tsx: Preserved SEO metadata + JSON-LD, replaced old hero/grid with new components
+  - Removed: summer hero image as primary visual, "Scroll to explore", nutrition pills, percentage badges, category labels
+  - Added: sticky month navigation, monthly editorial copy, "Worth seeking out" stars, editorial hooks on cards, "Coming next month" section, green CTA
 
 ### Queue 21: Counties Page Transformation
 - [x] Slice 21.1: UK SVG Map Component (UKCountyMap.tsx with 40 regions)
