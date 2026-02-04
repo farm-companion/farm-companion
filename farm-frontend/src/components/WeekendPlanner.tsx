@@ -27,38 +27,72 @@ interface WeekendPlannerProps {
   limit?: number
 }
 
+/** Generate an editorial hook from activity types. */
+function getHook(activities: WeekendActivity[]): string {
+  const types = activities.map((a) => a.type)
+  if (types.includes('pyo')) return 'Pick your own seasonal produce this weekend'
+  if (types.includes('tour')) return 'Farm tours running this weekend'
+  if (types.includes('cafe')) return 'Stop by the farm cafe for something fresh'
+  if (types.includes('market')) return 'Browse the weekend market for local finds'
+  if (types.includes('event')) return 'Special events happening this weekend'
+  return 'A favourite for fresh, seasonal produce'
+}
+
+/** Availability badge text from hours + selected day. */
+function getAvailability(
+  farm: WeekendFarm,
+  selectedDay: DayOfWeek
+): { text: string; hours: string | null } | null {
+  const hasSat = !!farm.saturdayHours
+  const hasSun = !!farm.sundayHours
+
+  if (selectedDay === 'saturday') {
+    if (!hasSat) return null
+    return { text: 'Open Sat', hours: farm.saturdayHours! }
+  }
+  if (selectedDay === 'sunday') {
+    if (!hasSun) return null
+    return { text: 'Open Sun', hours: farm.sundayHours! }
+  }
+  // both
+  if (hasSat && hasSun) return { text: 'Open Both Days', hours: null }
+  if (hasSat) return { text: 'Open Sat', hours: farm.saturdayHours! }
+  if (hasSun) return { text: 'Open Sun', hours: farm.sundayHours! }
+  return null
+}
+
 /**
- * Weekend Planner Module
+ * Weekend Planner
  *
- * Luxury editorial design. Fetches farms with weekend activities
- * from /api/farms/weekend (Prisma, cached 1h). Weekend dates are
- * dynamically computed. Weather banner is static.
+ * Warm editorial section. Data from /api/farms/weekend (Prisma, 1h cache).
+ * Weekend dates computed dynamically. Hooks generated from activity types.
  */
 export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProps) {
   const [farms, setFarms] = useState<WeekendFarm[]>([])
   const [selectedDay, setSelectedDay] = useState<DayOfWeek>('both')
   const [isLoading, setIsLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
-  const [weekendDates, setWeekendDates] = useState<{ saturday: string; sunday: string }>({
-    saturday: '',
-    sunday: '',
-  })
+  const [weekendLabel, setWeekendLabel] = useState('')
+  const [weekendRange, setWeekendRange] = useState('')
 
   useEffect(() => {
     setMounted(true)
 
     const today = new Date()
     const dayOfWeek = today.getDay()
+    const isNow = dayOfWeek === 0 || dayOfWeek === 6
     const daysUntilSaturday = dayOfWeek === 0 ? 6 : 6 - dayOfWeek
     const saturday = new Date(today)
     saturday.setDate(today.getDate() + daysUntilSaturday)
     const sunday = new Date(saturday)
     sunday.setDate(saturday.getDate() + 1)
 
-    setWeekendDates({
-      saturday: saturday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-      sunday: sunday.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }),
-    })
+    const satDay = saturday.getDate()
+    const sunDay = sunday.getDate()
+    const monthName = saturday.toLocaleDateString('en-GB', { month: 'long' })
+
+    setWeekendLabel(isNow ? 'This Weekend' : 'This Weekend')
+    setWeekendRange(`${satDay}-${sunDay} ${monthName}`)
 
     const fetchWeekendFarms = async () => {
       try {
@@ -77,153 +111,136 @@ export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProp
     fetchWeekendFarms()
   }, [limit])
 
-  const isWeekendNow = () => {
-    const day = new Date().getDay()
-    return day === 0 || day === 6
-  }
-
   // SSR placeholder
   if (!mounted) {
     return (
-      <div className={`max-w-2xl mx-auto px-6 ${className}`}>
-        <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
-        <div className="h-6 w-48 bg-border/30 mx-auto mb-4" />
-        <div className="h-8 w-64 bg-border/30 mx-auto mb-4" />
-        <div className="h-4 w-80 bg-border/30 mx-auto" />
+      <div className={`bg-[#FDF8F3] dark:bg-background-secondary py-16 md:py-20 ${className}`}>
+        <div className="mx-auto max-w-6xl px-6">
+          <div className="h-4 w-48 bg-border/20 mb-4" />
+          <div className="h-8 w-56 bg-border/20 mb-4" />
+          <div className="h-4 w-80 bg-border/20" />
+        </div>
       </div>
     )
   }
 
-  const dayLabels: { key: DayOfWeek; label: string }[] = [
-    { key: 'both', label: 'Both Days' },
-    { key: 'saturday', label: 'Sat' },
-    { key: 'sunday', label: 'Sun' },
+  const dayTabs: { key: DayOfWeek; label: string }[] = [
+    { key: 'saturday', label: 'Saturday' },
+    { key: 'sunday', label: 'Sunday' },
+    { key: 'both', label: 'Both' },
   ]
 
-  const getHoursDisplay = (farm: WeekendFarm): string | null => {
-    if (selectedDay === 'saturday' && farm.saturdayHours) return `Sat ${farm.saturdayHours}`
-    if (selectedDay === 'sunday' && farm.sundayHours) return `Sun ${farm.sundayHours}`
-    if (selectedDay === 'both') {
-      const parts: string[] = []
-      if (farm.saturdayHours) parts.push(`Sat ${farm.saturdayHours}`)
-      if (farm.sundayHours) parts.push(`Sun ${farm.sundayHours}`)
-      return parts.length > 0 ? parts.join(' / ') : null
-    }
-    return null
-  }
-
   return (
-    <section className={className}>
-      <div className="max-w-2xl mx-auto px-6">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
+    <section className={`bg-[#FDF8F3] dark:bg-background-secondary py-16 md:py-20 ${className}`}>
+      <div className="mx-auto max-w-6xl px-6">
 
-          <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-            {isWeekendNow() ? 'This Weekend' : 'Upcoming Weekend'}
+        {/* Header row */}
+        <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-10">
+          <div>
+            <p className="text-xs tracking-[0.2em] uppercase text-brand-primary font-medium mb-2">
+              {weekendLabel}: {weekendRange}
+            </p>
+            <h2 className="font-serif text-3xl md:text-4xl font-normal text-foreground tracking-tight">
+              Where to Go
+            </h2>
+            <p className="mt-3 text-foreground-muted max-w-md">
+              Farm shops with weekend events, seasonal picks, and things worth the drive.
+            </p>
           </div>
 
-          <h2 className="font-serif text-2xl md:text-3xl font-normal text-foreground tracking-tight">
-            Plan Your Farm Visit
-          </h2>
-
-          <p className="mt-4 text-foreground-muted">
-            Markets, pick-your-own, and farm experiences this {weekendDates.saturday} - {weekendDates.sunday}
-          </p>
+          <div className="flex items-center gap-3">
+            {/* Day tabs */}
+            {dayTabs.map(({ key, label }) => (
+              <button
+                key={key}
+                onClick={() => setSelectedDay(key)}
+                className={`px-5 py-2.5 text-sm rounded-lg transition-all duration-200 ${
+                  selectedDay === key
+                    ? 'bg-white dark:bg-foreground/10 text-foreground shadow-sm border border-brand-primary/40'
+                    : 'text-foreground-muted border border-border hover:border-foreground/30 hover:text-foreground'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Day filter */}
-        <div className="flex items-center justify-center gap-6 mb-12">
-          {dayLabels.map(({ key, label }) => (
-            <button
-              key={key}
-              onClick={() => setSelectedDay(key)}
-              className={`text-xs tracking-[0.15em] uppercase pb-1 transition-opacity duration-300 ${
-                selectedDay === key
-                  ? 'text-foreground border-b border-foreground'
-                  : 'text-foreground-muted hover:opacity-70'
-              }`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {/* Farm listings */}
+        {/* Farm cards */}
         {isLoading ? (
-          <div className="space-y-8">
-            {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="py-6 border-t border-border">
-                <div className="h-4 w-48 bg-border/30 mb-3" />
-                <div className="h-3 w-32 bg-border/30" />
-              </div>
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-white dark:bg-foreground/5 rounded-xl p-5 h-36" />
             ))}
           </div>
         ) : farms.length > 0 ? (
-          <div className="space-y-0">
-            {farms.map((farm, index) => (
-              <Link
-                key={farm.slug}
-                href={`/shop/${farm.slug}`}
-                className="group block py-8 border-t border-border hover:opacity-70 transition-opacity duration-300"
-              >
-                <div className="flex flex-col md:flex-row md:items-start gap-6">
-                  {/* Image */}
-                  {farm.image && (
-                    <div className="relative w-full md:w-40 h-48 md:h-28 flex-shrink-0 overflow-hidden bg-background-secondary">
-                      <Image
-                        src={farm.image}
-                        alt={farm.name}
-                        fill
-                        className="object-cover"
-                        sizes="(max-width: 768px) 100vw, 160px"
-                      />
-                    </div>
-                  )}
+          <div className="space-y-6">
+            {farms.map((farm) => {
+              const avail = getAvailability(farm, selectedDay)
 
-                  {/* Content */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-serif text-xl md:text-2xl font-normal text-foreground leading-tight mb-2">
-                      {farm.name}
-                    </h3>
-
-                    <div className="text-xs tracking-[0.15em] uppercase text-foreground-muted mb-3">
-                      {farm.county}
-                      {farm.distance != null && ` / ${farm.distance.toFixed(1)} mi`}
+              return (
+                <Link
+                  key={farm.slug}
+                  href={`/shop/${farm.slug}`}
+                  className="group block bg-white dark:bg-foreground/5 rounded-xl overflow-hidden shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  <div className="flex flex-col sm:flex-row">
+                    {/* Image */}
+                    <div className="relative w-full sm:w-[180px] h-[180px] sm:h-[160px] flex-shrink-0 bg-border/10">
+                      {farm.image ? (
+                        <Image
+                          src={farm.image}
+                          alt={farm.name}
+                          fill
+                          className="object-cover group-hover:scale-[1.02] transition-transform duration-300"
+                          sizes="(max-width: 640px) 100vw, 180px"
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-foreground-muted/30 text-xs tracking-[0.2em] uppercase">
+                          No image
+                        </div>
+                      )}
                     </div>
 
-                    {/* Activities */}
-                    <div className="flex flex-wrap gap-x-4 gap-y-1 mb-3">
-                      {farm.activities.slice(0, 3).map((activity, i) => (
-                        <span
-                          key={i}
-                          className="text-xs tracking-[0.1em] uppercase text-foreground-muted"
-                        >
-                          {activity.label}
-                        </span>
-                      ))}
-                    </div>
+                    {/* Content */}
+                    <div className="flex-1 p-5 flex flex-col justify-between min-w-0">
+                      <div>
+                        <h3 className="font-serif text-xl font-normal text-foreground leading-snug mb-1">
+                          {farm.name}
+                        </h3>
 
-                    {/* Hours */}
-                    {getHoursDisplay(farm) && (
-                      <p className="text-sm text-foreground-muted">
-                        {getHoursDisplay(farm)}
-                      </p>
-                    )}
+                        <p className="text-sm text-foreground-muted mb-3">
+                          {farm.county}
+                          {farm.distance != null && ` \u00b7 ${farm.distance.toFixed(0)} miles`}
+                        </p>
+
+                        <p className="text-sm italic text-foreground-muted leading-relaxed">
+                          &ldquo;{getHook(farm.activities)}&rdquo;
+                        </p>
+                      </div>
+
+                      {/* Availability badge */}
+                      {avail && (
+                        <div className="mt-4 flex items-center justify-end">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand-primary text-white text-xs tracking-[0.1em] uppercase font-medium rounded-md">
+                            {avail.text}
+                            {avail.hours && (
+                              <span className="font-normal opacity-80">{avail.hours}</span>
+                            )}
+                            <span aria-hidden="true">&rarr;</span>
+                          </span>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </Link>
-            ))}
-
-            {/* Bottom border */}
-            <div className="border-t border-border" aria-hidden="true" />
+                </Link>
+              )
+            })}
           </div>
         ) : (
-          <div className="py-12 text-center border-t border-border">
-            <p className="text-lg leading-[1.9] text-foreground mb-4">
-              No weekend activities found
-            </p>
-            <p className="text-foreground-muted text-sm mb-8">
+          <div className="bg-white dark:bg-foreground/5 rounded-xl p-12 text-center">
+            <p className="text-lg text-foreground mb-2">No weekend activities found</p>
+            <p className="text-sm text-foreground-muted mb-6">
               Check back later for upcoming farm events and markets.
             </p>
             <Link
@@ -235,14 +252,14 @@ export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProp
           </div>
         )}
 
-        {/* View all link */}
+        {/* See all link */}
         {farms.length > 0 && (
-          <div className="mt-12 text-center">
+          <div className="mt-10 flex justify-center md:justify-end">
             <Link
               href="/map?filter=weekend"
-              className="text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity duration-300"
+              className="text-sm font-medium text-brand-primary hover:opacity-70 transition-opacity"
             >
-              View All Weekend Activities
+              See all this weekend &rarr;
             </Link>
           </div>
         )}
