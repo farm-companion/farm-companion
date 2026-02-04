@@ -7,6 +7,7 @@
  */
 
 import type { Metadata } from 'next'
+import Image from 'next/image'
 import Link from 'next/link'
 import { SITE_URL } from '@/lib/site'
 
@@ -95,20 +96,38 @@ export default function AboutPage() {
     <main className="min-h-screen">
       {/* ─── Section 1: Hero ─── */}
       <section
-        className="bg-[#FDF8F3] dark:bg-background-secondary"
+        className="relative min-h-[360px] md:min-h-[480px] flex items-center justify-center overflow-hidden"
         aria-labelledby="hero-heading"
       >
-        <div className="mx-auto max-w-3xl px-3 md:px-6 py-10 md:py-16 text-center">
+        {/* Background image */}
+        <Image
+          src="/counties.jpg"
+          alt="Rolling green farmland across the British countryside"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+          quality={85}
+        />
+
+        {/* Gradient overlay for text legibility */}
+        <div
+          className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/50"
+          aria-hidden="true"
+        />
+
+        {/* Text content */}
+        <div className="relative z-10 mx-auto max-w-3xl px-3 md:px-6 py-16 md:py-24 text-center">
           <h1
             id="hero-heading"
-            className="text-[32px] md:text-[48px] font-medium leading-[1.2] tracking-tight text-[#1A1A1A] dark:text-foreground"
+            className="text-[32px] md:text-[48px] font-medium leading-[1.2] tracking-tight text-white drop-shadow-sm"
           >
             We built the farm shop guide
             <br className="hidden sm:block" />
             {' '}we wished existed.
           </h1>
 
-          <p className="mt-4 md:mt-6 text-[17px] md:text-[20px] font-normal leading-[1.5] text-[#5C5C5C] dark:text-foreground-muted">
+          <p className="mt-4 md:mt-6 text-[17px] md:text-[20px] font-normal leading-[1.5] text-white/90 drop-shadow-sm">
             1,247 farms. Every county. No sponsored rankings. No clutter.
             <br className="hidden sm:block" />
             {' '}Just the good ones.
