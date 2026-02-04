@@ -11,7 +11,7 @@ import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } fro
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
 import MarkerActions from './MarkerActions'
-import MapMarkerPopover from './MapMarkerPopover'
+
 import ClusterPreview from './ClusterPreview'
 import LocationControl from './LocationControl'
 import MapControls from './MapControls'
@@ -666,22 +666,7 @@ export default function MapLibreShell({
         />
       )}
 
-      {/* Marker Popover - Desktop Only */}
-      {isDesktop && (
-        <MapMarkerPopover
-          farm={markerState.selected}
-          isVisible={markerState.showActions}
-          onClose={handleCloseMarkerActions}
-          onNavigate={handleNavigate}
-          onFavorite={handleFavorite}
-          onShare={handleShare}
-          userLocation={effectiveUserLocation ? {
-            latitude: effectiveUserLocation.latitude,
-            longitude: effectiveUserLocation.longitude
-          } : null}
-          position={popoverPosition}
-        />
-      )}
+      {/* Desktop marker interaction handled by FarmPreviewCard in page.tsx */}
 
       {/* Cluster Preview - simplified without Google Maps types */}
       {showClusterPreview && selectedCluster && (
