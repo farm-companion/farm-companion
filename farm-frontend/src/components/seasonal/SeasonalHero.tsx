@@ -5,6 +5,8 @@ import type { MonthContent } from '@/data/seasonal-content'
 
 interface SeasonalHeroProps {
   content: MonthContent
+  /** URL of the hero background image. Changes per month to match the season. */
+  heroImageUrl?: string
 }
 
 /**
@@ -31,15 +33,16 @@ const SEASON_TINT: Record<number, string> = {
  * Background image with season-tinted overlay. Text content
  * changes per month with editorial copy.
  */
-export function SeasonalHero({ content }: SeasonalHeroProps) {
+export function SeasonalHero({ content, heroImageUrl }: SeasonalHeroProps) {
   const tint = SEASON_TINT[content.month] || 'from-[#1a3a2a]/70'
+  const imageSrc = heroImageUrl || '/seasonal-header.jpg'
 
   return (
     <section className="relative min-h-[400px] md:min-h-[480px] overflow-hidden">
-      {/* Background image */}
+      {/* Background image -- uses the first star produce image for the month */}
       <div className="absolute inset-0">
         <Image
-          src="/seasonal-header.jpg"
+          src={imageSrc}
           alt=""
           fill
           className="object-cover object-center"

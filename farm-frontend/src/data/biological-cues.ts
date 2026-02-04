@@ -60,7 +60,7 @@ export const BIOLOGICAL_CUES: Record<string, string> = {
   'jerusalem artichokes': 'Knobbly tuber form, thin skin with root scars, irregular lobes, earthy matte texture.',
 
   // K
-  'kale': 'Curled leaf edges, pronounced veins, matte surface, natural tears and minor blemishes.',
+  'kale': 'Curly green kale LEAVES, Brassica oleracea var. sabellica. This is a LEAFY GREEN, NOT broccoli, NOT cauliflower, NOT a floret vegetable. Flat open ruffled leaves on long pale stems. Deeply lobed fractal-ruffled lamina with tight crenulated edges like parsley but much larger. Thick fibrous pale-green midrib running full length of each leaf. Blue-green waxy cuticle. Leaf blade curls away from midrib in three dimensions. A loose bunch of 4-6 individual kale LEAVES with long stalks gathered at base, photographed as you would find them in a supermarket bag. No dense rounded head. No florets. No tree-like shape.',
   'kohlrabi': 'Bulb with leaf scar points, smooth matte skin, subtle color gradient, trimmed stems.',
 
   // L
@@ -99,7 +99,7 @@ export const BIOLOGICAL_CUES: Record<string, string> = {
   'red cabbage': 'Tight leaf layering, purple veins, matte sheen, natural outer leaf imperfections.',
   'redcurrants': 'Translucent red berries with highlights, small blossom ends, realistic clustering if on stem.',
   'rhubarb': 'Fibrous stalk striations, red-green gradient, leaf base cut, subtle moisture sheen.',
-  'rocket': 'Thin jagged leaves, visible veins, slight curl, matte leaf texture.',
+  'rocket': 'Wild rocket, Diplotaxis tenuifolia. Narrow deeply lobed pinnate leaves with pointed terminal lobe. Dark green with slight purple tinge on mature leaves. Thin wiry stems. Distinctive serrated oak-leaf silhouette unlike any other salad leaf. Small loose bunch, stems gathered at base.',
   'runner beans': 'Broad pods, seam line, slight curvature, surface texture, stem and tip visible.',
 
   // S
@@ -107,7 +107,7 @@ export const BIOLOGICAL_CUES: Record<string, string> = {
   'samphire': 'Thin succulent stems, clustered sprigs, glossy moisture sheen, vivid green.',
   'savoy cabbage': 'Crinkled leaf texture, layered head form, matte surface, natural leaf edge blemishes.',
   'sorrel': 'Smooth leaf surface, defined midrib, slight gloss, natural leaf curl.',
-  'spinach': 'Soft leaf texture, gentle wrinkles, slight translucency at edges, moisture sheen.',
+  'spinach': 'Baby spinach, Spinacia oleracea. Small oval to spade-shaped leaves with smooth margins. Vivid emerald green with slight translucency when backlit. Visible palmate venation from short petiole. Tender succulent texture with natural moisture sheen. Loose pile of leaves, not a single specimen. Some leaves slightly curled, others flat.',
   'spring greens': 'Looser cabbage-like leaves, visible veins, matte texture, natural tears.',
   'spring onions': 'White bulb to green stalk gradient, root tuft, hollow stalk texture, slight bend.',
   'squash': 'Subtle ridges, matte skin, stem scar, natural scuffs.',
@@ -116,7 +116,8 @@ export const BIOLOGICAL_CUES: Record<string, string> = {
   'swede': 'Waxy skin, purple-yellow gradient, root scar, natural blemishes, slightly flattened sphere.',
   'sweetcorn': 'Husk texture and silk strands if unshucked, kernel rows if shucked, natural gloss on kernels.',
   'sweetheart cabbage': 'Conical head shape, tight leaf layering, pale green gradient, matte sheen.',
-  'swiss chard': 'Prominent ribs and veins, leaf crinkle, vivid stem color where relevant, slight gloss.',
+  'swiss chard': 'Rainbow or ruby chard, Beta vulgaris var. cicla. Broad smooth leaf blade with slight blistering between veins. Wide fleshy midrib in vivid red, yellow, or white depending on cultivar. Prominent parallel lateral veins extending from midrib to leaf margin. Glossy adaxial surface with slight moisture sheen. Leaf margin gently undulating, not lobed. Bunch of 3-5 stems with leaves fanning outward.',
+  'cavolo-nero': 'Tuscan black kale, Brassica oleracea var. palmifolia. Long narrow strap-shaped leaves with deeply puckered savoyed texture. Dark blue-black-green coloration. Prominent pale midrib contrasting against dark blade. Leaf surface has regular bumpy blistering between veins. Margins slightly curled inward. Bunch of 5-7 leaves, upright posture, no ruffled edges unlike curly kale.',
 
   // T
   'tayberries': 'Elongated berry, drupelets irregular, matte-gloss mix, natural red tone variation.',
@@ -124,7 +125,7 @@ export const BIOLOGICAL_CUES: Record<string, string> = {
   'turnips': 'Purple-white gradient, root tail, matte skin, natural blemishes, trimmed top scar.',
 
   // W
-  'watercress': 'Small rounded leaves, thin stems, clustered sprigs, fresh gloss from moisture.',
+  'watercress': 'Watercress, Nasturtium officinale. Small round to kidney-shaped leaflets on branching hollow stems. Bright glossy green with visible moisture droplets. Pinnately compound leaves with 3-7 leaflets per stem. Crisp aquatic freshness, stems slightly tinged purple at nodes. Small loose bunch with roots trimmed, stems in water or on wet surface.',
   'white cabbage': 'Tight pale leaf layering, smooth matte surface, outer leaf imperfections, stem base hint.',
   'wild mushrooms': 'Irregular caps, varied textures by type, natural bruising, non-uniform shapes, matte earthy finish.',
   'winter squash': 'Hard matte skin, ridges depending on type, realistic stem, subtle speckling and scuffs.'
