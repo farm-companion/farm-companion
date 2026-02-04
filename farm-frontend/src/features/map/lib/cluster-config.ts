@@ -34,13 +34,13 @@ export interface ClusterTier {
   pulseAnimation: boolean
 }
 
-// 5-tier cluster hierarchy
+// 5-tier cluster hierarchy -- brand green (#2D5016) palette
 export const CLUSTER_TIERS: ClusterTier[] = [
-  { name: 'mega', minCount: 50, baseSize: 64, fontSize: 20, color: '#009688', borderWidth: 3, pulseAnimation: true },
-  { name: 'large', minCount: 20, baseSize: 56, fontSize: 18, color: '#00A99D', borderWidth: 3, pulseAnimation: false },
-  { name: 'medium', minCount: 10, baseSize: 48, fontSize: 16, color: '#00B8A9', borderWidth: 2, pulseAnimation: false },
-  { name: 'small', minCount: 5, baseSize: 40, fontSize: 14, color: '#00C2B2', borderWidth: 2, pulseAnimation: false },
-  { name: 'tiny', minCount: 2, baseSize: 32, fontSize: 12, color: '#00CCBB', borderWidth: 2, pulseAnimation: false },
+  { name: 'mega', minCount: 50, baseSize: 64, fontSize: 16, color: '#1A3A0A', borderWidth: 0, pulseAnimation: true },
+  { name: 'large', minCount: 20, baseSize: 56, fontSize: 15, color: '#234012', borderWidth: 0, pulseAnimation: false },
+  { name: 'medium', minCount: 10, baseSize: 48, fontSize: 14, color: '#2D5016', borderWidth: 0, pulseAnimation: false },
+  { name: 'small', minCount: 5, baseSize: 40, fontSize: 14, color: '#3A6420', borderWidth: 0, pulseAnimation: false },
+  { name: 'tiny', minCount: 2, baseSize: 32, fontSize: 13, color: '#4A7A2E', borderWidth: 0, pulseAnimation: false },
 ]
 
 /**
@@ -72,96 +72,81 @@ export function getZoomAwareSize(baseSize: number, zoom: number): number {
 }
 
 /**
- * Generate cluster SVG with smart sizing
+ * Generate cluster SVG with rounded-rectangle shape and brand green palette.
+ * Shape: pill/rounded-rect instead of circle for modern look.
  */
 export function generateClusterSVG(count: number, zoom: number = 10): {
   svg: string
   size: number
   anchor: number
+  width: number
+  height: number
 } {
   const tier = getClusterTier(count)
-  const size = getZoomAwareSize(tier.baseSize, zoom)
-  const anchor = size / 2
-  const radius = (size / 2) - tier.borderWidth
-  const textY = (size / 2) + (tier.fontSize / 3)
+  const displayText = formatClusterCount(count)
 
-  // Gradient ID unique per tier for proper rendering
-  const gradientId = `cluster-gradient-${tier.name}`
+  // Dynamic width based on text length
+  const charWidth = tier.fontSize * 0.65
+  const textWidth = displayText.length * charWidth
+  const padding = 20
+  const height = getZoomAwareSize(tier.baseSize * 0.55, zoom)
+  const minWidth = getZoomAwareSize(count < 10 ? 28 : count < 100 ? 36 : 44, zoom)
+  const width = Math.max(minWidth, textWidth + padding)
+  const rx = 8 // border-radius
 
-  // Animation styles for smooth appearance and pulse
+  const anchor = height / 2
+  const textY = height / 2 + tier.fontSize * 0.35
+
   const animationStyles = `
     <style>
       @keyframes clusterAppear {
         0% { transform: scale(0); opacity: 0; }
-        50% { transform: scale(1.1); }
         100% { transform: scale(1); opacity: 1; }
       }
+      ${tier.pulseAnimation ? `
       @keyframes clusterPulse {
-        0%, 100% { transform: scale(1); }
-        50% { transform: scale(1.05); }
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.85; }
       }
+      .cluster-rect { animation: clusterPulse 2.5s ease-in-out infinite; }
+      ` : ''}
       .cluster-group {
         animation: clusterAppear 0.3s ${CLUSTER_EASING.APPEAR} forwards;
         transform-origin: center;
       }
-      ${tier.pulseAnimation ? `
-      .cluster-circle {
-        animation: clusterPulse 2s ease-in-out infinite;
-        transform-origin: center;
-      }
-      ` : ''}
     </style>
   `
 
-  // Glow filter for mega clusters
-  const glowFilter = tier.pulseAnimation ? `
-    <filter id="glow-${tier.name}" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  ` : ''
-
-  const filterAttr = tier.pulseAnimation ? `filter="url(#glow-${tier.name})"` : ''
-
-  // Create gradient for depth effect with animation
   const svg = `
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
+    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
       ${animationStyles}
       <defs>
-        ${glowFilter}
-        <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" style="stop-color:${tier.color};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:${adjustColor(tier.color, -20)};stop-opacity:1" />
-        </linearGradient>
+        <filter id="cs" x="-10%" y="-10%" width="120%" height="140%">
+          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.2"/>
+        </filter>
       </defs>
-      <g class="cluster-group">
-        <circle
-          class="cluster-circle"
-          cx="${anchor}"
-          cy="${anchor}"
-          r="${radius}"
-          fill="url(#${gradientId})"
-          stroke="white"
-          stroke-width="${tier.borderWidth}"
-          ${filterAttr}
+      <g class="cluster-group" filter="url(#cs)">
+        <rect
+          class="cluster-rect"
+          x="0" y="0"
+          width="${width}" height="${height}"
+          rx="${rx}" ry="${rx}"
+          fill="${tier.color}"
         />
         <text
-          x="${anchor}"
+          x="${width / 2}"
           y="${textY}"
           text-anchor="middle"
           fill="white"
           font-family="system-ui, -apple-system, sans-serif"
           font-size="${tier.fontSize}"
           font-weight="600"
-        >${formatClusterCount(count)}</text>
+        >${displayText}</text>
       </g>
     </svg>
   `.trim()
 
-  return { svg, size, anchor }
+  return { svg, size: height, anchor, width, height }
 }
 
 /**
@@ -192,18 +177,17 @@ export function createSmartClusterRenderer(getZoom: () => number) {
   return {
     render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
       const zoom = getZoom()
-      const { svg, size, anchor } = generateClusterSVG(count, zoom)
+      const { svg, width, height, anchor } = generateClusterSVG(count, zoom)
       const svgUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
 
       return new google.maps.Marker({
         position,
         icon: {
           url: svgUrl,
-          scaledSize: new google.maps.Size(size, size),
-          anchor: new google.maps.Point(anchor, anchor),
+          scaledSize: new google.maps.Size(width, height),
+          anchor: new google.maps.Point(width / 2, anchor),
         },
         zIndex: google.maps.Marker.MAX_ZINDEX + 2,
-        // Add title for accessibility
         title: `Cluster of ${count} farm shops`,
       })
     }

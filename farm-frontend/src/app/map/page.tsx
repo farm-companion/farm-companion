@@ -2,17 +2,18 @@
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import dynamic from 'next/dynamic'
-import { Search, Filter } from 'lucide-react'
+import { Search, Navigation, Loader2, X, ChevronRight, ChevronLeft } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
-import { MapSearch, LocationTracker, SearchAreaControl, FilterOverlayPanel } from '@/features/map'
+import { SearchAreaControl, FilterOverlayPanel } from '@/features/map'
+// MapSearch and LocationTracker removed - search is now a floating bar built into the page
 import FilterPills, { useFilterPills, applyPillFilters, type FilterPillsState } from '@/features/map/ui/FilterPills'
 import { isFarmOpen } from '@/features/map/lib/pin-icons'
 import { MapAccessibilityFallback, MapStateDescription } from '@/components/accessibility'
 import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
 
-// Removed unused mobile-first components for cleaner imports
 import { useHaptic } from '@/components/HapticFeedback'
+import FarmPreviewCard from '@/features/map/ui/FarmPreviewCard'
 import type { FarmShop } from '@/types/farm'
 
 // Debouncing hook to prevent excessive re-filtering
@@ -80,12 +81,15 @@ export default function MapPage() {
   const [mapInstance, setMapInstance] = useState<unknown>(null)
   const [isFilterPanelOpen, setIsFilterPanelOpen] = useState(false)
   const [hoveredFarmId, setHoveredFarmId] = useState<string | null>(null)
+  const [isPanelCollapsed, setIsPanelCollapsed] = useState(false)
+  const [previewFarm, setPreviewFarm] = useState<FarmShop | null>(null)
 
   // Filter pills state for quick toggles
   const { filters: pillFilters, setFilters: setPillFilters } = useFilterPills()
 
   const locationWatchIdRef = useRef<number | null>(null)
-  
+  const searchInputRef = useRef<HTMLInputElement>(null)
+
   // Mobile-first features
   const { trigger: triggerHaptic } = useHaptic()
 
@@ -298,18 +302,27 @@ export default function MapPage() {
     setFilters(newFilters)
   }, [])
 
-  // Handle farm selection
+  // Handle farm selection - show preview on desktop, scroll on mobile
   const handleFarmSelect = useCallback((farmId: string) => {
     setSelectedFarmId(farmId)
-    // Scroll to farm in list if on mobile
-    if (window.innerWidth < 768) {
-      // Mobile: scroll to farm in bottom sheet
+    const farm = farms.find(f => f.id === farmId)
+    if (farm && window.innerWidth >= 768) {
+      setPreviewFarm(farm)
+    } else if (window.innerWidth < 768) {
       const farmElement = document.querySelector(`[data-farm-id="${farmId}"]`)
       if (farmElement) {
         farmElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
       }
     }
-  }, [])
+  }, [farms])
+
+  // Navigate to farm detail page
+  const handleViewFarmDetails = useCallback((farmId: string) => {
+    const farm = farms.find(f => f.id === farmId)
+    if (farm) {
+      window.location.href = `/shop/${farm.slug}`
+    }
+  }, [farms])
 
   // Handle map bounds change - receives normalized bounds object
   const handleBoundsChange = useCallback((bounds: unknown) => {
@@ -404,8 +417,11 @@ export default function MapPage() {
     )
   }
 
+  // Panel width for responsive padding
+  const panelWidth = isDesktop ? (isPanelCollapsed ? 0 : 380) : 0
+
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="h-[calc(100svh-var(--header-h,64px))] relative overflow-hidden bg-gray-50 dark:bg-gray-900">
       {/* Accessibility: Screen reader map fallback */}
       <MapAccessibilityFallback
         farms={filteredFarms}
@@ -420,212 +436,211 @@ export default function MapPage() {
         selectedFarm={filteredFarms.find(f => f.id === selectedFarmId)}
       />
 
-      {/* Mobile: Header removed for maximum map space */}
+      {/* ========== MAP (full viewport, everything else floats on top) ========== */}
+      <div className="absolute inset-0">
+        <MapShellWithNoSSR
+          farms={farmsForMap}
+          selectedFarmId={selectedFarmId}
+          hoveredFarmId={hoveredFarmId}
+          onFarmSelect={handleFarmSelect}
+          onFarmHover={setHoveredFarmId}
+          onBoundsChange={handleBoundsChange}
+          onZoomChange={handleZoomChange}
+          userLocation={userLocation}
+          bottomSheetHeight={bottomSheetHeight}
+          isDesktop={isDesktop}
+          onMapReady={setMapInstance}
+          className="w-full h-full"
+        />
+      </div>
 
-      {/* Main Content */}
-      <div className="max-w-7xl mx-auto">
-        {/* Search and Filters - Desktop Only */}
-        <div className="hidden md:block p-4">
-          <MapSearch
-            onSearch={handleSearch}
-            onNearMe={handleNearMe}
-            onFilterChange={handleFilterChange}
-            onW3WCoordinates={handleW3WCoordinates}
-            counties={counties}
-            categories={categories}
-            isLocationLoading={isLocationLoading}
-            hasLocation={userLocation !== null}
+      {/* ========== FLOATING SEARCH BAR (on top of map) ========== */}
+      <div className="absolute top-3 left-3 right-3 md:left-auto md:right-auto md:top-4 z-20 pointer-events-none flex justify-center"
+        style={isDesktop ? { left: '24px', right: `${panelWidth + 24}px` } : undefined}
+      >
+        <div className="pointer-events-auto w-full md:w-auto md:min-w-[400px] md:max-w-[600px]">
+          <div className="relative flex items-center bg-white dark:bg-gray-900 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] transition-shadow duration-200">
+            <Search className="absolute left-4 w-5 h-5 text-[#8C8C8C]" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search farms, produce, or places..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-11 pr-2 py-3 bg-transparent border-none rounded-full text-[16px] text-[#1A1A1A] dark:text-white placeholder-[#8C8C8C] focus:outline-none focus:ring-2 focus:ring-[#2D5016]"
+              aria-label="Search farms, produce, or places"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="p-1.5 mr-1 text-[#8C8C8C] hover:text-[#1A1A1A] transition-colors"
+                aria-label="Clear search"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            <div className="w-px h-6 bg-[#E0E0E0] mr-2" />
+            <button
+              onClick={() => { getCurrentLocation(); }}
+              disabled={isLocationLoading}
+              className="flex items-center gap-1.5 mr-2 px-3 py-1.5 bg-[#2D5016] text-white text-sm font-semibold rounded-full hover:bg-[#234012] disabled:opacity-50 transition-colors whitespace-nowrap"
+              aria-label="Find farms near me"
+            >
+              {isLocationLoading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Navigation className="w-3.5 h-3.5" />
+              )}
+              <span className="hidden sm:inline">Near Me</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* ========== FLOATING FILTER PILLS (below search bar) ========== */}
+      <div className="absolute top-16 md:top-[68px] left-3 z-20 pointer-events-none"
+        style={isDesktop ? { left: '24px' } : undefined}
+      >
+        <div className="pointer-events-auto overflow-x-auto scrollbar-hide">
+          <FilterPills
+            filters={pillFilters}
+            onFilterChange={setPillFilters}
+            onMoreClick={() => setIsFilterPanelOpen(true)}
+            className="flex-nowrap"
           />
-          
-          {/* Enhanced Location Tracker */}
-          <div className="mt-4">
-            <LocationTracker
-              farms={farms}
-              onLocationUpdate={setUserLocation}
-              onFarmsUpdate={setFarms}
-              onZoomToLocation={zoomToLocation}
-              className="max-w-md"
+        </div>
+      </div>
+
+      {/* ========== SEARCH AS I MOVE (top right, below search) ========== */}
+      <div className="absolute top-16 md:top-[68px] z-20"
+        style={isDesktop ? { right: `${panelWidth + 24}px` } : { right: '12px' }}
+      >
+        <SearchAreaControl
+          searchAsIMove={searchAsIMove}
+          onToggle={handleToggleSearchAsIMove}
+          onSearchThisArea={handleSearchThisArea}
+          hasPendingSearch={!searchAsIMove && mapBounds !== activeBounds}
+          farmCount={filteredFarms.length}
+        />
+      </div>
+
+      {/* ========== FARM PREVIEW CARD (desktop marker click) ========== */}
+      {previewFarm && isDesktop && (
+        <div className="absolute z-30 bottom-6 pointer-events-none flex justify-center"
+          style={{ left: '24px', right: `${panelWidth + 24}px` }}
+        >
+          <div className="pointer-events-auto relative">
+            <FarmPreviewCard
+              farm={previewFarm}
+              onClose={() => setPreviewFarm(null)}
+              onViewDetails={handleViewFarmDetails}
+              formatDistance={formatDistance}
             />
           </div>
         </div>
+      )}
 
-        {/* Map and List Container */}
-        <div className="relative h-[100svh] overflow-hidden">
-          {/* Mobile: Ultra-Compact Search Bar - Minimal Map Blocking */}
-          <div className="md:hidden absolute top-0 left-0 right-0 z-20 pointer-events-none">
-            <div className="px-3 pt-2 pb-1 pointer-events-auto">
-              {/* Ultra-compact search input - minimal height */}
-              <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+      {/* ========== FILTER OVERLAY PANEL ========== */}
+      <FilterOverlayPanel
+        isOpen={isFilterPanelOpen}
+        onClose={() => setIsFilterPanelOpen(false)}
+        filters={filters}
+        onFilterChange={handleFilterChange}
+        counties={counties}
+        categories={categories}
+        farmCount={filteredFarms.length}
+      />
+
+      {/* ========== MOBILE: BOTTOM SHEET ========== */}
+      <div
+        id="mobile-farm-list-region"
+        role="region"
+        aria-label="Farm shop list"
+        className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none"
+      >
+        <BottomSheet
+          isOpen={true}
+          snapPoints={[80, 320, 560]}
+          defaultSnap={0}
+          onHeightChange={(height) => {
+            setBottomSheetHeight(height)
+            window.dispatchEvent(new CustomEvent('map:setBottomPadding', { detail: height }))
+          }}
+          nonBlocking
+        >
+          {/* Bottom Sheet Header */}
+          <div className="px-4 pt-2 pb-3 border-b border-[#EDEDED] dark:border-gray-700 bg-white dark:bg-gray-900">
+            <div className="flex items-center justify-between">
+              <span className="text-[16px] font-medium text-[#1A1A1A] dark:text-white">
+                {filteredFarms.length} farms nearby
+              </span>
+              <label className="flex items-center gap-2 text-sm text-[#5C5C5C]">
                 <input
-                  type="text"
-                  placeholder="Search farms..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-8 pr-2 py-1.5 bg-white/85 dark:bg-gray-800/85 backdrop-blur-sm border border-gray-200/40 dark:border-gray-600/40 rounded-lg text-small shadow-sm focus:outline-none focus:ring-1 focus:ring-serum focus:border-transparent transition-all duration-200"
-                  aria-label="Search farms"
+                  type="checkbox"
+                  checked={searchAsIMove}
+                  onChange={handleToggleSearchAsIMove}
+                  className="rounded border-gray-300 text-[#2D5016] focus:ring-[#2D5016]"
                 />
-                
-                {/* Minimal search indicator */}
-                {searchQuery && (
-                  <div className="absolute right-1.5 top-1/2 transform -translate-y-1/2">
-                    <div className="w-1 h-1 bg-serum rounded-full animate-pulse"></div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Filter Pills - Quick Toggles */}
-              <div className="mt-1.5 overflow-x-auto scrollbar-hide">
-                <FilterPills
-                  filters={pillFilters}
-                  onFilterChange={setPillFilters}
-                  className="flex-nowrap"
-                />
-              </div>
+                Update as I move
+              </label>
             </div>
           </div>
 
-          {/* Map */}
-          <div className="absolute inset-0">
-            <MapShellWithNoSSR
-              farms={farmsForMap}
+          {/* Farm List */}
+          <div className="flex-1 overflow-hidden">
+            <FarmList
+              farms={filteredFarms}
               selectedFarmId={selectedFarmId}
               hoveredFarmId={hoveredFarmId}
               onFarmSelect={handleFarmSelect}
               onFarmHover={setHoveredFarmId}
-              onBoundsChange={handleBoundsChange}
-              onZoomChange={handleZoomChange}
               userLocation={userLocation}
-              bottomSheetHeight={bottomSheetHeight}
-              isDesktop={isDesktop}
-              onMapReady={setMapInstance}
-              className="w-full h-full"
+              formatDistance={formatDistance}
+              className="h-full"
             />
           </div>
+        </BottomSheet>
+      </div>
 
-          {/* Filter Pills - Desktop Floating */}
-          <div className="hidden md:block absolute top-4 left-4 z-20">
-            <FilterPills
-              filters={pillFilters}
-              onFilterChange={setPillFilters}
-              className="bg-white/90 dark:bg-zinc-900/90 backdrop-blur-sm rounded-full px-2 py-1 shadow-lg border border-zinc-200/50 dark:border-zinc-700/50"
-            />
+      {/* ========== DESKTOP: COLLAPSIBLE LIST PANEL ========== */}
+      <div
+        id="farm-list-region"
+        role="complementary"
+        aria-label="Farm shop list"
+        className="hidden md:flex absolute right-0 top-0 bottom-0 z-20 transition-transform duration-300 ease-out"
+        style={{
+          width: '380px',
+          transform: isPanelCollapsed ? 'translateX(100%)' : 'translateX(0)',
+        }}
+      >
+        <div className="flex flex-col w-full bg-white dark:bg-gray-900 shadow-lg border-l border-[#EDEDED] dark:border-gray-700">
+          {/* Panel Header */}
+          <div className="px-5 py-4 border-b border-[#EDEDED] dark:border-gray-700">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[16px] font-medium text-[#1A1A1A] dark:text-white">
+                {filteredFarms.length} farms in view
+              </span>
+              <button
+                onClick={() => setIsPanelCollapsed(true)}
+                className="text-sm text-[#8C8C8C] hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
+                aria-label="Hide farm list"
+              >
+                Hide <ChevronRight className="w-3.5 h-3.5 inline" />
+              </button>
+            </div>
+            <label className="flex items-center gap-2 text-sm text-[#5C5C5C]">
+              <input
+                type="checkbox"
+                checked={searchAsIMove}
+                onChange={handleToggleSearchAsIMove}
+                className="rounded border-gray-300 text-[#2D5016] focus:ring-[#2D5016]"
+              />
+              Update as I move
+            </label>
           </div>
 
-          {/* Search as I Move Control - Top Right */}
-          <div className="absolute top-16 md:top-4 right-4 z-20">
-            <SearchAreaControl
-              searchAsIMove={searchAsIMove}
-              onToggle={handleToggleSearchAsIMove}
-              onSearchThisArea={handleSearchThisArea}
-              hasPendingSearch={!searchAsIMove && mapBounds !== activeBounds}
-              farmCount={filteredFarms.length}
-            />
-          </div>
-
-          {/* Filter Button - Bottom Left (Mobile) */}
-          <div className="md:hidden absolute bottom-24 left-4 z-20">
-            <button
-              onClick={() => setIsFilterPanelOpen(true)}
-              className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 rounded-full shadow-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all"
-            >
-              <Filter className="w-4 h-4 text-zinc-600 dark:text-zinc-300" />
-              <span className="text-sm font-medium text-zinc-700 dark:text-zinc-200">Filters</span>
-              {(filters.county || filters.category || filters.openNow) && (
-                <span className="w-2 h-2 bg-cyan-500 rounded-full" />
-              )}
-            </button>
-          </div>
-
-          {/* Filter Overlay Panel */}
-          <FilterOverlayPanel
-            isOpen={isFilterPanelOpen}
-            onClose={() => setIsFilterPanelOpen(false)}
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            counties={counties}
-            categories={categories}
-            farmCount={filteredFarms.length}
-          />
-
-          {/* Mobile: Enhanced Bottom Sheet with Farm List */}
-          <div
-            id="mobile-farm-list-region"
-            role="region"
-            aria-label="Farm shop list"
-            className="md:hidden absolute bottom-0 left-0 right-0 z-30 pointer-events-none"
-          >
-            <BottomSheet
-              isOpen={true}
-              snapPoints={[40, 200, 400]}
-              defaultSnap={0}
-              onHeightChange={(height) => {
-                setBottomSheetHeight(height)
-                window.dispatchEvent(new CustomEvent('map:setBottomPadding', { detail: height }))
-              }}
-              nonBlocking
-            >
-              {/* Enhanced Bottom Sheet Header - Mobile-First Design */}
-              <div className="px-4 py-4 border-b border-gray-100 dark:border-gray-700 bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-serum rounded-full animate-pulse"></div>
-                      <span className="text-caption font-semibold text-gray-900 dark:text-white">
-                        {filteredFarms.length} farms nearby
-                      </span>
-                    </div>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-8 h-1 bg-gray-200 rounded-full mx-auto mb-1"></div>
-                    <span className="text-small text-gray-400 font-medium">Pull up</span>
-                  </div>
-                </div>
-                
-                {/* Enhanced Action Buttons with Better Visual Hierarchy */}
-                <div className="flex items-center gap-3">
-                  <LocationTracker
-                    farms={farms}
-                    onLocationUpdate={setUserLocation}
-                    onFarmsUpdate={setFarms}
-                    onZoomToLocation={zoomToLocation}
-                    compact={true}
-                  />
-                  
-                  {/* Quick Filter Toggle - Mobile-First */}
-                  <button 
-                    onClick={() => {/* TODO: Implement quick filters */}}
-                    className="flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors"
-                  >
-                    <span className="w-4 h-4 text-gray-600">⚡</span>
-                    <span className="text-small font-medium text-gray-700">Quick</span>
-                  </button>
-                </div>
-              </div>
-              
-              {/* Farm List */}
-              <div className="flex-1 overflow-hidden">
-                <FarmList
-                  farms={filteredFarms}
-                  selectedFarmId={selectedFarmId}
-                  hoveredFarmId={hoveredFarmId}
-                  onFarmSelect={handleFarmSelect}
-                  onFarmHover={setHoveredFarmId}
-                  userLocation={userLocation}
-                  formatDistance={formatDistance}
-                  className="h-full"
-                />
-              </div>
-            </BottomSheet>
-          </div>
-
-          {/* Desktop: Sidebar with Farm List */}
-          <div
-            id="farm-list-region"
-            role="region"
-            aria-label="Farm shop list"
-            className="hidden md:block absolute right-0 top-0 bottom-0 w-96 bg-white dark:bg-gray-900 shadow-lg border-l border-gray-200 dark:border-gray-700"
-          >
+          {/* Farm List */}
+          <div className="flex-1 overflow-hidden">
             <FarmList
               farms={filteredFarms}
               selectedFarmId={selectedFarmId}
@@ -640,20 +655,30 @@ export default function MapPage() {
         </div>
       </div>
 
-      {/* Enhanced Loading Overlay - Mobile-First */}
+      {/* ========== PANEL EXPAND TAB (visible when collapsed) ========== */}
+      {isPanelCollapsed && (
+        <button
+          onClick={() => setIsPanelCollapsed(false)}
+          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 items-center gap-1 pl-2 pr-1 py-3 bg-white dark:bg-gray-900 border border-r-0 border-[#EDEDED] dark:border-gray-700 rounded-l-lg shadow-lg text-sm text-[#5C5C5C] hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
+          aria-label="Show farm list"
+        >
+          <ChevronLeft className="w-4 h-4" />
+          <span className="text-xs font-medium [writing-mode:vertical-lr] rotate-180">Show list</span>
+        </button>
+      )}
+
+      {/* ========== LOADING OVERLAY ========== */}
       {isLoading && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-2xl mx-4 max-w-sm w-full">
             <div className="relative mb-6">
               <div className="w-16 h-16 border-4 border-gray-100 dark:border-gray-600 rounded-full mx-auto"></div>
-              <div className="absolute inset-0 w-16 h-16 border-4 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="absolute inset-0 w-16 h-16 border-4 border-[#2D5016] border-t-transparent rounded-full animate-spin mx-auto"></div>
             </div>
             <h3 className="text-body font-semibold text-gray-900 dark:text-white mb-2">Loading Farms</h3>
             <p className="text-gray-600 dark:text-gray-300 text-caption">Finding local farm shops near you...</p>
-            
-            {/* Progress indicator */}
             <div className="mt-6 w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-serum h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+              <div className="bg-[#2D5016] h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
             </div>
           </div>
         </div>

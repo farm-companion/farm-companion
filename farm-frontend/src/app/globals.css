@@ -1223,16 +1223,15 @@ html {
   }
 }
 
-/* Desktop: account for search bar */
+/* Desktop: map fills full viewport minus header (search bar now floats on map) */
 @media (min-width: 768px) {
   .map-shell {
-    height: calc(100dvh - var(--header-h) - var(--search-h));
-    /* Fallback for browsers that don't support dvh */
-    height: calc(100vh - var(--header-h) - var(--search-h));
+    height: calc(100dvh - var(--header-h));
+    height: calc(100vh - var(--header-h));
   }
   @supports (height: 100dvh) {
-    .map-shell { 
-      height: calc(100dvh - var(--header-h) - var(--search-h)); 
+    .map-shell {
+      height: calc(100dvh - var(--header-h));
     }
   }
 }
@@ -1380,7 +1379,22 @@ html {
 
 /* Smooth bottom sheet transitions */
 .fc-sheet-content {
-  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* Preview card slide-up animation */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Reduced motion: collapse all animations */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* Enhanced mobile search bar */

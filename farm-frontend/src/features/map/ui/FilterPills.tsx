@@ -1,18 +1,20 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Clock, Leaf, Cherry, Coffee, Sparkles } from 'lucide-react'
+import { Clock, Leaf, Cherry, Coffee, UtensilsCrossed, SlidersHorizontal, X } from 'lucide-react'
 
 export interface FilterPillsState {
   openNow: boolean
   organic: boolean
   pyo: boolean
   cafe: boolean
+  butcher: boolean
 }
 
 interface FilterPillsProps {
   filters: FilterPillsState
   onFilterChange: (filters: FilterPillsState) => void
+  onMoreClick?: () => void
   className?: string
 }
 
@@ -20,56 +22,29 @@ interface PillConfig {
   key: keyof FilterPillsState
   label: string
   icon: React.ReactNode
-  activeColor: string
 }
 
 const PILLS: PillConfig[] = [
-  {
-    key: 'openNow',
-    label: 'Open Now',
-    icon: <Clock className="w-3.5 h-3.5" />,
-    activeColor: 'bg-secondary text-secondary-foreground',
-  },
-  {
-    key: 'organic',
-    label: 'Organic',
-    icon: <Leaf className="w-3.5 h-3.5" />,
-    activeColor: 'bg-secondary text-secondary-foreground',
-  },
-  {
-    key: 'pyo',
-    label: 'PYO',
-    icon: <Cherry className="w-3.5 h-3.5" />,
-    activeColor: 'bg-destructive text-destructive-foreground',
-  },
-  {
-    key: 'cafe',
-    label: 'Cafe',
-    icon: <Coffee className="w-3.5 h-3.5" />,
-    activeColor: 'bg-warning text-warning-foreground',
-  },
+  { key: 'openNow', label: 'Open Now', icon: <Clock className="w-3.5 h-3.5" /> },
+  { key: 'cafe', label: 'Cafe', icon: <Coffee className="w-3.5 h-3.5" /> },
+  { key: 'pyo', label: 'PYO', icon: <Cherry className="w-3.5 h-3.5" /> },
+  { key: 'organic', label: 'Organic', icon: <Leaf className="w-3.5 h-3.5" /> },
+  { key: 'butcher', label: 'Butcher', icon: <UtensilsCrossed className="w-3.5 h-3.5" /> },
 ]
 
 /**
- * FilterPills - Floating quick-toggle filter buttons
- *
- * Sits on top of the map for instant filtering:
- * - Open Now (green) - Shows only currently open farms
- * - Organic (green) - Shows organic certified farms
- * - PYO (red) - Shows Pick Your Own farms
- * - Cafe (amber) - Shows farms with cafes
+ * FilterPills - Floating quick-toggle filter buttons on the map.
+ * Styled per the god-tier redesign spec: pill-shaped, white default, brand green active.
  */
 export default function FilterPills({
   filters,
   onFilterChange,
+  onMoreClick,
   className = '',
 }: FilterPillsProps) {
   const toggleFilter = useCallback(
     (key: keyof FilterPillsState) => {
-      onFilterChange({
-        ...filters,
-        [key]: !filters[key],
-      })
+      onFilterChange({ ...filters, [key]: !filters[key] })
     },
     [filters, onFilterChange]
   )
@@ -85,13 +60,12 @@ export default function FilterPills({
             key={pill.key}
             onClick={() => toggleFilter(pill.key)}
             className={`
-              flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium
-              transition-all duration-200 ease-out
-              shadow-sm hover:shadow-md
+              flex items-center gap-1.5 h-9 px-4 rounded-full text-sm font-medium
+              transition-all duration-150 ease-out whitespace-nowrap
               ${
                 isActive
-                  ? `${pill.activeColor} ring-2 ring-offset-1 ring-offset-background ring-current`
-                  : 'bg-card text-foreground-secondary border border-border hover:bg-card-hover hover:border-border-strong'
+                  ? 'bg-[#2D5016] text-white shadow-sm'
+                  : 'bg-white text-[#5C5C5C] border border-[#E0E0E0] hover:bg-[#F5F5F5] hover:border-[#CCCCCC] hover:text-[#1A1A1A] shadow-sm'
               }
             `}
             aria-pressed={isActive}
@@ -103,6 +77,18 @@ export default function FilterPills({
         )
       })}
 
+      {/* More filters button */}
+      {onMoreClick && (
+        <button
+          onClick={onMoreClick}
+          className="flex items-center gap-1.5 h-9 px-4 rounded-full text-sm font-medium bg-white text-[#5C5C5C] border border-[#E0E0E0] hover:bg-[#F5F5F5] hover:border-[#CCCCCC] hover:text-[#1A1A1A] shadow-sm transition-all duration-150 whitespace-nowrap"
+          aria-label="More filters"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          <span>More</span>
+        </button>
+      )}
+
       {activeCount > 0 && (
         <button
           onClick={() =>
@@ -111,12 +97,13 @@ export default function FilterPills({
               organic: false,
               pyo: false,
               cafe: false,
+              butcher: false,
             })
           }
-          className="flex items-center gap-1 px-2 py-1.5 text-xs text-foreground-muted hover:text-foreground transition-colors"
+          className="flex items-center gap-1 h-9 px-3 rounded-full text-xs text-[#8C8C8C] hover:text-[#1A1A1A] hover:bg-white/80 transition-colors whitespace-nowrap"
           aria-label="Clear all filters"
         >
-          <Sparkles className="w-3 h-3" />
+          <X className="w-3 h-3" />
           Clear
         </button>
       )}
@@ -133,6 +120,7 @@ export function useFilterPills(initialState?: Partial<FilterPillsState>) {
     organic: false,
     pyo: false,
     cafe: false,
+    butcher: false,
     ...initialState,
   })
 
@@ -151,38 +139,28 @@ export function applyPillFilters<T extends {
   isFarmOpen: (hours?: Array<{ day: string; open: string; close: string }>) => boolean
 ): T[] {
   return farms.filter((farm) => {
-    // Open Now filter
-    if (filters.openNow && !isFarmOpen(farm.hours)) {
-      return false
-    }
+    if (filters.openNow && !isFarmOpen(farm.hours)) return false
 
-    // Organic filter
     if (filters.organic) {
-      const hasOrganic = farm.offerings?.some(
-        (o) => o.toLowerCase().includes('organic')
-      )
-      if (!hasOrganic) return false
+      if (!farm.offerings?.some((o) => o.toLowerCase().includes('organic'))) return false
     }
 
-    // PYO filter
     if (filters.pyo) {
-      const hasPYO = farm.offerings?.some(
-        (o) =>
-          o.toLowerCase().includes('pick your own') ||
-          o.toLowerCase().includes('pyo')
-      )
-      if (!hasPYO) return false
+      if (!farm.offerings?.some((o) =>
+        o.toLowerCase().includes('pick your own') || o.toLowerCase().includes('pyo')
+      )) return false
     }
 
-    // Cafe filter
     if (filters.cafe) {
-      const hasCafe = farm.offerings?.some(
-        (o) =>
-          o.toLowerCase().includes('cafe') ||
-          o.toLowerCase().includes('coffee') ||
-          o.toLowerCase().includes('tea room')
-      )
-      if (!hasCafe) return false
+      if (!farm.offerings?.some((o) =>
+        o.toLowerCase().includes('cafe') || o.toLowerCase().includes('coffee') || o.toLowerCase().includes('tea room')
+      )) return false
+    }
+
+    if (filters.butcher) {
+      if (!farm.offerings?.some((o) =>
+        o.toLowerCase().includes('butcher') || o.toLowerCase().includes('meat')
+      )) return false
     }
 
     return true
