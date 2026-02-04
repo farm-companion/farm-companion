@@ -28,6 +28,10 @@ function cspFor(req: NextRequest) {
     'https://*.stadiamaps.com',
     // Leaflet marker icons CDN
     'https://unpkg.com',
+    // Runware AI-generated images
+    'https://im.runware.ai',
+    // Vercel Blob storage
+    'https://*.public.blob.vercel-storage.com',
   ]
   const connect = [
     "'self'",
