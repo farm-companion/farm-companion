@@ -157,23 +157,23 @@ export default function Footer() {
               </p>
             )}
 
-            <div className="flex items-center gap-6">
-              {(['Instagram', 'Facebook', 'X'] as const).map((platform) => (
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              {[
+                { label: 'Instagram', href: 'https://instagram.com/farmcompanion' },
+                { label: 'Facebook', href: 'https://facebook.com/farmcompanion' },
+                { label: 'X', href: 'https://x.com/farmcompanion' },
+                { label: 'Bluesky', href: 'https://bsky.app/profile/farmcompanion.bsky.social' },
+                { label: 'Telegram', href: 'https://t.me/farmcompanion' },
+              ].map((link) => (
                 <a
-                  key={platform}
-                  href={
-                    platform === 'Instagram'
-                      ? 'https://instagram.com/farmcompanion'
-                      : platform === 'Facebook'
-                        ? 'https://facebook.com/farmcompanion'
-                        : 'https://x.com/farmcompanion'
-                  }
+                  key={link.label}
+                  href={link.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  aria-label={`Follow us on ${platform}`}
+                  aria-label={`Follow us on ${link.label}`}
                   className="text-xs tracking-[0.1em] uppercase text-foreground-muted hover:text-foreground transition-colors"
                 >
-                  {platform}
+                  {link.label}
                 </a>
               ))}
             </div>
