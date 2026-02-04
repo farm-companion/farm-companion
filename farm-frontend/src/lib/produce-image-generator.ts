@@ -111,7 +111,13 @@ const PRODUCE_NEGATIVE_OVERRIDES: Record<string, string> = {
   'blackberries': 'blueberry crown, calyx hole, blossom-end cavity, currant, grape, bead cluster, perfect spheres, toy fruit, over-polished, fused berries, extra berries',
   'raspberries': 'solid center, blueberry crown, calyx holes, perfect spheres, bead cluster, fused berries',
   'blueberries': 'raspberry drupelets, blackberry structure, hollow center, irregular drupelets',
-  'strawberries': 'raspberry drupelets, blackberry drupelets, smooth surface, missing seeds'
+  'strawberries': 'raspberry drupelets, blackberry drupelets, smooth surface, missing seeds',
+  'kale': 'smooth leaves, flat leaves, cabbage head, lettuce, spinach, chard, generic green leaf, solid head, iceberg, romaine, unidentifiable green, abstract green texture, micro close-up without context',
+  'cavolo-nero': 'curly kale, ruffled edges, cabbage head, lettuce, spinach, bright green, generic green leaf, round leaves',
+  'spinach': 'kale, chard, curly leaves, ruffled edges, thick stems, cabbage, lobed leaves, generic green leaf',
+  'rocket': 'round leaves, smooth margins, lettuce, spinach, cabbage, basil, generic green leaf, broad leaves',
+  'watercress': 'kale, cabbage, lettuce, large leaves, lobed leaves, ruffled edges, generic green leaf, dry surface',
+  'swiss-chard': 'kale, cabbage, spinach, narrow stems, ruffled edges, lobed leaves, generic green leaf'
 }
 
 /**
@@ -148,8 +154,8 @@ function getMaisonConcept(category: ProduceCategory, variant: MaisonVariant): st
     alliums: 'balanced stack of three, aligned vertical axis, slight offset, sculptural still life',
     stalks: 'parallel alignment with slight stagger, graphic repetition, clean negative space',
     root: 'parallel alignment with slight stagger, graphic repetition, clean negative space',
-    leafy_ruffled: 'single leaf cluster folded into a clean arc, sculptural drape, minimal composition',
-    leafy_flat: 'single leaf cluster folded into a clean arc, sculptural drape, minimal composition',
+    leafy_ruffled: 'bunch of leaves arranged vertically with stalks gathered at base, sculptural three-dimensional form, species clearly identifiable from leaf shape and texture, not a close-up crop',
+    leafy_flat: 'loose pile or small bunch of leaves with natural overlap, species clearly identifiable from leaf shape and silhouette, not a close-up crop, full leaves visible',
     brambles: 'single cluster suspended or gently resting, controlled shadow, macro texture emphasis',
     blueberries: 'single cluster suspended or gently resting, controlled shadow, macro texture emphasis',
     strawberries: 'single specimen larger in frame, centered, calm gradient background, soft shadow'
@@ -359,9 +365,9 @@ const PRODUCE_TEXTURES: Record<ProduceCategory, string> = {
 
   citrus: `Glistening juice vesicles, textured peel with visible oil glands and pith, natural citrus oils on surface`,
 
-  leafy_ruffled: `Botanical specimen. Prominent leaf venation, ruffled lamina edges, thick pale petioles, deep blue-green chlorophyll`,
+  leafy_ruffled: `Botanical specimen of a specific brassica cultivar. Deeply lobed fractal-ruffled lamina, thick fibrous midrib contrasting with blade, visible epicuticular wax bloom, blue-green waxy cuticle, three-dimensional curl away from midrib`,
 
-  leafy_flat: `Delicate leaf venation, smooth margins, vibrant chlorophyll green, natural texture`,
+  leafy_flat: `Botanical specimen of a specific salad leaf. Smooth or gently undulating margins, tender succulent blade, visible venation pattern, natural moisture sheen, species-specific leaf silhouette clearly identifiable`,
 
   root: `Natural root skin with lenticels, authentic soil marks, fine root hairs, organic imperfections`,
 
