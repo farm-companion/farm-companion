@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
+import Image from 'next/image'
 import { MapPin, ChevronRight, Leaf } from 'lucide-react'
 import { Virtuoso } from 'react-virtuoso'
 import type { FarmShop } from '@/types/farm'
@@ -85,11 +86,14 @@ export default function FarmList({
           {/* Thumbnail */}
           <div className="w-[72px] h-[72px] rounded-lg bg-[#F5F5F5] dark:bg-gray-800 flex-shrink-0 overflow-hidden">
             {heroImage ? (
-              <img
+              <Image
                 src={heroImage}
                 alt={farm.name}
+                width={72}
+                height={72}
                 className="w-full h-full object-cover"
                 loading="lazy"
+                sizes="72px"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
