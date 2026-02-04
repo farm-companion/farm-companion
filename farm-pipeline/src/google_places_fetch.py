@@ -13,7 +13,7 @@ import hashlib
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import httpx
-from models import FarmShop, Location, Contact
+from models import FarmShop, Location, Contact, OpeningHour
 from utils_geo import slugify, haversine_km
 from description_generator import enhance_place_data_with_description
 
@@ -141,7 +141,7 @@ async def get_place_details(client: httpx.AsyncClient, place_id: str) -> Optiona
     url = "https://maps.googleapis.com/maps/api/place/details/json"
     params = {
         "place_id": place_id,
-        "fields": "name,formatted_address,address_components,international_phone_number,rating,user_ratings_total,price_level,reviews,editorial_summary,photos,website,url,geometry",
+        "fields": "name,formatted_address,address_components,international_phone_number,rating,user_ratings_total,price_level,reviews,editorial_summary,photos,website,url,geometry,opening_hours",
         "key": GOOGLE_API_KEY
     }
     
@@ -187,6 +187,40 @@ async def get_place_images(client: httpx.AsyncClient, place_id: str, photos: Lis
             continue
     
     return image_urls
+
+DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+def parse_opening_hours(opening_hours: Optional[Dict[str, Any]]) -> List[Dict[str, Optional[str]]]:
+    """Parse Google Places opening_hours into [{day, open, close}, ...] format."""
+    if not opening_hours:
+        return []
+
+    periods = opening_hours.get('periods', [])
+    if not periods:
+        return []
+
+    result = []
+    for period in periods:
+        open_info = period.get('open', {})
+        close_info = period.get('close', {})
+        day_num = open_info.get('day')
+        if day_num is None:
+            continue
+        open_time = open_info.get('time', '')
+        close_time = close_info.get('time', '')
+        # Format "0900" -> "09:00"
+        if len(open_time) == 4:
+            open_time = f"{open_time[:2]}:{open_time[2:]}"
+        if len(close_time) == 4:
+            close_time = f"{close_time[:2]}:{close_time[2:]}"
+        if day_num < len(DAY_NAMES):
+            result.append({
+                'day': DAY_NAMES[day_num],
+                'open': open_time,
+                'close': close_time,
+            })
+    return result
+
 
 def parse_address_components(address_components: List[Dict], formatted_address: str) -> Dict[str, str]:
     """Parse address components into structured format with proper UK county extraction."""
@@ -484,6 +518,9 @@ async def main():
                 print(f"  ⚠️  No place_id for {name}, skipping")
                 continue
                 
+            # Parse opening hours from Google Places response
+            hours = parse_opening_hours(place.get('opening_hours'))
+
             shop = FarmShop(
                 id=generate_farm_id(name, place_id),
                 name=name,
@@ -491,6 +528,7 @@ async def main():
                 location=location,
                 contact=contact,
                 offerings=place.get('offerings', []),
+                hours=[OpeningHour(**h) for h in hours],
                 images=place.get('images', []),
                 rating=place.get('rating'),
                 user_ratings_total=place.get('user_ratings_total'),
