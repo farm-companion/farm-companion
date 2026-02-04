@@ -23,36 +23,41 @@ interface ClaimFarm {
 }
 
 async function getClaimFarms(): Promise<{ farms: ClaimFarm[]; total: number; countyCount: number }> {
-  const farms = await prisma.farm.findMany({
-    where: { status: 'active' },
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      county: true,
-      postcode: true,
-      address: true,
-      phone: true,
-      verified: true,
-    },
-    orderBy: [{ county: 'asc' }, { name: 'asc' }],
-  })
+  try {
+    const farms = await prisma.farm.findMany({
+      where: { status: 'active' },
+      select: {
+        id: true,
+        name: true,
+        slug: true,
+        county: true,
+        postcode: true,
+        address: true,
+        phone: true,
+        verified: true,
+      },
+      orderBy: [{ county: 'asc' }, { name: 'asc' }],
+    })
 
-  const counties = new Set(farms.map(f => f.county))
+    const counties = new Set(farms.map(f => f.county))
 
-  return {
-    farms: farms.map(f => ({
-      id: f.id,
-      name: f.name,
-      slug: f.slug,
-      county: f.county,
-      postcode: f.postcode,
-      address: f.address,
-      phone: f.phone,
-      verified: f.verified,
-    })),
-    total: farms.length,
-    countyCount: counties.size,
+    return {
+      farms: farms.map(f => ({
+        id: f.id,
+        name: f.name,
+        slug: f.slug,
+        county: f.county,
+        postcode: f.postcode,
+        address: f.address,
+        phone: f.phone,
+        verified: f.verified,
+      })),
+      total: farms.length,
+      countyCount: counties.size,
+    }
+  } catch (error) {
+    console.warn(`[claim] getClaimFarms failed (expected during build without DB): ${error}`)
+    return { farms: [], total: 0, countyCount: 0 }
   }
 }
 

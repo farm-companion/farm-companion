@@ -81,6 +81,18 @@ async function testEndpointWithRetries(endpoint, baseURL, retries = PRODUCTION_C
       }
     }
   }
+
+  // Fallback if all attempts returned non-success without throwing
+  return {
+    endpoint: endpoint.name,
+    url: endpoint.url,
+    status: 'error',
+    expectedStatus: endpoint.expectedStatus,
+    success: false,
+    performanceOK: false,
+    responseTime: 0,
+    message: `All ${retries} attempts failed`
+  };
 }
 
 // Test individual endpoint
@@ -428,7 +440,7 @@ function generateProductionHealthReport(endpointResults, environmentResults, sec
   
   const report = {
     timestamp: new Date().toISOString(),
-    environment: 'production',
+    env: 'production',
     summary: {
       total: allResults.length,
       passed: allResults.filter(r => r.success || r.status === 'passed').length,

@@ -1,79 +1,113 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import Link from 'next/link'
 
 const footerSections = [
   {
-    title: 'Explore',
+    title: 'Discover',
     links: [
-      { href: '/map', label: 'Farm Shop Map' },
+      { href: '/map', label: 'Find Farms Near Me' },
       { href: '/seasonal', label: "What's in Season" },
       { href: '/counties', label: 'Browse by County' },
-      { href: '/about', label: 'About Us' },
+      { href: '/best', label: "Editor's Picks" },
+      { href: '/about', label: 'About' },
+      { href: '/privacy', label: 'Privacy & Terms' },
     ],
   },
   {
     title: 'For Farm Shops',
     links: [
-      { href: '/add', label: 'Add Your Shop' },
-      { href: '/claim', label: 'Claim Your Listing' },
-      { href: '/contact', label: 'Leave Feedback' },
-    ],
-  },
-  {
-    title: 'Legal & Support',
-    links: [
-      { href: '/privacy', label: 'Privacy Policy' },
-      { href: '/terms', label: 'Terms of Service' },
-      {
-        href: 'https://github.com/farm-companion/farm-frontend/issues/new?title=Data%20fix%3A%20%5Bfarm%20name%5D%20(%5Bslug%5D)%20%E2%80%94%20%5Burl%5D&labels=data%2Creport&template=data_fix.yml',
-        label: 'Report an Issue',
-        external: true,
-      },
+      { href: '/add', label: 'Add Your Listing' },
+      { href: '/claim', label: 'Update Your Details' },
+      { href: '/contact', label: 'Contact Us' },
     ],
   },
 ]
 
 const socialLinks = [
   {
+    href: 'https://instagram.com/farmcompanion',
+    label: 'Instagram',
+    ariaLabel: 'Follow us on Instagram',
+  },
+  {
+    href: 'https://facebook.com/farmcompanion',
+    label: 'Facebook',
+    ariaLabel: 'Follow us on Facebook',
+  },
+  {
     href: 'https://x.com/farmcompanion',
     label: 'X',
     ariaLabel: 'Follow us on X',
-  },
-  {
-    href: 'https://bsky.app/profile/farmcompanion.bsky.social',
-    label: 'Bluesky',
-    ariaLabel: 'Follow us on Bluesky',
-  },
-  {
-    href: 'https://t.me/farmcompanion',
-    label: 'Telegram',
-    ariaLabel: 'Join our Telegram channel',
   },
 ]
 
 export default function Footer() {
   const [currentYear, setCurrentYear] = useState(2026)
+  const [email, setEmail] = useState('')
+  const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
   useEffect(() => {
     setCurrentYear(new Date().getFullYear())
   }, [])
 
+  const handleSubscribe = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!email) return
+    // Placeholder: wire to real endpoint later
+    setSubscribeStatus('success')
+    setEmail('')
+  }
+
   return (
     <footer className="border-t border-border bg-background-secondary">
       <div className="max-w-2xl mx-auto px-6 py-16">
-        {/* Brand */}
+
+        {/* Newsletter */}
         <div className="text-center mb-16">
           <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
 
           <h2 className="font-serif text-2xl md:text-3xl font-normal text-foreground tracking-tight">
-            Farm Companion
+            Stay in the Loop
           </h2>
 
-          <p className="mt-4 text-foreground-muted text-sm">
-            The UK&apos;s premium guide to real food, real people, and real places.
+          <p className="mt-4 text-foreground-muted text-sm mb-8">
+            What&apos;s in season. What&apos;s worth the drive. One email per month.
           </p>
+
+          <form
+            onSubmit={handleSubscribe}
+            className="flex items-center max-w-sm mx-auto"
+          >
+            <label htmlFor="footer-email" className="sr-only">
+              Email address
+            </label>
+            <input
+              id="footer-email"
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value)
+                if (subscribeStatus !== 'idle') setSubscribeStatus('idle')
+              }}
+              placeholder="Your email address"
+              required
+              className="flex-1 border-0 border-b bg-transparent px-0 py-3 text-foreground placeholder:text-foreground-muted/50 focus:border-foreground focus:outline-none focus:ring-0 border-border"
+            />
+            <button
+              type="submit"
+              className="ml-4 text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity duration-300 flex-shrink-0"
+            >
+              Subscribe
+            </button>
+          </form>
+
+          {subscribeStatus === 'success' && (
+            <p className="mt-4 text-sm text-foreground-muted">
+              Thanks. You&apos;ll hear from us soon.
+            </p>
+          )}
         </div>
 
         {/* Link Sections */}
@@ -86,23 +120,12 @@ export default function Footer() {
               <ul className="space-y-3 border-t border-border pt-4">
                 {section.links.map((link) => (
                   <li key={link.label}>
-                    {link.external ? (
-                      <a
-                        href={link.href}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-foreground hover:opacity-70 transition-opacity"
-                      >
-                        {link.label}
-                      </a>
-                    ) : (
-                      <Link
-                        href={link.href}
-                        className="text-foreground hover:opacity-70 transition-opacity"
-                      >
-                        {link.label}
-                      </Link>
-                    )}
+                    <Link
+                      href={link.href}
+                      className="text-foreground hover:opacity-70 transition-opacity"
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
