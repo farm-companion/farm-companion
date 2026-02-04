@@ -1,20 +1,42 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import dynamic from 'next/dynamic'
 import { MapPin, ArrowRight, Calendar, Heart } from 'lucide-react'
-import NewsletterSignup from '@/components/NewsletterSignup'
 import { getFarmStats } from '@/lib/farm-data'
 import { SITE_URL } from '@/lib/site'
-import { FeaturedGuides } from '@/components/FeaturedGuides'
-import { CategoryGrid } from '@/components/CategoryGrid'
 import { AnimatedHero } from '@/components/AnimatedHero'
-import { AnimatedStats } from '@/components/AnimatedStats'
-import { AnimatedFeatures } from '@/components/AnimatedFeatures'
-import { SeasonalShowcase } from '@/components/SeasonalShowcase'
-import { NearbyFarms } from '@/components/NearbyFarms'
 import { OpenNowCTA } from '@/components/OpenNowCTA'
-import { WeekendPlanner } from '@/components/WeekendPlanner'
-import { SocialProofTicker } from '@/components/SocialProofTicker'
+
+// Lazy-load below-fold sections to reduce initial JS bundle via code splitting.
+// Each dynamic() call produces a separate chunk loaded on demand.
+const SocialProofTicker = dynamic(
+  () => import('@/components/SocialProofTicker').then(m => m.SocialProofTicker)
+)
+const AnimatedStats = dynamic(
+  () => import('@/components/AnimatedStats').then(m => m.AnimatedStats)
+)
+const SeasonalShowcase = dynamic(
+  () => import('@/components/SeasonalShowcase').then(m => m.SeasonalShowcase)
+)
+const FeaturedGuides = dynamic(
+  () => import('@/components/FeaturedGuides').then(m => m.FeaturedGuides)
+)
+const CategoryGrid = dynamic(
+  () => import('@/components/CategoryGrid').then(m => m.CategoryGrid)
+)
+const NearbyFarms = dynamic(
+  () => import('@/components/NearbyFarms').then(m => m.NearbyFarms)
+)
+const WeekendPlanner = dynamic(
+  () => import('@/components/WeekendPlanner').then(m => m.WeekendPlanner)
+)
+const AnimatedFeatures = dynamic(
+  () => import('@/components/AnimatedFeatures').then(m => m.AnimatedFeatures)
+)
+const NewsletterSignup = dynamic(
+  () => import('@/components/NewsletterSignup')
+)
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -157,7 +179,7 @@ export default async function HomePage() {
             className="object-cover object-center"
             sizes="100vw"
             quality={80}
-            priority
+            loading="lazy"
             placeholder="blur"
             blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
           />
