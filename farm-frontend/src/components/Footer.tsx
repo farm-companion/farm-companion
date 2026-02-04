@@ -109,8 +109,9 @@ export default function Footer() {
               <div className="w-10 border-t border-border" />
               <div className="flex items-center gap-5">
                 {[
-                  { label: 'Instagram', href: 'https://instagram.com/farmcompanion' },
-                  { label: 'Facebook', href: 'https://facebook.com/farmcompanion' },
+                  { label: 'X', href: 'https://x.com/farmcompanion' },
+                  { label: 'Bluesky', href: 'https://bsky.app/profile/farmcompanion.bsky.social' },
+                  { label: 'Telegram', href: 'https://t.me/farmcompanion' },
                 ].map((link) => (
                   <a
                     key={link.label}
@@ -191,8 +192,9 @@ export default function Footer() {
               </p>
               <div className="flex items-center gap-5 pt-1">
                 {[
-                  { label: 'Instagram', href: 'https://instagram.com/farmcompanion' },
-                  { label: 'Facebook', href: 'https://facebook.com/farmcompanion' },
+                  { label: 'X', href: 'https://x.com/farmcompanion' },
+                  { label: 'Bluesky', href: 'https://bsky.app/profile/farmcompanion.bsky.social' },
+                  { label: 'Telegram', href: 'https://t.me/farmcompanion' },
                 ].map((link) => (
                   <a
                     key={link.label}
