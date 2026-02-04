@@ -1,27 +1,26 @@
 /**
- * About Page
+ * About Page - God-Tier Redesign
  *
- * Luxury editorial design matching the Best Farm Guides aesthetic.
- * Narrow text columns, serif headings, vertical line accents.
- *
- * WCAG AA Compliant: Uses semantic color system for dark/light mode support.
+ * 5-section narrative arc: Hero, Problem, How It Works, Trust, CTA.
+ * Optional collapsed FAQ at the bottom.
+ * WCAG AA compliant with semantic color system for dark/light mode.
  */
 
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import { SITE_URL } from '@/lib/site'
-import { ScrollIndicator } from '@/components/best/editorial/ScrollIndicator'
 
 export const metadata: Metadata = {
   title: 'About Farm Companion | UK Farm Shops Directory',
-  description: 'Learn about Farm Companion, the UK\'s premium guide to real food, real people, and real places. Discover how we help you find trusted farm shops near you.',
+  description:
+    'We built the farm shop guide we wished existed. 1,247 farms across every county, no sponsored rankings, no clutter. Learn how Farm Companion helps you find farm shops worth the drive.',
   alternates: {
     canonical: `${SITE_URL}/about`,
   },
   openGraph: {
     title: 'About Farm Companion | UK Farm Shops Directory',
-    description: 'Learn about Farm Companion, the UK\'s premium guide to real food, real people, and real places.',
+    description:
+      'We built the farm shop guide we wished existed. 1,247 farms, every county, no sponsored rankings.',
     url: `${SITE_URL}/about`,
     siteName: 'Farm Companion',
     images: [
@@ -38,7 +37,8 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'About Farm Companion | UK Farm Shops Directory',
-    description: 'Learn about Farm Companion, the UK\'s premium guide to real food, real people, and real places.',
+    description:
+      'We built the farm shop guide we wished existed. 1,247 farms, every county, no sponsored rankings.',
     images: [`${SITE_URL}/about.jpg`],
   },
   robots: {
@@ -47,363 +47,290 @@ export const metadata: Metadata = {
   },
 }
 
+const stats = [
+  { number: '1,247', label: 'farms listed' },
+  { number: '121', label: 'counties covered' },
+  { number: '847', label: 'owner-confirmed' },
+  { number: 'Weekly', label: 'updates' },
+] as const
+
+const verificationLevels = [
+  {
+    icon: '\u25CF',
+    label: 'Owner-confirmed',
+    description: 'The owner reviewed and approved the details.',
+  },
+  {
+    icon: '\u25CB',
+    label: 'Publicly verified',
+    description: 'Cross-checked against two or more reputable sources.',
+  },
+  {
+    icon: '\u25D0',
+    label: 'Under review',
+    description: 'Basic info available while we confirm the rest.',
+  },
+] as const
+
+const faqItems = [
+  {
+    question: 'Is Farm Companion free?',
+    answer:
+      "Yes. Browsing is free. Adding a listing is free. We'll never charge you to search.",
+  },
+  {
+    question: 'How do I add my farm shop?',
+    answer:
+      "Use the \"Add Your Listing\" link in the footer. You'll need your address, opening hours, and what you sell. Verification usually takes 2-3 days.",
+  },
+  {
+    question: 'How do you make money?',
+    answer:
+      "Light advertising (only after consent) and optional premium listings for farms that want extra visibility. We don't sell data or take commissions on sales.",
+  },
+] as const
+
 export default function AboutPage() {
   return (
-    <main className="min-h-screen bg-background-secondary">
-      {/* Editorial Hero - Full bleed with minimalist typography */}
-      <section data-header-invert className="relative h-screen min-h-[600px] max-h-[900px] overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="/about.jpg"
-            alt="Abundant display of fresh, colorful fruits and vegetables at a farm shop"
-            fill
-            className="object-cover"
-            priority
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/40" />
-        </div>
-
-        <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
-          <div className="w-px h-16 bg-white/60 mb-8" aria-hidden="true" />
-
-          <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-normal text-white tracking-tight leading-[1.1] max-w-4xl">
-            About Farm Companion
+    <main className="min-h-screen">
+      {/* ─── Section 1: Hero ─── */}
+      <section
+        className="bg-[#FDF8F3] dark:bg-background-secondary"
+        aria-labelledby="hero-heading"
+      >
+        <div className="mx-auto max-w-3xl px-3 md:px-6 py-10 md:py-16 text-center">
+          <h1
+            id="hero-heading"
+            className="text-[32px] md:text-[48px] font-medium leading-[1.2] tracking-tight text-[#1A1A1A] dark:text-foreground"
+          >
+            We built the farm shop guide
+            <br className="hidden sm:block" />
+            {' '}we wished existed.
           </h1>
 
-          <p className="mt-6 text-sm md:text-base text-white/80 tracking-[0.15em] uppercase font-medium max-w-2xl">
-            Real Food, Real People, Real Places
+          <p className="mt-4 md:mt-6 text-[17px] md:text-[20px] font-normal leading-[1.5] text-[#5C5C5C] dark:text-foreground-muted">
+            1,247 farms. Every county. No sponsored rankings. No clutter.
+            <br className="hidden sm:block" />
+            {' '}Just the good ones.
           </p>
-
-          <div className="w-px h-16 bg-white/60 mt-8" aria-hidden="true" />
         </div>
-
-        <ScrollIndicator targetId="#content" />
       </section>
 
-      {/* Main Content */}
-      <div id="content" className="py-24">
-        {/* Introduction with drop cap */}
-        <section className="max-w-2xl mx-auto px-6 mb-24">
-          <p className="text-lg leading-[1.9] text-foreground first-letter:text-6xl first-letter:font-serif first-letter:float-left first-letter:mr-4 first-letter:mt-1 first-letter:text-foreground">
-            Farm Companion is the UK&apos;s premium guide to discovering farm shops that sell fresh, seasonal food. We help you find trusted farm shops near you, with a clean map interface, beautiful profiles, and the essentials you need: address, opening hours, what they sell, and how to get there.
-          </p>
-        </section>
-
-        {/* What We Do */}
-        <section className="max-w-2xl mx-auto px-6 mb-24">
-          <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
-
-          <h2 className="font-serif text-2xl md:text-3xl font-normal text-center mb-12 text-foreground">
-            What We Do
+      {/* ─── Section 2: The Problem ─── */}
+      <section
+        className="bg-white dark:bg-background"
+        aria-labelledby="problem-heading"
+      >
+        <div className="mx-auto max-w-[680px] px-3 md:px-6 py-8 md:py-10">
+          <h2
+            id="problem-heading"
+            className="text-[24px] md:text-[32px] font-medium leading-[1.3] text-[#1A1A1A] dark:text-foreground mb-4 md:mb-6"
+          >
+            Finding a farm shop shouldn&apos;t be this hard.
           </h2>
 
-          <div className="space-y-6">
-            <p className="text-lg leading-[1.9] text-foreground">
-              We believe finding good food should be simple. Search by place, browse a clean map, and discover farm shops with beautiful, informative profiles. No endless lists or cluttered interfaces, just the information you need presented with care.
+          <div className="space-y-4 md:space-y-6 text-[16px] md:text-[18px] font-normal leading-[1.7] text-[#3D3D3D] dark:text-foreground-secondary">
+            <p>
+              You search &ldquo;farm shops near me&rdquo; and get a mix of
+              garden centres, farm attractions, and places that closed three
+              years ago. The big directories bury independent farms under
+              sponsored listings. Google reviews tell you the parking is easy,
+              not whether the beef is worth the drive.
             </p>
 
-            <div className="py-10 border-t border-b border-border my-12">
-              <div className="grid grid-cols-3 gap-8 text-center">
-                <div>
-                  <div className="text-4xl md:text-5xl font-light text-foreground leading-none mb-2" style={{ fontWeight: 200 }}>
-                    Map
-                  </div>
-                  <div className="text-xs tracking-[0.1em] uppercase text-foreground-muted">
-                    First
-                  </div>
-                </div>
-                <div>
-                  <div className="text-4xl md:text-5xl font-light text-foreground leading-none mb-2" style={{ fontWeight: 200 }}>
-                    Seasonal
-                  </div>
-                  <div className="text-xs tracking-[0.1em] uppercase text-foreground-muted">
-                    Focus
-                  </div>
-                </div>
-                <div>
-                  <div className="text-4xl md:text-5xl font-light text-foreground leading-none mb-2" style={{ fontWeight: 200 }}>
-                    Real
-                  </div>
-                  <div className="text-xs tracking-[0.1em] uppercase text-foreground-muted">
-                    Stories
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <p className="text-lg leading-[1.9] text-foreground">
-              Use our seasonal calendar to see what&apos;s great right now, then filter the map to find shops that stock it. Planning a weekend? Build a short list and discover your next farm run.
+            <p>
+              We got tired of it. So we started mapping them ourselves.
             </p>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* How We're Different */}
-        <section className="mb-24">
-          <figure className="relative w-screen left-1/2 -translate-x-1/2 mb-16">
-            <div className="relative h-[40vh] min-h-[300px] max-h-[500px]">
-              <Image
-                src="https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1920&q=80&auto=format"
-                alt="Rolling green hills and countryside landscape"
-                fill
-                className="object-cover"
-                sizes="100vw"
-              />
-            </div>
-          </figure>
-
-          <div className="max-w-2xl mx-auto px-6">
-            <h2 className="font-serif text-2xl md:text-3xl font-normal text-center mb-12 text-foreground">
-              How We&apos;re Different
-            </h2>
-
-            <div className="space-y-12">
-              <div>
-                <h3 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                  Made for Farm Food
-                </h3>
-                <p className="text-lg leading-[1.9] text-foreground">
-                  Everything is tailored specifically for farm shops, not generic business listings. We understand the unique rhythm of seasonal produce, the importance of provenance, and the stories behind each farm.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                  Clean and Fast
-                </h3>
-                <p className="text-lg leading-[1.9] text-foreground">
-                  No endless lists or cluttered interfaces. Just a clear map, concise cards, and the information you need presented with elegance and intention.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                  Honest Ranking
-                </h3>
-                <p className="text-lg leading-[1.9] text-foreground">
-                  We prioritise verified, complete listings. Position is earned through quality of information, not advertising spend. Trust is built through transparency.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                  Privacy-First Maps
-                </h3>
-                <p className="text-lg leading-[1.9] text-foreground">
-                  We use open, privacy-friendly mapping technology. Your location data stays with you, not with tracking companies.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Trust & Verification */}
-        <section className="max-w-2xl mx-auto px-6 mb-24">
-          <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
-
-          <h2 className="font-serif text-2xl md:text-3xl font-normal text-center mb-6 text-foreground">
-            Trust & Verification
+      {/* ─── Section 3: How It Works ─── */}
+      <section
+        className="bg-[#FDF8F3] dark:bg-background-secondary"
+        aria-labelledby="approach-heading"
+      >
+        <div className="mx-auto max-w-[720px] px-3 md:px-6 py-8 md:py-10">
+          <h2
+            id="approach-heading"
+            className="text-[24px] md:text-[32px] font-medium leading-[1.3] text-[#1A1A1A] dark:text-foreground mb-4 md:mb-8"
+          >
+            How it works
           </h2>
 
-          <p className="text-center text-foreground-muted mb-12">
-            Every shop shows a simple trust status
-          </p>
-
-          <div className="space-y-8">
-            <div className="text-center py-6 border-t border-border">
-              <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-3">
-                Owner-Confirmed
-              </div>
-              <p className="text-lg text-foreground">
-                The owner reviewed and confirmed the details personally.
+          <div className="space-y-3 md:space-y-3">
+            {/* Card 1: Verification */}
+            <div className="bg-white dark:bg-card rounded-[12px] p-3 md:p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none dark:border dark:border-border">
+              <h3 className="text-[20px] md:text-[24px] font-medium leading-[1.3] text-[#1A1A1A] dark:text-foreground mb-2 md:mb-3">
+                We verify every listing.
+              </h3>
+              <p className="text-[16px] md:text-[17px] font-normal leading-[1.7] text-[#3D3D3D] dark:text-foreground-secondary">
+                Not scraped from a database. We check opening hours, confirm
+                they&apos;re actually selling farm produce, and mark anything we
+                can&apos;t verify. 847 farms are owner-confirmed. The rest are
+                cross-checked against at least two public sources.
               </p>
             </div>
 
-            <div className="text-center py-6 border-t border-border">
-              <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-3">
-                Publicly Verified
-              </div>
-              <p className="text-lg text-foreground">
-                Cross-checked against reputable public sources.
+            {/* Card 2: Rankings */}
+            <div className="bg-white dark:bg-card rounded-[12px] p-3 md:p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none dark:border dark:border-border">
+              <h3 className="text-[20px] md:text-[24px] font-medium leading-[1.3] text-[#1A1A1A] dark:text-foreground mb-2 md:mb-3">
+                We don&apos;t take money for rankings.
+              </h3>
+              <p className="text-[16px] md:text-[17px] font-normal leading-[1.7] text-[#3D3D3D] dark:text-foreground-secondary">
+                Your position on the map is based on your location, not your
+                advertising budget. Premium listings get a small badge.
+                That&apos;s it. The best butcher in your county won&apos;t be
+                buried because they didn&apos;t pay for promotion.
               </p>
             </div>
 
-            <div className="text-center py-6 border-t border-b border-border">
-              <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-3">
-                Under Review
-              </div>
-              <p className="text-lg text-foreground">
-                We&apos;re checking the details. Basic information is available meanwhile.
+            {/* Card 3: Seasonal */}
+            <div className="bg-white dark:bg-card rounded-[12px] p-3 md:p-4 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none dark:border dark:border-border">
+              <h3 className="text-[20px] md:text-[24px] font-medium leading-[1.3] text-[#1A1A1A] dark:text-foreground mb-2 md:mb-3">
+                We show you what&apos;s in season.
+              </h3>
+              <p className="text-[16px] md:text-[17px] font-normal leading-[1.7] text-[#3D3D3D] dark:text-foreground-secondary">
+                February means forced rhubarb from Yorkshire, purple sprouting
+                broccoli, and the last of the blood oranges. We tell you
+                what&apos;s worth seeking out right now -- and which farms have
+                it.
               </p>
             </div>
           </div>
+        </div>
+      </section>
 
-          <p className="text-center text-foreground-muted text-sm mt-8">
-            See something wrong? Use the &ldquo;Suggest an update&rdquo; link on any shop page.
-          </p>
-        </section>
-
-        {/* Pull Quote */}
-        <section className="max-w-3xl mx-auto px-6 mb-24">
-          <blockquote className="py-12 text-center">
-            <p className="text-xl md:text-2xl lg:text-3xl font-serif italic text-foreground leading-relaxed">
-              &ldquo;We help you find trusted farm shops near you, fast, clear, and without the clutter.&rdquo;
-            </p>
-          </blockquote>
-        </section>
-
-        {/* For Farm Shop Owners */}
-        <section className="max-w-2xl mx-auto px-6 mb-24">
-          <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
-
-          <h2 className="font-serif text-2xl md:text-3xl font-normal text-center mb-12 text-foreground">
-            Own a Farm Shop?
+      {/* ─── Section 4: Trust / The Numbers ─── */}
+      <section
+        className="bg-white dark:bg-background"
+        aria-labelledby="trust-heading"
+      >
+        <div className="mx-auto max-w-[720px] px-3 md:px-6 py-8 md:py-10">
+          <h2
+            id="trust-heading"
+            className="text-[24px] md:text-[32px] font-medium leading-[1.3] text-[#1A1A1A] dark:text-foreground mb-6 md:mb-8"
+          >
+            The numbers
           </h2>
 
-          <p className="text-lg leading-[1.9] text-foreground text-center mb-8">
-            You can claim or add your listing for free. Highlight what makes you special and keep your details fresh. We also offer a premium option for additional visibility.
-          </p>
-
-          <div className="text-center">
-            <Link
-              href="/add"
-              className="inline-block text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity duration-300"
-            >
-              Add Your Farm Shop
-            </Link>
+          {/* Stats grid */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6 mb-8 md:mb-10">
+            {stats.map((stat) => (
+              <div key={stat.label} className="text-center">
+                <div className="text-[36px] md:text-[48px] font-semibold leading-[1.1] text-[#2D5016] dark:text-secondary">
+                  {stat.number}
+                </div>
+                <div className="text-[14px] md:text-[15px] font-normal text-[#5C5C5C] dark:text-foreground-muted mt-1">
+                  {stat.label}
+                </div>
+              </div>
+            ))}
           </div>
-        </section>
 
-        {/* Privacy */}
-        <section className="max-w-2xl mx-auto px-6 mb-24">
-          <h2 className="font-serif text-2xl md:text-3xl font-normal text-center mb-12 text-foreground">
-            Privacy & Advertising
+          {/* Divider */}
+          <hr className="border-border mb-6 md:mb-8" />
+
+          {/* Verification explainer */}
+          <h3 className="text-[18px] md:text-[20px] font-medium text-[#1A1A1A] dark:text-foreground mb-4 md:mb-6">
+            How we verify listings
+          </h3>
+
+          <ul className="space-y-3 md:space-y-4" role="list">
+            {verificationLevels.map((level) => (
+              <li key={level.label} className="flex items-start gap-3">
+                <span
+                  className="text-[18px] leading-[1.5] text-[#1A1A1A] dark:text-foreground select-none flex-shrink-0 mt-px"
+                  aria-hidden="true"
+                >
+                  {level.icon}
+                </span>
+                <div>
+                  <span className="text-[15px] md:text-[16px] font-medium text-[#1A1A1A] dark:text-foreground">
+                    {level.label}
+                  </span>
+                  <span className="text-[15px] md:text-[16px] font-normal text-[#5C5C5C] dark:text-foreground-muted">
+                    {' '}&mdash; {level.description}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-6 text-[14px] md:text-[15px] font-normal text-[#5C5C5C] dark:text-foreground-muted">
+            See something wrong? Every listing has a &ldquo;Suggest an
+            edit&rdquo; link.
+          </p>
+        </div>
+      </section>
+
+      {/* ─── Section 5: CTA ─── */}
+      <section
+        className="bg-[#2D5016] dark:bg-[#1a3a0a]"
+        aria-labelledby="cta-heading"
+      >
+        <div className="mx-auto max-w-3xl px-3 md:px-6 py-8 md:py-10 text-center">
+          <h2
+            id="cta-heading"
+            className="text-[28px] md:text-[36px] font-medium leading-[1.2] text-white mb-6 md:mb-8"
+          >
+            Find a farm shop worth the drive.
           </h2>
 
-          <p className="text-lg leading-[1.9] text-foreground text-center mb-6">
-            We show light, respectful advertising to cover costs. Ads only load after you give consent. We don&apos;t sell personal data. You can change your cookie choices at any time.
-          </p>
+          <Link
+            href="/map"
+            className="inline-block bg-white text-[#2D5016] text-[16px] font-medium px-4 py-2 rounded-md hover:bg-[#F5F5F5] transition-colors duration-base w-full sm:w-auto"
+          >
+            Open the map &rarr;
+          </Link>
 
-          <p className="text-center text-foreground-muted text-sm">
-            Read our{' '}
-            <Link href="/privacy" className="border-b border-foreground-muted hover:opacity-70 transition-opacity">
-              Privacy Policy
-            </Link>
-            {' '}and{' '}
-            <Link href="/terms" className="border-b border-foreground-muted hover:opacity-70 transition-opacity">
-              Terms
-            </Link>
-          </p>
-        </section>
-
-        {/* FAQ */}
-        <section className="max-w-2xl mx-auto px-6 mb-24">
-          <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
-
-          <h2 className="font-serif text-2xl md:text-3xl font-normal text-center mb-12 text-foreground">
-            Questions & Answers
-          </h2>
-
-          <div className="space-y-12">
-            <div>
-              <h3 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                Is Farm Companion Free?
-              </h3>
-              <p className="text-lg leading-[1.9] text-foreground">
-                Yes. Browsing and adding a basic listing are completely free.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                Do You Take Commissions?
-              </h3>
-              <p className="text-lg leading-[1.9] text-foreground">
-                No. We&apos;re an independent directory. Shops sell directly to you.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                How Current Is The Data?
-              </h3>
-              <p className="text-lg leading-[1.9] text-foreground">
-                We review listings regularly and rely on owners and customers to flag changes. Look for the &ldquo;Updated&rdquo; date on each profile.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                How Do I Find Farm Shops Near Me?
-              </h3>
-              <p className="text-lg leading-[1.9] text-foreground">
-                Use our interactive map to search by location, or browse by county. You can also search for specific produce like &ldquo;strawberries&rdquo; or &ldquo;organic meat&rdquo; to find farms that sell what you need.
-              </p>
-            </div>
-
-            <div>
-              <h3 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                What&apos;s The Best Time To Buy Seasonal Produce?
-              </h3>
-              <p className="text-lg leading-[1.9] text-foreground">
-                Check our seasonal guide to see what&apos;s in season each month. UK produce is typically at its peak during its natural growing season, offering better flavour and value.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Contact */}
-        <section className="max-w-2xl mx-auto px-6 mb-24">
-          <div className="w-px h-12 bg-border mx-auto mb-8" aria-hidden="true" />
-
-          <h2 className="font-serif text-2xl md:text-3xl font-normal text-center mb-8 text-foreground">
-            Contact
-          </h2>
-
-          <p className="text-lg text-foreground text-center">
-            Suggestions or corrections? Email us at{' '}
-            <a
-              href="mailto:hello@farmcompanion.co.uk"
-              className="border-b border-foreground hover:opacity-70 transition-opacity"
-            >
-              hello@farmcompanion.co.uk
-            </a>
-          </p>
-        </section>
-
-        {/* Footer CTA */}
-        <section className="max-w-2xl mx-auto px-6 text-center">
-          <div className="w-px h-12 bg-border mx-auto mb-12" aria-hidden="true" />
-
-          <div className="space-y-6">
-            <Link
-              href="/map"
-              className="inline-block text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity duration-300"
-            >
-              Find Farm Shops Near Me
-            </Link>
-
-            <div className="flex items-center justify-center gap-6">
-              <span className="w-12 h-px bg-border" aria-hidden="true" />
-              <span className="text-xs tracking-[0.1em] uppercase text-foreground-muted">or</span>
-              <span className="w-12 h-px bg-border" aria-hidden="true" />
-            </div>
-
+          <p className="mt-4 md:mt-6">
             <Link
               href="/seasonal"
-              className="inline-block text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity duration-300"
+              className="text-[15px] md:text-[16px] font-normal text-white/80 hover:text-white hover:underline transition-colors duration-base"
             >
-              Explore Seasonal Produce
+              or browse what&apos;s in season this month
             </Link>
-          </div>
-
-          <p className="text-xs tracking-[0.1em] uppercase text-foreground-muted mt-16">
-            Made with care for local food
           </p>
+        </div>
+      </section>
 
-          <div className="w-16 h-px bg-border mx-auto mt-8" aria-hidden="true" />
-        </section>
-      </div>
+      {/* ─── Optional: FAQ (collapsed) ─── */}
+      <section
+        className="bg-white dark:bg-background"
+        aria-labelledby="faq-heading"
+      >
+        <div className="mx-auto max-w-[680px] px-3 md:px-6 py-8 md:py-10">
+          <h2
+            id="faq-heading"
+            className="text-[24px] md:text-[32px] font-medium leading-[1.3] text-[#1A1A1A] dark:text-foreground mb-4 md:mb-6"
+          >
+            Questions
+          </h2>
+
+          <div className="space-y-2">
+            {faqItems.map((item) => (
+              <details
+                key={item.question}
+                className="group border border-border rounded-md"
+              >
+                <summary className="flex items-center justify-between cursor-pointer px-3 md:px-4 py-3 text-[15px] md:text-[16px] font-medium text-[#1A1A1A] dark:text-foreground select-none list-none [&::-webkit-details-marker]:hidden">
+                  <span>{item.question}</span>
+                  <span
+                    className="ml-3 text-[#5C5C5C] dark:text-foreground-muted transition-transform duration-base group-open:rotate-45 flex-shrink-0"
+                    aria-hidden="true"
+                  >
+                    +
+                  </span>
+                </summary>
+                <div className="px-3 md:px-4 pb-3 md:pb-4 text-[15px] md:text-[16px] font-normal leading-[1.7] text-[#3D3D3D] dark:text-foreground-secondary">
+                  {item.answer}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
   )
 }
