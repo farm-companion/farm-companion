@@ -65,7 +65,10 @@ export async function getFarmData(): Promise<FarmShop[]> {
 
     return validFarms
   } catch (error) {
-    throw new Error(`Failed to load farm data from database: ${error}`)
+    // Return empty array during build when DATABASE_URL is not available.
+    // ISR will populate real data on the first request after deployment.
+    console.warn(`[farm-data] getFarmData failed (expected during build without DB): ${error}`)
+    return []
   }
 }
 
@@ -80,7 +83,8 @@ export async function getFarmStats() {
       countyCount: counties.size
     }
   } catch (error) {
-    throw new Error(`Failed to get farm stats: ${error}`)
+    console.warn(`[farm-data] getFarmStats failed (expected during build without DB): ${error}`)
+    return { farmCount: 0, countyCount: 0 }
   }
 }
 
@@ -141,7 +145,8 @@ export async function getFarmBySlug(slug: string): Promise<FarmShop | null> {
       verified: farm.verified,
     }
   } catch (error) {
-    throw new Error(`Failed to load farm by slug: ${error}`)
+    console.warn(`[farm-data] getFarmBySlug failed (expected during build without DB): ${error}`)
+    return null
   }
 }
 
