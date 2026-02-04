@@ -8,42 +8,34 @@ import { SITE_URL } from '@/lib/site'
 import { AnimatedHero } from '@/components/AnimatedHero'
 import { OpenNowCTA } from '@/components/OpenNowCTA'
 
-// Lazy-load below-fold sections to reduce initial bundle size
+// Lazy-load below-fold sections to reduce initial JS bundle via code splitting.
+// Each dynamic() call produces a separate chunk loaded on demand.
 const SocialProofTicker = dynamic(
-  () => import('@/components/SocialProofTicker').then(m => m.SocialProofTicker),
-  { ssr: true }
+  () => import('@/components/SocialProofTicker').then(m => m.SocialProofTicker)
 )
 const AnimatedStats = dynamic(
-  () => import('@/components/AnimatedStats').then(m => m.AnimatedStats),
-  { ssr: true }
+  () => import('@/components/AnimatedStats').then(m => m.AnimatedStats)
 )
 const SeasonalShowcase = dynamic(
-  () => import('@/components/SeasonalShowcase').then(m => m.SeasonalShowcase),
-  { ssr: false }
+  () => import('@/components/SeasonalShowcase').then(m => m.SeasonalShowcase)
 )
 const FeaturedGuides = dynamic(
-  () => import('@/components/FeaturedGuides').then(m => m.FeaturedGuides),
-  { ssr: true }
+  () => import('@/components/FeaturedGuides').then(m => m.FeaturedGuides)
 )
 const CategoryGrid = dynamic(
-  () => import('@/components/CategoryGrid').then(m => m.CategoryGrid),
-  { ssr: true }
+  () => import('@/components/CategoryGrid').then(m => m.CategoryGrid)
 )
 const NearbyFarms = dynamic(
-  () => import('@/components/NearbyFarms').then(m => m.NearbyFarms),
-  { ssr: false }
+  () => import('@/components/NearbyFarms').then(m => m.NearbyFarms)
 )
 const WeekendPlanner = dynamic(
-  () => import('@/components/WeekendPlanner').then(m => m.WeekendPlanner),
-  { ssr: false }
+  () => import('@/components/WeekendPlanner').then(m => m.WeekendPlanner)
 )
 const AnimatedFeatures = dynamic(
-  () => import('@/components/AnimatedFeatures').then(m => m.AnimatedFeatures),
-  { ssr: false }
+  () => import('@/components/AnimatedFeatures').then(m => m.AnimatedFeatures)
 )
 const NewsletterSignup = dynamic(
-  () => import('@/components/NewsletterSignup'),
-  { ssr: false }
+  () => import('@/components/NewsletterSignup')
 )
 
 export async function generateMetadata(): Promise<Metadata> {
