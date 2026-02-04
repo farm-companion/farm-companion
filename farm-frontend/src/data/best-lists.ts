@@ -136,11 +136,11 @@ The on-site farm shop and cafe have become a destination in their own right, tho
   },
   {
     slug: 'top-pick-your-own-farms',
-    title: 'Top Pick Your Own Farms',
-    metaTitle: 'Best Pick Your Own Farms in the UK (2026) | PYO Guide',
-    metaDescription: 'Find the best pick your own (PYO) farms in the UK. From strawberries to pumpkins, discover top-rated farms for a fun family day out.',
-    heading: 'Top 20 Pick Your Own Farms in the UK',
-    intro: 'Experience the joy of harvesting your own fresh fruit and vegetables at these top-rated Pick Your Own (PYO) farms across the UK. Perfect for families, these farms offer seasonal produce picking from strawberries in summer to pumpkins in autumn.',
+    title: 'Top Pick Your Own (PYO) Farms in the UK',
+    metaTitle: 'Top Pick Your Own (PYO) Farms in the UK (2026) | Seasonal Picking Guide',
+    metaDescription: 'Discover the UK\'s best pick your own farms. From strawberry fields to pumpkin patches, our expert guide covers seasonal crops, practical tips, and the finest PYO operations across Britain.',
+    heading: 'Top Pick Your Own (PYO) Farms in the UK',
+    intro: 'From strawberry fields in June to pumpkin patches in October, these outstanding PYO farms offer more than a harvest. They deliver sensory, seasonal experiences that reconnect families with where food comes from.',
     content: `## The PYO Experience
 
 Pick Your Own farms offer a unique opportunity to harvest fresh produce directly from the field. It's a fun family activity that teaches children where food comes from while ensuring the freshest possible fruit and vegetables.
@@ -173,15 +173,28 @@ Most PYO farms provide:
     publishDate: '2026-01-16',
     updateDate: '2026-02-02',
     articleNumber: 6,
-    persona: 'The Family Explorer',
-    approach: 'Hands-On Discovery',
+    persona: 'The Nostalgic Storyteller',
+    approach: 'Sensory Immersion & the Experience Economy',
+    seoKeywords: [
+      'best PYO farms near me',
+      'pick your own near London',
+      'strawberry picking UK',
+      'pumpkin patch UK',
+      'seasonal picking calendar 2026',
+    ],
     editorialIntro: `## From Earth to Basket: The Renaissance of PYO
 
 There is something fundamentally corrective about standing in a field with a punnet in your hand and stained fingers. In an era where children can navigate a tablet before they can identify a broad bean, pick-your-own farms offer something no app can replicate: the weight of a sun-warmed strawberry, the satisfying snap of a runner bean from its vine, and the realisation that food is seasonal, finite, and worth a small effort. The PYO sector has grown significantly since 2020, driven by families seeking outdoor, screen-free experiences with tangible rewards.
 
 What distinguishes the best PYO operations from simple fruit fields is the completeness of the experience. The farms featured here have invested in visitor infrastructure, educational signage, and complementary offerings that transform a picking trip into a full day out. Farm shops stocked with produce from the same fields, cafes serving what was harvested that morning, and seasonal events that bring families back year after year.
 
-The economics of PYO have also evolved. Labour costs for fruit picking have risen sharply, making customer-harvested produce increasingly attractive to growers. The result is a genuine alignment of interests: farms reduce their labour burden while visitors gain access to fresher produce at competitive prices, picked at the precise moment of ripeness rather than days before.`,
+The economics of PYO have also evolved. Labour costs for fruit picking have risen sharply, making customer-harvested produce increasingly attractive to growers. The result is a genuine alignment of interests: farms reduce their labour burden while visitors gain access to fresher produce at competitive prices, picked at the precise moment of ripeness rather than days before.
+
+## Your Seasonal Picking Calendar
+
+Timing is everything with PYO. English gooseberries, for instance, have a picking window of roughly three weeks in late June and early July. Asparagus season traditionally runs from St George's Day (23 April) to the summer solstice. Strawberries peak from mid-June through July, while autumn brings pumpkins, apples, and late-season raspberries. The single most useful thing you can do before visiting any PYO farm is check their crop availability page, most update weekly, and book in advance where required.
+
+A practical tip: bring your own containers for transport (most farms weigh crops in their own punnets at the exit), and visit on weekday mornings for the best selection and shortest queues. The early bird, in the most literal sense, gets the ripest fruit.`,
     farmProfiles: [
       {
         name: 'Crockford Bridge Farm',
