@@ -13,6 +13,16 @@ import { logger } from '@/lib/logger'
 
 const sitemapGenLogger = logger.child({ route: 'lib/sitemap-generator' })
 
+/** Escape special characters for safe XML text node interpolation. */
+function escapeXml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
 export const SITEMAP_CONFIG = {
   MAX_URLS_PER_SITEMAP: 1000,
   MAX_SIZE_MB: 50,
@@ -216,20 +226,20 @@ export function generateSitemapXML(entries: SitemapEntry[]): string {
 
   for (const entry of entries) {
     xml.push('  <url>')
-    xml.push(`    <loc>${entry.url}</loc>`)
-    
+    xml.push(`    <loc>${escapeXml(entry.url)}</loc>`)
+
     if (entry.lastmod) {
-      xml.push(`    <lastmod>${entry.lastmod}</lastmod>`)
+      xml.push(`    <lastmod>${escapeXml(entry.lastmod)}</lastmod>`)
     }
-    
+
     if (entry.changefreq) {
-      xml.push(`    <changefreq>${entry.changefreq}</changefreq>`)
+      xml.push(`    <changefreq>${escapeXml(entry.changefreq)}</changefreq>`)
     }
-    
+
     if (entry.priority !== undefined) {
       xml.push(`    <priority>${entry.priority}</priority>`)
     }
-    
+
     xml.push('  </url>')
   }
 
@@ -248,12 +258,12 @@ export function generateSitemapIndexXML(entries: SitemapEntry[]): string {
 
   for (const entry of entries) {
     xml.push('  <sitemap>')
-    xml.push(`    <loc>${entry.url}</loc>`)
-    
+    xml.push(`    <loc>${escapeXml(entry.url)}</loc>`)
+
     if (entry.lastmod) {
-      xml.push(`    <lastmod>${entry.lastmod}</lastmod>`)
+      xml.push(`    <lastmod>${escapeXml(entry.lastmod)}</lastmod>`)
     }
-    
+
     xml.push('  </sitemap>')
   }
 
