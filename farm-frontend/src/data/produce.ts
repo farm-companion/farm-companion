@@ -169,10 +169,10 @@ export const PRODUCE: Produce[] = [
     slug: 'blackberries',
     name: 'Blackberries',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/1/main.webp', alt: 'Fresh British blackberries - beautiful whole specimen' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/2/main.webp', alt: 'Blackberries cross-section showing fresh interior' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/3/main.webp', alt: 'Blackberries macro detail - natural texture close-up' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/4/main.webp', alt: 'Artistic arrangement of fresh blackberries' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/blackberries/8/Blackberries1.jpg', alt: 'Fresh British blackberries - beautiful whole specimen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/blackberries/8/Blackberries2.jpg', alt: 'Blackberries cross-section showing fresh interior' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/blackberries/8/Blackberries3.jpg', alt: 'Blackberries macro detail - natural texture close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/blackberries/8/Blackberries4.jpg', alt: 'Artistic arrangement of fresh blackberries' },
     ],
     monthsInSeason: [7, 8, 9],            // Jul–Sep
     peakMonths: [8],
