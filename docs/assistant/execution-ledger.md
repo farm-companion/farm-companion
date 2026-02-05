@@ -823,6 +823,43 @@
   - Visual impact: All UI components now use consistent design system tokens
   - Verification: grep confirms no hardcoded grays in Skeleton/EmptyState
 
+### Queue 32: Farm Pipeline Enrichment & Database Integration
+**Goal:** Connect farm-pipeline output to the live PostgreSQL database with hybrid image support.
+
+**Phase 1: Schema & Pipeline Fixes**
+- [x] Slice 32.1: Schema migration - Add image source fields (source, googlePhotoRef, googleAttribution, urlExpiresAt)
+- [x] Slice 32.2: Pipeline fix - City extraction (added postal_town type check)
+- [x] Slice 32.3: Pipeline fix - Postcode extraction (UK postcode pattern validation, no more "UK" as postcode)
+- [x] Slice 32.4: Pipeline enhancement - Store Google photo_reference instead of expiring URLs
+- [x] Slice 32.5: Pipeline enhancement - Extract offerings from Google types + content keywords
+- [x] Slice 32.6: Pipeline enhancement - Add postcodes.io validation module (postcode_validator.py)
+
+**Phase 2: Import Script**
+- [x] Slice 32.7: Build import script (import-farms.ts) - upsert farms to PostgreSQL
+- [x] Slice 32.8: Import script - Map offerings to categories via junction table
+- [x] Slice 32.9: Import script - Create Image records for Google photos with source tracking
+
+**Phase 3: Frontend Image Handling**
+- [x] Slice 32.10: Google photo URL fetcher with 23-hour cache (google-photos.ts)
+- [x] Slice 32.11: Image priority logic - owner > user > google > runware (farm-images.ts)
+
+**Files Created:**
+- farm-frontend/prisma/schema.prisma (updated Image model)
+- farm-frontend/src/scripts/import-farms.ts (new - 350 lines)
+- farm-frontend/src/lib/google-photos.ts (new - 85 lines)
+- farm-frontend/src/lib/farm-images.ts (new - 120 lines)
+- farm-pipeline/src/postcode_validator.py (new - 200 lines)
+- farm-pipeline/src/models.py (added GooglePhoto model)
+- farm-pipeline/src/google_places_fetch.py (fixed address parsing, added offerings extraction)
+- docs/assistant/farm-enrichment-plan.md (implementation plan)
+
+**Next Steps:**
+- [ ] Generate Prisma migration: `pnpm prisma migrate dev --name add-image-source-fields`
+- [ ] Run pipeline: `./google_places.sh` to generate enriched data
+- [ ] Run import: `pnpm tsx src/scripts/import-farms.ts --dry-run` then `--force`
+- [ ] Run Runware: `pnpm tsx src/scripts/generate-farm-images.ts --limit=100 --upload`
+- [ ] Verify on site: Check /map and /shop pages display database data
+
 ### 2026-01-17 (latest)
 - **Slice 2: Optimized getCategoryStats with Database Aggregation** (Queue 5)
   - Replaced in-memory JavaScript processing with parallel Prisma aggregations in categories.ts

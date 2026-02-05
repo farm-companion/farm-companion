@@ -13,9 +13,95 @@ import hashlib
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import httpx
-from models import FarmShop, Location, Contact, OpeningHour
+from models import FarmShop, Location, Contact, OpeningHour, GooglePhoto
 from utils_geo import slugify, haversine_km
 from description_generator import enhance_place_data_with_description
+
+# =============================================================================
+# OFFERINGS EXTRACTION
+# =============================================================================
+
+# Map Google Places types to farm offerings
+GOOGLE_TYPE_TO_OFFERINGS: Dict[str, List[str]] = {
+    "bakery": ["Bakery", "Baked Goods"],
+    "cafe": ["Cafe", "Coffee"],
+    "restaurant": ["Restaurant"],
+    "grocery_or_supermarket": ["Groceries"],
+    "florist": ["Flowers"],
+    "pet_store": ["Pet Supplies"],
+    "liquor_store": ["Alcohol", "Wine"],
+    "meal_takeaway": ["Takeaway"],
+    "meal_delivery": ["Delivery"],
+}
+
+# Keywords to extract offerings from description/scraped content
+OFFERING_KEYWORDS: Dict[str, str] = {
+    # Produce
+    "vegetable": "Vegetables",
+    "veg box": "Veg Boxes",
+    "fruit": "Fruit",
+    "apple": "Apples",
+    "berry": "Berries",
+    "strawberr": "Strawberries",
+    # Meat & Dairy
+    "meat": "Meat",
+    "beef": "Beef",
+    "lamb": "Lamb",
+    "pork": "Pork",
+    "poultry": "Poultry",
+    "chicken": "Chicken",
+    "butcher": "Butchery",
+    "cheese": "Cheese",
+    "dairy": "Dairy",
+    "milk": "Milk",
+    "cream": "Cream",
+    "egg": "Eggs",
+    "free range": "Free Range",
+    # Specialty
+    "honey": "Honey",
+    "jam": "Jams & Preserves",
+    "preserve": "Jams & Preserves",
+    "chutney": "Jams & Preserves",
+    "cider": "Cider",
+    "juice": "Juice",
+    "wine": "Wine",
+    "beer": "Beer",
+    # Activities
+    "pick your own": "Pick Your Own",
+    " pyo": "Pick Your Own",
+    "u-pick": "Pick Your Own",
+    "cafe": "Cafe",
+    "coffee": "Coffee",
+    "tea room": "Tea Room",
+    "restaurant": "Restaurant",
+    # Other
+    "organic": "Organic",
+    "plant": "Plants",
+    "nursery": "Plant Nursery",
+    "flower": "Flowers",
+    "christmas tree": "Christmas Trees",
+    "pumpkin": "Pumpkins",
+}
+
+
+def extract_offerings(types: List[str], description: str = "") -> List[str]:
+    """Extract offerings from Google types and description text."""
+    offerings = set()
+
+    # From Google Places types
+    for t in types:
+        if t in GOOGLE_TYPE_TO_OFFERINGS:
+            offerings.update(GOOGLE_TYPE_TO_OFFERINGS[t])
+
+    # From description/content keywords
+    if description:
+        desc_lower = description.lower()
+        for keyword, offering in OFFERING_KEYWORDS.items():
+            if keyword in desc_lower:
+                offerings.add(offering)
+
+    return sorted(list(offerings))
+
 
 def generate_farm_id(name: str, place_id: str) -> str:
     """Generate deterministic farm ID from name and Google place_id."""
@@ -356,14 +442,19 @@ def parse_address_components(address_components: List[Dict], formatted_address: 
         types = component.get("types", [])
         long_name = component.get("long_name", "")
         short_name = component.get("short_name", "")
-        
+
         if "street_number" in types or "route" in types:
             if result["address"]:
                 result["address"] += ", " + long_name
             else:
                 result["address"] = long_name
-        elif "locality" in types or "sublocality" in types:
+        elif "postal_town" in types:
+            # postal_town is the preferred city field for UK addresses
             result["city"] = long_name
+        elif "locality" in types or "sublocality" in types:
+            # Only use locality if postal_town not already set
+            if not result["city"]:
+                result["city"] = long_name
         elif "administrative_area_level_2" in types:
             # This is usually the county in UK
             result["county"] = long_name
@@ -391,15 +482,32 @@ def parse_address_components(address_components: List[Dict], formatted_address: 
                 result["county"] = uk_county_mapping[county_name]
                 break
     
+    # UK postcode pattern for validation
+    import re
+    UK_POSTCODE_PATTERN = re.compile(
+        r'^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$',
+        re.IGNORECASE
+    )
+
     # Fallback: if no structured address, use formatted address
     if not result["address"]:
         parts = formatted_address.split(',')
         if len(parts) >= 2:
             result["address"] = parts[0].strip()
-            if len(parts) > 2:
+            if len(parts) > 2 and not result["city"]:
                 result["city"] = parts[-2].strip()
-            result["postcode"] = parts[-1].strip()
-    
+            # Only assign postcode if it matches UK pattern
+            last_part = parts[-1].strip()
+            if UK_POSTCODE_PATTERN.match(last_part):
+                result["postcode"] = last_part
+
+    # If still no postcode, try to extract from formatted address
+    if not result["postcode"] and formatted_address:
+        # Search for UK postcode pattern anywhere in the address
+        match = UK_POSTCODE_PATTERN.search(formatted_address)
+        if match:
+            result["postcode"] = match.group(0).strip()
+
     return result
 
 def parse_address(address: str) -> Dict[str, str]:
@@ -456,19 +564,26 @@ async def main():
                 details = await get_place_details(client, place_id)
                 if details:
                     place.update(details)
-                    
-                    # Get images only if not disabled
-                    if not args.no_images:
-                        photos = details.get('photos', [])
-                        if photos:
-                            print(f"  📸 Found {len(photos)} photos for {place.get('name', 'Unknown')}")
-                            images = await get_place_images(client, place_id, photos, args.max_images)
-                            place['images'] = images
-                        else:
-                            place['images'] = []
+
+                    # Store Google photo references (not URLs - fetch on demand)
+                    photos = details.get('photos', [])
+                    if photos:
+                        print(f"  📸 Found {len(photos)} photos for {place.get('name', 'Unknown')}")
+                        photo_refs = []
+                        for photo in photos[:args.max_images]:
+                            photo_refs.append({
+                                "reference": photo.get("photo_reference", ""),
+                                "width": photo.get("width"),
+                                "height": photo.get("height"),
+                                "attributions": photo.get("html_attributions", [])
+                            })
+                        place['google_photos'] = photo_refs
                     else:
-                        place['images'] = []
-                
+                        place['google_photos'] = []
+
+                    # Legacy: keep images empty (will be populated by import script)
+                    place['images'] = []
+
                 # Enhance with description and offerings
                 enhanced_place = enhance_place_data_with_description(place)
                 all_places.append(enhanced_place)
@@ -521,20 +636,39 @@ async def main():
             # Parse opening hours from Google Places response
             hours = parse_opening_hours(place.get('opening_hours'))
 
+            # Extract offerings from Google types and description
+            description = place.get('description', '')
+            types = place.get('types', [])
+            offerings = extract_offerings(types, description)
+
+            # Build Google photo references
+            google_photos = [
+                GooglePhoto(
+                    reference=p.get('reference', ''),
+                    width=p.get('width'),
+                    height=p.get('height'),
+                    attributions=p.get('attributions', [])
+                )
+                for p in place.get('google_photos', [])
+                if p.get('reference')
+            ]
+
             shop = FarmShop(
                 id=generate_farm_id(name, place_id),
                 name=name,
                 slug=slugify(name),
                 location=location,
                 contact=contact,
-                offerings=place.get('offerings', []),
+                offerings=offerings,
                 hours=[OpeningHour(**h) for h in hours],
-                images=place.get('images', []),
+                images=[],  # Legacy field, kept for compatibility
+                google_photos=google_photos,
+                description=description if description else None,
                 rating=place.get('rating'),
                 user_ratings_total=place.get('user_ratings_total'),
                 price_level=place.get('price_level'),
                 place_id=place.get('place_id'),
-                types=place.get('types', [])
+                types=types
             )
             
             shops.append(shop)

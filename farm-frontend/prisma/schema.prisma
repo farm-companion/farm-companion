@@ -202,11 +202,20 @@ model Image {
   displayOrder Int     @default(0)
 
   // Metadata
-  // Valid uploadedBy values: 'owner', 'admin', 'user'
+  // Valid uploadedBy values: 'owner', 'admin', 'user', 'ai_generator'
   uploadedBy String @db.VarChar(50)
   // Valid values: 'pending', 'approved', 'rejected'
   // CHECK constraint: status IN ('pending', 'approved', 'rejected')
   status     String @default("pending") @db.VarChar(20)
+
+  // Image source tracking
+  // Valid values: 'google', 'runware', 'upload'
+  source String @default("upload") @db.VarChar(20)
+
+  // Google Photos support
+  googlePhotoRef    String? @db.VarChar(500)
+  googleAttribution String? @db.Text
+  urlExpiresAt      DateTime?
 
   // Timestamps
   createdAt  DateTime  @default(now())
@@ -217,10 +226,12 @@ model Image {
   @@index([farmId])
   @@index([status])
   @@index([isHero])
+  @@index([source])
   // Composite indexes for common image queries
   @@index([farmId, status]) // Fetch approved images for a farm
   @@index([farmId, isHero, status]) // Fetch approved hero image for a farm
   @@index([status, isHero]) // All approved hero images
+  @@index([farmId, source, status]) // Images by source for a farm
   @@map("images")
 }
 

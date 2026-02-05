@@ -26,6 +26,14 @@ class OpeningHour(BaseModel):
     open: Optional[str] = None
     close: Optional[str] = None
 
+class GooglePhoto(BaseModel):
+    """Google Places photo reference for on-demand URL fetching."""
+    reference: str  # photo_reference from Google Places API
+    width: Optional[int] = None
+    height: Optional[int] = None
+    attributions: List[str] = Field(default_factory=list)  # HTML attribution strings
+
+
 class FarmShop(BaseModel):
     id: str = Field(default_factory=_rand_id, pattern=r'^farm_[a-z0-9_-]+$')
     name: str
@@ -35,7 +43,8 @@ class FarmShop(BaseModel):
     offerings: List[str] = Field(default_factory=list)
     hours: List[OpeningHour] = Field(default_factory=list)
     description: Optional[str] = None  # Rich description of the farm shop
-    images: List[str] = Field(default_factory=list)  # URLs to shop images
+    images: List[str] = Field(default_factory=list)  # Legacy: direct image URLs
+    google_photos: List[GooglePhoto] = Field(default_factory=list)  # Google photo references
     verified: bool = False
     adsenseEligible: bool = True
     updatedAt: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
