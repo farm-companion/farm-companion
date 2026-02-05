@@ -11,9 +11,21 @@ echo ""
 
 cd "$(dirname "$0")/.."
 
+# Non-interactive mode (for CI / automated runners):
+# - skips prompts
+# - uses `prisma db push` instead of `prisma migrate dev` (which requires a TTY)
+# Usage:
+#   FC_NON_INTERACTIVE=1 ./scripts/run-enrichment.sh
+NON_INTERACTIVE="${FC_NON_INTERACTIVE:-0}"
+
 # Step 1: Generate Prisma Migration
 echo "[Step 1/5] Generating Prisma migration..."
-./node_modules/.bin/prisma migrate dev --name add-image-source-fields
+if [ "$NON_INTERACTIVE" = "1" ]; then
+  echo "ℹ️  Non-interactive mode: running prisma db push (no migration files)"
+  ./node_modules/.bin/prisma db push
+else
+  ./node_modules/.bin/prisma migrate dev --name add-image-source-fields
+fi
 echo "✅ Migration complete"
 echo ""
 
@@ -28,26 +40,35 @@ echo "[Step 3/5] Running import script (dry run)..."
 pnpm tsx src/scripts/import-farms.ts --dry-run --limit=10
 echo ""
 
-read -p "Dry run complete. Continue with full import? (y/N) " -n 1 -r
-echo ""
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo "[Step 4/5] Running full import..."
-    pnpm tsx src/scripts/import-farms.ts --force
-    echo "✅ Import complete"
+if [ "$NON_INTERACTIVE" = "1" ]; then
+  echo "ℹ️  Non-interactive mode: skipping full import step (Step 4/5)."
+  echo ""
 else
-    echo "Skipping full import"
+  read -p "Dry run complete. Continue with full import? (y/N) " -n 1 -r
+  echo ""
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+      echo "[Step 4/5] Running full import..."
+      pnpm tsx src/scripts/import-farms.ts --force
+      echo "✅ Import complete"
+  else
+      echo "Skipping full import"
+  fi
+  echo ""
 fi
-echo ""
 
 # Step 5: Generate AI images (optional)
-read -p "Generate AI images for farms without images? (y/N) " -n 1 -r
-echo ""
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    echo "[Step 5/5] Generating AI images..."
-    pnpm tsx src/scripts/generate-farm-images.ts --limit=50 --upload
-    echo "✅ Image generation complete"
+if [ "$NON_INTERACTIVE" = "1" ]; then
+  echo "ℹ️  Non-interactive mode: skipping AI image generation step (Step 5/5)."
 else
-    echo "Skipping image generation"
+  read -p "Generate AI images for farms without images? (y/N) " -n 1 -r
+  echo ""
+  if [[ $REPLY =~ ^[Yy]$ ]]; then
+      echo "[Step 5/5] Generating AI images..."
+      pnpm tsx src/scripts/generate-farm-images.ts --limit=50 --upload
+      echo "✅ Image generation complete"
+  else
+      echo "Skipping image generation"
+  fi
 fi
 
 echo ""
