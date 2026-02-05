@@ -726,9 +726,9 @@ export const PRODUCE: Produce[] = [
     ],
     recipeChips: [
       {
-        title: 'Roasted Brussels with Bacon',
-        url: 'https://www.bbcgoodfood.com/recipes/roasted-sprouts-bacon',
-        description: 'The ultimate Christmas sprouts'
+        title: 'Honey Roasted Brussels Sprouts',
+        url: 'https://www.bbcgoodfood.com/recipes/honey-roast-sprouts',
+        description: 'Sweet and caramelised festive sprouts'
       },
       {
         title: 'Shredded Sprout Salad',

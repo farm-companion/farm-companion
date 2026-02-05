@@ -308,14 +308,14 @@ export default async function ProducePage({ params }: { params: Promise<{ slug: 
           </Link>
           
           <Link
-            href="/map"
+            href={`/map?q=${encodeURIComponent(p.name)}`}
             className="block rounded-xl border border-border-default bg-background-canvas p-4 shadow-sm hover:shadow-md transition motion-reduce:transition-none group"
           >
             <h3 className="font-semibold text-text-heading group-hover:text-brand-primary transition-colors mb-2">
-              Farm Shop Map
+              Find {p.name} Nearby
             </h3>
             <p className="text-caption text-text-muted mb-3">
-              Find farm shops near you with fresh local produce and seasonal offerings.
+              Discover farm shops selling fresh {p.name.toLowerCase()} in your area.
             </p>
             <div className="flex items-center justify-between">
               <span className="text-small text-text-muted">Explore map</span>
