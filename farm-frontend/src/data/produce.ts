@@ -120,9 +120,10 @@ export const PRODUCE: Produce[] = [
     slug: 'strawberries',
     name: 'Strawberries',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/1/main.webp', alt: 'Fresh British strawberries - beautiful whole specimen' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/2/main.webp', alt: 'Strawberries cross-section showing fresh interior' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/3/main.webp', alt: 'Strawberries macro detail - natural texture close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/strawberries/8/strawberries-fresh1.jpg', alt: 'Fresh British strawberries - beautiful whole specimen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/strawberries/8/strawberries-fresh2.jpg', alt: 'Strawberries cross-section showing fresh interior' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/strawberries/8/strawberries-fresh3.jpg', alt: 'Strawberries macro detail - natural texture close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/strawberries/8/strawberries-fresh4.jpg', alt: 'Artistic arrangement of fresh strawberries' },
     ],
     monthsInSeason: [5, 6, 7, 8],        // May–Aug
     peakMonths: [6, 7],
