@@ -1,11 +1,19 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { useRef } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import Image from 'next/image'
 import { Leaf, Calendar, Heart } from 'lucide-react'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
 
 export function AnimatedFeatures() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  })
+  const bgY = useTransform(scrollYProgress, [0, 1], ['-8%', '8%'])
+
   const features = [
     {
       icon: Leaf,
@@ -25,20 +33,20 @@ export function AnimatedFeatures() {
   ]
 
   return (
-    <section className="relative py-24 md:py-32 lg:py-40 overflow-hidden">
-      {/* Full-bleed background */}
-      <div className="absolute inset-0">
+    <section ref={sectionRef} className="relative py-24 md:py-32 lg:py-40 overflow-hidden">
+      {/* Full-bleed parallax background */}
+      <motion.div className="absolute inset-0" style={{ y: bgY, scale: 1.15 }}>
         <Image
           src="https://images.unsplash.com/photo-1595855759920-86582396756a?w=1600&q=70&auto=format"
           alt=""
           fill
           className="object-cover"
           sizes="100vw"
-          quality={25}
+          quality={60}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
-      </div>
+      </motion.div>
 
       <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6">
         {/* Section Header */}
