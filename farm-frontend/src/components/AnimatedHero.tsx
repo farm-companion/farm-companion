@@ -1,10 +1,7 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import Link from 'next/link'
-import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
-import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
 import { DynamicSeasonalHeadline, DynamicSeasonalSubheadline, SeasonBadge } from './DynamicSeasonalHeadline'
 import { HeroVideoBackground } from './HeroVideoBackground'
 
@@ -39,38 +36,30 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
 
       {/* Content Overlay */}
       <div className="relative h-full flex items-center justify-center pt-16 pb-16 md:pt-20 md:pb-20">
-        <motion.div
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-          className="text-center max-w-4xl mx-auto px-6"
-        >
+        <div className="text-center max-w-4xl mx-auto px-6">
           <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
 
           {/* Season Badge */}
-          <motion.div variants={staggerItem} className="mb-4">
+          <div className="hero-animate hero-stagger-1 mb-4">
             <SeasonBadge className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-white/90 border border-white/20" />
-          </motion.div>
+          </div>
 
-          <motion.h2
-            variants={staggerItem}
-            className="text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-4 md:mb-6 leading-tight text-white drop-shadow-lg"
+          <h2
+            className="hero-animate hero-stagger-2 text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-4 md:mb-6 leading-tight text-white drop-shadow-lg"
           >
             <DynamicSeasonalHeadline
               accentClassName="text-serum drop-shadow-lg"
             />
-          </motion.h2>
+          </h2>
 
-          <motion.p
-            variants={staggerItem}
-            className="text-body sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-6 md:mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto px-4"
+          <p
+            className="hero-animate hero-stagger-3 text-body sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-6 md:mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto px-4"
           >
             <DynamicSeasonalSubheadline countyCount={countyCount} />
-          </motion.p>
+          </p>
 
-          <motion.div
-            variants={staggerItem}
-            className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
+          <div
+            className="hero-animate hero-stagger-4 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
           >
             <Link
               href="/map"
@@ -86,23 +75,20 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
               <span className="text-caption sm:text-body">What&apos;s in Season</span>
               <ArrowRight className="w-5 h-5" />
             </Link>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
 
       {/* Subtle Scroll Indicator (hidden on mobile to save space) */}
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 1, duration: 0.8 }}
-        className="hidden sm:block absolute bottom-4 md:bottom-8 left-1/2 transform -translate-x-1/2"
+      <div
+        className="hero-scroll-indicator hidden sm:block absolute bottom-4 md:bottom-8 left-1/2"
       >
         <div className="animate-bounce">
           <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
             <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse"></div>
           </div>
         </div>
-      </motion.div>
+      </div>
     </section>
   )
 }
