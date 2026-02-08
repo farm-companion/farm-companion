@@ -202,11 +202,12 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
         {/* Background */}
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
+            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=70&auto=format"
             alt=""
             fill
             className="object-cover"
             sizes="100vw"
+            quality={45}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
         </div>
@@ -243,11 +244,12 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
       <section className={`relative py-24 md:py-32 overflow-hidden ${className}`}>
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
+            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=70&auto=format"
             alt=""
             fill
             className="object-cover"
             sizes="100vw"
+            quality={45}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
         </div>
@@ -272,12 +274,12 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
+          src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=70&auto=format"
           alt=""
           fill
           className="object-cover"
           sizes="100vw"
-          priority={false}
+          quality={45}
         />
         {/* Sophisticated multi-layer overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />

@@ -103,8 +103,7 @@
     "typescript": "^5.9.3"
   },
   "browserslist": [
-    "> 0.5%",
-    "Firefox ESR",
+    "> 1%",
     "not dead",
     "not safari < 15.4",
     "not ios_saf < 15.4",
