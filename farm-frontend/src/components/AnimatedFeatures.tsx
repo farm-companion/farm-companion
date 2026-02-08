@@ -29,12 +29,12 @@ export function AnimatedFeatures() {
       {/* Full-bleed background */}
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1595855759920-86582396756a?w=1920&q=80&auto=format"
+          src="https://images.unsplash.com/photo-1595855759920-86582396756a?w=1600&q=70&auto=format"
           alt=""
           fill
           className="object-cover"
           sizes="100vw"
-          priority={false}
+          quality={45}
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
         <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
