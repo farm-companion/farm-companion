@@ -1,10 +1,8 @@
 import './globals.css'
 
 // Self-hosted fonts via @fontsource (avoids Google Fonts API dependency)
-import '@fontsource/manrope/400.css'
-import '@fontsource/manrope/500.css'
-import '@fontsource/manrope/600.css'
-import '@fontsource/manrope/700.css'
+// Manrope: self-hosted in public/fonts/manrope/ with @font-face in fonts.css
+// (enables preloading to break the CSS->font chain in the critical path)
 import '@fontsource/ibm-plex-sans/400.css'
 import '@fontsource/ibm-plex-sans/600.css'
 import '@fontsource/ibm-plex-mono/400.css'
@@ -169,9 +167,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Preload critical LCP resources */}
         {/* Removed overlay-banner.jpg preload - not used above the fold */}
         
-        {/* Preload only the LCP-critical font weight (Bold for hero headings) */}
+        {/* Preload LCP-critical fonts to break the HTML->CSS->font chain */}
         <link rel="preload" href="/fonts/clash-display/ClashDisplay-Bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        
+        <link rel="preload" href="/fonts/manrope/manrope-latin-400-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/manrope/manrope-latin-700-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+
         {/* Google Analytics - now handled by AnalyticsLoader component */}
         
         {/* PWA manifest */}
