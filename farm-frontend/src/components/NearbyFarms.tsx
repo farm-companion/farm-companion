@@ -202,7 +202,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
         {/* Background */}
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=70&auto=format"
+            src="/about-header.jpg"
             alt=""
             fill
             className="object-cover"
@@ -244,7 +244,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
       <section className={`relative py-24 md:py-32 overflow-hidden ${className}`}>
         <div className="absolute inset-0">
           <Image
-            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1600&q=70&auto=format"
+            src="/about-header.jpg"
             alt=""
             fill
             className="object-cover"
