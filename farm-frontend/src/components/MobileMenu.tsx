@@ -1,22 +1,23 @@
 'use client'
 
 import React, { useEffect, useCallback, useRef, useState } from 'react'
-import { 
-  Home, 
-  Map, 
-  Leaf, 
-  Info, 
-  Plus, 
-  MessageCircle, 
-  MapPin, 
-  Calendar, 
-  Star, 
-  BookOpen, 
-  User, 
-  Settings, 
+import {
+  Home,
+  Map,
+  Leaf,
+  Info,
+  Plus,
+  MessageCircle,
+  MapPin,
+  Calendar,
+  Star,
+  BookOpen,
+  User,
+  Settings,
   HelpCircle,
   X,
-  ChevronRight
+  ChevronRight,
+  Compass
 } from 'lucide-react'
 import { hapticFeedback } from '@/lib/haptics'
 import { createSwipeToClose } from '@/lib/gestures'
@@ -47,6 +48,13 @@ const navigationItems = [
     icon: Leaf,
     primary: true,
     description: 'What\'s fresh this season'
+  },
+  {
+    title: 'Guides',
+    href: '/best',
+    icon: BookOpen,
+    primary: true,
+    description: 'Editor\'s picks and best-of lists'
   },
   {
     title: 'About Us',
@@ -93,10 +101,10 @@ const quickActions = [
     description: 'Handpicked farm recommendations'
   },
   {
-    title: 'Farm Stories',
-    href: '/about',
-    icon: BookOpen,
-    description: 'Meet the people behind the farms'
+    title: 'Browse Counties',
+    href: '/counties',
+    icon: Compass,
+    description: 'Explore farms by region'
   }
 ]
 
