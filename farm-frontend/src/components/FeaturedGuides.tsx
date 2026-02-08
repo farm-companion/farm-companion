@@ -28,7 +28,7 @@ export function FeaturedGuides() {
           fill
           className="object-cover"
           sizes="100vw"
-          quality={45}
+          quality={25}
         />
         {/* Sophisticated multi-layer overlay for depth */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />

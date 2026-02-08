@@ -207,7 +207,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             fill
             className="object-cover"
             sizes="100vw"
-            quality={45}
+            quality={25}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
         </div>
@@ -249,7 +249,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             fill
             className="object-cover"
             sizes="100vw"
-            quality={45}
+            quality={25}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
         </div>
@@ -279,7 +279,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           fill
           className="object-cover"
           sizes="100vw"
-          quality={45}
+          quality={25}
         />
         {/* Sophisticated multi-layer overlay */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />

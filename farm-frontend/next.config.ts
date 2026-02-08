@@ -136,8 +136,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
-    // Enable modern image formats
-    formats: ['image/webp', 'image/avif'],
+    // AVIF first: 30-50% smaller than WebP at equivalent quality. WebP fallback for older browsers.
+    formats: ['image/avif', 'image/webp'],
     // Optimize image loading
     minimumCacheTTL: 31536000, // 1 year for better caching
     // Device sizes for responsive images
