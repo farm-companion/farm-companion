@@ -91,7 +91,7 @@ export function HeroVideoBackground({
           style={{ objectPosition: 'center 70%' }}
           priority
           sizes="100vw"
-          quality={75}
+          quality={60}
         />
       </div>
 
