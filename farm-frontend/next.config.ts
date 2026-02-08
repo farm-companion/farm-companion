@@ -48,6 +48,31 @@ const nextConfig: NextConfig = {
         destination: 'https://www.farmcompanion.co.uk/:path*',
         permanent: true,
       },
+      // Redirect acquired farm directory domains to canonical origin
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'localfarmshops.co.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.localfarmshops.co.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'farmshopfinder.co.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.farmshopfinder.co.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
     ]
   },
   // Environment variables
