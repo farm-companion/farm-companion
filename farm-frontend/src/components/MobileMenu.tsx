@@ -12,6 +12,8 @@ import {
   Calendar,
   Star,
   BookOpen,
+  Award,
+  LayoutGrid,
   User,
   Settings,
   HelpCircle,
@@ -50,11 +52,11 @@ const navigationItems = [
     description: 'What\'s fresh this season'
   },
   {
-    title: 'Guides',
+    title: 'Editor\'s Picks',
     href: '/best',
-    icon: BookOpen,
+    icon: Award,
     primary: true,
-    description: 'Editor\'s picks and best-of lists'
+    description: 'Curated best-of guides and recommendations'
   },
   {
     title: 'About Us',
@@ -95,16 +97,23 @@ const quickActions = [
     badge: 'Updated'
   },
   {
-    title: 'Featured Farms',
-    href: '/map?featured=true',
-    icon: Star,
-    description: 'Handpicked farm recommendations'
+    title: 'Editor\'s Picks',
+    href: '/best',
+    icon: BookOpen,
+    description: 'Curated guides to the UK\'s finest farms',
+    badge: 'Editor\'s Pick'
   },
   {
     title: 'Browse Counties',
     href: '/counties',
     icon: Compass,
     description: 'Explore farms by region'
+  },
+  {
+    title: 'Categories',
+    href: '/categories',
+    icon: LayoutGrid,
+    description: 'Browse by produce type'
   }
 ]
 
