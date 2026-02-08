@@ -103,10 +103,12 @@
     "typescript": "^5.9.3"
   },
   "browserslist": [
-    "defaults and supports es6-module",
-    "maintained node versions",
-    "not ie <= 11",
-    "not safari <= 12"
+    "> 0.5%",
+    "last 2 versions",
+    "Firefox ESR",
+    "not dead",
+    "not safari < 15.4",
+    "not ios_saf < 15.4"
   ],
   "pnpm": {
     "overrides": {
