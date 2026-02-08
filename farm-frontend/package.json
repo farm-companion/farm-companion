@@ -107,6 +107,10 @@
     "not dead",
     "not safari < 15.4",
     "not ios_saf < 15.4",
+    "not samsung < 17",
+    "not and_chr < 93",
+    "not chrome < 93",
+    "not firefox < 92",
     "not op_mini all"
   ],
   "pnpm": {
