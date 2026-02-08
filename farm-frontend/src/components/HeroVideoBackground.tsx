@@ -90,6 +90,7 @@ export function HeroVideoBackground({
           className="object-cover"
           style={{ objectPosition: 'center 70%' }}
           priority
+          fetchPriority="high"
           sizes="100vw"
           quality={60}
         />
