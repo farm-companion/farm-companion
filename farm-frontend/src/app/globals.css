@@ -6,73 +6,7 @@
 
 /* MapLibre CSS moved to src/app/map/map.css - only loaded on /map routes */
 
-/* ============================================================================
-   MAPLIBRE GL EXPLICIT STYLES - HIGHEST SPECIFICITY
-   These rules MUST override any Tailwind preflight resets
-   ============================================================================ */
-
-/* Marker wrapper - let MapLibre handle all positioning */
-.maplibregl-map .maplibregl-marker {
-  pointer-events: auto !important;
-  /* Markers should not capture zoom/pan gestures */
-  touch-action: none !important;
-}
-
-/* Map container */
-.maplibregl-map {
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.maplibregl-canvas-container,
-.maplibregl-canvas {
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  touch-action: pan-x pan-y pinch-zoom;
-}
-
-/* Ensure map container has proper dimensions */
-.map-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 300px;
-}
-
-/* Inner marker elements */
-.maplibre-farm-marker,
-.maplibre-cluster-marker {
-  box-sizing: border-box !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  pointer-events: auto !important;
-  touch-action: none !important;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.maplibre-farm-marker svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: visible;
-}
-
-/* MapLibre marker wrapper */
-.maplibregl-marker {
-  pointer-events: auto !important;
-  touch-action: none !important;
-}
+/* MapLibre override styles moved to src/app/map/map.css */
 
 /* ============================================================================
    MOBILE-FRIENDLY INTERACTIONS - NO PROTECTION
