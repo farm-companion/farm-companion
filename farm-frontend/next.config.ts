@@ -15,8 +15,9 @@ const headersCommon = [
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   // Geolocation allowed on self for map functionality
   { key: "Permissions-Policy", value: "geolocation=(self), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
-  // Cross-origin headers REMOVED - were blocking CSS/fonts/images
-  // { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // COOP re-enabled: only restricts window.opener, does NOT block resources
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // CORP and COEP remain disabled - these block cross-origin CSS/fonts/images
   // { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   // { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
   { key: "Origin-Agent-Cluster", value: "?1" },

@@ -1,0 +1,2 @@
+/* MapLibre CSS - scoped to /map route to avoid render-blocking on other pages */
+@import 'maplibre-gl/dist/maplibre-gl.css';

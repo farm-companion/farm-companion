@@ -139,8 +139,6 @@ export default async function HomePage() {
       {/* Animated Hero Section */}
       <AnimatedHero
         countyCount={countyCount}
-        videoSrc="/videos/hero-desktop-loop.mp4"
-        videoPoster="/main_header.jpg"
       />
 
       {/* Social Proof Ticker */}

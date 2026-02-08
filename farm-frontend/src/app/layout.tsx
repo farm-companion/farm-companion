@@ -169,10 +169,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Preload critical LCP resources */}
         {/* Removed overlay-banner.jpg preload - not used above the fold */}
         
-        {/* Preload critical font weights for above-the-fold content */}
+        {/* Preload only the LCP-critical font weight (Bold for hero headings) */}
         <link rel="preload" href="/fonts/clash-display/ClashDisplay-Bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/clash-display/ClashDisplay-Semibold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/clash-display/ClashDisplay-Medium.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
         
         {/* Google Analytics - now handled by AnalyticsLoader component */}
         
@@ -187,9 +185,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
         
-        {/* Preconnect to critical domains for performance - optimized network tree */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Preconnect to critical domains for performance */}
         <link rel="preconnect" href="https://maps.googleapis.com" />
         <link rel="preconnect" href="https://maps.gstatic.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />

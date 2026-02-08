@@ -4,8 +4,7 @@
 /* Tailwind CSS v4 import - MUST come before MapLibre to allow overrides */
 @import "tailwindcss";
 
-/* MapLibre CSS - imported AFTER Tailwind so it wins specificity battles */
-@import 'maplibre-gl/dist/maplibre-gl.css';
+/* MapLibre CSS moved to src/app/map/map.css - only loaded on /map routes */
 
 /* ============================================================================
    MAPLIBRE GL EXPLICIT STYLES - HIGHEST SPECIFICITY

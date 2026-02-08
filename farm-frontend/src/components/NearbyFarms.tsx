@@ -65,31 +65,6 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     return farms.filter(farm => isCurrentlyOpen(farm.hours)).length
   }, [farms, mounted])
 
-  // Check geolocation permission state
-  useEffect(() => {
-    async function checkPermission() {
-      if ('permissions' in navigator) {
-        try {
-          const result = await navigator.permissions.query({ name: 'geolocation' })
-          setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
-
-          // Listen for permission changes
-          result.addEventListener('change', () => {
-            setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
-            if (result.state === 'granted') {
-              setLocationDenied(false)
-              setShowLocationHelp(false)
-              requestLocation()
-            }
-          })
-        } catch {
-          setPermissionState('unknown')
-        }
-      }
-    }
-    checkPermission()
-  }, [])
-
   // Request user location
   const requestLocation = () => {
     if (navigator.geolocation) {
@@ -120,9 +95,45 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     }
   }
 
-  // Initial location request on mount
+  // Check permission on mount: only auto-request if already granted (no prompt).
+  // Otherwise start with London fallback and let user click "Enable Location".
   useEffect(() => {
-    requestLocation()
+    async function checkPermission() {
+      if ('permissions' in navigator) {
+        try {
+          const result = await navigator.permissions.query({ name: 'geolocation' })
+          setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
+
+          if (result.state === 'granted') {
+            // Permission already granted - request silently (no prompt)
+            requestLocation()
+          } else {
+            // 'prompt' or 'denied' - use fallback, don't trigger prompt on load
+            setLocationDenied(true)
+            setUserLocation({ lat: 51.5074, lng: -0.1278 })
+          }
+
+          // Listen for permission changes
+          result.addEventListener('change', () => {
+            setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
+            if (result.state === 'granted') {
+              setLocationDenied(false)
+              setShowLocationHelp(false)
+              requestLocation()
+            }
+          })
+        } catch {
+          setPermissionState('unknown')
+          setLocationDenied(true)
+          setUserLocation({ lat: 51.5074, lng: -0.1278 })
+        }
+      } else {
+        // No Permissions API - use fallback
+        setLocationDenied(true)
+        setUserLocation({ lat: 51.5074, lng: -0.1278 })
+      }
+    }
+    checkPermission()
   }, [])
 
   // Fetch and sort farms by distance

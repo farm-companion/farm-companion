@@ -94,18 +94,9 @@ function cspFor(req: NextRequest) {
 }
 
 export function middleware(req: NextRequest) {
-  // TEMPORARILY DISABLED - debugging CSS loading issue
-  return NextResponse.next()
+  // Only enforce CSP in production (redirect handled by next.config.ts)
+  if (!IS_PROD) return NextResponse.next()
 
-  // if (!IS_PROD) return NextResponse.next()
-  
-  const url = new URL(req.url)
-  if (url.protocol !== 'https:' || url.host !== new URL(SITE_URL).host) {
-    url.protocol = 'https:'
-    url.host = new URL(SITE_URL).host
-    return NextResponse.redirect(url, 308)
-  }
-  
   const res = NextResponse.next()
   res.headers.set('Content-Security-Policy', cspFor(req))
   return res
