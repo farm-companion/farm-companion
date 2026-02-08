@@ -23,7 +23,7 @@ export function FeaturedGuides() {
       {/* Background Image with Overlay */}
       <div className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1600&q=70&auto=format"
+          src="/seasonal-header.jpg"
           alt=""
           fill
           className="object-cover"
