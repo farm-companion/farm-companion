@@ -35,29 +35,44 @@ const SEASONAL_HEADLINES: Record<number, { headline: string; subtext: string }> 
 }
 
 /**
- * Reusable background -- rich organic gradient with warm radial glows.
+ * Bold organic background with visible radial colour fields.
  * No image dependency; pure CSS for reliability and performance.
  */
 function SectionBackground() {
   return (
     <>
-      {/* Base gradient: deep forest to warm earth */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0B1A0B] via-[#141410] to-[#1A110A]" />
-      {/* Radial glows for depth and warmth */}
+      {/* Base: deep charcoal-green */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0a1f0a] via-[#12200e] to-[#1c150a]" />
+      {/* Large visible green glow - top left */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage:
-            'radial-gradient(ellipse at 20% 35%, rgba(34,120,34,0.08) 0%, transparent 55%), ' +
-            'radial-gradient(ellipse at 80% 65%, rgba(180,120,50,0.06) 0%, transparent 55%)',
+            'radial-gradient(ellipse 70% 60% at 15% 30%, rgba(34,140,34,0.22) 0%, transparent 70%)',
         }}
       />
-      {/* Subtle vignette */}
+      {/* Warm amber glow - bottom right */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage:
-            'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.25) 100%)',
+            'radial-gradient(ellipse 65% 55% at 85% 70%, rgba(200,130,40,0.18) 0%, transparent 70%)',
+        }}
+      />
+      {/* Teal accent - centre */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'radial-gradient(circle at 50% 50%, rgba(20,120,100,0.10) 0%, transparent 50%)',
+        }}
+      />
+      {/* Vignette */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%)',
         }}
       />
     </>
