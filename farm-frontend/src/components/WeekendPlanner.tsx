@@ -131,19 +131,8 @@ export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProp
   ]
 
   return (
-    <section className={`relative bg-[#FDF8F3] dark:bg-background-secondary py-20 md:py-28 overflow-hidden ${className}`}>
-      {/* Top edge dissolve: softens transition from dark NearbyFarms */}
-      <div
-        className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 via-black/15 to-transparent pointer-events-none dark:opacity-0"
-        aria-hidden="true"
-      />
-      {/* Bottom edge dissolve: softens transition into dark AnimatedFeatures */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent via-black/15 to-black/50 pointer-events-none dark:opacity-0"
-        aria-hidden="true"
-      />
-
-      <div className="relative z-[2] mx-auto max-w-6xl px-6">
+    <section className={`relative bg-[#FDF8F3] dark:bg-background-secondary py-20 md:py-28 ${className}`}>
+      <div className="mx-auto max-w-6xl px-6">
 
         {/* Header row */}
         <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between mb-10">
