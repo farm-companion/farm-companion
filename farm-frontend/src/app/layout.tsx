@@ -164,8 +164,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
            `
          }} />
         
-        {/* Preload critical LCP resources */}
-        {/* Removed overlay-banner.jpg preload - not used above the fold */}
+        {/* Preload LCP hero image - inside client components so priority hint is late */}
+        <link
+          rel="preload"
+          as="image"
+          imageSrcSet="/_next/image?url=%2Fmain_header.jpg&amp;w=640&amp;q=60 640w, /_next/image?url=%2Fmain_header.jpg&amp;w=750&amp;q=60 750w, /_next/image?url=%2Fmain_header.jpg&amp;w=828&amp;q=60 828w, /_next/image?url=%2Fmain_header.jpg&amp;w=1080&amp;q=60 1080w, /_next/image?url=%2Fmain_header.jpg&amp;w=1200&amp;q=60 1200w, /_next/image?url=%2Fmain_header.jpg&amp;w=1920&amp;q=60 1920w"
+          imageSizes="100vw"
+          fetchPriority="high"
+        />
         
         {/* Preload LCP-critical fonts to break the HTML->CSS->font chain */}
         <link rel="preload" href="/fonts/clash-display/ClashDisplay-Bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />

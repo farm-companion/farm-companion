@@ -85,7 +85,6 @@ const nextConfig: NextConfig = {
   },
   // Performance optimizations
   experimental: {
-    // Inline CSS into HTML to eliminate render-blocking stylesheet requests
     inlineCss: true,
     optimizePackageImports: [
       'lucide-react',
