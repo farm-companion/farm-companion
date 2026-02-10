@@ -391,13 +391,13 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           >
             {locationDenied ? (
               <>
-                Popular Farms
+                Farm Shops
                 <br />
                 <span className="bg-gradient-to-r from-white/60 via-white/50 to-white/40 bg-clip-text text-transparent">Near London</span>
               </>
             ) : (
               <>
-                Farms
+                Farm Shops
                 <br />
                 <span className="bg-gradient-to-r from-white/60 via-white/50 to-white/40 bg-clip-text text-transparent">Near You</span>
               </>
@@ -423,12 +423,12 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             className="text-base sm:text-lg text-white/50 max-w-xl mx-auto mb-8 leading-relaxed"
           >
             {locationDenied
-              ? 'Discover these popular farm shops. Enable location to see farms closest to you.'
-              : 'Discover local farm shops close to your location with fresh produce and more.'}
+              ? 'The best local farm shops selling fresh seasonal produce. Enable location to find the ones nearest to you.'
+              : 'Fresh seasonal produce from the farm shops closest to your location.'}
           </motion.p>
 
-          {/* Live Status Indicator */}
-          {farms.length > 0 && (
+          {/* Live Status Indicator - only show when farms are open */}
+          {farms.length > 0 && openFarmsCount > 0 && (
             <motion.div
               initial={{ opacity: 0 }}
               whileInView={{ opacity: 1 }}

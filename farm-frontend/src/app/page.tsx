@@ -160,9 +160,7 @@ export default async function HomePage() {
       <NearbyFarms limit={4} />
 
       {/* Weekend Planner Section */}
-      <section className="py-12 md:py-16 section-lazy">
-        <WeekendPlanner limit={4} />
-      </section>
+      <WeekendPlanner limit={4} />
 
       {/* Animated Features Section */}
       <AnimatedFeatures />
