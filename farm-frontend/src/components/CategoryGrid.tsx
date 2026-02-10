@@ -16,7 +16,7 @@ export async function CategoryGrid({ limit = 12, featured = false }: CategoryGri
   }
 
   return (
-    <section className="relative py-20 md:py-28 bg-white dark:bg-slate-950">
+    <section className="relative py-24 md:py-32 lg:py-40 bg-white dark:bg-slate-950">
       <div className="container mx-auto px-4 sm:px-6">
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-10">

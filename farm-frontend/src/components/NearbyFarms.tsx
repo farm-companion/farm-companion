@@ -343,7 +343,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   return (
     <section
       ref={sectionRef}
-      className={`relative py-28 md:py-36 lg:py-48 overflow-hidden ${className}`}
+      className={`relative py-24 md:py-32 lg:py-40 overflow-hidden ${className}`}
     >
       <SectionBackground />
 
