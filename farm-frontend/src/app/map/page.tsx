@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { Suspense, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Search, Navigation, Loader2, X, ChevronRight, ChevronLeft } from 'lucide-react'
@@ -62,7 +62,7 @@ interface FilterState {
   openNow?: boolean
 }
 
-export default function MapPage() {
+function MapPageContent() {
   // Read URL search params for pre-filtering (e.g., /map?q=strawberries)
   const searchParams = useSearchParams()
   const initialQuery = searchParams.get('q') || ''
@@ -689,5 +689,13 @@ export default function MapPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function MapPage() {
+  return (
+    <Suspense>
+      <MapPageContent />
+    </Suspense>
   )
 }
