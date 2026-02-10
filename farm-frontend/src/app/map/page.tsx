@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
+import { useSearchParams } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Search, Navigation, Loader2, X, ChevronRight, ChevronLeft } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
@@ -62,12 +63,16 @@ interface FilterState {
 }
 
 export default function MapPage() {
+  // Read URL search params for pre-filtering (e.g., /map?q=strawberries)
+  const searchParams = useSearchParams()
+  const initialQuery = searchParams.get('q') || ''
+
   const [farms, setFarms] = useState<FarmShop[]>([])
   const [filteredFarms, setFilteredFarms] = useState<FarmShop[]>([])
   const [selectedFarmId, setSelectedFarmId] = useState<string | null>(null)
   const [userLocation, setUserLocation] = useState<UserLocation | null>(null)
   const [isLocationLoading, setIsLocationLoading] = useState(false)
-  const [searchQuery, setSearchQuery] = useState('')
+  const [searchQuery, setSearchQuery] = useState(initialQuery)
   const [filters, setFilters] = useState<FilterState>({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

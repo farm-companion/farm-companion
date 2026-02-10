@@ -436,7 +436,7 @@ export const PRODUCE: Produce[] = [
     ],
     prepIdeas: [
       'Steam or griddle with butter and lemon.',
-      'Wrap in prosciutto and roast.',
+      'Wrap in puff pastry and bake.',
       'Add to spring risotto and pasta.',
       'Make creamy asparagus soup.',
     ],
@@ -550,9 +550,9 @@ export const PRODUCE: Produce[] = [
         description: 'Tender leeks cooked in butter and stock'
       },
       {
-        title: 'Leek and Bacon Pasta',
-        url: 'https://www.bbcgoodfood.com/recipes/leek-bacon-pasta',
-        description: 'Creamy pasta with leeks and crispy bacon'
+        title: 'Leek and Cheese Tart',
+        url: 'https://www.bbcgoodfood.com/recipes/leek-cheese-tart',
+        description: 'Savoury tart with caramelised leeks and cheese'
       }
     ],
     aliases: ['leek', 'baby leeks', 'spring leeks'],
@@ -719,16 +719,16 @@ export const PRODUCE: Produce[] = [
       'Blanch and freeze for up to 12 months.',
     ],
     prepIdeas: [
-      'Roast with bacon and chestnuts.',
+      'Roast with honey and chestnuts.',
       'Shred raw for salads.',
       'Pan-fry with butter and garlic.',
       'Steam and toss with lemon zest.',
     ],
     recipeChips: [
       {
-        title: 'Roasted Brussels with Bacon',
-        url: 'https://www.bbcgoodfood.com/recipes/roasted-sprouts-bacon',
-        description: 'The ultimate Christmas sprouts'
+        title: 'Honey Roasted Brussels Sprouts',
+        url: 'https://www.bbcgoodfood.com/recipes/honey-roast-sprouts',
+        description: 'Sweet and caramelised festive sprouts'
       },
       {
         title: 'Shredded Sprout Salad',
