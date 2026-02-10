@@ -16,8 +16,19 @@ export async function CategoryGrid({ limit = 12, featured = false }: CategoryGri
   }
 
   return (
-    <section className="py-12 md:py-16">
-      <div className="container mx-auto px-4 sm:px-6">
+    <section className="relative py-20 md:py-28 overflow-hidden bg-white dark:bg-slate-950">
+      {/* Top edge dissolve: softens transition from dark FeaturedGuides */}
+      <div
+        className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-black/50 via-black/15 to-transparent pointer-events-none dark:opacity-0"
+        aria-hidden="true"
+      />
+      {/* Bottom edge dissolve: softens transition into dark NearbyFarms */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent via-black/15 to-black/50 pointer-events-none dark:opacity-0"
+        aria-hidden="true"
+      />
+
+      <div className="relative z-[2] container mx-auto px-4 sm:px-6">
         {/* Section Header */}
         <div className="text-center mb-8 md:mb-10">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-3 md:mb-4">
