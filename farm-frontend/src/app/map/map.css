@@ -1,5 +1,6 @@
-/* MapLibre CSS - scoped to /map route to avoid render-blocking on other pages */
-@import 'maplibre-gl/dist/maplibre-gl.css';
+/* MapLibre base CSS is loaded by MapLibreShell.tsx (client component) via:
+   import 'maplibre-gl/dist/maplibre-gl.css'
+   Removed the @import here to avoid inlineCss + Turbopack prerender conflict. */
 
 /* ============================================================================
    MAPLIBRE GL EXPLICIT STYLES - HIGHEST SPECIFICITY

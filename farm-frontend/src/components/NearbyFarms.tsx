@@ -35,44 +35,79 @@ const SEASONAL_HEADLINES: Record<number, { headline: string; subtext: string }> 
 }
 
 /**
- * Bold organic background with visible radial colour fields.
- * No image dependency; pure CSS for reliability and performance.
+ * Awwwards-level cinematic background.
+ * Animated mesh gradient + film grain + furrow lines + vignette.
+ * Zero image dependency. Pure CSS/SVG.
  */
 function SectionBackground() {
   return (
     <>
-      {/* Base: deep charcoal-green */}
-      <div className="absolute inset-0 bg-gradient-to-br from-[#0a1f0a] via-[#12200e] to-[#1c150a]" />
-      {/* Large visible green glow - top left */}
+      {/* Keyframes for living mesh gradient */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes nf-mesh {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(3%, -2%) scale(1.03); }
+          66% { transform: translate(-2%, 3%) scale(0.98); }
+        }
+        @keyframes nf-mesh-alt {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(-4%, 2%) scale(1.02); }
+        }
+      `}} />
+
+      {/* Base: near-black with green undertone */}
+      <div className="absolute inset-0 bg-[#050e05]" />
+
+      {/* Primary animated mesh -- green, amber, teal blobs drift slowly */}
       <div
-        className="absolute inset-0"
+        className="absolute -inset-[25%]"
         style={{
-          backgroundImage:
-            'radial-gradient(ellipse 70% 60% at 15% 30%, rgba(34,140,34,0.22) 0%, transparent 70%)',
+          animation: 'nf-mesh 20s ease-in-out infinite',
+          backgroundImage: [
+            'radial-gradient(ellipse 50% 40% at 20% 30%, rgba(22,163,74,0.24) 0%, transparent 70%)',
+            'radial-gradient(ellipse 45% 50% at 80% 65%, rgba(217,119,6,0.18) 0%, transparent 70%)',
+            'radial-gradient(ellipse 40% 35% at 55% 45%, rgba(20,184,166,0.14) 0%, transparent 55%)',
+          ].join(', '),
         }}
       />
-      {/* Warm amber glow - bottom right */}
+
+      {/* Secondary mesh -- counter-animated for parallax depth */}
       <div
-        className="absolute inset-0"
+        className="absolute -inset-[20%]"
         style={{
-          backgroundImage:
-            'radial-gradient(ellipse 65% 55% at 85% 70%, rgba(200,130,40,0.18) 0%, transparent 70%)',
+          animation: 'nf-mesh-alt 28s ease-in-out infinite',
+          backgroundImage: [
+            'radial-gradient(ellipse 35% 50% at 70% 20%, rgba(34,197,94,0.12) 0%, transparent 65%)',
+            'radial-gradient(ellipse 55% 35% at 25% 80%, rgba(245,158,11,0.10) 0%, transparent 60%)',
+          ].join(', '),
         }}
       />
-      {/* Teal accent - centre */}
+
+      {/* Film grain texture via SVG feTurbulence */}
       <div
-        className="absolute inset-0"
+        className="absolute inset-0 opacity-[0.035] mix-blend-overlay pointer-events-none"
         style={{
-          backgroundImage:
-            'radial-gradient(circle at 50% 50%, rgba(20,120,100,0.10) 0%, transparent 50%)',
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '128px 128px',
         }}
       />
-      {/* Vignette */}
+
+      {/* Plowed-field furrow lines -- subtle horizontal stripes */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(255,255,255,0.5) 80px, rgba(255,255,255,0.5) 81px)',
+        }}
+      />
+
+      {/* Cinematic vignette -- heavy edges */}
       <div
         className="absolute inset-0"
         style={{
           backgroundImage:
-            'radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.35) 100%)',
+            'radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.45) 100%)',
         }}
       />
     </>
@@ -337,7 +372,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             viewport={{ once: true }}
             className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white/[0.06] backdrop-blur-sm border border-white/[0.1] mb-8"
           >
-            <span className="text-amber-400 font-semibold text-sm tracking-wide">
+            <span className="font-semibold text-sm tracking-wide bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 bg-clip-text text-transparent">
               {seasonal.headline}
             </span>
             <span className="w-px h-3.5 bg-white/20" />
@@ -358,13 +393,13 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
               <>
                 Popular Farms
                 <br />
-                <span className="text-white/70">Near London</span>
+                <span className="bg-gradient-to-r from-white/60 via-white/50 to-white/40 bg-clip-text text-transparent">Near London</span>
               </>
             ) : (
               <>
                 Farms
                 <br />
-                <span className="text-white/70">Near You</span>
+                <span className="bg-gradient-to-r from-white/60 via-white/50 to-white/40 bg-clip-text text-transparent">Near You</span>
               </>
             )}
           </motion.h2>
