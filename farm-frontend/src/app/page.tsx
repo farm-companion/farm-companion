@@ -1,8 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import Image from 'next/image'
 import dynamic from 'next/dynamic'
-import { MapPin, ArrowRight, Calendar, Heart } from 'lucide-react'
+import { MapPin, Calendar, Heart } from 'lucide-react'
 import { getFarmStats } from '@/lib/farm-data'
 import { SITE_URL } from '@/lib/site'
 import { AnimatedHero } from '@/components/AnimatedHero'
@@ -174,45 +173,6 @@ export default async function HomePage() {
         <div className="absolute inset-x-0 -top-24 h-24 bg-gradient-to-t from-black/70 to-transparent pointer-events-none z-10" aria-hidden="true" />
         <AnimatedFeatures />
       </div>
-
-      {/* CTA Section - LV editorial with landscape */}
-      <section className="relative py-24 md:py-32 lg:py-40 overflow-hidden">
-        <div className="absolute inset-0">
-          <Image
-            src="/counties.jpg"
-            alt="UK countryside landscape with rolling hills and farmland"
-            fill
-            className="object-cover object-center"
-            sizes="100vw"
-            quality={80}
-            loading="lazy"
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-          />
-          <div className="absolute inset-0 bg-black/50" />
-        </div>
-
-        <div className="relative z-10 max-w-3xl mx-auto px-6 text-center">
-          <p className="text-xs uppercase tracking-[0.2em] text-white/60 mb-6 font-accent">
-            Explore the Map
-          </p>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold mb-6 leading-tight text-white">
-            Find the Farm Shops Worth the Detour
-          </h2>
-          <div className="w-12 h-px bg-white/30 mx-auto mb-8" />
-          <p className="text-lg mb-12 text-white/80 max-w-xl mx-auto leading-relaxed">
-            Search by location, by what's in season, or by what you're craving.
-          </p>
-          <Link
-            href="/map"
-            className="group inline-flex h-12 items-center justify-center gap-3 px-8 bg-white text-text-heading text-[13px] font-semibold uppercase tracking-[0.06em] transition-all duration-200 hover:bg-zinc-100 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-          >
-            Find Farms Near You
-            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-          </Link>
-        </div>
-      </section>
-
 
 
       {/* Newsletter Section */}
