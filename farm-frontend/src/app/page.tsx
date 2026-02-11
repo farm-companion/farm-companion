@@ -149,30 +149,20 @@ export default async function HomePage() {
       {/* Seasonal Showcase Section */}
       <SeasonalShowcase />
 
-      {/* Featured Guides Section -- dark, bleeds downward into CategoryGrid */}
-      <div className="relative">
-        <FeaturedGuides />
-        <div className="absolute inset-x-0 -bottom-24 h-24 bg-gradient-to-b from-black/70 to-transparent pointer-events-none z-10" aria-hidden="true" />
-      </div>
+      {/* Featured Guides Section */}
+      <FeaturedGuides />
 
       {/* Category Grid Section */}
       <CategoryGrid limit={8} />
 
-      {/* Nearby Farms Section -- dark, bleeds upward into CategoryGrid and downward into WeekendPlanner */}
-      <div className="relative">
-        <div className="absolute inset-x-0 -top-24 h-24 bg-gradient-to-t from-[#050e05]/80 to-transparent pointer-events-none z-10" aria-hidden="true" />
-        <NearbyFarms limit={4} />
-        <div className="absolute inset-x-0 -bottom-24 h-24 bg-gradient-to-b from-[#050e05]/80 to-transparent pointer-events-none z-10" aria-hidden="true" />
-      </div>
+      {/* Nearby Farms Section */}
+      <NearbyFarms limit={4} />
 
       {/* Weekend Planner Section */}
       <WeekendPlanner limit={4} />
 
-      {/* Animated Features Section -- dark, bleeds upward into WeekendPlanner */}
-      <div className="relative">
-        <div className="absolute inset-x-0 -top-24 h-24 bg-gradient-to-t from-black/70 to-transparent pointer-events-none z-10" aria-hidden="true" />
-        <AnimatedFeatures />
-      </div>
+      {/* Animated Features Section */}
+      <AnimatedFeatures />
 
 
       {/* Newsletter Section */}

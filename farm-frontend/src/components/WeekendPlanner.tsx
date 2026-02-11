@@ -114,7 +114,7 @@ export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProp
   // SSR placeholder
   if (!mounted) {
     return (
-      <div className={`bg-[#FDF8F3] dark:bg-background-secondary py-20 md:py-28 ${className}`}>
+      <div className={`bg-[#FDF8F3] dark:bg-background-secondary py-24 md:py-32 lg:py-40 ${className}`}>
         <div className="mx-auto max-w-6xl px-6">
           <div className="h-4 w-48 bg-border/20 mb-4" />
           <div className="h-8 w-56 bg-border/20 mb-4" />
@@ -131,7 +131,7 @@ export function WeekendPlanner({ className = '', limit = 4 }: WeekendPlannerProp
   ]
 
   return (
-    <section className={`relative bg-[#FDF8F3] dark:bg-background-secondary py-20 md:py-28 ${className}`}>
+    <section className={`relative bg-[#FDF8F3] dark:bg-background-secondary py-24 md:py-32 lg:py-40 ${className}`}>
       <div className="mx-auto max-w-6xl px-6">
 
         {/* Header row */}

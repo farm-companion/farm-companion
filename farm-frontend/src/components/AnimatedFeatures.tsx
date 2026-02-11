@@ -48,7 +48,7 @@ export function AnimatedFeatures() {
   return (
     <section
       ref={sectionRef}
-      className="relative py-32 md:py-44 lg:py-56 overflow-hidden"
+      className="relative py-24 md:py-32 lg:py-40 overflow-hidden"
     >
       {/* Cinematic parallax background -- only the image moves */}
       <motion.div
