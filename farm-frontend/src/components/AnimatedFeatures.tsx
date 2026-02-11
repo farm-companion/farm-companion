@@ -3,7 +3,8 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Image from 'next/image'
-import { Leaf, Calendar, Heart } from 'lucide-react'
+import Link from 'next/link'
+import { Leaf, Calendar, Heart, ArrowRight } from 'lucide-react'
 
 // Custom spring-like easing for natural, premium motion
 const ease = [0.16, 1, 0.3, 1] as const
@@ -168,6 +169,30 @@ export function AnimatedFeatures() {
             </motion.div>
           ))}
         </div>
+
+        {/* CTA block */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.3, ease }}
+          viewport={{ once: true }}
+          className="text-center mt-20 md:mt-28"
+        >
+          <div className="w-12 h-px bg-white/30 mx-auto mb-8" />
+          <h3 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-white mb-4 leading-tight">
+            Find the Farm Shops Worth the Detour
+          </h3>
+          <p className="text-base sm:text-lg text-white/60 max-w-xl mx-auto leading-relaxed mb-10">
+            Search by location, by what&#39;s in season, or by what you&#39;re craving.
+          </p>
+          <Link
+            href="/map"
+            className="group inline-flex h-12 items-center justify-center gap-3 px-8 bg-white text-black text-[13px] font-semibold uppercase tracking-[0.06em] transition-all duration-200 hover:bg-zinc-100 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          >
+            Find Farms Near You
+            <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </Link>
+        </motion.div>
       </motion.div>
     </section>
   )
