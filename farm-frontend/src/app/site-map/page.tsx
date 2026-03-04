@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Sitemap | Farm Companion',
+  title: 'Site map | Farm Companion',
   description:
     'Explore every corner of Farm Companion in one place. Quickly jump to farm shop maps, seasonal guides, counties, and help pages.',
 }
@@ -13,10 +13,10 @@ const sections = [
     links: [
       { href: '/map', label: 'Find farms near me' },
       { href: '/shop', label: 'Browse all farm shops' },
-      { href: '/best', label: "Editor’s picks" },
+      { href: '/best', label: "Editor's picks" },
       { href: '/categories', label: 'Browse by category' },
       { href: '/counties', label: 'Browse by county' },
-      { href: '/seasonal', label: "What’s in season" },
+      { href: '/seasonal', label: "What's in season" },
     ],
   },
   {
@@ -39,7 +39,7 @@ const sections = [
   },
 ]
 
-export default function SitemapPage() {
+export default function SiteMapPage() {
   return (
     <main className="min-h-screen bg-background-canvas py-16 md:py-24">
       <div className="mx-auto max-w-5xl px-6 md:px-8">
@@ -58,7 +58,7 @@ export default function SitemapPage() {
 
         <nav aria-label="Sitemap">
           <div className="grid gap-8 md:grid-cols-3">
-            {sections.map(section => (
+            {sections.map((section) => (
               <section
                 key={section.heading}
                 className="rounded-xl border border-border-subtle bg-background-surface p-6 shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
@@ -67,7 +67,7 @@ export default function SitemapPage() {
                   {section.heading}
                 </h2>
                 <ul className="space-y-2">
-                  {section.links.map(link => (
+                  {section.links.map((link) => (
                     <li key={link.href}>
                       <Link
                         href={link.href}
@@ -87,4 +87,3 @@ export default function SitemapPage() {
     </main>
   )
 }
-
