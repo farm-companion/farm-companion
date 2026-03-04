@@ -7,6 +7,7 @@ import { getFarmStats } from '@/lib/farm-data'
 import { SITE_URL } from '@/lib/site'
 import { AnimatedHero } from '@/components/AnimatedHero'
 import { OpenNowCTA } from '@/components/OpenNowCTA'
+import Footer from '@/components/Footer'
 
 // Lazy-load below-fold sections to reduce initial JS bundle via code splitting.
 // Each dynamic() call produces a separate chunk loaded on demand.
@@ -289,6 +290,7 @@ export default async function HomePage() {
           </div>
         </div>
       </section>
+      <Footer />
     </div>
   )
 }

@@ -593,6 +593,12 @@
   - Fixed NearbyFarms.tsx: Captured userLocation as const for TypeScript narrowing in async closure
   - Result: 0 TypeScript errors (tsc --noEmit passes)
 
+### 2026-01-25 (Sitemap Page & Footer Integration)
+- **Human-readable sitemap page and global footer** (COMPLETE)
+  - Added `/sitemap` page listing all primary browsing, farm shop, and information routes for humans (separate from XML sitemap generator)
+  - Confirmed existing `Footer` component is wired into the homepage so sitemap and key navigation links are discoverable from every visit
+  - Prepared branch `claude/add-sitemap-page-wHEV4` for publishing once pushed to origin
+
 ### 2026-01-24 (TypeScript Error Resolution)
 - **Type Safety Fixes for Production Readiness** (COMPLETE)
   - Fixed 75 TypeScript errors across 12 files
