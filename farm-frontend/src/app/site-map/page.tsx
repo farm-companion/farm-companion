@@ -1,233 +1,89 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Sitemap | Farm Companion',
+  title: 'Site map | Farm Companion',
   description:
-    'Browse all pages on Farm Companion — the UK farm shop directory. Find farms by map, county, category, or season.',
-  alternates: {
-    canonical: `${SITE_URL}/site-map`,
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
+    'Explore every corner of Farm Companion in one place. Quickly jump to farm shop maps, seasonal guides, counties, and help pages.',
 }
 
-const sitemapSections = [
+const sections = [
   {
-    title: 'Explore',
-    persona: 'Weekend Explorer',
-    description: 'Find your next farm shop trip',
-    overlap: false,
+    heading: 'Explore farm shops',
     links: [
-      { href: '/', label: 'Home' },
-      { href: '/map', label: 'Interactive Map' },
-      { href: '/shop', label: 'Farm Directory' },
-      { href: '/compare', label: 'Compare Farms' },
+      { href: '/map', label: 'Find farms near me' },
+      { href: '/shop', label: 'Browse all farm shops' },
+      { href: '/best', label: "Editor's picks" },
+      { href: '/categories', label: 'Browse by category' },
+      { href: '/counties', label: 'Browse by county' },
+      { href: '/seasonal', label: "What's in season" },
     ],
   },
   {
-    title: 'Seasonal Produce',
-    persona: 'Seasonal Planner',
-    description: 'Know what to buy and when',
-    overlap: false,
+    heading: 'For farm shops',
     links: [
-      { href: '/seasonal', label: "What's in Season" },
+      { href: '/add', label: 'Add your listing' },
+      { href: '/claim', label: 'Claim or update your details' },
+      { href: '/contact', label: 'Contact the Farm Companion team' },
+      { href: '/submission-success', label: 'Submission success page' },
     ],
   },
   {
-    title: 'Quality & Sourcing',
-    persona: 'Home Chef + Conscious Shopper',
-    description: 'Where quality-focused and sustainability-minded shoppers meet',
-    overlap: true,
+    heading: 'About Farm Companion',
     links: [
-      { href: '/categories', label: 'Browse by Category' },
-      { href: '/best', label: "Editor's Picks" },
-      { href: '/seasonal', label: 'Seasonal Guides' },
-      { href: '/compare', label: 'Compare Farms' },
+      { href: '/', label: 'Homepage' },
+      { href: '/about', label: 'About Farm Companion' },
+      { href: '/terms', label: 'Terms of use' },
+      { href: '/privacy', label: 'Privacy & cookies' },
     ],
   },
-  {
-    title: 'Local Discovery',
-    persona: 'Weekend Explorer + Local Champion',
-    description: 'Where day-trippers and community advocates converge',
-    overlap: true,
-    links: [
-      { href: '/counties', label: 'Browse by County' },
-      { href: '/map', label: 'Find Near Me' },
-      { href: '/shop', label: 'Farm Directory' },
-    ],
-  },
-  {
-    title: 'List Your Farm',
-    persona: 'Farm Shop Owner',
-    description: 'Get found by thousands of local food lovers',
-    overlap: false,
-    links: [
-      { href: '/add', label: 'Add Your Listing' },
-      { href: '/claim', label: 'Claim Your Shop' },
-      { href: '/contact', label: 'Get in Touch' },
-    ],
-  },
-  {
-    title: 'About',
-    persona: 'Newcomer',
-    description: 'Learn about Farm Companion',
-    overlap: false,
-    links: [
-      { href: '/about', label: 'About Us' },
-      { href: '/contact', label: 'Contact' },
-      { href: '/privacy', label: 'Privacy Policy' },
-      { href: '/terms', label: 'Terms of Service' },
-    ],
-  },
-] as const
+]
 
-export default function SitemapPage() {
+export default function SiteMapPage() {
   return (
-    <main className="min-h-screen bg-white dark:bg-background">
-      {/* Header */}
-      <section className="bg-[#FDF8F3] dark:bg-background-secondary border-b border-border">
-        <div className="mx-auto max-w-[960px] px-3 md:px-6 py-12 md:py-20">
-          <h1 className="text-[32px] md:text-[48px] font-medium leading-[1.2] tracking-tight text-[#1A1A1A] dark:text-foreground">
-            Sitemap
+    <main className="min-h-screen bg-background-canvas py-16 md:py-24">
+      <div className="mx-auto max-w-5xl px-6 md:px-8">
+        <header className="mb-12 md:mb-16 text-center">
+          <p className="mb-4 text-xs font-accent uppercase tracking-[0.2em] text-foreground-muted">
+            Site map
+          </p>
+          <h1 className="mb-4 text-3xl font-heading font-bold leading-tight text-text-heading md:text-4xl">
+            Every corner of Farm Companion, in one place
           </h1>
-          <p className="mt-3 md:mt-4 text-[17px] md:text-[20px] leading-[1.5] text-[#5C5C5C] dark:text-foreground-muted max-w-[600px]">
-            Every page on Farm Companion, organised by how people actually use the site.
+          <p className="mx-auto max-w-2xl text-sm text-text-body md:text-base">
+            Use this page to quickly jump to key areas of the site. All links below point to
+            permanent, human-friendly URLs optimised for browsing and search engines.
           </p>
-          <p className="mt-6 text-[13px] tracking-[0.05em] text-[#5C5C5C]/60 dark:text-foreground-muted/40">
-            Built around 6 personas &middot; 2 shared journeys marked below
-          </p>
-        </div>
-      </section>
+        </header>
 
-      {/* Sitemap Grid */}
-      <section className="mx-auto max-w-[960px] px-3 md:px-6 py-10 md:py-16">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {sitemapSections.map((section) => (
-            <div
-              key={section.title}
-              className={`rounded-[12px] p-5 md:p-6 ${
-                section.overlap
-                  ? 'bg-[#2D5016]/[0.03] border-2 border-[#2D5016]/15 dark:bg-[#2D5016]/[0.06] dark:border-[#2D5016]/20'
-                  : 'bg-[#FAFAF8] border border-border dark:bg-background-secondary dark:border-border'
-              }`}
-            >
-              {/* Section header */}
-              <div className="mb-5">
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="text-[18px] md:text-[20px] font-medium leading-[1.3] text-[#1A1A1A] dark:text-foreground">
-                    {section.title}
-                  </h2>
-                  {section.overlap && (
-                    <span className="shrink-0 mt-0.5 text-[11px] tracking-[0.05em] uppercase font-medium text-[#2D5016]/60 dark:text-[#6B9F4A] bg-[#2D5016]/[0.08] dark:bg-[#2D5016]/20 px-2 py-0.5 rounded-full">
-                      Shared
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-[13px] text-[#5C5C5C]/70 dark:text-foreground-muted/50">
-                  {section.persona}
-                </p>
-                <p className="mt-1 text-[14px] leading-[1.5] text-[#5C5C5C] dark:text-foreground-muted">
-                  {section.description}
-                </p>
-              </div>
-
-              {/* Links */}
-              <ul className="space-y-2.5">
-                {section.links.map((link) => (
-                  <li key={`${section.title}-${link.label}`}>
-                    <Link
-                      href={link.href}
-                      className="group flex items-center gap-2 text-[15px] text-[#1A1A1A] dark:text-foreground hover:text-[#2D5016] dark:hover:text-secondary transition-colors"
-                    >
-                      <span className="text-[#2D5016]/40 dark:text-secondary/40 group-hover:text-[#2D5016] dark:group-hover:text-secondary transition-colors" aria-hidden="true">&rarr;</span>
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        {/* Legend */}
-        <div className="mt-10 md:mt-14 pt-8 border-t border-border">
-          <h3 className="text-[14px] font-medium tracking-[0.05em] uppercase text-[#5C5C5C] dark:text-foreground-muted mb-4">
-            How to read this sitemap
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 max-w-[640px]">
-            <div className="flex items-start gap-3">
-              <div className="mt-1 w-4 h-4 rounded-[4px] border border-border bg-[#FAFAF8] dark:bg-background-secondary shrink-0" />
-              <div>
-                <p className="text-[14px] font-medium text-[#1A1A1A] dark:text-foreground">Single persona</p>
-                <p className="text-[13px] text-[#5C5C5C] dark:text-foreground-muted">Pages that serve one core user type.</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="mt-1 w-4 h-4 rounded-[4px] border-2 border-[#2D5016]/15 bg-[#2D5016]/[0.03] dark:border-[#2D5016]/20 dark:bg-[#2D5016]/[0.06] shrink-0" />
-              <div>
-                <p className="text-[14px] font-medium text-[#1A1A1A] dark:text-foreground">Shared journey</p>
-                <p className="text-[13px] text-[#5C5C5C] dark:text-foreground-muted">Where two personas overlap in their goals.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Persona Summary */}
-        <div className="mt-10 md:mt-14 pt-8 border-t border-border">
-          <h3 className="text-[14px] font-medium tracking-[0.05em] uppercase text-[#5C5C5C] dark:text-foreground-muted mb-6">
-            The 6 personas
-          </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-5">
-            {[
-              {
-                name: 'Weekend Explorer',
-                goal: 'Families looking for farm shop day trips and experiences.',
-              },
-              {
-                name: 'Seasonal Planner',
-                goal: 'Organised shoppers who plan around seasonal availability.',
-              },
-              {
-                name: 'Home Chef',
-                goal: 'Cooks seeking quality ingredients and specialty produce.',
-                overlap: 'Overlaps with Conscious Shopper',
-              },
-              {
-                name: 'Conscious Shopper',
-                goal: 'Sustainability-minded buyers choosing local over supermarket.',
-                overlap: 'Overlaps with Home Chef',
-              },
-              {
-                name: 'Local Champion',
-                goal: 'Community members who discover and share nearby farm shops.',
-                overlap: 'Overlaps with Weekend Explorer',
-              },
-              {
-                name: 'Farm Shop Owner',
-                goal: 'Business owners managing their online presence.',
-              },
-            ].map((persona) => (
-              <div key={persona.name}>
-                <p className="text-[15px] font-medium text-[#1A1A1A] dark:text-foreground">
-                  {persona.name}
-                </p>
-                <p className="mt-0.5 text-[14px] leading-[1.5] text-[#5C5C5C] dark:text-foreground-muted">
-                  {persona.goal}
-                </p>
-                {'overlap' in persona && persona.overlap && (
-                  <p className="mt-1 text-[12px] text-[#2D5016]/60 dark:text-[#6B9F4A]/60">
-                    {persona.overlap}
-                  </p>
-                )}
-              </div>
+        <nav aria-label="Sitemap">
+          <div className="grid gap-8 md:grid-cols-3">
+            {sections.map((section) => (
+              <section
+                key={section.heading}
+                className="rounded-xl border border-border-subtle bg-background-surface p-6 shadow-[0_1px_3px_rgba(15,23,42,0.08)]"
+              >
+                <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-foreground-muted">
+                  {section.heading}
+                </h2>
+                <ul className="space-y-2">
+                  {section.links.map((link) => (
+                    <li key={link.href}>
+                      <Link
+                        href={link.href}
+                        className="group inline-flex min-h-[36px] items-center text-sm text-text-body transition-colors hover:text-text-heading"
+                      >
+                        <span className="mr-2 h-px w-5 bg-border-subtle transition-all group-hover:w-7 group-hover:bg-border-strong" />
+                        <span>{link.label}</span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
           </div>
-        </div>
-      </section>
+        </nav>
+      </div>
     </main>
   )
 }

@@ -22,6 +22,65 @@ const farmShopLinks = [
   { href: '/contact', label: 'Contact Us' },
 ]
 
+const sitemapSections = [
+  {
+    title: 'Explore',
+    persona: 'Weekend Explorer',
+    overlap: false,
+    links: [
+      { href: '/', label: 'Home' },
+      { href: '/map', label: 'Interactive Map' },
+      { href: '/shop', label: 'Farm Directory' },
+    ],
+  },
+  {
+    title: 'Seasonal',
+    persona: 'Seasonal Planner',
+    overlap: false,
+    links: [
+      { href: '/seasonal', label: "What's in Season" },
+      { href: '/compare', label: 'Compare Farms' },
+    ],
+  },
+  {
+    title: 'Quality & Sourcing',
+    persona: 'Home Chef & Conscious Shopper',
+    overlap: true,
+    links: [
+      { href: '/categories', label: 'Browse Categories' },
+      { href: '/best', label: "Editor's Picks" },
+    ],
+  },
+  {
+    title: 'Local Discovery',
+    persona: 'Explorer & Local Champion',
+    overlap: true,
+    links: [
+      { href: '/counties', label: 'Browse by County' },
+      { href: '/map', label: 'Find Near Me' },
+    ],
+  },
+  {
+    title: 'List Your Farm',
+    persona: 'Farm Shop Owner',
+    overlap: false,
+    links: [
+      { href: '/add', label: 'Add Your Listing' },
+      { href: '/claim', label: 'Claim Your Shop' },
+      { href: '/contact', label: 'Get in Touch' },
+    ],
+  },
+  {
+    title: 'About',
+    persona: 'Newcomer',
+    overlap: false,
+    links: [
+      { href: '/about', label: 'About Us' },
+      { href: '/contact', label: 'Contact' },
+      { href: '/privacy', label: 'Privacy & Terms' },
+    ],
+  },
+]
 
 export default function Footer() {
   const [currentYear, setCurrentYear] = useState(2026)
@@ -272,15 +331,57 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Sitemap */}
+        <div className="border-t border-border">
+          <div className="mx-auto max-w-6xl px-6 py-10 md:px-12">
+            <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted/60 mb-8">
+              Sitemap
+            </p>
+            <div className="grid grid-cols-2 gap-x-8 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
+              {sitemapSections.map((section) => (
+                <div
+                  key={section.title}
+                  className={
+                    section.overlap
+                      ? 'border-l-2 border-brand-primary/25 pl-4'
+                      : ''
+                  }
+                >
+                  <h5 className="text-xs tracking-[0.15em] uppercase font-medium text-foreground mb-1">
+                    {section.title}
+                  </h5>
+                  <p
+                    className={`text-[11px] mb-3 ${
+                      section.overlap
+                        ? 'text-brand-primary/50'
+                        : 'text-foreground-muted/40'
+                    }`}
+                  >
+                    {section.persona}
+                  </p>
+                  <ul className="space-y-2">
+                    {section.links.map((link) => (
+                      <li key={link.label}>
+                        <Link
+                          href={link.href}
+                          className="text-[13px] text-foreground-muted hover:text-foreground transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Bottom Bar */}
         <div className="border-t border-border bg-[#FAFAFA] dark:bg-background-secondary">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-4 text-[13px] text-foreground-muted md:flex-row md:px-12">
             <p>&copy; {currentYear} Farm Companion</p>
-            <div className="flex items-center gap-4">
-              <Link href="/site-map" className="hover:text-foreground transition-colors">Sitemap</Link>
-              <span aria-hidden="true" className="text-foreground-muted/30">&middot;</span>
-              <p>Made in UK</p>
-            </div>
+            <p>Made in UK</p>
           </div>
         </div>
       </div>
