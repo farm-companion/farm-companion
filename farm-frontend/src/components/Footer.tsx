@@ -277,7 +277,7 @@ export default function Footer() {
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-4 text-[13px] text-foreground-muted md:flex-row md:px-12">
             <p>&copy; {currentYear} Farm Companion</p>
             <div className="flex items-center gap-4">
-              <Link href="/sitemap" className="hover:text-foreground transition-colors">Sitemap</Link>
+              <Link href="/site-map" className="hover:text-foreground transition-colors">Sitemap</Link>
               <span aria-hidden="true" className="text-foreground-muted/30">&middot;</span>
               <p>Made in UK</p>
             </div>

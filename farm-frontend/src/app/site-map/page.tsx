@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description:
     'Browse all pages on Farm Companion — the UK farm shop directory. Find farms by map, county, category, or season.',
   alternates: {
-    canonical: `${SITE_URL}/sitemap`,
+    canonical: `${SITE_URL}/site-map`,
   },
   robots: {
     index: true,
