@@ -181,6 +181,11 @@ function parseArgs(): Options {
   return options
 }
 
+function toOpeningHoursJson(hours: PipelineOpeningHour[]): Prisma.InputJsonValue {
+  // PipelineOpeningHour is a plain JSON-serializable object; this cast aligns with Prisma's Json? input type
+  return hours as unknown as Prisma.InputJsonValue
+}
+
 async function loadFarms(source: string): Promise<PipelineFarm[]> {
   let content: string
 
@@ -323,7 +328,7 @@ async function importFarms() {
           googlePlaceId: farm.place_id || null,
           googleRating: farm.rating ? new Prisma.Decimal(farm.rating) : null,
           googleReviewsCount: farm.user_ratings_total || 0,
-          openingHours: farm.hours.length > 0 ? farm.hours : Prisma.JsonNull,
+          openingHours: farm.hours.length > 0 ? toOpeningHoursJson(farm.hours) : Prisma.JsonNull,
           verified: farm.verified,
           status: 'active',
         }
