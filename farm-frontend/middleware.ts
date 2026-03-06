@@ -13,14 +13,12 @@ function cspFor(req: NextRequest) {
     "'self'",
     'data:',
     'blob:',
-    'https://images.farmcompanion.co.uk', // your CDN if any
+    'https://images.farmcompanion.co.uk',
     'https://lh3.googleusercontent.com',
     'https://lh3.ggpht.com',
     'https://images.unsplash.com',
     'https://cdn.farmcompanion.co.uk',
     'https://*.s3.amazonaws.com',
-    'https://maps.googleapis.com',
-    'https://maps.gstatic.com',
     // MapLibre/Leaflet tile sources
     'https://tile.openstreetmap.org',
     'https://*.tile.openstreetmap.org',
@@ -35,12 +33,7 @@ function cspFor(req: NextRequest) {
   ]
   const connect = [
     "'self'",
-    'https://*.google.com',
-    'https://*.gstatic.com',
     'https://*.vercel.app',
-    'https://maps.googleapis.com',
-    'https://maps.gstatic.com',
-    'https://*.googleapis.com',
     // MapLibre tile sources
     'https://tile.openstreetmap.org',
     'https://*.tile.openstreetmap.org',

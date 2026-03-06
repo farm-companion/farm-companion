@@ -227,7 +227,10 @@ async def get_place_details(client: httpx.AsyncClient, place_id: str) -> Optiona
     url = "https://maps.googleapis.com/maps/api/place/details/json"
     params = {
         "place_id": place_id,
-        "fields": "name,formatted_address,address_components,international_phone_number,rating,user_ratings_total,price_level,reviews,editorial_summary,photos,website,url,geometry,opening_hours",
+        # reviews and editorial_summary were removed: they triggered Preferred
+        # tier pricing ($20/1k) but were never stored or used. Without them the
+        # call falls to Basic tier ($5/1k).
+        "fields": "name,formatted_address,address_components,international_phone_number,rating,user_ratings_total,price_level,photos,website,url,geometry,opening_hours",
         "key": GOOGLE_API_KEY
     }
     

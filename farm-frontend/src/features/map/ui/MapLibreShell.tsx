@@ -11,8 +11,6 @@ import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } fro
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
 import MarkerActions from './MarkerActions'
-
-import ClusterPreview from './ClusterPreview'
 import LocationControl from './LocationControl'
 import MapControls from './MapControls'
 import ScaleBar from './ScaleBar'

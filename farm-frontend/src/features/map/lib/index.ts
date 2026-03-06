@@ -9,9 +9,7 @@ export {
   getClusterTier,
   getZoomAwareSize,
   generateClusterSVG,
-  createSmartClusterRenderer,
   getClusterTargetZoom,
-  animateZoomTo,
   getClusterAnimationClass,
   type ClusterTier,
 } from './cluster-config'
