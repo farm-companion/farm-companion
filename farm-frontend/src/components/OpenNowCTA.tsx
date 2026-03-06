@@ -12,6 +12,7 @@ interface OpenNowCTAProps {
 interface OpenNowStats {
   openCount: number
   totalCount: number
+  withValidHours: number
   isLoading: boolean
 }
 
@@ -23,6 +24,7 @@ export function OpenNowCTA({ className = '', variant = 'hero' }: OpenNowCTAProps
   const [stats, setStats] = useState<OpenNowStats>({
     openCount: 0,
     totalCount: 0,
+    withValidHours: 0,
     isLoading: true,
   })
   const [mounted, setMounted] = useState(false)
@@ -54,27 +56,22 @@ export function OpenNowCTA({ className = '', variant = 'hero' }: OpenNowCTAProps
           setStats({
             openCount: data.openCount || 0,
             totalCount: data.totalCount || 0,
+            withValidHours: data.withValidHours || 0,
             isLoading: false,
           })
         } else {
-          // Fallback: estimate based on time of day
-          const hour = new Date().getHours()
-          const isBusinessHours = hour >= 9 && hour < 17
-          const estimatedOpen = isBusinessHours ? 850 : 120
           setStats({
-            openCount: estimatedOpen,
-            totalCount: 1299,
+            openCount: 0,
+            totalCount: 0,
+            withValidHours: 0,
             isLoading: false,
           })
         }
       } catch {
-        // Fallback on error
-        const hour = new Date().getHours()
-        const isBusinessHours = hour >= 9 && hour < 17
-        const estimatedOpen = isBusinessHours ? 850 : 120
         setStats({
-          openCount: estimatedOpen,
-          totalCount: 1299,
+          openCount: 0,
+          totalCount: 0,
+          withValidHours: 0,
           isLoading: false,
         })
       }
@@ -92,6 +89,11 @@ export function OpenNowCTA({ className = '', variant = 'hero' }: OpenNowCTAProps
         <div className="h-14 bg-white/10 rounded-xl w-64" />
       </div>
     )
+  }
+
+  // Hide completely when no farms have valid opening hours data
+  if (!stats.isLoading && stats.withValidHours === 0) {
+    return null
   }
 
   const openPercentage = stats.totalCount > 0
@@ -240,7 +242,10 @@ export function OpenNowIndicator({ className = '' }: { className?: string }) {
         const response = await fetch('/api/farms/open-now-count')
         if (response.ok) {
           const data = await response.json()
-          setOpenCount(data.openCount || 0)
+          // Only show count if farms actually have hours data
+          if (data.withValidHours > 0) {
+            setOpenCount(data.openCount || 0)
+          }
         }
       } catch {
         // Silent fail, indicator just won't show
