@@ -1,47 +1,9 @@
 /**
- * Type definitions for map-related components and interactions
+ * Type definitions for map-related components and interactions.
+ * Provider-agnostic (no Google Maps types).
  */
 
 import type { FarmShop } from '@/types/farm'
-
-/**
- * Marker click event from Google Maps
- */
-export interface MarkerClickEvent {
-  latLng: google.maps.LatLng
-  domEvent: MouseEvent
-}
-
-/**
- * Cluster data structure
- */
-export interface ClusterData {
-  count: number
-  markers: google.maps.Marker[]
-  position?: google.maps.LatLng
-}
-
-/**
- * Cluster click event from MarkerClusterer
- * Matches MapMouseEvent from @googlemaps/markerclusterer
- */
-export interface ClusterClickEvent {
-  latLng: google.maps.LatLng | null
-  markers?: google.maps.Marker[]
-  cluster?: ClusterData
-  domEvent?: Event
-  stop?: () => void
-}
-
-/**
- * Farm marker with associated data
- */
-export interface FarmMarker {
-  id: string
-  name: string
-  position: google.maps.LatLng
-  farm: FarmShop
-}
 
 /**
  * Combined marker state for atomic updates
@@ -79,13 +41,6 @@ export interface FarmStatus {
   closesAt?: string
   opensAt?: string
   nextOpen?: Date
-}
-
-/**
- * Extended marker with farm data
- */
-export interface FarmMarkerExtended extends google.maps.Marker {
-  farmData?: FarmShop
 }
 
 /**

@@ -192,8 +192,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
         
         {/* Preconnect to critical domains for performance */}
-        <link rel="preconnect" href="https://maps.googleapis.com" />
-        <link rel="preconnect" href="https://maps.gstatic.com" />
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         
         {/* Google Search Console Verification */}

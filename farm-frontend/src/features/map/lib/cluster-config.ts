@@ -159,42 +159,6 @@ function formatClusterCount(count: number): string {
 }
 
 /**
- * Adjust hex color brightness
- */
-function adjustColor(hex: string, amount: number): string {
-  const num = parseInt(hex.replace('#', ''), 16)
-  const r = Math.min(255, Math.max(0, (num >> 16) + amount))
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + amount))
-  const b = Math.min(255, Math.max(0, (num & 0x0000FF) + amount))
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
-}
-
-/**
- * Create cluster renderer for MarkerClusterer
- * This is a factory function that creates a zoom-aware renderer
- */
-export function createSmartClusterRenderer(getZoom: () => number) {
-  return {
-    render: ({ count, position }: { count: number; position: google.maps.LatLng }) => {
-      const zoom = getZoom()
-      const { svg, width, height, anchor } = generateClusterSVG(count, zoom)
-      const svgUrl = `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`
-
-      return new google.maps.Marker({
-        position,
-        icon: {
-          url: svgUrl,
-          scaledSize: new google.maps.Size(width, height),
-          anchor: new google.maps.Point(width / 2, anchor),
-        },
-        zIndex: google.maps.Marker.MAX_ZINDEX + 2,
-        title: `Cluster of ${count} farm shops`,
-      })
-    }
-  }
-}
-
-/**
  * Optimal zoom levels for cluster interaction
  */
 export const CLUSTER_ZOOM_THRESHOLDS = {
@@ -220,51 +184,6 @@ export const CLUSTER_ZOOM_THRESHOLDS = {
 export function getClusterTargetZoom(count: number): number {
   const tier = getClusterTier(count)
   return CLUSTER_ZOOM_THRESHOLDS.ZOOM_TARGETS[tier.name]
-}
-
-/**
- * Smooth zoom animation to target level
- * Uses eased interpolation for natural feel
- */
-export function animateZoomTo(
-  map: google.maps.Map,
-  targetZoom: number,
-  targetCenter?: google.maps.LatLng,
-  duration: number = CLUSTER_EASING.DURATION.ZOOM
-): Promise<void> {
-  return new Promise((resolve) => {
-    const startZoom = map.getZoom() || 10
-    const startCenter = map.getCenter()
-    const startTime = performance.now()
-
-    // Easing function (ease-out cubic)
-    const easeOutCubic = (t: number): number => 1 - Math.pow(1 - t, 3)
-
-    const animate = (currentTime: number) => {
-      const elapsed = currentTime - startTime
-      const progress = Math.min(elapsed / duration, 1)
-      const easedProgress = easeOutCubic(progress)
-
-      // Interpolate zoom
-      const currentZoom = startZoom + (targetZoom - startZoom) * easedProgress
-      map.setZoom(currentZoom)
-
-      // Interpolate center if provided
-      if (targetCenter && startCenter) {
-        const lat = startCenter.lat() + (targetCenter.lat() - startCenter.lat()) * easedProgress
-        const lng = startCenter.lng() + (targetCenter.lng() - startCenter.lng()) * easedProgress
-        map.setCenter(new google.maps.LatLng(lat, lng))
-      }
-
-      if (progress < 1) {
-        requestAnimationFrame(animate)
-      } else {
-        resolve()
-      }
-    }
-
-    requestAnimationFrame(animate)
-  })
 }
 
 /**
