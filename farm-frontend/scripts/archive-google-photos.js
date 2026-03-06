@@ -1,4 +1,4 @@
-#!/usr/bin/env npx tsx
+#!/usr/bin/env node
 /**
  * Archive Google Photos to Vercel Blob
  *
@@ -12,12 +12,12 @@
  *   - DATABASE_URL env var set
  *
  * Usage:
- *   npx tsx scripts/archive-google-photos.ts
- *   npx tsx scripts/archive-google-photos.ts --dry-run
+ *   node scripts/archive-google-photos.js
+ *   node scripts/archive-google-photos.js --dry-run
  */
 
-import { PrismaClient } from '@prisma/client'
-import { put } from '@vercel/blob'
+const { PrismaClient } = require('@prisma/client')
+const { put } = require('@vercel/blob')
 
 const DRY_RUN = process.argv.includes('--dry-run')
 const prisma = new PrismaClient()
@@ -28,15 +28,7 @@ if (!GOOGLE_API_KEY) {
   process.exit(1)
 }
 
-interface ArchiveResult {
-  imageId: string
-  farmSlug: string
-  status: 'ok' | 'skipped' | 'failed'
-  reason?: string
-  blobUrl?: string
-}
-
-async function downloadGooglePhoto(photoRef: string): Promise<{ buffer: Buffer; contentType: string } | null> {
+async function downloadGooglePhoto(photoRef) {
   const url =
     `https://maps.googleapis.com/maps/api/place/photo?` +
     `maxwidth=800&` +
@@ -54,7 +46,7 @@ async function downloadGooglePhoto(photoRef: string): Promise<{ buffer: Buffer; 
   return { buffer: Buffer.from(arrayBuffer), contentType }
 }
 
-function extensionFromContentType(ct: string): string {
+function extensionFromContentType(ct) {
   if (ct.includes('png')) return 'png'
   if (ct.includes('webp')) return 'webp'
   return 'jpg'
@@ -81,10 +73,10 @@ async function main() {
     return
   }
 
-  const results: ArchiveResult[] = []
   let downloaded = 0
   let skipped = 0
   let failed = 0
+  const failures = []
 
   for (const img of images) {
     const farmSlug = img.farm?.slug || 'unknown'
@@ -92,13 +84,11 @@ async function main() {
     // Skip if already archived (has a real blob URL)
     if (img.url && img.url.startsWith('https://') && img.url.includes('blob.vercel-storage.com')) {
       skipped++
-      results.push({ imageId: img.id, farmSlug, status: 'skipped', reason: 'already archived' })
       continue
     }
 
     if (!img.googlePhotoRef) {
       skipped++
-      results.push({ imageId: img.id, farmSlug, status: 'skipped', reason: 'no photo reference' })
       continue
     }
 
@@ -106,7 +96,6 @@ async function main() {
 
     if (DRY_RUN) {
       downloaded++
-      results.push({ imageId: img.id, farmSlug, status: 'ok', reason: 'dry run' })
       continue
     }
 
@@ -114,7 +103,7 @@ async function main() {
       const photo = await downloadGooglePhoto(img.googlePhotoRef)
       if (!photo) {
         failed++
-        results.push({ imageId: img.id, farmSlug, status: 'failed', reason: 'download failed' })
+        failures.push({ farmSlug, imageId: img.id, reason: 'download failed' })
         continue
       }
 
@@ -137,7 +126,6 @@ async function main() {
       })
 
       downloaded++
-      results.push({ imageId: img.id, farmSlug, status: 'ok', blobUrl: blob.url })
       console.log(`[archive]   -> Saved to ${blob.url}`)
 
       // Rate-limit: 200ms between requests to avoid hammering Google
@@ -145,7 +133,7 @@ async function main() {
     } catch (err) {
       failed++
       const msg = err instanceof Error ? err.message : String(err)
-      results.push({ imageId: img.id, farmSlug, status: 'failed', reason: msg })
+      failures.push({ farmSlug, imageId: img.id, reason: msg })
       console.error(`[archive]   -> FAILED: ${msg}`)
     }
   }
@@ -156,11 +144,9 @@ async function main() {
   console.log(`  Skipped:    ${skipped}`)
   console.log(`  Failed:     ${failed}`)
 
-  if (failed > 0) {
+  if (failures.length > 0) {
     console.log('\n[archive] Failed images:')
-    results
-      .filter((r) => r.status === 'failed')
-      .forEach((r) => console.log(`  - ${r.farmSlug} (${r.imageId}): ${r.reason}`))
+    failures.forEach((f) => console.log(`  - ${f.farmSlug} (${f.imageId}): ${f.reason}`))
   }
 
   await prisma.$disconnect()
