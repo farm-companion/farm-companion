@@ -57,8 +57,8 @@ export function validateSubmissionTime(timestamp: number): boolean {
 // Cloudflare Turnstile verification
 export async function verifyTurnstile(token: string, ip: string): Promise<boolean> {
   if (!process.env.TURNSTILE_SECRET_KEY) {
-    securityLogger.warn('TURNSTILE_SECRET_KEY not configured')
-    return true // Allow if not configured
+    securityLogger.warn('TURNSTILE_SECRET_KEY not configured, rejecting request')
+    return false // Fail closed: reject when verification cannot be performed
   }
   
   try {
