@@ -4,7 +4,7 @@
  */
 
 import { createRouteLogger } from '@/lib/logger'
-import { sendContactConfirmation, sendContactNotification } from './email.service'
+import { sendContactNotification } from './email.service'
 
 export interface ContactFormData {
   name: string
@@ -19,23 +19,16 @@ export interface ContactFormResult {
 }
 
 /**
- * Process contact form submission
+ * Process contact form submission.
+ * Only sends admin notification. User confirmation emails are disabled
+ * to prevent the app being used as a spam relay to arbitrary addresses.
  */
 export async function processContactForm(data: ContactFormData): Promise<ContactFormResult> {
   const logger = createRouteLogger('contact.service')
   const timestamp = new Date().toISOString()
 
   try {
-    // Send confirmation email to user
-    await sendContactConfirmation({
-      email: data.email,
-      name: data.name,
-      subject: data.subject,
-      message: data.message,
-      timestamp,
-    })
-
-    // Send notification email to admin
+    // Send notification email to admin only (fixed recipient)
     await sendContactNotification({
       name: data.name,
       email: data.email,

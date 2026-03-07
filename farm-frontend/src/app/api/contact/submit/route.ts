@@ -6,6 +6,7 @@ import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/i
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
 import { sendEmailViaGateway } from '@/lib/email-gateway'
+import { verifyTurnstile } from '@/lib/security'
 
 // Using the centralized validation schema from input-validation.ts
 
@@ -85,6 +86,13 @@ export async function POST(req: NextRequest) {
     if ((v.ttf ?? 0) < 1500) {
       logger.warn('Form filled too quickly (possible bot)', { ip, ttf: v.ttf })
       throw errors.validation('Form filled too quickly')
+    }
+
+    // Turnstile CAPTCHA verification (mandatory)
+    const turnstileOk = await verifyTurnstile(v.turnstileToken, ip)
+    if (!turnstileOk) {
+      logger.warn('Turnstile verification failed', { ip })
+      throw errors.validation('CAPTCHA verification failed. Please try again.')
     }
 
     const id = crypto.randomUUID()
