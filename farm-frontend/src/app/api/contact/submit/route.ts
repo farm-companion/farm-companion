@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 import { kv } from '@vercel/kv'
-import { Resend } from 'resend'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
+import { sendEmailViaGateway } from '@/lib/email-gateway'
 
 // Using the centralized validation schema from input-validation.ts
 
@@ -15,14 +15,6 @@ const limiter = new Ratelimit({
   limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
 })
 
-// Lazy initialization to avoid build-time errors when API key is unavailable
-let resend: Resend | null = null
-function getResend(): Resend {
-  if (!resend) {
-    resend = new Resend(process.env.RESEND_API_KEY)
-  }
-  return resend
-}
 const TO = process.env.CONTACT_TO_EMAIL!
 const FROM = process.env.CONTACT_FROM_EMAIL!
 
@@ -42,13 +34,12 @@ export async function POST(req: NextRequest) {
       throw errors.validation('Contact form is currently disabled')
     }
 
-    // Basic origin check (same-origin POST)
+    // Origin check - strictly enforced
     const origin = req.headers.get('origin') || ''
     const host = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.farmcompanion.co.uk'
     if (!origin.startsWith(host)) {
-      // Soften to 403 if you embed elsewhere
-      logger.warn('Origin check failed (allowing for now)', { ip, origin, host })
-      // throw errors.authorization('Invalid request origin')
+      logger.warn('Origin check failed', { ip, origin, host })
+      throw errors.authorization('Invalid request origin')
     }
 
     // Rate limiting
@@ -115,43 +106,28 @@ export async function POST(req: NextRequest) {
       moduleLogger.error('Failed to store contact message in KV', { ip, id }, e as Error)
     }
 
-    // Send admin forward (don't fail the user if email fails)
-    ;(async () => {
-      try {
-        await getResend().emails.send({
-          from: FROM,
-          to: TO,
-          subject: `Contact: ${v.topic} — ${v.name}`,
-          replyTo: v.email,
-          text: [
-            `Name: ${v.name}`,
-            `Email: ${v.email}`,
-            `Topic: ${v.topic}`,
-            `Time to fill: ${v.ttf} ms`,
-            '',
-            v.message
-          ].join('\n')
-        })
-        moduleLogger.info('Admin notification email sent', { ip, id, topic: v.topic })
-      } catch (e) {
-        moduleLogger.error('Failed to send admin notification email', { ip, id }, e as Error)
-      }
-    })()
-
-    // Send user acknowledgement (non-blocking)
-    ;(async () => {
-      try {
-        await getResend().emails.send({
-          from: FROM,
-          to: v.email,
-          subject: 'We received your message — Farm Companion',
-          text: `Hi ${v.name},\n\nThanks for contacting Farm Companion. We've received your message and will reply soon.\n\n— The Farm Companion team`,
-        })
-        moduleLogger.info('Acknowledgement email sent to user', { ip, id, email: v.email })
-      } catch (e) {
-        moduleLogger.error('Failed to send acknowledgement email', { ip, id, email: v.email }, e as Error)
-      }
-    })()
+    // Send admin notification only (fixed recipient, via gateway).
+    // User acknowledgement emails are intentionally removed to prevent
+    // abuse as a spam relay to arbitrary addresses.
+    if (TO && FROM) {
+      sendEmailViaGateway({
+        from: FROM,
+        to: TO,
+        subject: `Contact: ${v.topic} - ${v.name}`,
+        replyTo: v.email,
+        text: [
+          `Name: ${v.name}`,
+          `Email: ${v.email}`,
+          `Topic: ${v.topic}`,
+          `Time to fill: ${v.ttf} ms`,
+          '',
+          v.message,
+        ].join('\n'),
+        tag: 'contact-admin',
+      }).catch((e) => {
+        moduleLogger.error('Failed to send admin notification', { ip, id }, e as Error)
+      })
+    }
 
     logger.info('Contact form submission completed successfully', {
       ip,

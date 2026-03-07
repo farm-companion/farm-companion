@@ -24,9 +24,10 @@ export default function createRateLimiter({
         }
         return count <= limit
       } catch (error) {
-        rateLimitLogger.warn('Rate limiter KV error, falling back to in-memory', { keyPrefix, key }, error as Error)
-        // Fallback to in-memory rate limiting for development
-        return true
+        rateLimitLogger.warn('Rate limiter KV error, denying request (fail-closed)', { keyPrefix, key }, error as Error)
+        // Fail closed: deny when rate limiting infrastructure is unavailable.
+        // Prevents unlimited traffic if KV is misconfigured or unreachable.
+        return false
       }
     }
   }
