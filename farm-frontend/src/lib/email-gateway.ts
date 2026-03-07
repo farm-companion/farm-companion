@@ -169,23 +169,23 @@ export async function sendEmailViaGateway(
 
   // 6. Send
   try {
-    const payload: Record<string, unknown> = {
+    const sendOpts: Record<string, unknown> = {
       from: opts.from,
       to: [opts.to],
       subject: opts.subject,
       replyTo: opts.replyTo,
     }
     if (opts.react) {
-      payload.react = opts.react
+      sendOpts.react = opts.react
     } else {
-      payload.html = opts.html || opts.text || ''
-      payload.text = opts.text
+      sendOpts.html = opts.html || opts.text || ''
+      sendOpts.text = opts.text
     }
     if (opts.bcc) {
-      payload.bcc = opts.bcc
+      sendOpts.bcc = opts.bcc
     }
 
-    const { data, error } = await getResend().emails.send(payload as Parameters<Resend['emails']['send']>[0])
+    const { data, error } = await getResend().emails.send(sendOpts as unknown as Parameters<Resend['emails']['send']>[0])
 
     if (error) {
       throw new Error(typeof error === 'object' && 'message' in error ? (error as { message: string }).message : String(error))
