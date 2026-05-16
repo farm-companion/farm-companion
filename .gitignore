@@ -126,6 +126,10 @@ data.ms/
 # MCP configuration (may contain connection strings)
 .mcp.json
 
+# Operator-local Claude Code overrides (permissions, env, hook flags;
+# may contain DB passwords like PGPASSWORD allowlist entries)
+.claude/settings.local.json
+
 # Never commit env or secret files
 .env
 .env.*
