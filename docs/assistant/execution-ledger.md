@@ -898,3 +898,45 @@
 - Verified Queue 5 (Backend optimization): comprehensive indexes already in schema.prisma, PostGIS extension enabled, connection pooling configured with Supabase Pooler in prisma.ts, N+1 query fixes deferred until database migration from JSON
 - Verified Queue 6 (Twitter workflow): sendFailureNotification bug non-existent (method is sendErrorNotification, working correctly), filesystem locks already replaced with Redis/Upstash for Bluesky and Telegram clients
 - Verified Queue 7 (Farm pipeline): requirements.txt already has all dependencies pinned, comprehensive retry.py with exponential backoff and jitter, comprehensive logging.py with JSON formatting and structured logging
+
+### 2026-05-16 — Stage 0 Slice 1: Root docs archival
+Goal: declutter root before monorepo lift; reserve a single `docs/archive/` for finished/stale docs.
+- Created `docs/archive/`
+- `git mv` 8 stale root markdowns into `docs/archive/`:
+  - SEARCH_ENGINE_SUBMISSION_GUIDE.md, SESSION_PROGRESS_REPORT.md, CODEBASE_REFACTORING_COMPLETION_SUMMARY.md
+  - INTEGRATION_STATUS.md, PHASE2_INTEGRATION_GUIDE.md
+  - GOOGLE_MAPS_SECURITY_PLAN.md, IMPLEMENT_GOOGLE_MAPS_SECURITY.md, SIMPLE_GOOGLE_MAPS_SECURITY.md (Google Maps runtime already removed in commit ba2adec)
+- Added `farm-frontend/*-report.json` patterns to `.gitignore` and removed duplicate env block
+- Kept at root: README.md, CLAUDE.md, HANDOVER.md
+- **Remaining root markdowns to triage next slice**: PuredgeOS.md, README.template.md, SECURITY_SETUP.md, SEASONAL_PRODUCE_DATA_SOURCE.md, PRODUCE_AUTOMATION_SPEC.md, PRODUCTION_DEPLOYMENT_SUMMARY.md, PRODUCTION_READINESS_ASSESSMENT.md, IMAGE_REMOVAL_SYSTEM.md
+- Verification: `git status` shows 8 renames + 1 .gitignore mod; `ls docs/archive/` shows the 8 files
+- **Did NOT touch**: source code, package.json, Dockerfile (deferred to subsequent slices)
+
+### 2026-05-17 — Stage 0 Slice 2+3: Docker scaffolding for Coolify deploy
+Goal: anchor the build path for Coolify so subsequent slices have a deployable target.
+- `farm-frontend/Dockerfile` (new, multi-stage)
+  - `node:22.11.0-bookworm-slim` for builder + runner (avoids musl/sharp/prisma pain that Alpine causes)
+  - pnpm via corepack with BuildKit cache mount on `/root/.local/share/pnpm/store`
+  - deps stage copies `package.json`, `pnpm-lock.yaml`, `prisma/`, and `scripts/fix-prisma-zeptomatch.js` (postinstall inputs) — NO `patches/` because that directory is absent
+  - builder stage bakes build-time placeholders for `DATABASE_URL` and `NEXT_PUBLIC_SITE_URL` so `next build` does not crash on env validators
+  - runner stage copies only `.next/standalone`, `.next/static`, `public/`, plus `.prisma` + `@prisma/client` (belt-and-suspenders against zeptomatch patch tracer gaps)
+  - non-root `nextjs` user (uid/gid 1001), `HEALTHCHECK curl /` every 30s
+- `farm-frontend/.dockerignore` (new) — excludes node_modules, .next, .env*, *-report.json, docs/, package-lock.json (drift hazard, see Slice 5)
+- `farm-frontend/next.config.ts` — single-line addition: `output: 'standalone'` (required for Dockerfile runner stage to find `server.js`)
+- `docker-compose.dev.yml` (repo root, new) — postgres+postgis 16-3.4-alpine, redis 7-alpine, meilisearch v1.10; ports 5432/6379/7700; named volumes for persistence; healthchecks on all three. Deliberately omits the Next.js app — `pnpm dev` on host hits these services on localhost (faster reload than container rebuild).
+- Verification commands the operator should run (this assistant cannot execute Docker locally):
+  - `cd farm-frontend && docker build -t farm-frontend:dev .` (expect: build green, image size <450 MB)
+  - `docker compose -f docker-compose.dev.yml up -d` (expect: 3 healthy containers within ~30s)
+  - `docker compose -f docker-compose.dev.yml ps` (expect: all "healthy")
+- **Known runtime gap**: container will start but routes touching `@vercel/blob` / `@vercel/kv` will throw — those are wired into 21 source files and need adapter slices (Slice 6+) before the container is functionally complete. The build itself should still pass because tree-shaking does not run code paths.
+
+### 2026-05-17 — Stage 0 Slice 4: Triage remaining 8 root markdowns
+Goal: finish root decluttering started in Slice 1.
+- Archived to `docs/archive/`: PRODUCE_AUTOMATION_SPEC.md, SEASONAL_PRODUCE_DATA_SOURCE.md, PRODUCTION_DEPLOYMENT_SUMMARY.md, PRODUCTION_READINESS_ASSESSMENT.md, IMAGE_REMOVAL_SYSTEM.md, README.template.md (stale planning + completed-feature docs)
+- Kept at root: PuredgeOS.md (design philosophy reference still cited in CLAUDE.md tier-1 standards), SECURITY_SETUP.md (operational runbook, still current)
+
+### 2026-05-17 — Stage 0 Slice 5: Lockfile drift fix
+Goal: kill ambiguity between npm and pnpm.
+- Removed `farm-frontend/package-lock.json` (517 KB, Mar 6) — pnpm is canonical because `package.json` declares `pnpm.overrides` and the Dockerfile already targets pnpm via corepack
+- Kept `farm-frontend/pnpm-lock.yaml` (353 KB, Mar 4) as the single source of truth
+- Followup if needed: pin pnpm version via `packageManager` field in `package.json` (defer until first divergence)

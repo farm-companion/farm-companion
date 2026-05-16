@@ -1,0 +1,74 @@
+# Local development infrastructure that mirrors the Coolify production stack
+# on the Hetzner droplet (Shape A: postgres+postgis, redis, meilisearch).
+#
+# This file deliberately does NOT run the Next.js app - hot reload on the
+# host (`pnpm dev`) is faster and more debuggable than rebuilding the image
+# on every change. The app reads DATABASE_URL / REDIS_URL / MEILI_* from
+# its own .env pointing at localhost on these published ports.
+#
+#   docker compose -f docker-compose.dev.yml up -d
+#   docker compose -f docker-compose.dev.yml logs -f
+#   docker compose -f docker-compose.dev.yml down       # keep volumes
+#   docker compose -f docker-compose.dev.yml down -v    # nuke volumes
+#
+# Defaults below are LOCAL DEV credentials only. For overrides drop a .env
+# at the repo root - never commit production secrets to this file.
+
+name: farm-companion-dev
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4-alpine
+    container_name: farm-companion-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-farmcompanion}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-farmcompanion_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-farmcompanion}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-farmcompanion} -d ${POSTGRES_DB:-farmcompanion}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: farm-companion-redis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.10
+    container_name: farm-companion-meilisearch
+    restart: unless-stopped
+    environment:
+      MEILI_ENV: development
+      MEILI_NO_ANALYTICS: "true"
+      MEILI_MASTER_KEY: ${MEILI_MASTER_KEY:-dev_master_key_change_me}
+    ports:
+      - "${MEILI_PORT:-7700}:7700"
+    volumes:
+      - meili_data:/meili_data
+    healthcheck:
+      test: ["CMD-SHELL", "wget --spider -q http://localhost:7700/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
+  redis_data:
+  meili_data:

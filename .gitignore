@@ -134,10 +134,11 @@ data.ms/
 *.env.txt
 *.env.vercel
 
-# Never commit env or secret files
-.env
-.env.*
-*.env
-*.env.*
-*.env.txt
-*.env.vercel
+# Local audit / report artifacts (not source of truth)
+farm-frontend/accessibility-report-*.json
+farm-frontend/environment-validation-report.json
+farm-frontend/health-check-report.json
+farm-frontend/infrastructure-test-report.json
+farm-frontend/lighthouse-report-*.json
+farm-frontend/security-audit-report.json
+farm-frontend/security-test-report.json

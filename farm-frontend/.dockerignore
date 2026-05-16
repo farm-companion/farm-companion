@@ -1,0 +1,51 @@
+# Keep build context small and deterministic.
+# Anything dev-only or rebuildable should be excluded.
+
+# Local dependency + build artefacts
+node_modules
+.next
+.turbo
+out
+build
+dist
+coverage
+.nyc_output
+
+# Editor / OS noise
+.git
+.gitignore
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Logs + cache
+*.log
+npm-debug.log*
+pnpm-debug.log*
+.eslintcache
+.cache
+
+# Local env and secrets - Coolify / compose inject at runtime
+.env
+.env.*
+!.env.example
+
+# Test + report artefacts (uploaded separately, not deployed)
+playwright-report
+test-results
+*-report.json
+*.tsbuildinfo
+
+# Docker / CI artefacts (avoid recursive context bloat)
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# Top-level docs do not need to ship in the container; the public/ tree
+# is still copied so anything user-facing in /public/*.md is preserved.
+docs
+*.md
+
+# Lockfile for the OTHER package manager - drift hazard, see ledger
+package-lock.json
