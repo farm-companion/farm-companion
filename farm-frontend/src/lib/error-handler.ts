@@ -2,7 +2,7 @@
 // PuredgeOS 3.0 Compliant Error Management
 
 import { NextRequest, NextResponse } from 'next/server'
-import { kv } from '@vercel/kv'
+import { kv } from '@/lib/kv'
 import { logSecurityEvent } from './logging'
 import { logger } from '@/lib/logger'
 

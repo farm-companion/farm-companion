@@ -949,3 +949,12 @@ Goal: remove the first of three Vercel runtime deps. Smallest target — single 
 - Verification: `pnpm exec tsc --noEmit --skipLibCheck` exits 0 (no type errors). Source grep `@vercel/analytics` returns zero matches. Lockfile grep returns zero matches
 - Risk: nil — the import was already commented out and the JSX was already disabled. Removing the package only prunes dead inventory
 - Next: Slice 6b — `@vercel/kv` adapter (used at runtime by several routes; needs a real abstraction, not just dep removal)
+
+### 2026-05-17 — Stage 0 Slice 6b: `@vercel/kv` adapter — lib migration
+Goal: introduce a thin shim over `@upstash/redis` so we can decouple from `@vercel/kv` without rewriting call sites. Migrate the 5 lib callers in this slice; API routes follow in Slice 6c.
+- `farm-frontend/src/lib/kv.ts` (new, 26 LOC) — exports `kv = new Redis({ url, token })`. Reads `KV_REST_API_URL` / `KV_REST_API_TOKEN` first (existing Vercel envs) and falls back to `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`. No throw at import time — callers already wrap `kv.*` in try/catch
+- Migrated 5 lib callers (single-line import swap each): `lib/rate-limit.ts`, `lib/logging.ts`, `lib/error-handler.ts`, `lib/performance-monitor.ts`, `lib/cache-manager.ts`
+- Vercel KV is built on Upstash Redis so the method surface (`get`, `set`, `setex`, `del`, `incr`, `expire`, `keys`, `hset`, `lpush`, `lrange`, `sadd`, `smembers` — enumerated by grep across all current usage) maps 1:1. No call-site signature changes
+- Verification: `pnpm exec tsc --noEmit --skipLibCheck` exits 0. Grep `@vercel/kv` in `src/lib/` matches only comments in `kv.ts` itself
+- Risk: low — shim re-exports an identical client surface. Failure mode is misconfigured env vars (same as before), and callers already have try/catch + in-memory fallback (e.g. `rate-limit.ts:26-30`). Rollback: `git revert <sha>` followed by `pnpm install`
+- Next: Slice 6c — migrate 5 API routes (`api/contact/submit`, `api/farms/submit`, `api/log-error`, `api/log-http-error`, `api/add/selftest`) and remove `@vercel/kv` from package.json + lockfile
