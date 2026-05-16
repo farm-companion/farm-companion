@@ -109,9 +109,6 @@ importers:
       '@vercel/blob':
         specifier: ^2.0.1
         version: 2.0.1
-      '@vercel/kv':
-        specifier: ^3.0.0
-        version: 3.0.0
       '@vis.gl/react-google-maps':
         specifier: ^1.7.1
         version: 1.7.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -2383,10 +2380,6 @@ packages:
   '@vercel/blob@2.0.1':
     resolution: {integrity: sha512-DeJmC/B5oH1ExazYh/UvjbN6Mg0q0wlDz29GPIPNhi4COjVzqYRkyPYjOcAZd+RgXVzWqGXholZWtGcLCPuL8A==}
     engines: {node: '>=20.0.0'}
-
-  '@vercel/kv@3.0.0':
-    resolution: {integrity: sha512-pKT8fRnfyYk2MgvyB6fn6ipJPCdfZwiKDdw7vB+HL50rjboEBHDVBEcnwfkEpVSp2AjNtoaOUH7zG+bVC/rvSg==}
-    engines: {node: '>=14.6'}
 
   '@vis.gl/react-google-maps@1.7.1':
     resolution: {integrity: sha512-F/GJzJyri7Jqf+bkLNxoi2RcH2hCIo1I3//PyiILqQzdzglMoqZVO1DLXlHPifNdebk1/zib6dMJA3i73nwmuQ==}
@@ -6989,10 +6982,6 @@ snapshots:
       is-node-process: 1.2.0
       throttleit: 2.1.0
       undici: 7.18.2
-
-  '@vercel/kv@3.0.0':
-    dependencies:
-      '@upstash/redis': 1.36.1
 
   '@vis.gl/react-google-maps@1.7.1(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:

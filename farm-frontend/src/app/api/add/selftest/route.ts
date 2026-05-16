@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
   // KV ping (optional)
   try {
-    const { kv } = await import('@vercel/kv')
+    const { kv } = await import('@/lib/kv')
     await kv.ping?.()
     report.checks.push({ name: 'kv', ok: true })
   } catch (e: unknown) {

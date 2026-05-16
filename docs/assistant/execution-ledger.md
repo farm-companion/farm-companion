@@ -959,6 +959,16 @@ Goal: introduce a thin shim over `@upstash/redis` so we can decouple from `@verc
 - Risk: low — shim re-exports an identical client surface. Failure mode is misconfigured env vars (same as before), and callers already have try/catch + in-memory fallback (e.g. `rate-limit.ts:26-30`). Rollback: `git revert <sha>` followed by `pnpm install`
 - Next: Slice 6c — migrate 5 API routes (`api/contact/submit`, `api/farms/submit`, `api/log-error`, `api/log-http-error`, `api/add/selftest`) and remove `@vercel/kv` from package.json + lockfile
 
+### 2026-05-17 — Stage 0 Slice 6c: `@vercel/kv` adapter — API route migration + dep removal
+Goal: move the final 5 API-route callers from `@vercel/kv` to `@/lib/kv`, then drop `@vercel/kv` from `package.json` so EV-1 (and Coolify deploy) can land with zero Vercel-KV dependency.
+- Migrated 5 routes (single-line import swap each): `app/api/contact/submit/route.ts`, `app/api/farms/submit/route.ts`, `app/api/log-error/route.ts`, `app/api/log-http-error/route.ts`, `app/api/add/selftest/route.ts` (the last uses dynamic `await import('@/lib/kv')`)
+- Broadened the production-only env guards in `log-error` and `log-http-error` from the Vercel-only `VERCEL_KV_REST_API_URL` to `KV_REST_API_URL || UPSTASH_REDIS_REST_URL || VERCEL_KV_REST_API_URL` so structured error logging keeps working under Coolify env naming
+- Removed `"@vercel/kv": "^3.0.0"` from `farm-frontend/package.json`; `pnpm install` regenerated `pnpm-lock.yaml` (lockfile `@vercel/kv` occurrences: 3 → 0; install log confirmed `- @vercel/kv 3.0.0`)
+- Verification: `pnpm exec tsc --noEmit` exits 0. `grep -rn "@vercel/kv" farm-frontend/src` matches only the two header comments in `src/lib/kv.ts` itself
+- Files touched: 6 (5 routes + `package.json`); lockfile auto-regenerated. Within 8-file / 300-line slice budget
+- Risk: low — Upstash Redis is the engine behind Vercel KV, method surface (`hset`, `lpush`, `set`, `incr`, `expire`, `ping`) is 1:1, and the env-guard broadening is purely additive. Rollback: `git revert <sha>` then `pnpm install`
+- Next: EV-1 (mailboxlayer email verification — all pre-reqs now met) or Slice 6d (`@vercel/blob` adapter — the last remaining Vercel-SDK dependency)
+
 ### 2026-05-17 — Queued: Slice EV-1 (Email verification adapter, mailboxlayer)
 Plan: [`docs/assistant/email-verification-plan.md`](./email-verification-plan.md) — spec, awaiting approval.
 
@@ -969,7 +979,7 @@ Plan: [`docs/assistant/email-verification-plan.md`](./email-verification-plan.md
 **Pre-requisites before EV-1 starts:**
 - [x] Slice 6a complete (`@vercel/analytics` stripped — verified on disk).
 - [x] Slice 6b complete (`src/lib/kv.ts` shim in place — verified on disk).
-- [ ] Slice 6c complete (routes migrated to `@/lib/kv`, `@vercel/kv` removed from `package.json`).
+- [x] Slice 6c complete (routes migrated to `@/lib/kv`, `@vercel/kv` removed from `package.json`).
 - [ ] User has `MAILBOXLAYER_API_KEY` ready to paste into `farm-frontend/.env.local` for local verify and Coolify env for prod.
 
 **Slice files (preview, ≤8 files / ≤300 LOC excl. tests):**

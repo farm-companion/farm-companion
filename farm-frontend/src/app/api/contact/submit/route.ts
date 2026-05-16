@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
-import { kv } from '@vercel/kv'
+import { kv } from '@/lib/kv'
 import { Resend } from 'resend'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 import { createRouteLogger } from '@/lib/logger'
