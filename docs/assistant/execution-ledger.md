@@ -958,3 +958,39 @@ Goal: introduce a thin shim over `@upstash/redis` so we can decouple from `@verc
 - Verification: `pnpm exec tsc --noEmit --skipLibCheck` exits 0. Grep `@vercel/kv` in `src/lib/` matches only comments in `kv.ts` itself
 - Risk: low — shim re-exports an identical client surface. Failure mode is misconfigured env vars (same as before), and callers already have try/catch + in-memory fallback (e.g. `rate-limit.ts:26-30`). Rollback: `git revert <sha>` followed by `pnpm install`
 - Next: Slice 6c — migrate 5 API routes (`api/contact/submit`, `api/farms/submit`, `api/log-error`, `api/log-http-error`, `api/add/selftest`) and remove `@vercel/kv` from package.json + lockfile
+
+### 2026-05-17 — Queued: Slice EV-1 (Email verification adapter, mailboxlayer)
+Plan: [`docs/assistant/email-verification-plan.md`](./email-verification-plan.md) — spec, awaiting approval.
+
+**Goal:** verify submitter emails on `/api/contact/submit` and `/api/farms/submit` via mailboxlayer; reject malformed / no-MX / disposable / low-score addresses; fail-open on outage or missing key.
+
+**Slot in queue:** **immediately after Slice 6c.** EV-1 modifies the same two route files Slice 6c is migrating from `@vercel/kv` to `@/lib/kv`. Landing 6c first keeps EV-1's diff purely additive (one `verifyEmail` call per route) with zero overlap on the KV-migration lines. Independent of Slice 6d (`@vercel/blob`) and any Queue 3+ work — those can interleave freely on either side of EV-1.
+
+**Pre-requisites before EV-1 starts:**
+- [x] Slice 6a complete (`@vercel/analytics` stripped — verified on disk).
+- [x] Slice 6b complete (`src/lib/kv.ts` shim in place — verified on disk).
+- [ ] Slice 6c complete (routes migrated to `@/lib/kv`, `@vercel/kv` removed from `package.json`).
+- [ ] User has `MAILBOXLAYER_API_KEY` ready to paste into `farm-frontend/.env.local` for local verify and Coolify env for prod.
+
+**Slice files (preview, ≤8 files / ≤300 LOC excl. tests):**
+- create `farm-frontend/src/lib/email-verification.ts` (~150 LOC)
+- create `farm-frontend/src/lib/email-verification.test.ts` (~140 LOC, `node:test` runner — 0 new deps)
+- modify `farm-frontend/src/app/api/contact/submit/route.ts` (+8 LOC)
+- modify `farm-frontend/src/app/api/farms/submit/route.ts` (+8 LOC)
+- create `farm-frontend/.env.example` (4 LOC)
+- modify `farm-frontend/package.json` (+1 LOC — add `test:unit` script)
+- modify this ledger (entry moves from "Queued" to "DONE" with verification log)
+
+**New env vars (must be set in Coolify before prod deploy):**
+
+| Variable | Default | Notes |
+|---|---|---|
+| `MAILBOXLAYER_API_KEY` | — | Required to enable. Missing → fail-open. |
+| `MAILBOXLAYER_MIN_SCORE` | `0.65` | Reject threshold. |
+| `MAILBOXLAYER_TIMEOUT_MS` | `5000` | Per-call timeout. |
+| `MAILBOXLAYER_CACHE_TTL_MS` | `86400000` | 24h LRU TTL. |
+
+**Cost:** £0/mo at current volume — free tier (100 reqs/mo) covered by 24h LRU cache + existing per-IP rate limits.
+**Deps added:** 0.
+**Rollback:** unset `MAILBOXLAYER_API_KEY` in Coolify env — adapter returns `isValid: true` everywhere. No code revert needed.
+**Acceptance:** see plan §14.
