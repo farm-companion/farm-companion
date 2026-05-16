@@ -16,7 +16,6 @@ import '@fontsource/crimson-pro/700.css'
 
 import type { Metadata } from 'next'
 import Script from 'next/script'
-// import { Analytics } from '@vercel/analytics'
 import ConsentBanner from '@/components/ConsentBanner'
 import Header from '@/components/Header'
 import FooterWrapper from '@/components/FooterWrapper'
@@ -228,9 +227,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
           {/* Footer - conditionally hidden on map page */}
           <FooterWrapper />
-
-          {/* Vercel Analytics */}
-          {/* <Analytics /> */}
 
           {/* Consent-gated Analytics */}
           <AnalyticsLoader />

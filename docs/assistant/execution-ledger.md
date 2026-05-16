@@ -940,3 +940,12 @@ Goal: kill ambiguity between npm and pnpm.
 - Removed `farm-frontend/package-lock.json` (517 KB, Mar 6) — pnpm is canonical because `package.json` declares `pnpm.overrides` and the Dockerfile already targets pnpm via corepack
 - Kept `farm-frontend/pnpm-lock.yaml` (353 KB, Mar 4) as the single source of truth
 - Followup if needed: pin pnpm version via `packageManager` field in `package.json` (defer until first divergence)
+
+### 2026-05-17 — Stage 0 Slice 6a: Strip `@vercel/analytics`
+Goal: remove the first of three Vercel runtime deps. Smallest target — single dead import and dead JSX comment, zero live call sites.
+- `farm-frontend/src/app/layout.tsx` — deleted commented-out `// import { Analytics } from '@vercel/analytics'` (line 19) and the dead JSX comment block (`{/* Vercel Analytics */} {/* <Analytics /> */}`). `<AnalyticsLoader />` (the consent-gated in-house wrapper) is the only remaining analytics surface
+- `farm-frontend/package.json` — removed `"@vercel/analytics": "^1.6.1"` from dependencies
+- `farm-frontend/pnpm-lock.yaml` — regenerated via `pnpm install --no-frozen-lockfile`; output confirmed `dependencies: - @vercel/analytics 1.6.1`
+- Verification: `pnpm exec tsc --noEmit --skipLibCheck` exits 0 (no type errors). Source grep `@vercel/analytics` returns zero matches. Lockfile grep returns zero matches
+- Risk: nil — the import was already commented out and the JSX was already disabled. Removing the package only prunes dead inventory
+- Next: Slice 6b — `@vercel/kv` adapter (used at runtime by several routes; needs a real abstraction, not just dep removal)
