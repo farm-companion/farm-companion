@@ -47,6 +47,29 @@ export type BlobBody =
   | Blob
   | File
 
+// Thrown by del() when a caller passes a legacy Vercel Blob URL
+// (*.public.blob.vercel-storage.com/...) after the backend has been
+// switched away from Vercel. Silently no-op'ing the delete would
+// orphan the Vercel-hosted object; throwing surfaces the case so the
+// caller's surrounding try/catch logs it for later backfill.
+export class LegacyBlobUrlError extends Error {
+  constructor(public readonly url: string) {
+    super(`blob-adapter: refusing to delete legacy Vercel Blob URL ${url}; backfill required`)
+    this.name = 'LegacyBlobUrlError'
+  }
+}
+
+// Thrown by put() when a caller asks for an option the adapter
+// chooses not to fake. Strict-mode allowOverwrite needs S3 conditional
+// PUT (If-None-Match) and a TOCTOU-free fs implementation, neither of
+// which is currently wired. Fail loud > silent-incorrect.
+export class BlobOptionNotImplementedError extends Error {
+  constructor(option: string) {
+    super(`blob-adapter: option not implemented: ${option}`)
+    this.name = 'BlobOptionNotImplementedError'
+  }
+}
+
 interface Backend {
   put(path: string, body: BlobBody, opts?: BlobPutOptions): Promise<BlobPutResult>
   head(path: string): Promise<BlobHeadResult>
@@ -70,24 +93,44 @@ function normalisePath(p: string): string {
   return cleaned
 }
 
-const PUBLIC_URL_BASE = (process.env.BLOB_PUBLIC_URL_BASE ?? '').replace(/\/+$/, '')
-
-function buildPublicUrl(pathname: string): string {
-  return PUBLIC_URL_BASE
-    ? `${PUBLIC_URL_BASE}/${pathname}`
-    : `/blob/${pathname}`
+// Lazy reader so container envs injected after process start are honoured
+// and so tests can mutate process.env between cases.
+function publicUrlBase(): string {
+  return (process.env.BLOB_PUBLIC_URL_BASE ?? '').replace(/\/+$/, '')
 }
 
+function buildPublicUrl(pathname: string): string {
+  const base = publicUrlBase()
+  return base ? `${base}/${pathname}` : `/blob/${pathname}`
+}
+
+// Matches any *.public.blob.vercel-storage.com host. Vercel Blob URLs
+// embed a random store id as the first path segment, so the URL's
+// pathname does NOT map to our S3 key — silently passing it to the
+// S3 backend would issue a delete against the wrong key (success-shaped
+// no-op) and orphan the real object on Vercel.
+const LEGACY_VERCEL_BLOB_HOST = /\.public\.blob\.vercel-storage\.com$/i
+
 function pathFromInput(pathOrUrl: string): string {
-  if (PUBLIC_URL_BASE && pathOrUrl.startsWith(PUBLIC_URL_BASE)) {
-    return normalisePath(pathOrUrl.slice(PUBLIC_URL_BASE.length))
+  const base = publicUrlBase()
+  if (base && pathOrUrl.startsWith(base)) {
+    return normalisePath(pathOrUrl.slice(base.length))
+  }
+  // Symmetric strip of the /blob/ fallback prefix used by buildPublicUrl()
+  // when BLOB_PUBLIC_URL_BASE is not configured (dev / fs backend).
+  if (!base && pathOrUrl.startsWith('/blob/')) {
+    return normalisePath(pathOrUrl.slice('/blob/'.length))
   }
   if (/^https?:\/\//i.test(pathOrUrl)) {
     try {
       const u = new URL(pathOrUrl)
+      if (LEGACY_VERCEL_BLOB_HOST.test(u.hostname)) {
+        throw new LegacyBlobUrlError(pathOrUrl)
+      }
       return normalisePath(u.pathname)
-    } catch {
-      /* fall through */
+    } catch (err) {
+      if (err instanceof LegacyBlobUrlError) throw err
+      /* malformed URL — fall through to bare-path normalisation */
     }
   }
   return normalisePath(pathOrUrl)
@@ -119,6 +162,9 @@ class S3Backend implements Backend {
   }
 
   async put(path: string, body: BlobBody, opts: BlobPutOptions = {}): Promise<BlobPutResult> {
+    if (opts.allowOverwrite === false) {
+      throw new BlobOptionNotImplementedError('allowOverwrite=false (needs S3 If-None-Match)')
+    }
     const Key = normalisePath(path)
     const buf = await toBuffer(body)
     const cacheControl = opts.cacheControlMaxAge
@@ -157,6 +203,9 @@ class S3Backend implements Backend {
     }
   }
 
+  // S3's DeleteObject is idempotent (HTTP 204 even for missing keys), so
+  // no NoSuchKey handling is required here. pathFromInput() filters out
+  // legacy Vercel Blob URLs upstream via LegacyBlobUrlError.
   async del(pathOrUrl: string): Promise<void> {
     const Key = pathFromInput(pathOrUrl)
     await this.client.send(
@@ -177,6 +226,9 @@ class FsBackend implements Backend {
   }
 
   async put(path: string, body: BlobBody, opts: BlobPutOptions = {}): Promise<BlobPutResult> {
+    if (opts.allowOverwrite === false) {
+      throw new BlobOptionNotImplementedError('allowOverwrite=false (needs TOCTOU-free fs primitive)')
+    }
     const key = normalisePath(path)
     const target = this.full(key)
     await fs.mkdir(dirname(target), { recursive: true })
@@ -210,13 +262,21 @@ class FsBackend implements Backend {
   }
 }
 
-const backendName = (process.env.BLOB_BACKEND ?? 'fs').toLowerCase()
-
+// Lazy: env vars are resolved at first-call time, not import time, so
+// container envs injected after process start are honoured and so tests
+// can mutate process.env between cases.
 let _backend: Backend | null = null
 function getBackend(): Backend {
   if (_backend) return _backend
+  const backendName = (process.env.BLOB_BACKEND ?? 'fs').toLowerCase()
   _backend = backendName === 's3' ? new S3Backend() : new FsBackend()
   return _backend
+}
+
+// Test-only: reset the cached backend so the next call re-reads env.
+// Exported for unit tests; production code never calls this.
+export function __resetBackendForTests(): void {
+  _backend = null
 }
 
 export function put(path: string, body: BlobBody, opts?: BlobPutOptions): Promise<BlobPutResult> {

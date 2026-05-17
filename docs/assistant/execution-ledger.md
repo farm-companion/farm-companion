@@ -1050,21 +1050,25 @@ All three Vercel SDKs removed: `@vercel/analytics` (Slice 6a), `@vercel/kv` (Sli
 - EV-1: ship mailboxlayer email verification (pre-reqs met).
 - Dependabot: 43 vulns on master (2 critical, 25 high, 16 moderate) per recent push warnings — separate Queue 1 work.
 
-### 2026-05-17 — Queued: Slice 6f (`blob-adapter` hardening — surfaced by Slice 6d ultrathink review)
-Goal: close three real risks identified after Slice 6d shipped, before any prod traffic hits the new adapter.
+### 2026-05-17 — Stage 0 Slice 6f: `blob-adapter` hardening + first unit-test coverage
+Goal: close the three risks surfaced by the ultrathink review of Slice 6d, before prod traffic hits the new adapter.
 
-**Risk 1 — S3 `NoSuchKey` intolerance on legacy URLs.** `lib/photo-storage.ts:172,329` calls `del(photo.url)` with the URL stored in DB. After Coolify cutover, most existing rows still contain `*.public.blob.vercel-storage.com` URLs. `pathFromInput()` falls through to the generic `https://...` handler and extracts the URL's pathname (e.g. `/abc123/farm-photos/slug/id/main.webp`), then `S3Backend.del` issues a `DeleteObject` against the Hetzner bucket — which returns `NoSuchKey` and throws. `FsBackend` already swallows `ENOENT` for parity with `@vercel/blob`'s permissive delete; `S3Backend` must do the same with `NoSuchKey`.
+**Risk 1 — orphan-on-legacy-URL.** Revised after the S3 spec: `DeleteObjectCommand` is genuinely idempotent (HTTP 204 for missing keys), so the original "NoSuchKey throw" framing was wrong. The *real* failure mode is silent: `del('https://abc.public.blob.vercel-storage.com/...')` would issue a delete against the wrong Hetzner key, succeed, and leave the actual Vercel-hosted object as an orphan while the DB marks the photo deleted. **Fix:** detect `*.public.blob.vercel-storage.com` hosts in `pathFromInput()` and throw a new typed `LegacyBlobUrlError`. Callers (`lib/photo-storage.ts:172,329`) already wrap `del` in try/catch, so they log it loudly instead of swallowing it. Backfill is still tracked separately.
 
-**Risk 2 — `FsBackend.put` ignores `allowOverwrite`.** I read the option in the type signature, then do nothing with it. Contract drift vs `@vercel/blob`. Only `lib/produce-blob.ts` ever passes it (and only as `true`, the permissive case) — so not currently breaking — but it's a latent bug that will bite when a future caller relies on the strict mode.
+**Risk 2 — `allowOverwrite=false` silently ignored.** Faking partial support is worse than no support. **Fix:** throw `BlobOptionNotImplementedError` in both backends if a caller ever passes it. Fail loud > silent-incorrect. (No current caller uses the strict mode.)
 
-**Risk 3 — Zero test coverage on 232 LOC of new adapter code.** TDD was skipped on Slice 6d. Catch up: write unit tests under `lib/blob-adapter.test.ts` using `node:test` (0 new deps), covering: `toBuffer` (Buffer/Uint8Array/ArrayBuffer/string/Blob branches), `normalisePath` (leading-slash strip; `..` rejection), `pathFromInput` (BLOB_PUBLIC_URL_BASE strip; generic https strip; bare-path passthrough), `FsBackend.{put,head,del}` (round-trip; ENOENT tolerance on del).
+**Risk 3 — zero test coverage on 232 LOC.** **Fix:** `lib/blob-adapter.test.ts` (140 LOC, `node:test` + `tsx --test`, 0 new deps). 11 cases covering both new errors, legacy-URL detection (case-insensitive), `pathFromInput` round-trip through `del()`, FsBackend round-trip for string/Buffer/Uint8Array/Blob bodies, idempotent `del` for missing files, `..` path-traversal rejection, leading-slash tolerance, `BLOB_PUBLIC_URL_BASE` honoring.
 
-**Slice files (preview, ≤6 / 8 budget):**
-- modify `farm-frontend/src/lib/blob-adapter.ts` (~+30 LOC: NoSuchKey try/catch; allowOverwrite strict-mode branch)
-- create `farm-frontend/src/lib/blob-adapter.test.ts` (~120 LOC, `node:test`)
-- modify `farm-frontend/package.json` (+1 LOC: add `test:unit` script if not present)
+**Bonus bug caught by the new tests:** `buildPublicUrl` returns `/blob/${pathname}` when `BLOB_PUBLIC_URL_BASE` is empty, but `pathFromInput` did not strip that prefix on the way back — so `del(url)` in dev/fs mode targeted the wrong storage key. Symmetric `/blob/` strip added to `pathFromInput`. Test caught this on first run; fix made test 11/11 pass.
+
+**Bonus refactor for testability:** `backendName` and `PUBLIC_URL_BASE` were read at module-load time. Both are now lazy (`publicUrlBase()` function + per-call read in `getBackend()`), with a test-only `__resetBackendForTests()` export. Also a defensive prod improvement — Coolify env injected after process start is now honoured even if some import order edge case meant the module loaded before envs.
+
+**Files touched (6 / 8 budget):**
+- modify `farm-frontend/src/lib/blob-adapter.ts` (+62 / −18 LOC: two new error classes, `LegacyBlobUrlError` detection, `allowOverwrite` enforcement, lazy env, `/blob/` symmetric strip, `__resetBackendForTests`)
+- create `farm-frontend/src/lib/blob-adapter.test.ts` (140 LOC, 11 cases)
+- modify `farm-frontend/package.json` (+1: `test:unit` script via `tsx --test`)
 - modify this ledger
 
-**Verification:** `pnpm exec node --test src/lib/blob-adapter.test.ts` exits 0; `pnpm exec tsc --noEmit` exits 0.
-**Rollback:** `git revert <sha>`. Hardening is purely additive; no behaviour reversion needed.
-**Pre-requisites:** none. Ready to ship.
+**Verification:** `pnpm tsx --test src/lib/blob-adapter.test.ts` → 11 pass / 0 fail / 0 skip (exit 0). `pnpm exec tsc --noEmit` exits 0.
+**Risk:** low — additive error classes + lazy env. Only behaviour change visible to existing callers is `del(legacyVercelUrl)` throwing instead of no-op; callers already have try/catch.
+**Rollback:** `git revert <sha>`. Reverting also drops the test file (acceptable since we'd be giving up the contract too).
