@@ -1,22 +1,25 @@
 'use client'
 
 import React, { useEffect, useCallback, useRef, useState } from 'react'
-import { 
-  Home, 
-  Map, 
-  Leaf, 
-  Info, 
-  Plus, 
-  MessageCircle, 
-  MapPin, 
-  Calendar, 
-  Star, 
-  BookOpen, 
-  User, 
-  Settings, 
+import {
+  Home,
+  Map,
+  Leaf,
+  Info,
+  Plus,
+  MessageCircle,
+  MapPin,
+  Calendar,
+  Star,
+  BookOpen,
+  Award,
+  LayoutGrid,
+  User,
+  Settings,
   HelpCircle,
   X,
-  ChevronRight
+  ChevronRight,
+  Compass
 } from 'lucide-react'
 import { hapticFeedback } from '@/lib/haptics'
 import { createSwipeToClose } from '@/lib/gestures'
@@ -47,6 +50,13 @@ const navigationItems = [
     icon: Leaf,
     primary: true,
     description: 'What\'s fresh this season'
+  },
+  {
+    title: 'Editor\'s Picks',
+    href: '/best',
+    icon: Award,
+    primary: true,
+    description: 'Curated best-of guides and recommendations'
   },
   {
     title: 'About Us',
@@ -87,16 +97,23 @@ const quickActions = [
     badge: 'Updated'
   },
   {
-    title: 'Featured Farms',
-    href: '/map?featured=true',
-    icon: Star,
-    description: 'Handpicked farm recommendations'
+    title: 'Editor\'s Picks',
+    href: '/best',
+    icon: BookOpen,
+    description: 'Curated guides to the UK\'s finest farms',
+    badge: 'Editor\'s Pick'
   },
   {
-    title: 'Farm Stories',
-    href: '/about',
-    icon: BookOpen,
-    description: 'Meet the people behind the farms'
+    title: 'Browse Counties',
+    href: '/counties',
+    icon: Compass,
+    description: 'Explore farms by region'
+  },
+  {
+    title: 'Categories',
+    href: '/categories',
+    icon: LayoutGrid,
+    description: 'Browse by produce type'
   }
 ]
 

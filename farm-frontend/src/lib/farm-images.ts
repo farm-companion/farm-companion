@@ -2,13 +2,14 @@
  * Farm Image Priority Logic
  *
  * Determines which image to display for a farm based on source priority.
- * Priority order: owner > user > google > runware > upload
+ * Priority order: owner > user > google-archived > runware > upload
+ *
+ * Google photos are no longer resolved via the Places API at runtime.
+ * Run scripts/archive-google-photos.ts to download them to Vercel Blob first.
  */
 
-import { getGooglePhotoUrl } from './google-photos'
-
 // Image sources in priority order (highest first)
-const SOURCE_PRIORITY: string[] = ['owner', 'user', 'google', 'runware', 'upload']
+const SOURCE_PRIORITY: string[] = ['owner', 'user', 'google-archived', 'google', 'runware', 'upload']
 
 export interface FarmImage {
   id: string
@@ -76,25 +77,20 @@ export function getSortedImages(images: FarmImage[]): FarmImage[] {
 /**
  * Resolve the display URL for an image.
  *
- * For Google photos, this fetches the URL from the photo reference.
- * For other sources, returns the stored URL.
+ * Google photos are no longer resolved via the Places API at runtime.
+ * Archived Google photos (source='google-archived') have a Blob URL in the
+ * url field. Un-archived Google photos (source='google') with only a
+ * googlePhotoRef and no url are skipped to avoid billable API calls.
  *
  * @param image - The image to resolve
- * @param maxWidth - Maximum width for Google photos
  * @returns The display URL or null
  */
 export function resolveImageUrl(
   image: FarmImage,
-  maxWidth: number = 800
 ): string | null {
   if (!image) return null
 
-  // For Google photos, use the photo reference
-  if (image.source === 'google' && image.googlePhotoRef) {
-    return getGooglePhotoUrl(image.googlePhotoRef, maxWidth)
-  }
-
-  // For other sources, use the stored URL
+  // Use the stored URL for all sources (including google-archived)
   return image.url || null
 }
 
@@ -102,17 +98,15 @@ export function resolveImageUrl(
  * Get display-ready hero image URL for a farm.
  *
  * @param images - Array of approved images
- * @param maxWidth - Maximum width for Google photos
  * @returns Object with URL and attribution, or null
  */
 export function getHeroImageUrl(
   images: FarmImage[],
-  maxWidth: number = 800
 ): { url: string; attribution?: string } | null {
   const hero = getHeroImage(images)
   if (!hero) return null
 
-  const url = resolveImageUrl(hero, maxWidth)
+  const url = resolveImageUrl(hero)
   if (!url) return null
 
   return {
@@ -136,6 +130,7 @@ export function getSourceLabel(source: string): string {
     owner: 'Owner Photo',
     user: 'Community Photo',
     google: 'Google',
+    'google-archived': 'Google',
     runware: 'AI Generated',
     upload: 'Uploaded',
   }

@@ -4,76 +4,9 @@
 /* Tailwind CSS v4 import - MUST come before MapLibre to allow overrides */
 @import "tailwindcss";
 
-/* MapLibre CSS - imported AFTER Tailwind so it wins specificity battles */
-@import 'maplibre-gl/dist/maplibre-gl.css';
+/* MapLibre CSS moved to src/app/map/map.css - only loaded on /map routes */
 
-/* ============================================================================
-   MAPLIBRE GL EXPLICIT STYLES - HIGHEST SPECIFICITY
-   These rules MUST override any Tailwind preflight resets
-   ============================================================================ */
-
-/* Marker wrapper - let MapLibre handle all positioning */
-.maplibregl-map .maplibregl-marker {
-  pointer-events: auto !important;
-  /* Markers should not capture zoom/pan gestures */
-  touch-action: none !important;
-}
-
-/* Map container */
-.maplibregl-map {
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.maplibregl-canvas-container,
-.maplibregl-canvas {
-  position: absolute !important;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  touch-action: pan-x pan-y pinch-zoom;
-}
-
-/* Ensure map container has proper dimensions */
-.map-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  min-height: 300px;
-}
-
-/* Inner marker elements */
-.maplibre-farm-marker,
-.maplibre-cluster-marker {
-  box-sizing: border-box !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  pointer-events: auto !important;
-  touch-action: none !important;
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  user-select: none;
-  -webkit-user-select: none;
-}
-
-.maplibre-farm-marker svg {
-  display: block;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  overflow: visible;
-}
-
-/* MapLibre marker wrapper */
-.maplibregl-marker {
-  pointer-events: auto !important;
-  touch-action: none !important;
-}
+/* MapLibre override styles moved to src/app/map/map.css */
 
 /* ============================================================================
    MOBILE-FRIENDLY INTERACTIONS - NO PROTECTION
@@ -82,6 +15,57 @@
 /* Ensure normal mobile interactions work properly */
 * {
   -webkit-tap-highlight-color: rgba(0, 194, 178, 0.2);
+}
+
+/* ============================================================================
+   HERO ENTRANCE ANIMATIONS - CSS-only, no JS dependency
+   Replaces framer-motion on the hero to eliminate ~271 KiB from critical path.
+   ============================================================================ */
+
+@keyframes hero-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-scroll-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.hero-animate {
+  opacity: 0;
+  animation: hero-fade-in-up 0.5s ease-out forwards;
+}
+
+.hero-stagger-1 { animation-delay: 50ms; }
+.hero-stagger-2 { animation-delay: 150ms; }
+.hero-stagger-3 { animation-delay: 250ms; }
+.hero-stagger-4 { animation-delay: 350ms; }
+
+.hero-scroll-indicator {
+  opacity: 0;
+  animation: hero-scroll-in 0.8s ease-out 1s forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-animate,
+  .hero-scroll-indicator {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
 }
 
 /* ============================================================================

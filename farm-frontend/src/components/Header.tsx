@@ -4,7 +4,12 @@ import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Search, Menu, X, MapPin, ChevronRight } from 'lucide-react'
+import {
+  Search, Menu, X, MapPin, ChevronRight,
+  Leaf, Award, Compass, LayoutGrid, ShoppingBag,
+  Info, MessageCircle, Plus,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { ExploreMenu } from '@/components/navigation/ExploreMenu'
 
@@ -86,11 +91,50 @@ function SearchTrigger({ compact }: { compact: boolean }) {
 /*  Mobile Full-Screen Overlay                                         */
 /* ------------------------------------------------------------------ */
 
+interface NavItem {
+  href: string
+  label: string
+  icon: LucideIcon
+  badge?: string
+}
+
+interface NavSection {
+  title: string | null
+  items: NavItem[]
+}
+
+const MOBILE_NAV_SECTIONS: NavSection[] = [
+  {
+    title: null,
+    items: [
+      { href: '/map', label: 'Explore Map', icon: MapPin },
+      { href: '/shop', label: 'All Farm Shops', icon: ShoppingBag },
+    ],
+  },
+  {
+    title: 'Discover',
+    items: [
+      { href: '/seasonal', label: 'Seasonal Guide', icon: Leaf },
+      { href: '/best', label: "Editor's Picks", icon: Award },
+      { href: '/counties', label: 'Browse Counties', icon: Compass },
+      { href: '/categories', label: 'Categories', icon: LayoutGrid },
+    ],
+  },
+  {
+    title: 'More',
+    items: [
+      { href: '/about', label: 'About Us', icon: Info },
+      { href: '/contact', label: 'Contact', icon: MessageCircle },
+    ],
+  },
+]
+
 function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
   useLockBody(open)
   const panelRef = useRef<HTMLDivElement>(null)
   const lastActiveRef = useRef<HTMLElement | null>(null)
   const router = useRouter()
+  const pathname = usePathname()
 
   useEffect(() => {
     if (!open) return
@@ -129,15 +173,14 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   if (!open) return null
 
-  const navItems = [
-    { href: '/map', label: 'Explore' },
-    { href: '/seasonal', label: 'Seasonal' },
-    { href: '/about', label: 'About' },
-  ]
-
   const handleNearMe = () => {
     onClose()
     router.push('/map?nearby=true')
+  }
+
+  const openSearch = () => {
+    onClose()
+    setTimeout(() => window.dispatchEvent(new CustomEvent('open-command-palette')), 150)
   }
 
   return createPortal(
@@ -150,23 +193,40 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
         aria-modal="true"
         aria-label="Navigation menu"
         tabIndex={-1}
-        className="relative flex flex-col h-full outline-none"
+        className="relative flex flex-col h-full outline-none overflow-y-auto overscroll-contain"
         style={{ animation: 'fadeIn 200ms ease-out' }}
       >
-        {/* Close */}
-        <div className="flex justify-end px-4 pt-3">
+        {/* Header: brand + close */}
+        <div className="flex items-center justify-between px-5 pt-4 pb-2">
+          <Link
+            href="/"
+            onClick={onClose}
+            className="text-[18px] font-medium tracking-[0.5px] text-zinc-900 dark:text-zinc-50"
+          >
+            Farm Companion
+          </Link>
           <button
             onClick={onClose}
-            className="h-11 w-11 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-white/[0.06] text-zinc-600 dark:text-zinc-300 transition-colors hover:bg-zinc-200 dark:hover:bg-white/[0.08]"
+            className="h-10 w-10 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-white/[0.06] text-zinc-600 dark:text-zinc-300 transition-colors hover:bg-zinc-200 dark:hover:bg-white/[0.08]"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="flex-1 flex flex-col px-6 pt-4">
-          {/* Near Me CTA */}
+        {/* Search trigger */}
+        <div className="px-5 pt-3">
+          <button
+            onClick={openSearch}
+            className="w-full h-11 flex items-center gap-3 px-4 rounded-xl bg-zinc-100 dark:bg-white/[0.06] text-zinc-400 dark:text-zinc-500 text-[15px] transition-colors hover:bg-zinc-200 dark:hover:bg-white/[0.08]"
+          >
+            <Search className="h-4 w-4 flex-shrink-0" />
+            Search farms, produce...
+          </button>
+        </div>
+
+        {/* Primary CTA */}
+        <div className="px-5 pt-4">
           <button
             onClick={handleNearMe}
             className="w-full h-14 flex items-center justify-center gap-2 rounded-xl bg-[#2D5016] text-white text-[15px] font-medium transition-colors hover:bg-[#1E3A10] active:bg-[#162D0C]"
@@ -174,35 +234,73 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
             <MapPin className="h-4 w-4" />
             Farms Near Me
           </button>
+        </div>
 
-          {/* Nav links */}
-          <nav aria-label="Mobile navigation" className="mt-8">
-            {navItems.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={onClose}
-                className="flex items-center justify-between py-4 border-b border-zinc-200 dark:border-white/[0.08] text-[18px] text-zinc-900 dark:text-zinc-50"
-              >
-                {item.label}
-                <ChevronRight className="h-5 w-5 text-zinc-400" />
-              </Link>
-            ))}
-          </nav>
+        {/* Navigation sections */}
+        <nav aria-label="Mobile navigation" className="flex-1 px-5 pt-6">
+          {MOBILE_NAV_SECTIONS.map((section, si) => (
+            <div key={si} className={si > 0 ? 'mt-5' : ''}>
+              {section.title && (
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400 dark:text-zinc-500 mb-1.5 px-1">
+                  {section.title}
+                </p>
+              )}
+              {section.items.map((item) => {
+                const Icon = item.icon
+                const active = pathname === item.href || (pathname?.startsWith(item.href + '/') ?? false)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={onClose}
+                    className={cn(
+                      'flex items-center gap-3.5 py-3.5 border-b border-zinc-100 dark:border-white/[0.06] group',
+                      active && 'bg-zinc-50 dark:bg-white/[0.03] -mx-2 px-2 rounded-lg border-transparent'
+                    )}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    <span className={cn(
+                      'h-9 w-9 flex items-center justify-center rounded-lg transition-colors',
+                      active
+                        ? 'bg-[#2D5016]/10 dark:bg-emerald-900/20 text-[#2D5016] dark:text-emerald-400'
+                        : 'bg-zinc-50 dark:bg-white/[0.04] text-zinc-500 dark:text-zinc-400 group-hover:bg-zinc-100 dark:group-hover:bg-white/[0.08]'
+                    )}>
+                      <Icon className="h-[18px] w-[18px]" />
+                    </span>
+                    <span className={cn(
+                      'flex-1 text-[16px]',
+                      active ? 'text-[#2D5016] dark:text-emerald-400 font-medium' : 'text-zinc-900 dark:text-zinc-50'
+                    )}>
+                      {item.label}
+                    </span>
+                    {item.badge && (
+                      <span className="px-2 py-0.5 text-[11px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
+                    <ChevronRight className="h-4 w-4 text-zinc-300 dark:text-zinc-600" />
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
+        </nav>
 
-          {/* Farmer link */}
-          <div className="mt-auto pb-8">
-            <Link
-              href="/add"
-              onClick={onClose}
-              className="text-[15px] text-zinc-500 dark:text-zinc-400"
-            >
-              Are you a farmer?{' '}
-              <span className="text-[#2D5016] dark:text-emerald-400 font-medium">
-                Add your farm &rarr;
-              </span>
-            </Link>
-          </div>
+        {/* Footer: Add Farm CTA */}
+        <div className="px-5 py-5 mt-auto border-t border-zinc-100 dark:border-white/[0.06]">
+          <Link
+            href="/add"
+            onClick={onClose}
+            className="flex items-center gap-3.5 py-3 group"
+          >
+            <span className="h-9 w-9 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-colors">
+              <Plus className="h-[18px] w-[18px]" />
+            </span>
+            <div>
+              <span className="text-[15px] text-zinc-900 dark:text-zinc-50 font-medium block">Add Your Farm</span>
+              <span className="text-[13px] text-zinc-400 dark:text-zinc-500">List your farm shop for free</span>
+            </div>
+          </Link>
         </div>
       </div>
     </div>,

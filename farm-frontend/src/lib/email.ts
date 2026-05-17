@@ -1,23 +1,12 @@
 // Email service for Farm Frontend
-// PuredgeOS 3.0 Compliant Email Management
+// All outbound email routed through the email gateway.
 
-import { Resend } from 'resend'
 import PhotoSubmissionReceiptEmail from '@/emails/PhotoSubmissionReceipt'
 import { logger } from '@/lib/logger'
+import { sendEmailViaGateway } from '@/lib/email-gateway'
 
 // Module-level logger for email operations
 const emailLogger = logger.child({ route: 'lib/email' })
-// import PhotoApprovedEmail from '@/emails/PhotoApproved'
-// import PhotoRejectedEmail from '@/emails/PhotoRejected'
-
-// Lazy initialization to avoid build-time errors when API key is unavailable
-let resend: Resend | null = null
-function getResend(): Resend {
-  if (!resend) {
-    resend = new Resend(process.env.RESEND_API_KEY!)
-  }
-  return resend
-}
 
 export type ReceiptInput = {
   to: string
@@ -66,32 +55,40 @@ export async function sendPhotoSubmissionReceipt(input: ReceiptInput) {
       authorEmail: input.authorEmail,
     })
 
-    const result = await getResend().emails.send({
+    const result = await sendEmailViaGateway({
       from,
       to: input.to,
       ...(bcc ? { bcc } : {}),
       subject,
       react,
-      // Add reply-to for better user experience
       replyTo: 'support@farmcompanion.co.uk',
+      tag: 'photo-receipt',
     })
 
-    emailLogger.info('Photo receipt email sent successfully', {
+    if (!result.sent) {
+      emailLogger.warn('Photo receipt email blocked by gateway', {
+        to: input.to,
+        farmSlug: input.farmSlug,
+        reason: result.blocked || result.error,
+      })
+      return { skipped: true, reason: result.blocked || result.error }
+    }
+
+    emailLogger.info('Photo receipt email sent via gateway', {
       to: input.to,
       farmSlug: input.farmSlug,
-      messageId: result.data?.id
+      messageId: result.messageId,
     })
 
-    return result
+    return { data: { id: result.messageId } }
   } catch (error) {
     emailLogger.error('Photo receipt email send failed', {
       to: input.to,
       farmSlug: input.farmSlug
     }, error as Error)
-    
-    // Return error details for monitoring
-    return { 
-      error: true, 
+
+    return {
+      error: true,
       message: error instanceof Error ? error.message : 'Unknown error',
       details: error
     }
@@ -260,7 +257,6 @@ export async function sendSubmissionAckEmail(opts: {
   const subject = `Farm Shop Submission Confirmed: ${opts.farmName}`
 
   try {
-    // Simple HTML email since we don't have a React template for this yet
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Thank you for your farm shop submission!</h2>
@@ -272,30 +268,40 @@ export async function sendSubmissionAckEmail(opts: {
       </div>
     `
 
-    const result = await getResend().emails.send({
+    const result = await sendEmailViaGateway({
       from,
       to: opts.to,
       ...(bcc ? { bcc } : {}),
       subject,
       html,
       replyTo: 'support@farmcompanion.co.uk',
+      tag: 'farm-submission-ack',
     })
 
-    emailLogger.info('Farm submission ack email sent successfully', {
+    if (!result.sent) {
+      emailLogger.warn('Farm submission ack blocked by gateway', {
+        to: opts.to,
+        farmName: opts.farmName,
+        reason: result.blocked || result.error,
+      })
+      return { skipped: true, reason: result.blocked || result.error }
+    }
+
+    emailLogger.info('Farm submission ack email sent via gateway', {
       to: opts.to,
       farmName: opts.farmName,
-      messageId: result.data?.id
+      messageId: result.messageId,
     })
 
-    return result
+    return { data: { id: result.messageId } }
   } catch (error) {
     emailLogger.error('Farm submission ack email send failed', {
       to: opts.to,
       farmName: opts.farmName
     }, error as Error)
-    
-    return { 
-      error: true, 
+
+    return {
+      error: true,
       message: error instanceof Error ? error.message : 'Unknown error',
       details: error
     }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, type FormEvent } from 'react'
 import Link from 'next/link'
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/Accordion'
 
 const discoverLinks = [
   { href: '/map', label: 'Find Farms Near Me' },
@@ -20,6 +21,7 @@ const farmShopLinks = [
   { href: '/claim', label: 'Update Your Details' },
   { href: '/contact', label: 'Contact Us' },
 ]
+
 
 export default function Footer() {
   const [currentYear, setCurrentYear] = useState(2026)
@@ -178,9 +180,9 @@ export default function Footer() {
             </div>
           </div>
 
-          {/* Mobile: stacked sections */}
-          <div className="space-y-8 md:hidden">
-            <div className="space-y-3">
+          {/* Mobile: brand always visible, link groups collapsible */}
+          <div className="md:hidden">
+            <div className="space-y-3 pb-6">
               <p className="text-lg font-medium text-foreground">
                 Farm Companion
               </p>
@@ -210,55 +212,63 @@ export default function Footer() {
               </div>
             </div>
 
-            <div className="border-t border-border" />
+            <Accordion type="multiple">
+              <AccordionItem value="discover" className="border-b border-border">
+                <AccordionTrigger
+                  size="sm"
+                  className="text-xs tracking-[0.2em] uppercase text-foreground-muted hover:no-underline"
+                >
+                  Discover
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="space-y-1">
+                    {discoverLinks.map((link) => (
+                      <li key={link.label} className="min-h-[44px] flex items-center">
+                        <Link
+                          href={link.href}
+                          className="text-[15px] text-foreground-muted hover:text-foreground transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                    {aboutLinks.map((link) => (
+                      <li key={link.label} className="min-h-[44px] flex items-center">
+                        <Link
+                          href={link.href}
+                          className="text-[15px] text-foreground-muted hover:text-foreground transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
 
-            <div>
-              <h4 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                Discover
-              </h4>
-              <ul className="space-y-3">
-                {discoverLinks.map((link) => (
-                  <li key={link.label} className="min-h-[48px] flex items-center">
-                    <Link
-                      href={link.href}
-                      className="text-[15px] text-foreground-muted hover:text-foreground transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-                {aboutLinks.map((link) => (
-                  <li key={link.label} className="min-h-[48px] flex items-center">
-                    <Link
-                      href={link.href}
-                      className="text-[15px] text-foreground-muted hover:text-foreground transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="border-t border-border" />
-
-            <div>
-              <h4 className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-4">
-                Are You a Farm Shop?
-              </h4>
-              <ul className="space-y-3">
-                {farmShopLinks.map((link) => (
-                  <li key={link.label} className="min-h-[48px] flex items-center">
-                    <Link
-                      href={link.href}
-                      className="text-[15px] text-foreground-muted hover:text-foreground transition-colors"
-                    >
-                      {link.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
+              <AccordionItem value="farm-shops" className="border-b border-border">
+                <AccordionTrigger
+                  size="sm"
+                  className="text-xs tracking-[0.2em] uppercase text-foreground-muted hover:no-underline"
+                >
+                  Are You a Farm Shop?
+                </AccordionTrigger>
+                <AccordionContent>
+                  <ul className="space-y-1">
+                    {farmShopLinks.map((link) => (
+                      <li key={link.label} className="min-h-[44px] flex items-center">
+                        <Link
+                          href={link.href}
+                          className="text-[15px] text-foreground-muted hover:text-foreground transition-colors"
+                        >
+                          {link.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </div>
 
@@ -266,7 +276,10 @@ export default function Footer() {
         <div className="border-t border-border bg-[#FAFAFA] dark:bg-background-secondary">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-4 text-[13px] text-foreground-muted md:flex-row md:px-12">
             <p>&copy; {currentYear} Farm Companion</p>
-            <p>Made in UK</p>
+            <div className="flex items-center gap-4">
+              <Link href="/site-map" className="hover:text-foreground transition-colors">Sitemap</Link>
+              <span>Made in UK</span>
+            </div>
           </div>
         </div>
       </div>

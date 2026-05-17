@@ -54,7 +54,7 @@ export async function GET() {
     })
 
     return NextResponse.json(
-      { openCount, totalCount },
+      { openCount, totalCount, withValidHours },
       {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=60',

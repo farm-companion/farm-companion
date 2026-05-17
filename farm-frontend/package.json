@@ -19,8 +19,6 @@
     "@fontsource/ibm-plex-mono": "^5.2.7",
     "@fontsource/ibm-plex-sans": "^5.2.8",
     "@fontsource/manrope": "^5.2.8",
-    "@googlemaps/js-api-loader": "^2.0.2",
-    "@googlemaps/markerclusterer": "^2.6.2",
     "@next/third-parties": "^16.1.6",
     "@prisma/client": "5.22.0",
     "@radix-ui/react-accordion": "^1.2.12",
@@ -46,7 +44,6 @@
     "@types/leaflet.markercluster": "^1.5.6",
     "@upstash/ratelimit": "^2.0.8",
     "@upstash/redis": "^1.36.1",
-    "@vis.gl/react-google-maps": "^1.7.1",
     "axios": "^1.13.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -81,7 +78,6 @@
     "@next/bundle-analyzer": "^16.1.6",
     "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4.1.18",
-    "@types/google.maps": "^3.58.1",
     "@types/node": "^25.0.9",
     "@types/react": "^19.2.8",
     "@types/react-dom": "^19.2.3",
@@ -102,10 +98,15 @@
     "typescript": "^5.9.3"
   },
   "browserslist": [
-    "defaults and supports es6-module",
-    "maintained node versions",
-    "not ie <= 11",
-    "not safari <= 12"
+    "> 1%",
+    "not dead",
+    "not safari < 15.4",
+    "not ios_saf < 15.4",
+    "not samsung < 17",
+    "not and_chr < 93",
+    "not chrome < 93",
+    "not firefox < 92",
+    "not op_mini all"
   ],
   "pnpm": {
     "overrides": {

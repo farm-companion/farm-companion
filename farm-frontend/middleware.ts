@@ -13,14 +13,12 @@ function cspFor(req: NextRequest) {
     "'self'",
     'data:',
     'blob:',
-    'https://images.farmcompanion.co.uk', // your CDN if any
+    'https://images.farmcompanion.co.uk',
     'https://lh3.googleusercontent.com',
     'https://lh3.ggpht.com',
     'https://images.unsplash.com',
     'https://cdn.farmcompanion.co.uk',
     'https://*.s3.amazonaws.com',
-    'https://maps.googleapis.com',
-    'https://maps.gstatic.com',
     // MapLibre/Leaflet tile sources
     'https://tile.openstreetmap.org',
     'https://*.tile.openstreetmap.org',
@@ -35,12 +33,7 @@ function cspFor(req: NextRequest) {
   ]
   const connect = [
     "'self'",
-    'https://*.google.com',
-    'https://*.gstatic.com',
     'https://*.vercel.app',
-    'https://maps.googleapis.com',
-    'https://maps.gstatic.com',
-    'https://*.googleapis.com',
     // MapLibre tile sources
     'https://tile.openstreetmap.org',
     'https://*.tile.openstreetmap.org',
@@ -94,18 +87,9 @@ function cspFor(req: NextRequest) {
 }
 
 export function middleware(req: NextRequest) {
-  // TEMPORARILY DISABLED - debugging CSS loading issue
-  return NextResponse.next()
+  // Only enforce CSP in production (redirect handled by next.config.ts)
+  if (!IS_PROD) return NextResponse.next()
 
-  // if (!IS_PROD) return NextResponse.next()
-  
-  const url = new URL(req.url)
-  if (url.protocol !== 'https:' || url.host !== new URL(SITE_URL).host) {
-    url.protocol = 'https:'
-    url.host = new URL(SITE_URL).host
-    return NextResponse.redirect(url, 308)
-  }
-  
   const res = NextResponse.next()
   res.headers.set('Content-Security-Policy', cspFor(req))
   return res

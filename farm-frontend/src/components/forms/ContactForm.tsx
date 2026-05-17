@@ -1,6 +1,8 @@
 'use client'
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { z } from 'zod'
+
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY || ''
 
 const Schema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters').max(80, 'Name must be less than 80 characters'),
@@ -8,6 +10,7 @@ const Schema = z.object({
   topic: z.enum(['general','bug','data-correction','partnership']).default('general'),
   message: z.string().min(10, 'Message must be at least 10 characters').max(2000, 'Message must be less than 2000 characters'),
   consent: z.boolean().refine(v => v, 'Please confirm you\'ve read our privacy notice.'),
+  turnstileToken: z.string().min(1, 'Please complete the CAPTCHA verification'),
   _hp: z.string().max(0, 'Honeypot field must be empty').optional().or(z.literal('')),
   ttf: z.number().int().nonnegative('Time to fill must be a positive number'),
 })
@@ -16,8 +19,55 @@ export default function ContactForm() {
   const [errors, setErrors] = useState<Record<string,string>>({})
   const [status, setStatus] = useState<'idle'|'submitting'|'success'|'error'>('idle')
   const [serverMsg, setServerMsg] = useState<string>('')
+  const [turnstileToken, setTurnstileToken] = useState('')
   const started = useRef<number>(performance.now())
   const hpRef = useRef<HTMLInputElement>(null)
+  const turnstileRef = useRef<HTMLDivElement>(null)
+  const widgetIdRef = useRef<string | null>(null)
+
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY) return
+
+    const scriptId = 'cf-turnstile-script'
+    if (!document.getElementById(scriptId)) {
+      const script = document.createElement('script')
+      script.id = scriptId
+      script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'
+      script.async = true
+      document.head.appendChild(script)
+    }
+
+    function renderWidget() {
+      if (!turnstileRef.current || widgetIdRef.current !== null) return
+      const w = window as unknown as Record<string, unknown>
+      const turnstile = w.turnstile as { render: (el: HTMLElement, opts: Record<string, unknown>) => string } | undefined
+      if (!turnstile) return
+      widgetIdRef.current = turnstile.render(turnstileRef.current, {
+        sitekey: TURNSTILE_SITE_KEY,
+        callback: (token: string) => setTurnstileToken(token),
+        'expired-callback': () => setTurnstileToken(''),
+        theme: 'light',
+      })
+    }
+
+    const interval = setInterval(() => {
+      const w = window as unknown as Record<string, unknown>
+      if (w.turnstile) {
+        renderWidget()
+        clearInterval(interval)
+      }
+    }, 200)
+    return () => clearInterval(interval)
+  }, [])
+
+  const resetTurnstile = useCallback(() => {
+    const w = window as unknown as Record<string, unknown>
+    const turnstile = w.turnstile as { reset: (id: string) => void } | undefined
+    if (turnstile && widgetIdRef.current !== null) {
+      turnstile.reset(widgetIdRef.current)
+      setTurnstileToken('')
+    }
+  }, [])
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -32,6 +82,7 @@ export default function ContactForm() {
       topic: String(fd.get('topic') || 'general'),
       message: String(fd.get('message') || ''),
       consent: fd.get('consent') === 'on',
+      turnstileToken,
       _hp: hpRef.current?.value ?? '',
       ttf: Math.round(performance.now() - started.current)
     }
@@ -63,6 +114,7 @@ export default function ContactForm() {
 
       if (!res.ok) {
         setStatus('error')
+        resetTurnstile()
         if (res.status === 429) {
           setServerMsg('Too many messages. Please try again later.')
         } else if (res.status === 422) {
@@ -75,6 +127,7 @@ export default function ContactForm() {
       }
     } catch {
       setStatus('error')
+      resetTurnstile()
       setServerMsg('Network error. Please try again.')
     }
   }
@@ -213,6 +266,16 @@ export default function ContactForm() {
       </div>
       {errors.consent && (
         <p className="text-sm text-red-600">{errors.consent}</p>
+      )}
+
+      {/* Cloudflare Turnstile CAPTCHA */}
+      {TURNSTILE_SITE_KEY && (
+        <div>
+          <div ref={turnstileRef} />
+          {errors.turnstileToken && (
+            <p className="mt-2 text-sm text-red-600">{errors.turnstileToken}</p>
+          )}
+        </div>
       )}
 
       {status === 'error' && (

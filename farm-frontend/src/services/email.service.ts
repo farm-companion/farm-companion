@@ -1,19 +1,10 @@
 /**
  * Email Service
- * Handles all email sending operations using Resend API
+ * Handles all email sending operations routed through the email gateway.
  */
 
-import { Resend } from 'resend'
+import { sendEmailViaGateway } from '@/lib/email-gateway'
 import { createRouteLogger } from '@/lib/logger'
-
-// Lazy initialization to avoid build-time errors when API key is unavailable
-let resend: Resend | null = null
-function getResend(): Resend {
-  if (!resend) {
-    resend = new Resend(process.env.RESEND_API_KEY)
-  }
-  return resend
-}
 
 const FROM_EMAIL = 'Farm Companion <hello@farmcompanion.co.uk>'
 const REPLY_TO_EMAIL = 'hello@farmcompanion.co.uk'
@@ -28,39 +19,32 @@ export interface EmailOptions {
 }
 
 /**
- * Send a generic email
+ * Send a generic email through the gateway (budget + circuit breaker enforced).
  */
 export async function sendEmail(options: EmailOptions): Promise<void> {
   const logger = createRouteLogger('email.service')
 
-  if (!process.env.RESEND_API_KEY) {
-    logger.error('RESEND_API_KEY not configured')
-    throw new Error('Email service not configured')
+  const result = await sendEmailViaGateway({
+    from: FROM_EMAIL,
+    to: options.to,
+    subject: options.subject,
+    html: options.html,
+    text: options.text,
+    replyTo: options.replyTo || REPLY_TO_EMAIL,
+    tag: 'email-service',
+  })
+
+  if (!result.sent) {
+    const reason = result.blocked || result.error || 'unknown'
+    logger.warn('Email blocked by gateway', { to: options.to, subject: options.subject, reason })
+    throw new Error(`Email blocked: ${reason}`)
   }
 
-  try {
-    const { data, error } = await getResend().emails.send({
-      from: FROM_EMAIL,
-      to: [options.to],
-      subject: options.subject,
-      replyTo: options.replyTo || REPLY_TO_EMAIL,
-      html: options.html || options.text || '',
-      text: options.text,
-    })
-
-    if (error) {
-      throw error
-    }
-
-    logger.info('Email sent successfully', {
-      to: options.to,
-      subject: options.subject,
-      resultId: data?.id,
-    })
-  } catch (error) {
-    logger.error('Email sending failed', { to: options.to, subject: options.subject }, error as Error)
-    throw error
-  }
+  logger.info('Email sent via gateway', {
+    to: options.to,
+    subject: options.subject,
+    messageId: result.messageId,
+  })
 }
 
 /**
