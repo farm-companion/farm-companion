@@ -55,6 +55,44 @@
 
 ## Queue 33: Performance — Bundle Trim
 
+### 2026-05-17: Slice — Delete 4 unused framer-motion-importing UI primitives
+**Objective:** Source-tree hygiene. Remove dead UI components whose only references are barrel re-exports — they kept framer-motion imports alive in the source tree even though Turbopack tree-shook them from prod chunks.
+
+**Dead targets (verified zero app-level callers via grep):**
+1. `src/components/SeasonalCarousel.tsx` — replaced by `SeasonalShowcase` in Slice 11 (2026-01-18), never deleted.
+2. `src/components/ui/Alert.tsx` — exported via barrel; zero consumers (only `lucide-react`'s `AlertCircle`/`AlertTriangle` are used in the app).
+3. `src/components/ui/Loading.tsx` — exported 7 symbols via barrel (`Spinner`, `LoadingDots`, `PulseRing`, `ProgressBar`, `LoadingOverlay`, `LoadingPlaceholder`, `Shimmer`); zero consumers.
+4. `src/components/ui/SpringButton.tsx` — exported 3 symbols via barrel (`SpringButton`, `SpringLinkButton`, `springConfig`); zero consumers.
+
+**Files Modified (5):**
+- 4 deletions above
+- `src/components/ui/index.ts` — removed the 3 dead re-export blocks (-11 lines).
+
+**Verification:**
+- `pnpm build` — exit 0, `Compiled successfully in 5.9s`.
+- `git diff --stat`: 5 files changed, 1147 deletions(-), 0 insertions.
+
+**Risk:** Low. All four files had zero application-level callers (only re-exported via the barrel; the only barrel consumers — `compare/page.tsx`, `NewsletterSignup.tsx` — import only `Button`). Rollback: `git revert <sha>`.
+
+**Bundle impact:** ~0 on prod (Turbopack already tree-shook these). This slice is source-tree hygiene matching the approved #140 pattern: it removes the framer-motion import surface in the source tree.
+
+---
+
+### 2026-05-17: Slice — Convert AnimatedStats to CSS-only animations (PR #141 merged)
+**Objective:** Step 1 of 4 toward removing framer-motion from the homepage chunk. Reuses existing `.stagger-entry` utility + new `.stat-icon-hover` keyframe.
+
+**Files Modified (2):**
+- `src/components/AnimatedStats.tsx` — replaced framer-motion with CSS classes.
+- `src/app/globals.css` — added `.stat-icon-hover` keyframe.
+
+**Verification:** `pnpm build` passes. Reviewer can confirm via Vercel preview: cards stagger in, icons shake on hover, `prefers-reduced-motion` disables the shake.
+
+---
+
+### 2026-05-17: Slice — Drop dead framer-motion imports from StatusBadge + Badge (PR #140 merged)
+
+---
+
 ### 2026-05-17: Slice — Remove framer-motion from PageTransition (template-level)
 **Objective:** Recover ~333 KiB unused-JS flagged by Lighthouse (mobile perf 61/100) by removing framer-motion from the always-loaded page-template chunk.
 
