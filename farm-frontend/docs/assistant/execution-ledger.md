@@ -33,6 +33,26 @@
 
 ---
 
+## Queue 33: Performance — Bundle Trim
+
+### 2026-05-17: Slice — Remove framer-motion from PageTransition (template-level)
+**Objective:** Recover ~333 KiB unused-JS flagged by Lighthouse (mobile perf 61/100) by removing framer-motion from the always-loaded page-template chunk.
+
+**Root cause:** `app/template.tsx` wraps every route with `PageTransition`, which eagerly imported `framer-motion` (`motion`, `AnimatePresence`). This pulled the entire framer-motion library into the shared chunk loaded on every route, even pages that have no motion-using components.
+
+**Files Modified (2):**
+1. `src/components/PageTransition.tsx` — 113 → 19 lines. Replaced motion.div+AnimatePresence with a `key={pathname}` div using a CSS animation class. `FrozenRoute` export removed (verified unused via grep).
+2. `src/app/globals.css` — added `@keyframes page-fade-enter` + `.page-transition` class + `prefers-reduced-motion: reduce` override.
+
+**Verification:**
+- `pnpm build` passes (0 errors).
+- `grep "AnimatePresence" .next/static/chunks/*.js` now returns 3 route-specific chunks (24 KB / 86 KB / 126 KB) instead of the global template chunk.
+- Net diff: 2 files, +19 / -110 lines.
+
+**Risk:** Loses exit animation on route change (Next.js App Router does not natively support exit animations without library help). Enter animation preserved with same easing/duration. Rollback: `git revert <sha>`.
+
+---
+
 ## Queue 32: WCAG AA Contrast Fixes
 
 ### 2026-02-01: God-Tier Audit and Contrast Fix Slice
