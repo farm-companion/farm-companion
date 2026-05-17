@@ -33,6 +33,26 @@
 
 ---
 
+## Queue 3: Track 0 Map fixes
+
+### 2026-05-17: Slice — Unit-test src/shared/lib/geo (Queue 3, item 5)
+**Objective:** Item 5 (`Extract Haversine to src/shared/lib and unit test it`) had its extraction half done already — `src/shared/lib/geo.ts` existed with `calculateDistance` (Haversine), `formatDistance`, `sortByDistance`, `calculateBearing`, `isWithinBounds` — but had **zero test coverage**. This slice ships the missing tests.
+
+**Files Modified (3):**
+1. `src/shared/lib/geo.test.ts` — created, 17 tests using `node:test` (matches existing `blob-adapter.test.ts` style). Covers identity (point→self = 0), London→Paris reference (~344 km ±3), symmetry, antipodal half-circumference, `formatDistance` boundary cases (0.999km still metres), `sortByDistance` ordering and empty input, `calculateBearing` cardinal directions, `isWithinBounds` inclusivity.
+2. `package.json` — widened `test:unit` glob from `src/lib/**/*.test.ts` to `src/**/*.test.ts` so `src/shared/lib/` is picked up.
+
+**Verification:**
+- `pnpm test:unit` — 42/42 pass (17 new geo + 25 existing blob-adapter + email-verification). Duration 332 ms.
+
+**Risk:** Low. Pure additive — no production code touched. Glob widening is safe (no test files exist outside `src/lib/` and `src/shared/lib/` today). Rollback: `git revert <sha>`.
+
+**Follow-up (not in this slice):**
+- `src/lib/schemas.ts:107` has a local `calculateDistance` duplicate inside `dedupeFarms`. Replace with import from `@/shared/lib/geo`. (Deferred — scope discipline.)
+- `src/lib/queries/farms.ts:205` haversine is SQL-side (intentionally faster per `geospatial.ts` comment) — **leave alone**.
+
+---
+
 ## Queue 33: Performance — Bundle Trim
 
 ### 2026-05-17: Slice — Remove framer-motion from PageTransition (template-level)

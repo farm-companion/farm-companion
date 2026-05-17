@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "test:unit": "tsx --test src/lib/**/*.test.ts",
+    "test:unit": "tsx --test \"src/**/*.test.ts\"",
     "postinstall": "prisma generate && node scripts/fix-prisma-zeptomatch.js && patch-package",
     "generate:produce-images": "tsx src/scripts/generate-produce-images.ts",
     "generate:farm-images": "tsx src/scripts/generate-farm-images.ts",
