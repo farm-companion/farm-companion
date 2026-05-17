@@ -10,8 +10,6 @@
 import React from 'react'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/lib/utils'
-import { motion } from 'framer-motion'
-import { scaleIn } from '@/lib/animations'
 import { X } from 'lucide-react'
 
 /**
@@ -119,10 +117,6 @@ export interface BadgeProps
    */
   onRemove?: () => void
   /**
-   * Apply animation on mount
-   */
-  animate?: boolean
-  /**
    * Apply pulsing animation (for "new" or "live" badges)
    */
   pulse?: boolean
@@ -138,33 +132,21 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
       leftIcon,
       rightIcon,
       onRemove,
-      animate = false,
       pulse = false,
       children,
       ...props
     },
     ref
   ) => {
-    const BadgeComponent = animate ? motion.span : 'span'
-    const animationProps = animate
-      ? {
-          variants: scaleIn,
-          initial: 'initial',
-          animate: 'animate',
-          exit: 'exit',
-        }
-      : {}
-
     return (
-      <BadgeComponent
+      <span
         ref={ref}
         className={cn(
           badgeVariants({ variant, size, interactive }),
           pulse && 'animate-pulse',
           className
         )}
-        {...(animationProps as any)}
-        {...(props as any)}
+        {...props}
       >
         {leftIcon && (
           <span className="flex-shrink-0 inline-flex items-center">
@@ -198,7 +180,7 @@ const Badge = React.forwardRef<HTMLSpanElement, BadgeProps>(
             <X className="w-full h-full" />
           </button>
         )}
-      </BadgeComponent>
+      </span>
     )
   }
 )

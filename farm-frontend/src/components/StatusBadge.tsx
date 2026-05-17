@@ -1,8 +1,6 @@
 'use client'
 
 import { getFarmStatus, getStatusColorClass } from '@/lib/farm-status'
-import { motion } from 'framer-motion'
-import { fadeIn } from '@/lib/animations'
 
 interface StatusBadgeProps {
   openingHours?: unknown // Accepts any format, normalized internally
@@ -28,15 +26,12 @@ export function StatusBadge({ openingHours, className = '', showIcon = true }: S
   const icon = status.status === 'open' ? '●' : '○'
 
   return (
-    <motion.div
-      variants={fadeIn}
-      initial="initial"
-      animate="animate"
-      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-small font-medium ${colorClass} ${className}`}
+    <div
+      className={`animate-fade-in inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-small font-medium ${colorClass} ${className}`}
     >
       {showIcon && <span className="text-[10px]">{icon}</span>}
       <span>{status.message}</span>
-    </motion.div>
+    </div>
   )
 }
 
