@@ -411,94 +411,6 @@
 - Consider react-map-gl wrapper for easier React integration
 - Stadia Maps requires attribution: "© Stadia Maps © OpenMapTiles © OpenStreetMap"
 
-### Queue 30: MapLibre GL Migration (Google Maps Replacement)
-**Goal:** Replace Google Maps with MapLibre GL + free tile provider for zero-cost, unlimited map loads.
-
-**Tile Provider Selection:**
-- Primary: Stadia Maps (free tier: 200K tiles/day, no CC required)
-- Fallback: MapTiler (free tier: 100K tiles/month)
-- Style: Stadia Alidade Smooth or custom style matching brand
-
-**Phase 1: Foundation (Slices 30.1-30.3)**
-- [x] Slice 30.1: Install MapLibre GL dependencies (maplibre-gl package, CSS import, MapLibreProvider context)
-- [x] Slice 30.2: Create base MapLibre component (MapLibreMap.tsx with theme switching, reduced motion, imperative API)
-- [x] Slice 30.3: Tile provider configuration (map-config.ts with Stadia/MapTiler/OSM fallback chain)
-
-**Phase 2: Marker System (Slices 30.4-30.6)**
-- [x] Slice 30.4: Custom marker component
-  - FarmMarker.tsx using MapLibre Marker API
-  - Category-based icons (reuse existing pin-icons.ts)
-  - Open/closed status indicator (green/red dot)
-  - Hover and selected states (scaling, glow, bounce animation)
-  - FarmMarkerLayer for managing collections
-  - Accessible keyboard navigation (role=button, tabindex, Enter/Space)
-  - CSS animations in globals.css with reduced-motion support
-- [x] Slice 30.5: Marker clustering with Supercluster
-  - Installed supercluster@8.0.1 and @types/supercluster@7.1.3
-  - Created useClusteredMarkers hook with Supercluster integration
-  - Created ClusterMarker.tsx with 5-tier visual hierarchy (reuses cluster-config.ts)
-  - Created ClusteredFarmMarkerLayer.tsx as unified component
-  - Added animateMapLibreZoomTo and expandClusterAnimated for smooth animations
-  - Click behavior: small clusters (<=8) trigger preview callback, larger clusters zoom to expand
-  - Updated components/map/index.ts with full exports
-- [x] Slice 30.6: Marker popups and interactions
-  - FarmPopup.tsx for desktop hover/click (MapLibre Popup API integration)
-  - MobileMarkerSheet.tsx for mobile bottom sheet (Radix Drawer integration)
-  - useMarkerKeyboardNav.tsx hook for keyboard navigation (Arrow keys, Enter, Escape, Home, End)
-  - MarkerAnnouncer component for screen reader announcements
-  - CSS popup animations in globals.css with reduced-motion support
-
-**Phase 3: Search & Geocoding (Slices 30.7-30.8)**
-- [ ] Slice 30.7: Replace Google Geocoding
-  - Integrate Nominatim (OpenStreetMap) for free geocoding
-  - Create lib/geocoding.ts abstraction layer
-  - Rate limiting (1 req/sec for Nominatim)
-  - UK-biased search results
-  - Postcode lookup optimization
-- [ ] Slice 30.8: Map search integration
-  - Update MapSearch.tsx to use new geocoding
-  - "Search as I move" toggle (existing SearchAreaControl)
-  - Bounds-based farm filtering
-  - Search suggestions from farm names + locations
-
-**Phase 4: Feature Parity (Slices 30.9-30.11)**
-- [ ] Slice 30.9: User location tracking
-  - Geolocation API integration
-  - "Center on me" button
-  - Location accuracy indicator
-  - Permission handling with fallback
-- [ ] Slice 30.10: Map controls and UI
-  - Zoom controls (accessible)
-  - Fullscreen toggle
-  - Map style switcher (streets/satellite if available)
-  - Scale bar
-- [ ] Slice 30.11: Static map images
-  - Update LocationCard.tsx static map URL
-  - Use MapTiler Static API or generate server-side
-  - Fallback to placeholder image
-
-**Phase 5: Migration & Cleanup (Slices 30.12-30.14)**
-- [ ] Slice 30.12: MapShell.tsx migration
-  - Replace Google Maps initialization with MapLibre
-  - Preserve all existing UI (sidebar, filters, mobile sheet)
-  - Feature flag for gradual rollout: NEXT_PUBLIC_USE_MAPLIBRE
-- [ ] Slice 30.13: Remove Google Maps dependencies
-  - Remove @googlemaps/js-api-loader
-  - Remove Google Maps types
-  - Clean up lib/googleMaps.ts
-  - Update env.example documentation
-- [ ] Slice 30.14: Testing and polish
-  - Cross-browser testing (Chrome, Firefox, Safari, Edge)
-  - Mobile touch gesture testing
-  - Performance profiling (target: 60fps pan/zoom)
-  - Accessibility audit (screen reader, keyboard)
-
-**Technical Notes:**
-- MapLibre GL is WebGL-based, requires browser support check
-- Supercluster runs in Web Worker for performance
-- Consider react-map-gl wrapper for easier React integration
-- Stadia Maps requires attribution: "© Stadia Maps © OpenMapTiles © OpenStreetMap"
-
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
 - [x] Add structured logging to upload/route
 - [x] Add structured logging to photos/upload-url/route
@@ -1201,3 +1113,32 @@ Goal: clear the 49-alert false-positive cluster Dependabot raised against the po
 **Why this was a dismiss, not a bump:** PR #134 already bumped `next` to 16.2.6 and verified the audit. The alerts are about Dependabot's data not catching up, not about insecure code. Bumping a clean dep further would be churn without security gain.
 
 **Next:** Lint Baseline Slice A candidate (fix 193 pre-existing lint errors surfaced by PR #135), or pivot to Queue 3 Track 0 (MapShell.tsx, console logs, Haversine extraction).
+
+### 2026-05-17 — Security Slice C: prod-dep audit cleanup (next + axios + uuid + overrides)
+
+**Goal:** Drive `pnpm audit --prod` to zero known vulnerabilities ahead of the next deploy. Local master had already moved from `next@16.1.6` to where this branch picks up; fresh advisories had landed in the meantime.
+
+**Before:** `pnpm audit --prod` = 48 vulns (4 low, 31 moderate, 13 high). `pnpm audit` (all) = 72 vulns including 1 critical, 27 high. Production-side vulnerable packages were `next` (11 advisories: middleware bypass, SSRF, DoS, cache poisoning, image-optimization DoS) and `axios` (5 advisories: prototype pollution gadgets, header injection, NO_PROXY bypass).
+
+**Slice changes (1 file: `farm-frontend/package.json`; lockfile regenerated):**
+- Bumped `next` 16.1.6 → 16.2.6 (advisories patched at >=16.2.5; took latest 16.2.x).
+- Bumped `axios` ^1.13.4 → ^1.16.1 (advisories patched at >=1.15.2).
+- Bumped `uuid` ^13.0.0 → ^13.0.1 (buffer-bounds advisory patched at >=13.0.1).
+- Extended `pnpm.overrides` block to cover transitive moderates: `dompurify >=3.4.0` (via `isomorphic-dompurify`), `markdown-it >=14.1.1` (via tiptap → prosemirror-markdown), `postcss >=8.5.10` (next bundled an older copy), `protocol-buffers-schema >=3.6.1` (via maplibre-gl → pbf).
+- `farm-frontend/pnpm-lock.yaml` regenerated by `pnpm install`.
+
+**After:** `pnpm audit --prod` = **0 known vulnerabilities**. `pnpm audit` (all) = 23 vulns remaining, all in devDeps via `lighthouse@13.0.1` → `puppeteer-core@24.35.0` (basic-ftp critical/high, axios/lodash-es/minimatch/picomatch/flatted highs). These are local-only audit tooling, not shipped to users; logging as accepted risk for now.
+
+**Verification:**
+- `cd farm-frontend && pnpm install` → updates lockfile cleanly.
+- `pnpm build` → exit 0, 254 pages generated, no resolve errors (also disproves the stale 2026-02-04 Production Readiness Report claim that `maplibre-gl/dist/maplibre-gl.css` and `@fontsource/crimson-pro/400.css` fail to resolve; both files were and are present in `node_modules`).
+- `pnpm audit --prod` → "No known vulnerabilities found".
+- `pnpm why axios` → `1.16.1`; `pnpm why next` → `16.2.6`.
+
+**Also in this slice (ledger hygiene + CSP verification):**
+- Removed a stale duplicate `Queue 30: MapLibre GL Migration` block (~88 lines) from `docs/assistant/execution-ledger.md` that re-listed Phases 3–5 as `[ ]` after the canonical copy above already marked Slices 30.1–30.14 as `[x]`. The single retained Queue 30 entry now matches reality.
+- Verified `farm-frontend/middleware.ts:30` already contains `https://im.runware.ai` in `img-src`; no edit required for the CSP gap flagged by the readiness report.
+
+**Risk and rollback:** Risk is low — `next` and `axios` bumps are within the same major, and the overrides target moderate transitives behind well-defined patched lower bounds. Rollback: `git revert <sha>` then `pnpm install`.
+
+**Next:** open PR; then, if budget+keys are authorized, Slice 5 (farm enrichment pipeline). The schema fields needed by the enrichment run (`Image.googlePhotoRef`, `googleAttribution`, `urlExpiresAt`, `source`) are already present in `farm-frontend/prisma/schema.prisma`; the ledger note "Generate Prisma migration: add-image-source-fields" is stale and should be retired in the slice that actually runs the pipeline.
