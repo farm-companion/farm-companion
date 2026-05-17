@@ -1,5 +1,5 @@
 import redis, { ensureConnection } from './redis'
-import { head } from '@vercel/blob'
+import { head } from '@/lib/blob-adapter'
 import { logger } from '@/lib/logger'
 
 const photosLogger = logger.child({ route: 'lib/photos' })

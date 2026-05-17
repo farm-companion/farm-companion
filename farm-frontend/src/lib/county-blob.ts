@@ -4,7 +4,7 @@
  * Handles upload, retrieval, and management of county card images in Vercel Blob.
  */
 
-import { head, put, del } from '@vercel/blob'
+import { head, put, del } from '@/lib/blob-adapter'
 import sharp from 'sharp'
 import { logger } from '@/lib/logger'
 
