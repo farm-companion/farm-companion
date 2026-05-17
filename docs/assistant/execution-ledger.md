@@ -1167,3 +1167,37 @@ Goal: land the Policy Slice A `max-lines` rule (above) on `farm-frontend/eslint.
 **Rollback:** `git revert <sha> && cd farm-frontend && pnpm install`. Restores FlatCompat bridge + `next lint` script. Will re-introduce the FlatCompat crash but is the cleanest reversal.
 
 **Next:** Slice B candidate — fix the 193 pre-existing lint errors in batches (start with the `no-require-imports` errors in build scripts like `verify-performance.js`; they're shallow). Then return to Track 0 / Queue 3 (MapShell.tsx cleanup).
+
+### 2026-05-17 — Security Slice B: dismiss 49 stale Dependabot alerts (post-#134 dashboard cleanup)
+Goal: clear the 49-alert false-positive cluster Dependabot raised against the post-#134 `farm-produce-images` tree, so the security dashboard reflects ground truth and future real alerts are visible.
+
+**Diagnosis (verified ground truth):**
+- `pnpm audit --prod` and `pnpm audit` (dev) in `farm-produce-images` on `a42eab4` both return "No known vulnerabilities found".
+- 33 of 49 alerts have `manifest_path: farm-produce-images/package-lock.json`. That file was deleted in PR #134 (commit `a42eab4`); the subproject uses `pnpm-lock.yaml` only.
+- 16 of 49 alerts have `manifest_path: farm-produce-images/package.json`. All reference the `next` package with vulnerable ranges of the shape `< 15.5.x` (every advisory caps at `< 15.5.18` or lower). Installed version is `next@16.2.6` (above every cap), so none of the advisories apply.
+- Transitive deps the lockfile-path alerts flag (`flatted`, `minimatch`, `tar`, `undici`, `picomatch`, `js-yaml`) cross-checked against `farm-produce-images/pnpm-lock.yaml`: every match is at or above the patched version (flatted 3.4.2 vs `<=3.4.1`; minimatch 3.1.5 / 9.0.9 vs `<3.1.3` / `<9.0.7`; tar not in tree; undici 8.3.0 vs `<6.24.0`; picomatch 2.3.2 / 4.0.4 at exact patch; js-yaml 4.1.1 at exact patch).
+
+**Action (no code change, pure ops):**
+- Bulk-dismissed all 49 alerts via `gh api -X PATCH repos/.../dependabot/alerts/{n}`.
+- 33 lockfile-path alerts dismissed with `dismissed_reason: not_used` and per-alert comment naming PR #134 commit and the `pnpm-lock.yaml` verification command.
+- 16 `package.json` alerts dismissed with `dismissed_reason: inaccurate` and per-alert comment quoting the installed version (`next@16.2.6`) and the `pnpm audit` clean result.
+- All 49 reversible: `gh api -X PATCH .../dependabot/alerts/{n} -f state=open` re-opens any one.
+
+**Files touched (1 / 8 budget):** this ledger entry only. No source code change.
+
+**Verification (ran here):**
+- Before: `gh api '...alerts?state=open' --jq 'length'` returned `49`.
+- After: same query returns `0`. Dismissed count returns `49`.
+- Dismiss loop output: `TOTAL ok=49 fail=0`.
+
+**Risk:** low. All dismissals carry a per-alert audit trail (reason + comment quoting verification). Reversible. Did not modify any code, lockfile, or dep graph; the dashboard is now aligned with `pnpm audit` ground truth, not diverged from it.
+
+**Rollback:** for any individual alert: `gh api -X PATCH repos/farm-companion/farm-companion/dependabot/alerts/{n} -f state=open`. For all 49 at once: re-run the original dismiss loop with `state=open` instead of `state=dismissed`.
+
+**Followups for the operator:**
+- Watch Dependabot for the next 24-72h. If new alerts surface for `farm-produce-images/package-lock.json` after dismissal, Dependabot is still indexing a stale snapshot; file an issue with GitHub Support and re-dismiss. If alerts surface against `package.json` with vuln ranges that include `>= 16.0.0`, those are real and require a fresh slice.
+- Stage 0 / EV-1 manual verification still pending from prior session (Vercel prod deploy check, mailboxlayer quota check, Hetzner S3 creds). Not in scope for this slice.
+
+**Why this was a dismiss, not a bump:** PR #134 already bumped `next` to 16.2.6 and verified the audit. The alerts are about Dependabot's data not catching up, not about insecure code. Bumping a clean dep further would be churn without security gain.
+
+**Next:** Lint Baseline Slice A candidate (fix 193 pre-existing lint errors surfaced by PR #135), or pivot to Queue 3 Track 0 (MapShell.tsx, console logs, Haversine extraction).
