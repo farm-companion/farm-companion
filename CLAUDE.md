@@ -38,6 +38,15 @@ Essential references for implementation:
 - Prefer diffs over full file rewrites.
 - If uncertain, do not delete. Mark it in the ledger and choose a safer slice.
 
+## File size rules
+- Source files: soft 300 lines, hard 500, forbidden 800. Counted with `wc -l` (blanks and comments included; keep the signal honest).
+- Above soft (300): consider extracting; no blocker.
+- Above hard (500): requires a one-line justification at the top of the file (`// rationale: <reason>`) and a ledger note in the slice that touched it. ESLint `max-lines` warns at this threshold.
+- Above forbidden (800): split before merging. Exceptions only with explicit user approval logged in the ledger.
+- Tests get 2x the source limits (600 / 1000 / 1600).
+- Carve-outs (no limit): generated code (`*.d.ts`, prisma client, OpenAPI clients), lock files, static data under `src/data/`, `*.config.{ts,js,mjs}`, Prisma migrations, anything under `node_modules/`, `.venv/`, `.next/`, `dist/`.
+- When an edit pushes a file past the soft limit, prefer extracting a sibling module over inlining more.
+
 ## Evidence rule
 Only claim something is fixed if you ran the relevant local command and it passed. If you cannot run commands, provide the exact commands for the user to run plus what success looks like.
 

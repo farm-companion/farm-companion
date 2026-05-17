@@ -1050,3 +1050,93 @@ Goal: close the three risks surfaced by the ultrathink review of Slice 6d, befor
 **Verification:** `pnpm tsx --test src/lib/blob-adapter.test.ts` → 11 pass / 0 fail / 0 skip (exit 0). `pnpm exec tsc --noEmit` exits 0.
 **Risk:** low — additive error classes + lazy env. Only behaviour change visible to existing callers is `del(legacyVercelUrl)` throwing instead of no-op; callers already have try/catch.
 **Rollback:** `git revert <sha>`. Reverting also drops the test file (acceptable since we'd be giving up the contract too).
+
+### 2026-05-17 — Policy Slice A: file-size rule (CLAUDE.md + ESLint hand-off)
+Goal: encode a three-tier file-size policy (soft 300 / hard 500 / forbidden 800 LOC) so files stay digestible for humans and LLMs. Backed by ESLint `max-lines` warn at 500 once the operator applies the matching config patch.
+
+**Calibration** (scanned 1,078 first-party source files across farm-frontend, farm-pipeline, farm-produce-images, twitter-workflow; excludes `node_modules`, `.next`, `.venv`): mean 281 LOC; 197 files (18%) above 300; 74 (7%) above 500; 27 (2.5%) above 800. The 300/500/800 tiers track the natural distribution — soft nudges the long tail, hard catches genuine bloat, forbidden catches outliers.
+
+**Real-source offenders the rule would currently flag (above forbidden):**
+- `farm-frontend/src/features/map/ui/MapShell.tsx` — 1052 LOC (already on Track 0)
+- `farm-frontend/src/lib/produce-image-generator.ts` — 1053 LOC
+- `farm-frontend/src/app/admin/documentation/page.tsx` — 1013 LOC
+- `farm-frontend/src/app/add/page.tsx` — 877 LOC
+
+(`src/data/best-lists.ts` 1445 LOC and `src/data/produce.ts` 1245 LOC are intentionally carved out as static data.)
+
+**Files touched (2 / 8 budget):**
+- modify `CLAUDE.md` (+10 LOC, new "File size rules" section directly under "Work unit rules")
+- modify this ledger
+
+**Deferred to operator** (blocked by `pre:edit-write:config-protection` hook on `eslint.config.mjs`, which correctly routes lint-config changes through user consent):
+- Apply the ESLint patch below to `farm-frontend/eslint.config.mjs`. Recovery to allow the edit in a future Claude session: `ECC_DISABLED_HOOKS=pre:edit-write:config-protection` for the slice that lands it, or paste manually.
+
+```js
+// inside eslintConfig array, after the existing rules block:
+{
+  rules: {
+    "@typescript-eslint/no-explicit-any": "off",
+    // Mirrors CLAUDE.md "File size rules" — warns at hard threshold (500 LOC).
+    "max-lines": ["warn", { max: 500, skipBlankLines: false, skipComments: false }],
+  },
+},
+// File-size carve-outs (mirror CLAUDE.md "File size rules")
+{
+  files: ["src/data/**", "**/*.config.{ts,js,mjs}", "**/*.d.ts"],
+  rules: { "max-lines": "off" },
+},
+// Tests get 2x the source limit (1000 LOC)
+{
+  files: ["**/*.test.{ts,tsx,js}", "**/*.spec.{ts,tsx,js}", "**/tests/**"],
+  rules: {
+    "max-lines": ["warn", { max: 1000, skipBlankLines: false, skipComments: false }],
+  },
+},
+```
+
+**Verification (CLAUDE.md side, ran here):** `wc -l CLAUDE.md` confirms the 10-line addition is within slice budget. Policy text only; no code path executes from it. Calibration command was `find … -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" \) | xargs wc -l | sort -rn`.
+
+**Verification (ESLint side, for operator after patch applies):**
+- `cd farm-frontend && pnpm exec eslint src/lib/produce-image-generator.ts` should report exactly one `max-lines` warning (file is 1053 LOC). If it does, the rule wired correctly.
+- `cd farm-frontend && pnpm exec eslint src/data/best-lists.ts` should report zero `max-lines` warnings despite being 1445 LOC. Confirms the carve-out fired.
+- `cd farm-frontend && pnpm lint` will surface ~74 `max-lines` warnings across the codebase. Expected; the rule is `warn`, not `error`, so CI stays green.
+
+**Risk:** very low. CLAUDE.md change is documentation-only; no runtime behaviour changes. ESLint change (when applied) is `warn`-level on a new rule that no existing baseline relied on; cannot fail CI.
+
+**Rollback:** `git revert <sha>` reverses the CLAUDE.md addition. The ESLint patch (once applied by operator) reverts by removing the three blocks added inside `eslintConfig`.
+
+**Next:** Slice B candidates (only when scheduled): split one of the four real offenders, starting with `produce-image-generator.ts` (lib code, easiest to extract sub-modules without touching routes) or `MapShell.tsx` (already on Track 0 queue, biggest UX risk).
+
+### 2026-05-17 — Security Slice A: Dependabot triage in farm-produce-images (47 → 0 vulns)
+Goal: clear the entire Dependabot dashboard for the repo. **All 47 alerts clustered in a single subproject** (`farm-produce-images/`, the deployed Vercel microservice called by `farm-frontend/src/lib/produce-integration.ts:81`). farm-frontend itself, farm-pipeline, twitter-workflow, and other subprojects had zero alerts.
+
+**Diagnosis:** classic lockfile drift. `farm-produce-images/package.json` claimed `next: "16.1.6"` and `eslint-config-next: "16.1.6"` but Dependabot's static analysis reported the project vulnerable to the 2026 CVE cluster (44572–44580 + 45109 + the earlier 27980/29057/26960/etc.) because the published patches for the 16.x line ship in 16.2.x, not 16.1.6. The presence of both `package-lock.json` and `pnpm-lock.yaml` was the same drift pattern Slice 5 fixed for farm-frontend.
+
+**Actions taken (single commit):**
+- Bumped `next: 16.1.6 → 16.2.6` and `eslint-config-next: 16.1.6 → 16.2.6` (latest stable in the 16.x line as of 2026-05-17).
+- Deleted orphan `farm-produce-images/package-lock.json` (npm lockfile drift; existing `pnpm.overrides` block confirms pnpm is canonical).
+- Expanded `pnpm.overrides` from 1 entry (`undici >=6.23.0`, stale — vulns are now in the 7.x line) to 10 entries covering the residual transitive cluster. Used pnpm caret-range scoped selectors (`pkg@^X.Y.Z`) after discovering pnpm's override resolver does not parse compound `>=X <Y` ranges; the caret form correctly targets only the matching major line so non-vulnerable resolutions aren't disturbed.
+  - `undici: >=7.24.0` (via `@vercel/blob > undici`)
+  - `postcss: >=8.5.10` (via `next > postcss`)
+  - `minimatch@^3.0.0: ^3.1.4` and `minimatch@^9.0.0 || ^10.0.0: ^9.0.7`
+  - `picomatch@^2.0.0: ^2.3.2` and `picomatch@^4.0.0: ^4.0.4`
+  - `brace-expansion@^1.0.0: ^1.1.13` and `brace-expansion@^2.0.0: ^2.0.3`
+  - `flatted: >=3.4.2` (via `eslint > file-entry-cache > flat-cache`)
+  - `ajv@^6.0.0: ^6.14.0`
+- Regenerated `farm-produce-images/pnpm-lock.yaml` via `pnpm install`.
+
+**Verification (genuine, evidence-rule met):**
+- `cd farm-produce-images && pnpm audit --prod` → "No known vulnerabilities found"
+- `cd farm-produce-images && pnpm audit` (prod + dev) → "No known vulnerabilities found"
+- `cd farm-produce-images && pnpm build` → exit 0 (Next.js 16.2.6 production build clean)
+- Diagnostic progression: 47 → 7 (after Next bump) → 5 (after first override pass with `>=X <Y` selectors that didn't apply) → 0 (after switching to caret-range selectors)
+
+**Files touched (4 / 8 budget):** `farm-produce-images/package.json` (+10 / −3 lines), `farm-produce-images/pnpm-lock.yaml` (auto-regenerated), `farm-produce-images/package-lock.json` (deleted, 7106 lines of npm-format lockfile noise), this ledger entry.
+
+**Operator follow-up:** Dependabot will rescan on next push; dashboard count should drop to 0 within ~10 minutes. The `farm-produce-images` Vercel deployment should be re-deployed from the new lockfile (happens automatically on PR merge).
+
+**Risk:** low. Next 16.2.6 is a minor-patch bump within the same major. Overrides only fire when the resolved transitive falls in the explicitly-vulnerable major (caret selector). Existing build (`pnpm build`) and full audit (`pnpm audit`) both green.
+
+**Rollback:** `git revert <sha> && cd farm-produce-images && pnpm install`.
+
+**Why this didn't touch farm-frontend:** Dependabot alerts data (`gh api repos/farm-companion/farm-companion/dependabot/alerts?state=open`) confirmed all 47 alerts had `manifest_path: farm-produce-images/package*`. farm-frontend's own dep graph was already clean.
