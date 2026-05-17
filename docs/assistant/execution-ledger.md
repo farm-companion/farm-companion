@@ -1004,3 +1004,46 @@ Plan: [`docs/assistant/email-verification-plan.md`](./email-verification-plan.md
 **Deps added:** 0.
 **Rollback:** unset `MAILBOXLAYER_API_KEY` in Coolify env — adapter returns `isValid: true` everywhere. No code revert needed.
 **Acceptance:** see plan §14.
+
+### 2026-05-17 — Queued: Slice 6d / 6e (`@vercel/blob` adapter — split into two slices)
+Goal: remove the last Vercel SDK (`@vercel/blob`) so the Coolify container is functionally complete for photo uploads.
+
+**Surface to replace (grep-verified):** only three functions imported across the codebase — `put(path, file, { access, addRandomSuffix }) -> { url, pathname, contentType, contentDisposition }`, `head(path) -> { url, pathname, size, uploadedAt, ... } | throws`, `del(path) -> void`. Ten call sites total: 6 lib + 4 routes.
+
+**Lib callers (6):** `lib/blob.ts`, `lib/produce-blob.ts`, `lib/farm-blob.ts`, `lib/county-blob.ts`, `lib/photos.ts`, `lib/photo-storage.ts`.
+**Route callers (4):** `api/upload`, `api/photos/upload-blob`, `api/admin/photos/cleanup-deleted`, `api/admin/photos/cleanup-broken`.
+
+**Open decision (needs user input before 6d starts):** production blob backend on Hetzner. Options:
+- **Hetzner Object Storage (S3-compatible)** — same provider as the VM, lowest latency, cheapest egress. Requires bucket + access key.
+- **Cloudflare R2 (S3-compatible)** — zero egress fees, global edge URLs, but adds a second provider.
+- **MinIO self-hosted on the same Coolify host** — no third-party, but operator owns availability + backups.
+- **Local filesystem volume** — simplest, single-host only, no public URL without an Nginx/Next.js static route. Dev-only.
+
+Recommendation: **Hetzner Object Storage** for prod + **filesystem** for dev (env-driven via `BLOB_BACKEND=fs|s3`). Adds one dep: `@aws-sdk/client-s3` (or `aws4fetch` if size matters).
+
+**Slice 6d (lib migration + adapter):**
+- create `farm-frontend/src/lib/blob-adapter.ts` (~180 LOC) exposing `put`/`head`/`del` with two backends behind env `BLOB_BACKEND`. Vercel-compatible return shapes
+- modify the 6 lib callers — single-line import swap each (`@vercel/blob` → `@/lib/blob-adapter`)
+- 7 files touched; within budget
+- 1 new dep: `@aws-sdk/client-s3` (or alternative chosen above)
+
+**Slice 6e (route migration + dep removal):**
+- modify the 4 API routes — single-line import swap each
+- remove `"@vercel/blob": "^2.0.1"` from `farm-frontend/package.json`; `pnpm install` regenerates lockfile
+- 5 files touched; within budget
+
+**New env vars (must be set in Coolify before prod deploy if S3 chosen):**
+
+| Variable | Default | Notes |
+|---|---|---|
+| `BLOB_BACKEND` | `fs` | `fs` (filesystem) or `s3` (S3-compatible) |
+| `BLOB_FS_ROOT` | `./.blob-store` | Local mount point when backend=`fs` |
+| `BLOB_PUBLIC_URL_BASE` | — | Public base URL prepended to returned `url` |
+| `S3_ENDPOINT` | — | e.g. `https://fsn1.your-objectstorage.com` for Hetzner |
+| `S3_REGION` | `auto` | |
+| `S3_BUCKET` | — | |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | — | |
+
+**Verification plan:** `pnpm exec tsc --noEmit` exits 0; `grep '@vercel/blob' farm-frontend/src` matches only adapter header comments; lockfile `@vercel/blob` count 0; manual upload through `/api/photos/upload-blob` returns a fetchable URL on each backend.
+**Rollback:** `git revert` both commits + `pnpm install`. Backend env stays valid (adapter file removed; route code restored).
+**Pre-requisites:** user picks backend; if S3, hands over `S3_*` envs.
