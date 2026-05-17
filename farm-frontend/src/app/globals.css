@@ -2992,6 +2992,32 @@ html {
 .stagger-entry > *:nth-child(9) { animation-delay: 320ms; }
 .stagger-entry > *:nth-child(10) { animation-delay: 360ms; }
 
+/* Stat icon hover (CSS-only; replaces framer-motion whileHover scale+shake) */
+@keyframes stat-icon-shake {
+  0%, 100% { transform: scale(1.05) rotate(0deg); }
+  25% { transform: scale(1.05) rotate(-5deg); }
+  50% { transform: scale(1.05) rotate(5deg); }
+  75% { transform: scale(1.05) rotate(-3deg); }
+}
+
+.stat-icon-hover {
+  transition: box-shadow 0.3s ease-out, transform 0.2s ease-out;
+  will-change: transform;
+}
+
+.stat-icon-hover:hover {
+  animation: stat-icon-shake 0.45s ease-out;
+  transform: scale(1.05);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stat-icon-hover,
+  .stat-icon-hover:hover {
+    animation: none;
+    transform: none;
+  }
+}
+
 /* Bouncy Modal Entry */
 @keyframes bouncy-entry {
   from {
