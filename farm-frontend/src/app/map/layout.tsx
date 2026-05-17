@@ -1,3 +1,5 @@
+import './map.css'
+
 import type { Metadata } from 'next'
 import { getFarmStats } from '@/lib/farm-data'
 

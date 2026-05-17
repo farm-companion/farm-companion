@@ -501,7 +501,7 @@ export const MONTH_CONTENT: MonthContent[] = [
       {
         slug: 'brussels-sprouts',
         name: 'Brussels Sprouts',
-        hook: 'The centrepiece of Christmas lunch. Shred with chestnuts and bacon.',
+        hook: 'The centrepiece of Christmas lunch. Shred with chestnuts and butter.',
         peakLabel: 'Peak: November - February',
         ctaLabel: 'Find Brussels sprouts nearby',
       },

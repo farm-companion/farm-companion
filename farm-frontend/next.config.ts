@@ -15,8 +15,9 @@ const headersCommon = [
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   // Geolocation allowed on self for map functionality
   { key: "Permissions-Policy", value: "geolocation=(self), camera=(), microphone=(), payment=(), fullscreen=(self), autoplay=(self)" },
-  // Cross-origin headers REMOVED - were blocking CSS/fonts/images
-  // { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // COOP re-enabled: only restricts window.opener, does NOT block resources
+  { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // CORP and COEP remain disabled - these block cross-origin CSS/fonts/images
   // { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
   // { key: "Cross-Origin-Embedder-Policy", value: "credentialless" },
   { key: "Origin-Agent-Cluster", value: "?1" },
@@ -50,6 +51,31 @@ const nextConfig: NextConfig = {
         destination: 'https://www.farmcompanion.co.uk/:path*',
         permanent: true,
       },
+      // Redirect acquired farm directory domains to canonical origin
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'localfarmshops.co.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.localfarmshops.co.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'farmshopfinder.co.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [{ type: 'host', value: 'www.farmshopfinder.co.uk' }],
+        destination: 'https://www.farmcompanion.co.uk/:path*',
+        permanent: true,
+      },
     ]
   },
   // Environment variables
@@ -62,7 +88,18 @@ const nextConfig: NextConfig = {
   },
   // Performance optimizations
   experimental: {
-    optimizePackageImports: ['lucide-react'],
+    inlineCss: true,
+    optimizePackageImports: [
+      'lucide-react',
+      'framer-motion',
+      '@radix-ui/react-accordion',
+      '@radix-ui/react-dialog',
+      '@radix-ui/react-dropdown-menu',
+      '@radix-ui/react-popover',
+      '@radix-ui/react-select',
+      '@radix-ui/react-tabs',
+      '@radix-ui/react-tooltip',
+    ],
   },
   // Configure image domains for external images
   images: {
@@ -138,8 +175,8 @@ const nextConfig: NextConfig = {
         pathname: '/**',
       },
     ],
-    // Enable modern image formats
-    formats: ['image/webp', 'image/avif'],
+    // AVIF first: 30-50% smaller than WebP at equivalent quality. WebP fallback for older browsers.
+    formats: ['image/avif', 'image/webp'],
     // Optimize image loading
     minimumCacheTTL: 31536000, // 1 year for better caching
     // Device sizes for responsive images

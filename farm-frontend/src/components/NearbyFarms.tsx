@@ -1,10 +1,9 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { FarmCard } from './FarmCard'
-import { Button } from './ui/Button'
 import { MapPin, Navigation, Compass, Clock } from 'lucide-react'
 import { EmptyState } from './ui/EmptyState'
 import type { FarmShop } from '@/types/farm'
@@ -15,6 +14,9 @@ interface NearbyFarmsProps {
   className?: string
   limit?: number
 }
+
+// Custom spring-like easing
+const ease = [0.16, 1, 0.3, 1] as const
 
 // Seasonal headlines for each month
 const SEASONAL_HEADLINES: Record<number, { headline: string; subtext: string }> = {
@@ -33,13 +35,95 @@ const SEASONAL_HEADLINES: Record<number, { headline: string; subtext: string }> 
 }
 
 /**
- * NearbyFarms - Luxury Editorial Section
+ * Awwwards-level cinematic background.
+ * Animated mesh gradient + film grain + furrow lines + vignette.
+ * Zero image dependency. Pure CSS/SVG.
+ */
+function SectionBackground() {
+  return (
+    <>
+      {/* Keyframes for living mesh gradient */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes nf-mesh {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          33% { transform: translate(3%, -2%) scale(1.03); }
+          66% { transform: translate(-2%, 3%) scale(0.98); }
+        }
+        @keyframes nf-mesh-alt {
+          0%, 100% { transform: translate(0, 0); }
+          50% { transform: translate(-4%, 2%) scale(1.02); }
+        }
+      `}} />
+
+      {/* Base: near-black with green undertone */}
+      <div className="absolute inset-0 bg-[#050e05]" />
+
+      {/* Primary animated mesh -- green, amber, teal blobs drift slowly */}
+      <div
+        className="absolute -inset-[25%]"
+        style={{
+          animation: 'nf-mesh 20s ease-in-out infinite',
+          backgroundImage: [
+            'radial-gradient(ellipse 50% 40% at 20% 30%, rgba(22,163,74,0.24) 0%, transparent 70%)',
+            'radial-gradient(ellipse 45% 50% at 80% 65%, rgba(217,119,6,0.18) 0%, transparent 70%)',
+            'radial-gradient(ellipse 40% 35% at 55% 45%, rgba(20,184,166,0.14) 0%, transparent 55%)',
+          ].join(', '),
+        }}
+      />
+
+      {/* Secondary mesh -- counter-animated for parallax depth */}
+      <div
+        className="absolute -inset-[20%]"
+        style={{
+          animation: 'nf-mesh-alt 28s ease-in-out infinite',
+          backgroundImage: [
+            'radial-gradient(ellipse 35% 50% at 70% 20%, rgba(34,197,94,0.12) 0%, transparent 65%)',
+            'radial-gradient(ellipse 55% 35% at 25% 80%, rgba(245,158,11,0.10) 0%, transparent 60%)',
+          ].join(', '),
+        }}
+      />
+
+      {/* Film grain texture via SVG feTurbulence */}
+      <div
+        className="absolute inset-0 opacity-[0.035] mix-blend-overlay pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '128px 128px',
+        }}
+      />
+
+      {/* Plowed-field furrow lines -- subtle horizontal stripes */}
+      <div
+        className="absolute inset-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage:
+            'repeating-linear-gradient(0deg, transparent, transparent 80px, rgba(255,255,255,0.5) 80px, rgba(255,255,255,0.5) 81px)',
+        }}
+      />
+
+      {/* Cinematic vignette -- heavy edges */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage:
+            'radial-gradient(ellipse at center, transparent 20%, rgba(0,0,0,0.45) 100%)',
+        }}
+      />
+    </>
+  )
+}
+
+/**
+ * NearbyFarms - Awwwards-inspired editorial section.
  *
- * LV-inspired design with full-bleed background image,
- * sophisticated gradient overlay, and elegant typography.
+ * Rich CSS gradient background with scroll-driven content reveals.
+ * Farm cards are the visual anchor; the header area uses bold
+ * typography and organic colour to set the tone.
  */
 export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   const router = useRouter()
+  const sectionRef = useRef<HTMLElement>(null)
   const [farms, setFarms] = useState<FarmShop[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null)
@@ -59,36 +143,19 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
 
   const seasonal = SEASONAL_HEADLINES[currentMonth]
 
+  // Scroll-driven animations
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start end', 'end start'],
+  })
+  const contentY = useTransform(scrollYProgress, [0.08, 0.3], [50, 0])
+  const contentOpacity = useTransform(scrollYProgress, [0.08, 0.25], [0, 1])
+
   // Count how many farms are currently open
   const openFarmsCount = useMemo(() => {
     if (!mounted) return 0
     return farms.filter(farm => isCurrentlyOpen(farm.hours)).length
   }, [farms, mounted])
-
-  // Check geolocation permission state
-  useEffect(() => {
-    async function checkPermission() {
-      if ('permissions' in navigator) {
-        try {
-          const result = await navigator.permissions.query({ name: 'geolocation' })
-          setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
-
-          // Listen for permission changes
-          result.addEventListener('change', () => {
-            setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
-            if (result.state === 'granted') {
-              setLocationDenied(false)
-              setShowLocationHelp(false)
-              requestLocation()
-            }
-          })
-        } catch {
-          setPermissionState('unknown')
-        }
-      }
-    }
-    checkPermission()
-  }, [])
 
   // Request user location
   const requestLocation = () => {
@@ -120,9 +187,45 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     }
   }
 
-  // Initial location request on mount
+  // Check permission on mount: only auto-request if already granted (no prompt).
+  // Otherwise start with London fallback and let user click "Enable Location".
   useEffect(() => {
-    requestLocation()
+    async function checkPermission() {
+      if ('permissions' in navigator) {
+        try {
+          const result = await navigator.permissions.query({ name: 'geolocation' })
+          setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
+
+          if (result.state === 'granted') {
+            // Permission already granted - request silently (no prompt)
+            requestLocation()
+          } else {
+            // 'prompt' or 'denied' - use fallback, don't trigger prompt on load
+            setLocationDenied(true)
+            setUserLocation({ lat: 51.5074, lng: -0.1278 })
+          }
+
+          // Listen for permission changes
+          result.addEventListener('change', () => {
+            setPermissionState(result.state as 'prompt' | 'granted' | 'denied')
+            if (result.state === 'granted') {
+              setLocationDenied(false)
+              setShowLocationHelp(false)
+              requestLocation()
+            }
+          })
+        } catch {
+          setPermissionState('unknown')
+          setLocationDenied(true)
+          setUserLocation({ lat: 51.5074, lng: -0.1278 })
+        }
+      } else {
+        // No Permissions API - use fallback
+        setLocationDenied(true)
+        setUserLocation({ lat: 51.5074, lng: -0.1278 })
+      }
+    }
+    checkPermission()
   }, [])
 
   // Fetch and sort farms by distance
@@ -184,39 +287,29 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     requestLocation()
   }
 
-  // Loading skeleton with background
+  // Loading skeleton
   if (isLoading) {
     return (
-      <section className={`relative py-24 md:py-32 lg:py-40 overflow-hidden ${className}`}>
-        {/* Background */}
-        <div className="absolute inset-0">
-          <Image
-            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
-            alt=""
-            fill
-            className="object-cover"
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
-        </div>
+      <section className={`relative py-28 md:py-36 lg:py-44 overflow-hidden ${className}`}>
+        <SectionBackground />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <div className="w-px h-12 bg-white/40 mx-auto mb-8" />
-            <div className="h-12 w-64 bg-white/20 rounded-lg animate-pulse mx-auto mb-4" />
-            <div className="h-6 w-96 max-w-full bg-white/10 rounded-lg animate-pulse mx-auto" />
-            <div className="w-px h-12 bg-white/40 mx-auto mt-8" />
+            <div className="w-px h-14 bg-white/20 mx-auto mb-10" />
+            <div className="h-12 w-64 bg-white/10 rounded-lg animate-pulse mx-auto mb-4" />
+            <div className="h-6 w-96 max-w-full bg-white/[0.06] rounded-lg animate-pulse mx-auto" />
+            <div className="w-px h-14 bg-white/20 mx-auto mt-10" />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="bg-white/10 backdrop-blur-md rounded-xl border border-white/20 overflow-hidden">
-                <div className="h-44 bg-white/5 animate-pulse" />
+              <div key={i} className="bg-white/[0.05] rounded-2xl border border-white/[0.08] overflow-hidden">
+                <div className="h-44 bg-white/[0.03] animate-pulse" />
                 <div className="p-6 space-y-3">
-                  <div className="h-6 w-3/4 bg-white/10 rounded animate-pulse" />
-                  <div className="h-4 w-1/2 bg-white/10 rounded animate-pulse" />
+                  <div className="h-6 w-3/4 bg-white/[0.06] rounded animate-pulse" />
+                  <div className="h-4 w-1/2 bg-white/[0.04] rounded animate-pulse" />
                   <div className="flex gap-3 pt-2">
-                    <div className="flex-1 h-11 bg-white/10 rounded-xl animate-pulse" />
-                    <div className="w-11 h-11 bg-white/10 rounded-xl animate-pulse" />
+                    <div className="flex-1 h-11 bg-white/[0.05] rounded-xl animate-pulse" />
+                    <div className="w-11 h-11 bg-white/[0.05] rounded-xl animate-pulse" />
                   </div>
                 </div>
               </div>
@@ -229,17 +322,8 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
 
   if (error) {
     return (
-      <section className={`relative py-24 md:py-32 overflow-hidden ${className}`}>
-        <div className="absolute inset-0">
-          <Image
-            src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
-            alt=""
-            fill
-            className="object-cover"
-            sizes="100vw"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
-        </div>
+      <section className={`relative py-28 md:py-36 overflow-hidden ${className}`}>
+        <SectionBackground />
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <EmptyState
             icon={<MapPin className="w-16 h-16 text-white/60" />}
@@ -257,118 +341,179 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
   }
 
   return (
-    <section className={`relative py-24 md:py-32 lg:py-40 overflow-hidden ${className}`}>
-      {/* Background Image with Overlay */}
-      <div className="absolute inset-0">
-        <Image
-          src="https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1920&q=80&auto=format"
-          alt=""
-          fill
-          className="object-cover"
-          sizes="100vw"
-          priority={false}
-        />
-        {/* Sophisticated multi-layer overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/60 to-black/80" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-transparent to-black/30" />
-      </div>
+    <section
+      ref={sectionRef}
+      className={`relative py-24 md:py-32 lg:py-40 overflow-hidden ${className}`}
+    >
+      <SectionBackground />
 
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* Scroll-driven content */}
+      <motion.div
+        className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8"
+        style={{ y: contentY, opacity: contentOpacity }}
+      >
         {/* Section Header */}
-        <div className="text-center mb-16 md:mb-20">
-          {/* Vertical line accent */}
-          <div className="w-px h-12 bg-white/40 mx-auto mb-8" aria-hidden="true" />
+        <div className="text-center mb-20 md:mb-24">
+          {/* Animated vertical accent */}
+          <motion.div
+            initial={{ scaleY: 0 }}
+            whileInView={{ scaleY: 1 }}
+            transition={{ duration: 0.8, ease }}
+            viewport={{ once: true }}
+            className="w-px h-14 bg-white/25 mx-auto mb-10 origin-top"
+            aria-hidden="true"
+          />
 
           {/* Seasonal Tag */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 mb-6">
-            <span className="text-amber-300 font-medium text-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1, ease }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-white/[0.06] backdrop-blur-sm border border-white/[0.1] mb-8"
+          >
+            <span className="font-semibold text-sm tracking-wide bg-gradient-to-r from-amber-300 via-amber-400 to-orange-400 bg-clip-text text-transparent">
               {seasonal.headline}
             </span>
-            <span className="text-white/70 text-sm">
+            <span className="w-px h-3.5 bg-white/20" />
+            <span className="text-white/55 text-sm">
               {seasonal.subtext}
             </span>
-          </div>
+          </motion.div>
 
           {/* Heading */}
-          <h2 className="font-serif text-3xl sm:text-4xl md:text-5xl font-normal text-white mb-4 tracking-tight">
-            {locationDenied ? 'Popular Farms Near London' : 'Farms Near You'}
-          </h2>
+          <motion.h2
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2, ease }}
+            viewport={{ once: true }}
+            className="text-4xl sm:text-5xl md:text-6xl font-heading font-bold text-white mb-6 tracking-tight leading-[1.08]"
+          >
+            {locationDenied ? (
+              <>
+                Farm Shops
+                <br />
+                <span className="bg-gradient-to-r from-white/60 via-white/50 to-white/40 bg-clip-text text-transparent">Near London</span>
+              </>
+            ) : (
+              <>
+                Farm Shops
+                <br />
+                <span className="bg-gradient-to-r from-white/60 via-white/50 to-white/40 bg-clip-text text-transparent">Near You</span>
+              </>
+            )}
+          </motion.h2>
+
+          {/* Animated horizontal rule */}
+          <motion.div
+            initial={{ scaleX: 0 }}
+            whileInView={{ scaleX: 1 }}
+            transition={{ duration: 1, delay: 0.35, ease }}
+            viewport={{ once: true }}
+            className="w-16 h-px bg-white/30 mx-auto mb-6 origin-left"
+            aria-hidden="true"
+          />
 
           {/* Description */}
-          <p className="text-base sm:text-lg text-white/70 max-w-2xl mx-auto mb-6 leading-relaxed">
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4, ease }}
+            viewport={{ once: true }}
+            className="text-base sm:text-lg text-white/50 max-w-xl mx-auto mb-8 leading-relaxed"
+          >
             {locationDenied
-              ? 'Discover these popular farm shops. Enable location to see farms closest to you.'
-              : 'Discover local farm shops close to your location with fresh produce and more.'}
-          </p>
+              ? 'The best local farm shops selling fresh seasonal produce. Enable location to find the ones nearest to you.'
+              : 'Fresh seasonal produce from the farm shops closest to your location.'}
+          </motion.p>
 
-          {/* Live Status Indicator */}
-          {farms.length > 0 && (
-            <div className="inline-flex items-center gap-2 text-sm mb-6">
+          {/* Live Status Indicator - only show when farms are open */}
+          {farms.length > 0 && openFarmsCount > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.5 }}
+              viewport={{ once: true }}
+              className="inline-flex items-center gap-2.5 text-sm mb-6"
+            >
               <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400" />
               </span>
-              <span className="text-white/70">
+              <span className="text-white/60">
                 <span className="font-semibold text-emerald-400">{openFarmsCount}</span>
                 {' '}of {farms.length} farms open now
               </span>
-              <Clock className="w-4 h-4 text-white/50 ml-1" />
-            </div>
+              <Clock className="w-3.5 h-3.5 text-white/35" />
+            </motion.div>
           )}
 
-          {/* Vertical line accent */}
-          <div className="w-px h-12 bg-white/40 mx-auto mt-2" aria-hidden="true" />
+          {/* Bottom accent */}
+          <motion.div
+            initial={{ scaleY: 0 }}
+            whileInView={{ scaleY: 1 }}
+            transition={{ duration: 0.6, delay: 0.5, ease }}
+            viewport={{ once: true }}
+            className="w-px h-10 bg-white/20 mx-auto mt-4 origin-top"
+            aria-hidden="true"
+          />
 
           {/* Enable Location CTA */}
           {locationDenied && !showLocationHelp && (
-            <div className="inline-flex flex-col items-center gap-3 mt-8">
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.6, ease }}
+              viewport={{ once: true }}
+              className="inline-flex flex-col items-center gap-3 mt-10"
+            >
               <button
                 onClick={handleEnableLocation}
-                className="inline-flex items-center justify-center gap-2 h-12 px-6 bg-white text-slate-900 rounded-full text-sm font-medium transition-all hover:bg-white/90 hover:shadow-lg active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 h-12 px-7 bg-white text-slate-900 rounded-full text-sm font-semibold tracking-wide transition-all duration-300 hover:bg-white/90 hover:shadow-lg hover:shadow-white/10 active:scale-[0.97]"
               >
                 <MapPin className="w-4 h-4" />
                 Enable Location
               </button>
-              <p className="text-sm text-white/60">
+              <p className="text-sm text-white/40">
                 {permissionState === 'denied'
                   ? 'Location was previously blocked. Click to see how to enable it.'
                   : 'Click "Allow" when your browser asks for permission'}
               </p>
-            </div>
+            </motion.div>
           )}
 
           {/* Location Help Panel */}
           {showLocationHelp && (
-            <div className="max-w-md mx-auto mt-8 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl p-6 text-left">
+            <div className="max-w-md mx-auto mt-10 bg-white/[0.06] backdrop-blur-md border border-white/[0.1] rounded-2xl p-6 text-left">
               <div className="flex items-start gap-3 mb-4">
-                <div className="p-2 bg-amber-500/20 rounded-lg">
-                  <Compass className="w-5 h-5 text-amber-300" />
+                <div className="p-2 bg-amber-500/15 rounded-lg">
+                  <Compass className="w-5 h-5 text-amber-400" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-white mb-1">
                     Enable Location Access
                   </h3>
-                  <p className="text-sm text-white/60">
+                  <p className="text-sm text-white/50">
                     Location access was previously blocked. To enable it:
                   </p>
                 </div>
               </div>
 
-              <ol className="space-y-2 text-sm text-white/80 mb-4 pl-4">
+              <ol className="space-y-2.5 text-sm text-white/70 mb-5 pl-4">
                 <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">1</span>
-                  <span>Click the <strong>lock icon</strong> in your browser&apos;s address bar</span>
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/10 text-white text-xs font-semibold flex items-center justify-center">1</span>
+                  <span>Click the <strong className="text-white/90">lock icon</strong> in your browser&apos;s address bar</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">2</span>
-                  <span>Find <strong>Location</strong> in the permissions list</span>
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/10 text-white text-xs font-semibold flex items-center justify-center">2</span>
+                  <span>Find <strong className="text-white/90">Location</strong> in the permissions list</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">3</span>
-                  <span>Change from &quot;Block&quot; to <strong>Allow</strong></span>
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/10 text-white text-xs font-semibold flex items-center justify-center">3</span>
+                  <span>Change from &quot;Block&quot; to <strong className="text-white/90">Allow</strong></span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/20 text-white text-xs font-semibold flex items-center justify-center">4</span>
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full bg-white/10 text-white text-xs font-semibold flex items-center justify-center">4</span>
                   <span>Refresh the page</span>
                 </li>
               </ol>
@@ -376,7 +521,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowLocationHelp(false)}
-                  className="flex-1 h-10 px-4 bg-white/10 border border-white/20 text-white rounded-lg text-sm font-medium hover:bg-white/20 transition-colors"
+                  className="flex-1 h-10 px-4 bg-white/[0.06] border border-white/[0.12] text-white rounded-lg text-sm font-medium hover:bg-white/[0.1] transition-colors"
                 >
                   Close
                 </button>
@@ -391,21 +536,30 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           )}
         </div>
 
-        {/* Farm Grid */}
+        {/* Farm Grid -- staggered card entrance */}
         {farms.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 md:mb-16">
-            {farms.map((farm) => (
-              <FarmCard
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-14 md:mb-18">
+            {farms.map((farm, index) => (
+              <motion.div
                 key={farm.id}
-                farm={farm}
-              />
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: 0.6,
+                  delay: index * 0.1,
+                  ease,
+                }}
+                viewport={{ once: true, margin: '-40px' }}
+              >
+                <FarmCard farm={farm} />
+              </motion.div>
             ))}
           </div>
         ) : (
           <div className="text-center py-12">
-            <MapPin className="w-16 h-16 text-white/40 mx-auto mb-4" />
+            <MapPin className="w-16 h-16 text-white/30 mx-auto mb-4" />
             <h3 className="text-xl font-medium text-white mb-2">No farms found nearby</h3>
-            <p className="text-white/60 mb-6">Try exploring all farms or adjusting your location</p>
+            <p className="text-white/50 mb-6">Try exploring all farms or adjusting your location</p>
             <button
               onClick={() => router.push('/shop')}
               className="inline-flex items-center justify-center gap-2 h-12 px-6 bg-white text-slate-900 rounded-full text-sm font-medium hover:bg-white/90 transition-colors"
@@ -417,17 +571,23 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
 
         {/* Explore All CTA */}
         {farms.length > 0 && (
-          <div className="text-center">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4, ease }}
+            viewport={{ once: true }}
+            className="text-center"
+          >
             <button
               onClick={handleExploreAll}
-              className="inline-flex items-center justify-center gap-3 h-14 px-8 bg-white text-slate-900 rounded-full text-sm tracking-[0.05em] font-medium transition-all duration-300 hover:bg-white/90 hover:shadow-lg hover:shadow-white/20 active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-3 h-14 px-9 bg-white text-slate-900 rounded-full text-sm tracking-[0.04em] font-semibold transition-all duration-300 hover:bg-white/90 hover:shadow-lg hover:shadow-white/10 active:scale-[0.97]"
             >
               <Navigation className="w-4 h-4" />
               Explore All Farms on Map
             </button>
-          </div>
+          </motion.div>
         )}
-      </div>
+      </motion.div>
     </section>
   )
 }

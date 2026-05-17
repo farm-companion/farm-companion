@@ -853,7 +853,7 @@ The Lemon Quay setting provides a pleasant waterside atmosphere. Cornish special
       {
         name: 'Orton Farmers\' Market',
         location: 'Market Hall, Orton, Penrith, Cumbria CA10 3RU | 2nd Saturday monthly',
-        description: `This Cumbrian market operates on the second Saturday of each month with a distinctive seasonal theme approach. June brings tomatoes and salads; July features picnics and pies; August showcases burgers, bacon, and barbecue specialties. All produce comes from within 50 miles, making this among the most strictly local markets in the country.
+        description: `This Cumbrian market operates on the second Saturday of each month with a distinctive seasonal theme approach. June brings tomatoes and salads; July features picnics and pies; August showcases burgers and barbecue specialties. All produce comes from within 50 miles, making this among the most strictly local markets in the country.
 
 More than 25 local farmers, growers, producers, and craftsmen participate, with the market supporting town centre regeneration and reducing the environmental impact of food transport. The Market Hall setting provides covered shopping, while the surrounding Lake District landscape makes this an excellent destination for a foodie day trip.`
       },

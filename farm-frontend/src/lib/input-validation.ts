@@ -115,6 +115,7 @@ export const ContactFormSchema = z.object({
   topic: z.enum(['general', 'bug', 'data-correction', 'partnership']),
   message: BaseValidation.longText,
   consent: BaseValidation.consent,
+  turnstileToken: z.string().min(1, 'CAPTCHA verification required'),
   _hp: BaseValidation.honeypot,
   ttf: BaseValidation.timeToFill,
 })

@@ -1,10 +1,8 @@
 import './globals.css'
 
 // Self-hosted fonts via @fontsource (avoids Google Fonts API dependency)
-import '@fontsource/manrope/400.css'
-import '@fontsource/manrope/500.css'
-import '@fontsource/manrope/600.css'
-import '@fontsource/manrope/700.css'
+// Manrope: self-hosted in public/fonts/manrope/ with @font-face in fonts.css
+// (enables preloading to break the CSS->font chain in the critical path)
 import '@fontsource/ibm-plex-sans/400.css'
 import '@fontsource/ibm-plex-sans/600.css'
 import '@fontsource/ibm-plex-mono/400.css'
@@ -165,14 +163,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
            `
          }} />
         
-        {/* Preload critical LCP resources */}
-        {/* Removed overlay-banner.jpg preload - not used above the fold */}
+        {/* Preload LCP hero image - inside client components so priority hint is late */}
+        <link
+          rel="preload"
+          as="image"
+          imageSrcSet="/_next/image?url=%2Fmain_header.jpg&amp;w=640&amp;q=60 640w, /_next/image?url=%2Fmain_header.jpg&amp;w=750&amp;q=60 750w, /_next/image?url=%2Fmain_header.jpg&amp;w=828&amp;q=60 828w, /_next/image?url=%2Fmain_header.jpg&amp;w=1080&amp;q=60 1080w, /_next/image?url=%2Fmain_header.jpg&amp;w=1200&amp;q=60 1200w, /_next/image?url=%2Fmain_header.jpg&amp;w=1920&amp;q=60 1920w"
+          imageSizes="100vw"
+          fetchPriority="high"
+        />
         
-        {/* Preload critical font weights for above-the-fold content */}
+        {/* Preload LCP-critical fonts to break the HTML->CSS->font chain */}
         <link rel="preload" href="/fonts/clash-display/ClashDisplay-Bold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/clash-display/ClashDisplay-Semibold.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        <link rel="preload" href="/fonts/clash-display/ClashDisplay-Medium.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-        
+        <link rel="preload" href="/fonts/manrope/manrope-latin-400-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preload" href="/fonts/manrope/manrope-latin-700-normal.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+
         {/* Google Analytics - now handled by AnalyticsLoader component */}
         
         {/* PWA manifest */}
@@ -186,11 +190,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
         <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
         
-        {/* Preconnect to critical domains for performance - optimized network tree */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="preconnect" href="https://maps.googleapis.com" />
-        <link rel="preconnect" href="https://maps.gstatic.com" />
+        {/* Preconnect to critical domains for performance */}
         <link rel="preconnect" href="https://www.googletagmanager.com" />
         
         {/* Google Search Console Verification */}

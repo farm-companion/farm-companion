@@ -120,9 +120,10 @@ export const PRODUCE: Produce[] = [
     slug: 'strawberries',
     name: 'Strawberries',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/1/main.webp', alt: 'Fresh British strawberries - beautiful whole specimen' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/2/main.webp', alt: 'Strawberries cross-section showing fresh interior' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/strawberries/3/main.webp', alt: 'Strawberries macro detail - natural texture close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/strawberries/8/strawberries-fresh1.jpg', alt: 'Fresh British strawberries - beautiful whole specimen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/strawberries/8/strawberries-fresh2.jpg', alt: 'Strawberries cross-section showing fresh interior' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/strawberries/8/strawberries-fresh3.jpg', alt: 'Strawberries macro detail - natural texture close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/strawberries/8/strawberries-fresh4.jpg', alt: 'Artistic arrangement of fresh strawberries' },
     ],
     monthsInSeason: [5, 6, 7, 8],        // May–Aug
     peakMonths: [6, 7],
@@ -168,10 +169,10 @@ export const PRODUCE: Produce[] = [
     slug: 'blackberries',
     name: 'Blackberries',
     images: [
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/1/main.webp', alt: 'Fresh British blackberries - beautiful whole specimen' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/2/main.webp', alt: 'Blackberries cross-section showing fresh interior' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/3/main.webp', alt: 'Blackberries macro detail - natural texture close-up' },
-      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce-images/blackberries/4/main.webp', alt: 'Artistic arrangement of fresh blackberries' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/blackberries/8/Blackberries1.jpg', alt: 'Fresh British blackberries - beautiful whole specimen' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/blackberries/8/Blackberries2.jpg', alt: 'Blackberries cross-section showing fresh interior' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/blackberries/8/Blackberries3.jpg', alt: 'Blackberries macro detail - natural texture close-up' },
+      { src: 'https://nivsgpgswqew7kxf.public.blob.vercel-storage.com/produce/blackberries/8/Blackberries4.jpg', alt: 'Artistic arrangement of fresh blackberries' },
     ],
     monthsInSeason: [7, 8, 9],            // Jul–Sep
     peakMonths: [8],
@@ -435,7 +436,7 @@ export const PRODUCE: Produce[] = [
     ],
     prepIdeas: [
       'Steam or griddle with butter and lemon.',
-      'Wrap in prosciutto and roast.',
+      'Wrap in puff pastry and bake.',
       'Add to spring risotto and pasta.',
       'Make creamy asparagus soup.',
     ],
@@ -549,9 +550,9 @@ export const PRODUCE: Produce[] = [
         description: 'Tender leeks cooked in butter and stock'
       },
       {
-        title: 'Leek and Bacon Pasta',
-        url: 'https://www.bbcgoodfood.com/recipes/leek-bacon-pasta',
-        description: 'Creamy pasta with leeks and crispy bacon'
+        title: 'Leek and Cheese Tart',
+        url: 'https://www.bbcgoodfood.com/recipes/leek-cheese-tart',
+        description: 'Savoury tart with caramelised leeks and cheese'
       }
     ],
     aliases: ['leek', 'baby leeks', 'spring leeks'],
@@ -718,16 +719,16 @@ export const PRODUCE: Produce[] = [
       'Blanch and freeze for up to 12 months.',
     ],
     prepIdeas: [
-      'Roast with bacon and chestnuts.',
+      'Roast with honey and chestnuts.',
       'Shred raw for salads.',
       'Pan-fry with butter and garlic.',
       'Steam and toss with lemon zest.',
     ],
     recipeChips: [
       {
-        title: 'Roasted Brussels with Bacon',
-        url: 'https://www.bbcgoodfood.com/recipes/roasted-sprouts-bacon',
-        description: 'The ultimate Christmas sprouts'
+        title: 'Honey Roasted Brussels Sprouts',
+        url: 'https://www.bbcgoodfood.com/recipes/honey-roast-sprouts',
+        description: 'Sweet and caramelised festive sprouts'
       },
       {
         title: 'Shredded Sprout Salad',
