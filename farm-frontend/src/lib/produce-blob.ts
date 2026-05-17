@@ -1,5 +1,5 @@
 // src/lib/produce-blob.ts
-import { head, put, del } from '@vercel/blob'
+import { head, put, del } from '@/lib/blob-adapter'
 import sharp from 'sharp'
 import { logger } from '@/lib/logger'
 

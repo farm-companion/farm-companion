@@ -1,5 +1,5 @@
 // src/lib/blob.ts
-import { head, put } from '@vercel/blob'
+import { head, put } from '@/lib/blob-adapter'
 import { logger } from '@/lib/logger'
 
 const blobUtilLogger = logger.child({ route: 'lib/blob' })

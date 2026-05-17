@@ -27,6 +27,9 @@ const headersCommon = [
 // Note: Geolocation is now allowed site-wide in headersCommon for map functionality
 
 const nextConfig: NextConfig = {
+  // Self-contained server bundle for Docker / Coolify deploys.
+  // Produces .next/standalone with a minimal node_modules and server.js.
+  output: 'standalone',
   // Domain redirects - canonical domain is www.farmcompanion.co.uk
   async redirects() {
     return [

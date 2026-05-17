@@ -1,7 +1,7 @@
 // Comprehensive Performance Monitoring System
 // PuredgeOS 3.0 Compliant Performance Monitoring
 
-import { kv } from '@vercel/kv'
+import { kv } from '@/lib/kv'
 import { logger } from '@/lib/logger'
 
 const perfLogger = logger.child({ route: 'lib/performance-monitor' })

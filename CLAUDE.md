@@ -114,3 +114,50 @@ Queue 7: Farm pipeline hardening
 ## Default behavior
 - Start by ensuring docs/assistant/execution-ledger.md exists.
 - Then implement Slice 1 from Queue 1 immediately.
+
+## Skill orchestration (added 2026-05-16)
+
+This workspace layers five plugin/skill sources. Treat them as one system with explicit precedence. The orchestrator is Claude itself reading this section plus the session skill manifest. There is no autonomous fine-tuning; "learning" means persisting rules and memory.
+
+### Layer map
+1. Memory: claude-mem (cross-session observation capture + auto-injection at SessionStart).
+2. Discipline: superpowers/* (brainstorm, plan, TDD, debug, verify, review).
+3. Domain UI: emil-design-eng (project-local at .claude/skills/emil-design-eng) and frontend-design.
+4. Workflows and learning: ecc:* (plan-orchestrate, team-builder, learn, learn-eval, evolve, instinct-*, santa-loop, gan-build, harness-audit, agent-introspection-debugging).
+5. Project-local utilities: audit-website, handover, simplify, update-config.
+
+### Precedence when skill names overlap
+1. Project-local SKILL.md in .claude/skills/ wins for this project only.
+2. superpowers/* wins for engineering process (brainstorm, plan, TDD, debug, verify, code-review).
+3. emil-design-eng wins for UI polish, animation choices, and interaction details.
+4. claude-mem:mem-search wins for "did we solve this before" or "how did we do X last time".
+5. ecc:* wins for multi-step workflows, cross-model loops, persistent rule capture, and stack-specific depth (Prisma, Next.js, Python, Rust, etc.).
+6. Built-in /review, /init, /security-review remain as quick-fire commands.
+
+### Mandatory workflow per meaningful change
+1. brainstorming before any creative work (superpowers:brainstorming).
+2. writing-plans for multi-step tasks (superpowers:writing-plans); use ecc:plan-orchestrate for cross-model or multi-team planning.
+3. test-driven-development for implementation (superpowers:test-driven-development).
+4. verification-before-completion before claiming done (superpowers:verification-before-completion).
+5. requesting-code-review before merge; escalate to ecc:santa-loop for adversarial dual review on high-stakes changes.
+6. On bugs: systematic-debugging (superpowers:systematic-debugging) before proposing any fix.
+
+### Self-learning cadence
+- Per tool call (automatic): claude-mem PostToolUse captures observations.
+- Per session start (automatic): claude-mem injects relevant past observations.
+- Per session end (manual, one command): /learn then /learn-eval extracts patterns and routes to project or global scope.
+- Weekly (manual): /evolve crystallizes candidates into stable instincts; /instinct-status reviews; /prune drops 30+ day stale candidates.
+- Monthly (manual): /harness-audit for repo hygiene; /workspace-surface-audit for skill drift; /agent-eval if agent quality regresses.
+
+### Self-correction loop
+- Pre-action gate: ECC PreToolUse Bash dispatcher gates risky shell commands.
+- Discipline gate: using-superpowers meta-skill forces a Skill check before any response.
+- Evidence gate: superpowers:verification-before-completion blocks "done" claims without proof.
+- Adversarial gate on demand: ecc:santa-loop requires two independent reviewers to approve.
+- Memory loop: failures captured by claude-mem auto-surface in future sessions.
+
+### Plugin state and rollback
+- Installed plugins: claude-mem (thedotmack v13.2.0), superpowers (claude-plugins-official v5.1.0 = obra/superpowers upstream), ecc (everything-claude-code), plus Anthropic plugins (frontend-design, code-review, context7, feature-dev, skill-creator).
+- Pre-ECC backup: ~/.claude-backup-20260516-211046.tgz.
+- Rollback: /plugin uninstall ecc@ecc then tar -xzf ~/.claude-backup-20260516-211046.tgz -C ~.
+- Update this section when adding or removing a plugin.

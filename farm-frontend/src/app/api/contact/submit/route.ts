@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
-import { kv } from '@vercel/kv'
+import { kv } from '@/lib/kv'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
 import { sendEmailViaGateway } from '@/lib/email-gateway'
 import { verifyTurnstile } from '@/lib/security'
+import { verifyEmail, friendlyMessage } from '@/lib/email-verification'
 
 // Using the centralized validation schema from input-validation.ts
 
@@ -88,11 +89,29 @@ export async function POST(req: NextRequest) {
       throw errors.validation('Form filled too quickly')
     }
 
-    // Turnstile CAPTCHA verification (mandatory)
+    // Turnstile CAPTCHA verification (mandatory) — runs before paid email
+    // verification so bots cannot burn mailboxlayer quota.
     const turnstileOk = await verifyTurnstile(v.turnstileToken, ip)
     if (!turnstileOk) {
       logger.warn('Turnstile verification failed', { ip })
       throw errors.validation('CAPTCHA verification failed. Please try again.')
+    }
+
+    // Third-party email verification (fail-open if MAILBOXLAYER_API_KEY unset)
+    const verdict = await verifyEmail(v.email)
+    if (!verdict.isValid) {
+      logger.warn('Email rejected by verification', {
+        ip,
+        email: verdict.email,
+        reason: verdict.reason,
+        source: verdict.source,
+      })
+      throw errors.validation(
+        verdict.suggestion
+          ? `Please check your email address. Did you mean ${verdict.suggestion}?`
+          : friendlyMessage(verdict.reason),
+        { field: 'email' }
+      )
     }
 
     const id = crypto.randomUUID()

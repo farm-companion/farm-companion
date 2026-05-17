@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { kv } from '@vercel/kv'
+import { kv } from '@/lib/kv'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
 
@@ -21,7 +21,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Only log in production
-    if (process.env.NODE_ENV === 'production' && process.env.VERCEL_KV_REST_API_URL) {
+    const kvEnabled =
+      !!process.env.KV_REST_API_URL ||
+      !!process.env.UPSTASH_REDIS_REST_URL ||
+      !!process.env.VERCEL_KV_REST_API_URL
+    if (process.env.NODE_ENV === 'production' && kvEnabled) {
       try {
         // Create a unique key for this error
         const errorKey = `error:${Date.now()}:${Math.random().toString(36).substr(2, 9)}`

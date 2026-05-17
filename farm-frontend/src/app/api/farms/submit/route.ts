@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { kv } from '@vercel/kv'
+import { kv } from '@/lib/kv'
 import { Ratelimit } from '@upstash/ratelimit'
 import { Redis } from '@upstash/redis'
 import { createRecord, ValidationError, ConstraintViolationError } from '@/lib/database-constraints'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
+import { verifyEmail, friendlyMessage } from '@/lib/email-verification'
 
 // Rate limiter setup
 const redis = Redis.fromEnv()
@@ -71,6 +72,25 @@ export async function POST(req: NextRequest) {
       county: v.county,
       postcode: v.postcode
     })
+
+    // Third-party email verification (skip when contact email omitted; fail-open if MAILBOXLAYER_API_KEY unset)
+    if (v.contactEmail) {
+      const verdict = await verifyEmail(v.contactEmail)
+      if (!verdict.isValid) {
+        logger.warn('Email rejected by verification', {
+          ip,
+          email: verdict.email,
+          reason: verdict.reason,
+          source: verdict.source,
+        })
+        throw errors.validation(
+          verdict.suggestion
+            ? `Please check the contact email. Did you mean ${verdict.suggestion}?`
+            : friendlyMessage(verdict.reason),
+          { field: 'contactEmail' }
+        )
+      }
+    }
 
     // Anti-spam checks
     if (v._hp) {

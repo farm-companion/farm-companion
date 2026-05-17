@@ -1,7 +1,7 @@
 // Comprehensive Caching System
 // PuredgeOS 3.0 Compliant Cache Management
 
-import { kv } from '@vercel/kv'
+import { kv } from '@/lib/kv'
 import { trackCachePerformance } from './performance-monitor'
 import { logger } from '@/lib/logger'
 

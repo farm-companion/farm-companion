@@ -898,3 +898,155 @@
 - Verified Queue 5 (Backend optimization): comprehensive indexes already in schema.prisma, PostGIS extension enabled, connection pooling configured with Supabase Pooler in prisma.ts, N+1 query fixes deferred until database migration from JSON
 - Verified Queue 6 (Twitter workflow): sendFailureNotification bug non-existent (method is sendErrorNotification, working correctly), filesystem locks already replaced with Redis/Upstash for Bluesky and Telegram clients
 - Verified Queue 7 (Farm pipeline): requirements.txt already has all dependencies pinned, comprehensive retry.py with exponential backoff and jitter, comprehensive logging.py with JSON formatting and structured logging
+
+### 2026-05-16 — Stage 0 Slice 1: Root docs archival
+Goal: declutter root before monorepo lift; reserve a single `docs/archive/` for finished/stale docs.
+- Created `docs/archive/`
+- `git mv` 8 stale root markdowns into `docs/archive/`:
+  - SEARCH_ENGINE_SUBMISSION_GUIDE.md, SESSION_PROGRESS_REPORT.md, CODEBASE_REFACTORING_COMPLETION_SUMMARY.md
+  - INTEGRATION_STATUS.md, PHASE2_INTEGRATION_GUIDE.md
+  - GOOGLE_MAPS_SECURITY_PLAN.md, IMPLEMENT_GOOGLE_MAPS_SECURITY.md, SIMPLE_GOOGLE_MAPS_SECURITY.md (Google Maps runtime already removed in commit ba2adec)
+- Added `farm-frontend/*-report.json` patterns to `.gitignore` and removed duplicate env block
+- Kept at root: README.md, CLAUDE.md, HANDOVER.md
+- **Remaining root markdowns to triage next slice**: PuredgeOS.md, README.template.md, SECURITY_SETUP.md, SEASONAL_PRODUCE_DATA_SOURCE.md, PRODUCE_AUTOMATION_SPEC.md, PRODUCTION_DEPLOYMENT_SUMMARY.md, PRODUCTION_READINESS_ASSESSMENT.md, IMAGE_REMOVAL_SYSTEM.md
+- Verification: `git status` shows 8 renames + 1 .gitignore mod; `ls docs/archive/` shows the 8 files
+- **Did NOT touch**: source code, package.json, Dockerfile (deferred to subsequent slices)
+
+### 2026-05-17 — Stage 0 Slice 2+3: Docker scaffolding for Coolify deploy
+Goal: anchor the build path for Coolify so subsequent slices have a deployable target.
+- `farm-frontend/Dockerfile` (new, multi-stage)
+  - `node:22.11.0-bookworm-slim` for builder + runner (avoids musl/sharp/prisma pain that Alpine causes)
+  - pnpm via corepack with BuildKit cache mount on `/root/.local/share/pnpm/store`
+  - deps stage copies `package.json`, `pnpm-lock.yaml`, `prisma/`, and `scripts/fix-prisma-zeptomatch.js` (postinstall inputs) — NO `patches/` because that directory is absent
+  - builder stage bakes build-time placeholders for `DATABASE_URL` and `NEXT_PUBLIC_SITE_URL` so `next build` does not crash on env validators
+  - runner stage copies only `.next/standalone`, `.next/static`, `public/`, plus `.prisma` + `@prisma/client` (belt-and-suspenders against zeptomatch patch tracer gaps)
+  - non-root `nextjs` user (uid/gid 1001), `HEALTHCHECK curl /` every 30s
+- `farm-frontend/.dockerignore` (new) — excludes node_modules, .next, .env*, *-report.json, docs/, package-lock.json (drift hazard, see Slice 5)
+- `farm-frontend/next.config.ts` — single-line addition: `output: 'standalone'` (required for Dockerfile runner stage to find `server.js`)
+- `docker-compose.dev.yml` (repo root, new) — postgres+postgis 16-3.4-alpine, redis 7-alpine, meilisearch v1.10; ports 5432/6379/7700; named volumes for persistence; healthchecks on all three. Deliberately omits the Next.js app — `pnpm dev` on host hits these services on localhost (faster reload than container rebuild).
+- Verification commands the operator should run (this assistant cannot execute Docker locally):
+  - `cd farm-frontend && docker build -t farm-frontend:dev .` (expect: build green, image size <450 MB)
+  - `docker compose -f docker-compose.dev.yml up -d` (expect: 3 healthy containers within ~30s)
+  - `docker compose -f docker-compose.dev.yml ps` (expect: all "healthy")
+- **Known runtime gap**: container will start but routes touching `@vercel/blob` / `@vercel/kv` will throw — those are wired into 21 source files and need adapter slices (Slice 6+) before the container is functionally complete. The build itself should still pass because tree-shaking does not run code paths.
+
+### 2026-05-17 — Stage 0 Slice 4: Triage remaining 8 root markdowns
+Goal: finish root decluttering started in Slice 1.
+- Archived to `docs/archive/`: PRODUCE_AUTOMATION_SPEC.md, SEASONAL_PRODUCE_DATA_SOURCE.md, PRODUCTION_DEPLOYMENT_SUMMARY.md, PRODUCTION_READINESS_ASSESSMENT.md, IMAGE_REMOVAL_SYSTEM.md, README.template.md (stale planning + completed-feature docs)
+- Kept at root: PuredgeOS.md (design philosophy reference still cited in CLAUDE.md tier-1 standards), SECURITY_SETUP.md (operational runbook, still current)
+
+### 2026-05-17 — Stage 0 Slice 5: Lockfile drift fix
+Goal: kill ambiguity between npm and pnpm.
+- Removed `farm-frontend/package-lock.json` (517 KB, Mar 6) — pnpm is canonical because `package.json` declares `pnpm.overrides` and the Dockerfile already targets pnpm via corepack
+- Kept `farm-frontend/pnpm-lock.yaml` (353 KB, Mar 4) as the single source of truth
+- Followup if needed: pin pnpm version via `packageManager` field in `package.json` (defer until first divergence)
+
+### 2026-05-17 — Stage 0 Slice 6a: Strip `@vercel/analytics`
+Goal: remove the first of three Vercel runtime deps. Smallest target — single dead import and dead JSX comment, zero live call sites.
+- `farm-frontend/src/app/layout.tsx` — deleted commented-out `// import { Analytics } from '@vercel/analytics'` (line 19) and the dead JSX comment block (`{/* Vercel Analytics */} {/* <Analytics /> */}`). `<AnalyticsLoader />` (the consent-gated in-house wrapper) is the only remaining analytics surface
+- `farm-frontend/package.json` — removed `"@vercel/analytics": "^1.6.1"` from dependencies
+- `farm-frontend/pnpm-lock.yaml` — regenerated via `pnpm install --no-frozen-lockfile`; output confirmed `dependencies: - @vercel/analytics 1.6.1`
+- Verification: `pnpm exec tsc --noEmit --skipLibCheck` exits 0 (no type errors). Source grep `@vercel/analytics` returns zero matches. Lockfile grep returns zero matches
+- Risk: nil — the import was already commented out and the JSX was already disabled. Removing the package only prunes dead inventory
+- Next: Slice 6b — `@vercel/kv` adapter (used at runtime by several routes; needs a real abstraction, not just dep removal)
+
+### 2026-05-17 — Stage 0 Slice 6b: `@vercel/kv` adapter — lib migration
+Goal: introduce a thin shim over `@upstash/redis` so we can decouple from `@vercel/kv` without rewriting call sites. Migrate the 5 lib callers in this slice; API routes follow in Slice 6c.
+- `farm-frontend/src/lib/kv.ts` (new, 26 LOC) — exports `kv = new Redis({ url, token })`. Reads `KV_REST_API_URL` / `KV_REST_API_TOKEN` first (existing Vercel envs) and falls back to `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN`. No throw at import time — callers already wrap `kv.*` in try/catch
+- Migrated 5 lib callers (single-line import swap each): `lib/rate-limit.ts`, `lib/logging.ts`, `lib/error-handler.ts`, `lib/performance-monitor.ts`, `lib/cache-manager.ts`
+- Vercel KV is built on Upstash Redis so the method surface (`get`, `set`, `setex`, `del`, `incr`, `expire`, `keys`, `hset`, `lpush`, `lrange`, `sadd`, `smembers` — enumerated by grep across all current usage) maps 1:1. No call-site signature changes
+- Verification: `pnpm exec tsc --noEmit --skipLibCheck` exits 0. Grep `@vercel/kv` in `src/lib/` matches only comments in `kv.ts` itself
+- Risk: low — shim re-exports an identical client surface. Failure mode is misconfigured env vars (same as before), and callers already have try/catch + in-memory fallback (e.g. `rate-limit.ts:26-30`). Rollback: `git revert <sha>` followed by `pnpm install`
+- Next: Slice 6c — migrate 5 API routes (`api/contact/submit`, `api/farms/submit`, `api/log-error`, `api/log-http-error`, `api/add/selftest`) and remove `@vercel/kv` from package.json + lockfile
+
+### 2026-05-17 — Stage 0 Slice 6c: `@vercel/kv` adapter — API route migration + dep removal
+Goal: move the final 5 API-route callers from `@vercel/kv` to `@/lib/kv`, then drop `@vercel/kv` from `package.json` so EV-1 (and Coolify deploy) can land with zero Vercel-KV dependency.
+- Migrated 5 routes (single-line import swap each): `app/api/contact/submit/route.ts`, `app/api/farms/submit/route.ts`, `app/api/log-error/route.ts`, `app/api/log-http-error/route.ts`, `app/api/add/selftest/route.ts` (the last uses dynamic `await import('@/lib/kv')`)
+- Broadened the production-only env guards in `log-error` and `log-http-error` from the Vercel-only `VERCEL_KV_REST_API_URL` to `KV_REST_API_URL || UPSTASH_REDIS_REST_URL || VERCEL_KV_REST_API_URL` so structured error logging keeps working under Coolify env naming
+- Removed `"@vercel/kv": "^3.0.0"` from `farm-frontend/package.json`; `pnpm install` regenerated `pnpm-lock.yaml` (lockfile `@vercel/kv` occurrences: 3 → 0; install log confirmed `- @vercel/kv 3.0.0`)
+- Verification: `pnpm exec tsc --noEmit` exits 0. `grep -rn "@vercel/kv" farm-frontend/src` matches only the two header comments in `src/lib/kv.ts` itself
+- Files touched: 6 (5 routes + `package.json`); lockfile auto-regenerated. Within 8-file / 300-line slice budget
+- Risk: low — Upstash Redis is the engine behind Vercel KV, method surface (`hset`, `lpush`, `set`, `incr`, `expire`, `ping`) is 1:1, and the env-guard broadening is purely additive. Rollback: `git revert <sha>` then `pnpm install`
+- Next: EV-1 (mailboxlayer email verification — all pre-reqs now met) or Slice 6d (`@vercel/blob` adapter — the last remaining Vercel-SDK dependency)
+
+### 2026-05-17 — Slice EV-1: Email verification adapter (mailboxlayer)
+Goal: verify submitter emails on `/api/contact/submit` and `/api/farms/submit`; reject malformed / no-MX / disposable / low-score addresses; fail-open on outage or missing key. Spec: [`docs/assistant/email-verification-plan.md`](./email-verification-plan.md).
+- `farm-frontend/src/lib/email-verification.ts` (new, 207 LOC) — `verifyEmail(email): Promise<EmailVerdict>` adapter. Config read at call time (`MAILBOXLAYER_API_KEY`, `_API_URL`, `_MIN_SCORE`, `_TIMEOUT_MS`, `_CACHE_TTL_MS`). Process-local LRU cache (insertion-order eviction at 1000 entries, 24h default TTL). AbortController-based timeout. Decision rule per spec §3: reject if format_valid=false ∨ mx_found=false ∨ disposable=true ∨ score<MIN_SCORE; role=true is **not** a rejection (info@/contact@ are legitimate for farms). Three new exports: `verifyEmail`, `friendlyMessage(reason)`, `__resetCacheForTests`.
+- Wired into `app/api/contact/submit/route.ts` (+18 LOC): one `await verifyEmail(v.email)` after `validateAndSanitize`, throws `errors.validation` with did-you-mean suggestion when available else `friendlyMessage(reason)`.
+- Wired into `app/api/farms/submit/route.ts` (+19 LOC): same pattern but conditional on `v.contactEmail` being provided (optional field in the schema).
+- `farm-frontend/.env.example` (new, 5 LOC) — placeholder template for the four mailboxlayer envs. No secrets.
+- `farm-frontend/src/lib/email-verification.test.ts` (new, 226 LOC, `node:test` + `tsx --test`) — 14 cases covering all 12 spec scenarios (§7) plus `friendlyMessage` and `EmailVerdict` shape sanity. Fetch stubbed via `globalThis.fetch`; env mutated via a save/restore `withEnv` wrapper; cache reset between cases via `__resetCacheForTests()`.
+- Verification: `pnpm test:unit` → 25 pass / 0 fail (11 blob-adapter + 14 email-verification, exit 0). `pnpm exec tsc --noEmit` exits 0. `pnpm build` exits 0 (placeholder DB; Prisma errors during prerender are expected and unrelated).
+- Files touched: 6 (2 new lib files + 2 routes + `.env.example` + ledger). 0 new deps. Well within slice budget.
+- Risk: low. Fail-open semantics mean any third-party outage or missing key is invisible to users. The only user-visible new behaviour is rejecting clearly bad addresses (with a friendly message + did-you-mean), and the rejection only fires when `MAILBOXLAYER_API_KEY` is set in Coolify.
+- Rollback: unset `MAILBOXLAYER_API_KEY` in Coolify (no code revert needed; adapter returns `isValid: true` everywhere).
+- **Operator step (NOT done in this slice):** paste the mailboxlayer key into `farm-frontend/.env.local` for local verify, into Coolify env for prod. Then run the three curl checks from plan §9 (golden path, typo with did-you-mean, disposable).
+- Next: pivot to one of (a) Queue 1 Dependabot triage (45 vulns, 2 critical), (b) photo-URL backfill for legacy `*.public.blob.vercel-storage.com` data, or (c) open a PR for everything on `claude/add-sitemap-page-wHEV4`.
+
+### 2026-05-17 — Stage 0 Slice 6d: `@vercel/blob` adapter — lib migration
+Goal: replace the last Vercel SDK with a backend-agnostic adapter and migrate all 6 lib callers. Production backend chosen by user: **Hetzner Object Storage** (S3-compatible). Dev defaults to filesystem backend.
+- `farm-frontend/src/lib/blob-adapter.ts` (new, 213 LOC) — exports `put`/`head`/`del` with Vercel-Blob-compatible return shapes (`{url, pathname, contentType?, size, uploadedAt}`). Backend selected by `BLOB_BACKEND` env (`'s3'` | `'fs'`, default `'fs'`). Lazy singleton — no S3Client construction at import time so `next build` works without S3 envs
+- S3 backend uses `@aws-sdk/client-s3` (`PutObjectCommand`/`HeadObjectCommand`/`DeleteObjectCommand`) with `forcePathStyle: true`. Configurable via `S3_ENDPOINT`, `S3_REGION`, `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`. Public URLs built from `BLOB_PUBLIC_URL_BASE`
+- FS backend writes under `BLOB_FS_ROOT` (default `./.blob-store`) via `node:fs/promises`. Tolerant `del` (missing file ≠ error, matches Vercel Blob)
+- `del(input)` accepts both bare pathname and full URL (Vercel Blob compat) — `pathFromInput()` strips either the configured `BLOB_PUBLIC_URL_BASE` or a generic `https://host/` prefix
+- Migrated 6 lib callers (single-line import swap each): `lib/blob.ts`, `lib/produce-blob.ts`, `lib/farm-blob.ts`, `lib/county-blob.ts`, `lib/photos.ts`, `lib/photo-storage.ts`
+- Added 1 new dep: `@aws-sdk/client-s3` (^3.668.0, resolved to 3.1048.0)
+- Verification: `pnpm exec tsc --noEmit` exits 0. `grep '@vercel/blob' farm-frontend/src` matches 4 remaining route callers — scheduled for Slice 6e
+- Files touched: 8 (1 new adapter + 6 lib migrations + `package.json`); lockfile auto-regenerated. Exactly at slice budget
+- Risk: low for callers (Vercel-compatible return shapes; same input arg names). Medium for prod cutover (URLs change once `BLOB_PUBLIC_URL_BASE` is set on Coolify — existing photo URLs in DB still point at `*.public.blob.vercel-storage.com` and won't migrate automatically). Photo URL backfill is a separate operational task tracked outside this slice
+- Rollback: `git revert <sha>` + `pnpm install`. No data migration to undo (S3 not yet pointed at)
+- Next: Slice 6e — migrate 4 API routes (`api/upload`, `api/photos/upload-blob`, `api/admin/photos/cleanup-deleted`, `api/admin/photos/cleanup-broken`) and remove `@vercel/blob` from `package.json` + lockfile
+
+### 2026-05-17 — Stage 0 Slice 6e: `@vercel/blob` adapter — route migration + dep removal
+Goal: finish the Vercel-Blob removal — swap imports in the 4 remaining API routes and drop `@vercel/blob` from `package.json` + lockfile. Closes Stage 0's Vercel-SDK strip.
+- Migrated 4 routes (single-line import swap each): `app/api/upload/route.ts`, `app/api/photos/upload-blob/route.ts`, `app/api/admin/photos/cleanup-broken/route.ts`, `app/api/admin/photos/cleanup-deleted/route.ts`
+- Removed `"@vercel/blob": "^2.0.1"` from `farm-frontend/package.json`; `pnpm install` regenerated `pnpm-lock.yaml` (install log confirmed `- @vercel/blob 2.0.1`; lockfile `@vercel/blob` count 3 → 0)
+- Verification: `pnpm exec tsc --noEmit` exits 0; `grep '@vercel/blob' farm-frontend/src` matches only adapter header comments in `lib/blob-adapter.ts` (the migration's only legitimate mention); lockfile occurrences = 0
+- Files touched: 6 (4 routes + `package.json` + ledger); lockfile auto-regenerated. Within 8-file slice budget
+- Risk: low for the import-only changes. Cutover risk surfaced and documented separately in Slice 6f (legacy Vercel Blob URLs in DB will throw NoSuchKey on `del()` until adapter is hardened)
+- Rollback: `git revert <sha> && pnpm install`
+
+### 2026-05-17 — Stage 0 milestone: Vercel-SDK strip complete
+All three Vercel SDKs removed: `@vercel/analytics` (Slice 6a), `@vercel/kv` (Slices 6b + 6c), `@vercel/blob` (Slices 6d + 6e). Coolify build no longer depends on any `@vercel/*` package. App is functionally complete to deploy once the operator sets the env vars below.
+
+**Coolify env handover (operator must set before prod cutover):**
+
+| Variable | Notes |
+|---|---|
+| `KV_REST_API_URL` / `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*`) | Upstash Redis credentials for the KV adapter |
+| `BLOB_BACKEND` | Set to `s3` for prod |
+| `BLOB_PUBLIC_URL_BASE` | Public base URL prepended to returned `url`. E.g. `https://bucket.fsn1.your-objectstorage.com` for Hetzner |
+| `S3_ENDPOINT` | Hetzner: `https://fsn1.your-objectstorage.com` |
+| `S3_REGION` | `auto` is fine |
+| `S3_BUCKET` | — |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | — |
+| `MAILBOXLAYER_API_KEY` (optional) | Enables EV-1 email verification once that slice lands |
+
+**Outstanding follow-ups before retiring Vercel:**
+- Slice 6f (queued below): harden `blob-adapter` (S3 `NoSuchKey` tolerance, `allowOverwrite` enforcement, unit tests). Surfaced by ultrathink review of Slice 6d.
+- Data backfill: photo URLs in DB still reference `*.public.blob.vercel-storage.com`. Keep the Vercel Blob bucket alive until backfilled to the new S3 store.
+- EV-1: ship mailboxlayer email verification (pre-reqs met).
+- Dependabot: 43 vulns on master (2 critical, 25 high, 16 moderate) per recent push warnings — separate Queue 1 work.
+
+### 2026-05-17 — Stage 0 Slice 6f: `blob-adapter` hardening + first unit-test coverage
+Goal: close the three risks surfaced by the ultrathink review of Slice 6d, before prod traffic hits the new adapter.
+
+**Risk 1 — orphan-on-legacy-URL.** Revised after the S3 spec: `DeleteObjectCommand` is genuinely idempotent (HTTP 204 for missing keys), so the original "NoSuchKey throw" framing was wrong. The *real* failure mode is silent: `del('https://abc.public.blob.vercel-storage.com/...')` would issue a delete against the wrong Hetzner key, succeed, and leave the actual Vercel-hosted object as an orphan while the DB marks the photo deleted. **Fix:** detect `*.public.blob.vercel-storage.com` hosts in `pathFromInput()` and throw a new typed `LegacyBlobUrlError`. Callers (`lib/photo-storage.ts:172,329`) already wrap `del` in try/catch, so they log it loudly instead of swallowing it. Backfill is still tracked separately.
+
+**Risk 2 — `allowOverwrite=false` silently ignored.** Faking partial support is worse than no support. **Fix:** throw `BlobOptionNotImplementedError` in both backends if a caller ever passes it. Fail loud > silent-incorrect. (No current caller uses the strict mode.)
+
+**Risk 3 — zero test coverage on 232 LOC.** **Fix:** `lib/blob-adapter.test.ts` (140 LOC, `node:test` + `tsx --test`, 0 new deps). 11 cases covering both new errors, legacy-URL detection (case-insensitive), `pathFromInput` round-trip through `del()`, FsBackend round-trip for string/Buffer/Uint8Array/Blob bodies, idempotent `del` for missing files, `..` path-traversal rejection, leading-slash tolerance, `BLOB_PUBLIC_URL_BASE` honoring.
+
+**Bonus bug caught by the new tests:** `buildPublicUrl` returns `/blob/${pathname}` when `BLOB_PUBLIC_URL_BASE` is empty, but `pathFromInput` did not strip that prefix on the way back — so `del(url)` in dev/fs mode targeted the wrong storage key. Symmetric `/blob/` strip added to `pathFromInput`. Test caught this on first run; fix made test 11/11 pass.
+
+**Bonus refactor for testability:** `backendName` and `PUBLIC_URL_BASE` were read at module-load time. Both are now lazy (`publicUrlBase()` function + per-call read in `getBackend()`), with a test-only `__resetBackendForTests()` export. Also a defensive prod improvement — Coolify env injected after process start is now honoured even if some import order edge case meant the module loaded before envs.
+
+**Files touched (6 / 8 budget):**
+- modify `farm-frontend/src/lib/blob-adapter.ts` (+62 / −18 LOC: two new error classes, `LegacyBlobUrlError` detection, `allowOverwrite` enforcement, lazy env, `/blob/` symmetric strip, `__resetBackendForTests`)
+- create `farm-frontend/src/lib/blob-adapter.test.ts` (140 LOC, 11 cases)
+- modify `farm-frontend/package.json` (+1: `test:unit` script via `tsx --test`)
+- modify this ledger
+
+**Verification:** `pnpm tsx --test src/lib/blob-adapter.test.ts` → 11 pass / 0 fail / 0 skip (exit 0). `pnpm exec tsc --noEmit` exits 0.
+**Risk:** low — additive error classes + lazy env. Only behaviour change visible to existing callers is `del(legacyVercelUrl)` throwing instead of no-op; callers already have try/catch.
+**Rollback:** `git revert <sha>`. Reverting also drops the test file (acceptable since we'd be giving up the contract too).
