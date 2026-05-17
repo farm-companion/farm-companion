@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { ensureConnection } from '@/lib/redis'
-import { head } from '@vercel/blob'
+import { head } from '@/lib/blob-adapter'
 import { getCurrentUser } from '@/lib/auth'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'

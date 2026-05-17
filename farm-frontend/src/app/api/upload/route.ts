@@ -1,7 +1,7 @@
 export const runtime = 'nodejs'
 
 import { NextResponse } from 'next/server'
-import { put } from '@vercel/blob'
+import { put } from '@/lib/blob-adapter'
 import { rateLimiters, getClientIP } from '@/lib/rate-limit'
 import crypto from 'crypto'
 import { createRouteLogger } from '@/lib/logger'

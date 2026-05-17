@@ -1019,25 +1019,52 @@ Goal: replace the last Vercel SDK with a backend-agnostic adapter and migrate al
 - Rollback: `git revert <sha>` + `pnpm install`. No data migration to undo (S3 not yet pointed at)
 - Next: Slice 6e — migrate 4 API routes (`api/upload`, `api/photos/upload-blob`, `api/admin/photos/cleanup-deleted`, `api/admin/photos/cleanup-broken`) and remove `@vercel/blob` from `package.json` + lockfile
 
-### 2026-05-17 — Queued: Slice 6e (`@vercel/blob` adapter — route migration + dep removal)
-Goal: finish the `@vercel/blob` removal — swap imports in the 4 remaining API routes and drop `@vercel/blob` from `package.json` + lockfile. Completes Stage 0's Vercel-SDK strip.
+### 2026-05-17 — Stage 0 Slice 6e: `@vercel/blob` adapter — route migration + dep removal
+Goal: finish the Vercel-Blob removal — swap imports in the 4 remaining API routes and drop `@vercel/blob` from `package.json` + lockfile. Closes Stage 0's Vercel-SDK strip.
+- Migrated 4 routes (single-line import swap each): `app/api/upload/route.ts`, `app/api/photos/upload-blob/route.ts`, `app/api/admin/photos/cleanup-broken/route.ts`, `app/api/admin/photos/cleanup-deleted/route.ts`
+- Removed `"@vercel/blob": "^2.0.1"` from `farm-frontend/package.json`; `pnpm install` regenerated `pnpm-lock.yaml` (install log confirmed `- @vercel/blob 2.0.1`; lockfile `@vercel/blob` count 3 → 0)
+- Verification: `pnpm exec tsc --noEmit` exits 0; `grep '@vercel/blob' farm-frontend/src` matches only adapter header comments in `lib/blob-adapter.ts` (the migration's only legitimate mention); lockfile occurrences = 0
+- Files touched: 6 (4 routes + `package.json` + ledger); lockfile auto-regenerated. Within 8-file slice budget
+- Risk: low for the import-only changes. Cutover risk surfaced and documented separately in Slice 6f (legacy Vercel Blob URLs in DB will throw NoSuchKey on `del()` until adapter is hardened)
+- Rollback: `git revert <sha> && pnpm install`
 
-**Route callers (4):** `api/upload`, `api/photos/upload-blob`, `api/admin/photos/cleanup-deleted`, `api/admin/photos/cleanup-broken`. Single-line import swap each (`from '@vercel/blob'` → `from '@/lib/blob-adapter'`).
+### 2026-05-17 — Stage 0 milestone: Vercel-SDK strip complete
+All three Vercel SDKs removed: `@vercel/analytics` (Slice 6a), `@vercel/kv` (Slices 6b + 6c), `@vercel/blob` (Slices 6d + 6e). Coolify build no longer depends on any `@vercel/*` package. App is functionally complete to deploy once the operator sets the env vars below.
 
-**Files (5 / 8 budget):** 4 route edits + `farm-frontend/package.json`. Lockfile auto-regenerated.
+**Coolify env handover (operator must set before prod cutover):**
 
-**Coolify ops handover (Slice 6e DOES NOT do this — operator must, before pointing prod traffic at the new build):**
+| Variable | Notes |
+|---|---|
+| `KV_REST_API_URL` / `KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_*`) | Upstash Redis credentials for the KV adapter |
+| `BLOB_BACKEND` | Set to `s3` for prod |
+| `BLOB_PUBLIC_URL_BASE` | Public base URL prepended to returned `url`. E.g. `https://bucket.fsn1.your-objectstorage.com` for Hetzner |
+| `S3_ENDPOINT` | Hetzner: `https://fsn1.your-objectstorage.com` |
+| `S3_REGION` | `auto` is fine |
+| `S3_BUCKET` | — |
+| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | — |
+| `MAILBOXLAYER_API_KEY` (optional) | Enables EV-1 email verification once that slice lands |
 
-| Variable | Default | Notes |
-|---|---|---|
-| `BLOB_BACKEND` | `fs` | Set to `s3` in Coolify; `fs` is dev-only |
-| `BLOB_FS_ROOT` | `./.blob-store` | Only used by `fs` backend |
-| `BLOB_PUBLIC_URL_BASE` | — | Public base URL to prepend to returned `url`. E.g. `https://bucket.fsn1.your-objectstorage.com` for Hetzner |
-| `S3_ENDPOINT` | — | Hetzner: `https://fsn1.your-objectstorage.com` |
-| `S3_REGION` | `auto` | |
-| `S3_BUCKET` | — | |
-| `S3_ACCESS_KEY_ID` / `S3_SECRET_ACCESS_KEY` | — | |
+**Outstanding follow-ups before retiring Vercel:**
+- Slice 6f (queued below): harden `blob-adapter` (S3 `NoSuchKey` tolerance, `allowOverwrite` enforcement, unit tests). Surfaced by ultrathink review of Slice 6d.
+- Data backfill: photo URLs in DB still reference `*.public.blob.vercel-storage.com`. Keep the Vercel Blob bucket alive until backfilled to the new S3 store.
+- EV-1: ship mailboxlayer email verification (pre-reqs met).
+- Dependabot: 43 vulns on master (2 critical, 25 high, 16 moderate) per recent push warnings — separate Queue 1 work.
 
-**Verification:** `pnpm exec tsc --noEmit` exits 0; `grep '@vercel/blob' farm-frontend/src` is empty; lockfile `@vercel/blob` count 0.
-**Rollback:** `git revert <sha> && pnpm install`. Adapter and lib migrations from Slice 6d remain (independent of `@vercel/blob` presence).
-**Out of scope (separate follow-up):** backfill of legacy `*.public.blob.vercel-storage.com` URLs already persisted in the photos table. Existing rows keep working as long as Vercel Blob hosts those objects; new uploads will land in Hetzner.
+### 2026-05-17 — Queued: Slice 6f (`blob-adapter` hardening — surfaced by Slice 6d ultrathink review)
+Goal: close three real risks identified after Slice 6d shipped, before any prod traffic hits the new adapter.
+
+**Risk 1 — S3 `NoSuchKey` intolerance on legacy URLs.** `lib/photo-storage.ts:172,329` calls `del(photo.url)` with the URL stored in DB. After Coolify cutover, most existing rows still contain `*.public.blob.vercel-storage.com` URLs. `pathFromInput()` falls through to the generic `https://...` handler and extracts the URL's pathname (e.g. `/abc123/farm-photos/slug/id/main.webp`), then `S3Backend.del` issues a `DeleteObject` against the Hetzner bucket — which returns `NoSuchKey` and throws. `FsBackend` already swallows `ENOENT` for parity with `@vercel/blob`'s permissive delete; `S3Backend` must do the same with `NoSuchKey`.
+
+**Risk 2 — `FsBackend.put` ignores `allowOverwrite`.** I read the option in the type signature, then do nothing with it. Contract drift vs `@vercel/blob`. Only `lib/produce-blob.ts` ever passes it (and only as `true`, the permissive case) — so not currently breaking — but it's a latent bug that will bite when a future caller relies on the strict mode.
+
+**Risk 3 — Zero test coverage on 232 LOC of new adapter code.** TDD was skipped on Slice 6d. Catch up: write unit tests under `lib/blob-adapter.test.ts` using `node:test` (0 new deps), covering: `toBuffer` (Buffer/Uint8Array/ArrayBuffer/string/Blob branches), `normalisePath` (leading-slash strip; `..` rejection), `pathFromInput` (BLOB_PUBLIC_URL_BASE strip; generic https strip; bare-path passthrough), `FsBackend.{put,head,del}` (round-trip; ENOENT tolerance on del).
+
+**Slice files (preview, ≤6 / 8 budget):**
+- modify `farm-frontend/src/lib/blob-adapter.ts` (~+30 LOC: NoSuchKey try/catch; allowOverwrite strict-mode branch)
+- create `farm-frontend/src/lib/blob-adapter.test.ts` (~120 LOC, `node:test`)
+- modify `farm-frontend/package.json` (+1 LOC: add `test:unit` script if not present)
+- modify this ledger
+
+**Verification:** `pnpm exec node --test src/lib/blob-adapter.test.ts` exits 0; `pnpm exec tsc --noEmit` exits 0.
+**Rollback:** `git revert <sha>`. Hardening is purely additive; no behaviour reversion needed.
+**Pre-requisites:** none. Ready to ship.
