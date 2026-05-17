@@ -137,6 +137,8 @@ data.ms/
 *.env.*
 *.env.txt
 *.env.vercel
+# Opt-in template files (no secrets — safe to commit)
+!farm-frontend/.env.example
 
 # Local audit / report artifacts (not source of truth)
 farm-frontend/accessibility-report-*.json

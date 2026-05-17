@@ -6,6 +6,7 @@ import { Resend } from 'resend'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
+import { verifyEmail, friendlyMessage } from '@/lib/email-verification'
 
 // Using the centralized validation schema from input-validation.ts
 
@@ -79,6 +80,23 @@ export async function POST(req: NextRequest) {
       email: v.email,
       topic: v.topic
     })
+
+    // Third-party email verification (fail-open if MAILBOXLAYER_API_KEY unset)
+    const verdict = await verifyEmail(v.email)
+    if (!verdict.isValid) {
+      logger.warn('Email rejected by verification', {
+        ip,
+        email: verdict.email,
+        reason: verdict.reason,
+        source: verdict.source,
+      })
+      throw errors.validation(
+        verdict.suggestion
+          ? `Please check your email address. Did you mean ${verdict.suggestion}?`
+          : friendlyMessage(verdict.reason),
+        { field: 'email' }
+      )
+    }
 
     // Anti-spam checks
     if (!v.consent) {

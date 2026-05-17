@@ -969,41 +969,19 @@ Goal: move the final 5 API-route callers from `@vercel/kv` to `@/lib/kv`, then d
 - Risk: low — Upstash Redis is the engine behind Vercel KV, method surface (`hset`, `lpush`, `set`, `incr`, `expire`, `ping`) is 1:1, and the env-guard broadening is purely additive. Rollback: `git revert <sha>` then `pnpm install`
 - Next: EV-1 (mailboxlayer email verification — all pre-reqs now met) or Slice 6d (`@vercel/blob` adapter — the last remaining Vercel-SDK dependency)
 
-### 2026-05-17 — Queued: Slice EV-1 (Email verification adapter, mailboxlayer)
-Plan: [`docs/assistant/email-verification-plan.md`](./email-verification-plan.md) — spec, awaiting approval.
-
-**Goal:** verify submitter emails on `/api/contact/submit` and `/api/farms/submit` via mailboxlayer; reject malformed / no-MX / disposable / low-score addresses; fail-open on outage or missing key.
-
-**Slot in queue:** **immediately after Slice 6c.** EV-1 modifies the same two route files Slice 6c is migrating from `@vercel/kv` to `@/lib/kv`. Landing 6c first keeps EV-1's diff purely additive (one `verifyEmail` call per route) with zero overlap on the KV-migration lines. Independent of Slice 6d (`@vercel/blob`) and any Queue 3+ work — those can interleave freely on either side of EV-1.
-
-**Pre-requisites before EV-1 starts:**
-- [x] Slice 6a complete (`@vercel/analytics` stripped — verified on disk).
-- [x] Slice 6b complete (`src/lib/kv.ts` shim in place — verified on disk).
-- [x] Slice 6c complete (routes migrated to `@/lib/kv`, `@vercel/kv` removed from `package.json`).
-- [ ] User has `MAILBOXLAYER_API_KEY` ready to paste into `farm-frontend/.env.local` for local verify and Coolify env for prod.
-
-**Slice files (preview, ≤8 files / ≤300 LOC excl. tests):**
-- create `farm-frontend/src/lib/email-verification.ts` (~150 LOC)
-- create `farm-frontend/src/lib/email-verification.test.ts` (~140 LOC, `node:test` runner — 0 new deps)
-- modify `farm-frontend/src/app/api/contact/submit/route.ts` (+8 LOC)
-- modify `farm-frontend/src/app/api/farms/submit/route.ts` (+8 LOC)
-- create `farm-frontend/.env.example` (4 LOC)
-- modify `farm-frontend/package.json` (+1 LOC — add `test:unit` script)
-- modify this ledger (entry moves from "Queued" to "DONE" with verification log)
-
-**New env vars (must be set in Coolify before prod deploy):**
-
-| Variable | Default | Notes |
-|---|---|---|
-| `MAILBOXLAYER_API_KEY` | — | Required to enable. Missing → fail-open. |
-| `MAILBOXLAYER_MIN_SCORE` | `0.65` | Reject threshold. |
-| `MAILBOXLAYER_TIMEOUT_MS` | `5000` | Per-call timeout. |
-| `MAILBOXLAYER_CACHE_TTL_MS` | `86400000` | 24h LRU TTL. |
-
-**Cost:** £0/mo at current volume — free tier (100 reqs/mo) covered by 24h LRU cache + existing per-IP rate limits.
-**Deps added:** 0.
-**Rollback:** unset `MAILBOXLAYER_API_KEY` in Coolify env — adapter returns `isValid: true` everywhere. No code revert needed.
-**Acceptance:** see plan §14.
+### 2026-05-17 — Slice EV-1: Email verification adapter (mailboxlayer)
+Goal: verify submitter emails on `/api/contact/submit` and `/api/farms/submit`; reject malformed / no-MX / disposable / low-score addresses; fail-open on outage or missing key. Spec: [`docs/assistant/email-verification-plan.md`](./email-verification-plan.md).
+- `farm-frontend/src/lib/email-verification.ts` (new, 207 LOC) — `verifyEmail(email): Promise<EmailVerdict>` adapter. Config read at call time (`MAILBOXLAYER_API_KEY`, `_API_URL`, `_MIN_SCORE`, `_TIMEOUT_MS`, `_CACHE_TTL_MS`). Process-local LRU cache (insertion-order eviction at 1000 entries, 24h default TTL). AbortController-based timeout. Decision rule per spec §3: reject if format_valid=false ∨ mx_found=false ∨ disposable=true ∨ score<MIN_SCORE; role=true is **not** a rejection (info@/contact@ are legitimate for farms). Three new exports: `verifyEmail`, `friendlyMessage(reason)`, `__resetCacheForTests`.
+- Wired into `app/api/contact/submit/route.ts` (+18 LOC): one `await verifyEmail(v.email)` after `validateAndSanitize`, throws `errors.validation` with did-you-mean suggestion when available else `friendlyMessage(reason)`.
+- Wired into `app/api/farms/submit/route.ts` (+19 LOC): same pattern but conditional on `v.contactEmail` being provided (optional field in the schema).
+- `farm-frontend/.env.example` (new, 5 LOC) — placeholder template for the four mailboxlayer envs. No secrets.
+- `farm-frontend/src/lib/email-verification.test.ts` (new, 226 LOC, `node:test` + `tsx --test`) — 14 cases covering all 12 spec scenarios (§7) plus `friendlyMessage` and `EmailVerdict` shape sanity. Fetch stubbed via `globalThis.fetch`; env mutated via a save/restore `withEnv` wrapper; cache reset between cases via `__resetCacheForTests()`.
+- Verification: `pnpm test:unit` → 25 pass / 0 fail (11 blob-adapter + 14 email-verification, exit 0). `pnpm exec tsc --noEmit` exits 0. `pnpm build` exits 0 (placeholder DB; Prisma errors during prerender are expected and unrelated).
+- Files touched: 6 (2 new lib files + 2 routes + `.env.example` + ledger). 0 new deps. Well within slice budget.
+- Risk: low. Fail-open semantics mean any third-party outage or missing key is invisible to users. The only user-visible new behaviour is rejecting clearly bad addresses (with a friendly message + did-you-mean), and the rejection only fires when `MAILBOXLAYER_API_KEY` is set in Coolify.
+- Rollback: unset `MAILBOXLAYER_API_KEY` in Coolify (no code revert needed; adapter returns `isValid: true` everywhere).
+- **Operator step (NOT done in this slice):** paste the mailboxlayer key into `farm-frontend/.env.local` for local verify, into Coolify env for prod. Then run the three curl checks from plan §9 (golden path, typo with did-you-mean, disposable).
+- Next: pivot to one of (a) Queue 1 Dependabot triage (45 vulns, 2 critical), (b) photo-URL backfill for legacy `*.public.blob.vercel-storage.com` data, or (c) open a PR for everything on `claude/add-sitemap-page-wHEV4`.
 
 ### 2026-05-17 — Stage 0 Slice 6d: `@vercel/blob` adapter — lib migration
 Goal: replace the last Vercel SDK with a backend-agnostic adapter and migrate all 6 lib callers. Production backend chosen by user: **Hetzner Object Storage** (S3-compatible). Dev defaults to filesystem backend.
