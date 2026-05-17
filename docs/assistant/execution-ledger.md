@@ -772,11 +772,11 @@
 - docs/assistant/farm-enrichment-plan.md (implementation plan)
 
 **Next Steps:**
-- [ ] Generate Prisma migration: `pnpm prisma migrate dev --name add-image-source-fields`
-- [ ] Run pipeline: `./google_places.sh` to generate enriched data
-- [ ] Run import: `pnpm tsx src/scripts/import-farms.ts --dry-run` then `--force`
-- [ ] Run Runware: `pnpm tsx src/scripts/generate-farm-images.ts --limit=100 --upload`
-- [ ] Verify on site: Check /map and /shop pages display database data
+- [x] Generate Prisma migration: `add-image-source-fields` — N/A (schema-direct workflow; `Image.googlePhotoRef`, `googleAttribution`, `urlExpiresAt`, `source` already in `farm-frontend/prisma/schema.prisma`). Resolved 2026-05-17.
+- [x] Run pipeline: `./google_places.sh` — skipped (existing `farm-pipeline/farms.uk.json`, 2.5 MB, Sep 2025, covers all 1,322 farms; a fresh fetch would spend Google Places API budget for no incremental gain since DB is fully synced). Resolved 2026-05-17.
+- [x] Run import: `pnpm tsx src/scripts/import-farms.ts --dry-run` then `--force` — dry-run shows 1,322/1,322 farms skipped (DB has 1,299 active farms, all match pipeline by slug/place_id). `--force` was deliberately NOT run because it would overwrite live DB rows with September 2025 pipeline values, regressing any admin edits made since. Resolved 2026-05-17.
+- [x] Run Runware: `pnpm tsx src/scripts/generate-farm-images.ts --limit=100 --upload` — N/A (live query: 1,299/1,299 active farms already have an approved image; selector matches 0 rows). Resolved 2026-05-17.
+- [x] Verify on site: build produces `/map` (static), `/shop` (static), `/shop/[slug]` (dynamic) with no resolve errors; full prod verification belongs to the Vercel preview/prod deploy of PR #137. Resolved 2026-05-17.
 
 ### 2026-01-17 (latest)
 - **Slice 2: Optimized getCategoryStats with Database Aggregation** (Queue 5)
