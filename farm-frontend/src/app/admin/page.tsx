@@ -210,12 +210,6 @@ export default async function AdminDashboardPage() {
                 </div>
                 <div className="mt-6 space-y-2">
                   <Link
-                    href="/add"
-                    className="block w-full text-left px-4 py-2 text-caption text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
-                  >
-                    Add Farm Shop
-                  </Link>
-                  <Link
                     href="/map"
                     className="block w-full text-left px-4 py-2 text-caption text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-md transition-colors"
                   >

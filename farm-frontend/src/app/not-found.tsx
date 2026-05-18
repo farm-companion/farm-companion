@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
-import { MapPin, Layers, CalendarDays, Plus, Search, ArrowLeft } from 'lucide-react'
+import { MapPin, Layers, CalendarDays, Search, ArrowLeft } from 'lucide-react'
 
 export default function NotFound() {
   const [searchQuery, setSearchQuery] = useState('')
@@ -34,12 +34,6 @@ export default function NotFound() {
       description: "See what's fresh and in season right now",
       href: '/seasonal',
       icon: CalendarDays,
-    },
-    {
-      title: 'Add Your Farm',
-      description: 'Join the Farm Companion community',
-      href: '/add',
-      icon: Plus,
     },
   ]
 
