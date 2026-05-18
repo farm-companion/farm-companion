@@ -96,15 +96,9 @@ export default function ContactPage() {
               <div className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-3">
                 Farm Shop Owners
               </div>
-              <p className="text-lg leading-[1.9] text-foreground mb-2">
-                Need to update your listing or claim ownership?
+              <p className="text-lg leading-[1.9] text-foreground">
+                Need to update your listing or claim ownership? Use the contact form below.
               </p>
-              <Link
-                href="/claim"
-                className="text-xs tracking-[0.15em] uppercase text-foreground border-b border-foreground pb-1 hover:opacity-70 transition-opacity duration-300"
-              >
-                Claim Your Listing
-              </Link>
             </div>
           </div>
         </section>
