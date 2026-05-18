@@ -33,9 +33,6 @@ const WeekendPlanner = dynamic(
 const AnimatedFeatures = dynamic(
   () => import('@/components/AnimatedFeatures').then(m => m.AnimatedFeatures)
 )
-const NewsletterSignup = dynamic(
-  () => import('@/components/NewsletterSignup')
-)
 
 export async function generateMetadata(): Promise<Metadata> {
   return {
@@ -164,13 +161,6 @@ export default async function HomePage() {
       {/* Animated Features Section */}
       <AnimatedFeatures />
 
-
-      {/* Newsletter Section */}
-      <section className="py-12 md:py-16 section-lazy">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          <NewsletterSignup />
-        </div>
-      </section>
 
       {/* SEO Content Section - LV Editorial */}
       <section className="bg-background-canvas dark:bg-[#0C0A09] border-t border-border-default section-lazy">
