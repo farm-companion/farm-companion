@@ -1544,3 +1544,31 @@ Net: +~155 LOC added (new component + helpers + tests), −~600 LOC deleted. Cle
 **PR:** https://github.com/farm-companion/farm-companion/pull/167
 
 **Next slice queued:** Slice 1.1.5 — wire `MarkerPreview` into LeafletShell (urgent, must precede any production-LeafletShell deployment). Then Slice 1.1.2 — cluster polish (reconcile two styling systems, fix `scale(0)` entry, lighter shadows, kill small-cluster preview sheet). The `--brand-action` token introduced here propagates into cluster colours.
+
+### 2026-05-18 — Repo housekeeping (chore): gitignore + project skill + handover backfill
+
+**Goal:** Close three concerns the next session shouldn't have to rediscover. Triggered by ultrathink on the "12 uncommitted changes" warning that had been ignored across this whole branch and prior ones.
+
+**Files changed (12; +400 LOC mostly markdown):**
+- MODIFY `.gitignore` — add `.claude/settings.local.json`, `.claude/scheduled_tasks.lock`. (`.superpowers/` was already added by PR #166 — this PR keeps the same single entry, no duplicate.)
+- CREATE `.claude/skills/emil-design-eng/SKILL.md` (tracked — project-local design-eng skill referenced by CLAUDE.md).
+- CREATE 10 handover backfill: `context/handover-2026-05-17-{0701, 0733, 1640, 1944, 2047, 2153}.md` + `context/handover-2026-05-18-{0557, 1010, 1548, 2133}.md`.
+
+**Root cause analysis:**
+- The `.claude/settings.local.json` ignore was decided in `context/handover-2026-05-17-0052.md` line 9 on 2026-05-17 but **never executed**. The handover format documented the intent but no process picked it up across the subsequent 1.5 days — process gap worth noting. Closing that loop now.
+- The handover-commit habit started, lapsed; 10 untracked accumulated. Half-tracked is the worst state.
+
+**Decisions:**
+- Handover policy: **Option A (commit all)** over Option B (gitignore + untrack). Pattern is started, no secrets in handovers, cold-read value compounds. Future sessions should keep committing handovers as the session-end ritual.
+
+**Operator follow-ups flagged in the PR (not done in code):**
+- 🚨 **Rotate the PG password** literal currently in local `.claude/settings.local.json`. On Coolify, not in code. Has been on disk in plaintext for 2+ days. After rotation, replace the captured permission entry with a wildcard pattern (`Bash(PGPASSWORD=* psql:*)`) so future passwords aren't captured literally.
+- ⚠️ **`crawl4ai-main 3/.claude/settings.local.json` is ALREADY tracked** at a vendored subpath. Separate audit decision; not touched in this PR.
+
+**Verification:**
+- `pnpm exec tsc --noEmit` → PASS (no source touched).
+- `git ls-files --stage | grep settings.local.json` returned only the pre-existing vendored copy; no fresh staging of secrets.
+
+**Risk and rollback:** Trivial. Gitignore + new tracked files; no functional changes. Rollback: `git revert <sha>`.
+
+**PR:** https://github.com/farm-companion/farm-companion/pull/168.
