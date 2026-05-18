@@ -32,6 +32,17 @@ export interface CacheStats {
   totalSize: number
 }
 
+// Build a project-prefixed namespace string. Without a prefix, returns
+// the namespace unchanged (backwards-compatible with single-tenant
+// Upstash deployments). With KV_KEY_PREFIX set, scopes every data key,
+// tag key, and namespace scan under `${prefix}:${namespace}:...` so the
+// same Redis instance can be shared safely with other projects without
+// collision risk or cross-project deletions via clearNamespace.
+export function prefixedNamespace(namespace: string, prefix?: string): string {
+  const trimmed = prefix?.trim()
+  return trimmed ? `${trimmed}:${namespace}` : namespace
+}
+
 // Cache manager class
 export class CacheManager {
   private static instance: CacheManager
@@ -46,8 +57,21 @@ export class CacheManager {
   private readonly defaultTTL = 3600 // 1 hour
   private readonly maxKeyLength = 250
   private readonly compressionThreshold = 1024 // 1KB
+  private readonly keyPrefix: string
 
-  private constructor() {}
+  private constructor() {
+    // Read once at instance construction. In Vercel each cold lambda
+    // re-evaluates module load, picking up env-var changes via redeploy.
+    this.keyPrefix = process.env.KV_KEY_PREFIX?.trim() ?? ''
+  }
+
+  // Apply the configured project prefix to a namespace, if any. Used by
+  // generateKey, tag-key construction in set() / invalidateByTags(), and
+  // the keys() pattern in clearNamespace() so multi-tenant safety is
+  // enforced at every Redis-key-construction site.
+  private nsKey(namespace: string): string {
+    return prefixedNamespace(namespace, this.keyPrefix)
+  }
 
   public static getInstance(): CacheManager {
     if (!CacheManager.instance) {
@@ -56,13 +80,14 @@ export class CacheManager {
     return CacheManager.instance
   }
 
-  // Generate cache key with namespace
+  // Generate cache key with namespace (project-prefixed if KV_KEY_PREFIX set)
   private generateKey(namespace: string, key: string): string {
-    const fullKey = `${namespace}:${key}`
+    const ns = this.nsKey(namespace)
+    const fullKey = `${ns}:${key}`
     if (fullKey.length > this.maxKeyLength) {
       // Hash long keys
       const hash = this.hashString(fullKey)
-      return `${namespace}:hash:${hash}`
+      return `${ns}:hash:${hash}`
     }
     return fullKey
   }
@@ -190,10 +215,10 @@ export class CacheManager {
       const cacheKey = this.generateKey(namespace, key)
       await kv.setex(cacheKey, ttl, JSON.stringify(entry))
       
-      // Store tags for invalidation
+      // Store tags for invalidation (project-prefixed if KV_KEY_PREFIX set)
       if (tags.length > 0) {
         for (const tag of tags) {
-          const tagKey = `tag:${namespace}:${tag}`
+          const tagKey = `tag:${this.nsKey(namespace)}:${tag}`
           await kv.sadd(tagKey, cacheKey)
           await kv.expire(tagKey, ttl)
         }
@@ -239,7 +264,7 @@ export class CacheManager {
     
     try {
       for (const tag of tags) {
-        const tagKey = `tag:${namespace}:${tag}`
+        const tagKey = `tag:${this.nsKey(namespace)}:${tag}`
         const keys = await kv.smembers(tagKey)
         
         if (keys.length > 0) {
@@ -256,10 +281,11 @@ export class CacheManager {
     }
   }
 
-  // Clear all cache for a namespace
+  // Clear all cache for a namespace (project-prefixed pattern so we
+  // never accidentally match another project's keys in a shared Redis)
   public async clearNamespace(namespace: string): Promise<number> {
     try {
-      const pattern = `${namespace}:*`
+      const pattern = `${this.nsKey(namespace)}:*`
       const keys = await kv.keys(pattern)
       
       if (keys.length > 0) {

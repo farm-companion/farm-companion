@@ -1222,3 +1222,54 @@ Goal: clear the 49-alert false-positive cluster Dependabot raised against the po
 - **Operator-side activation (independent of code):** to restore actual KV caching (not just fast-fail), pick ONE of (a) provision Upstash cloud free tier (10k commands/day), set `KV_REST_API_URL` + `KV_REST_API_TOKEN` in Vercel; OR (b) add a `serverless-redis-http` container to Coolify alongside the existing Redis 7.2, set the same two env vars at the proxy URL. Until either is done, the site is fast (cold ~1.5 s after Slice A + B both deployed) but un-cached at the application layer; the Vercel CDN's `s-maxage=300` continues to handle warm hits.
 
 **Next:** Slice B-followup (rate-limit fail-closed), or pause to let operator pick (a) vs (b) above. Cold-latency verification of Slice A + B combined will be captured against production after both PRs merge and redeploy.
+
+### 2026-05-18 — Post-Migration Slice F: KV key prefix (`KV_KEY_PREFIX`) for multi-tenant Upstash reuse
+
+**Goal:** Allow `farm-companion` to safely share the operator's existing Upstash free-tier database (single-DB limit on free plan) with another project, without key collisions or destructive cross-project deletions. Reuses the existing `@upstash/redis`-compatible code path; no library swap, no new infra, no monthly cost.
+
+**Pre-flight diagnostic (drove the design):**
+The naive approach — point both projects at the same Upstash DB without a prefix — would fail catastrophically at `cache-manager.ts:262` (`clearNamespace`), which does `kv.keys('farms:*')` then `kv.del(...keys)`. That pattern scan would match **the other project's `farms:*` keys too**, and the subsequent `del` would wipe them. Pure data-corruption risk. A safe multi-tenant share must therefore prefix EVERY key construction site, not just data keys.
+
+**Audit of all Redis-key-construction sites in `cache-manager.ts` (4 total):**
+- `generateKey()` (line 60-68): data keys — `${namespace}:${key}`. Was unprefixed.
+- `set()` body (line 196): tag keys — `tag:${namespace}:${tag}`. Was unprefixed.
+- `invalidateByTags()` (line 242): same tag-key pattern. Was unprefixed.
+- `clearNamespace()` (line 262): pattern `${namespace}:*` for the dangerous `kv.keys()` scan. Was unprefixed → **cross-project deletion risk**.
+
+All four are now routed through a single private helper `this.nsKey(namespace)` that applies the prefix uniformly. The helper delegates to the exported pure function `prefixedNamespace(namespace, prefix?)` which trims whitespace and returns the bare namespace when no prefix is set (backwards-compatible).
+
+**Files touched (3 / 8 budget, +63 / −6 LOC):**
+- modify `farm-frontend/src/lib/cache-manager.ts` (+27 / −6 LOC) — new top-level exported `prefixedNamespace()` helper; new private `keyPrefix` field initialized from `process.env.KV_KEY_PREFIX?.trim()`; new private `nsKey()` method; updates to all 4 key-construction sites.
+- create `farm-frontend/src/lib/cache-manager.test.ts` (+45 LOC, new file) — 8 unit tests for `prefixedNamespace`: no prefix passed, empty-string prefix, undefined prefix, whitespace-only prefix (rejected), trims surrounding whitespace, prefix with embedded `:` (multi-level), all 9 `CACHE_NAMESPACES` values exercised uniformly.
+- modify this ledger.
+
+**Verification (ran locally, in `farm-frontend/`):**
+- `pnpm exec tsx --test src/lib/cache-manager.test.ts` → 8 / 8 subtests `ok`, suite `ok 1 - prefixedNamespace`, 0 failures.
+- `pnpm exec tsc --noEmit` → exit 0 (empty stderr+stdout, full project type-check clean).
+- `pnpm test:unit` → no `not ok` results across the full suite (kv-timeout, blob-adapter, geo, and the new cache-manager suite all green).
+
+**Behavioural change:**
+- **Without `KV_KEY_PREFIX` set** (default): identical behaviour to pre-slice. Keys are `farms:foo`, `tag:farms:bar`, etc. Zero observable change for single-tenant Upstash deployments.
+- **With `KV_KEY_PREFIX=fc` set**: every key under our control becomes `fc:${namespace}:${key}` (data), `tag:fc:${namespace}:${tag}` (tags), `fc:${namespace}:*` (clearNamespace scan). Other projects' keys in the same Redis instance are untouchable from our code.
+
+**Risk and rollback:**
+- **Risk:** very low. The change is opt-in via env var; absent the var, behaviour is byte-for-byte identical (one extra trivial trim() call). The 4 key-construction sites are all updated in lockstep; no half-state is possible.
+- **Transition note:** when `KV_KEY_PREFIX` is first set on a previously-active Upstash DB, existing un-prefixed keys become orphans. They TTL out within minutes-to-hours per their original `setex` TTL (`CACHE_TTL` values: short=5m, medium=1h, long=24h). No manual cleanup needed.
+- **Rollback:** `git revert <sha>`. No data state changes, no schema migration. If a redeploy with `KV_KEY_PREFIX` set wrote prefixed keys before rollback, they too will simply TTL out and the un-prefixed code path will write fresh un-prefixed keys.
+
+**Operator activation steps (companion to this slice):**
+1. Upstash console → existing DB → **REST API** tab → copy `UPSTASH_REDIS_REST_URL` (https://...) and `UPSTASH_REDIS_REST_TOKEN`.
+2. Vercel → farm-companion → Settings → Environment Variables. Add **three** vars, all three scopes (Production + Preview + Development):
+   - `KV_REST_API_URL` = (the URL)
+   - `KV_REST_API_TOKEN` = (the token)
+   - `KV_KEY_PREFIX` = `fc` (or any short unique tag — must not collide with the other project's prefix)
+3. Deployments → top → `...` → Redeploy.
+4. Verify: two consecutive curls to the same `/api/farms?county=…&_t=N` URL with different `_t` should show `x-cache: MISS` then `x-cache: HIT`, latency ~0.8 s → ~0.15 s.
+5. Sanity: Upstash console → Data Browser. Our keys all start with `fc:`. The other project's keys are unaffected.
+
+**Follow-up slices (queued, unchanged from Slice B):**
+- **Slice B-followup (rate-limit fail-closed):** Replace `withPerformanceRateLimit`'s reliance on `cache-manager.get/set` with `@upstash/ratelimit`'s native pattern + `ephemeralCache: new Map()` fallback. Two routes (`/api/contact/submit`, `/api/farms/submit`) also need migration off their parallel `Redis.fromEnv()` to use the timeout-wrapped `kv` shim.
+- **Slice C (carve facets):** county + category facets in `/api/farms` should leave the per-request fan-out and become `unstable_cache`-wrapped helpers with 1 h TTL.
+- **Slice D (verify Hetzner indexes):** `SELECT indexname FROM pg_indexes WHERE tablename = 'farms'` against live DB; reconcile against `schema.prisma` `@@index` list.
+
+**Next:** Either Slice B-followup (rate-limit hardening, ~30 LOC, 1 file + 2 routes), or stop here and let the operator do the activation steps above + curl-verify.
