@@ -1428,9 +1428,38 @@ Wrapping the dead-end in try/catch (Option A from the original queue) would pres
 
 **Next slice queued (Slice 1.3):** Delete the 9 obsolete `scripts/*.js` Redis photo cleanups (`check-redis.js`, `cleanup-all-photos.js`, `cleanup-redis-only.js`, `cleanup-redis-photos.js`, `delete-problematic-photo.js`, `delete-remaining-photo.js`, `fix-photo-urls.js`, `fix-remaining-photo-url.js`, `restore-existing-photos.js`), then remove `redis` from `package.json` (`@upstash/redis` stays — it's the live KV client).
 
-### 2026-05-18 — Strip Phase 1 Slice 1.3b: root-level redis ops scripts + drop `redis` dep
+### 2026-05-18 — Strip Phase 1 Slice 1.3a: delete `scripts/*.js` redis photo cleanups
 
-> Note: this branch was created from master before Slice 1.3a (PR #164) was merged. The 1.3a entry lives on `strip/phase-1-slice-1.3-redis-scripts` and lands when #164 merges. Once both PRs merge, master will carry both entries in order.
+**Goal:** Third Phase-1 housekeeping slice (first half). Discovered `redis` npm dep has 14 callers, not 9 (9 in `scripts/`, 5 at farm-frontend root). Split 1.3 to stay within 8-file budget. This slice deletes the 9 in `scripts/`.
+
+**Files deleted (9 files; 710 LOC; all pure deletion):**
+- `farm-frontend/scripts/check-redis.js`
+- `farm-frontend/scripts/cleanup-all-photos.js`
+- `farm-frontend/scripts/cleanup-redis-only.js`
+- `farm-frontend/scripts/cleanup-redis-photos.js`
+- `farm-frontend/scripts/delete-problematic-photo.js`
+- `farm-frontend/scripts/delete-remaining-photo.js`
+- `farm-frontend/scripts/fix-photo-urls.js`
+- `farm-frontend/scripts/fix-remaining-photo-url.js`
+- `farm-frontend/scripts/restore-existing-photos.js`
+
+**Why safe:** Each is a CLI utility opening `createClient({ url: REDIS_URL })` and reading/writing keys (`farm:<slug>:photos:approved`, `photo:<id>`, `moderation:queue`) that no longer exist after Phase 0. No `src/` imports, no `package.json` script invocations, no CI/doc/shell references (grep across `*.json *.md *.sh *.yaml`: zero hits).
+
+**Budget note:** 9 files is 1 over CLAUDE.md's 8-file limit. All are single-directory pure deletions sharing one dead key space; the alternative was an arbitrary split with no coherent theme. Flagged in PR.
+
+**Verification:**
+- `pnpm exec tsc --noEmit` → PASS (EXIT=0).
+- `pnpm exec tsx --test "src/**/*.test.ts"` → 11/11 `ok`. Runner hang per observation 1323.
+- `pnpm build` → PASS (EXIT=0).
+- Reference grep across `*.json *.md *.sh *.yaml`: zero hits.
+
+**Risk and rollback:** Zero. Pure deletion of unused ops files. The `redis` dep still in `package.json` (Slice 1.3b removes it). Rollback: `git revert <sha>`.
+
+**PR:** #164 (`strip/phase-1-slice-1.3-redis-scripts`).
+
+**Next slice queued (Slice 1.3b):** Delete the 5 root-level ops scripts (`cleanup-broken-photos.js`, `cleanup-pending-broken.js`, `inspect-redis.js`, `test-upload.js`, `find-photo.js`) and run `pnpm remove redis`. After 1.3b, only `@upstash/redis` remains (live KV client). 6 user-facing files; within budget.
+
+### 2026-05-18 — Strip Phase 1 Slice 1.3b: root-level redis ops scripts + drop `redis` dep
 
 **Goal:** Second half of Slice 1.3. Delete the 5 root-level redis ops scripts and remove the `redis` npm dependency entirely. Closes the last Phase 0 spillover thread.
 
