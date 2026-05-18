@@ -1,7 +1,7 @@
 'use client'
 
 import { Suspense, useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useSearchParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
 import { Search, Navigation, Loader2, X, ChevronRight, ChevronLeft } from 'lucide-react'
 import { calculateDistance, formatDistance } from '@/features/locations'
@@ -14,7 +14,7 @@ import FarmList from '@/components/FarmList'
 import BottomSheet from '@/components/BottomSheet'
 
 import { useHaptic } from '@/components/HapticFeedback'
-import FarmPreviewCard from '@/features/map/ui/FarmPreviewCard'
+import MarkerPreview from '@/features/map/ui/MarkerPreview'
 import type { FarmShop } from '@/types/farm'
 
 // Debouncing hook to prevent excessive re-filtering
@@ -65,6 +65,7 @@ interface FilterState {
 function MapPageContent() {
   // Read URL search params for pre-filtering (e.g., /map?q=strawberries)
   const searchParams = useSearchParams()
+  const router = useRouter()
   const initialQuery = searchParams.get('q') || ''
 
   const [farms, setFarms] = useState<FarmShop[]>([])
@@ -311,23 +312,16 @@ function MapPageContent() {
   const handleFarmSelect = useCallback((farmId: string) => {
     setSelectedFarmId(farmId)
     const farm = farms.find(f => f.id === farmId)
-    if (farm && window.innerWidth >= 768) {
-      setPreviewFarm(farm)
-    } else if (window.innerWidth < 768) {
-      const farmElement = document.querySelector(`[data-farm-id="${farmId}"]`)
-      if (farmElement) {
-        farmElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
-    }
+    if (farm) setPreviewFarm(farm)
   }, [farms])
 
   // Navigate to farm detail page
   const handleViewFarmDetails = useCallback((farmId: string) => {
-    const farm = farms.find(f => f.id === farmId)
-    if (farm) {
-      window.location.href = `/shop/${farm.slug}`
+    const target = farms.find(f => f.id === farmId)
+    if (target) {
+      router.push(`/shop/${target.slug}`)
     }
-  }, [farms])
+  }, [farms, router])
 
   // Handle map bounds change - receives normalized bounds object
   const handleBoundsChange = useCallback((bounds: unknown) => {
@@ -529,21 +523,15 @@ function MapPageContent() {
         />
       </div>
 
-      {/* ========== FARM PREVIEW CARD (desktop marker click) ========== */}
-      {previewFarm && isDesktop && (
-        <div className="absolute z-30 bottom-6 pointer-events-none flex justify-center"
-          style={{ left: '24px', right: `${panelWidth + 24}px` }}
-        >
-          <div className="pointer-events-auto relative">
-            <FarmPreviewCard
-              farm={previewFarm}
-              onClose={() => setPreviewFarm(null)}
-              onViewDetails={handleViewFarmDetails}
-              formatDistance={formatDistance}
-            />
-          </div>
-        </div>
-      )}
+      {/* ========== MARKER PREVIEW (mobile + desktop) ========== */}
+      <MarkerPreview
+        farm={previewFarm}
+        isDesktop={isDesktop}
+        panelWidth={panelWidth}
+        onClose={() => setPreviewFarm(null)}
+        onViewDetails={handleViewFarmDetails}
+        formatDistance={formatDistance}
+      />
 
       {/* ========== FILTER OVERLAY PANEL ========== */}
       <FilterOverlayPanel
