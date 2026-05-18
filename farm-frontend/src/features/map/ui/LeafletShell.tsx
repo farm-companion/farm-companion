@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { FarmShop } from '@/types/farm'
 import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS } from '../lib/pin-icons'
-import MarkerActions from './MarkerActions'
 
 
 // Leaflet imports - client-side only
@@ -47,11 +46,6 @@ interface LeafletShellProps {
 // UK bounds and center
 const UK_BOUNDS: L.LatLngBoundsExpression = [[49.8, -10.5], [61.0, 2.0]]
 const UK_CENTER = { lat: 54.5, lng: -2.0 }
-
-interface MarkerState {
-  selected: FarmShop | null
-  showActions: boolean
-}
 
 // Fix Leaflet default icon paths
 const fixLeafletIcons = () => {
@@ -162,12 +156,6 @@ export default function LeafletShell({
   const [error, setError] = useState<string | null>(null)
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null)
 
-  const [markerState, setMarkerState] = useState<MarkerState>({
-    selected: null,
-    showActions: false
-  })
-  const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 })
-
   // Haptic feedback
   const triggerHaptic = useCallback((type: 'light' | 'medium' | 'heavy' = 'light') => {
     if ('vibrate' in navigator) {
@@ -177,20 +165,10 @@ export default function LeafletShell({
   }, [])
 
   // Handle marker click
-  const handleMarkerClick = useCallback((farm: FarmShop, e?: L.LeafletMouseEvent) => {
+  const handleMarkerClick = useCallback((farm: FarmShop) => {
     triggerHaptic('light')
-
-    if (isDesktop && e) {
-      setPopoverPosition({ x: e.containerPoint.x, y: e.containerPoint.y })
-    }
-
-    setMarkerState({
-      selected: farm,
-      showActions: true
-    })
-
     onFarmSelect?.(farm.id)
-  }, [triggerHaptic, isDesktop, onFarmSelect])
+  }, [triggerHaptic, onFarmSelect])
 
   // Initialize map
   useEffect(() => {
@@ -291,8 +269,8 @@ export default function LeafletShell({
       // Store farm data on marker
       ;(marker as unknown as { farmData: FarmShop }).farmData = farm
 
-      marker.on('click', (e) => {
-        handleMarkerClick(farm, e)
+      marker.on('click', () => {
+        handleMarkerClick(farm)
       })
 
       marker.on('mouseover', () => {
@@ -367,34 +345,6 @@ export default function LeafletShell({
     }
   }, [externalUserLocation])
 
-  // Action handlers
-  const handleNavigate = useCallback((farm: FarmShop) => {
-    const url = `https://maps.google.com/maps?q=${farm.location.lat},${farm.location.lng}`
-    window.open(url, '_blank')
-    setMarkerState({ selected: null, showActions: false })
-  }, [])
-
-  const handleFavorite = useCallback((farmId: string) => {
-    triggerHaptic('medium')
-    // TODO: Implement favorites
-  }, [triggerHaptic])
-
-  const handleShare = useCallback((farm: FarmShop) => {
-    if (navigator.share) {
-      navigator.share({
-        title: farm.name,
-        text: `Check out ${farm.name} at ${farm.location.address}`,
-        url: window.location.href
-      })
-    } else {
-      navigator.clipboard.writeText(`${farm.name} - ${farm.location.address}`)
-    }
-    setMarkerState({ selected: null, showActions: false })
-  }, [])
-
-  const handleCloseMarkerActions = useCallback(() => {
-    setMarkerState({ selected: null, showActions: false })
-  }, [])
 
   if (error) {
     return (
@@ -438,25 +388,6 @@ export default function LeafletShell({
           minHeight: '300px'
         }}
       />
-
-      {/* Marker Actions - Mobile Only */}
-      {!isDesktop && (
-        <MarkerActions
-          farm={markerState.selected}
-          isVisible={markerState.showActions}
-          onClose={handleCloseMarkerActions}
-          onNavigate={handleNavigate}
-          onFavorite={handleFavorite}
-          onShare={handleShare}
-          userLocation={externalUserLocation ? {
-            latitude: externalUserLocation.latitude,
-            longitude: externalUserLocation.longitude
-          } : null}
-          isDesktop={isDesktop}
-        />
-      )}
-
-      {/* Desktop marker interaction handled by FarmPreviewCard in page.tsx */}
     </div>
   )
 }

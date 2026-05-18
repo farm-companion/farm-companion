@@ -240,6 +240,11 @@ module.exports = {
         'brand-accent': 'var(--brand-accent)',
         'brand-danger': '#F43F5E',
 
+        // Map-surface CTAs (Phase 1.1 spec §4.5 — locked Option C)
+        'brand-action': 'var(--brand-action)',
+        'brand-action-hover': 'var(--brand-action-hover)',
+        'brand-action-text': 'var(--brand-action-text)',
+
         // Slate (compatibility)
         slate: {
           50: '#f8fafc',
