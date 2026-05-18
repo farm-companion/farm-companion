@@ -10,7 +10,6 @@ import { getContrastTextColor } from '@/lib/contrast'
 import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } from '../lib/pin-icons'
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
-import MarkerActions from './MarkerActions'
 import LocationControl from './LocationControl'
 import MapControls from './MapControls'
 import ScaleBar from './ScaleBar'
@@ -506,35 +505,6 @@ export default function MapLibreShell({
     }
   }, [selectedFarmId, farms])
 
-  // Action handlers
-  const handleNavigate = useCallback((farm: FarmShop) => {
-    const url = `https://maps.google.com/maps?q=${farm.location.lat},${farm.location.lng}`
-    window.open(url, '_blank')
-    setMarkerState({ selected: null, showActions: false })
-  }, [])
-
-  const handleFavorite = useCallback((farmId: string) => {
-    triggerHaptic('medium')
-    // TODO: Implement favorites
-  }, [triggerHaptic])
-
-  const handleShare = useCallback((farm: FarmShop) => {
-    if (navigator.share) {
-      navigator.share({
-        title: farm.name,
-        text: `Check out ${farm.name} at ${farm.location.address}`,
-        url: window.location.href
-      })
-    } else {
-      navigator.clipboard.writeText(`${farm.name} - ${farm.location.address}`)
-    }
-    setMarkerState({ selected: null, showActions: false })
-  }, [])
-
-  const handleCloseMarkerActions = useCallback(() => {
-    setMarkerState({ selected: null, showActions: false })
-  }, [])
-
   const handleCloseClusterPreview = useCallback(() => {
     setShowClusterPreview(false)
     setSelectedCluster(null)
@@ -647,24 +617,7 @@ export default function MapLibreShell({
         </>
       )}
 
-      {/* Marker Actions - Mobile Only */}
-      {!isDesktop && (
-        <MarkerActions
-          farm={markerState.selected}
-          isVisible={markerState.showActions}
-          onClose={handleCloseMarkerActions}
-          onNavigate={handleNavigate}
-          onFavorite={handleFavorite}
-          onShare={handleShare}
-          userLocation={effectiveUserLocation ? {
-            latitude: effectiveUserLocation.latitude,
-            longitude: effectiveUserLocation.longitude
-          } : null}
-          isDesktop={isDesktop}
-        />
-      )}
-
-      {/* Desktop marker interaction handled by FarmPreviewCard in page.tsx */}
+      {/* Marker preview handled by MarkerPreview in map/page.tsx (mobile + desktop). */}
 
       {/* Cluster Preview - simplified without Google Maps types */}
       {showClusterPreview && selectedCluster && (
