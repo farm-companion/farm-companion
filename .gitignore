@@ -148,3 +148,6 @@ farm-frontend/infrastructure-test-report.json
 farm-frontend/lighthouse-report-*.json
 farm-frontend/security-audit-report.json
 farm-frontend/security-test-report.json
+
+# superpowers brainstorming visual-companion artefacts
+.superpowers/
