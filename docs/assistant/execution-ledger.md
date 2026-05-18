@@ -1183,3 +1183,42 @@ Goal: clear the 49-alert false-positive cluster Dependabot raised against the po
 - **Operator action (no slice):** enable Coolify automated backups on `farm-companion-db` (carried over from the migration handover).
 
 **Next:** Slice B (Redis/KV cache failure-mode fix) — promoted to next-up because evidence shows it is the root cause of the residual ~9 s cold latency, not the 4-query fan-out itself.
+
+### 2026-05-18 — Post-Migration Slice B: Bound KV operations with 200ms timeout (kill 9s cold hang)
+
+**Goal:** Close the 9-second cold-hit hang on `/api/farms` (and every other route that goes through `cache-manager`). Companion slice to Slice A (region pin to `fra1`). The region pin shaved only ~1s because RTT was not the bottleneck — the cache layer was.
+
+**Root cause (confirmed by code path read of `lib/kv.ts`, `lib/cache-manager.ts`, `lib/performance-middleware.ts`):**
+- `lib/kv.ts:13-23` constructs `new Redis({ url: '', token: '' })` silently when the KV env vars are unset or stale. The migration handover (DO → Hetzner) rotated `DATABASE_URL` but did not address `KV_REST_API_URL` / `UPSTASH_REDIS_REST_URL`. Coolify is running an in-cluster Redis 7.2 container (operator verified via screenshot), but it speaks the **RESP protocol** while `@upstash/redis` is **REST/HTTPS only** — protocol mismatch, so even an "obvious" repoint of the env var would not work without further infrastructure work (either Upstash cloud or a `serverless-redis-http` REST gateway in Coolify).
+- Every call to `kv.get`, `kv.setex`, `kv.sadd`, `kv.expire`, `kv.smembers`, `kv.keys`, `kv.del` hangs on the `@upstash/redis` SDK's underlying `fetch()`. Node 20+ `fetch()` has **no default timeout** — it hangs until TLS/HTTP-keepalive in the underlying socket eventually gives up, typically ~8-9 s on a misconfigured endpoint.
+- `cache-manager.ts:159-164`'s `try/catch` only swallows *thrown* errors. It does not bound *hanging* calls. So the wrapping route blocks for the full ~9 s before falling through to the DB query that takes ~1 s by itself.
+- `performance-middleware.ts:95-101` (the cache-write path) `await`s `setCached` AFTER the handler runs — confirmed by ultrathink-council Critic seat. If we only timeout reads, every cache-miss response still hangs on `kv.setex` to the dead endpoint. The wrapper must cover BOTH directions; the Proxy below does that automatically.
+
+**Council inputs (full transcript in session):**
+- **Skeptic** argued the cache is dead weight given the route already has `Cache-Control: s-maxage=300, stale-while-revalidate=3600` (Vercel CDN does the caching that matters). Recommended deleting `lib/kv.ts` outright. *Partially correct* but too broad for one slice — rate-limit, photo-dedup, and a dozen other consumers still use the same shim.
+- **Pragmatist** recommended C (remove the wrapper from `/api/farms` only) + ops-side env repoint in parallel. *Rejected because* a hand-rolled C leaves the landmine armed in the other 50+ call sites and only patches one route.
+- **Critic** flagged the write-path-timeout gap (above) and the rate-limit-bypass-during-KV-outage security regression. *Both points integrated below.*
+
+**Files touched (3 / 8 budget, +123 / −7 LOC):**
+- modify `farm-frontend/src/lib/kv.ts` (+58 / −1 LOC) — Proxy-wrap every method of the singleton `@upstash/redis` `Redis` instance. Each method invocation races its returned promise against `setTimeout` and throws a typed `KvTimeoutError` on timeout. Configurable via `KV_OPERATION_TIMEOUT_MS` env var (default `200`). Non-Promise property accesses pass through unchanged.
+- create `farm-frontend/src/lib/kv.test.ts` (+65 LOC) — 5 unit tests using `node:test` + `tsx --test` (matching the pattern from Slice 6f `blob-adapter.test.ts`). Covers: resolves before timeout, rejects with `KvTimeoutError` on hang (with elapsed-time bounds to prove we waited the configured window), propagates original rejection unchanged, clears timer on fast resolution (proves no event-loop leak), and error type preserves `operation` + `timeoutMs` properties.
+- modify this ledger.
+
+**Verification (ran locally, in `farm-frontend/`):**
+- `pnpm exec tsx --test src/lib/kv.test.ts` → 5 / 5 pass (duration 372 ms). The hanging-promise test elapsed-time assertion proves the timeout fires at ~100 ms (test config), not 9 s.
+- `pnpm test:unit` (runs `tsx --test "src/**/*.test.ts"`) → 47 / 47 pass across all unit suites — no regressions to the existing blob-adapter and geo tests.
+- `pnpm exec tsc --noEmit` → exit 0 (full project type-check clean).
+
+**Risk and rollback:**
+- **Acknowledged trade-off:** `withPerformanceRateLimit` (`performance-middleware.ts:222-235`) uses the same cache-manager. With Slice B's fail-open timeout, a dead KV means the rate-limit check returns `null` → currentCount `0` → request allowed. **Effectively no rate-limit during a KV outage.** *But:* this is the same fail-open posture as *before* this slice — the route was already returning `null` after a 9 s hang. Slice B does not introduce the regression, it just makes it 45× faster to detect (200 ms vs 9 s). Proper fail-closed implementation tracked as Slice B-followup below.
+- **Risk:** very low. The Proxy is transparent to all 10 consumers — same surface, same return shapes. The only observable change is that hanging calls now throw `KvTimeoutError` instead of hanging, and `cache-manager.ts`'s existing catch block already handles thrown errors as "treat as miss".
+- **Rollback:** `git revert <sha>`. No data state changes; no schema migration; no env-var change required to revert.
+
+**Follow-up slices (queued):**
+- **Slice B-followup (rate-limit fail-closed):** Replace `withPerformanceRateLimit`'s reliance on `cache-manager.get`/`set` for counters with `@upstash/ratelimit`'s native pattern (which has a built-in `ephemeralCache` fallback). Bound the same way. Out of scope here because it would touch ~3 routes + add a dependency on `@upstash/ratelimit`'s healthy state for that fallback to behave correctly.
+- **Slice C (carve facets):** county + category facets in `/api/farms` should leave the per-request fan-out and become `unstable_cache`-wrapped helpers with 1 h TTL.
+- **Slice D (verify Hetzner indexes):** `SELECT indexname FROM pg_indexes WHERE tablename = 'farms'` against live DB; reconcile against `schema.prisma` `@@index` list.
+- **Slice E (Skeptic's option — revisit cache layer):** After Slices C + D, re-evaluate whether `performanceMiddleware.cached(...)` adds anything beyond what Vercel CDN already does for read-only routes. If not, delete it for public reads and keep `cache-manager` only for cross-instance rate-limit counters.
+- **Operator-side activation (independent of code):** to restore actual KV caching (not just fast-fail), pick ONE of (a) provision Upstash cloud free tier (10k commands/day), set `KV_REST_API_URL` + `KV_REST_API_TOKEN` in Vercel; OR (b) add a `serverless-redis-http` container to Coolify alongside the existing Redis 7.2, set the same two env vars at the proxy URL. Until either is done, the site is fast (cold ~1.5 s after Slice A + B both deployed) but un-cached at the application layer; the Vercel CDN's `s-maxage=300` continues to handle warm hits.
+
+**Next:** Slice B-followup (rate-limit fail-closed), or pause to let operator pick (a) vs (b) above. Cold-latency verification of Slice A + B combined will be captured against production after both PRs merge and redeploy.
