@@ -1142,3 +1142,44 @@ Goal: clear the 49-alert false-positive cluster Dependabot raised against the po
 **Risk and rollback:** Risk is low — `next` and `axios` bumps are within the same major, and the overrides target moderate transitives behind well-defined patched lower bounds. Rollback: `git revert <sha>` then `pnpm install`.
 
 **Next:** open PR; then, if budget+keys are authorized, Slice 5 (farm enrichment pipeline). The schema fields needed by the enrichment run (`Image.googlePhotoRef`, `googleAttribution`, `urlExpiresAt`, `source`) are already present in `farm-frontend/prisma/schema.prisma`; the ledger note "Generate Prisma migration: add-image-source-fields" is stale and should be retired in the slice that actually runs the pipeline.
+
+### 2026-05-18 — Post-Migration Slice A: Pin Vercel function region to `fra1`
+
+**Goal:** Close the 10-second cold-hit latency on `/api/farms` introduced by the DigitalOcean → Hetzner database migration. Functions defaulted to `iad1` (US-East / Washington DC). The DB now lives at Hetzner FSN1 (Falkenstein, Germany). Every cold query paid ~85–100 ms trans-Atlantic RTT, multiplied across the 4 queries that route fires (findMany with category+image relations, count, county groupBy, category findMany with `_count.farms`). Pinning functions to `fra1` (Frankfurt) collocates compute with the database — RTT drops to ~10–15 ms.
+
+**Evidence (live production, captured 2026-05-18 06:02–06:05 GMT+1, branch `test/geo-utils-unit-tests`):**
+- `/` (homepage): 200 in 0.31 s.
+- `/map`: 200 in 0.40 s.
+- `/api/farms?limit=5` cold: 200 in **10.42 s**; warm (CDN-cached on `s-maxage=300`): 0.13 s.
+- `/api/farms` (no params, 1299 farms × 3 images each + categories, 126 KB JSON) cold: 200 in **10.93 s**.
+- `/api/farms?bbox=…` cold: 10.09 s. `/api/farms?county=Kent` cold: 9.82 s. `/api/farms?q=apple` cold: 10.28 s.
+- Filter shape does not change latency → bottleneck is network RTT × query count, not query plan.
+- No region pinned anywhere: zero matches for `preferredRegion` across `farm-frontend/src/app/`; zero `regions` keys in any of the 4 `vercel.json` files prior to this slice.
+- Root `/vercel.json` is canonical (sets `outputDirectory: farm-frontend/.next`).
+
+**Files touched (2 / 8 budget, +2 / −0 LOC excluding this ledger):**
+- modify `/vercel.json` — add `"regions": ["fra1"]` (root, canonical for the deploy).
+- modify `farm-frontend/vercel.json` — add `"regions": ["fra1"]` (redundant guard in case Vercel project root is ever reset to `farm-frontend/`).
+- modify this ledger.
+
+**Verification (post-deploy, captured 2026-05-18 06:10 GMT+1 after operator set fra1 via Vercel UI and redeployed):**
+- `x-vercel-id: lhr1::fra1::96xd5-1779081324254-b1a2f9469917` — confirms function is running in `fra1`. ✓
+- Cold-hit measurements with fresh query params (no CDN cache hits):
+  - `county=Norfolk` (63 KB): **8.95 s**
+  - `county=Cornwall` (97 KB): **9.01 s**
+  - `bbox=-2.5,53.5,-1.5,54.5` (96 KB): **8.99 s**
+  - `q=organic` (139 KB): **9.17 s**
+  - `county=Suffolk` (47 KB): **8.93 s**
+- Improvement vs pre-fix baseline: ~10.0 s → ~9.0 s (**~1 s saved, 10 %**).
+
+**Diagnostic conclusion (important):** The region pin is correct and shipped, but RTT was **not** the dominant cost. Latency is independent of payload size (47 KB takes 8.93 s; 139 KB takes 9.17 s — a ~9 s constant + ~10 ms/KB). That signature points at a fixed-cost upstream of the DB query — most likely the `performanceMiddleware.cached(...)` wrapper on the route (line 416 of `farms/route.ts`) **timing out against an unreachable Redis/KV backend** that survived the DB migration in env-var name only. The handover for the migration explicitly mentions rotating the DB password in Coolify; the KV / Upstash credentials were not in scope, and if Coolify wiped the volume it may have also reset the Redis instance. Confirmation pending in Slice B.
+
+**Risk and rollback:** Risk is low. `fra1` is GA on all Vercel plans including Hobby (Hobby is single-region but you choose which one). UK end-users gain latency too (London ↔ Frankfurt is ~15 ms vs London ↔ iad1 ~85 ms). Static assets, edge middleware, and the OG `runtime = 'edge'` routes are unaffected (they continue to serve from Vercel's global edge). Rollback: `git revert <sha>` and Vercel will re-deploy back to default `iad1`.
+
+**Follow-up slices (queued, not in this one):**
+- **Post-Migration Slice B (PROMOTED — root cause):** investigate the Redis/KV layer. Read `farm-frontend/src/lib/cache-manager.ts` + `performance-middleware.ts` to confirm the cache wrapper's failure-mode timeout. Check Vercel env for `KV_REST_API_URL`/`KV_REST_API_TOKEN` (or `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`) — these likely still point at a Coolify-wiped or Vercel-disabled KV instance. Fix is one of: (a) point env vars at a live Upstash Redis, (b) shorten the SDK timeout to <500 ms with a `fail-open` fallback so the route falls through to DB immediately when cache is unreachable, (c) replace the wrapper with Next.js native `unstable_cache` which has no out-of-process dep.
+- **Post-Migration Slice C:** carve facets (county list, category list) out of `/api/farms` into their own `unstable_cache`-wrapped helper with a 1 h TTL. They are identical across every uncached request and currently re-query on every cold hit.
+- **Post-Migration Slice D:** verify Hetzner restore brought the indexes over — `SELECT indexname FROM pg_indexes WHERE tablename = 'farms'` against the live DB; compare to `schema.prisma` `@@index` list (`@@index([status, county])`, `@@index([latitude, longitude])`, etc.). If any composite index is missing post-restore, `pnpm prisma db push` to recreate.
+- **Operator action (no slice):** enable Coolify automated backups on `farm-companion-db` (carried over from the migration handover).
+
+**Next:** Slice B (Redis/KV cache failure-mode fix) — promoted to next-up because evidence shows it is the root cause of the residual ~9 s cold latency, not the 4-query fan-out itself.
