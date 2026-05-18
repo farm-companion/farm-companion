@@ -1326,3 +1326,52 @@ All four are now routed through a single private helper `this.nsKey(namespace)` 
 3. Multi-tenant safety: in Upstash Data Browser after first submit, confirm new keys are prefixed `fc:ratelimit:` (assuming `KV_KEY_PREFIX=fc` is set per Slice F).
 
 **Next:** Either Slice B-followup-2 (kv.lpush atomicity, ~3 LOC, one file), Slice B-followup-4 (delete dead `withPerformanceRateLimit`, ~50 LOC), or Slice C (facet carving, bigger win). Recommendation: Slice B-followup-2 first because it closes a documented data-vs-response mismatch that the Slice B timeout Proxy made reachable.
+
+### 2026-05-18 — Post-Migration Slice B-followup-2: Delete orphan `kv.lpush` in farms/submit
+
+**Goal:** Close the now-reachable HTTP 500 hazard at `farm-frontend/src/app/api/farms/submit/route.ts:141`, where `await kv.lpush('farm-submissions:pending', id)` could throw `KvTimeoutError` *after* `createRecord('submissions', ...)` had already persisted the user's submission to the database. Without a fix the user sees an error response, but the row is silently persisted — a data-vs-response mismatch the Slice B timeout Proxy made reachable.
+
+**Pre-flight diagnostic (changed the design from "wrap" to "delete"):**
+Originally queued as "wrap the lpush in try/catch (best-effort)" — a 3 LOC fix. Codebase audit before touching code revealed a deeper issue:
+
+- `grep -rn "farm-submissions:pending" farm-frontend/src` returns exactly **one match**: the writer at submit/route.ts:141. **Zero readers.** The list is an orphan write.
+- Admin moderation reads from a totally different KV key with different casing: `redis.hgetall('farm_submissions')` (underscore, hash) at `admin/farms/route.ts:27` and `admin/farms/[id]/review/route.ts:61`. That hash is populated separately by `/api/admin/migrate-farms/route.ts:59` from the database, **not** from any submit-time write.
+- Compounding the mismatch: the admin path imports from `@/lib/redis` (node-redis over TCP/RESP against `REDIS_URL`), while the submit path imports from `@/lib/kv` (Upstash REST over HTTPS). **Different Redis client, different protocol, different connection URL.** The admin Redis and the Upstash KV are not even confirmed to be the same backing store.
+
+So the existing `kv.lpush('farm-submissions:pending', id)` writes to a list nothing reads, on a connection that admin tooling cannot reach. It is dead code that the Slice B timeout Proxy turned into a latent 500 hazard.
+
+Wrapping the dead-end in try/catch (Option A from the original queue) would preserve dead code and still leave the queue unused. Deleting the line (Option B) closes the hazard, removes the YAGNI violation, and removes the now-unused `import { kv } from '@/lib/kv'`. Chose Option B.
+
+**Files touched (1 / 8 budget, +0 / −4 LOC excluding this ledger):**
+- modify `farm-frontend/src/app/api/farms/submit/route.ts` (−4 LOC) — drop `import { kv } from '@/lib/kv'` (line 2) and delete `await kv.lpush('farm-submissions:pending', id)` + its preceding `// Add to pending queue` comment (lines 140-141). DB row remains the source of truth via the untouched `await createRecord('submissions', farmData, id)` two lines above.
+- modify this ledger.
+
+**Verification (ran locally, in `farm-frontend/`):**
+- `pnpm exec tsx --test src/lib/rate-limit.test.ts` → 9 / 9 ok, 256 ms (Slice B-followup tests still green after the route trim).
+- `pnpm exec tsx --test src/lib/kv.test.ts` → 5 / 5 ok, 318 ms.
+- `pnpm exec tsc --noEmit` → exit 0 (full project type-check clean; confirms the dropped import was the only `kv` reference in the file).
+- `git diff --stat` → 1 file changed, 4 deletions.
+
+**Behavioural change (user-observable):**
+- **Healthy path (DB up, KV up):** identical to pre-slice. Submission persists in DB, user sees `201 Created` with id + message.
+- **DB up, KV up:** identical, because the lpush wasn't doing anything useful even when it succeeded.
+- **DB up, KV down (the bug we fixed):** previously → DB row persists, then kv.lpush throws KvTimeoutError after 200 ms, outer catch returns 500 even though the submission was saved. Now → DB row persists, route returns `201 Created` cleanly.
+- **DB down (unchanged):** `createRecord` throws, outer catch returns 500, no row created. Same as before.
+
+**Risk and rollback:**
+- **Risk:** very low. The deleted lpush had zero consumers. The DB row is the canonical source of truth and `/api/admin/migrate-farms` is the only path that ever moved data into a KV structure the admin UI reads — and it reads from the DB, not from this list.
+- **Rollback:** `git revert <sha>`. Restores the dead-end write and the latent 500.
+
+**Follow-up slices (queued — re-prioritised after B-followup-2's discovery):**
+- **Slice B-followup-5 (NEW — admin KV/DB unification):** the architectural mismatch between submit-time (DB + dead KV list) and admin-time (`farm_submissions` hash, populated by a one-shot migration route) is a real bug, not just stale code. Admin moderation as currently wired will not see new submissions until someone manually hits `/api/admin/migrate-farms`. Proper fix: rewrite `/api/admin/farms/route.ts` (GET) and `/api/admin/farms/[id]/review/route.ts` (POST) to read/write the `submissions` table via Prisma directly, dropping `redis.hgetall('farm_submissions')` and the migration route entirely. Estimated 3 routes, ~80 LOC net, includes deleting the migration route. Higher priority than B-followup-4 because user-impacting.
+- **Slice B-followup-3 (test process exit hygiene):** unchanged — add `--test-force-exit` to `test:unit` script to close the cache-manager test hang.
+- **Slice B-followup-4 (delete dead `withPerformanceRateLimit`):** unchanged — zero-consumer dead code in `performance-middleware.ts`. ~50 LOC subtraction.
+- **Slice C (carve facets):** unchanged — county + category facets in `/api/farms` move to `unstable_cache`-wrapped helpers with 1 h TTL.
+- **Slice D (verify Hetzner indexes):** unchanged — reconcile live DB indexes against `schema.prisma` `@@index` list.
+
+**Operator verification after deploy:**
+1. Submit a farm via the live form (`POST /api/farms/submit`). Expect `201 Created`, response body `{ ok: true, id: <uuid>, message: 'Farm shop submitted successfully...' }`.
+2. Confirm in Supabase / Hetzner DB: `SELECT id, name, status FROM submissions ORDER BY created_at DESC LIMIT 1` shows the new row with `status = 'pending'`.
+3. Confirm in Upstash Data Browser: no new key under `farm-submissions:pending`. (If `KV_KEY_PREFIX=fc`, also no `fc:farm-submissions:pending`.) The list will simply not exist or remain at its prior length.
+
+**Next:** Slice B-followup-5 (admin KV/DB unification) is now the highest-impact follow-up because admin moderation is partially broken today. Or, if the operator confirms admin is hitting `/api/admin/migrate-farms` periodically and submissions ARE flowing, demote it and pick Slice B-followup-4 (50 LOC subtraction) for a quick close.

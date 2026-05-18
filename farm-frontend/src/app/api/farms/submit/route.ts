@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { kv } from '@/lib/kv'
 import { submitLimiter } from '@/lib/rate-limit'
 import { createRecord, ValidationError, ConstraintViolationError } from '@/lib/database-constraints'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
@@ -136,9 +135,6 @@ export async function POST(req: NextRequest) {
 
     // Use database constraints system for atomic operation
     await createRecord('submissions', farmData, id)
-
-    // Add to pending queue
-    await kv.lpush('farm-submissions:pending', id)
 
     logger.info('Farm submission stored successfully', {
       ip,
