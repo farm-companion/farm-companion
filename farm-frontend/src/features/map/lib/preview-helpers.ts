@@ -8,6 +8,11 @@
  * Truncate a farm's description to a hook-length string suitable for the
  * preview card. Returns undefined for empty/whitespace input so callers
  * can branch with `{hook && ...}`.
+ *
+ * Note: leading/trailing whitespace is stripped before the length check.
+ * This intentionally differs from the pre-Phase-1.1 inline `.slice(0, 120)`
+ * in FarmPreviewCard, which preserved padding. Whitespace-only descriptions
+ * now correctly return undefined instead of rendering as a blank quote.
  */
 export function truncateHook(description: string | undefined, max = 120): string | undefined {
   if (!description) return undefined
