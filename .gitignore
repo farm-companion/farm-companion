@@ -149,5 +149,12 @@ farm-frontend/lighthouse-report-*.json
 farm-frontend/security-audit-report.json
 farm-frontend/security-test-report.json
 
-# superpowers brainstorming visual-companion artefacts
+# Local Claude Code state
+# settings.local.json captures per-command permission literals — historically
+# included a PGPASSWORD literal (decision recorded in handover-2026-05-17-0052.md
+# to ignore; never executed until now). scheduled_tasks.lock is ephemeral runtime.
+.claude/settings.local.json
+.claude/scheduled_tasks.lock
+
+# Superpowers brainstorming visual-companion artefacts
 .superpowers/
