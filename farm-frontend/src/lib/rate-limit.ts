@@ -1,3 +1,4 @@
+import { Ratelimit } from '@upstash/ratelimit'
 import { kv } from '@/lib/kv'
 import { logger } from '@/lib/logger'
 
@@ -71,13 +72,40 @@ export function getClientIP(req: Request): string {
 
 // Utility function to apply rate limiting to a request
 export async function applyRateLimit(
-  req: Request, 
+  req: Request,
   limiter: ReturnType<typeof createRateLimiter>,
   identifier?: string
 ): Promise<{ allowed: boolean; remaining?: number }> {
   const ip = getClientIP(req)
   const key = identifier ? `${ip}:${identifier}` : ip
   const allowed = await limiter.consume(key)
-  
+
   return { allowed }
 }
+
+// --- Sliding-window submit limiter (Slice B-followup) -----------------------
+// Used by /api/contact/submit and /api/farms/submit. Built on top of the
+// timeout-bounded `kv` shim so Upstash hangs surface as KvTimeoutError → the
+// route's catch returns HTTP 429 (fail-closed). The library's own `timeout`
+// option is intentionally NOT set because per its type docs it allows
+// requests on timeout, which is the silent-bypass we are closing.
+// `ephemeralCache` keeps previously-blocked IPs denied even during a Redis
+// outage, without an extra Redis round-trip.
+
+const DEFAULT_RATELIMIT_PREFIX = '@upstash/ratelimit'
+
+export function buildLimiterPrefix(envPrefix?: string): string {
+  const trimmed = envPrefix?.trim()
+  if (!trimmed) return DEFAULT_RATELIMIT_PREFIX
+  return `${trimmed}:ratelimit`
+}
+
+const submitEphemeralCache = new Map<string, number>()
+
+export const submitLimiter = new Ratelimit({
+  redis: kv,
+  limiter: Ratelimit.slidingWindow(5, '10 m'),
+  ephemeralCache: submitEphemeralCache,
+  prefix: buildLimiterPrefix(process.env.KV_KEY_PREFIX),
+  analytics: false,
+})

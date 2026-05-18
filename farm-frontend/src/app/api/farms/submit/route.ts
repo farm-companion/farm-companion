@@ -1,19 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { kv } from '@/lib/kv'
-import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
+import { submitLimiter } from '@/lib/rate-limit'
 import { createRecord, ValidationError, ConstraintViolationError } from '@/lib/database-constraints'
 import { validateAndSanitize, ValidationSchemas, ValidationError as InputValidationError } from '@/lib/input-validation'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
 import { verifyEmail, friendlyMessage } from '@/lib/email-verification'
-
-// Rate limiter setup
-const redis = Redis.fromEnv()
-const limiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
-})
 
 // Module logger for helper functions
 const moduleLogger = createRouteLogger('api/farms/submit')
@@ -31,8 +22,16 @@ export async function POST(req: NextRequest) {
       throw errors.validation('Farm submission form is currently disabled')
     }
 
-    // Rate limiting
-    const { success, reset, remaining } = await limiter.limit(`add:${ip}`)
+    // Rate limiting (fail-closed: any KV timeout or error → 429)
+    let success: boolean
+    let remaining: number
+    let reset: number
+    try {
+      ;({ success, remaining, reset } = await submitLimiter.limit(`add:${ip}`))
+    } catch (e) {
+      logger.warn('Rate-limit check failed; denying request (fail-closed)', { ip }, e as Error)
+      throw errors.rateLimit('Service busy. Please try again in a moment.')
+    }
 
     if (!success) {
       logger.warn('Rate limit exceeded for farm submission', { ip, remaining, reset })
@@ -136,9 +135,6 @@ export async function POST(req: NextRequest) {
 
     // Use database constraints system for atomic operation
     await createRecord('submissions', farmData, id)
-
-    // Add to pending queue
-    await kv.lpush('farm-submissions:pending', id)
 
     logger.info('Farm submission stored successfully', {
       ip,
