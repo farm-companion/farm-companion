@@ -312,7 +312,16 @@ function MapPageContent() {
   const handleFarmSelect = useCallback((farmId: string) => {
     setSelectedFarmId(farmId)
     const farm = farms.find(f => f.id === farmId)
-    if (farm) setPreviewFarm(farm)
+    if (!farm) return
+    setPreviewFarm(farm)
+    // Mobile: also scroll the bottom-sheet list to the tapped farm
+    // so the user sees their selection in the list panel.
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      const farmElement = document.querySelector(`[data-farm-id="${farmId}"]`)
+      if (farmElement) {
+        farmElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
   }, [farms])
 
   // Navigate to farm detail page
