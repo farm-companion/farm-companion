@@ -1399,3 +1399,31 @@ Wrapping the dead-end in try/catch (Option A from the original queue) would pres
 **PR:** #162 (`strip/phase-1-slice-1.1-dead-upload-url`).
 
 **Next slice queued (Slice 1.2):** Collapse `src/lib/photos.ts` stub + its three consumers (`shop/[slug]/page.tsx`, `PhotoGalleryWrapper`, `FarmPhotoGallery`) that currently render empty galleries on every farm page because `getValidApprovedPhotosBySlug` always returns `[]`. After 1.2: Slice 1.3 cleans the 9 obsolete `scripts/*.js` photo/redis cleanups, then removes `redis` from `package.json`.
+
+### 2026-05-18 — Strip Phase 1 Slice 1.2: collapse `lib/photos.ts` stub + dead gallery
+
+**Goal:** Second Phase-1 housekeeping slice. Remove the dead "Community Photos" code path end-to-end. The Slice 0.10 stub returned `[]` always, so the gated `<section>` never rendered and the wrapper + carousel were unreachable.
+
+**Files changed (5 files; +1 / −304):**
+- `farm-frontend/src/lib/photos.ts` — DELETED (33 LOC, all-stub module).
+- `farm-frontend/src/components/PhotoGalleryWrapper.tsx` — DELETED (34 LOC).
+- `farm-frontend/src/components/FarmPhotoGallery.tsx` — DELETED (217 LOC; auto-play carousel with non-functional Heart/Share2 buttons).
+- `farm-frontend/src/app/shop/[slug]/page.tsx` — MODIFIED. Dropped import, the `[]`-returning await, and the prop.
+- `farm-frontend/src/components/FarmPageClient.tsx` — MODIFIED. Dropped `PhotoGalleryWrapper` import, `approvedPhotos: any[]` prop, destructure, and the gated "Community Photos" `<section>`.
+
+**Preserved (intentionally):**
+- The live `shop.images` "Gallery" section (DB-backed) in `FarmPageClient.tsx` is **untouched**.
+- `Camera` `lucide-react` icon (used by the live gallery heading) stays imported.
+- No URL changes; `/shop/[slug]` route shape unchanged.
+
+**Verification:**
+- `pnpm exec tsc --noEmit` → PASS (EXIT=0).
+- `pnpm exec tsx --test "src/**/*.test.ts"` → 11/11 `ok`. Runner hang per observation 1323; not introduced here.
+- `pnpm build` → PASS (EXIT=0); `/shop/[slug]` present in route map as `ƒ`.
+- Postflight grep `lib/photos | getValidApprovedPhotosBySlug | PhotoGalleryWrapper | FarmPhotoGallery | ApprovedPhoto | approvedPhotos` in `src/`: zero hits.
+
+**Risk and rollback:** Low. The only user-observable change is that an empty `<section>` no longer renders — the gating condition (`approvedPhotos.length > 0`) was always false because the stub always returned `[]`. Rollback: `git revert <sha>`.
+
+**PR:** #163 (`strip/phase-1-slice-1.2-photos-stub`).
+
+**Next slice queued (Slice 1.3):** Delete the 9 obsolete `scripts/*.js` Redis photo cleanups (`check-redis.js`, `cleanup-all-photos.js`, `cleanup-redis-only.js`, `cleanup-redis-photos.js`, `delete-problematic-photo.js`, `delete-remaining-photo.js`, `fix-photo-urls.js`, `fix-remaining-photo-url.js`, `restore-existing-photos.js`), then remove `redis` from `package.json` (`@upstash/redis` stays — it's the live KV client).
