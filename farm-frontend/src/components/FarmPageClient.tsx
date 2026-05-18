@@ -20,7 +20,6 @@ import type { FarmShop } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
 import { ObfuscatedEmail, ObfuscatedPhone } from './ObfuscatedContact'
 import { StatusBadge } from './StatusBadge'
-import PhotoSubmissionForm from './PhotoSubmissionForm'
 import PhotoGalleryWrapper from './PhotoGalleryWrapper'
 
 interface FarmPageClientProps {
@@ -239,33 +238,6 @@ export function FarmPageClient({
               </motion.section>
             )}
 
-            {/* Photo Submission */}
-            <section className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 md:p-8">
-              <details className="group">
-                <summary className="cursor-pointer list-none">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                      <Camera className="h-6 w-6 text-slate-600 dark:text-slate-400" />
-                      Add Photos
-                    </h2>
-                    <div className="flex items-center gap-2">
-                      <span className="text-caption text-slate-600 dark:text-slate-400 group-open:hidden">Share your experience</span>
-                      <span className="text-slate-400 dark:text-slate-500 group-open:rotate-180 transition-transform">&#9660;</span>
-                    </div>
-                  </div>
-                </summary>
-                <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-800">
-                  <p className="text-caption text-slate-600 dark:text-slate-400 mb-6">
-                    Help other visitors by sharing photos of this farm shop.
-                    Your photos will be reviewed before being added to the page.
-                  </p>
-                  <PhotoSubmissionForm
-                    farmSlug={shop.slug}
-                    farmName={shop.name}
-                  />
-                </div>
-              </details>
-            </section>
           </main>
 
           {/* Sidebar */}
