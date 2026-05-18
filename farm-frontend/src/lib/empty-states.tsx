@@ -167,10 +167,10 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
     icon: <Store className="w-12 h-12" />,
     title: 'Uncharted territory',
     description:
-      "No farms listed here yet. Know a hidden gem in this county? Share your farm story.",
+      "No farms listed here yet. Know a hidden gem in this county? Get in touch and we'll add it.",
     action: {
-      label: 'Share your farm story',
-      href: '/add',
+      label: 'Contact us',
+      href: '/contact',
     },
   },
   'category-no-farms': {
@@ -222,10 +222,10 @@ const emptyStates: Record<EmptyStateContext, EmptyStateContent> = {
     icon: <FileText className="w-12 h-12" />,
     title: 'No seeds planted',
     description:
-      "You haven't shared any farms yet. Know a local gem? Share your farm story.",
+      "You haven't shared any farms yet. Know a local gem? Get in touch and we'll add it.",
     action: {
-      label: 'Share your farm story',
-      href: '/add',
+      label: 'Contact us',
+      href: '/contact',
     },
   },
   'claims-empty': {

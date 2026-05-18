@@ -17,7 +17,6 @@ const aboutLinks = [
 ]
 
 const farmShopLinks = [
-  { href: '/add', label: 'Add Your Listing' },
   { href: '/claim', label: 'Update Your Details' },
   { href: '/contact', label: 'Contact Us' },
 ]

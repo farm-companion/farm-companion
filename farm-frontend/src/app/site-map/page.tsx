@@ -22,7 +22,6 @@ const sections = [
   {
     heading: 'For farm shops',
     links: [
-      { href: '/add', label: 'Add your listing' },
       { href: '/claim', label: 'Claim or update your details' },
       { href: '/contact', label: 'Contact the Farm Companion team' },
       { href: '/submission-success', label: 'Submission success page' },

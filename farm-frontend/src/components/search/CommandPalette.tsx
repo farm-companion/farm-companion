@@ -65,7 +65,6 @@ const QUICK_COUNTIES = [
 const QUICK_ACTIONS: SearchResult[] = [
   { id: 'map', type: 'action', title: 'Open Map', subtitle: 'Find farms near you', href: '/map', icon: Map },
   { id: 'seasonal', type: 'action', title: "What's in Season", subtitle: 'Seasonal produce calendar', href: '/seasonal', icon: Leaf },
-  { id: 'add', type: 'action', title: 'Add a Farm', subtitle: 'Submit a new farm shop', href: '/add', icon: MapPin },
 ]
 
 /**

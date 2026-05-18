@@ -7,7 +7,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import {
   Search, Menu, X, MapPin, ChevronRight,
   Leaf, Award, Compass, LayoutGrid, ShoppingBag,
-  Info, MessageCircle, Plus,
+  Info, MessageCircle,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -286,22 +286,6 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
           ))}
         </nav>
 
-        {/* Footer: Add Farm CTA */}
-        <div className="px-5 py-5 mt-auto border-t border-zinc-100 dark:border-white/[0.06]">
-          <Link
-            href="/add"
-            onClick={onClose}
-            className="flex items-center gap-3.5 py-3 group"
-          >
-            <span className="h-9 w-9 flex items-center justify-center rounded-lg bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 group-hover:bg-emerald-100 dark:group-hover:bg-emerald-900/30 transition-colors">
-              <Plus className="h-[18px] w-[18px]" />
-            </span>
-            <div>
-              <span className="text-[15px] text-zinc-900 dark:text-zinc-50 font-medium block">Add Your Farm</span>
-              <span className="text-[13px] text-zinc-400 dark:text-zinc-500">List your farm shop for free</span>
-            </div>
-          </Link>
-        </div>
       </div>
     </div>,
     document.body

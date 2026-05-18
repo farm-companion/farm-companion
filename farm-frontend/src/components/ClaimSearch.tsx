@@ -84,10 +84,10 @@ export function ClaimSearch({ farms }: ClaimSearchProps) {
                 No farms found for "{query}"
               </p>
               <Link
-                href="/add"
+                href="/contact"
                 className="text-[13px] font-semibold text-primary-600 dark:text-primary-400 hover:underline"
               >
-                Add your farm shop instead
+                Contact us to add your farm
               </Link>
             </div>
           ) : (

@@ -79,8 +79,8 @@ const successMessages: Record<SuccessContext, SuccessMessage> = {
     message:
       "Thanks for sharing. We'll tend to your submission and it should sprout in the directory within a few days.",
     nextStep: {
-      text: 'Plant another',
-      href: '/add',
+      text: 'Contact us',
+      href: '/contact',
     },
   },
   'claim-submitted': {

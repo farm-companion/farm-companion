@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Shield, Plus, ArrowRight, CheckCircle } from 'lucide-react'
+import { Shield, CheckCircle } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { Badge } from '@/components/ui/Badge'
 import { ClaimSearch } from '@/components/ClaimSearch'
@@ -247,26 +247,6 @@ export default async function ClaimPage() {
             ))}
           </div>
 
-          {/* Can't find your farm */}
-          <div className="mt-16 bg-white dark:bg-slate-900 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-700 p-8 md:p-12 text-center">
-            <div className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-primary-50 dark:bg-primary-900/30 mb-6">
-              <Plus className="h-6 w-6 text-primary-600 dark:text-primary-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
-              Can't find your farm shop?
-            </h2>
-            <p className="text-body text-slate-600 dark:text-slate-400 mb-8 max-w-md mx-auto">
-              If your farm shop is not listed, you can add it to our directory
-              and start managing it straight away.
-            </p>
-            <Link
-              href="/add"
-              className="inline-flex items-center gap-2 h-12 px-8 text-[14px] font-semibold text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-400 rounded-lg transition-colors"
-            >
-              Add Your Farm Shop
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-          </div>
         </div>
       </div>
     </div>

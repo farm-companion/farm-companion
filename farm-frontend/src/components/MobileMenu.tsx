@@ -6,7 +6,6 @@ import {
   Map,
   Leaf,
   Info,
-  Plus,
   MessageCircle,
   MapPin,
   Calendar,
@@ -64,13 +63,6 @@ const navigationItems = [
     icon: Info,
     primary: true,
     description: 'Our story and mission'
-  },
-  {
-    title: 'Add Your Farm',
-    href: '/add',
-    icon: Plus,
-    primary: true,
-    description: 'List your farm shop'
   },
   {
     title: 'Contact',
