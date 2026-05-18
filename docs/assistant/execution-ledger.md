@@ -1512,6 +1512,6 @@ Net: +~155 LOC added (new component + helpers + tests), −~600 LOC deleted. Cle
 
 **Risk and rollback:** Low for the MapLibre path (the production default; >98% of users). Medium-low for the LeafletShell fallback path (regression noted above). Rollback: `git revert <merge-sha>`.
 
-**PR:** (filled in after PR creation).
+**PR:** https://github.com/farm-companion/farm-companion/pull/167
 
 **Next slice queued:** Slice 1.1.5 — wire `MarkerPreview` into LeafletShell (urgent, must precede any production-LeafletShell deployment). Then Slice 1.1.2 — cluster polish (reconcile two styling systems, fix `scale(0)` entry, lighter shadows, kill small-cluster preview sheet). The `--brand-action` token introduced here propagates into cluster colours.
