@@ -19,22 +19,19 @@ import type { FarmShop } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
 import { ObfuscatedEmail, ObfuscatedPhone } from './ObfuscatedContact'
 import { StatusBadge } from './StatusBadge'
-import PhotoGalleryWrapper from './PhotoGalleryWrapper'
 
 interface FarmPageClientProps {
   shop: FarmShop
   cleanDescription: string
   directionsUrl: string
   issueUrl: string
-  approvedPhotos: any[]
 }
 
 export function FarmPageClient({
   shop,
   cleanDescription,
   directionsUrl,
-  issueUrl,
-  approvedPhotos
+  issueUrl
 }: FarmPageClientProps) {
   const { name, location, contact, offerings, verified, hours } = shop
 
@@ -154,17 +151,6 @@ export function FarmPageClient({
                     </div>
                   </div>
                 ))}
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Community Photos */}
-      {approvedPhotos.length > 0 && (
-        <section className="py-8 md:py-12 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-          <div className="container mx-auto px-4">
-            <div className="bg-slate-50 dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700">
-              <PhotoGalleryWrapper photos={approvedPhotos} aspect="16/9" autoPlayMs={4000} />
             </div>
           </div>
         </section>
