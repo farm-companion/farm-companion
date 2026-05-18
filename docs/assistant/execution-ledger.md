@@ -1572,3 +1572,50 @@ Net: +~155 LOC added (new component + helpers + tests), −~600 LOC deleted. Cle
 **Risk and rollback:** Trivial. Gitignore + new tracked files; no functional changes. Rollback: `git revert <sha>`.
 
 **PR:** https://github.com/farm-companion/farm-companion/pull/168.
+
+### 2026-05-19 — The Field Edition: design system reset (spec + Slice 1.1.2a token foundation)
+
+**Goal:** Operator hates the current design — three competing primaries (Kinetic Cyan, Solar Lime, Harvest Leaf) plus a Seasonal palette plus a Legacy compat layer plus Semantic Feedback colours = six aborted design systems sedimented into a 3,555-line `globals.css`. This slice resets it as **The Field Edition** — a four-colour British harvest-annual palette (Hedgerow / Rapeseed / Loam / Vellum) + warm Stone neutrals, with a typographically-led system referencing Vignelli, Calvert, Pentagram/Scher, Daylesford, Cereal Magazine, Emil Kowalski, and Awwwards SOTD 2024–25 work.
+
+**Spec:** `docs/superpowers/specs/2026-05-19-the-field-edition-design.md` — 13-section design system covering colour, typography, map identity, components, motion, texture, sliced migration, deletion list, and accessibility. Supersedes `2026-05-18-phase-1-map-polish-design.md` §1.1.2 and the prior `lazy-pondering-lark.md` cluster-only plan.
+
+**The four brand colours:**
+| Role | Light | Dark | Use |
+| --- | --- | --- | --- |
+| **Hedgerow** (primary) | `#14532D` | `#4ADE80` | CTAs, clusters, focus, success |
+| **Rapeseed** (accent) | `#E0A82E` | `#FBBF24` | "Open Now" badge, single-marker dot, warning — fill-only |
+| **Loam** (ink) | `#1C1917` | `#F5F5F4` | All text, primary chrome, single-marker body |
+| **Vellum** (paper) | `#F5EFE0` | `#0C0A09` | Page canvas, map land |
+
+**Files changed (4):**
+- CREATE `docs/superpowers/specs/2026-05-19-the-field-edition-design.md` (688 lines, 13 sections).
+- MODIFY `farm-frontend/src/styles/harvest-theme.css` — Layer 1 primitives: added `--harvest-rapeseed-{300,400,500,600,700}` scale and `--harvest-vellum`; retained Kinetic primitive only as escape-hatch. Layer 2 semantics (light, `.dark`, system-preference fallback): flipped `--primary` from Kinetic Cyan to Hedgerow, `--secondary` and `--accent` from Lime to Rapeseed, `--background` from Soil-50 to Vellum, `--ring` from Kinetic to Hedgerow. Added the **canonical Field Edition tokens** (`--brand`, `--brand-hover`, `--brand-text`, `--accent`, `--accent-text`, `--ink`, `--ink-muted`, `--ink-subtle`, `--paper`, `--surface`, `--surface-2`) at all three scopes. Repointed feedback tokens (`--success` → `--brand`, `--warning` → `--accent`, `--info` → `--ink`); `--error` remains the one red exception.
+- MODIFY `farm-frontend/src/app/globals.css` — Replaced the entire 80-line "Obsidian & Kinetic" colour block in light and dark scopes with a lean alias surface. All legacy tokens (`--text-heading`, `--obsidian-*`, `--background-canvas`, `--border-default`, `--border-focus`, `--kinetic*`, `--iris*`, `--brand-primary*`, `--brand-accent*`, `--brand-action*`, `--serum*`, `--solar*`, `--obsidian`, `--seasonal-*`, `--success-bg`, `--warning-bg`, `--error-bg`, `--info-bg`, plus the system-pref fallback block) repointed at Field Edition canonical tokens via `var()`. Removed redundant `--success`/`--warning`/`--error`/`--info` declarations (harvest-theme.css owns them now — eliminating the silent-specificity-tie that was making the brand and feedback systems compete). Added three custom easing curve tokens: `--ease-out-strong`, `--ease-in-out-strong`, `--ease-drawer` (Emil Kowalski / animations.dev).
+- MODIFY `farm-frontend/tailwind.config.js` — Added the canonical Field Edition utility keys (`bg-brand`, `text-ink`, `bg-paper`, `bg-surface`, `bg-surface-2`, etc.). Repointed `serum.DEFAULT`, `kinetic.DEFAULT`, `iris.DEFAULT`, `solar.DEFAULT` (and their `light`/`text`/`dark` variants and full 50–900 scales for kinetic/iris) at `var(--brand)` / Leaf-scale hexes — this is what makes the existing 52+ `bg-serum` consumers actually flip from Cyan to Hedgerow without consumer code changes. `obsidian` neutrals repointed to Stone via tokens. `sandstone`/`midnight` repointed.
+
+**Net diff:** ~520 LOC changed (specification = 688 LOC docs, code = ~250 LOC reshape — under the 300-LOC source budget). No deletions in this slice — alias layer preserves every consumer.
+
+**Design decisions:**
+- The four colours are deliberate — Hedgerow reads "agriculture" not "tech logo"; Rapeseed reads "British harvest"; Loam is warm near-black not pure black (warmer on Vellum); Vellum is aged-paper cream not pure white.
+- Cluster marker tier tokens (`--marker-cluster-*`) intentionally untouched in this slice — they are slice 1.1.2b's scope (opacity hierarchy on `--brand`, rounded-square shape, deletion of pulse animation).
+- IBM Plex Sans + Crimson Pro font deletions deferred to slice 1.1.2e.
+- Map style JSON deferred to slice 1.1.2d.
+- Custom cursor + page-as-canvas transitions deferred to slice 1.1.2h.
+- Alias layer is the explicit retention point — slice 1.1.2g sweeps it once consumers are migrated.
+
+**Verification:**
+- `pnpm exec tsc --noEmit` → **PASS** (EXIT=0, no output).
+- `pnpm build` → **PASS** (EXIT=0, 68 pages rendered).
+- `pnpm exec tsx --test "src/**/*.test.ts"` → **PASS** (21 ok, same as prior slice).
+- `grep --brand:` across harvest-theme.css → 18 occurrences (light + dark + system-pref-fallback × 6 canonical tokens). ✓
+- `grep var(--brand)` in tailwind primitives → `serum.DEFAULT`, `kinetic.DEFAULT`, `iris.DEFAULT`, `solar.DEFAULT` all four repointed. ✓
+- Hardcoded Cyan hex search → only `--harvest-kinetic-*` primitive (escape-hatch retained per spec); zero references from semantic layer. ✓
+
+**Visible impact (no consumer code changed):**
+- Every `bg-primary`, `text-primary`, `ring-primary`, `bg-card`, `bg-background`, `text-foreground`, `bg-serum`, `text-serum`, `bg-kinetic-*`, `bg-iris-*`, `bg-solar`, `bg-brand-primary`, `bg-brand-action`, `bg-obsidian-*`, `bg-sandstone`, `text-midnight`, `--seasonal-forest`, `--seasonal-cream` and 30+ other legacy classes now resolves to a Field Edition colour. The cyan-and-lime aesthetic is gone from the runtime even though no component file was edited.
+
+**Risk and rollback:** Low. Alias layer means every old token name still resolves — no consumer breaks. Tailwind utility classes preserved. Rollback: revert this PR's commits. Slice intentionally adds the new system; subsequent slices migrate consumers off aliases (1.1.2b–1.1.2f) and then delete the alias layer entirely (1.1.2g).
+
+**PR:** to be created (`design/field-edition-1-1-2a-tokens`).
+
+**Next slice:** **1.1.2b — Cluster polish.** Migrate `CLUSTER_TIERS` in `cluster-config.ts` to opacity hierarchy on `--brand` (Hedgerow), switch shape from circle to rounded-square (Field Edition signature — clusters as garden plots, not pins), delete `clusterPulse` keyframes (Emil frequency rule), update `MapLibreShell` + `LeafletShell` cluster style calls.

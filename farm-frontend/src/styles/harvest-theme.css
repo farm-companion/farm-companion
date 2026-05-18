@@ -1,54 +1,70 @@
 /**
- * HARVEST THEME SYSTEM - God-Tier Dark Mode
+ * THE FIELD EDITION — Farm Companion Design System
  *
- * This file defines the complete semantic theming layer.
- * Components MUST use semantic classes (bg-background, text-foreground)
- * NOT raw colors (bg-[#F9F7F2], text-zinc-900)
+ * Spec: docs/superpowers/specs/2026-05-19-the-field-edition-design.md
+ *
+ * Four-colour British harvest-annual palette + warm Stone neutrals.
+ * Type-led, map-led, restrained. Influences:
+ *   Vignelli (reduction), Calvert (wayfinding), Pentagram/Scher (display
+ *   confidence), Daylesford (cream + green + honey), Cereal Magazine
+ *   (editorial pacing), Emil Kowalski (motion).
  *
  * Architecture:
- * 1. Primitives: Raw color values (never used directly in components)
- * 2. Semantics: Functional aliases that swap based on .dark class
- * 3. Utilities: Helper classes for optical weight shifting, elevation
+ *   Layer 1: Primitives — raw colour values, never used in components.
+ *   Layer 2: Semantics — functional aliases that swap on `.dark` class.
+ *            Components consume these via Tailwind utilities.
+ *   Layer 3: Utilities — optical weight shifting, elevation, glow.
  */
 
 /* ==========================================================================
-   LAYER 1: PRIMITIVES - Raw Harvest Palette
-   These are the immutable color tokens. NEVER use these directly in components.
+   LAYER 1: PRIMITIVES — The Field Edition palette
    ========================================================================== */
 
 :root {
-  /* Soil Scale - Warm neutrals inspired by British farmland */
-  --harvest-soil-50: #FAFAF9;   /* Chalk white */
-  --harvest-soil-100: #F5F5F4;  /* Bone/Cream */
-  --harvest-soil-200: #E7E5E4;  /* Light stone */
-  --harvest-soil-300: #D6D3D1;  /* Weathered stone */
-  --harvest-soil-400: #A8A29E;  /* Dry earth */
-  --harvest-soil-500: #78716C;  /* Rich soil */
-  --harvest-soil-600: #57534E;  /* Deep earth */
-  --harvest-soil-700: #44403C;  /* Loam */
-  --harvest-soil-800: #292524;  /* Dark loam */
-  --harvest-soil-900: #1C1917;  /* Deep loam */
-  --harvest-soil-950: #0C0A09;  /* Pure ink (OLED black) */
+  /* Soil Scale — warm Stone neutrals (Stone, not Zinc; faintly warm on Vellum) */
+  --harvest-soil-50: #FAFAF9;
+  --harvest-soil-100: #F5F5F4;
+  --harvest-soil-200: #E7E5E4;
+  --harvest-soil-300: #D6D3D1;
+  --harvest-soil-400: #A8A29E;
+  --harvest-soil-500: #78716C;
+  --harvest-soil-600: #57534E;
+  --harvest-soil-700: #44403C;
+  --harvest-soil-800: #292524;
+  --harvest-soil-900: #1C1917;  /* Loam — ink */
+  --harvest-soil-950: #0C0A09;  /* Pure ink — dark-mode paper */
 
-  /* Leaf Scale - British countryside greens */
-  --harvest-leaf-50: #F0FDF4;
+  /* Leaf Scale — Hedgerow greens (British countryside) */
+  --harvest-leaf-50:  #F0FDF4;
   --harvest-leaf-100: #DCFCE7;
   --harvest-leaf-200: #BBF7D0;
   --harvest-leaf-300: #86EFAC;
-  --harvest-leaf-400: #4ADE80;  /* Lighter for dark mode */
-  --harvest-leaf-500: #22C55E;  /* Primary green */
-  --harvest-leaf-600: #16A34A;  /* Deep leaf */
-  --harvest-leaf-700: #15803D;  /* Forest */
+  --harvest-leaf-400: #4ADE80;  /* Hedgerow — dark-mode brand */
+  --harvest-leaf-500: #22C55E;
+  --harvest-leaf-600: #16A34A;
+  --harvest-leaf-700: #15803D;
   --harvest-leaf-800: #166534;
-  --harvest-leaf-900: #14532D;  /* WCAG AAA on light */
+  --harvest-leaf-900: #14532D;  /* Hedgerow — light-mode brand (AAA on Vellum) */
 
-  /* Kinetic Cyan - Action color */
+  /* Rapeseed Scale — single warm accent, May British fields */
+  --harvest-rapeseed-300: #FCD34D;
+  --harvest-rapeseed-400: #FBBF24;  /* Rapeseed — dark-mode accent */
+  --harvest-rapeseed-500: #E0A82E;  /* Rapeseed — light-mode accent (custom honey) */
+  --harvest-rapeseed-600: #D97706;
+  --harvest-rapeseed-700: #B45309;
+
+  /* Vellum — warm aged-paper cream (the page surface in light mode) */
+  --harvest-vellum: #F5EFE0;
+
+  /* Kinetic Cyan — retained as primitive only for legacy aliases.
+     No semantic layer points at Kinetic in The Field Edition.
+     Scheduled for full removal in Slice 1.1.2g. */
   --harvest-kinetic-300: #67E8F9;
-  --harvest-kinetic-400: #22D3EE;  /* Brighter for dark */
-  --harvest-kinetic-500: #06B6D4;  /* Primary action */
+  --harvest-kinetic-400: #22D3EE;
+  --harvest-kinetic-500: #06B6D4;
   --harvest-kinetic-600: #0891B2;
   --harvest-kinetic-700: #0E7490;
-  --harvest-kinetic-800: #155E75;  /* AAA text on light */
+  --harvest-kinetic-800: #155E75;
 }
 
 /* ==========================================================================
@@ -58,53 +74,70 @@
 
 @layer base {
   :root {
-    /* Page & Surface Backgrounds */
-    --background: var(--harvest-soil-50);           /* Page background */
-    --background-secondary: var(--harvest-soil-100); /* Alternate sections */
-    --card: #FFFFFF;                                 /* Card surfaces */
-    --card-hover: var(--harvest-soil-50);           /* Card hover state */
-    --popover: #FFFFFF;                              /* Dropdowns, tooltips */
-    --muted: var(--harvest-soil-100);               /* Muted backgrounds */
+    /* ===== The Field Edition canonical tokens (light mode) =====
+       Four brand colours + warm Stone chrome. Components should consume
+       these via Tailwind utilities (bg-brand, text-ink, bg-paper, etc.). */
 
-    /* Text Colors - WCAG AAA verified */
-    --foreground: var(--harvest-soil-900);          /* Primary text */
-    --foreground-secondary: var(--harvest-soil-700); /* Secondary text */
-    --foreground-muted: var(--harvest-soil-500);    /* Muted/placeholder */
-    --foreground-subtle: var(--harvest-soil-400);   /* Subtle hints */
+    /* The four brand colours */
+    --brand:         var(--harvest-leaf-900);   /* Hedgerow #14532D — 8.1:1 on Vellum, AAA */
+    --brand-hover:   var(--harvest-leaf-800);   /*           #166534 */
+    --brand-text:    #FFFFFF;                    /* FG on Hedgerow fill — 8.9:1 AAA */
+    --accent:        var(--harvest-rapeseed-500); /* Rapeseed #E0A82E — fill only */
+    --accent-text:   var(--harvest-soil-900);    /* Loam on Rapeseed — 9.6:1 AAA */
+    --ink:           var(--harvest-soil-900);    /* Loam #1C1917 — 17.4:1 on Vellum */
+    --ink-muted:     var(--harvest-soil-600);    /*      #57534E — 6.8:1 AAA-large */
+    --ink-subtle:    var(--harvest-soil-500);    /*      #78716C — placeholder/tertiary */
+    --paper:         var(--harvest-vellum);      /* Vellum #F5EFE0 — page canvas */
+    --surface:       #FFFFFF;                    /* Card surface — lifts above paper */
+    --surface-2:     var(--harvest-soil-50);     /* Elevated surface (modals, popovers) */
 
-    /* Border Colors */
-    --border: var(--harvest-soil-200);              /* Default borders */
-    --border-subtle: var(--harvest-soil-100);       /* Subtle dividers */
-    --border-strong: var(--harvest-soil-300);       /* Emphasized borders */
-    --ring: var(--harvest-kinetic-500);             /* Focus rings */
+    /* Page & Surface Backgrounds — point at Field Edition tokens */
+    --background:           var(--paper);            /* Page = Vellum, not chalk white */
+    --background-secondary: var(--surface-2);        /* Alternate sections */
+    --card:                 var(--surface);          /* Card surfaces */
+    --card-hover:           var(--surface-2);        /* Card hover state */
+    --popover:              var(--surface);          /* Dropdowns, tooltips */
+    --muted:                var(--surface-2);        /* Muted backgrounds */
 
-    /* Primary Action (Kinetic Cyan) */
-    --primary: var(--harvest-kinetic-500);
-    --primary-hover: var(--harvest-kinetic-600);
-    --primary-foreground: #FFFFFF;
+    /* Text Colors — Loam family (warm near-black, not pure black) */
+    --foreground:           var(--ink);
+    --foreground-secondary: var(--harvest-soil-700);
+    --foreground-muted:     var(--ink-muted);
+    --foreground-subtle:    var(--ink-subtle);
 
-    /* Secondary Action (Leaf Green) */
-    --secondary: var(--harvest-leaf-600);
-    --secondary-hover: var(--harvest-leaf-700);
-    --secondary-foreground: #FFFFFF;
+    /* Border Colors — warm Stone hairlines */
+    --border:        var(--harvest-soil-200);
+    --border-subtle: var(--harvest-soil-100);
+    --border-strong: var(--harvest-soil-300);
+    --ring:          var(--brand);                   /* Focus rings = Hedgerow */
 
-    /* Accent */
-    --accent: var(--harvest-leaf-500);
-    --accent-foreground: var(--harvest-soil-900);
+    /* Primary Action — Hedgerow (was Kinetic Cyan, gone in The Field Edition) */
+    --primary:            var(--brand);
+    --primary-hover:      var(--brand-hover);
+    --primary-foreground: var(--brand-text);
 
-    /* Destructive */
-    --destructive: #EF4444;
+    /* Secondary Action — Rapeseed (was Leaf-600; now the spot-colour accent) */
+    --secondary:            var(--accent);
+    --secondary-hover:      var(--harvest-rapeseed-600);
+    --secondary-foreground: var(--accent-text);
+
+    /* Accent — Rapeseed (was Leaf-500) */
+    /* --accent already declared above with The Field Edition canonical tokens */
+    --accent-foreground: var(--accent-text);
+
+    /* Destructive — single red exception (carries irreducible cultural meaning) */
+    --destructive:            #B91C1C;
     --destructive-foreground: #FFFFFF;
 
-    /* Feedback States */
-    --success: #10B981;
-    --success-foreground: #064E3B;
-    --warning: #F59E0B;
-    --warning-foreground: #78350F;
-    --error: #EF4444;
-    --error-foreground: #7F1D1D;
-    --info: #3B82F6;
-    --info-foreground: #1E3A8A;
+    /* Feedback States — point at brand (no second green, no second yellow) */
+    --success:            var(--brand);
+    --success-foreground: var(--brand-text);
+    --warning:            var(--accent);
+    --warning-foreground: var(--accent-text);
+    --error:              #B91C1C;
+    --error-foreground:   #FFFFFF;
+    --info:               var(--ink);
+    --info-foreground:    var(--paper);
 
     /* ==========================================================================
        MAP MARKER SEMANTIC PAIRS - WCAG AA Enforced Contrast
@@ -159,53 +192,66 @@
      ========================================================================== */
 
   .dark {
-    /* Page & Surface Backgrounds - Elevation by Luminance */
-    --background: var(--harvest-soil-950);          /* Pure Ink - OLED black */
-    --background-secondary: var(--harvest-soil-900); /* Slightly lifted */
-    --card: var(--harvest-soil-900);                /* Cards sit above page */
-    --card-hover: var(--harvest-soil-800);          /* Hover lifts higher */
-    --popover: var(--harvest-soil-800);             /* Popovers highest */
-    --muted: var(--harvest-soil-800);               /* Muted backgrounds */
+    /* ===== The Field Edition canonical tokens (dark mode) ===== */
+    --brand:         var(--harvest-leaf-400);    /* Hedgerow #4ADE80 — 11.4:1 on Pure Ink */
+    --brand-hover:   var(--harvest-leaf-300);    /*           #86EFAC */
+    --brand-text:    var(--harvest-soil-950);    /* Pure Ink on Hedgerow fill */
+    --accent:        var(--harvest-rapeseed-400); /* Rapeseed #FBBF24 — 13.1:1, usable as text */
+    --accent-text:   var(--harvest-soil-950);    /* Pure Ink on Rapeseed */
+    --ink:           var(--harvest-soil-100);    /* Loam (inverted) #F5F5F4 — 18.8:1 */
+    --ink-muted:     var(--harvest-soil-400);    /*                #A8A29E */
+    --ink-subtle:    var(--harvest-soil-500);    /*                #78716C */
+    --paper:         var(--harvest-soil-950);    /* Pure Ink #0C0A09 — OLED page */
+    --surface:       var(--harvest-soil-900);    /* Card surface lifts above paper */
+    --surface-2:     var(--harvest-soil-800);    /* Elevated surface */
 
-    /* Text Colors - Adjusted for dark backgrounds */
-    --foreground: var(--harvest-soil-50);           /* Primary text */
-    --foreground-secondary: var(--harvest-soil-200); /* Secondary text */
-    --foreground-muted: var(--harvest-soil-400);    /* Muted/placeholder */
-    --foreground-subtle: var(--harvest-soil-500);   /* Subtle hints */
+    /* Page & Surface Backgrounds — Elevation by luminance */
+    --background:           var(--paper);
+    --background-secondary: var(--surface);
+    --card:                 var(--surface);
+    --card-hover:           var(--surface-2);
+    --popover:              var(--surface-2);
+    --muted:                var(--surface-2);
 
-    /* Border Luminance - Replace shadows with glowing borders */
-    --border: rgba(255, 255, 255, 0.08);            /* Subtle glow */
-    --border-subtle: rgba(255, 255, 255, 0.04);     /* Very subtle */
-    --border-strong: rgba(255, 255, 255, 0.12);     /* Emphasized */
-    --ring: var(--harvest-kinetic-400);             /* Brighter focus */
+    /* Text Colors — inverted Loam */
+    --foreground:           var(--ink);
+    --foreground-secondary: var(--harvest-soil-200);
+    --foreground-muted:     var(--ink-muted);
+    --foreground-subtle:    var(--ink-subtle);
 
-    /* Primary Action - Brighter on dark */
-    --primary: var(--harvest-kinetic-400);
-    --primary-hover: var(--harvest-kinetic-300);
-    --primary-foreground: var(--harvest-soil-900);
+    /* Border Luminance — borders as glow, not solid */
+    --border:        rgba(255, 255, 255, 0.08);
+    --border-subtle: rgba(255, 255, 255, 0.04);
+    --border-strong: rgba(255, 255, 255, 0.12);
+    --ring:          var(--brand);
 
-    /* Secondary Action - Lighter green for contrast */
-    --secondary: var(--harvest-leaf-400);
-    --secondary-hover: var(--harvest-leaf-300);
-    --secondary-foreground: var(--harvest-soil-900);
+    /* Primary Action — Hedgerow brighter on dark */
+    --primary:            var(--brand);
+    --primary-hover:      var(--brand-hover);
+    --primary-foreground: var(--brand-text);
 
-    /* Accent - Desaturated for dark mode */
-    --accent: var(--harvest-leaf-400);
-    --accent-foreground: var(--harvest-soil-900);
+    /* Secondary Action — Rapeseed brighter on dark */
+    --secondary:            var(--accent);
+    --secondary-hover:      var(--harvest-rapeseed-300);
+    --secondary-foreground: var(--accent-text);
 
-    /* Destructive - Slightly desaturated */
-    --destructive: #F87171;
-    --destructive-foreground: var(--harvest-soil-900);
+    /* Accent — Rapeseed */
+    /* --accent already declared above */
+    --accent-foreground: var(--accent-text);
 
-    /* Feedback States - Elevated for dark */
-    --success: #34D399;
-    --success-foreground: var(--harvest-soil-900);
-    --warning: #FBBF24;
-    --warning-foreground: var(--harvest-soil-900);
-    --error: #FB7185;
-    --error-foreground: var(--harvest-soil-900);
-    --info: #60A5FA;
-    --info-foreground: var(--harvest-soil-900);
+    /* Destructive — single red exception, slightly desaturated for dark */
+    --destructive:            #F87171;
+    --destructive-foreground: var(--harvest-soil-950);
+
+    /* Feedback States — point at brand (one voice) */
+    --success:            var(--brand);
+    --success-foreground: var(--brand-text);
+    --warning:            var(--accent);
+    --warning-foreground: var(--accent-text);
+    --error:              #F87171;
+    --error-foreground:   var(--harvest-soil-950);
+    --info:               var(--ink);
+    --info-foreground:    var(--paper);
 
     /* ==========================================================================
        MAP MARKER SEMANTIC PAIRS - Dark Mode (OLED Optimized)
@@ -327,30 +373,43 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    --background: var(--harvest-soil-950);
-    --background-secondary: var(--harvest-soil-900);
-    --card: var(--harvest-soil-900);
-    --card-hover: var(--harvest-soil-800);
-    --popover: var(--harvest-soil-800);
-    --muted: var(--harvest-soil-800);
+    /* The Field Edition canonical tokens (system-dark fallback) */
+    --brand:         var(--harvest-leaf-400);
+    --brand-hover:   var(--harvest-leaf-300);
+    --brand-text:    var(--harvest-soil-950);
+    --accent:        var(--harvest-rapeseed-400);
+    --accent-text:   var(--harvest-soil-950);
+    --ink:           var(--harvest-soil-100);
+    --ink-muted:     var(--harvest-soil-400);
+    --ink-subtle:    var(--harvest-soil-500);
+    --paper:         var(--harvest-soil-950);
+    --surface:       var(--harvest-soil-900);
+    --surface-2:     var(--harvest-soil-800);
 
-    --foreground: var(--harvest-soil-50);
+    --background:           var(--paper);
+    --background-secondary: var(--surface);
+    --card:                 var(--surface);
+    --card-hover:           var(--surface-2);
+    --popover:              var(--surface-2);
+    --muted:                var(--surface-2);
+
+    --foreground:           var(--ink);
     --foreground-secondary: var(--harvest-soil-200);
-    --foreground-muted: var(--harvest-soil-400);
-    --foreground-subtle: var(--harvest-soil-500);
+    --foreground-muted:     var(--ink-muted);
+    --foreground-subtle:    var(--ink-subtle);
 
-    --border: rgba(255, 255, 255, 0.08);
+    --border:        rgba(255, 255, 255, 0.08);
     --border-subtle: rgba(255, 255, 255, 0.04);
     --border-strong: rgba(255, 255, 255, 0.12);
-    --ring: var(--harvest-kinetic-400);
+    --ring:          var(--brand);
 
-    --primary: var(--harvest-kinetic-400);
-    --primary-hover: var(--harvest-kinetic-300);
-    --primary-foreground: var(--harvest-soil-900);
+    --primary:            var(--brand);
+    --primary-hover:      var(--brand-hover);
+    --primary-foreground: var(--brand-text);
 
-    --secondary: var(--harvest-leaf-400);
-    --secondary-hover: var(--harvest-leaf-300);
-    --secondary-foreground: var(--harvest-soil-900);
+    --secondary:            var(--accent);
+    --secondary-hover:      var(--harvest-rapeseed-300);
+    --secondary-foreground: var(--accent-text);
 
     --shadow-strength: 0;
   }
