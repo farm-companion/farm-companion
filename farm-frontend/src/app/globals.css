@@ -216,6 +216,12 @@
   --brand-accent: #84cc16;     /* Solar Lime - accent highlights */
   --brand-accent-dark: #65a30d;
 
+  /* Map-surface CTAs and clusters (Phase 1.1 — earthy primary).
+     Resolves via --harvest-leaf-* palette imported from harvest-theme.css. */
+  --brand-action: var(--harvest-leaf-900);        /* #14532D */
+  --brand-action-hover: var(--harvest-leaf-800);  /* #166534 */
+  --brand-action-text: #FFFFFF;
+
   /* Legacy brand colors (compatibility layer) */
   --serum: #06B6D4;            /* Now Kinetic Cyan */
   --serum-light: #22D3EE;      /* Cyan 400 for backgrounds */
@@ -558,6 +564,10 @@ button {
   --brand-primary-text: #67E8F9;
   --brand-accent: #a3e635;     /* Lime 400 */
   --brand-accent-dark: #84cc16;
+
+  --brand-action: var(--harvest-leaf-500);        /* #22C55E — brighter on dark per WCAG */
+  --brand-action-hover: var(--harvest-leaf-400);  /* #4ADE80 */
+  --brand-action-text: #052e16;                   /* harvest-leaf-950 equivalent for contrast */
 
   /* Legacy brand colors */
   --serum: #22D3EE;            /* Kinetic Cyan */
