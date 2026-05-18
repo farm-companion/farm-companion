@@ -1273,3 +1273,56 @@ All four are now routed through a single private helper `this.nsKey(namespace)` 
 - **Slice D (verify Hetzner indexes):** `SELECT indexname FROM pg_indexes WHERE tablename = 'farms'` against live DB; reconcile against `schema.prisma` `@@index` list.
 
 **Next:** Either Slice B-followup (rate-limit hardening, ~30 LOC, 1 file + 2 routes), or stop here and let the operator do the activation steps above + curl-verify.
+
+### 2026-05-18 — Post-Migration Slice B-followup: Rate-limit fail-closed on submit routes
+
+**Goal:** Close the 9-second hang and the silent rate-limit bypass on `POST /api/contact/submit` and `POST /api/farms/submit` when Upstash KV is unreachable. Slice B's timeout Proxy wraps the shared `kv` shim, but both submit routes constructed their own `Redis.fromEnv()` clients outside that Proxy and fed them to local `Ratelimit` instances. So `limiter.limit()` still hung ~9s on a flaky upstream and, after the route's outer catch, fell open — effectively no rate limiting during an outage.
+
+**Pre-flight diagnostic (drove the design):**
+- `withPerformanceRateLimit` (`performance-middleware.ts:208`) — named in Slice B's followup queue — has **zero live consumers** (`grep` proves it). It is dead code; deferred to a future deletion slice, not in scope here.
+- The actual live regression sites are exactly two: `src/app/api/contact/submit/route.ts:14` and `src/app/api/farms/submit/route.ts:12`, each constructing `const redis = Redis.fromEnv()` and a local `Ratelimit.slidingWindow(5, '10 m')`. The bare `Redis` client bypasses the kv shim's `withKvTimeout` entirely.
+- `@upstash/ratelimit` v2's `timeout` option is **fail-OPEN** per its own type-doc ("the ratelimiter will allow requests to pass after this many milliseconds. Use this if you want to allow requests in case of network problems"). Using it would re-introduce the bypass we are closing. We pass the timeout-bounded `kv` Proxy as Ratelimit's `redis` instead, so any hang surfaces as `KvTimeoutError` and the route catches it → HTTP 429.
+- A third bare-Redis call survives at `contact/selftest/route.ts:25` — intentional, since that route's job is to call `redis.ping()` and surface health-check failure. Not a regression; left as-is.
+
+**Design — three load-bearing choices:**
+1. **Extend `lib/rate-limit.ts`, do not create a parallel file.** The codebase already has `lib/rate-limit.ts` with an in-house fixed-window `createRateLimiter`/`rateLimiters` used by 5 routes (feedback, consent, newsletter, upload, claims). The submit routes deliberately chose sliding-window via `@upstash/ratelimit` for smoother abuse resistance. New `submitLimiter` is added alongside the existing exports; both patterns coexist in one canonical module.
+2. **Redis arg = timeout-wrapped `kv` Proxy** from `@/lib/kv`. Every Ratelimit internal call (Lua `evalsha`/`eval`, get, set) is bounded by `KV_OPERATION_TIMEOUT_MS` (default 200 ms) and throws `KvTimeoutError` on hang. Route catch returns 429 — fail-closed posture for abuse-prone submit endpoints.
+3. **Prefix-aware via `KV_KEY_PREFIX`** (Slice F multi-tenant safety extends to Ratelimit keys too). `buildLimiterPrefix(envPrefix)` returns `@upstash/ratelimit` when unset, `${trimmedPrefix}:ratelimit` when set. Two projects on one Upstash DB cannot collide on rate-limit counters.
+
+**Files touched (4 / 8 budget, +93 / −18 LOC excluding this ledger):**
+- modify `farm-frontend/src/lib/rate-limit.ts` (+27 / −0 LOC) — new exported `buildLimiterPrefix()` pure function; new module-level `submitEphemeralCache = new Map()`; new exported `submitLimiter` (sliding-window 5 / 10 min, `redis: kv`, `ephemeralCache: submitEphemeralCache`, prefix-aware, `analytics: false`).
+- create `farm-frontend/src/lib/rate-limit.test.ts` (+48 LOC, new file) — 9 unit tests using `node:test` + `tsx --test`. Covers `buildLimiterPrefix`: no/undefined/empty/whitespace-only prefix → default; configured prefix → `:ratelimit` suffix; trims whitespace; preserves embedded colons. Asserts `submitLimiter` shape (`.limit`, `.blockUntilReady`, `.resetUsedTokens`, `.getRemaining` are functions).
+- modify `farm-frontend/src/app/api/contact/submit/route.ts` (+8 / −9 LOC) — drop `Ratelimit` + `Redis` imports and local `redis`/`limiter` construction; import `submitLimiter`; wrap `submitLimiter.limit('contact:${ip}')` in try/catch that throws `errors.rateLimit(...)` (HTTP 429) on any exception (KvTimeoutError or otherwise).
+- modify `farm-frontend/src/app/api/farms/submit/route.ts` (+10 / −9 LOC) — same migration pattern; destructure `success`/`remaining`/`reset` inside the try/catch.
+- modify this ledger.
+
+**Verification (ran locally, in `farm-frontend/`):**
+- `pnpm exec tsx --test src/lib/rate-limit.test.ts` → 9 / 9 subtests ok, suites 2 / 2 ok, duration 256 ms.
+- Per-file unit tests (all green): rate-limit 9/9, kv 5/5, blob-adapter 11/11, geo 17/17, email-verification 14/14. **Total 56 assertions pass across the migrated suite.**
+- `pnpm exec tsx --test src/lib/cache-manager.test.ts` → 8 / 8 subtest assertions `ok` (forced exit confirmed all pass). The process hangs on exit due to a pre-existing `setInterval` in `performance-monitor.ts:64` that keeps the event loop alive — **not introduced by this slice** (orphan tsx processes from 7:11 AM today proved this predates the change). Documented as Slice B-followup-3 hygiene candidate below.
+- `pnpm exec tsc --noEmit` → exit 0, full project type-check clean.
+
+**Behavioural change (user-observable):**
+- **Healthy Upstash:** identical to pre-slice. Sliding-window rate limit `5 / 10 m` per IP-keyed (`contact:${ip}` / `add:${ip}`).
+- **Slow Upstash (>200 ms per op):** the kv Proxy throws `KvTimeoutError`, propagates out of `submitLimiter.limit()`, route's try/catch returns HTTP 429 with body `{"error":"...Service busy. Please try again in a moment..."}`. **Latency cap: ~200 ms, not 9 s.**
+- **Repeat traffic from a previously-blocked IP during a Redis outage:** `submitEphemeralCache` (module-level `Map`) memoises the blocked state and Ratelimit can deny without a Redis round-trip, even with KV down.
+- **Multi-tenant share (`KV_KEY_PREFIX=fc`):** Ratelimit counter keys land under `fc:ratelimit:contact:<ip>` etc, isolated from any other project on the same Upstash DB.
+
+**Risk and rollback:**
+- **Risk:** very low. The shared `submitLimiter` reproduces the existing sliding-window config (5 / 10 min) exactly; routes' response shapes, HTTP codes, validation flow, and downstream logic are unchanged. `ephemeralCache` is a per-process `Map<string, number>`; size is bounded by `IP-space × 10 min window` (a few KB at our traffic levels).
+- **Trade-off acknowledged:** on the *first* request from a previously-unseen IP during an active Redis outage, `ephemeralCache` is empty for that key, so Ratelimit can only fail-closed via the kv timeout (which throws → 429). This is the intended fail-closed posture, but it means legitimate first-time users will see a 429 during outages. Considered correct for abuse-prone submit endpoints where false-positives are recoverable (retry succeeds once Redis is back) but false-negatives (bypass) are not.
+- **Rollback:** `git revert <sha>`. No data state changes, no schema migration, no env-var change required to revert.
+
+**Follow-up slices (queued):**
+- **Slice B-followup-2 (kv.lpush atomicity in farms/submit):** `farm-frontend/src/app/api/farms/submit/route.ts:141` `await kv.lpush('farm-submissions:pending', id)` is now bounded by Slice B's 200 ms Proxy and can throw `KvTimeoutError`. After Slice B-followup, this would surface as an HTTP 500 even though `createRecord('submissions', ...)` already persisted the row — user-visible inconsistency. ~3 LOC fix: wrap in try/catch and log-then-continue (the queue push is best-effort; admin moderation can use a fallback scanner over `submissions` table where `status='pending'` if the list is missing entries).
+- **Slice B-followup-3 (test process exit hygiene):** add `--test-force-exit` (Node 22.4+) to `test:unit` script, or migrate `performance-monitor.ts:64` to lazy/opt-in interval. Closes the cache-manager test hang and unblocks `pnpm test:unit` as a single-command verification.
+- **Slice B-followup-4 (delete dead `withPerformanceRateLimit`):** since `performance-middleware.ts:208`'s `withPerformanceRateLimit` has zero consumers and its `performanceMiddleware.rateLimited`/`.full` factories are also unused, delete the dead code rather than harden it. ~50 LOC subtraction.
+- **Slice C (carve facets):** county + category facets in `/api/farms` should leave the per-request fan-out and become `unstable_cache`-wrapped helpers with 1 h TTL.
+- **Slice D (verify Hetzner indexes):** `SELECT indexname FROM pg_indexes WHERE tablename = 'farms'` against live DB; reconcile against `schema.prisma` `@@index` list.
+
+**Operator verification after deploy:**
+1. Healthy path: 6 rapid POSTs to `/api/contact/submit` from same IP → 6th returns HTTP 429 with `Too many messages. Please try later.`.
+2. Failure path: in a Vercel Preview, temporarily set `KV_REST_API_URL=https://example.invalid` and redeploy → POST to `/api/contact/submit` returns HTTP 429 in ≤ ~250 ms (not 9 s) with `Service busy. Please try again in a moment.`. Revert the env var afterwards.
+3. Multi-tenant safety: in Upstash Data Browser after first submit, confirm new keys are prefixed `fc:ratelimit:` (assuming `KV_KEY_PREFIX=fc` is set per Slice F).
+
+**Next:** Either Slice B-followup-2 (kv.lpush atomicity, ~3 LOC, one file), Slice B-followup-4 (delete dead `withPerformanceRateLimit`, ~50 LOC), or Slice C (facet carving, bigger win). Recommendation: Slice B-followup-2 first because it closes a documented data-vs-response mismatch that the Slice B timeout Proxy made reachable.

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Ratelimit } from '@upstash/ratelimit'
-import { Redis } from '@upstash/redis'
 import { kv } from '@/lib/kv'
+import { submitLimiter } from '@/lib/rate-limit'
 import { validateAndSanitize, ValidationSchemas, ValidationError } from '@/lib/input-validation'
 import { createRouteLogger } from '@/lib/logger'
 import { errors, handleApiError } from '@/lib/errors'
@@ -10,12 +9,6 @@ import { verifyTurnstile } from '@/lib/security'
 import { verifyEmail, friendlyMessage } from '@/lib/email-verification'
 
 // Using the centralized validation schema from input-validation.ts
-
-const redis = Redis.fromEnv()
-const limiter = new Ratelimit({
-  redis,
-  limiter: Ratelimit.slidingWindow(5, '10 m') // 5 submissions per 10 minutes
-})
 
 const TO = process.env.CONTACT_TO_EMAIL!
 const FROM = process.env.CONTACT_FROM_EMAIL!
@@ -44,8 +37,14 @@ export async function POST(req: NextRequest) {
       throw errors.authorization('Invalid request origin')
     }
 
-    // Rate limiting
-    const rate = await limiter.limit(`contact:${ip}`)
+    // Rate limiting (fail-closed: any KV timeout or error → 429)
+    let rate
+    try {
+      rate = await submitLimiter.limit(`contact:${ip}`)
+    } catch (e) {
+      logger.warn('Rate-limit check failed; denying request (fail-closed)', { ip }, e as Error)
+      throw errors.rateLimit('Service busy. Please try again in a moment.')
+    }
     if (!rate.success) {
       logger.warn('Rate limit exceeded for contact form', { ip })
       throw errors.rateLimit('Too many messages. Please try later.')
