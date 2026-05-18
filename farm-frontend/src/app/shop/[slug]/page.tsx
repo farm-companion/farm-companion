@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import type { FarmShop } from '@/types/farm'
 import { processFarmDescription } from '@/lib/seo-utils'
 import FarmAnalytics from '@/components/FarmAnalytics'
-import { getValidApprovedPhotosBySlug } from '@/lib/photos'
 import { FarmPageClient } from '@/components/FarmPageClient'
 import { getFarmBySlug } from '@/lib/farm-data'
 
@@ -54,9 +53,6 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   const { slug } = await params
   const shop = await getFarmBySlug(slug)
   if (!shop) notFound()
-
-  // Fetch approved photos for this farm (only those that exist in blob storage)
-  const approvedPhotos = await getValidApprovedPhotosBySlug(slug)
 
   const { name, location, contact, offerings, verified, hours } = shop
   const { cleanDescription, keywords } = processFarmDescription(shop.description || '')
@@ -175,7 +171,6 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
         cleanDescription={cleanDescription}
         directionsUrl={directionsUrl}
         issueUrl={issueUrl}
-        approvedPhotos={approvedPhotos}
       />
     </main>
   )
