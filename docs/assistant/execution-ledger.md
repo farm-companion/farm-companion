@@ -1375,3 +1375,27 @@ Wrapping the dead-end in try/catch (Option A from the original queue) would pres
 3. Confirm in Upstash Data Browser: no new key under `farm-submissions:pending`. (If `KV_KEY_PREFIX=fc`, also no `fc:farm-submissions:pending`.) The list will simply not exist or remain at its prior length.
 
 **Next:** Slice B-followup-5 (admin KV/DB unification) is now the highest-impact follow-up because admin moderation is partially broken today. Or, if the operator confirms admin is hitting `/api/admin/migrate-farms` periodically and submissions ARE flowing, demote it and pick Slice B-followup-4 (50 LOC subtraction) for a quick close.
+
+### 2026-05-18 — Strip Phase 1 Slice 1.1: delete orphaned `src/lib/blob.ts`
+
+**Goal:** First Phase-1 housekeeping slice — Phase 0 spillover. After Phase 0's photo-route deletions (Slices 0.3–0.5, 0.9), every export in `src/lib/blob.ts` had zero callers; the file itself was unimported. Pure deletion, zero behavioural change.
+
+**Files changed:**
+- `farm-frontend/src/lib/blob.ts` — DELETED (82 LOC).
+
+**Dead surface removed:**
+- `buildObjectKey`, `fixPhotoUrl`, `uploadToBlob`, `headBlob`, `getBlobInfo` — orphaned by Slice 0.3/0.4/0.5 route deletions.
+- `createUploadUrl` — also returned `/api/photos/upload-blob`, a route deleted in Slice 0.9 (actively misleading).
+- `blob-adapter.ts` (the live Vercel Blob SDK wrapper that `lib/blob.ts` thinly wrapped) is UNCHANGED and still used.
+
+**Verification:**
+- `pnpm exec tsc --noEmit` → PASS (EXIT=0).
+- `pnpm exec tsx --test "src/**/*.test.ts"` → 11/11 `ok`. Post-test runner hang is the pre-existing issue from observation 1323, not introduced here.
+- `pnpm build` → PASS (EXIT=0, 95 static pages).
+- Postflight grep `lib/blob` excluding `blob-adapter`: zero hits.
+
+**Risk and rollback:** Trivial risk. Only escape path is a dynamic `require('@/lib/blob')` via string concatenation — no such pattern exists in the codebase. Rollback: `git revert <sha>`.
+
+**PR:** #162 (`strip/phase-1-slice-1.1-dead-upload-url`).
+
+**Next slice queued (Slice 1.2):** Collapse `src/lib/photos.ts` stub + its three consumers (`shop/[slug]/page.tsx`, `PhotoGalleryWrapper`, `FarmPhotoGallery`) that currently render empty galleries on every farm page because `getValidApprovedPhotosBySlug` always returns `[]`. After 1.2: Slice 1.3 cleans the 9 obsolete `scripts/*.js` photo/redis cleanups, then removes `redis` from `package.json`.
