@@ -166,7 +166,7 @@ Same tap, two products. This is the highest-impact UX bug.
 
 ---
 
-## 4.5 Open decision blocking Slice 1.1.1 — primary-action colour
+## 4.5 Primary-action colour — LOCKED (Option C)
 
 Token audit (2026-05-18) revealed the design system is layered:
 
@@ -174,17 +174,44 @@ Token audit (2026-05-18) revealed the design system is layered:
 - A parallel **Harvest Leaf** palette (`--harvest-leaf-50` … `--harvest-leaf-900`) exists for agricultural/secondary surfaces. The deepest shade `--harvest-leaf-900` = `#14532D`.
 - `FarmPreviewCard.tsx` currently hardcodes `#2D5016` — close to but not an exact token. `cluster-config.ts` hardcodes `#1A3A0A`, `#234012`, `#2D5016`, `#3A6420`, `#4A7A2E` (a separate green palette baked into clusters).
 
-Slice 1.1.1 must pick one of:
+**Decision (operator, 2026-05-18): Option C.** Add a new `--brand-action` CSS variable so map-surface CTAs (preview "View Full Details" button, cluster fills in Slice 1.1.2) resolve through one swap-point.
 
-| Option | Primary-action button (e.g. "View Full Details") | Implication |
-| --- | --- | --- |
-| **A — Cyan (system default)** | `bg-brand-primary` (resolves to `#06B6D4`) | Aligns with the documented brand primary; matches focus rings and CTAs elsewhere in the app. Visually distinct from agricultural greens used on map clusters. |
-| **B — Harvest Leaf 900** | `bg-[var(--harvest-leaf-900)]` (or a new `--brand-action` alias to the same) | Keeps the "earthy" feel of the current hardcoded green; closer to `cluster-config.ts`'s palette so map elements feel one family. |
-| **C — Add a `--brand-action` token** | New CSS variable mapped to a chosen shade (probably Harvest Leaf 800/900) | Most flexible. One token to change later. Adds one variable to `globals.css` light + dark blocks. |
+### Token spec
 
-**Recommendation: B or C.** The current page is using green and changing it to cyan introduces a visual regression that should be a deliberate brand decision, not a side-effect of a polish slice. Option C is best long-term (one token, one swap point) but adds two lines to `globals.css`. Option B is the smallest diff that respects existing design intent.
+In `src/app/globals.css` add to the light block:
 
-This decision affects ~6 lines in `FarmPreviewCard.tsx` and propagates into Slice 1.1.2 (cluster colour reconciliation). **Operator picks before Slice 1.1.1 code work begins.**
+```css
+--brand-action: var(--harvest-leaf-900);  /* #14532D — earthy primary for map surfaces */
+--brand-action-hover: var(--harvest-leaf-800);  /* #166534 — hover state */
+--brand-action-text: #FFFFFF;
+```
+
+And the dark block:
+
+```css
+--brand-action: var(--harvest-leaf-500);  /* #22C55E — brighter on dark per WCAG */
+--brand-action-hover: var(--harvest-leaf-400);
+--brand-action-text: #052e16;  /* harvest-leaf-950 equivalent for contrast */
+```
+
+Tailwind config (`tailwind.config.js`) exposes them as `brand-action`, `brand-action-hover`, `brand-action-text`:
+
+```js
+colors: {
+  // ... existing
+  'brand-action': 'var(--brand-action)',
+  'brand-action-hover': 'var(--brand-action-hover)',
+  'brand-action-text': 'var(--brand-action-text)',
+}
+```
+
+### Migration in Slice 1.1.1
+
+`FarmPreviewCard.tsx` swaps `bg-[#2D5016] hover:bg-[#234012]` → `bg-brand-action hover:bg-brand-action-hover`. Status badge `#2D5016` (open) and `#CC0000` (closed) become `text-brand-action` and `text-red-600` (or a new `--status-closed` token if needed; check existing palette first).
+
+### Migration in Slice 1.1.2
+
+`cluster-config.ts` 5-tier palette adopts `--brand-action` as the base, with darker/lighter variants derived (e.g. via Tailwind opacity utilities or named tier tokens). Details locked in Slice 1.1.2's plan.
 
 ---
 
