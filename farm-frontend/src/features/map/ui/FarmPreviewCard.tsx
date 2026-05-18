@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import { X, Phone, Navigation, Share2, Circle, ChevronRight, Leaf } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
@@ -34,6 +34,14 @@ export default function FarmPreviewCard({
   formatDistance,
   className = '',
 }: FarmPreviewCardProps) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => {
+    // Trigger entry animation after the first paint:
+    // initial render → opacity-0 + translateY + scale(0.97), then this effect
+    // adds data-mounted on the next tick, CSS transitions to neutral.
+    setMounted(true)
+  }, [])
+
   const heroImage = farm.images?.[0] ? getImageUrl(farm.images[0]) : undefined
   const hasHours = farm.hours && farm.hours.length > 0
   const openingStatus = hasHours ? formatOpeningStatus(farm.hours!) : null
@@ -53,15 +61,15 @@ export default function FarmPreviewCard({
     if (navigator.share && navigator.canShare(shareData)) {
       try { await navigator.share(shareData) } catch { /* user cancelled */ }
     } else {
-      await navigator.clipboard.writeText(shareData.url)
+      try { await navigator.clipboard.writeText(shareData.url) } catch { /* clipboard denied / HTTP-only / iOS gesture */ }
     }
   }, [farm])
 
   return (
     <div
-      data-mounted
+      data-mounted={mounted ? '' : undefined}
       className={[
-        'group relative bg-background-elevated text-text-body rounded-2xl overflow-hidden',
+        'relative bg-background-elevated text-text-body rounded-2xl overflow-hidden',
         'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.10)]',
         'transition-[transform,opacity] duration-200',
         '[transition-timing-function:cubic-bezier(0.23,1,0.32,1)]',
@@ -70,7 +78,7 @@ export default function FarmPreviewCard({
         className,
       ].join(' ')}
       style={{ width: 320 }}
-      role="dialog"
+      role="region"
       aria-label={`Preview of ${farm.name}`}
     >
       {/* Close button */}
