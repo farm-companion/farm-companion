@@ -172,15 +172,6 @@ export default function AdminDocumentationPage() {
                       Go to Photos →
                     </Link>
                   </div>
-                  <div className="bg-yellow-50 dark:bg-yellow-900/20 p-4 rounded-lg">
-                    <h4 className="font-semibold text-yellow-900 dark:text-yellow-100 mb-2">Claims Processing</h4>
-                    <p className="text-yellow-800 dark:text-yellow-200 text-sm">
-                      Handle farm ownership claims and verification requests
-                    </p>
-                    <Link href="/admin/claims" className="text-yellow-600 dark:text-yellow-400 text-caption hover:underline">
-                      Go to Claims →
-                    </Link>
-                  </div>
                 </div>
               </div>
             </section>
@@ -360,15 +351,6 @@ export default function AdminDocumentationPage() {
                     </p>
                     <Link href="/admin/photos" className="text-serum hover:text-teal-700 dark:text-teal-400 text-sm">
                       Go to Photos →
-                    </Link>
-                  </div>
-                  <div className="border border-gray-200 dark:border-gray-600 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">Process Claims</h4>
-                    <p className="text-caption text-gray-600 dark:text-gray-400 mb-3">
-                      Handle farm ownership verification requests
-                    </p>
-                    <Link href="/admin/claims" className="text-serum hover:text-teal-700 dark:text-teal-400 text-sm">
-                      Go to Claims →
                     </Link>
                   </div>
                 </div>
