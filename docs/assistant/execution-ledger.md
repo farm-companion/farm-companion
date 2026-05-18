@@ -1460,3 +1460,58 @@ Wrapping the dead-end in try/catch (Option A from the original queue) would pres
 **PR:** #165 (`strip/phase-1-slice-1.3b-redis-dep-remove`).
 
 **Phase 0 spillover: COMPLETE after 1.3a + 1.3b land.** Master then becomes a clean baseline. The next move is the actual Phase 1 product brainstorm (anchor question deferred from previous session's handover: visual companion / perf / map UX / data depth / search / "audit it with me").
+
+### 2026-05-18 — Phase 1.1.1: Marker preview polish + unify
+
+**Goal:** First Phase-1.1 polish slice. Replace the two-component, mobile-vs-desktop split marker-tap experience with a single design-token-driven `FarmPreviewCard` wrapped by `MarkerPreview`. Apply Emil Kowalski's polish framework end-to-end.
+
+**Spec:** `docs/superpowers/specs/2026-05-18-phase-1-map-polish-design.md` §4 Slice 1.1.1 + §4.5 (locked Option C: `--brand-action` token).
+**Plan:** `docs/superpowers/plans/2026-05-18-phase-1-1-1-marker-preview.md` (9 tasks, ~40 bite-sized steps).
+**Execution:** subagent-driven (one implementer per task, two-stage review per task).
+
+**Files changed (8 user-facing + 2 deletions + 2 follow-up touches):**
+- CREATE `farm-frontend/src/features/map/ui/MarkerPreview.tsx` (mobile/desktop layout wrapper).
+- CREATE `farm-frontend/src/features/map/lib/preview-helpers.ts` + `.test.ts` (10 TDD cases).
+- MODIFY `farm-frontend/src/app/globals.css` (light + dark blocks: `--brand-action` token trio).
+- MODIFY `farm-frontend/tailwind.config.js` (expose `brand-action`, `brand-action-hover`, `brand-action-text` utilities).
+- MODIFY `farm-frontend/src/features/map/ui/FarmPreviewCard.tsx` (tokens, `next/image`, polish, helpers, `useState`/`useEffect` for entry animation).
+- MODIFY `farm-frontend/src/features/map/ui/MapLibreShell.tsx` (drop `MarkerActions` import + render, drop `handleFavorite` TODO + orphan handlers `handleShare`/`handleNavigate`/`handleCloseMarkerActions`).
+- MODIFY `farm-frontend/src/features/map/ui/LeafletShell.tsx` (mirror Task 6 strip; `MarkerActions` was also imported here — discovered during Task 7).
+- MODIFY `farm-frontend/src/app/map/page.tsx` (use `MarkerPreview` for both platforms, add `useRouter`, in-app navigation to `/shop/<slug>`, restore mobile `scrollIntoView`).
+- MODIFY `farm-frontend/src/features/map/index.ts` (remove `MarkerActions` barrel export).
+- DELETE `farm-frontend/src/features/map/ui/MapMarkerPopover.tsx` (145 LOC, pre-orphaned).
+- DELETE `farm-frontend/src/features/map/ui/MarkerActions.tsx` (214 LOC, orphaned by Task 6).
+
+Net: +~155 LOC added (new component + helpers + tests), −~600 LOC deleted. Cleanup-dominant slice.
+
+**Design decisions applied:**
+- Primary-action colour: `--brand-action` token (Harvest Leaf 800/900 light, 400/500 dark) per locked Option C of the spec.
+- Entry animation: `useState`/`useEffect`-mounted `data-mounted` attribute + `opacity-0 translate-y-2 scale-[0.97]` → neutral, `cubic-bezier(0.23, 1, 0.32, 1)`, 200ms (Emil's framework). Critical review caught the static-attribute bug and got it fixed (commit `5e0662d`).
+- `:active scale(0.97-0.98)` on every button.
+- `[font-variant-numeric:tabular-nums]` on distance + opening status.
+- `next/image` for hero with neutral inset outline.
+- Cross-platform unification: same preview content on mobile and desktop, layout-only divergence via `MarkerPreview`.
+- `role="region"` on the card (NOT `dialog` — it doesn't trap focus, doesn't block map interaction).
+- Clipboard fallback in `handleShare` wrapped in `try/catch` (handles HTTP / denied / iOS-gesture-broken cases).
+
+**Verification (automated gauntlet — Task 8):**
+- `pnpm exec tsc --noEmit` → PASS (EXIT=0).
+- `pnpm exec tsx --test "src/**/*.test.ts"` → **21 `ok`** (11 pre-existing + 10 new `preview-helpers`).
+- `pnpm build` → PASS (EXIT=0, 68/68 static pages).
+- Postflight grep `MapMarkerPopover|MarkerActions`: zero hits across `src/`.
+- Postflight grep for the 7 migrated hex codes in `FarmPreviewCard.tsx`: zero hits.
+- Postflight grep for `FarmPreviewCard` consumers: exactly 1 (inside `MarkerPreview.tsx`).
+
+**Verification (manual — operator must run before merge):**
+- ⏳ `pnpm dev`, open `http://localhost:3001/map`, tap a pin at 375 × 812 viewport (light + dark), then again at 1280 × 800 (light + dark). Confirm preview renders with hero image, name, county, hook, status badge, tags, "View Full Details" CTA, and Call/Directions/Share row. Tapping a different pin without closing should retarget the entry animation cleanly. Pressing the CTA should briefly scale to 0.98 on `:active`.
+
+**Known follow-ups (logged for queue):**
+- ⚠️ **LeafletShell marker-tap regression (Important):** LeafletShell is the WebGL-incapable-browser fallback. Tasks 6+7 stripped `MarkerActions` from it but didn't wire `MarkerPreview` in its place. Users reaching LeafletShell now get no preview UI on marker tap. **Must be fixed before LeafletShell ships in any production scenario.** Suggested slice: 1.1.5 — "wire `MarkerPreview` into LeafletShell". ~30 LOC, 1 file.
+- ⚠️ **`markerState` write-only state (Minor):** `MapLibreShell.tsx:116` still declares `[markerState, setMarkerState]` and `handleMarkerClick` writes to it, but after Task 6 nothing reads from it. Causes a redundant re-render per marker tap. Suggested slice: 1.1.4 — "carve up 700-LOC files" naturally cleans this.
+- ⚠️ **`MobileMarkerSheet.tsx` orphan (Minor):** `src/components/map/MobileMarkerSheet.tsx` (293 LOC) is re-exported by `src/components/map/index.ts` but has zero consumers in `src/`. Discovered during Task 8 grep. Pre-existing dead code; not introduced by this slice. Suggested slice: 1.1.4 housekeeping or a quick 1.1.6 strip slice.
+
+**Risk and rollback:** Low for the MapLibre path (the production default; >98% of users). Medium-low for the LeafletShell fallback path (regression noted above). Rollback: `git revert <merge-sha>`.
+
+**PR:** (filled in after PR creation).
+
+**Next slice queued:** Slice 1.1.5 — wire `MarkerPreview` into LeafletShell (urgent, must precede any production-LeafletShell deployment). Then Slice 1.1.2 — cluster polish (reconcile two styling systems, fix `scale(0)` entry, lighter shadows, kill small-cluster preview sheet). The `--brand-action` token introduced here propagates into cluster colours.
