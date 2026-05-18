@@ -29,6 +29,63 @@ STEP N — <one-line goal>
 
 If a step says "paste the output back here", paste it into the chat verbatim — do not summarise. If anything is unclear, stop and ask before running the next step. Steps are numbered globally within their phase so you can refer to them in chat (e.g. "Step −0.5.3 returned …").
 
+### 🔒 Credential handling (READ BEFORE FIRST `export`)
+
+This plan asks you to set `REDIS_URL` and `DATABASE_URL` in your shell. **These are production secrets.** Three rules, no exceptions:
+
+1. **NEVER paste the full URL or password into chat.** Not in the command you ran, not in an error message, not "just this once". The chat transcript is permanent and is captured by `claude-mem` observation hooks.
+2. **Only ever paste back the `Paste:` field of a step** — usually a sanity prefix (`"redis://defa…"`) or a numeric count (`42`).
+3. **If you accidentally pasted a credential, stop and run the rotation protocol below before doing anything else.**
+
+Common slip: pasting a whole terminal session (including the `export` line) instead of just the `Paste:` field. **Don't paste full terminal sessions.** Run the command, then copy ONLY the lines the step asks for.
+
+#### 🚨 Credential leak rotation protocol
+
+```
+STEP LEAK.1 — Rotate the leaked credential at the source
+  Where:    Coolify dashboard (for REDIS_URL) OR Supabase/Hetzner (for DATABASE_URL)
+  Paste:    "Rotated" (one word — never the new credential)
+
+STEP LEAK.2 — Update env vars on every Vercel project that uses it
+  Where:    Vercel → each project → Settings → Env Vars
+            REDIS_URL: BOTH farm-frontend AND farm-produce-images
+            DATABASE_URL: farm-frontend (check sibling apps too)
+  Paste:    "Updated <project-name> envs (prod + preview + dev)"
+
+STEP LEAK.3 — Update local .env files
+  Where:    farm-frontend/.env.local and any sibling app .env.local
+  Paste:    "Updated local .env files"
+
+STEP LEAK.4 — Trigger redeploys
+  Where:    Vercel dashboard → each affected project → Redeploy latest
+  Paste:    "All redeploys ready"
+
+STEP LEAK.5 — Resume the original baby step you were on
+  Note:     With the NEW credential set in your shell via export.
+```
+
+### 🔌 If `redis-cli` from your laptop says "Could not connect / nodename nor servname provided"
+
+Your `REDIS_URL` hostname is an internal Coolify service ID (e.g. `oj5z6ma…`). It only resolves from inside the Coolify network. Pick ONE of:
+
+- **Option A — Run from the Coolify host directly (simplest):**
+  ```
+  ssh <user>@<coolify-host>
+  docker exec -it <redis-container-name> redis-cli
+  ```
+  Inside redis-cli: `KEYS farm-submission:*` then count, and `HLEN farm_submissions`.
+
+- **Option B — SSH tunnel from your laptop:**
+  ```
+  ssh -L 6379:<internal-redis-hostname>:6379 <user>@<coolify-host>
+  # in a second terminal:
+  redis-cli -u "redis://default:<password>@127.0.0.1:6379/0" --scan --pattern 'farm-submission:*' | wc -l
+  ```
+
+- **Option C — Ask the assistant for a one-shot script** that runs inside Vercel/Next.js (which already has Upstash KV access via the `kv` shim) and emits the counts to stdout.
+
+Whichever you pick, the answer to paste back is still just the integer counts.
+
 ---
 
 ## Phase −1 — Ship existing rate-limit PR (immediate, 0 new slices)
@@ -102,12 +159,20 @@ These need credentials (`REDIS_URL`, `DATABASE_URL`) that live in your secrets m
 ```
 STEP −0.5.1 — Open a shell that has REDIS_URL set
   Prereq:   You have the Coolify Redis URL in your password manager (or in farm-frontend/.env.local).
+            You've read the "Credential handling" rules above.
   Where:    A terminal you'll keep open for the next three steps.
-  Command:  export REDIS_URL='<paste-the-value-here>'        # do NOT commit
+  Command:  export REDIS_URL='<paste-the-value-here>'        # do NOT commit, do NOT paste in chat
             echo "REDIS_URL set: ${REDIS_URL:0:12}…"         # sanity print (first 12 chars only)
-  Paste:    Just the "REDIS_URL set: rediss://xxx…" sanity line — NEVER the full URL.
-  Success:  The sanity line prints with a non-empty prefix.
+  Paste:    ONLY this single sanity line: "REDIS_URL set: redis://defa…"
+            DO NOT paste the export line. DO NOT paste the whole terminal session.
+            If the prefix is "REDIS_URL set: export REDIS…", you nested quotes by mistake —
+            re-run the export with a single layer of single-quotes; then re-do the sanity print.
+  Success:  Sanity line prints with a non-empty 12-char prefix that starts with redis:// or rediss://
   If fails: Use `vercel env pull farm-frontend/.env.local` then `source` it; or copy from Coolify UI → Redis service → "Connection".
+
+  NOTE on hostname: if the URL host looks like a Coolify service ID (e.g. "oj5z6ma…"),
+  you CANNOT reach it from your laptop — that DNS only resolves on the Coolify network.
+  Skip ahead and use Option A/B/C from the "If redis-cli can't connect" block above.
 
 STEP −0.5.2 — Q1: how many "new path" submissions are stuck invisibly?
   Prereq:   STEP −0.5.1 done in this same shell.
