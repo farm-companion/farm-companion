@@ -4,5 +4,6 @@
   "devCommand": "cd farm-frontend && pnpm dev",
   "installCommand": "cd farm-frontend && pnpm install",
   "framework": "nextjs",
-  "outputDirectory": "farm-frontend/.next"
+  "outputDirectory": "farm-frontend/.next",
+  "regions": ["fra1"]
 }
