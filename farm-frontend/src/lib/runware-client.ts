@@ -24,6 +24,11 @@ export interface RunwareImageRequest {
   outputFormat?: 'webp' | 'png' | 'jpeg'
   /** Number of images to generate */
   numberResults?: number
+  /** Runware model id. Defaults to Juggernaut Pro Flux (legacy harvest direction).
+   *  Pitti Press generation passes `RUNWARE_MODELS.fluxDev` or `RUNWARE_MODELS.fluxSchnell`. */
+  model?: string
+  /** Scheduler override; defaults to FlowMatchEulerDiscreteScheduler */
+  scheduler?: string
 }
 
 export interface RunwareImageResponse {
@@ -82,8 +87,9 @@ export class RunwareClient {
       const payload = {
         taskType: 'imageInference',
         taskUUID: crypto.randomUUID(),
-        // Juggernaut Pro Flux - best for photorealistic produce photography
-        model: 'rundiffusion:130@100',
+        // Default: Juggernaut Pro Flux - best for photorealistic produce photography.
+        // Override via request.model for Pitti Press (FLUX.1 [dev] / [schnell]).
+        model: request.model || 'rundiffusion:130@100',
         positivePrompt: request.prompt,
         // Mandatory negative prompt for shape safety (bans deformation/mutation)
         negativePrompt: request.negativePrompt || '',
@@ -93,7 +99,7 @@ export class RunwareClient {
         seed: request.seed,
         steps: request.steps || 50,      // Higher steps = geometry stability
         CFGScale: request.cfgScale || 3.0, // CFG 3.0 = shape consistency
-        scheduler: 'FlowMatchEulerDiscreteScheduler',
+        scheduler: request.scheduler || 'FlowMatchEulerDiscreteScheduler',
         outputFormat: request.outputFormat || 'webp',
         numberResults: request.numberResults || 1,
         // Raw Mode prevents AI from smoothing complex textures
@@ -288,5 +294,68 @@ export function buildHarvestPrompt(
     ...(options.additionalElements || [])
   ].filter(Boolean)
 
+  return parts.join(', ')
+}
+
+// ============================================================================
+// Pitti Press — Cassandre / Vignelli flat-colour Italian-poster aesthetic
+// Spec: docs/superpowers/specs/2026-05-19-pitti-press-design.md §6
+// ============================================================================
+
+/**
+ * Pitti Press model selection. Use FLUX.1 [dev] for high-stakes one-offs (hero,
+ * county, seasonal — quality matters more than throughput). Use FLUX.1
+ * [schnell] for the 1,299-farm long tail (cheaper, ~5s per image, quality dip
+ * invisible at linocut style).
+ */
+export const RUNWARE_MODELS = {
+  /** FLUX.1 [dev] — 28 steps, best prompt adherence. ~$0.0015 per image. */
+  fluxDev: 'runware:101@1',
+  /** FLUX.1 [schnell] — 4 steps, fast + cheap. ~$0.0008 per image. */
+  fluxSchnell: 'runware:100@1',
+  /** Juggernaut Pro Flux (legacy harvest direction; photorealistic). */
+  juggernaut: 'rundiffusion:130@100',
+} as const
+
+/**
+ * Pitti Press visual signature prompt fragments.
+ * Inverse of HARVEST_STYLE — we want lithograph, not photo.
+ */
+export const PITTI_STYLE = {
+  /** Universal style lead — every artefact comes off the same press */
+  lead:
+    'vintage italian railway poster, Cassandre lithograph style, ' +
+    'flat color, no gradients, two-color print on cream paper, ' +
+    'vermilion red and sea-ink blue, bold geometric composition, ' +
+    'art deco influence, high contrast, woodcut grain texture',
+
+  /** Universal negative — inverse of HARVEST.negative; bans photography. */
+  negative:
+    'photograph, photorealistic, 3d render, glossy, gradient, smooth blend, ' +
+    'modern digital illustration, vector clipart, text, watermark, signature, ' +
+    'sparkle, neon, anime, cute, soft, fuzzy, pastel, oversaturated',
+}
+
+/**
+ * Build a Pitti Press prompt by composing the universal style lead with a
+ * subject phrase and any additional descriptive elements.
+ *
+ * Example:
+ *   buildPittiPrompt(
+ *     'UK countryside in midsummer, rolling hills with stone walls',
+ *     { additionalElements: ['a single red tractor', 'low sun'] }
+ *   )
+ */
+export function buildPittiPrompt(
+  subject: string,
+  options: {
+    additionalElements?: string[]
+  } = {}
+): string {
+  const parts = [
+    PITTI_STYLE.lead,
+    subject,
+    ...(options.additionalElements || []),
+  ].filter(Boolean)
   return parts.join(', ')
 }

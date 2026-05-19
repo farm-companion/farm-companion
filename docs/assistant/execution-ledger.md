@@ -1752,3 +1752,58 @@ Net: +~155 LOC added (new component + helpers + tests), −~600 LOC deleted. Cle
 **PR:** stacked on PR #169 (slice 1.1.2a / 1.1.2b / 1.1.2c foundation). PR title and description should be updated to reflect the Pitti Press direction.
 
 **Next slice:** **1.1.2d-α — Runtime map theming pass.** New module `farm-frontend/src/features/map/lib/map-theme.ts` that, after `map.on('load')`, walks `getStyle().layers` and overrides Stadia's paint to Pitti Press values (Cream land, Sea-ink water, Loam-ink roads at graduated opacity, halftone-tinted parks). Inherits Stadia's sources/glyphs/sprites; contributes only paint deltas. ~80 LOC, schema-drift-tolerant via try/catch per layer set. Standalone style.json deferred to 1.1.2d-β once vector-tile provisioning is audited in production.
+
+### 2026-05-19 — Slice 1.1.2k-α: Pitti Press image generation foundation
+
+**Goal:** Unblock Pitti Press imagery generation now that `RUNWARE_API_KEY` is provisioned in Vercel. Extend the existing Runware infrastructure (which targets the legacy harvest direction) with Pitti Press model + prompt builders, and ship a single-image validation CLI so the operator can iterate on prompts before committing to a 1,400-image batch regeneration.
+
+**Discovery surfaced during this slice:** the repo already contains comprehensive Runware infrastructure I hadn't fully mapped before specing — `src/lib/runware-client.ts` (`RunwareClient` class, `HARVEST_STYLE`, `buildHarvestPrompt`), three batch generators at `src/scripts/generate-{farm,county,produce}-images.ts`, plus an older `scripts/generate-farm-images-direct.ts` duplicate. All target the photorealistic Juggernaut Pro Flux model (`rundiffusion:130@100`) — direction-mismatched with Pitti Press but operationally correct in every other respect (Prisma writes, blob upload, resume/batch logic, regional architectural variations, deterministic seeding). The slice extends this infrastructure rather than reinventing it.
+
+**Files touched:** 4.
+- MODIFY `farm-frontend/src/lib/runware-client.ts` — added `model` and `scheduler` optional fields to `RunwareImageRequest`; wired `request.model ?? 'rundiffusion:130@100'` and `request.scheduler ?? 'FlowMatchEulerDiscreteScheduler'` into the payload; appended `RUNWARE_MODELS` constant (`fluxDev: 'runware:101@1'`, `fluxSchnell: 'runware:100@1'`, `juggernaut: 'rundiffusion:130@100'`), `PITTI_STYLE` constant (`lead` lithograph fragment, `negative` photo-blocking fragment), and `buildPittiPrompt(subject, { additionalElements })`. Legacy `HARVEST_STYLE` and `buildHarvestPrompt` untouched. +60 LOC.
+- CREATE `farm-frontend/src/scripts/generate-pitti-image.ts` — single-image validation CLI. Takes `<type> <slug> [...flags]` where type ∈ `hero | county | farm-header | seasonal`. Flags: `--dry-run`, `--model=dev|schnell`, `--county`, `--feature`, `--offerings`, `--season`. Deterministic SHA-256 seed (`seedFor(slug)`), per-type prompt template that composes `buildPittiPrompt` with type-appropriate subject + additional elements + dimensions, FLUX.1 [dev] defaults to 28 steps / CFG 3.5; [schnell] to 4 steps / CFG 1.0. Writes WebP to `public/images/pitti/{type}-{slug}-{model}-seed{seed}.webp`. ~200 LOC.
+- MODIFY `farm-frontend/package.json` — added `"generate:pitti": "tsx src/scripts/generate-pitti-image.ts"` alongside the existing three `generate:*` script entries. +1 LOC.
+- MODIFY `docs/superpowers/specs/2026-05-19-pitti-press-design.md` — added §6.5a (existing infrastructure table mapping current state and the per-slice retool plan for batch generators in 1.1.2k-γ/δ) and §6.5b (already-generated harvest imagery handling — mixed-state during transition, no destructive cleanup). +30 LOC.
+- MODIFY `docs/assistant/execution-ledger.md` — this entry.
+
+**Net diff:** +290 / −2 LOC (one of which is documentation).
+
+**Architectural decisions:**
+- **Extend `runware-client.ts`, don't replace.** Adding the `model` optional field is strictly additive — existing callers still receive Juggernaut Pro Flux as default. The four existing importers (`generate-farm-images.ts`, `produce-image-generator.ts`, `county-image-generator.ts`, `farm-image-generator.ts`) are unchanged and continue to work.
+- **Separate validation CLI, not a flag on the batch generators.** The batch generators write to Prisma + blob; iterating prompts inside them would dirty production data. The new single-image CLI saves to a dedicated `public/images/pitti/` review directory and never writes to the DB. Once the operator validates a prompt template, the batch generators get retooled (Slice 1.1.2k-γ/δ).
+- **Keep `HARVEST_STYLE` and `buildHarvestPrompt`.** The harvest direction is officially superseded by Pitti Press in the spec, but the existing utilities still work and the legacy `generate-farm-images-direct.ts` is queued for cleanup in 1.1.2k-ζ. Don't half-delete.
+
+**Verification (run 2026-05-19 ~12:10 BST):**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` — PASS (no output, exit 0).
+- ✅ `cd farm-frontend && pnpm build` — PASS (exit 0, full route manifest).
+- ✅ `cd farm-frontend && pnpm exec tsx src/scripts/generate-pitti-image.ts hero homepage --dry-run` — PASS. Prompt composes correctly: `vintage italian railway poster, Cassandre lithograph style, flat color, no gradients, two-color print on cream paper, vermilion red and sea-ink blue, bold geometric composition, art deco influence, high contrast, woodcut grain texture, UK countryside in midsummer, rolling hills with dry stone walls, a single red tractor in the middle distance, a barn silhouette, wide horizon line, low sun, confident composition`. Deterministic seed for slug `homepage`: 50920962. Model resolves to `runware:101@1` (FLUX.1 [dev]). Steps/CFG: 28 / 3.5.
+
+**Not verified — operator must do this:**
+- ⏳ Actual Runware API call. The script needs `RUNWARE_API_KEY` in `farm-frontend/.env.local` (operator confirmed the key is in Vercel, but locally is a separate provision). Run: `cd farm-frontend && pnpm generate:pitti hero homepage`. Expected: ~30s, ~$0.0015 spend, file lands at `farm-frontend/public/images/pitti/hero-homepage-dev-seed50920962.webp`.
+- ⏳ Style validation. After the first generation, eyeball the result. If the linocut style is wrong (too photo-y, wrong palette, wrong composition), iterate by editing the `STYLE` lead in `runware-client.ts:PITTI_STYLE.lead` and re-running. Bump `SEED_VERSION` in the script when you want to force a fresh seed.
+- ⏳ Model comparison. Once a `dev` image looks right, re-run with `--model=schnell` on the same slug to compare quality vs cost. If [schnell] is acceptable, the 1,299-farm batch should use it ($1.04 vs $2.0 at [dev]).
+
+**Operator runbook (TL;DR):**
+```
+cd farm-frontend
+echo "RUNWARE_API_KEY=<paste>" >> .env.local
+pnpm generate:pitti hero homepage --dry-run     # confirm prompt
+pnpm generate:pitti hero homepage                # ~30s, ~$0.0015
+open public/images/pitti/hero-homepage-dev-seed50920962.webp
+# iterate prompts in src/lib/runware-client.ts: PITTI_STYLE.lead
+# bump SEED_VERSION in src/scripts/generate-pitti-image.ts for fresh seeds
+pnpm generate:pitti county cornwall --feature="coastal cliffs"
+pnpm generate:pitti farm-header river-cafe --county=Devon --offerings=dairy,eggs,bakery
+pnpm generate:pitti seasonal asparagus
+```
+
+**Already-generated harvest imagery:** if previous sessions ran the batch generators, photorealistic farm/county/produce imagery may already be live in Vercel Blob or Hetzner S3. Slice 1.1.2k-α does not delete or invalidate it. Mixed-state during transition is accepted; convergence happens in 1.1.2k-γ/δ.
+
+**Risk and rollback:** Low. The `runware-client.ts` change is additive (new fields are optional with backward-compatible defaults). The new script doesn't touch existing data. Rollback: `git revert <slice sha>`.
+
+**Next slice candidates:**
+- **1.1.2d-α — Runtime map theming pass** (~80 LOC; makes the map look printed; no dependencies). Still queued, valuable independently of imagery.
+- **1.1.2k-β — Pitti Press style validation** (operator-in-the-loop; generate 3-5 candidates with different prompt phrasings or LoRA stacks, pick the canonical look, freeze prompts). Blocked on operator running this slice's CLI first.
+- **1.1.2k-γ — Batch retool: counties + seasonal.** Modify `generate-county-images.ts` and `generate-produce-images.ts` to default to `buildPittiPrompt` + FLUX.1 [dev]. ~50 LOC each.
+
+Recommend running 1.1.2d-α next (independently shippable), then 1.1.2k-β once the operator has produced a few candidate images.

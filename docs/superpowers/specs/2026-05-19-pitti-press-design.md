@@ -211,6 +211,25 @@ modern digital illustration, vector art, clipart
 
 `RUNWARE_API_KEY` is stored in `.env.local` (gitignored) and Vercel project env vars. The generation script reads it via `process.env.RUNWARE_API_KEY` and refuses to run if unset. Never bundled into client code — generation runs in Node, not the browser.
 
+### 6.5a Existing infrastructure (Slice 1.1.2k-α addition)
+
+A complete Runware integration was already present before this slice. It targets the *harvest* (Field Edition) photorealistic aesthetic — the direction Pitti Press supersedes. Pitti Press extends rather than replaces this infrastructure:
+
+| File | Role | Pitti Press change |
+| --- | --- | --- |
+| `farm-frontend/src/lib/runware-client.ts` | Shared `RunwareClient` class, `HARVEST_STYLE`, `buildHarvestPrompt` | Slice 1.1.2k-α adds `RUNWARE_MODELS` (FLUX.1 dev/schnell ids), `PITTI_STYLE`, `buildPittiPrompt`. Adds optional `model` and `scheduler` fields to `RunwareImageRequest` so callers can opt out of the default Juggernaut Pro Flux. Legacy `HARVEST_STYLE` and `buildHarvestPrompt` are unchanged — kept for the retirement slice (1.1.2k-ζ). |
+| `farm-frontend/src/scripts/generate-farm-images.ts` | Batch farm-header generation (~1,299 farms) | Still produces harvest photo style. Slice 1.1.2k-δ swaps prompt builder to `buildPittiPrompt` + FLUX.1 [schnell]. |
+| `farm-frontend/src/scripts/generate-county-images.ts` | Batch county vignette generation (~85 counties) | Slice 1.1.2k-γ swaps prompt builder to `buildPittiPrompt` + FLUX.1 [dev]. |
+| `farm-frontend/src/scripts/generate-produce-images.ts` | Batch seasonal/produce stamps (~30 crops) | Slice 1.1.2k-γ swap. |
+| `farm-frontend/src/scripts/generate-pitti-image.ts` *(NEW)* | Single-image validation CLI for style iteration | Built in Slice 1.1.2k-α. Operator-driven. Saves to `public/images/pitti/`. |
+| `farm-frontend/scripts/generate-farm-images-direct.ts` | Older direct-URL variant of the farm-batch generator | Stale — direction-mismatched + duplicated by the `src/scripts/` version. Queued for deletion in Slice 1.1.2k-ζ. |
+
+The validation CLI exists because the batch generators have side effects (Prisma writes, blob uploads, ~30-minute runs). Iterating on prompts in a batch script wastes API spend. The single-image CLI lets the operator dial in a prompt + LoRA combo locally before committing to a 1,400-image regeneration.
+
+### 6.5b Already-generated harvest imagery
+
+If the harvest batch generators have been run in the past, photorealistic farm/county/produce imagery already exists in the production deployment (Vercel Blob, Hetzner S3, or `public/images/`). Slice 1.1.2k-α does **not** delete or invalidate it — the existing imagery remains until the batch generators are retooled and re-run (Slice 1.1.2k-γ/δ). During the transition the site shows a mix: Pitti Press chrome (palette, clusters, preview card from Slice 1.1.2a–d) over harvest-style imagery. Visually inconsistent but functional; the rollout converges as batches complete.
+
 ### 6.6 Operational decisions
 
 - **Do not stream images at request time.** Latency would kill the printed-paper aesthetic. Always pre-generate.
