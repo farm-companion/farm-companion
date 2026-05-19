@@ -41,6 +41,11 @@ import {
   PITTI_STYLE,
   RUNWARE_MODELS,
 } from '../lib/runware-client'
+import {
+  WATERMARK_CROP_PX,
+  generationHeightFor,
+  cropBottomStrip,
+} from '../lib/image-crop'
 
 const TYPES = ['hero', 'county', 'farm-header', 'seasonal'] as const
 type ImageType = (typeof TYPES)[number]
@@ -186,15 +191,17 @@ async function main(): Promise<void> {
 
   const seed = seedFor(opts.slug)
   const { prompt, width, height } = promptFor(opts)
+  const genHeight = generationHeightFor(height)
   const modelId = opts.model === 'dev' ? RUNWARE_MODELS.fluxDev : RUNWARE_MODELS.fluxSchnell
   const steps = opts.model === 'dev' ? 28 : 4
   const cfgScale = opts.model === 'dev' ? 3.5 : 1.0
 
-  console.log('\n=== Pitti Press Image Generator (Slice 1.1.2k-α) ===')
+  console.log('\n=== Pitti Press Image Generator (Slice 1.1.2k-γ) ===')
   console.log(`Type:        ${opts.type}`)
   console.log(`Slug:        ${opts.slug}`)
   console.log(`Model:       ${modelId} (${opts.model})`)
-  console.log(`Dimensions:  ${width}×${height}`)
+  console.log(`Final size:  ${width}×${height}`)
+  console.log(`Gen size:    ${width}×${genHeight} (crop bottom ${genHeight - height}px)`)
   console.log(`Seed:        ${seed}`)
   console.log(`Steps/CFG:   ${steps} / ${cfgScale}`)
   console.log(`Positive:    ${prompt}`)
@@ -206,11 +213,11 @@ async function main(): Promise<void> {
     return
   }
 
-  const buffer = await client.generateBuffer({
+  const rawBuffer = await client.generateBuffer({
     prompt,
     negativePrompt: PITTI_STYLE.negative,
     width,
-    height,
+    height: genHeight,
     seed,
     steps,
     cfgScale,
@@ -218,10 +225,14 @@ async function main(): Promise<void> {
     outputFormat: 'webp',
   })
 
-  if (!buffer) {
+  if (!rawBuffer) {
     console.error('Generation failed. See logs above for details.')
     process.exit(1)
   }
+
+  const buffer = await cropBottomStrip(rawBuffer, height, 'webp')
+  const cropped = genHeight - height
+  console.log(`Cropped:     -${cropped}px from bottom (FLUX watermark safety strip; min ${WATERMARK_CROP_PX}px)`)
 
   const outDir = resolve(process.cwd(), 'public/images/pitti')
   await mkdir(outDir, { recursive: true })

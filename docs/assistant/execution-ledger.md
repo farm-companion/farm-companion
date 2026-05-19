@@ -423,12 +423,17 @@
   - Tightened `PITTI_STYLE.negative` with letterform/border vocabulary (lettering, words, characters, calligraphy, typography, publisher mark, studio stamp, border text, edge inscription, captions, labels, logo).
   - Watermark hallucination KNOWN ISSUE: FLUX persistently emits faint corner publisher marks even with aggressive negative prompts (confirmed via A/B with same seed). Pure prompt-side fix exhausted.
   - Validation artifacts: `public/images/pitti/hero-homepage-dev-seed50920962-v1.webp` (pre-tighten), `hero-homepage-dev-seed50920962.webp` (post-tighten).
-- [ ] Slice 1.1.2k-γ: Post-process safety crop in batch generators
-  - Strip bottom 6–8% on save (1536×1024 → 1536×940-ish or pad target to 1536×1100 and crop) to eliminate FLUX corner-signature artifacts.
-  - Apply same crop logic to all four image types (hero/county/farm-header/seasonal).
-  - Existing batch generators (`generate-farm-images.ts`, `county-image-generator.ts`, `farm-image-generator.ts`) still call `buildHarvestPrompt` — retool to optionally accept `style: 'harvest' | 'pitti'` so swap is feature-flagged.
-- [ ] Slice 1.1.2k-δ: Mass regeneration sweep (after γ lands)
-  - Bump `SEED_VERSION` and run county + farm-header batches at FLUX schnell to keep cost under £2 for the 1,299-farm long tail.
+- [x] Slice 1.1.2k-γ: Watermark-safe crop pass (CLI integration)
+  - Created `farm-frontend/src/lib/image-crop.ts` with `WATERMARK_CROP_PX` (64), `ceilToMultiple`, `generationHeightFor`, and `cropBottomStrip` (sharp-backed) helpers.
+  - Wired into `src/scripts/generate-pitti-image.ts`: gen at `height + 64` rounded up to multiple of 64, crop bottom strip post-API, save to target dimensions. CLI banner updated.
+  - Validation artifact: `public/images/pitti/hero-homepage-dev-seed50920962.webp` (v3, post-crop) is watermark-clean. v2 retained as `-v2.webp` for A/B.
+  - Note: seed-locked composition shifts when gen-height changes (1024 → 1088); style remains locked but exact composition differs from v1/v2. Expected tradeoff.
+  - No new dependency added (`sharp@^0.34.5` already in farm-frontend deps).
+- [ ] Slice 1.1.2k-δ: Batch generator Pitti-style adapter
+  - Retool `farm-image-generator.ts`, `county-image-generator.ts`, and `generate-farm-images.ts` to accept `style: 'harvest' | 'pitti'` and route through `buildPittiPrompt` + `cropBottomStrip` when Pitti is selected.
+  - Keep harvest the default — production batches remain photorealistic until Pitti is opt-in.
+- [ ] Slice 1.1.2k-ε: Mass regeneration sweep (after δ lands)
+  - Bump `SEED_VERSION`, run county + farm-header batches at FLUX schnell to keep cost under £2 for the 1,299-farm long tail.
 
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
 - [x] Add structured logging to upload/route
