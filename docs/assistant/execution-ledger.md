@@ -411,6 +411,25 @@
 - Consider react-map-gl wrapper for easier React integration
 - Stadia Maps requires attribution: "© Stadia Maps © OpenMapTiles © OpenStreetMap"
 
+### Queue Pitti: Pitti Press Imagery (Slice 1.1.2k stack)
+- [x] Slice 1.1.2k-α: Runware scaffold + single-image CLI (commit `05a8881`)
+  - Extended `farm-frontend/src/lib/runware-client.ts` with `RUNWARE_MODELS`, `PITTI_STYLE`, `buildPittiPrompt`, optional `model`/`scheduler` request fields.
+  - Created `farm-frontend/src/scripts/generate-pitti-image.ts` (single-image validation CLI).
+  - Added `"generate:pitti"` npm script.
+  - §6.5a/b documented in Pitti Press spec.
+- [x] Slice 1.1.2k-β: Style validation
+  - Generated hero (UK countryside, midsummer) via FLUX.1 dev, seed `50920962`, 28 steps / CFG 3.5.
+  - Style PASS: Cassandre lithograph aesthetic, flat color, vermilion sun, sea-ink + cream + amber blocks, dry stone walls, red tractor, barn silhouette. Composition reads exactly like vintage Italian railway poster spec.
+  - Tightened `PITTI_STYLE.negative` with letterform/border vocabulary (lettering, words, characters, calligraphy, typography, publisher mark, studio stamp, border text, edge inscription, captions, labels, logo).
+  - Watermark hallucination KNOWN ISSUE: FLUX persistently emits faint corner publisher marks even with aggressive negative prompts (confirmed via A/B with same seed). Pure prompt-side fix exhausted.
+  - Validation artifacts: `public/images/pitti/hero-homepage-dev-seed50920962-v1.webp` (pre-tighten), `hero-homepage-dev-seed50920962.webp` (post-tighten).
+- [ ] Slice 1.1.2k-γ: Post-process safety crop in batch generators
+  - Strip bottom 6–8% on save (1536×1024 → 1536×940-ish or pad target to 1536×1100 and crop) to eliminate FLUX corner-signature artifacts.
+  - Apply same crop logic to all four image types (hero/county/farm-header/seasonal).
+  - Existing batch generators (`generate-farm-images.ts`, `county-image-generator.ts`, `farm-image-generator.ts`) still call `buildHarvestPrompt` — retool to optionally accept `style: 'harvest' | 'pitti'` so swap is feature-flagged.
+- [ ] Slice 1.1.2k-δ: Mass regeneration sweep (after γ lands)
+  - Bump `SEED_VERSION` and run county + farm-header batches at FLUX schnell to keep cost under £2 for the 1,299-farm long tail.
+
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
 - [x] Add structured logging to upload/route
 - [x] Add structured logging to photos/upload-url/route

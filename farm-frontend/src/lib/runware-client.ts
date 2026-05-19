@@ -329,10 +329,15 @@ export const PITTI_STYLE = {
     'vermilion red and sea-ink blue, bold geometric composition, ' +
     'art deco influence, high contrast, woodcut grain texture',
 
-  /** Universal negative — inverse of HARVEST.negative; bans photography. */
+  /** Universal negative — inverse of HARVEST.negative; bans photography.
+   *  Text-suppression terms tightened in 1.1.2k-β after first validation image
+   *  surfaced faint corner watermarks despite "text, watermark, signature". */
   negative:
     'photograph, photorealistic, 3d render, glossy, gradient, smooth blend, ' +
-    'modern digital illustration, vector clipart, text, watermark, signature, ' +
+    'modern digital illustration, vector clipart, ' +
+    'text, watermark, signature, lettering, words, letters, characters, ' +
+    'calligraphy, typography, publisher mark, studio stamp, border text, ' +
+    'edge inscription, captions, labels, logo, ' +
     'sparkle, neon, anime, cute, soft, fuzzy, pastel, oversaturated',
 }
 
