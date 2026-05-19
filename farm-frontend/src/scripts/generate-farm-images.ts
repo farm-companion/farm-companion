@@ -19,19 +19,27 @@ config({ path: resolve(process.cwd(), '.env.local') })
 config({ path: resolve(process.cwd(), '.env') })
 
 import { PrismaClient } from '@prisma/client'
-import { getRunwareClient, buildHarvestPrompt, HARVEST_STYLE } from '../lib/runware-client'
-import { join } from 'path'
-import { writeFile, mkdir } from 'fs/promises'
-import { existsSync } from 'fs'
+import {
+  getRunwareClient,
+  buildHarvestPrompt,
+  HARVEST_STYLE,
+  PITTI_STYLE,
+  RUNWARE_MODELS,
+  buildPittiFarmHeaderPrompt,
+} from '../lib/runware-client'
+import { generationHeightFor, cropBottomStrip } from '../lib/image-crop'
+import { uploadPittiFarmImage } from '../lib/pitti-blob'
 
 const prisma = new PrismaClient()
-const PUBLIC_DIR = join(process.cwd(), 'public', 'images', 'farms')
+
+type Style = 'harvest' | 'pitti'
 
 interface Options {
   limit?: number
   slug?: string
   force?: boolean
   upload?: boolean
+  style?: Style
 }
 
 interface GeneratedResult {
@@ -44,7 +52,7 @@ interface GeneratedResult {
 
 function parseArgs(): Options {
   const args = process.argv.slice(2)
-  const options: Options = { limit: 10, upload: false }
+  const options: Options = { limit: 10, upload: false, style: 'harvest' }
 
   for (const arg of args) {
     if (arg.startsWith('--limit=')) {
@@ -55,6 +63,13 @@ function parseArgs(): Options {
       options.force = true
     } else if (arg === '--upload') {
       options.upload = true
+    } else if (arg.startsWith('--style=')) {
+      const s = arg.split('=')[1]
+      if (s !== 'harvest' && s !== 'pitti') {
+        console.error(`Unknown --style value: ${s}. Valid: harvest, pitti`)
+        process.exit(1)
+      }
+      options.style = s
     }
   }
 
@@ -108,6 +123,7 @@ async function generateFarmImages() {
           name: true,
           slug: true,
           county: true,
+          categories: { select: { category: { select: { name: true } } } },
           images: {
             where: { status: 'approved' },
             take: 1
@@ -130,6 +146,7 @@ async function generateFarmImages() {
           name: true,
           slug: true,
           county: true,
+          categories: { select: { category: { select: { name: true } } } },
           images: true
         },
         take: options.limit,
@@ -166,37 +183,87 @@ async function generateFarmImages() {
       console.log('-'.repeat(50))
 
       try {
-        // Build prompt for this farm
-        const countyKey = farm.county?.toLowerCase() || 'default'
-        const regionalStyle = REGIONAL_STYLES[countyKey] || REGIONAL_STYLES.default
+        // Branch on style. Harvest path is byte-identical to pre-Slice
+        // 1.1.2k-δ-1 behavior (Runware-hosted URL). Pitti path runs the
+        // buffer through cropBottomStrip + uploadPittiFarmImage so the
+        // final WebP is self-hosted and free of FLUX corner watermarks.
+        let imageUrl: string
+        const seed = hashString(farm.slug)
 
-        const prompt = buildHarvestPrompt(
-          `authentic rural British farm shop exterior`,
-          regionalStyle,
-          {
-            lighting: HARVEST_STYLE.lighting,
-            background: 'green countryside, natural setting'
+        if (options.style === 'pitti') {
+          const offerings = farm.categories
+            .map(c => c.category.name)
+            .slice(0, 3)
+          const prompt = buildPittiFarmHeaderPrompt(
+            farm.county ?? 'rural England',
+            offerings.length > 0 ? offerings : ['seasonal produce']
+          )
+          const targetWidth = 1536
+          const targetHeight = 768
+          const genHeight = generationHeightFor(targetHeight)
+
+          console.log(`🎨 Generating Pitti Press image (${targetWidth}x${genHeight} → crop to ${targetWidth}x${targetHeight})...`)
+          const rawBuffer = await runware.generateBuffer({
+            prompt,
+            negativePrompt: PITTI_STYLE.negative,
+            width: targetWidth,
+            height: genHeight,
+            seed,
+            steps: 28,
+            cfgScale: 3.5,
+            model: RUNWARE_MODELS.fluxDev,
+            outputFormat: 'webp',
+          })
+
+          if (!rawBuffer) {
+            console.warn(`⚠️  No image generated for ${farm.name}`)
+            results.push({ slug: farm.slug, name: farm.name, success: false, error: 'Pitti generation failed' })
+            continue
           }
-        )
 
-        // Generate image via Runware (returns URL directly)
-        console.log(`🎨 Generating AI image via Runware...`)
-        const result = await runware.generate({
-          prompt,
-          negativePrompt: HARVEST_STYLE.negative,
-          width: 2048,
-          height: 1152,
-          seed: hashString(farm.slug)
-        })
+          const cropped = await cropBottomStrip(rawBuffer, targetHeight, 'webp')
 
-        if (!result || result.images.length === 0) {
-          console.warn(`⚠️  No image generated for ${farm.name}`)
-          results.push({ slug: farm.slug, name: farm.name, success: false, error: 'Generation failed' })
-          continue
+          if (!options.upload) {
+            // Dry-run: keep the blob upload out of cold storage.
+            imageUrl = `<dry-run pitti, ${cropped.byteLength} bytes>`
+            console.log(`🔗 Would upload Pitti WebP (${cropped.byteLength} bytes) → pitti-farm-images/${farm.slug}/main.webp`)
+          } else {
+            const blob = await uploadPittiFarmImage(cropped, farm.slug)
+            imageUrl = blob.url
+            console.log(`✅ Pitti image uploaded: ${imageUrl}`)
+          }
+        } else {
+          // Harvest path (unchanged)
+          const countyKey = farm.county?.toLowerCase() || 'default'
+          const regionalStyle = REGIONAL_STYLES[countyKey] || REGIONAL_STYLES.default
+
+          const prompt = buildHarvestPrompt(
+            `authentic rural British farm shop exterior`,
+            regionalStyle,
+            {
+              lighting: HARVEST_STYLE.lighting,
+              background: 'green countryside, natural setting'
+            }
+          )
+
+          console.log(`🎨 Generating Harvest image via Runware...`)
+          const result = await runware.generate({
+            prompt,
+            negativePrompt: HARVEST_STYLE.negative,
+            width: 2048,
+            height: 1152,
+            seed
+          })
+
+          if (!result || result.images.length === 0) {
+            console.warn(`⚠️  No image generated for ${farm.name}`)
+            results.push({ slug: farm.slug, name: farm.name, success: false, error: 'Generation failed' })
+            continue
+          }
+
+          imageUrl = result.images[0].imageURL
+          console.log(`✅ Generated image URL: ${imageUrl}`)
         }
-
-        const imageUrl = result.images[0].imageURL
-        console.log(`✅ Generated image URL: ${imageUrl}`)
 
         // Save URL to database
         if (options.upload) {
