@@ -436,10 +436,13 @@
   - **Architectural finding**: `scripts/generate-farm-images.ts` stores `result.images[0].imageURL` (Runware-hosted) directly in Prisma `image.url`. Pitti can't use this flow because we need the buffer to crop. Real δ slice requires switching to `runware.generateBuffer()` + Vercel Blob upload before saving the URL.
   - `FarmImageGenerator` class in `lib/farm-image-generator.ts` has **zero importers** in the codebase — it's dead scaffold. Slice δ-1 will retool `scripts/generate-farm-images.ts` directly and either delete or revive the class.
   - `CountyImageGenerator` is used by `scripts/generate-county-images.ts` but `county-image-generator.ts` is 509 lines (over hard limit of 500) — δ-3 must split it before adding the Pitti adapter.
-- [ ] Slice 1.1.2k-δ-1: Vercel Blob upload helper + farm batch Pitti adapter
-  - Add `uploadPittiImage(buffer, slug, type) -> blobUrl` helper that re-uses existing Vercel Blob client.
-  - Add `--style=pitti` flag to `scripts/generate-farm-images.ts` that switches to buffer flow + crop + blob upload, saves blob URL to Prisma.
-  - Harvest path unchanged (URL-direct flow remains default).
+- [x] Slice 1.1.2k-δ-1: Blob upload helper + farm batch Pitti adapter
+  - Added `farm-frontend/src/lib/pitti-blob.ts` with `buildPittiFarmObjectKey(slug)` and `uploadPittiFarmImage(buffer, slug) -> {url, pathname}`. Backend-agnostic via existing `@/lib/blob-adapter` (FS in local dev, S3 in production).
+  - Pitti images written to `pitti-farm-images/{slug}/main.webp` — separate path prefix so Pitti never clobbers existing harvest farm images.
+  - Added `--style=harvest|pitti` flag to `scripts/generate-farm-images.ts`; default `harvest` preserves byte-identical pre-slice behavior. Pitti path: `runware.generateBuffer()` (not `.generate()`) → `cropBottomStrip` → `uploadPittiFarmImage` → save blob URL to Prisma.
+  - Pitti farm-header dimensions: 1536×768 final (gen at 1536×832 + 64px crop).
+  - Categories now selected in both `findMany` branches; first 3 category names feed `buildPittiFarmHeaderPrompt` as offerings (fallback `['seasonal produce']`).
+  - Type-check PASS. Live end-to-end run blocked by misconfigured `DATABASE_URL` in `farm-frontend/.env.local` (points at `134.122.102.159:5432`, unreachable; should be Supabase pooler per ledger notes). Operator follow-up.
 - [ ] Slice 1.1.2k-δ-2: County batch Pitti adapter (depends on δ-3 split)
 - [ ] Slice 1.1.2k-δ-3: Split `county-image-generator.ts` (509 LOC, over hard limit) before adding Pitti.
 - [ ] Slice 1.1.2k-ε: Mass regeneration sweep (after δ chain lands)
