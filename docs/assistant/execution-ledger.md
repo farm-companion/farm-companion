@@ -1,5 +1,16 @@
 # FarmCompanion Execution Ledger
 
+## Production Infrastructure (current — May 2026)
+
+> Older ledger entries reference Supabase. That was historically accurate; production was migrated to Coolify-managed Hetzner ~mid-May 2026. Do not assume Supabase when reading recent entries.
+
+- **Host**: Hetzner Cloud server `farm-companion-prod` (CPX42, x86, 320 GB, eu-central / Helsinki) — public IP `37.27.194.158`.
+- **Orchestrator**: Coolify v4.
+- **Postgres**: Coolify service `farm-companion-db`.
+- **Redis**: Coolify service `farm-companion-redis`.
+- **Meilisearch**: Coolify service `farm-companion-meili`.
+- An older Hetzner server IP (`134.122.102.159`) is decommissioned. Stale `.env.local` files may still point there.
+
 ## Queue Status
 
 ### Queue 1: Security closure and secret removal
@@ -442,7 +453,7 @@
   - Added `--style=harvest|pitti` flag to `scripts/generate-farm-images.ts`; default `harvest` preserves byte-identical pre-slice behavior. Pitti path: `runware.generateBuffer()` (not `.generate()`) → `cropBottomStrip` → `uploadPittiFarmImage` → save blob URL to Prisma.
   - Pitti farm-header dimensions: 1536×768 final (gen at 1536×832 + 64px crop).
   - Categories now selected in both `findMany` branches; first 3 category names feed `buildPittiFarmHeaderPrompt` as offerings (fallback `['seasonal produce']`).
-  - Type-check PASS. Live end-to-end run blocked by misconfigured `DATABASE_URL` in `farm-frontend/.env.local` (points at `134.122.102.159:5432`, unreachable; should be Supabase pooler per ledger notes). Operator follow-up.
+  - Type-check PASS. Live end-to-end run blocked locally by a stale `farm-frontend/.env.local` pointing at the **decommissioned** Hetzner IP `134.122.102.159:5432`. Current production: Coolify-managed `farm-companion-db` on Hetzner server `farm-companion-prod` (`37.27.194.158`, eu-central / Helsinki). Operator handles the `.env.local` refresh; the PR code is correct against the new infra. (Earlier draft of this note wrongly said "Supabase pooler" — Supabase was retired in the mid-May 2026 Coolify/Hetzner move; see "Production Infrastructure" at the top of this ledger.)
 - [ ] Slice 1.1.2k-δ-2: County batch Pitti adapter (depends on δ-3 split)
 - [ ] Slice 1.1.2k-δ-3: Split `county-image-generator.ts` (509 LOC, over hard limit) before adding Pitti.
 - [ ] Slice 1.1.2k-ε: Mass regeneration sweep (after δ chain lands)
