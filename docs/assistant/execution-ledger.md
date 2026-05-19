@@ -422,6 +422,17 @@
 - Consider react-map-gl wrapper for easier React integration
 - Stadia Maps requires attribution: "© Stadia Maps © OpenMapTiles © OpenStreetMap"
 
+### Queue Cleanup: Post-migration dead-code removal
+- [x] Slice 1.3b: Remove dead Supabase storage code
+  - Deleted `farm-frontend/src/lib/supabase-storage.ts` (190 LOC, zero importers — superseded by `farm-blob.ts` + `blob-adapter.ts` during the May 2026 Coolify/Hetzner migration).
+  - Dropped `@supabase/supabase-js@^2.93.3` from `farm-frontend/package.json` (only consumer was the deleted file). `pnpm install` pruned 30+ transitive packages from `node_modules`.
+  - Verified: `tsc --noEmit` PASS, `pnpm build` PASS (254 routes), no regressions.
+  - Removes the `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` concern: env vars can now be safely dropped from `.env.local` (operator action; client bundle no longer references them).
+- [ ] Slice 1.3c: Update Supabase doc references (follow-up)
+  - `README.md`, `farm-frontend/SETUP_CHECKLIST.md`, `farm-frontend/PRISMA_SETUP_SUCCESS.md`, `farm-frontend/WEEK_0_*.md` still document Supabase env vars in setup instructions. Generalize to "managed Postgres" or remove.
+  - `farm-frontend/src/lib/prisma.ts` has Supabase-flavoured doc comments (lines 8, 17, 21) — comments only, no runtime impact, but misleading.
+  - `farm-frontend/scripts/diagnose-database-connection.ts` prints Supabase-specific troubleshooting (URL examples, dashboard links). Either rewrite for Hetzner or delete.
+
 ### Queue Pitti: Pitti Press Imagery (Slice 1.1.2k stack)
 - [x] Slice 1.1.2k-α: Runware scaffold + single-image CLI (commit `05a8881`)
   - Extended `farm-frontend/src/lib/runware-client.ts` with `RUNWARE_MODELS`, `PITTI_STYLE`, `buildPittiPrompt`, optional `model`/`scheduler` request fields.
