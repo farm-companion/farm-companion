@@ -1708,3 +1708,47 @@ Net: +~155 LOC added (new component + helpers + tests), −~600 LOC deleted. Cle
 **PR:** stacked on PR #169 (slice 1.1.2a / 1.1.2b foundation).
 
 **Next slice:** **1.1.2d — Custom MapLibre style JSON.** Author `public/map/field-edition.style.json` (Vellum land, muted blue-grey water, Loam roads at opacities, Hedgerow tints for parks/woods). Wire into `MapLibreShell`. Spec §4, ~200 LOC, includes vendor style URL switch.
+
+### 2026-05-19 — Slice 1.1.2d: Design direction pivot (Field Edition → Pitti Press)
+
+**Goal:** Retire the Field Edition harvest palette (Hedgerow / Rapeseed / Vellum) and repoint the four canonical tokens to **Pitti Press** — a Cassandre / Vignelli flat-colour Italian-poster palette. Triggered by operator screenshot review: the homepage hero "Awaits You" green-text-on-green-tomato-photo failed legibility, and the operator rejected harvest-time as a direction ("we can do better than a stupid harvest time theme"). Direction picked from a four-option pitch: Pitti Press over Field Index / Common Ground / Wild Larder. Operator also locked in **Runware** as the canonical image-generation pipeline for all product imagery.
+
+**Files touched:** 4.
+- CREATE `docs/superpowers/specs/2026-05-19-pitti-press-design.md` — ~340 LOC canonical spec covering reference canon (Cassandre, Vignelli, Calvino, Pitti Uomo, Otl Aicher, Rams), the four-flat-colour system (Vermilion `#D33A2C` / Sea ink `#1F3A5F` / Loam ink `#0F0E0C` / Cream paper `#F2EBDA`), light + dark mode hexes, WCAG contrast table, semantic mapping (success/warning/info/error all collapse to brand or accent — fewer chromatic dimensions, more "designed"), typography direction (GT Cinetype / Tiempos / Plex Mono — deferred to 1.1.2e), printed-map cartography spec (cream land, sea-ink water, hairline Loam roads), signature mechanics (ribbon dividers, sequence numerals), **§6 — Runware imagery pipeline** (FLUX.1 [dev] for hero/county, FLUX.1 [schnell] for the 1,299-farm long tail, linocut LoRA, deterministic seed-from-slug, pre-baked WebP storage at `public/images/{type}/{slug}.webp`, ~£1 per full regeneration sweep), and the 1.1.2d-α through 1.1.2k migration plan.
+- MODIFY `docs/superpowers/specs/2026-05-19-the-field-edition-design.md` — added a 4-line SUPERSEDED header pointing at the Pitti Press spec, with the legibility reason recorded for provenance.
+- MODIFY `farm-frontend/src/styles/harvest-theme.css` — repointed `--brand`, `--brand-hover`, `--brand-text`, `--accent`, `--accent-text`, `--ink`, `--paper` to Pitti Press hexes (light, dark, and system-preference fallback blocks — three locations). Added new `--map-water` and `--map-park` tokens at all three locations for Slice 1.1.2d-α's runtime theming pass. `--ink-muted`, `--ink-subtle`, `--surface`, `--surface-2` left pointing at the existing warm Stone scale — those still read correctly on Cream paper.
+- MODIFY `docs/assistant/execution-ledger.md` — this entry.
+
+**Net diff:** +400 / −20 LOC (dominated by the new spec doc, which is documentation per CLAUDE.md slice budget rules).
+
+**Why the alias layer made this cheap:**
+- Slice 1.1.2a's alias-layer doctrine — every Tailwind utility key (`bg-brand`, `text-ink`, `bg-paper`, `bg-brand-action`, `text-text-body`, etc.) resolves through `var(--brand)` etc. — means we can repoint *all* component chroma by changing four hex values.
+- Three shipped slices (1.1.2a tokens, 1.1.2b cluster polish, 1.1.2c preview card re-skin) automatically inherit Pitti Press colours: clusters become Vermilion instead of Hedgerow, the Open Now pill becomes Sea ink instead of Rapeseed, the View Details CTA becomes Vermilion instead of Hedgerow. Zero component code changed in this slice.
+- This validates the alias-layer architectural decision retroactively. The next palette pivot (if any) would also be ~30 LOC.
+
+**Imagery pipeline doctrine (new in this spec):**
+- All product imagery generated via **Runware** (https://runware.ai). No stock photography. No commissioned illustration. The same linocut style across every hero, every county vignette (~85), every farm header (~1,299), every seasonal crop (~30). The style itself is the brand.
+- Model selection: FLUX.1 [dev] (`runware:101@1`) for high-stakes low-volume, FLUX.1 [schnell] (`runware:100@1`) for the farm-header long tail. Both stateless via API; we download immediately to `public/images/{type}/{slug}.webp`.
+- Determinism: seed = `hash(slug + version)`. Idempotent generation script. ~£1 per full 1,400-image regeneration sweep at current Runware pricing.
+- Implementation deferred to Slice 1.1.2k, blocked on operator providing `RUNWARE_API_KEY`.
+
+**Verification (run 2026-05-19 ~08:55 BST):**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` — PASS (no output, exit 0).
+- ✅ `cd farm-frontend && pnpm build` — PASS (exit 0, full route manifest).
+- ⏳ Manual visual smoke: cluster markers should now render Vermilion (was Hedgerow green); preview card CTA Vermilion + Open Now pill Sea-ink (was Hedgerow + Rapeseed); homepage hero anchor word should also flip to Vermilion through the alias chain — confirms the alias-layer thesis end-to-end.
+
+**Visible impact (predicted):**
+- Cluster markers: Hedgerow green → Vermilion red. Clusters now read as the Italian-poster statement we want.
+- Preview card: CTA Hedgerow → Vermilion; Open Now badge Rapeseed → Sea ink. Card now has TWO chromatic moments (red CTA, blue badge) — but each plays a clearly different semantic role (action vs information).
+- Homepage hero "Awaits You": legacy desaturated leaf-green → Vermilion. Should pop hard against the food photo and fix the original readability complaint, though a proper hero redesign (Slice 1.1.2f) is still queued.
+- Map: still using vendor Stadia chroma — looks the same as before. The runtime theming pass (1.1.2d-α) is what changes the map.
+
+**Operator follow-ups:**
+- ⏳ Manual visual smoke at `/`, `/map`, and a `/shop/{slug}` page in both light and dark mode. Confirm Vermilion + Sea ink read coherently and that no legacy green/yellow chroma leaks through.
+- ⏳ Provide `RUNWARE_API_KEY` to unblock Slice 1.1.2k (imagery pipeline). The key should land in Vercel project env vars + local `.env.local`.
+
+**Risk and rollback:** Low. The alias layer means worst case is a single-commit revert to restore Field Edition. No component code touched. No SEO impact. Rollback: `git revert <slice sha>`.
+
+**PR:** stacked on PR #169 (slice 1.1.2a / 1.1.2b / 1.1.2c foundation). PR title and description should be updated to reflect the Pitti Press direction.
+
+**Next slice:** **1.1.2d-α — Runtime map theming pass.** New module `farm-frontend/src/features/map/lib/map-theme.ts` that, after `map.on('load')`, walks `getStyle().layers` and overrides Stadia's paint to Pitti Press values (Cream land, Sea-ink water, Loam-ink roads at graduated opacity, halftone-tinted parks). Inherits Stadia's sources/glyphs/sprites; contributes only paint deltas. ~80 LOC, schema-drift-tolerant via try/catch per layer set. Standalone style.json deferred to 1.1.2d-β once vector-tile provisioning is audited in production.

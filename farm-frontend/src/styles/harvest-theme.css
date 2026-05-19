@@ -74,22 +74,29 @@
 
 @layer base {
   :root {
-    /* ===== The Field Edition canonical tokens (light mode) =====
-       Four brand colours + warm Stone chrome. Components should consume
+    /* ===== Pitti Press canonical tokens (light mode) =====
+       Spec: docs/superpowers/specs/2026-05-19-pitti-press-design.md
+       Supersedes Field Edition (Hedgerow / Rapeseed / Vellum).
+       Cassandre / Vignelli flat-colour ribbon palette. Components consume
        these via Tailwind utilities (bg-brand, text-ink, bg-paper, etc.). */
 
-    /* The four brand colours */
-    --brand:         var(--harvest-leaf-900);   /* Hedgerow #14532D — 8.1:1 on Vellum, AAA */
-    --brand-hover:   var(--harvest-leaf-800);   /*           #166534 */
-    --brand-text:    #FFFFFF;                    /* FG on Hedgerow fill — 8.9:1 AAA */
-    --accent:        var(--harvest-rapeseed-500); /* Rapeseed #E0A82E — fill only */
-    --accent-text:   var(--harvest-soil-900);    /* Loam on Rapeseed — 9.6:1 AAA */
-    --ink:           var(--harvest-soil-900);    /* Loam #1C1917 — 17.4:1 on Vellum */
-    --ink-muted:     var(--harvest-soil-600);    /*      #57534E — 6.8:1 AAA-large */
-    --ink-subtle:    var(--harvest-soil-500);    /*      #78716C — placeholder/tertiary */
-    --paper:         var(--harvest-vellum);      /* Vellum #F5EFE0 — page canvas */
+    /* The four flat colours */
+    --brand:         #D33A2C;                    /* Vermilion — Cassandre red, 4.7:1 on Cream (AA-large, fill only) */
+    --brand-hover:   #B82E22;                    /* Darker Vermilion for :hover state */
+    --brand-text:    #FFFFFF;                    /* FG on Vermilion fill — 4.5:1 AA */
+    --accent:        #1F3A5F;                    /* Sea ink — Italian poster ocean, 9.4:1 on Cream, AAA */
+    --accent-text:   #FFFFFF;                    /* FG on Sea ink fill — 11.7:1 AAA */
+    --ink:           #0F0E0C;                    /* Loam ink — warm near-black, 16.8:1 on Cream, AAA */
+    --ink-muted:     var(--harvest-soil-600);    /* Stone-600 #57534E — 6.8:1 AAA-large */
+    --ink-subtle:    var(--harvest-soil-500);    /* Stone-500 #78716C — placeholder/tertiary */
+    --paper:         #F2EBDA;                    /* Cream paper — aged printed stock */
     --surface:       #FFFFFF;                    /* Card surface — lifts above paper */
     --surface-2:     var(--harvest-soil-50);     /* Elevated surface (modals, popovers) */
+
+    /* Map chroma — printed-paper cartography (Pitti Press §4).
+       Used by the MapLibre runtime theming pass (1.1.2d-α). */
+    --map-water:     #1F3A5F;                    /* Sea ink — same as --accent */
+    --map-park:      #E8E1D0;                    /* Warm halftone tint on Cream — not green */
 
     /* Page & Surface Backgrounds — point at Field Edition tokens */
     --background:           var(--paper);            /* Page = Vellum, not chalk white */
@@ -192,18 +199,24 @@
      ========================================================================== */
 
   .dark {
-    /* ===== The Field Edition canonical tokens (dark mode) ===== */
-    --brand:         var(--harvest-leaf-400);    /* Hedgerow #4ADE80 — 11.4:1 on Pure Ink */
-    --brand-hover:   var(--harvest-leaf-300);    /*           #86EFAC */
-    --brand-text:    var(--harvest-soil-950);    /* Pure Ink on Hedgerow fill */
-    --accent:        var(--harvest-rapeseed-400); /* Rapeseed #FBBF24 — 13.1:1, usable as text */
-    --accent-text:   var(--harvest-soil-950);    /* Pure Ink on Rapeseed */
-    --ink:           var(--harvest-soil-100);    /* Loam (inverted) #F5F5F4 — 18.8:1 */
-    --ink-muted:     var(--harvest-soil-400);    /*                #A8A29E */
-    --ink-subtle:    var(--harvest-soil-500);    /*                #78716C */
-    --paper:         var(--harvest-soil-950);    /* Pure Ink #0C0A09 — OLED page */
+    /* ===== Pitti Press canonical tokens (dark mode) =====
+       "Warehouse lights off, reading the printed page by table-lamp."
+       Paper is a warm dark brown, not pure black. */
+    --brand:         #FF6B5B;                    /* Salmon Vermilion — saturated for low light, 5.9:1 on dark paper */
+    --brand-hover:   #FF8978;                    /* Lighter Vermilion for :hover */
+    --brand-text:    #15120D;                    /* Dark paper on Vermilion fill */
+    --accent:        #6FA0D9;                    /* Sky denim — Sea ink saturated up, 7.4:1 AAA */
+    --accent-text:   #15120D;                    /* Dark paper on Sea ink fill */
+    --ink:           #F4F1EA;                    /* Warm cream-white ink — 16.5:1 on dark paper */
+    --ink-muted:     var(--harvest-soil-400);    /* Stone-400 #A8A29E */
+    --ink-subtle:    var(--harvest-soil-500);    /* Stone-500 #78716C */
+    --paper:         #15120D;                    /* Dark printed-page brown — not OLED black */
     --surface:       var(--harvest-soil-900);    /* Card surface lifts above paper */
     --surface-2:     var(--harvest-soil-800);    /* Elevated surface */
+
+    /* Map chroma — dark-mode printed paper */
+    --map-water:     #6FA0D9;                    /* Sky denim — same as --accent */
+    --map-park:      #23201A;                    /* Warm subtle tint on dark paper */
 
     /* Page & Surface Backgrounds — Elevation by luminance */
     --background:           var(--paper);
@@ -373,18 +386,20 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    /* The Field Edition canonical tokens (system-dark fallback) */
-    --brand:         var(--harvest-leaf-400);
-    --brand-hover:   var(--harvest-leaf-300);
-    --brand-text:    var(--harvest-soil-950);
-    --accent:        var(--harvest-rapeseed-400);
-    --accent-text:   var(--harvest-soil-950);
-    --ink:           var(--harvest-soil-100);
+    /* Pitti Press canonical tokens (system-dark fallback) */
+    --brand:         #FF6B5B;                    /* Salmon Vermilion */
+    --brand-hover:   #FF8978;
+    --brand-text:    #15120D;
+    --accent:        #6FA0D9;                    /* Sky denim */
+    --accent-text:   #15120D;
+    --ink:           #F4F1EA;                    /* Warm cream-white */
     --ink-muted:     var(--harvest-soil-400);
     --ink-subtle:    var(--harvest-soil-500);
-    --paper:         var(--harvest-soil-950);
+    --paper:         #15120D;                    /* Dark printed-page brown */
     --surface:       var(--harvest-soil-900);
     --surface-2:     var(--harvest-soil-800);
+    --map-water:     #6FA0D9;
+    --map-park:      #23201A;
 
     --background:           var(--paper);
     --background-secondary: var(--surface);

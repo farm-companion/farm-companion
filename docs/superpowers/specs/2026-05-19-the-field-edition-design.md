@@ -1,5 +1,9 @@
 # The Field Edition — Farm Companion Design System
 
+> ⚠️ **SUPERSEDED** on 2026-05-19 by [`2026-05-19-pitti-press-design.md`](./2026-05-19-pitti-press-design.md).
+>
+> The Hedgerow / Rapeseed / Vellum harvest palette was retired after the homepage hero (`"Awaits You"` green-on-green) failed the screenshot legibility review and the operator requested a more aspirational direction. The alias-layer doctrine (Slice 1.1.2a) carries over to Pitti Press unchanged — only the four canonical tokens (`--brand`, `--accent`, `--ink`, `--paper`) are repointed. Kept here for provenance and decision-log purposes.
+
 **Spec date:** 2026-05-19
 **Status:** Approved (operator granted full autonomy 2026-05-19 ~00:30 GMT+1)
 **Supersedes:**
