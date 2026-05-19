@@ -163,87 +163,89 @@
   --font-accent: 'IBM Plex Sans Condensed', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 
   /* ==========================================================================
-     OBSIDIAN & KINETIC COLOR SYSTEM - SURPASSES APPLE
-     Zinc-based neutrals with Kinetic Cyan accents
-     All text colors verified for 7:1+ contrast ratio (WCAG AAA)
+     THE FIELD EDITION — Light mode token layer
+     The canonical four-colour brand + Stone chrome lives in harvest-theme.css
+     (--brand, --accent, --ink, --paper, --surface, --surface-2, --border*,
+     --ink-muted, --ink-subtle). This block defines the legacy ALIAS surface
+     so existing consumers (`--brand-primary`, `--kinetic`, `--seasonal-*`,
+     `--serum`, `--solar`, `--obsidian`, `--text-heading`, `--background-canvas`)
+     keep resolving while the codebase is migrated in slices 1.1.2b–1.1.2g.
      ========================================================================== */
 
-  /* Text Colors - WCAG AAA Verified on Zinc */
-  --text-heading: #18181B;     /* 17.4:1 on white - Zinc 900, maximum legibility */
-  --text-body: #27272A;        /* 14.2:1 on white - Zinc 800, comfortable reading */
-  --text-muted: #52525B;       /* 7.2:1 on white - Zinc 600, WCAG AAA for small text */
-  --text-subtle: #71717A;      /* 5.0:1 on white - Zinc 500, AAA for large text only */
+  /* Text aliases — point at Loam */
+  --text-heading: var(--ink);
+  --text-body:    var(--ink);
+  --text-muted:   var(--ink-muted);
+  --text-subtle:  var(--ink-subtle);
 
-  /* Obsidian Neutrals - Light Mode (Zinc-Warm) */
-  --obsidian-canvas: #FFFFFF;
-  --obsidian-surface: #F9F9FB;       /* Warm surface - adds depth to cards */
-  --obsidian-elevated: #F1F1F4;      /* Clear separation for dropdowns/modals */
-  --obsidian-muted: #E4E4E7;         /* Zinc 200 - hover states */
-  --obsidian-border: #E4E4E7;        /* Zinc 200 - refined borders */
+  /* Obsidian neutral aliases — point at Field Edition surfaces */
+  --obsidian-canvas:   var(--paper);
+  --obsidian-surface:  var(--surface);
+  --obsidian-elevated: var(--surface-2);
+  --obsidian-muted:    var(--surface-2);
+  --obsidian-border:   var(--border);
 
-  /* Background Colors - Zinc-Warm */
-  --background-canvas: #FFFFFF;
-  --background-surface: #F9F9FB;     /* Warm surface elevation */
-  --background-elevated: #F1F1F4;    /* Cards, dropdowns */
-  --background-hover: #E4E4E7;       /* Interactive hover states */
+  /* Background aliases */
+  --background-canvas:   var(--paper);
+  --background-surface:  var(--surface);
+  --background-elevated: var(--surface-2);
+  --background-hover:    var(--surface-2);
 
-  /* Overlay Colors - Alpha transparency for Light Mode */
-  --overlay-light: rgba(0, 0, 0, 0.02);
-  --overlay-medium: rgba(0, 0, 0, 0.04);
-  --overlay-strong: rgba(0, 0, 0, 0.06);
+  /* Overlay colours — Loam-tinted alphas (was pure black) */
+  --overlay-light:  rgba(28, 25, 23, 0.02);
+  --overlay-medium: rgba(28, 25, 23, 0.04);
+  --overlay-strong: rgba(28, 25, 23, 0.06);
 
-  /* Border Colors - Refined Zinc hierarchy */
-  --border-default: #E4E4E7;   /* Zinc 200 - standard borders */
-  --border-subtle: #F4F4F5;    /* Zinc 100 - subtle dividers */
-  --border-strong: #D4D4D8;    /* Zinc 300 - emphasized borders */
-  --border-focus: #06B6D4;     /* Kinetic Cyan - focus rings */
+  /* Border aliases — --border, --border-subtle, --border-strong owned by harvest-theme.css */
+  --border-default: var(--border);
+  --border-focus:   var(--brand);
 
-  /* Kinetic Primary - Electric Cyan */
-  --kinetic: #06B6D4;          /* Cyan 500 - 4.5:1 on white */
-  --kinetic-dark: #0891B2;     /* Cyan 600 - 5.8:1 on white */
-  --kinetic-text: #155E75;     /* Cyan 800 - 8.1:1 on white, AAA compliant */
-  --kinetic-glow: rgba(6, 182, 212, 0.15);
+  /* Kinetic Cyan aliases — Cyan is dead in The Field Edition; redirect to Hedgerow */
+  --kinetic:      var(--brand);
+  --kinetic-dark: var(--brand-hover);
+  --kinetic-text: var(--brand);
+  --kinetic-glow: rgba(20, 83, 45, 0.15);
 
-  /* Iris Secondary - Deep Violet */
-  --iris: #6366F1;             /* Indigo 500 - 4.5:1 on white */
-  --iris-dark: #4F46E5;        /* Indigo 600 - 5.9:1 on white */
-  --iris-glow: rgba(99, 102, 241, 0.15);
+  /* Iris Indigo aliases — redirect to Hedgerow (Indigo deleted) */
+  --iris:      var(--brand);
+  --iris-dark: var(--brand-hover);
+  --iris-glow: rgba(20, 83, 45, 0.15);
 
-  /* Brand Colors - Kinetic mapping */
-  --brand-primary: #06B6D4;    /* Kinetic Cyan */
-  --brand-primary-dark: #0891B2;
-  --brand-primary-text: #155E75;
-  --brand-accent: #84cc16;     /* Solar Lime - accent highlights */
-  --brand-accent-dark: #65a30d;
+  /* Brand Primary aliases — repointed from Kinetic Cyan to Hedgerow */
+  --brand-primary:      var(--brand);
+  --brand-primary-dark: var(--brand-hover);
+  --brand-primary-text: var(--brand-text);
 
-  /* Map-surface CTAs and clusters (Phase 1.1 — earthy primary).
-     Resolves via --harvest-leaf-* palette imported from harvest-theme.css. */
-  --brand-action: var(--harvest-leaf-900);        /* #14532D */
-  --brand-action-hover: var(--harvest-leaf-800);  /* #166534 */
-  --brand-action-text: #FFFFFF;
+  /* Brand Accent aliases — repointed from Solar Lime to Rapeseed */
+  --brand-accent:      var(--accent);
+  --brand-accent-dark: var(--harvest-rapeseed-600);
 
-  /* Legacy brand colors (compatibility layer) */
-  --serum: #06B6D4;            /* Now Kinetic Cyan */
-  --serum-light: #22D3EE;      /* Cyan 400 for backgrounds */
-  --serum-text: #155E75;       /* Cyan 800 - AAA text */
-  --solar: #4d7c0f;            /* Lime 700 - preserved */
-  --solar-light: #84cc16;
-  --solar-text: #3f6212;
-  --obsidian: #18181B;         /* Now Zinc 900 */
+  /* Brand Action — already Hedgerow in Phase 1.1.1; canonicalise via --brand */
+  --brand-action:       var(--brand);
+  --brand-action-hover: var(--brand-hover);
+  --brand-action-text:  var(--brand-text);
 
-  /* Semantic Feedback - Elevated palette */
-  --success: #10B981;          /* Emerald 500 - vibrant */
-  --success-text: #064E3B;     /* Emerald 900 - 9.8:1 on white */
-  --success-bg: #D1FAE5;       /* Emerald 100 */
-  --warning: #F59E0B;          /* Amber 500 - vibrant */
-  --warning-text: #78350F;     /* Amber 900 - 8.2:1 on white */
-  --warning-bg: #FEF3C7;       /* Amber 100 */
-  --error: #F43F5E;            /* Rose/Ember 500 - neon red */
-  --error-text: #881337;       /* Rose 900 - 8.9:1 on white */
-  --error-bg: #FFE4E6;         /* Rose 100 */
-  --info: #0EA5E9;             /* Sky 500 - vibrant */
-  --info-text: #0C4A6E;        /* Sky 900 - 9.1:1 on white */
-  --info-bg: #E0F2FE;          /* Sky 100 */
+  /* Legacy compatibility layer — all redirected to Field Edition tokens */
+  --serum:       var(--brand);
+  --serum-light: var(--harvest-leaf-700);
+  --serum-text:  var(--brand);
+  --solar:       var(--brand);
+  --solar-light: var(--harvest-leaf-700);
+  --solar-text:  var(--brand);
+  --obsidian:    var(--ink);
+
+  /* Semantic feedback BG tints — point at Field Edition.
+     Foreground tokens (--success, --warning, --error, --info) are owned
+     exclusively by harvest-theme.css and intentionally NOT redeclared here
+     so its brand-pointing values win without a specificity tie. */
+  --success-text: var(--brand-text);
+  --success-bg:   var(--harvest-leaf-100);
+  --warning-text: var(--accent-text);
+  --warning-bg:   #FEF3C7;   /* Amber 100 — Rapeseed tint */
+  --error-text:   #FFFFFF;
+  --error-bg:     #FEE2E2;   /* Red 100 — the one exception */
+  --info-text:    var(--paper);
+  --info-bg:      var(--surface-2);
 
   /* Layout */
   --header-h: 64px;
@@ -262,14 +264,25 @@
   --density-button-height: 44px;
   --density-input-height: 44px;
 
-  /* Seasonal color palette - Editorial British food magazine aesthetic */
-  --seasonal-cream: #faf5f0;
-  --seasonal-forest: #14532d;  /* Green 900 - WCAG AAA */
-  --seasonal-charcoal: #1e293b;
-  --seasonal-spring: #86efac;  /* Green 300 */
-  --seasonal-summer: #fde047;  /* Yellow 300 */
-  --seasonal-autumn: #f97316;  /* Orange 500 */
-  --seasonal-winter: #64748b;  /* Slate 500 */
+  /* Seasonal palette aliases — redirected to Field Edition tokens.
+     The seven-token seasonal system is scheduled for deletion in Slice 1.1.2g
+     once consumers are migrated to --brand / --accent / --ink directly. */
+  --seasonal-cream:    var(--paper);
+  --seasonal-forest:   var(--brand);
+  --seasonal-charcoal: var(--ink);
+  --seasonal-spring:   var(--harvest-leaf-300);
+  --seasonal-summer:   var(--accent);
+  --seasonal-autumn:   var(--harvest-rapeseed-600);
+  --seasonal-winter:   var(--ink-muted);
+
+  /* ==========================================================================
+     THE FIELD EDITION — Motion tokens
+     Three custom easing curves (Emil Kowalski's animations.dev framework).
+     Native `ease-in` is banned for UI; native `ease` is colour/opacity only.
+     ========================================================================== */
+  --ease-out-strong:    cubic-bezier(0.23, 1, 0.32, 1);     /* UI default — enters, presses */
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);    /* on-screen movement */
+  --ease-drawer:        cubic-bezier(0.32, 0.72, 0, 1);     /* iOS-like sheets */
 
   /* Premium shadows - Apple-style depth */
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.05);
@@ -506,93 +519,87 @@ button {
 }
 
 /* ==========================================================================
-   OBSIDIAN DARK THEME - WCAG AAA COMPLIANT
-   Zinc-based dark mode with Kinetic Cyan accents
-   All text colors verified for 7:1+ contrast on #09090B
-   ========================================================================== */
-
-/* ==========================================================================
-   DARK THEME - OBSIDIAN DEEP (OLED-OPTIMIZED)
-   Pure black canvas (#050505) allows OLED pixels to turn off.
-   Desaturated neutrals prevent "neon" fatigue.
+   THE FIELD EDITION — Dark mode token layer
+   Mirrors the light-mode alias surface above. Canonical tokens
+   (--brand, --accent, --ink, --paper, --surface, --surface-2, --border*,
+   --ink-muted, --ink-subtle) are owned by harvest-theme.css and flip on
+   the `.dark` class. This block re-points only the legacy aliases.
    ========================================================================== */
 .dark {
-  /* Text Colors - WCAG AAA on Obsidian #050505 */
-  --text-heading: #FAFAFA;     /* Zinc 50 - 19.8:1 on #050505 */
-  --text-body: #E4E4E7;        /* Zinc 200 - 15.2:1 on #050505 */
-  --text-muted: #A1A1AA;       /* Zinc 400 - 7.6:1 on #050505, desaturated */
-  --text-subtle: #71717A;      /* Zinc 500 - 4.8:1 on #050505 */
+  /* Text aliases — point at inverted Loam */
+  --text-heading: var(--ink);
+  --text-body:    var(--ink);
+  --text-muted:   var(--ink-muted);
+  --text-subtle:  var(--ink-subtle);
 
-  /* Obsidian-Deep Neutrals - OLED Optimized */
-  --obsidian-canvas: #050505;        /* Pure Ink - OLED pixels off */
-  --obsidian-surface: #121214;       /* Subtle lift for cards */
-  --obsidian-elevated: #1E1E21;      /* Clear modal/dropdown separation */
-  --obsidian-muted: #2A2A2E;         /* Hover states - desaturated */
-  --obsidian-border: #3A3A3F;        /* Borders - slightly warmer */
+  /* Obsidian neutral aliases */
+  --obsidian-canvas:   var(--paper);
+  --obsidian-surface:  var(--surface);
+  --obsidian-elevated: var(--surface-2);
+  --obsidian-muted:    var(--surface-2);
+  --obsidian-border:   var(--border);
 
-  /* Background Colors - OLED Optimized */
-  --background-canvas: #050505;      /* Pure Ink */
-  --background-surface: #121214;     /* Card backgrounds */
-  --background-elevated: #1E1E21;    /* Modals, dropdowns */
-  --background-hover: #2A2A2E;       /* Interactive hover */
+  /* Background aliases */
+  --background-canvas:   var(--paper);
+  --background-surface:  var(--surface);
+  --background-elevated: var(--surface-2);
+  --background-hover:    var(--surface-2);
 
-  /* Border Colors - Luminance-based (not solid colors) */
-  --border-default: rgba(255, 255, 255, 0.08);  /* Border lights */
-  --border-subtle: rgba(255, 255, 255, 0.04);   /* Subtle dividers */
-  --border-strong: rgba(255, 255, 255, 0.12);   /* Emphasized borders */
-  --border-focus: #22D3EE;     /* Kinetic Cyan 400 - brighter on dark */
+  /* Border aliases — main border vars owned by harvest-theme.css */
+  --border-default: var(--border);
+  --border-focus:   var(--brand);
 
-  /* Overlay Colors - Alpha transparency */
-  --overlay-light: rgba(255, 255, 255, 0.03);
-  --overlay-medium: rgba(255, 255, 255, 0.06);
-  --overlay-strong: rgba(255, 255, 255, 0.10);
+  /* Overlay colours — paper-tinted alphas on dark */
+  --overlay-light:  rgba(245, 245, 244, 0.03);
+  --overlay-medium: rgba(245, 245, 244, 0.06);
+  --overlay-strong: rgba(245, 245, 244, 0.10);
 
-  /* Kinetic Primary - Brighter on dark */
-  --kinetic: #22D3EE;          /* Cyan 400 - 10.2:1 on dark */
-  --kinetic-dark: #06B6D4;     /* Cyan 500 */
-  --kinetic-text: #67E8F9;     /* Cyan 300 - 12.8:1 on dark */
-  --kinetic-glow: rgba(34, 211, 238, 0.2);
+  /* Kinetic Cyan aliases — redirect to Hedgerow */
+  --kinetic:      var(--brand);
+  --kinetic-dark: var(--brand-hover);
+  --kinetic-text: var(--brand);
+  --kinetic-glow: rgba(74, 222, 128, 0.18);
 
-  /* Iris Secondary - Brighter on dark */
-  --iris: #818CF8;             /* Indigo 400 - 7.2:1 on dark */
-  --iris-dark: #6366F1;        /* Indigo 500 */
-  --iris-glow: rgba(129, 140, 248, 0.2);
+  /* Iris Indigo aliases — redirect to Hedgerow */
+  --iris:      var(--brand);
+  --iris-dark: var(--brand-hover);
+  --iris-glow: rgba(74, 222, 128, 0.18);
 
-  /* Brand Colors */
-  --brand-primary: #22D3EE;    /* Kinetic Cyan 400 */
-  --brand-primary-dark: #06B6D4;
-  --brand-primary-text: #67E8F9;
-  --brand-accent: #a3e635;     /* Lime 400 */
-  --brand-accent-dark: #84cc16;
+  /* Brand Primary aliases — Hedgerow brighter on dark */
+  --brand-primary:      var(--brand);
+  --brand-primary-dark: var(--brand-hover);
+  --brand-primary-text: var(--brand-text);
 
-  --brand-action: var(--harvest-leaf-500);        /* #22C55E — brighter on dark per WCAG */
-  --brand-action-hover: var(--harvest-leaf-400);  /* #4ADE80 */
-  --brand-action-text: #052e16;                   /* harvest-leaf-950 equivalent for contrast */
+  /* Brand Accent aliases — Rapeseed brighter on dark */
+  --brand-accent:      var(--accent);
+  --brand-accent-dark: var(--harvest-rapeseed-300);
 
-  /* Legacy brand colors */
-  --serum: #22D3EE;            /* Kinetic Cyan */
-  --serum-light: #67E8F9;      /* Cyan 300 */
-  --serum-text: #67E8F9;       /* Cyan 300 - AAA on dark */
-  --solar: #a3e635;            /* Lime 400 */
-  --solar-light: #bef264;      /* Lime 300 */
-  --solar-text: #bef264;       /* Lime 300 - AAA on dark */
-  --obsidian: #FAFAFA;         /* Inverted for dark mode */
+  /* Brand Action — canonicalise via --brand (was harvest-leaf-500 directly) */
+  --brand-action:       var(--brand);
+  --brand-action-hover: var(--brand-hover);
+  --brand-action-text:  var(--brand-text);
 
-  /* Semantic Feedback - Elevated palette on dark */
-  --success: #34D399;          /* Emerald 400 - 9.8:1 on dark */
-  --success-text: #6EE7B7;     /* Emerald 300 - 12.1:1 on dark */
-  --success-bg: #064E3B;       /* Emerald 900 */
-  --warning: #FBBF24;          /* Amber 400 - 12.4:1 on dark */
-  --warning-text: #FDE68A;     /* Amber 200 - 15.8:1 on dark */
-  --warning-bg: #78350F;       /* Amber 900 */
-  --error: #FB7185;            /* Rose 400 - 7.2:1 on dark */
-  --error-text: #FDA4AF;       /* Rose 300 - 9.6:1 on dark */
-  --error-bg: #881337;         /* Rose 900 */
-  --info: #38BDF8;             /* Sky 400 - 9.4:1 on dark */
-  --info-text: #7DD3FC;        /* Sky 300 - 11.8:1 on dark */
-  --info-bg: #0C4A6E;          /* Sky 900 */
+  /* Legacy compatibility layer — all redirected to Field Edition tokens */
+  --serum:       var(--brand);
+  --serum-light: var(--harvest-leaf-300);
+  --serum-text:  var(--brand);
+  --solar:       var(--brand);
+  --solar-light: var(--harvest-leaf-300);
+  --solar-text:  var(--brand);
+  --obsidian:    var(--ink);
 
-  /* Shadows - deeper for true black */
+  /* Semantic feedback BG tints — point at Field Edition.
+     Foreground tokens owned exclusively by harvest-theme.css (see light block). */
+  --success-text: var(--brand-text);
+  --success-bg:   var(--harvest-leaf-900);
+  --warning-text: var(--accent-text);
+  --warning-bg:   #78350F;   /* Amber 900 — Rapeseed deep tint */
+  --error-text:   var(--paper);
+  --error-bg:     #7F1D1D;   /* Red 900 */
+  --info-text:    var(--paper);
+  --info-bg:      var(--surface-2);
+
+  /* Shadows — deeper for true black, Loam-tinted */
   --shadow-xs: 0 1px 2px 0 rgb(0 0 0 / 0.4);
   --shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.5), 0 1px 2px -1px rgb(0 0 0 / 0.4);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.5), 0 2px 4px -2px rgb(0 0 0 / 0.4);
@@ -604,30 +611,28 @@ button {
 /* Dark theme support - System preference (uses Obsidian tokens) */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
-    /* Text Colors - WCAG AAA on Obsidian #050505 */
-    --text-heading: #FAFAFA;
-    --text-body: #E4E4E7;
-    --text-muted: #A1A1AA;
-    --text-subtle: #71717A;
+    /* The Field Edition — system-preference dark fallback.
+       Mirrors the .dark block alias surface; canonical tokens come from
+       harvest-theme.css's matching @media block. */
+    --text-heading: var(--ink);
+    --text-body:    var(--ink);
+    --text-muted:   var(--ink-muted);
+    --text-subtle:  var(--ink-subtle);
 
-    /* Obsidian Backgrounds */
-    --background-canvas: #050505;
-    --background-surface: #121214;
-    --background-elevated: #1E1E21;
-    --background-hover: #2A2A2E;
+    --background-canvas:   var(--paper);
+    --background-surface:  var(--surface);
+    --background-elevated: var(--surface-2);
+    --background-hover:    var(--surface-2);
 
-    /* Border Luminance (not solid colors) */
-    --border-default: rgba(255, 255, 255, 0.08);
-    --border-subtle: rgba(255, 255, 255, 0.04);
-    --border-strong: rgba(255, 255, 255, 0.12);
-    --border-focus: #22D3EE;
+    --border-default: var(--border);
+    --border-focus:   var(--brand);
 
-    /* Kinetic Cyan - brighter on dark */
-    --brand-primary: #22D3EE;
-    --brand-primary-dark: #06B6D4;
-    --brand-primary-text: #67E8F9;
-    --serum: #22D3EE;
-    --serum-light: #67E8F9;
+    /* Kinetic/legacy redirects to Field Edition */
+    --brand-primary:      var(--brand);
+    --brand-primary-dark: var(--brand-hover);
+    --brand-primary-text: var(--brand-text);
+    --serum:              var(--brand);
+    --serum-light:        var(--harvest-leaf-300);
 
     --shadow-glass: 0 8px 32px rgb(0 0 0 / 0.4), 0 2px 8px rgb(0 0 0 / 0.3);
   }

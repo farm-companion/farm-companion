@@ -161,17 +161,31 @@ module.exports = {
         },
 
         // =======================================================================
+        // THE FIELD EDITION — canonical utility keys (use these in new code)
+        // =======================================================================
+        brand: 'var(--brand)',
+        'brand-hover': 'var(--brand-hover)',
+        'brand-text': 'var(--brand-text)',
+        'accent-text': 'var(--accent-text)',
+        ink: 'var(--ink)',
+        'ink-muted': 'var(--ink-muted)',
+        'ink-subtle': 'var(--ink-subtle)',
+        paper: 'var(--paper)',
+        surface: 'var(--surface)',
+        'surface-2': 'var(--surface-2)',
+
+        // =======================================================================
         // PRIMITIVE SCALES (For advanced use only - prefer semantics above)
         // =======================================================================
-        // Obsidian Neutrals (Zinc-based)
+        // Obsidian Neutrals — flipped to Stone (warm) per The Field Edition
         obsidian: {
-          DEFAULT: '#18181B',
-          canvas: '#FFFFFF',
+          DEFAULT: 'var(--ink)',
+          canvas: 'var(--paper)',
           'canvas-dark': '#0C0A09',
-          surface: '#FAFAFA',
-          elevated: '#F4F4F5',
-          muted: '#E4E4E7',
-          border: '#D4D4D8',
+          surface: 'var(--surface)',
+          elevated: 'var(--surface-2)',
+          muted: 'var(--surface-2)',
+          border: 'var(--border-strong)',
         },
 
         zinc: {
@@ -188,62 +202,67 @@ module.exports = {
           950: '#09090B',
         },
 
-        // Kinetic Cyan
+        // Kinetic Cyan — REDIRECTED to Hedgerow.
+        // Cyan is dead in The Field Edition. The scale is retained for
+        // compatibility but every shade resolves to a Leaf-scale equivalent.
+        // Full removal scheduled for Slice 1.1.2g.
         kinetic: {
-          DEFAULT: '#06B6D4',
-          50: '#ECFEFF',
-          100: '#CFFAFE',
-          200: '#A5F3FC',
-          300: '#67E8F9',
-          400: '#22D3EE',
-          500: '#06B6D4',
-          600: '#0891B2',
-          700: '#0E7490',
-          800: '#155E75',
-          900: '#164E63',
-          glow: 'rgba(6, 182, 212, 0.15)',
+          DEFAULT: 'var(--brand)',
+          50:  '#F0FDF4',  // harvest-leaf-50
+          100: '#DCFCE7',  // harvest-leaf-100
+          200: '#BBF7D0',  // harvest-leaf-200
+          300: '#86EFAC',  // harvest-leaf-300
+          400: '#4ADE80',  // harvest-leaf-400 (dark-mode brand)
+          500: '#22C55E',  // harvest-leaf-500
+          600: '#16A34A',  // harvest-leaf-600
+          700: '#15803D',  // harvest-leaf-700
+          800: '#166534',  // harvest-leaf-800
+          900: '#14532D',  // harvest-leaf-900 (light-mode brand)
+          glow: 'rgba(20, 83, 45, 0.15)',
         },
 
-        // Iris Violet
+        // Iris Indigo — REDIRECTED to Hedgerow. Indigo deleted from system.
         iris: {
-          DEFAULT: '#6366F1',
-          50: '#EEF2FF',
-          100: '#E0E7FF',
-          200: '#C7D2FE',
-          300: '#A5B4FC',
-          400: '#818CF8',
-          500: '#6366F1',
-          600: '#4F46E5',
-          700: '#4338CA',
-          800: '#3730A3',
-          900: '#312E81',
-          glow: 'rgba(99, 102, 241, 0.15)',
+          DEFAULT: 'var(--brand)',
+          50:  '#F0FDF4',
+          100: '#DCFCE7',
+          200: '#BBF7D0',
+          300: '#86EFAC',
+          400: '#4ADE80',
+          500: '#22C55E',
+          600: '#16A34A',
+          700: '#15803D',
+          800: '#166534',
+          900: '#14532D',
+          glow: 'rgba(20, 83, 45, 0.15)',
         },
 
-        // Legacy aliases
+        // Legacy aliases — all redirected to Field Edition tokens.
+        // `bg-serum` and `text-serum` are still used in 52+ places — those
+        // consumers now resolve to Hedgerow without code changes.
         serum: {
-          DEFAULT: '#06B6D4',
-          light: '#22D3EE',
-          text: '#155E75',
-          dark: '#0891B2',
+          DEFAULT: 'var(--brand)',
+          light:   'var(--brand-hover)',
+          text:    'var(--brand)',
+          dark:    'var(--brand-hover)',
         },
-        sandstone: '#FAFAFA',
+        sandstone: 'var(--surface-2)',
         solar: {
-          DEFAULT: '#4d7c0f',
-          light: '#84cc16',
-          text: '#3f6212',
-          dark: '#365314',
+          DEFAULT: 'var(--brand)',
+          light:   'var(--brand-hover)',
+          text:    'var(--brand)',
+          dark:    'var(--brand-hover)',
         },
-        midnight: '#0C0A09',
+        midnight: 'var(--ink)',
 
         'brand-primary': 'var(--brand-primary)',
-        'brand-accent': 'var(--brand-accent)',
-        'brand-danger': '#F43F5E',
+        'brand-accent':  'var(--brand-accent)',
+        'brand-danger':  'var(--destructive)',
 
         // Map-surface CTAs (Phase 1.1 spec §4.5 — locked Option C)
-        'brand-action': 'var(--brand-action)',
+        'brand-action':       'var(--brand-action)',
         'brand-action-hover': 'var(--brand-action-hover)',
-        'brand-action-text': 'var(--brand-action-text)',
+        'brand-action-text':  'var(--brand-action-text)',
 
         // Slate (compatibility)
         slate: {
@@ -261,16 +280,16 @@ module.exports = {
         },
 
         // Legacy CSS variable mappings
-        'background-canvas': 'var(--background-canvas)',
-        'background-surface': 'var(--background-surface)',
+        'background-canvas':   'var(--background-canvas)',
+        'background-surface':  'var(--background-surface)',
         'background-elevated': 'var(--background-elevated)',
-        'background-hover': 'var(--background-hover)',
+        'background-hover':    'var(--background-hover)',
         'text-heading': 'var(--text-heading)',
-        'text-body': 'var(--text-body)',
-        'text-muted': 'var(--text-muted)',
-        'text-subtle': 'var(--text-subtle)',
+        'text-body':    'var(--text-body)',
+        'text-muted':   'var(--text-muted)',
+        'text-subtle':  'var(--text-subtle)',
         'border-default': 'var(--border-default)',
-        'border-focus': 'var(--border-focus)',
+        'border-focus':   'var(--border-focus)',
       },
       
       // Tri-Typeface Strategy - Instrument Hierarchy

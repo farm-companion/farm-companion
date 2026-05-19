@@ -29,18 +29,19 @@ export interface ClusterTier {
   minCount: number
   baseSize: number
   fontSize: number
-  color: string
+  /** Hedgerow fill-opacity. Denser cluster = more opaque. Single brand colour. */
+  opacity: number
   borderWidth: number
-  pulseAnimation: boolean
 }
 
-// 5-tier cluster hierarchy -- brand green (#2D5016) palette
+// 5-tier cluster hierarchy — single Field Edition Hedgerow base, opacity ladder.
+// Density visualised through saturation rather than hue: denser = more opaque.
 export const CLUSTER_TIERS: ClusterTier[] = [
-  { name: 'mega', minCount: 50, baseSize: 64, fontSize: 16, color: '#1A3A0A', borderWidth: 0, pulseAnimation: true },
-  { name: 'large', minCount: 20, baseSize: 56, fontSize: 15, color: '#234012', borderWidth: 0, pulseAnimation: false },
-  { name: 'medium', minCount: 10, baseSize: 48, fontSize: 14, color: '#2D5016', borderWidth: 0, pulseAnimation: false },
-  { name: 'small', minCount: 5, baseSize: 40, fontSize: 14, color: '#3A6420', borderWidth: 0, pulseAnimation: false },
-  { name: 'tiny', minCount: 2, baseSize: 32, fontSize: 13, color: '#4A7A2E', borderWidth: 0, pulseAnimation: false },
+  { name: 'mega',   minCount: 50, baseSize: 64, fontSize: 16, opacity: 1.00, borderWidth: 0 },
+  { name: 'large',  minCount: 20, baseSize: 56, fontSize: 15, opacity: 0.88, borderWidth: 0 },
+  { name: 'medium', minCount: 10, baseSize: 48, fontSize: 14, opacity: 0.78, borderWidth: 0 },
+  { name: 'small',  minCount:  5, baseSize: 40, fontSize: 14, opacity: 0.65, borderWidth: 0 },
+  { name: 'tiny',   minCount:  2, baseSize: 32, fontSize: 13, opacity: 0.55, borderWidth: 0 },
 ]
 
 /**
@@ -72,8 +73,9 @@ export function getZoomAwareSize(baseSize: number, zoom: number): number {
 }
 
 /**
- * Generate cluster SVG with rounded-rectangle shape and brand green palette.
- * Shape: pill/rounded-rect instead of circle for modern look.
+ * Generate Field Edition cluster SVG: rounded-square (rx=8) over a single
+ * Hedgerow base with per-tier fill-opacity. No gradient, no pulse, no scale(0)
+ * entry — opacity-only fade.
  */
 export function generateClusterSVG(count: number, zoom: number = 10): {
   svg: string
@@ -85,14 +87,14 @@ export function generateClusterSVG(count: number, zoom: number = 10): {
   const tier = getClusterTier(count)
   const displayText = formatClusterCount(count)
 
-  // Dynamic width based on text length
+  // Square-by-default; grow horizontally only for long text ("99+").
+  const baseSize = getZoomAwareSize(tier.baseSize, zoom)
   const charWidth = tier.fontSize * 0.65
   const textWidth = displayText.length * charWidth
-  const padding = 20
-  const height = getZoomAwareSize(tier.baseSize * 0.55, zoom)
-  const minWidth = getZoomAwareSize(count < 10 ? 28 : count < 100 ? 36 : 44, zoom)
-  const width = Math.max(minWidth, textWidth + padding)
-  const rx = 8 // border-radius
+  const padding = 16
+  const height = baseSize
+  const width = Math.max(baseSize, Math.round(textWidth + padding))
+  const rx = 8
 
   const anchor = height / 2
   const textY = height / 2 + tier.fontSize * 0.35
@@ -100,18 +102,11 @@ export function generateClusterSVG(count: number, zoom: number = 10): {
   const animationStyles = `
     <style>
       @keyframes clusterAppear {
-        0% { transform: scale(0); opacity: 0; }
-        100% { transform: scale(1); opacity: 1; }
+        0%   { opacity: 0; }
+        100% { opacity: 1; }
       }
-      ${tier.pulseAnimation ? `
-      @keyframes clusterPulse {
-        0%, 100% { opacity: 1; }
-        50% { opacity: 0.85; }
-      }
-      .cluster-rect { animation: clusterPulse 2.5s ease-in-out infinite; }
-      ` : ''}
       .cluster-group {
-        animation: clusterAppear 0.3s ${CLUSTER_EASING.APPEAR} forwards;
+        animation: clusterAppear 0.2s ${CLUSTER_EASING.APPEAR} forwards;
         transform-origin: center;
       }
     </style>
@@ -122,22 +117,21 @@ export function generateClusterSVG(count: number, zoom: number = 10): {
       ${animationStyles}
       <defs>
         <filter id="cs" x="-10%" y="-10%" width="120%" height="140%">
-          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.2"/>
+          <feDropShadow dx="0" dy="2" stdDeviation="2" flood-color="#000" flood-opacity="0.18"/>
         </filter>
       </defs>
       <g class="cluster-group" filter="url(#cs)">
         <rect
-          class="cluster-rect"
           x="0" y="0"
           width="${width}" height="${height}"
           rx="${rx}" ry="${rx}"
-          fill="${tier.color}"
+          style="fill: var(--brand, #14532D); fill-opacity: ${tier.opacity};"
         />
         <text
           x="${width / 2}"
           y="${textY}"
           text-anchor="middle"
-          fill="white"
+          style="fill: var(--brand-text, #FFFFFF);"
           font-family="system-ui, -apple-system, sans-serif"
           font-size="${tier.fontSize}"
           font-weight="600"

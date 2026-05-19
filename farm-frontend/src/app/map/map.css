@@ -63,3 +63,35 @@
   pointer-events: auto !important;
   touch-action: none !important;
 }
+
+/* ============================================================================
+   CLUSTER MARKER — Field Edition interaction states (Slice 1.1.2b)
+   Hover and press feedback are CSS-driven so the SVG itself stays stable.
+   Transform composes with the inline `transition: transform` set by
+   ClusterMarker.tsx on element creation.
+   ============================================================================ */
+
+.cluster-marker {
+  transform-origin: center;
+  will-change: transform;
+}
+
+.cluster-marker:hover,
+.cluster-marker[data-hovered="true"] {
+  transform: scale(1.08);
+}
+
+.cluster-marker:active {
+  transform: scale(0.96);
+  transition: transform 80ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cluster-marker,
+  .cluster-marker:hover,
+  .cluster-marker[data-hovered="true"],
+  .cluster-marker:active {
+    transform: none;
+    transition: none;
+  }
+}

@@ -69,7 +69,7 @@ export default function FarmPreviewCard({
     <div
       data-mounted={mounted ? '' : undefined}
       className={[
-        'relative bg-background-elevated text-text-body rounded-2xl overflow-hidden',
+        'relative bg-paper text-ink rounded-2xl overflow-hidden',
         'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.10)]',
         'transition-[transform,opacity] duration-200',
         '[transition-timing-function:cubic-bezier(0.23,1,0.32,1)]',
@@ -91,7 +91,7 @@ export default function FarmPreviewCard({
       </button>
 
       {/* Hero image */}
-      <div className="relative w-full h-[180px] bg-background-surface">
+      <div className="relative w-full h-[180px] bg-surface">
         {heroImage ? (
           <Image
             src={heroImage}
@@ -103,48 +103,47 @@ export default function FarmPreviewCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <Leaf className="w-12 h-12 text-text-subtle" />
+            <Leaf className="w-12 h-12 text-ink-subtle" />
           </div>
         )}
       </div>
 
       {/* Content */}
       <div className="p-4">
-        <h3 className="text-xl font-medium text-text-heading [text-wrap:balance]">
+        <h3 className="text-xl font-medium text-ink [text-wrap:balance]">
           {farm.name}
         </h3>
-        <p className="text-sm text-text-muted mt-0.5 [font-variant-numeric:tabular-nums]">
+        <p className="text-sm text-ink-muted mt-0.5 [font-variant-numeric:tabular-nums]">
           {farm.location.county}
           {hasDistance && ` · ${formatDistance!(farm.distance!)}`}
         </p>
 
+        {/* Hairline — separates identity from interaction (spec §5.1) */}
+        <div className="border-t border-border-subtle my-3" aria-hidden />
+
         {/* Hook */}
         {hook && (
-          <p className="text-sm italic text-text-body mt-2 line-clamp-2 [text-wrap:pretty]">
+          <p className="text-sm italic text-ink line-clamp-2 [text-wrap:pretty]">
             &ldquo;{hook}&rdquo;
           </p>
         )}
 
-        {/* Status */}
+        {/* Status — Rapeseed accent pill for Open Now, neutral pill for Closed (spec §5.3) */}
         {openingStatus && tone !== 'unknown' && (
-          <div className="flex items-center gap-1.5 mt-3 [font-variant-numeric:tabular-nums]">
-            <Circle
-              className={[
-                'w-2.5 h-2.5',
-                tone === 'open' ? 'fill-brand-action text-brand-action' : 'fill-brand-danger text-brand-danger',
-              ].join(' ')}
-              aria-hidden
-            />
+          <div className={[hook ? 'mt-3' : '', 'flex items-center gap-2 [font-variant-numeric:tabular-nums]'].join(' ')}>
             <span
               className={[
-                'text-sm font-medium',
-                tone === 'open' ? 'text-brand-action' : 'text-brand-danger',
+                'inline-flex items-center gap-1 px-2 h-6 rounded text-[11px] font-semibold uppercase tracking-wide',
+                tone === 'open'
+                  ? 'bg-accent text-accent-text'
+                  : 'bg-surface-2 text-ink-muted',
               ].join(' ')}
             >
+              <Circle className="w-2 h-2 fill-current" aria-hidden />
               {openingStatus.status}
             </span>
             {openingStatus.nextOpening && (
-              <span className="text-sm text-text-muted">{openingStatus.nextOpening}</span>
+              <span className="text-sm text-ink-subtle">{openingStatus.nextOpening}</span>
             )}
           </div>
         )}
@@ -155,7 +154,7 @@ export default function FarmPreviewCard({
             {farm.offerings.slice(0, 3).map((offering) => (
               <span
                 key={offering}
-                className="inline-block px-2 py-0.5 bg-brand-action/10 text-brand-action text-[11px] font-semibold rounded-full uppercase tracking-wide"
+                className="inline-block px-2 py-0.5 bg-brand/10 text-brand text-[11px] font-semibold rounded-full uppercase tracking-wide"
               >
                 {offering}
               </span>
@@ -166,7 +165,7 @@ export default function FarmPreviewCard({
         {/* View details CTA — Emil: tactile :active, custom easing, durations ≤200ms */}
         <button
           onClick={() => onViewDetails(farm.id)}
-          className="w-full mt-4 py-2.5 bg-brand-action hover:bg-brand-action-hover active:scale-[0.98] text-brand-action-text text-[15px] font-medium rounded-lg transition-[transform,background-color] duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] flex items-center justify-center gap-1"
+          className="w-full mt-4 py-2.5 bg-brand hover:bg-brand-hover active:scale-[0.98] text-brand-text text-[15px] font-medium rounded-lg transition-[transform,background-color] duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] flex items-center justify-center gap-1"
         >
           View Full Details
           <ChevronRight className="w-4 h-4" />
@@ -177,7 +176,7 @@ export default function FarmPreviewCard({
           {phoneUrl ? (
             <a
               href={phoneUrl}
-              className="flex items-center justify-center gap-1 py-2.5 bg-background-surface text-text-body text-[13px] font-medium rounded-lg hover:bg-background-hover active:scale-[0.98] transition-[background-color,transform] duration-150"
+              className="flex items-center justify-center gap-1 py-2.5 bg-surface text-ink text-[13px] font-medium rounded-lg hover:bg-surface-2 active:scale-[0.98] transition-[background-color,transform] duration-150"
             >
               <Phone className="w-3.5 h-3.5" />
               Call
@@ -189,14 +188,14 @@ export default function FarmPreviewCard({
             href={directionsUrl}
             target="_blank"
             rel="noreferrer"
-            className="flex items-center justify-center gap-1 py-2.5 bg-background-surface text-text-body text-[13px] font-medium rounded-lg hover:bg-background-hover active:scale-[0.98] transition-[background-color,transform] duration-150"
+            className="flex items-center justify-center gap-1 py-2.5 bg-surface text-ink text-[13px] font-medium rounded-lg hover:bg-surface-2 active:scale-[0.98] transition-[background-color,transform] duration-150"
           >
             <Navigation className="w-3.5 h-3.5" />
             Directions
           </a>
           <button
             onClick={handleShare}
-            className="flex items-center justify-center gap-1 py-2.5 bg-background-surface text-text-body text-[13px] font-medium rounded-lg hover:bg-background-hover active:scale-[0.98] transition-[background-color,transform] duration-150"
+            className="flex items-center justify-center gap-1 py-2.5 bg-surface text-ink text-[13px] font-medium rounded-lg hover:bg-surface-2 active:scale-[0.98] transition-[background-color,transform] duration-150"
           >
             <Share2 className="w-3.5 h-3.5" />
             Share

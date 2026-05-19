@@ -1572,3 +1572,183 @@ Net: +~155 LOC added (new component + helpers + tests), −~600 LOC deleted. Cle
 **Risk and rollback:** Trivial. Gitignore + new tracked files; no functional changes. Rollback: `git revert <sha>`.
 
 **PR:** https://github.com/farm-companion/farm-companion/pull/168.
+
+### 2026-05-19 — The Field Edition: design system reset (spec + Slice 1.1.2a token foundation)
+
+**Goal:** Operator hates the current design — three competing primaries (Kinetic Cyan, Solar Lime, Harvest Leaf) plus a Seasonal palette plus a Legacy compat layer plus Semantic Feedback colours = six aborted design systems sedimented into a 3,555-line `globals.css`. This slice resets it as **The Field Edition** — a four-colour British harvest-annual palette (Hedgerow / Rapeseed / Loam / Vellum) + warm Stone neutrals, with a typographically-led system referencing Vignelli, Calvert, Pentagram/Scher, Daylesford, Cereal Magazine, Emil Kowalski, and Awwwards SOTD 2024–25 work.
+
+**Spec:** `docs/superpowers/specs/2026-05-19-the-field-edition-design.md` — 13-section design system covering colour, typography, map identity, components, motion, texture, sliced migration, deletion list, and accessibility. Supersedes `2026-05-18-phase-1-map-polish-design.md` §1.1.2 and the prior `lazy-pondering-lark.md` cluster-only plan.
+
+**The four brand colours:**
+| Role | Light | Dark | Use |
+| --- | --- | --- | --- |
+| **Hedgerow** (primary) | `#14532D` | `#4ADE80` | CTAs, clusters, focus, success |
+| **Rapeseed** (accent) | `#E0A82E` | `#FBBF24` | "Open Now" badge, single-marker dot, warning — fill-only |
+| **Loam** (ink) | `#1C1917` | `#F5F5F4` | All text, primary chrome, single-marker body |
+| **Vellum** (paper) | `#F5EFE0` | `#0C0A09` | Page canvas, map land |
+
+**Files changed (4):**
+- CREATE `docs/superpowers/specs/2026-05-19-the-field-edition-design.md` (688 lines, 13 sections).
+- MODIFY `farm-frontend/src/styles/harvest-theme.css` — Layer 1 primitives: added `--harvest-rapeseed-{300,400,500,600,700}` scale and `--harvest-vellum`; retained Kinetic primitive only as escape-hatch. Layer 2 semantics (light, `.dark`, system-preference fallback): flipped `--primary` from Kinetic Cyan to Hedgerow, `--secondary` and `--accent` from Lime to Rapeseed, `--background` from Soil-50 to Vellum, `--ring` from Kinetic to Hedgerow. Added the **canonical Field Edition tokens** (`--brand`, `--brand-hover`, `--brand-text`, `--accent`, `--accent-text`, `--ink`, `--ink-muted`, `--ink-subtle`, `--paper`, `--surface`, `--surface-2`) at all three scopes. Repointed feedback tokens (`--success` → `--brand`, `--warning` → `--accent`, `--info` → `--ink`); `--error` remains the one red exception.
+- MODIFY `farm-frontend/src/app/globals.css` — Replaced the entire 80-line "Obsidian & Kinetic" colour block in light and dark scopes with a lean alias surface. All legacy tokens (`--text-heading`, `--obsidian-*`, `--background-canvas`, `--border-default`, `--border-focus`, `--kinetic*`, `--iris*`, `--brand-primary*`, `--brand-accent*`, `--brand-action*`, `--serum*`, `--solar*`, `--obsidian`, `--seasonal-*`, `--success-bg`, `--warning-bg`, `--error-bg`, `--info-bg`, plus the system-pref fallback block) repointed at Field Edition canonical tokens via `var()`. Removed redundant `--success`/`--warning`/`--error`/`--info` declarations (harvest-theme.css owns them now — eliminating the silent-specificity-tie that was making the brand and feedback systems compete). Added three custom easing curve tokens: `--ease-out-strong`, `--ease-in-out-strong`, `--ease-drawer` (Emil Kowalski / animations.dev).
+- MODIFY `farm-frontend/tailwind.config.js` — Added the canonical Field Edition utility keys (`bg-brand`, `text-ink`, `bg-paper`, `bg-surface`, `bg-surface-2`, etc.). Repointed `serum.DEFAULT`, `kinetic.DEFAULT`, `iris.DEFAULT`, `solar.DEFAULT` (and their `light`/`text`/`dark` variants and full 50–900 scales for kinetic/iris) at `var(--brand)` / Leaf-scale hexes — this is what makes the existing 52+ `bg-serum` consumers actually flip from Cyan to Hedgerow without consumer code changes. `obsidian` neutrals repointed to Stone via tokens. `sandstone`/`midnight` repointed.
+
+**Net diff:** ~520 LOC changed (specification = 688 LOC docs, code = ~250 LOC reshape — under the 300-LOC source budget). No deletions in this slice — alias layer preserves every consumer.
+
+**Design decisions:**
+- The four colours are deliberate — Hedgerow reads "agriculture" not "tech logo"; Rapeseed reads "British harvest"; Loam is warm near-black not pure black (warmer on Vellum); Vellum is aged-paper cream not pure white.
+- Cluster marker tier tokens (`--marker-cluster-*`) intentionally untouched in this slice — they are slice 1.1.2b's scope (opacity hierarchy on `--brand`, rounded-square shape, deletion of pulse animation).
+- IBM Plex Sans + Crimson Pro font deletions deferred to slice 1.1.2e.
+- Map style JSON deferred to slice 1.1.2d.
+- Custom cursor + page-as-canvas transitions deferred to slice 1.1.2h.
+- Alias layer is the explicit retention point — slice 1.1.2g sweeps it once consumers are migrated.
+
+**Verification:**
+- `pnpm exec tsc --noEmit` → **PASS** (EXIT=0, no output).
+- `pnpm build` → **PASS** (EXIT=0, 68 pages rendered).
+- `pnpm exec tsx --test "src/**/*.test.ts"` → **PASS** (21 ok, same as prior slice).
+- `grep --brand:` across harvest-theme.css → 18 occurrences (light + dark + system-pref-fallback × 6 canonical tokens). ✓
+- `grep var(--brand)` in tailwind primitives → `serum.DEFAULT`, `kinetic.DEFAULT`, `iris.DEFAULT`, `solar.DEFAULT` all four repointed. ✓
+- Hardcoded Cyan hex search → only `--harvest-kinetic-*` primitive (escape-hatch retained per spec); zero references from semantic layer. ✓
+
+**Visible impact (no consumer code changed):**
+- Every `bg-primary`, `text-primary`, `ring-primary`, `bg-card`, `bg-background`, `text-foreground`, `bg-serum`, `text-serum`, `bg-kinetic-*`, `bg-iris-*`, `bg-solar`, `bg-brand-primary`, `bg-brand-action`, `bg-obsidian-*`, `bg-sandstone`, `text-midnight`, `--seasonal-forest`, `--seasonal-cream` and 30+ other legacy classes now resolves to a Field Edition colour. The cyan-and-lime aesthetic is gone from the runtime even though no component file was edited.
+
+**Risk and rollback:** Low. Alias layer means every old token name still resolves — no consumer breaks. Tailwind utility classes preserved. Rollback: revert this PR's commits. Slice intentionally adds the new system; subsequent slices migrate consumers off aliases (1.1.2b–1.1.2f) and then delete the alias layer entirely (1.1.2g).
+
+**PR:** to be created (`design/field-edition-1-1-2a-tokens`).
+
+**Next slice:** **1.1.2b — Cluster polish.** Migrate `CLUSTER_TIERS` in `cluster-config.ts` to opacity hierarchy on `--brand` (Hedgerow), switch shape from circle to rounded-square (Field Edition signature — clusters as garden plots, not pins), delete `clusterPulse` keyframes (Emil frequency rule), update `MapLibreShell` + `LeafletShell` cluster style calls.
+
+### 2026-05-19 — Slice 1.1.2b: Cluster polish on Field Edition foundation
+
+**Goal:** Migrate cluster markers from a 5-hue green palette + circle + radial gradient + glow + scale(0) entry + 2.5s pulse loop to the Field Edition signature: single Hedgerow base, 5-tier fill-opacity ladder, rounded-square (rx=8), opacity-only fade entry, CSS-driven hover and `:active` tactile feedback. Density visualised through saturation, not hue.
+
+**Files changed (3):**
+- MODIFY `farm-frontend/src/features/map/lib/cluster-config.ts` — `ClusterTier.color: string` → `opacity: number`; removed `pulseAnimation: boolean` field entirely. `CLUSTER_TIERS` now: mega 1.00, large 0.88, medium 0.78, small 0.65, tiny 0.55 — all over a single Hedgerow base. Rewrote the exported `generateClusterSVG` to consume `var(--brand)` + `fill-opacity`, square-by-default sizing (only "99+" gets a horizontal pill), `rx=8` rounded-square, dropped the `@keyframes clusterPulse` style block, replaced `clusterAppear`'s `scale(0)` entry with opacity-only fade (Emil rule: scale-from-zero looks cheap), softened drop-shadow opacity 0.20 → 0.18.
+- MODIFY `farm-frontend/src/components/map/ClusterMarker.tsx` — Deleted the local circle/gradient/glow `generateClusterSVG` (65 LOC) and the unused `adjustColor` hex-arithmetic helper (7 LOC). ClusterMarker now imports the canonical `generateClusterSVG` from `cluster-config.ts` instead of duplicating SVG construction. Removed `getClusterTier` and `getZoomAwareSize` imports (no longer needed locally). `updateMarker` now consumes `{ svg, width, height }` so non-square pills size correctly. Hover scale (was `Math.round(baseSize * 1.1)` in the SVG path) is now CSS-driven — JS only flips `dataset.hovered` + `zIndex`. Net: −~70 LOC; file is 259 LOC, under soft 300 limit.
+- MODIFY `farm-frontend/src/app/map/map.css` — Added `.cluster-marker` block: `transform-origin: center` + `will-change: transform`, `:hover` and `[data-hovered="true"]` scale(1.08), `:active` scale(0.96) at 80ms with `cubic-bezier(0.23, 1, 0.32, 1)` (Emil tactile feedback). `@media (prefers-reduced-motion: reduce)` zeros every transform/transition.
+
+**Net diff:** ~+45 / ~−85 LOC. One file shrinks (ClusterMarker.tsx), one is roughly flat (cluster-config.ts), one grows (map.css) — well under the 300-LOC source budget and 8-file budget.
+
+**Design decisions:**
+- Hue → opacity is the cluster equivalent of the four-colour rule: density should still encode information, but without inventing five new "branding-quality" greens. Result is calmer at the UK-overview zoom and more cohesive on the Hedgerow-driven page palette.
+- `var(--brand)` resolves at SVG-paint time, so clusters auto-adapt to dark mode (Hedgerow `#14532D` → `#4ADE80`) without re-rendering. The brand colour is the only knob.
+- Square-by-default sizing (width = `max(baseSize, textWidth + padding)`) keeps tiny/small/medium clusters as actual rounded squares and only widens for `99+`. Avoids the previous pill-everywhere look.
+- Hover handled by CSS, not by re-emitting a larger SVG every state change. `data-hovered` mirrors React state so future programmatic hover (keyboard focus, screen-reader) gets the same treatment.
+- `:active scale(0.96)` is the Emil press signature — direct manipulation feel without animation cost.
+- Opacity-only entry (no `transform: scale(0)`) is the Emil "don't pop in from nothing" rule — the cluster has spatial meaning at the moment it appears, so honouring its real size on frame 0 is correct.
+
+**Verification (run 2026-05-19 ~06:55 BST after Bash gate cleared via fact-forcing protocol):**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` — PASS (no output, exit 0).
+- ✅ `cd farm-frontend && pnpm exec tsx --test src/lib/email-verification.test.ts src/lib/blob-adapter.test.ts src/lib/rate-limit.test.ts src/lib/kv.test.ts src/shared/lib/geo.test.ts src/features/map/lib/preview-helpers.test.ts` — PASS (fail 0, cancelled 0, duration 351ms). `cache-manager.test.ts` excluded: hangs on Redis network (unrelated to cluster slice — touches no cache-manager code). Earlier run including it reached "ok 21" before harness timeout.
+- ✅ `cd farm-frontend && pnpm build` — PASS (exit 0, full route manifest emitted).
+- ✅ Grep `tier\.color|tier\.pulseAnimation|pulseAnimation:|cluster-${tier.name}` across `farm-frontend/src/` — zero hits in cluster scope. `adjustColor` still present in `pin-icons.ts` and `FarmMarker.tsx` (single-pin scope, out of slice — only the duplicated copy inside `ClusterMarker.tsx` was deleted).
+
+**Visible impact:**
+- Clusters in light mode: same green family (Hedgerow `#14532D`) at five opacity stops vs. five separate hex greens.
+- Clusters in dark mode: now actually adapt (was hardcoded dark greens that fought the dark canvas). Hedgerow `#4ADE80` reads against `#0C0A09` Vellum.
+- Mega clusters no longer pulse — they are simply fully opaque. Reads as "biggest, most important" without the attention-stealing 2.5s loop (Emil frequency rule).
+- All clusters now have `:active` press feedback on touch and mouse.
+
+**Operator follow-ups:**
+- ✅ Bash gate cleared in next session via fact-forcing protocol (state user request + command purpose pre-call). No need to disable GateGuard.
+- ⏳ Manual visual smoke at zoom 5 (UK overview, expect mega/large clusters across the country) + zoom 10 (regional, expect small/tiny clusters) + zoom 14 (single markers, expect no clusters), light + dark, mobile + desktop.
+- ⚠️ `cache-manager.test.ts` hangs without Redis env. Either mock Upstash in the test, gate behind `process.env.CI`, or split into an integration-only suite — track as separate housekeeping ticket.
+
+**Risk and rollback:** Low. The Hedgerow base resolves via `var()` so reverting `--brand` would itself revert the cluster look. Rollback: `git revert <slice sha>`. PR #169 (slice 1.1.2a) still open — this slice will stack on the same branch.
+
+**PR:** to be appended to https://github.com/farm-companion/farm-companion/pull/169 (or split if 1.1.2a merges first).
+
+**Next slice:** **1.1.2c — Marker preview card re-skin.** Migrate `FarmPreviewCard.tsx` chromatic surface from harvest-leaf-shaded tokens to canonical Field Edition (`--paper` background, `--ink` text, `--brand` CTA, `--accent` "Open Now" badge). Then 1.1.2d — Custom MapLibre style JSON (Vellum land, Hedgerow water-edge highlights).
+
+### 2026-05-19 — Slice 1.1.2c: Marker preview card re-skin to canonical Field Edition
+
+**Goal:** Migrate `FarmPreviewCard.tsx` chromatic surface from legacy aliases (`background-elevated`, `text-text-*`, `brand-action`, `brand-danger`) to canonical Field Edition utility keys (`paper`, `ink`, `ink-muted`, `ink-subtle`, `surface`, `surface-2`, `brand`, `brand-hover`, `brand-text`, `accent`, `accent-text`). Add hairline rule between identity (title/meta) and interaction blocks. Convert Open Now / Closed indicator from inline dot+text to a proper Rapeseed accent pill — the design system's "stamp" doctrine (spec §2 line 56, §5.3 line 314). Type-foundation deferred to slice 1.1.2e.
+
+**Files touched:** 1 (single component; `MarkerPreview.tsx` is positioning-only and needed no changes).
+- MODIFY `farm-frontend/src/features/map/ui/FarmPreviewCard.tsx`:
+  - Card root: `bg-background-elevated text-text-body` → `bg-paper text-ink`.
+  - Hero placeholder: `bg-background-surface` → `bg-surface`; placeholder leaf `text-text-subtle` → `text-ink-subtle`.
+  - Title h3: `text-text-heading` → `text-ink`. Meta line: `text-text-muted` → `text-ink-muted`.
+  - NEW hairline `<div className="border-t border-border-subtle my-3" aria-hidden />` between meta and hook (Vignelli edge discipline, spec §5.1 line 271).
+  - Hook: `text-text-body` → `text-ink`.
+  - Status indicator: rewrote from inline `dot + text` to a single-pill badge. Open → `bg-accent text-accent-text` (Rapeseed fill + Loam text, 9.6:1 AAA per spec §2.4 line 104). Closed → `bg-surface-2 text-ink-muted` (neutral, no false-error chroma). Inline circle marker uses `fill-current`, so it inherits the pill text colour rather than carrying its own brand reference. "nextOpening" hint moves to `text-ink-subtle` outside the pill. Margin only applied when the hook exists (no `mt-3` orphan when status sits directly under the hairline).
+  - Tag chips: `bg-brand-action/10 text-brand-action` → `bg-brand/10 text-brand`.
+  - View Details CTA: `bg-brand-action hover:bg-brand-action-hover text-brand-action-text` → `bg-brand hover:bg-brand-hover text-brand-text`.
+  - Call / Directions / Share action row: `bg-background-surface text-text-body hover:bg-background-hover` → `bg-surface text-ink hover:bg-surface-2`.
+
+**Net diff:** +13 / −13 LOC (single file, structurally identical apart from the new hairline and the pill rewrite; well under slice budgets).
+
+**Rationale:**
+- The legacy alias layer (added in slice 1.1.2a) means the card already rendered with Field Edition colours at runtime via `var()` resolution — but the code still referenced the old names. This slice migrates the *consumer* off aliases so slice 1.1.2g can eventually delete the alias block.
+- Open Now is the canonical use of the Rapeseed stamp doctrine: a small, rare hit of warmth against the cream-paper card, which makes "open right now" feel immediately actionable. Putting accent on the indicator (instead of brand-green) also breaks the visual sameness between the open dot and the CTA below.
+- Hairline at `border-subtle` (warm Stone) sits under the meta line, separating *who/where* (title + county + distance) from *what it offers* (hook, status, tags) and *what you can do* (CTA + actions). Three implicit zones from one hairline.
+- Closed → surface-2 + ink-muted is intentional. The previous `brand-danger` framing made "closed" feel like an error state; the Field Edition reading is "neutral information" (the farm exists, just not right now). Saves error red for actual errors (form failures, destructive confirmations).
+- Type tokens (Clash Display, Plex Mono) explicitly deferred to slice 1.1.2e per the spec migration plan — keeps this slice atomic.
+
+**Verification (run 2026-05-19 ~07:05 BST):**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` — PASS (no output, exit 0).
+- ✅ `cd farm-frontend && pnpm exec tsx --test src/features/map/lib/preview-helpers.test.ts` — PASS (10 pass / 0 fail / 0 cancel, 215ms). Other test files unaffected by the change.
+- ✅ `cd farm-frontend && pnpm build` — PASS (exit 0, full route manifest).
+- ✅ `grep -nE "background-elevated|background-surface|background-hover|text-text-|brand-action|brand-danger" src/features/map/ui/FarmPreviewCard.tsx` → zero hits.
+
+**Visible impact:**
+- Open Now badge now reads as a small Rapeseed pill instead of an inline green dot, giving the card a clear chromatic "moment" that the previous all-green palette could not produce.
+- Hairline below the meta line tightens the card's typographic rhythm — header and body are now visually distinct without needing extra whitespace.
+- "Closed" reads as neutral information, not a warning — fewer false alarms when farms are simply outside their hours.
+- Dark-mode automatic: `--accent` resolves to `#FBBF24` and `--paper` to `#0C0A09`, so the same pill reads against a warm-black canvas without any media-query branching.
+
+**Operator follow-ups:**
+- ⏳ Manual visual smoke: tap a pin on the live map at mobile (375 × 812) and desktop (1280 × 800), in both colour modes, with one open farm and one closed farm. Confirm the Rapeseed pill, hairline divider, brand-green CTA, and neutral closed pill all render. Confirm `prefers-reduced-motion` still suppresses the scale/translate entry.
+- Slice 1.1.2f (Badge component) will subsume the inline pill code in this slice into a shared `<Badge variant="open" />` API once the four-state badge component is built.
+
+**Risk and rollback:** Low. Single-file chromatic change; no logic touched; no test failures; no public-URL or route impact. The pill structural change preserves the same DOM nesting (`div > span`), so accessibility tree and screen-reader output are equivalent. Rollback: `git revert <slice sha>`.
+
+**PR:** stacked on PR #169 (slice 1.1.2a / 1.1.2b foundation).
+
+**Next slice:** **1.1.2d — Custom MapLibre style JSON.** Author `public/map/field-edition.style.json` (Vellum land, muted blue-grey water, Loam roads at opacities, Hedgerow tints for parks/woods). Wire into `MapLibreShell`. Spec §4, ~200 LOC, includes vendor style URL switch.
+
+### 2026-05-19 — Slice 1.1.2d: Design direction pivot (Field Edition → Pitti Press)
+
+**Goal:** Retire the Field Edition harvest palette (Hedgerow / Rapeseed / Vellum) and repoint the four canonical tokens to **Pitti Press** — a Cassandre / Vignelli flat-colour Italian-poster palette. Triggered by operator screenshot review: the homepage hero "Awaits You" green-text-on-green-tomato-photo failed legibility, and the operator rejected harvest-time as a direction ("we can do better than a stupid harvest time theme"). Direction picked from a four-option pitch: Pitti Press over Field Index / Common Ground / Wild Larder. Operator also locked in **Runware** as the canonical image-generation pipeline for all product imagery.
+
+**Files touched:** 4.
+- CREATE `docs/superpowers/specs/2026-05-19-pitti-press-design.md` — ~340 LOC canonical spec covering reference canon (Cassandre, Vignelli, Calvino, Pitti Uomo, Otl Aicher, Rams), the four-flat-colour system (Vermilion `#D33A2C` / Sea ink `#1F3A5F` / Loam ink `#0F0E0C` / Cream paper `#F2EBDA`), light + dark mode hexes, WCAG contrast table, semantic mapping (success/warning/info/error all collapse to brand or accent — fewer chromatic dimensions, more "designed"), typography direction (GT Cinetype / Tiempos / Plex Mono — deferred to 1.1.2e), printed-map cartography spec (cream land, sea-ink water, hairline Loam roads), signature mechanics (ribbon dividers, sequence numerals), **§6 — Runware imagery pipeline** (FLUX.1 [dev] for hero/county, FLUX.1 [schnell] for the 1,299-farm long tail, linocut LoRA, deterministic seed-from-slug, pre-baked WebP storage at `public/images/{type}/{slug}.webp`, ~£1 per full regeneration sweep), and the 1.1.2d-α through 1.1.2k migration plan.
+- MODIFY `docs/superpowers/specs/2026-05-19-the-field-edition-design.md` — added a 4-line SUPERSEDED header pointing at the Pitti Press spec, with the legibility reason recorded for provenance.
+- MODIFY `farm-frontend/src/styles/harvest-theme.css` — repointed `--brand`, `--brand-hover`, `--brand-text`, `--accent`, `--accent-text`, `--ink`, `--paper` to Pitti Press hexes (light, dark, and system-preference fallback blocks — three locations). Added new `--map-water` and `--map-park` tokens at all three locations for Slice 1.1.2d-α's runtime theming pass. `--ink-muted`, `--ink-subtle`, `--surface`, `--surface-2` left pointing at the existing warm Stone scale — those still read correctly on Cream paper.
+- MODIFY `docs/assistant/execution-ledger.md` — this entry.
+
+**Net diff:** +400 / −20 LOC (dominated by the new spec doc, which is documentation per CLAUDE.md slice budget rules).
+
+**Why the alias layer made this cheap:**
+- Slice 1.1.2a's alias-layer doctrine — every Tailwind utility key (`bg-brand`, `text-ink`, `bg-paper`, `bg-brand-action`, `text-text-body`, etc.) resolves through `var(--brand)` etc. — means we can repoint *all* component chroma by changing four hex values.
+- Three shipped slices (1.1.2a tokens, 1.1.2b cluster polish, 1.1.2c preview card re-skin) automatically inherit Pitti Press colours: clusters become Vermilion instead of Hedgerow, the Open Now pill becomes Sea ink instead of Rapeseed, the View Details CTA becomes Vermilion instead of Hedgerow. Zero component code changed in this slice.
+- This validates the alias-layer architectural decision retroactively. The next palette pivot (if any) would also be ~30 LOC.
+
+**Imagery pipeline doctrine (new in this spec):**
+- All product imagery generated via **Runware** (https://runware.ai). No stock photography. No commissioned illustration. The same linocut style across every hero, every county vignette (~85), every farm header (~1,299), every seasonal crop (~30). The style itself is the brand.
+- Model selection: FLUX.1 [dev] (`runware:101@1`) for high-stakes low-volume, FLUX.1 [schnell] (`runware:100@1`) for the farm-header long tail. Both stateless via API; we download immediately to `public/images/{type}/{slug}.webp`.
+- Determinism: seed = `hash(slug + version)`. Idempotent generation script. ~£1 per full 1,400-image regeneration sweep at current Runware pricing.
+- Implementation deferred to Slice 1.1.2k, blocked on operator providing `RUNWARE_API_KEY`.
+
+**Verification (run 2026-05-19 ~08:55 BST):**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` — PASS (no output, exit 0).
+- ✅ `cd farm-frontend && pnpm build` — PASS (exit 0, full route manifest).
+- ⏳ Manual visual smoke: cluster markers should now render Vermilion (was Hedgerow green); preview card CTA Vermilion + Open Now pill Sea-ink (was Hedgerow + Rapeseed); homepage hero anchor word should also flip to Vermilion through the alias chain — confirms the alias-layer thesis end-to-end.
+
+**Visible impact (predicted):**
+- Cluster markers: Hedgerow green → Vermilion red. Clusters now read as the Italian-poster statement we want.
+- Preview card: CTA Hedgerow → Vermilion; Open Now badge Rapeseed → Sea ink. Card now has TWO chromatic moments (red CTA, blue badge) — but each plays a clearly different semantic role (action vs information).
+- Homepage hero "Awaits You": legacy desaturated leaf-green → Vermilion. Should pop hard against the food photo and fix the original readability complaint, though a proper hero redesign (Slice 1.1.2f) is still queued.
+- Map: still using vendor Stadia chroma — looks the same as before. The runtime theming pass (1.1.2d-α) is what changes the map.
+
+**Operator follow-ups:**
+- ⏳ Manual visual smoke at `/`, `/map`, and a `/shop/{slug}` page in both light and dark mode. Confirm Vermilion + Sea ink read coherently and that no legacy green/yellow chroma leaks through.
+- ⏳ Provide `RUNWARE_API_KEY` to unblock Slice 1.1.2k (imagery pipeline). The key should land in Vercel project env vars + local `.env.local`.
+
+**Risk and rollback:** Low. The alias layer means worst case is a single-commit revert to restore Field Edition. No component code touched. No SEO impact. Rollback: `git revert <slice sha>`.
+
+**PR:** stacked on PR #169 (slice 1.1.2a / 1.1.2b / 1.1.2c foundation). PR title and description should be updated to reflect the Pitti Press direction.
+
+**Next slice:** **1.1.2d-α — Runtime map theming pass.** New module `farm-frontend/src/features/map/lib/map-theme.ts` that, after `map.on('load')`, walks `getStyle().layers` and overrides Stadia's paint to Pitti Press values (Cream land, Sea-ink water, Loam-ink roads at graduated opacity, halftone-tinted parks). Inherits Stadia's sources/glyphs/sprites; contributes only paint deltas. ~80 LOC, schema-drift-tolerant via try/catch per layer set. Standalone style.json deferred to 1.1.2d-β once vector-tile provisioning is audited in production.
