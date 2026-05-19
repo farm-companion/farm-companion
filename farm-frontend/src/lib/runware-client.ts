@@ -364,3 +364,59 @@ export function buildPittiPrompt(
   ].filter(Boolean)
   return parts.join(', ')
 }
+
+/**
+ * Per-artifact-type Pitti prompt builders.
+ *
+ * Lifted from `scripts/generate-pitti-image.ts` (Slice 1.1.2k-δ-prep) so
+ * the upcoming batch generators (1.1.2k-δ-1/δ-2) can reuse them without
+ * duplicating prompt construction. Each builder composes `PITTI_STYLE.lead`
+ * with subject-specific additional elements.
+ */
+export function buildPittiHeroPrompt(season: string = 'midsummer'): string {
+  return buildPittiPrompt(`UK countryside in ${season}`, {
+    additionalElements: [
+      'rolling hills with dry stone walls',
+      'a single red tractor in the middle distance',
+      'a barn silhouette',
+      'wide horizon line, low sun, confident composition',
+    ],
+  })
+}
+
+export function buildPittiCountyPrompt(
+  county: string,
+  feature: string = 'rolling hills with hedgerows'
+): string {
+  return buildPittiPrompt(`landscape of ${county} England`, {
+    additionalElements: [
+      feature,
+      'stone walls, scattered farmhouses',
+      'wide editorial framing, horizon line one-third from bottom',
+    ],
+  })
+}
+
+export function buildPittiFarmHeaderPrompt(
+  county: string = 'rural England',
+  offerings: string[] = ['seasonal produce']
+): string {
+  const offeringsClause = offerings.slice(0, 3).join(', ')
+  return buildPittiPrompt(`a UK farm shop in ${county}`, {
+    additionalElements: [
+      `selling ${offeringsClause}`,
+      'wide horizontal composition, editorial illustration',
+      'single architectural building element, no human figures',
+    ],
+  })
+}
+
+export function buildPittiSeasonalPrompt(crop: string): string {
+  return buildPittiPrompt(`single linocut stamp of ${crop}`, {
+    additionalElements: [
+      'single botanical specimen centred',
+      'vintage botanical print, woodcut block print',
+      'vermilion ink only, no second color',
+    ],
+  })
+}
