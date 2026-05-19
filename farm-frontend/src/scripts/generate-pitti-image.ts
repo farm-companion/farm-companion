@@ -37,9 +37,12 @@ import { writeFile, mkdir } from 'fs/promises'
 import { createHash } from 'crypto'
 import {
   getRunwareClient,
-  buildPittiPrompt,
   PITTI_STYLE,
   RUNWARE_MODELS,
+  buildPittiHeroPrompt,
+  buildPittiCountyPrompt,
+  buildPittiFarmHeaderPrompt,
+  buildPittiSeasonalPrompt,
 } from '../lib/runware-client'
 import {
   WATERMARK_CROP_PX,
@@ -117,65 +120,30 @@ interface PromptShape {
 
 function promptFor(opts: CliOptions): PromptShape {
   switch (opts.type) {
-    case 'hero': {
-      const season = opts.season ?? 'midsummer'
+    case 'hero':
       return {
-        prompt: buildPittiPrompt(`UK countryside in ${season}`, {
-          additionalElements: [
-            'rolling hills with dry stone walls',
-            'a single red tractor in the middle distance',
-            'a barn silhouette',
-            'wide horizon line, low sun, confident composition',
-          ],
-        }),
+        prompt: buildPittiHeroPrompt(opts.season),
         width: 1536,
         height: 1024,
       }
-    }
-    case 'county': {
-      const county = opts.county ?? opts.slug
-      const feature = opts.feature ?? 'rolling hills with hedgerows'
+    case 'county':
       return {
-        prompt: buildPittiPrompt(`landscape of ${county} England`, {
-          additionalElements: [
-            feature,
-            'stone walls, scattered farmhouses',
-            'wide editorial framing, horizon line one-third from bottom',
-          ],
-        }),
+        prompt: buildPittiCountyPrompt(opts.county ?? opts.slug, opts.feature),
         width: 1280,
         height: 800,
       }
-    }
-    case 'farm-header': {
-      const county = opts.county ?? 'rural England'
-      const offerings = (opts.offerings ?? ['seasonal produce']).slice(0, 3).join(', ')
+    case 'farm-header':
       return {
-        prompt: buildPittiPrompt(`a UK farm shop in ${county}`, {
-          additionalElements: [
-            `selling ${offerings}`,
-            'wide horizontal composition, editorial illustration',
-            'single architectural building element, no human figures',
-          ],
-        }),
+        prompt: buildPittiFarmHeaderPrompt(opts.county, opts.offerings),
         width: 1536,
         height: 768,
       }
-    }
-    case 'seasonal': {
-      const crop = opts.slug.replace(/-/g, ' ')
+    case 'seasonal':
       return {
-        prompt: buildPittiPrompt(`single linocut stamp of ${crop}`, {
-          additionalElements: [
-            'single botanical specimen centred',
-            'vintage botanical print, woodcut block print',
-            'vermilion ink only, no second color',
-          ],
-        }),
+        prompt: buildPittiSeasonalPrompt(opts.slug.replace(/-/g, ' ')),
         width: 1024,
         height: 1024,
       }
-    }
   }
 }
 
@@ -196,7 +164,7 @@ async function main(): Promise<void> {
   const steps = opts.model === 'dev' ? 28 : 4
   const cfgScale = opts.model === 'dev' ? 3.5 : 1.0
 
-  console.log('\n=== Pitti Press Image Generator (Slice 1.1.2k-γ) ===')
+  console.log('\n=== Pitti Press Image Generator (Slice 1.1.2k-δ-prep) ===')
   console.log(`Type:        ${opts.type}`)
   console.log(`Slug:        ${opts.slug}`)
   console.log(`Model:       ${modelId} (${opts.model})`)

@@ -429,10 +429,20 @@
   - Validation artifact: `public/images/pitti/hero-homepage-dev-seed50920962.webp` (v3, post-crop) is watermark-clean. v2 retained as `-v2.webp` for A/B.
   - Note: seed-locked composition shifts when gen-height changes (1024 → 1088); style remains locked but exact composition differs from v1/v2. Expected tradeoff.
   - No new dependency added (`sharp@^0.34.5` already in farm-frontend deps).
-- [ ] Slice 1.1.2k-δ: Batch generator Pitti-style adapter
-  - Retool `farm-image-generator.ts`, `county-image-generator.ts`, and `generate-farm-images.ts` to accept `style: 'harvest' | 'pitti'` and route through `buildPittiPrompt` + `cropBottomStrip` when Pitti is selected.
-  - Keep harvest the default — production batches remain photorealistic until Pitti is opt-in.
-- [ ] Slice 1.1.2k-ε: Mass regeneration sweep (after δ lands)
+- [x] Slice 1.1.2k-δ-prep: Lift per-type Pitti prompt builders into lib
+  - Added `buildPittiHeroPrompt`, `buildPittiCountyPrompt`, `buildPittiFarmHeaderPrompt`, `buildPittiSeasonalPrompt` to `runware-client.ts`.
+  - Refactored `generate-pitti-image.ts` `promptFor` to consume them (deleted ~36 lines of inline composition; net code reduction in the script).
+  - Dry-run verified: prompt output identical to pre-refactor.
+  - **Architectural finding**: `scripts/generate-farm-images.ts` stores `result.images[0].imageURL` (Runware-hosted) directly in Prisma `image.url`. Pitti can't use this flow because we need the buffer to crop. Real δ slice requires switching to `runware.generateBuffer()` + Vercel Blob upload before saving the URL.
+  - `FarmImageGenerator` class in `lib/farm-image-generator.ts` has **zero importers** in the codebase — it's dead scaffold. Slice δ-1 will retool `scripts/generate-farm-images.ts` directly and either delete or revive the class.
+  - `CountyImageGenerator` is used by `scripts/generate-county-images.ts` but `county-image-generator.ts` is 509 lines (over hard limit of 500) — δ-3 must split it before adding the Pitti adapter.
+- [ ] Slice 1.1.2k-δ-1: Vercel Blob upload helper + farm batch Pitti adapter
+  - Add `uploadPittiImage(buffer, slug, type) -> blobUrl` helper that re-uses existing Vercel Blob client.
+  - Add `--style=pitti` flag to `scripts/generate-farm-images.ts` that switches to buffer flow + crop + blob upload, saves blob URL to Prisma.
+  - Harvest path unchanged (URL-direct flow remains default).
+- [ ] Slice 1.1.2k-δ-2: County batch Pitti adapter (depends on δ-3 split)
+- [ ] Slice 1.1.2k-δ-3: Split `county-image-generator.ts` (509 LOC, over hard limit) before adding Pitti.
+- [ ] Slice 1.1.2k-ε: Mass regeneration sweep (after δ chain lands)
   - Bump `SEED_VERSION`, run county + farm-header batches at FLUX schnell to keep cost under £2 for the 1,299-farm long tail.
 
 ### Queue 17: Structured Logging Completion (FORENSIC DISCOVERY - 59 routes remaining)
