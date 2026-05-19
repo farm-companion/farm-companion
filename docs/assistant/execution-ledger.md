@@ -1661,3 +1661,50 @@ Net: +~155 LOC added (new component + helpers + tests), −~600 LOC deleted. Cle
 **PR:** to be appended to https://github.com/farm-companion/farm-companion/pull/169 (or split if 1.1.2a merges first).
 
 **Next slice:** **1.1.2c — Marker preview card re-skin.** Migrate `FarmPreviewCard.tsx` chromatic surface from harvest-leaf-shaded tokens to canonical Field Edition (`--paper` background, `--ink` text, `--brand` CTA, `--accent` "Open Now" badge). Then 1.1.2d — Custom MapLibre style JSON (Vellum land, Hedgerow water-edge highlights).
+
+### 2026-05-19 — Slice 1.1.2c: Marker preview card re-skin to canonical Field Edition
+
+**Goal:** Migrate `FarmPreviewCard.tsx` chromatic surface from legacy aliases (`background-elevated`, `text-text-*`, `brand-action`, `brand-danger`) to canonical Field Edition utility keys (`paper`, `ink`, `ink-muted`, `ink-subtle`, `surface`, `surface-2`, `brand`, `brand-hover`, `brand-text`, `accent`, `accent-text`). Add hairline rule between identity (title/meta) and interaction blocks. Convert Open Now / Closed indicator from inline dot+text to a proper Rapeseed accent pill — the design system's "stamp" doctrine (spec §2 line 56, §5.3 line 314). Type-foundation deferred to slice 1.1.2e.
+
+**Files touched:** 1 (single component; `MarkerPreview.tsx` is positioning-only and needed no changes).
+- MODIFY `farm-frontend/src/features/map/ui/FarmPreviewCard.tsx`:
+  - Card root: `bg-background-elevated text-text-body` → `bg-paper text-ink`.
+  - Hero placeholder: `bg-background-surface` → `bg-surface`; placeholder leaf `text-text-subtle` → `text-ink-subtle`.
+  - Title h3: `text-text-heading` → `text-ink`. Meta line: `text-text-muted` → `text-ink-muted`.
+  - NEW hairline `<div className="border-t border-border-subtle my-3" aria-hidden />` between meta and hook (Vignelli edge discipline, spec §5.1 line 271).
+  - Hook: `text-text-body` → `text-ink`.
+  - Status indicator: rewrote from inline `dot + text` to a single-pill badge. Open → `bg-accent text-accent-text` (Rapeseed fill + Loam text, 9.6:1 AAA per spec §2.4 line 104). Closed → `bg-surface-2 text-ink-muted` (neutral, no false-error chroma). Inline circle marker uses `fill-current`, so it inherits the pill text colour rather than carrying its own brand reference. "nextOpening" hint moves to `text-ink-subtle` outside the pill. Margin only applied when the hook exists (no `mt-3` orphan when status sits directly under the hairline).
+  - Tag chips: `bg-brand-action/10 text-brand-action` → `bg-brand/10 text-brand`.
+  - View Details CTA: `bg-brand-action hover:bg-brand-action-hover text-brand-action-text` → `bg-brand hover:bg-brand-hover text-brand-text`.
+  - Call / Directions / Share action row: `bg-background-surface text-text-body hover:bg-background-hover` → `bg-surface text-ink hover:bg-surface-2`.
+
+**Net diff:** +13 / −13 LOC (single file, structurally identical apart from the new hairline and the pill rewrite; well under slice budgets).
+
+**Rationale:**
+- The legacy alias layer (added in slice 1.1.2a) means the card already rendered with Field Edition colours at runtime via `var()` resolution — but the code still referenced the old names. This slice migrates the *consumer* off aliases so slice 1.1.2g can eventually delete the alias block.
+- Open Now is the canonical use of the Rapeseed stamp doctrine: a small, rare hit of warmth against the cream-paper card, which makes "open right now" feel immediately actionable. Putting accent on the indicator (instead of brand-green) also breaks the visual sameness between the open dot and the CTA below.
+- Hairline at `border-subtle` (warm Stone) sits under the meta line, separating *who/where* (title + county + distance) from *what it offers* (hook, status, tags) and *what you can do* (CTA + actions). Three implicit zones from one hairline.
+- Closed → surface-2 + ink-muted is intentional. The previous `brand-danger` framing made "closed" feel like an error state; the Field Edition reading is "neutral information" (the farm exists, just not right now). Saves error red for actual errors (form failures, destructive confirmations).
+- Type tokens (Clash Display, Plex Mono) explicitly deferred to slice 1.1.2e per the spec migration plan — keeps this slice atomic.
+
+**Verification (run 2026-05-19 ~07:05 BST):**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` — PASS (no output, exit 0).
+- ✅ `cd farm-frontend && pnpm exec tsx --test src/features/map/lib/preview-helpers.test.ts` — PASS (10 pass / 0 fail / 0 cancel, 215ms). Other test files unaffected by the change.
+- ✅ `cd farm-frontend && pnpm build` — PASS (exit 0, full route manifest).
+- ✅ `grep -nE "background-elevated|background-surface|background-hover|text-text-|brand-action|brand-danger" src/features/map/ui/FarmPreviewCard.tsx` → zero hits.
+
+**Visible impact:**
+- Open Now badge now reads as a small Rapeseed pill instead of an inline green dot, giving the card a clear chromatic "moment" that the previous all-green palette could not produce.
+- Hairline below the meta line tightens the card's typographic rhythm — header and body are now visually distinct without needing extra whitespace.
+- "Closed" reads as neutral information, not a warning — fewer false alarms when farms are simply outside their hours.
+- Dark-mode automatic: `--accent` resolves to `#FBBF24` and `--paper` to `#0C0A09`, so the same pill reads against a warm-black canvas without any media-query branching.
+
+**Operator follow-ups:**
+- ⏳ Manual visual smoke: tap a pin on the live map at mobile (375 × 812) and desktop (1280 × 800), in both colour modes, with one open farm and one closed farm. Confirm the Rapeseed pill, hairline divider, brand-green CTA, and neutral closed pill all render. Confirm `prefers-reduced-motion` still suppresses the scale/translate entry.
+- Slice 1.1.2f (Badge component) will subsume the inline pill code in this slice into a shared `<Badge variant="open" />` API once the four-state badge component is built.
+
+**Risk and rollback:** Low. Single-file chromatic change; no logic touched; no test failures; no public-URL or route impact. The pill structural change preserves the same DOM nesting (`div > span`), so accessibility tree and screen-reader output are equivalent. Rollback: `git revert <slice sha>`.
+
+**PR:** stacked on PR #169 (slice 1.1.2a / 1.1.2b foundation).
+
+**Next slice:** **1.1.2d — Custom MapLibre style JSON.** Author `public/map/field-edition.style.json` (Vellum land, muted blue-grey water, Loam roads at opacities, Hedgerow tints for parks/woods). Wire into `MapLibreShell`. Spec §4, ~200 LOC, includes vendor style URL switch.
