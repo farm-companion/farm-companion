@@ -466,7 +466,12 @@
   - Categories now selected in both `findMany` branches; first 3 category names feed `buildPittiFarmHeaderPrompt` as offerings (fallback `['seasonal produce']`).
   - Type-check PASS. Live end-to-end run blocked locally by a stale `farm-frontend/.env.local` pointing at the **decommissioned** Hetzner IP `134.122.102.159:5432`. Current production: Coolify-managed `farm-companion-db` on Hetzner server `farm-companion-prod` (`37.27.194.158`, eu-central / Helsinki). Operator handles the `.env.local` refresh; the PR code is correct against the new infra. (Earlier draft of this note wrongly said "Supabase pooler" — Supabase was retired in the mid-May 2026 Coolify/Hetzner move; see "Production Infrastructure" at the top of this ledger.)
 - [ ] Slice 1.1.2k-δ-2: County batch Pitti adapter (depends on δ-3 split)
-- [ ] Slice 1.1.2k-δ-3: Split `county-image-generator.ts` (509 LOC, over hard limit) before adding Pitti.
+- [x] Slice 1.1.2k-δ-3: Split `county-image-generator.ts` to unblock δ-2
+  - Extracted `COUNTY_LANDSCAPES` (40-county data dictionary) + `DEFAULT_LANDSCAPE` + a new `findCountyLandscape(slug, displayName)` helper into `farm-frontend/src/lib/county-landscapes.ts` (261 LOC, all data + one lookup).
+  - `county-image-generator.ts`: 509 → 269 LOC (under 300 soft limit; below the 500 hard limit it previously violated).
+  - `createCountyPrompt` now calls `findCountyLandscape(...)` — identical substring-based, case-insensitive lookup as the prior inline loop. Pure refactor; no behavior change.
+  - Verified: `tsc --noEmit` PASS, `pnpm build` PASS (254 routes).
+  - Unblocks δ-2 (county batch Pitti adapter — can now extend the file without hitting the hard limit).
 - [ ] Slice 1.1.2k-ε: Mass regeneration sweep (after δ chain lands)
   - Bump `SEED_VERSION`, run county + farm-header batches at FLUX schnell to keep cost under £2 for the 1,299-farm long tail.
 
