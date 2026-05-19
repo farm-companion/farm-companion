@@ -1619,3 +1619,45 @@ Net: +~155 LOC added (new component + helpers + tests), −~600 LOC deleted. Cle
 **PR:** to be created (`design/field-edition-1-1-2a-tokens`).
 
 **Next slice:** **1.1.2b — Cluster polish.** Migrate `CLUSTER_TIERS` in `cluster-config.ts` to opacity hierarchy on `--brand` (Hedgerow), switch shape from circle to rounded-square (Field Edition signature — clusters as garden plots, not pins), delete `clusterPulse` keyframes (Emil frequency rule), update `MapLibreShell` + `LeafletShell` cluster style calls.
+
+### 2026-05-19 — Slice 1.1.2b: Cluster polish on Field Edition foundation
+
+**Goal:** Migrate cluster markers from a 5-hue green palette + circle + radial gradient + glow + scale(0) entry + 2.5s pulse loop to the Field Edition signature: single Hedgerow base, 5-tier fill-opacity ladder, rounded-square (rx=8), opacity-only fade entry, CSS-driven hover and `:active` tactile feedback. Density visualised through saturation, not hue.
+
+**Files changed (3):**
+- MODIFY `farm-frontend/src/features/map/lib/cluster-config.ts` — `ClusterTier.color: string` → `opacity: number`; removed `pulseAnimation: boolean` field entirely. `CLUSTER_TIERS` now: mega 1.00, large 0.88, medium 0.78, small 0.65, tiny 0.55 — all over a single Hedgerow base. Rewrote the exported `generateClusterSVG` to consume `var(--brand)` + `fill-opacity`, square-by-default sizing (only "99+" gets a horizontal pill), `rx=8` rounded-square, dropped the `@keyframes clusterPulse` style block, replaced `clusterAppear`'s `scale(0)` entry with opacity-only fade (Emil rule: scale-from-zero looks cheap), softened drop-shadow opacity 0.20 → 0.18.
+- MODIFY `farm-frontend/src/components/map/ClusterMarker.tsx` — Deleted the local circle/gradient/glow `generateClusterSVG` (65 LOC) and the unused `adjustColor` hex-arithmetic helper (7 LOC). ClusterMarker now imports the canonical `generateClusterSVG` from `cluster-config.ts` instead of duplicating SVG construction. Removed `getClusterTier` and `getZoomAwareSize` imports (no longer needed locally). `updateMarker` now consumes `{ svg, width, height }` so non-square pills size correctly. Hover scale (was `Math.round(baseSize * 1.1)` in the SVG path) is now CSS-driven — JS only flips `dataset.hovered` + `zIndex`. Net: −~70 LOC; file is 259 LOC, under soft 300 limit.
+- MODIFY `farm-frontend/src/app/map/map.css` — Added `.cluster-marker` block: `transform-origin: center` + `will-change: transform`, `:hover` and `[data-hovered="true"]` scale(1.08), `:active` scale(0.96) at 80ms with `cubic-bezier(0.23, 1, 0.32, 1)` (Emil tactile feedback). `@media (prefers-reduced-motion: reduce)` zeros every transform/transition.
+
+**Net diff:** ~+45 / ~−85 LOC. One file shrinks (ClusterMarker.tsx), one is roughly flat (cluster-config.ts), one grows (map.css) — well under the 300-LOC source budget and 8-file budget.
+
+**Design decisions:**
+- Hue → opacity is the cluster equivalent of the four-colour rule: density should still encode information, but without inventing five new "branding-quality" greens. Result is calmer at the UK-overview zoom and more cohesive on the Hedgerow-driven page palette.
+- `var(--brand)` resolves at SVG-paint time, so clusters auto-adapt to dark mode (Hedgerow `#14532D` → `#4ADE80`) without re-rendering. The brand colour is the only knob.
+- Square-by-default sizing (width = `max(baseSize, textWidth + padding)`) keeps tiny/small/medium clusters as actual rounded squares and only widens for `99+`. Avoids the previous pill-everywhere look.
+- Hover handled by CSS, not by re-emitting a larger SVG every state change. `data-hovered` mirrors React state so future programmatic hover (keyboard focus, screen-reader) gets the same treatment.
+- `:active scale(0.96)` is the Emil press signature — direct manipulation feel without animation cost.
+- Opacity-only entry (no `transform: scale(0)`) is the Emil "don't pop in from nothing" rule — the cluster has spatial meaning at the moment it appears, so honouring its real size on frame 0 is correct.
+
+**Verification (run 2026-05-19 ~06:55 BST after Bash gate cleared via fact-forcing protocol):**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` — PASS (no output, exit 0).
+- ✅ `cd farm-frontend && pnpm exec tsx --test src/lib/email-verification.test.ts src/lib/blob-adapter.test.ts src/lib/rate-limit.test.ts src/lib/kv.test.ts src/shared/lib/geo.test.ts src/features/map/lib/preview-helpers.test.ts` — PASS (fail 0, cancelled 0, duration 351ms). `cache-manager.test.ts` excluded: hangs on Redis network (unrelated to cluster slice — touches no cache-manager code). Earlier run including it reached "ok 21" before harness timeout.
+- ✅ `cd farm-frontend && pnpm build` — PASS (exit 0, full route manifest emitted).
+- ✅ Grep `tier\.color|tier\.pulseAnimation|pulseAnimation:|cluster-${tier.name}` across `farm-frontend/src/` — zero hits in cluster scope. `adjustColor` still present in `pin-icons.ts` and `FarmMarker.tsx` (single-pin scope, out of slice — only the duplicated copy inside `ClusterMarker.tsx` was deleted).
+
+**Visible impact:**
+- Clusters in light mode: same green family (Hedgerow `#14532D`) at five opacity stops vs. five separate hex greens.
+- Clusters in dark mode: now actually adapt (was hardcoded dark greens that fought the dark canvas). Hedgerow `#4ADE80` reads against `#0C0A09` Vellum.
+- Mega clusters no longer pulse — they are simply fully opaque. Reads as "biggest, most important" without the attention-stealing 2.5s loop (Emil frequency rule).
+- All clusters now have `:active` press feedback on touch and mouse.
+
+**Operator follow-ups:**
+- ✅ Bash gate cleared in next session via fact-forcing protocol (state user request + command purpose pre-call). No need to disable GateGuard.
+- ⏳ Manual visual smoke at zoom 5 (UK overview, expect mega/large clusters across the country) + zoom 10 (regional, expect small/tiny clusters) + zoom 14 (single markers, expect no clusters), light + dark, mobile + desktop.
+- ⚠️ `cache-manager.test.ts` hangs without Redis env. Either mock Upstash in the test, gate behind `process.env.CI`, or split into an integration-only suite — track as separate housekeeping ticket.
+
+**Risk and rollback:** Low. The Hedgerow base resolves via `var()` so reverting `--brand` would itself revert the cluster look. Rollback: `git revert <slice sha>`. PR #169 (slice 1.1.2a) still open — this slice will stack on the same branch.
+
+**PR:** to be appended to https://github.com/farm-companion/farm-companion/pull/169 (or split if 1.1.2a merges first).
+
+**Next slice:** **1.1.2c — Marker preview card re-skin.** Migrate `FarmPreviewCard.tsx` chromatic surface from harvest-leaf-shaded tokens to canonical Field Edition (`--paper` background, `--ink` text, `--brand` CTA, `--accent` "Open Now" badge). Then 1.1.2d — Custom MapLibre style JSON (Vellum land, Hedgerow water-edge highlights).

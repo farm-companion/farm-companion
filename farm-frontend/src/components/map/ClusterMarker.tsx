@@ -4,10 +4,8 @@ import React, { useEffect, useRef, useCallback, memo } from 'react'
 import { Marker, Map as MapLibreMapInstance } from 'maplibre-gl'
 import { FarmCluster } from '@/features/map/hooks/useClusteredMarkers'
 import {
-  getClusterTier,
-  getZoomAwareSize,
+  generateClusterSVG,
   CLUSTER_EASING,
-  CLUSTER_ZOOM_THRESHOLDS,
 } from '@/features/map/lib/cluster-config'
 
 // =============================================================================
@@ -34,102 +32,15 @@ interface MarkerElement extends HTMLDivElement {
 }
 
 // =============================================================================
-// SVG GENERATION
-// =============================================================================
-
-/**
- * Generate cluster marker SVG
- */
-function generateClusterSVG(
-  count: number,
-  zoom: number,
-  isHovered: boolean
-): { svg: string; size: number } {
-  const tier = getClusterTier(count)
-  const baseSize = getZoomAwareSize(tier.baseSize, zoom)
-  const size = isHovered ? Math.round(baseSize * 1.1) : baseSize
-  const radius = (size / 2) - tier.borderWidth
-  const center = size / 2
-  const textY = center + (tier.fontSize / 3)
-
-  // Gradient for depth effect
-  const gradientId = `cluster-${tier.name}-${count}`
-  const darkerColor = adjustColor(tier.color, -20)
-
-  // Format count (99+ for large numbers)
-  const displayCount = count >= 100 ? '99+' : String(count)
-
-  // Glow filter for mega clusters or hovered state
-  const showGlow = tier.pulseAnimation || isHovered
-  const glowFilter = showGlow ? `
-    <filter id="glow-${gradientId}" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-      <feMerge>
-        <feMergeNode in="coloredBlur"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
-    </filter>
-  ` : ''
-
-  const filterAttr = showGlow ? `filter="url(#glow-${gradientId})"` : ''
-
-  const svg = `
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        ${glowFilter}
-        <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" style="stop-color:${tier.color};stop-opacity:1" />
-          <stop offset="100%" style="stop-color:${darkerColor};stop-opacity:1" />
-        </linearGradient>
-      </defs>
-      <circle
-        cx="${center}"
-        cy="${center}"
-        r="${radius}"
-        fill="url(#${gradientId})"
-        stroke="white"
-        stroke-width="${tier.borderWidth}"
-        ${filterAttr}
-      />
-      <text
-        x="${center}"
-        y="${textY}"
-        text-anchor="middle"
-        fill="white"
-        font-family="system-ui, -apple-system, sans-serif"
-        font-size="${tier.fontSize}"
-        font-weight="600"
-      >${displayCount}</text>
-    </svg>
-  `.trim()
-
-  return { svg, size }
-}
-
-/**
- * Adjust hex color brightness
- */
-function adjustColor(hex: string, amount: number): string {
-  const num = parseInt(hex.replace('#', ''), 16)
-  const r = Math.min(255, Math.max(0, (num >> 16) + amount))
-  const g = Math.min(255, Math.max(0, ((num >> 8) & 0x00ff) + amount))
-  const b = Math.min(255, Math.max(0, (num & 0x0000ff) + amount))
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`
-}
-
-// =============================================================================
 // COMPONENT
 // =============================================================================
 
 /**
  * Cluster Marker Component for MapLibre GL
  *
- * Renders a cluster marker with:
- * - 5-tier visual hierarchy based on farm count
- * - Zoom-aware sizing
- * - Hover effects with glow
- * - Accessible keyboard navigation
- * - Smooth animations via CSS
+ * Renders a Field Edition rounded-square cluster (rx=8) over a single Hedgerow
+ * brand colour with per-tier fill-opacity. Hover scale and active press feedback
+ * are CSS-driven (see map.css .cluster-marker rules).
  *
  * @example
  * ```tsx
@@ -161,14 +72,16 @@ export const ClusterMarker = memo(function ClusterMarker({
   const updateMarker = useCallback(() => {
     if (!elementRef.current) return
 
-    const { svg, size } = generateClusterSVG(count, zoom, hovered)
+    const { svg, width, height } = generateClusterSVG(count, zoom)
     elementRef.current.innerHTML = svg
-    elementRef.current.style.width = `${size}px`
-    elementRef.current.style.height = `${size}px`
-    elementRef.current.style.marginLeft = `-${size / 2}px`
-    elementRef.current.style.marginTop = `-${size / 2}px`
+    elementRef.current.style.width = `${width}px`
+    elementRef.current.style.height = `${height}px`
+    elementRef.current.style.marginLeft = `-${width / 2}px`
+    elementRef.current.style.marginTop = `-${height / 2}px`
 
-    // Z-index: hovered clusters on top
+    // Hover scale is CSS-driven (.cluster-marker:hover in map.css) so we only
+    // toggle z-index and a data attribute for state targeting.
+    elementRef.current.dataset.hovered = hovered ? 'true' : 'false'
     elementRef.current.style.zIndex = hovered ? '100' : '10'
   }, [count, zoom, hovered])
 
