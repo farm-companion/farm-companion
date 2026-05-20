@@ -8,7 +8,9 @@
 import { config } from 'dotenv'
 import { resolve } from 'path'
 
-config({ path: resolve(process.cwd(), '.env.local') })
+// .env.local must override values that @prisma/client auto-loaded from
+// .env at module-import time (ES-module imports run before this code).
+config({ path: resolve(process.cwd(), '.env.local'), override: true })
 config({ path: resolve(process.cwd(), '.env') })
 
 import { PrismaClient } from '@prisma/client'
