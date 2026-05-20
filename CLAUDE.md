@@ -50,6 +50,18 @@ Essential references for implementation:
 ## Evidence rule
 Only claim something is fixed if you ran the relevant local command and it passed. If you cannot run commands, provide the exact commands for the user to run plus what success looks like.
 
+## Operator-step protocol
+When a task requires the user (operator) to do something Claude cannot touch directly — cloud consoles, secret stores, `.env` files, hardware, manual deploys, OAuth handshakes, DNS changes — present it as ONE atomic step per message and wait for the operator's confirmation before issuing the next step. Bundling operator steps was the failure mode that triggered this rule (Slice 1.1.2k-δ-1b, S3 bucket name mismatch on Hetzner — the upload, env fix, and DB verification were proposed as one blob and only surfaced the blocker after generation cost was burned).
+
+Format per operator step:
+- Step N — <one-sentence goal>
+- Owner: you
+- Action: <exact command, value, or click path; copy-paste ready>
+- Verify: <what success output or state looks like>
+- Reply: <"step N done" or paste the output>
+
+Claude-side multi-step work (read → edit → run → check) can still batch freely; this rule constrains only handoffs to the operator. If a single Claude step depends on an operator value you don't have yet, that's an operator step — split it.
+
 ## Git workflow (MANDATORY)
 Follow GitHub's official workflow documentation as the authoritative source for all Git operations:
 
