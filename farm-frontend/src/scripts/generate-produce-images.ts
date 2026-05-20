@@ -22,8 +22,10 @@
 import { config } from 'dotenv'
 import { resolve } from 'path'
 
-// Load environment variables from .env.local first, then .env
-config({ path: resolve(process.cwd(), '.env.local') })
+// Load environment variables from .env.local first, then .env.
+// override:true is required so .env.local wins over values that
+// @prisma/client auto-loaded from .env at module-import time.
+config({ path: resolve(process.cwd(), '.env.local'), override: true })
 config({ path: resolve(process.cwd(), '.env') })
 
 import { PRODUCE } from '../data/produce'

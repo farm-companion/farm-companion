@@ -423,6 +423,12 @@
 - Stadia Maps requires attribution: "© Stadia Maps © OpenMapTiles © OpenStreetMap"
 
 ### Queue Cleanup: Post-migration dead-code removal
+- [x] Slice 1.3d: Fix `.env.local` precedence in CLI scripts
+  - Discovered while debugging the δ-1 live verification against the new Coolify/Hetzner DB. Local CLI runs were silently using the stale `134.122.102.159` from `.env` even though `.env.local` had the correct `37.27.194.158`.
+  - **Root cause**: `import { PrismaClient } from '@prisma/client'` triggers `@prisma/internals` to auto-load `.env` at ES-module-import time. Per spec, all `import` side-effects run BEFORE the top-level `config({ path: '.env.local' })` call — so by the time the script's dotenv runs, `process.env.DATABASE_URL` is already set from `.env`, and dotenv's default no-override behavior leaves it alone.
+  - **Fix**: Add `override: true` to every `config({ path: '.env.local' })` in `farm-frontend/src/scripts/` so the local file wins over Prisma's auto-loaded `.env`. Files touched (6): `check-image-status.ts`, `import-farms.ts`, `generate-farm-images.ts`, `generate-pitti-image.ts`, `generate-produce-images.ts`, `generate-county-images.ts`.
+  - Verified: Prisma probe via `pnpm generate:farm-images`'s dotenv pattern now returns `OK — farm count: 1299` (was failing on `Can't reach 134.122.102.159` before). `tsc --noEmit` PASS.
+  - This was a latent bug — harmless until `.env.local` and `.env` diverged (which happened in the May 2026 Coolify/Hetzner migration). All future scripts that need DB access from local CLI runs need the `override: true` flag.
 - [x] Slice 1.3b: Remove dead Supabase storage code
   - Deleted `farm-frontend/src/lib/supabase-storage.ts` (190 LOC, zero importers — superseded by `farm-blob.ts` + `blob-adapter.ts` during the May 2026 Coolify/Hetzner migration).
   - Dropped `@supabase/supabase-js@^2.93.3` from `farm-frontend/package.json` (only consumer was the deleted file). `pnpm install` pruned 30+ transitive packages from `node_modules`.

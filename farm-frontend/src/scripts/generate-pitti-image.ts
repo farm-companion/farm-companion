@@ -30,7 +30,9 @@
 import { config } from 'dotenv'
 import { resolve, join } from 'path'
 
-config({ path: resolve(process.cwd(), '.env.local') })
+// .env.local must override values that @prisma/client (or any module
+// in the import graph) auto-loaded from .env at module-import time.
+config({ path: resolve(process.cwd(), '.env.local'), override: true })
 config({ path: resolve(process.cwd(), '.env') })
 
 import { writeFile, mkdir } from 'fs/promises'
