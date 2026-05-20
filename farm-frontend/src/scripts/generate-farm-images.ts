@@ -3,12 +3,19 @@
 /**
  * Generate AI images for farm shops without photos
  * Usage:
- *   pnpm run generate:farm-images [--limit=10] [--slug=farm-slug] [--upload] [--force]
+ *   pnpm run generate:farm-images [--limit=10] [--slug=farm-slug] [--upload] [--force] [--style=harvest|pitti]
  *
  * Examples:
  *   pnpm run generate:farm-images --limit=5 --upload
- *   pnpm run generate:farm-images --slug=darts-farm --upload
- *   pnpm run generate:farm-images --limit=20 --upload --force
+ *   pnpm run generate:farm-images --slug=darts-farm --upload --force --style=pitti
+ *
+ * Behavior with --slug + --upload:
+ *   - If the farm has no approved image: a new image row is created.
+ *   - If an approved image already exists and --force is set: the existing
+ *     row is updated in place (url/altText/uploadedBy/isHero/displayOrder).
+ *   - If an approved image already exists and --force is NOT set: the farm
+ *     is skipped with a warning. List mode (no --slug) still filters farms
+ *     by `images.none`, so it remains insert-only.
  */
 
 import { config } from 'dotenv'
@@ -185,6 +192,23 @@ async function generateFarmImages() {
       console.log(`   County: ${farm.county}`)
       console.log('-'.repeat(50))
 
+      // Only meaningful in --slug mode: the no-slug query already filters
+      // farms with `images.none`, so existingImageId will always be undefined
+      // there. In --slug mode the query loads up to one approved image, so
+      // farm.images[0]?.id is the row we'd overwrite under --force.
+      const existingImageId: string | undefined = farm.images[0]?.id
+
+      if (options.upload && existingImageId && !options.force) {
+        console.log(`⚠️  Skipping ${farm.slug}: approved image already exists. Use --force to overwrite.`)
+        results.push({
+          slug: farm.slug,
+          name: farm.name,
+          success: false,
+          error: 'Image already exists; pass --force to overwrite',
+        })
+        continue
+      }
+
       try {
         // Branch on style. Harvest path is byte-identical to pre-Slice
         // 1.1.2k-δ-1 behavior (Runware-hosted URL). Pitti path runs the
@@ -270,19 +294,33 @@ async function generateFarmImages() {
 
         // Save URL to database
         if (options.upload) {
-          await prisma.image.create({
-            data: {
-              farmId: farm.id,
-              url: imageUrl,
-              altText: `${farm.name} farm shop`,
-              uploadedBy: 'ai_generator',
-              status: 'approved',
-              isHero: true,
-              displayOrder: 0
-            }
-          })
-
-          console.log(`✅ Saved to database`)
+          if (existingImageId && options.force) {
+            await prisma.image.update({
+              where: { id: existingImageId },
+              data: {
+                url: imageUrl,
+                altText: `${farm.name} farm shop`,
+                uploadedBy: 'ai_generator',
+                status: 'approved',
+                isHero: true,
+                displayOrder: 0,
+              },
+            })
+            console.log(`✅ Updated existing image row (${existingImageId})`)
+          } else {
+            await prisma.image.create({
+              data: {
+                farmId: farm.id,
+                url: imageUrl,
+                altText: `${farm.name} farm shop`,
+                uploadedBy: 'ai_generator',
+                status: 'approved',
+                isHero: true,
+                displayOrder: 0,
+              },
+            })
+            console.log(`✅ Saved to database`)
+          }
           results.push({ slug: farm.slug, name: farm.name, url: imageUrl, success: true })
         } else {
           // Dry-run: just show the URL
