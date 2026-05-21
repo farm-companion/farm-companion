@@ -62,7 +62,7 @@ export function FarmPageClient({
        * src/components/best/editorial/EditorialHero.tsx and the header
        * block of src/components/best/EditorialArticle.tsx. */}
       {shop.heroImage ? (
-        <section className="relative h-screen min-h-[600px] max-h-[900px] overflow-hidden bg-slate-100 dark:bg-slate-900">
+        <section className="relative h-[60vh] min-h-[420px] max-h-[720px] overflow-hidden bg-slate-100 dark:bg-slate-900">
           <div className="absolute inset-0">
             <Image
               src={shop.heroImage.url}
@@ -72,39 +72,39 @@ export function FarmPageClient({
               sizes="100vw"
               className="object-cover"
             />
-            {/* Apothecary illustrations are light-keyed (cream paper, ochre);
-              * needs a firmer bottom gradient now that the title is heavier
-              * and the hero is full-screen. Photo branch keeps stronger
-              * anchor for varied photographic backgrounds. */}
+            {/* Stronger gradient (vs Slice 1.1.3b-1) to lift the bolder
+              * title cleanly off the light-keyed Apothecary illustration.
+              * Photo branch proportionally darker to anchor against varied
+              * photographic backgrounds. */}
             <div
               className={
                 shop.heroImage.style === 'photo'
-                  ? 'absolute inset-0 bg-gradient-to-b from-black/20 via-black/10 to-black/65'
-                  : 'absolute inset-0 bg-gradient-to-b from-black/10 via-black/5 to-black/55'
+                  ? 'absolute inset-0 bg-gradient-to-b from-black/35 via-black/15 to-black/75'
+                  : 'absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/65'
               }
             />
           </div>
-          <div className="relative h-full flex flex-col items-center justify-end pb-16 md:pb-24 text-center px-6">
-            <div className="w-px h-12 md:h-16 bg-white/70 mb-8" aria-hidden="true" />
-            <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold text-white tracking-tight leading-[1.05] max-w-5xl drop-shadow-[0_4px_24px_rgba(0,0,0,0.7)]">
+          <div className="relative h-full flex flex-col items-center justify-end pb-12 md:pb-20 text-center px-6">
+            <div className="w-px h-10 md:h-14 bg-white/80 mb-7" aria-hidden="true" />
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white tracking-tight leading-[1.05] max-w-5xl drop-shadow-[0_4px_28px_rgba(0,0,0,0.85)]">
               {name}
             </h1>
-            <p className="mt-6 text-sm md:text-base text-white tracking-[0.25em] uppercase font-semibold drop-shadow-[0_2px_8px_rgba(0,0,0,0.6)]">
+            <p className="mt-5 text-sm md:text-base text-white tracking-[0.25em] uppercase font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)]">
               {location.county}
             </p>
           </div>
         </section>
       ) : (
-        <section className="relative h-screen min-h-[600px] max-h-[900px] flex items-center justify-center bg-white dark:bg-slate-900">
+        <section className="bg-white dark:bg-slate-900 py-20 md:py-28">
           <div className="container mx-auto px-6 text-center max-w-4xl">
-            <div className="w-px h-12 md:h-16 bg-slate-300 dark:bg-slate-700 mx-auto mb-10" aria-hidden="true" />
-            <p className="text-sm tracking-[0.25em] uppercase text-slate-500 dark:text-slate-400 font-semibold mb-8">
+            <div className="w-px h-10 md:h-14 bg-slate-300 dark:bg-slate-700 mx-auto mb-8" aria-hidden="true" />
+            <p className="text-sm tracking-[0.25em] uppercase text-slate-500 dark:text-slate-400 font-bold mb-7">
               {location.county}
             </p>
-            <h1 className="font-serif text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold text-slate-900 dark:text-white tracking-tight leading-[1.05]">
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 dark:text-white tracking-tight leading-[1.05]">
               {name}
             </h1>
-            <div className="w-px h-12 md:h-16 bg-slate-300 dark:bg-slate-700 mx-auto mt-10" aria-hidden="true" />
+            <div className="w-px h-10 md:h-14 bg-slate-300 dark:bg-slate-700 mx-auto mt-8" aria-hidden="true" />
           </div>
         </section>
       )}
