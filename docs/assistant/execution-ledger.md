@@ -1877,3 +1877,33 @@ pnpm generate:pitti seasonal asparagus
 - **1.1.2k-γ — Batch retool: counties + seasonal.** Modify `generate-county-images.ts` and `generate-produce-images.ts` to default to `buildPittiPrompt` + FLUX.1 [dev]. ~50 LOC each.
 
 Recommend running 1.1.2d-α next (independently shippable), then 1.1.2k-β once the operator has produced a few candidate images.
+
+### 2026-05-21 — Slice 1.1.3a: Apothecary botanical-engraving pipeline setup
+
+**Goal:** Stand up the Apothecary illustration pipeline (sister style to Pitti) end-to-end — prompt module, per-style blob path, generator branch, style-aware DB labels — so subsequent slices (1.1.3b editorial /shop hero, 1.1.3c suppression of legacy ai_generator rows) have a working second style to draw from. Approved by 4-voice council (`~/.claude/plans/i-do-not-understand-concurrent-summit.md`) after 3-to-1 vote against site-wide Pitti saturation: Pitti is PLACE (hero/county/popover), Apothecary is PRODUCT (per-farm illustration when no real admin photo exists).
+
+**Files touched:** 4 source + 1 ledger.
+- CREATE `farm-frontend/src/lib/apothecary-style.ts` (117 LOC) — `APOTHECARY_STYLE` constant (`lead` botanical-engraving fragment, `negative` photo-blocking + anti-Pitti fragment) and four prompt builders: `buildApothecaryPrompt`, `buildApothecaryFarmOfferingsPrompt`, `buildApothecarySeasonalPrompt`, `buildApothecaryEditorialAccentPrompt`. Negative prompt explicitly bans Pitti's vermilion/sea-ink/Cassandre vocabulary so FLUX cannot collapse the two styles together.
+- CREATE `farm-frontend/src/lib/apothecary-blob.ts` (63 LOC) — `buildApothecaryFarmObjectKey` and `uploadApothecaryFarmImage`. Path prefix `apothecary-farm-illustrations/{slug}/main.webp` is disjoint from Pitti's `pitti-farm-images/` so neither style can overwrite the other.
+- MODIFY `farm-frontend/src/scripts/generate-farm-images.ts` (+78 / −15 LOC; file now 440 LOC, under 500 hard limit) — added `--style=apothecary` branch (FLUX.1 [dev], 28 steps, CFG 3.5, 1536×768 with `cropBottomStrip`), additive INSERT semantics (Apothecary never UPDATEs an existing image row even with `--force`, so darts-farm now has both a Pitti row and an Apothecary row), and style-aware `uploadedBy` (`ai_pitti` / `ai_apothecary` / `ai_generator`) + style-aware `altText` so legacy fake-photo rows remain identifiable for the 1.1.3c suppression pass.
+- MODIFY `farm-frontend/next.config.ts` (+10 / −1 LOC) — added `farm-companion-blob-prod.hel1.your-objectstorage.com` to `images.remotePatterns` so the Next image proxy can optimise self-hosted Hetzner blobs. Until this hits production via Coolify, `/_next/image` will still 400 on Hetzner URLs even after merge.
+- MODIFY `docs/assistant/execution-ledger.md` — this entry.
+
+**Architectural decisions:**
+- **Sibling style module, not a fork of `runware-client.ts`.** `runware-client.ts` is the universal Runware client and Pitti style. Adding Apothecary there would push it past the 500 hard line and lock the two styles into the same file. Sibling extraction keeps both under the soft limit and makes future styles trivial.
+- **Per-style blob prefix.** `pitti-farm-images/` and `apothecary-farm-illustrations/` are completely disjoint. An audit query can grep paths to distinguish style provenance, and a destructive rename of one style cannot collateral-damage the other.
+- **Apothecary always additive, never UPDATEs.** A farm can legitimately have a Pitti row (hero/popover use) AND an Apothecary row (per-farm product illustration). Upserting would obliterate Pitti for any farm with both. `options.style !== 'apothecary'` guards the skip-on-existing and force-overwrite branches. Slice 1.1.2k-δ-1b's `--force` semantics for Pitti/harvest are now mis-policied (Pitti should also be additive); reworking that is backlogged.
+- **Style-aware `uploadedBy`.** Pre-existing rows write `ai_generator`. New rows write `ai_pitti` or `ai_apothecary`. Slice 1.1.3c suppresses only `ai_generator` rows (the fake photos that triggered this whole work).
+
+**Verification (run 2026-05-21):**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` — exit 0, no output.
+- ✅ Live end-to-end Apothecary run for `darts-farm`: Runware FLUX [dev] → 320,476-byte raw buffer → `cropBottomStrip` → 220,194-byte WebP at 1536×768 → Hetzner S3 PUT to `apothecary-farm-illustrations/darts-farm/main.webp` → `prisma.image.create` (additive — log confirmed "Saved to database", not "Updated existing row").
+- ✅ Operator visual QA at the direct blob URL.
+
+**Not verified — follow-up:**
+- ⏳ Production deploy of `next.config.ts` Hetzner whitelist. Until Coolify redeploys post-merge, the live site's `/_next/image` proxy still 400s on both Pitti and Apothecary URLs.
+- ⏳ Frontend rendering of Apothecary on `/shop/[slug]` — Slice 1.1.3b's job, not this one.
+
+**Risk and rollback:** Low. All four files are additive or guarded; Apothecary cannot affect Pitti or harvest rows. Rollback: `git revert <slice sha>` and Coolify redeploy of the previous master.
+
+**Next slice:** **1.1.3b — Editorial conversion of `/shop/[slug]`.** Apply the `/best/[slug]` editorial typography and full-bleed hero pattern to the farm detail page, with selector chain real-admin-photo → Apothecary → typography-led. Pitti reserved for hero/county/popover surfaces, NOT /shop hero.

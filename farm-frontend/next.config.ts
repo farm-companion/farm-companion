@@ -167,10 +167,19 @@ const nextConfig: NextConfig = {
         port: '8000',
         pathname: '/storage/**',
       },
-      // Runware AI-generated images
+      // Runware AI-generated images (temporary CDN; we self-host via Hetzner now)
       {
         protocol: 'https',
         hostname: 'im.runware.ai',
+        port: '',
+        pathname: '/**',
+      },
+      // Hetzner Object Storage — production blob backend for Pitti Press
+      // farm images and any future self-hosted media. Bucket-as-subdomain
+      // pattern: <bucket>.<region>.your-objectstorage.com.
+      {
+        protocol: 'https',
+        hostname: 'farm-companion-blob-prod.hel1.your-objectstorage.com',
         port: '',
         pathname: '/**',
       },
