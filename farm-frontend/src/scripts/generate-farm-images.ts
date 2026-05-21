@@ -8,6 +8,7 @@
  * Examples:
  *   pnpm run generate:farm-images --limit=5 --upload
  *   pnpm run generate:farm-images --slug=darts-farm --upload --force --style=pitti
+ *   pnpm run generate:farm-images --slug=darts-farm --upload --force --style=apothecary
  *
  * Behavior with --slug + --upload:
  *   - If the farm has no approved image: a new image row is created.
@@ -39,10 +40,15 @@ import {
 } from '../lib/runware-client'
 import { generationHeightFor, cropBottomStrip } from '../lib/image-crop'
 import { uploadPittiFarmImage } from '../lib/pitti-blob'
+import {
+  APOTHECARY_STYLE,
+  buildApothecaryFarmOfferingsPrompt,
+} from '../lib/apothecary-style'
+import { uploadApothecaryFarmImage } from '../lib/apothecary-blob'
 
 const prisma = new PrismaClient()
 
-type Style = 'harvest' | 'pitti'
+type Style = 'harvest' | 'pitti' | 'apothecary'
 
 interface Options {
   limit?: number
@@ -75,8 +81,8 @@ function parseArgs(): Options {
       options.upload = true
     } else if (arg.startsWith('--style=')) {
       const s = arg.split('=')[1]
-      if (s !== 'harvest' && s !== 'pitti') {
-        console.error(`Unknown --style value: ${s}. Valid: harvest, pitti`)
+      if (s !== 'harvest' && s !== 'pitti' && s !== 'apothecary') {
+        console.error(`Unknown --style value: ${s}. Valid: harvest, pitti, apothecary`)
         process.exit(1)
       }
       options.style = s
@@ -198,7 +204,10 @@ async function generateFarmImages() {
       // farm.images[0]?.id is the row we'd overwrite under --force.
       const existingImageId: string | undefined = farm.images[0]?.id
 
-      if (options.upload && existingImageId && !options.force) {
+      // Apothecary is always additive (inserts a new row even when other
+      // approved images exist) per the Pitti+Apothecary plan, so it never
+      // participates in the skip-on-existing or force-overwrite logic.
+      if (options.upload && existingImageId && !options.force && options.style !== 'apothecary') {
         console.log(`⚠️  Skipping ${farm.slug}: approved image already exists. Use --force to overwrite.`)
         results.push({
           slug: farm.slug,
@@ -210,10 +219,13 @@ async function generateFarmImages() {
       }
 
       try {
-        // Branch on style. Harvest path is byte-identical to pre-Slice
-        // 1.1.2k-δ-1 behavior (Runware-hosted URL). Pitti path runs the
-        // buffer through cropBottomStrip + uploadPittiFarmImage so the
-        // final WebP is self-hosted and free of FLUX corner watermarks.
+        // Branch on style.
+        // - Harvest: Runware-hosted URL (legacy photographic-style).
+        // - Pitti: buffer -> cropBottomStrip -> pitti-farm-images/ blob.
+        // - Apothecary: buffer -> cropBottomStrip -> apothecary-farm-
+        //   illustrations/ blob. Distinct prompt + path prefix from Pitti
+        //   so the two illustration styles never overwrite each other
+        //   (Slice 1.1.3a).
         let imageUrl: string
         const seed = hashString(farm.slug)
 
@@ -259,6 +271,47 @@ async function generateFarmImages() {
             imageUrl = blob.url
             console.log(`✅ Pitti image uploaded: ${imageUrl}`)
           }
+        } else if (options.style === 'apothecary') {
+          const offerings = farm.categories
+            .map(c => c.category.name)
+            .slice(0, 3)
+          const prompt = buildApothecaryFarmOfferingsPrompt(
+            offerings.length > 0 ? offerings : ['seasonal produce'],
+            farm.county ?? 'rural England',
+          )
+          const targetWidth = 1536
+          const targetHeight = 768
+          const genHeight = generationHeightFor(targetHeight)
+
+          console.log(`🌿 Generating Apothecary image (${targetWidth}x${genHeight} → crop to ${targetWidth}x${targetHeight})...`)
+          const rawBuffer = await runware.generateBuffer({
+            prompt,
+            negativePrompt: APOTHECARY_STYLE.negative,
+            width: targetWidth,
+            height: genHeight,
+            seed,
+            steps: 28,
+            cfgScale: 3.5,
+            model: RUNWARE_MODELS.fluxDev,
+            outputFormat: 'webp',
+          })
+
+          if (!rawBuffer) {
+            console.warn(`⚠️  No image generated for ${farm.name}`)
+            results.push({ slug: farm.slug, name: farm.name, success: false, error: 'Apothecary generation failed' })
+            continue
+          }
+
+          const cropped = await cropBottomStrip(rawBuffer, targetHeight, 'webp')
+
+          if (!options.upload) {
+            imageUrl = `<dry-run apothecary, ${cropped.byteLength} bytes>`
+            console.log(`🔗 Would upload Apothecary WebP (${cropped.byteLength} bytes) → apothecary-farm-illustrations/${farm.slug}/main.webp`)
+          } else {
+            const blob = await uploadApothecaryFarmImage(cropped, farm.slug)
+            imageUrl = blob.url
+            console.log(`✅ Apothecary image uploaded: ${imageUrl}`)
+          }
         } else {
           // Harvest path (unchanged)
           const countyKey = farm.county?.toLowerCase() || 'default'
@@ -292,15 +345,27 @@ async function generateFarmImages() {
           console.log(`✅ Generated image URL: ${imageUrl}`)
         }
 
-        // Save URL to database
+        // Save URL to database.
+        // uploadedBy is style-aware so Slice 1.1.3c can suppress only the
+        // legacy ai_generator (fake-photo) rows without affecting Pitti
+        // or Apothecary illustration rows.
         if (options.upload) {
-          if (existingImageId && options.force) {
+          const uploadedBy =
+            options.style === 'pitti' ? 'ai_pitti' :
+            options.style === 'apothecary' ? 'ai_apothecary' :
+            'ai_generator'
+          const altText =
+            options.style === 'apothecary'
+              ? `${farm.name} botanical illustration`
+              : `${farm.name} farm shop`
+
+          if (existingImageId && options.force && options.style !== 'apothecary') {
             await prisma.image.update({
               where: { id: existingImageId },
               data: {
                 url: imageUrl,
-                altText: `${farm.name} farm shop`,
-                uploadedBy: 'ai_generator',
+                altText,
+                uploadedBy,
                 status: 'approved',
                 isHero: true,
                 displayOrder: 0,
@@ -312,8 +377,8 @@ async function generateFarmImages() {
               data: {
                 farmId: farm.id,
                 url: imageUrl,
-                altText: `${farm.name} farm shop`,
-                uploadedBy: 'ai_generator',
+                altText,
+                uploadedBy,
                 status: 'approved',
                 isHero: true,
                 displayOrder: 0,
