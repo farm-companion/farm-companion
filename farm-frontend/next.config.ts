@@ -174,12 +174,17 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Hetzner Object Storage — production blob backend for Pitti Press
-      // farm images and any future self-hosted media. Bucket-as-subdomain
-      // pattern: <bucket>.<region>.your-objectstorage.com.
+      // Hetzner Object Storage, production blob backend for Pitti Press
+      // and Apothecary self-hosted illustrations. Wildcard form so any
+      // <bucket>.<region>.your-objectstorage.com is whitelisted. Per
+      // Next.js 16 syntax `**.x` matches any number of subdomain
+      // segments at the beginning. The exact-match form was silently
+      // rejected by Vercel's edge image optimizer in Slice 1.1.3a
+      // (returned INVALID_IMAGE_OPTIMIZE_REQUEST despite being present
+      // in the committed config and surviving a no-cache rebuild).
       {
         protocol: 'https',
-        hostname: 'farm-companion-blob-prod.hel1.your-objectstorage.com',
+        hostname: '**.your-objectstorage.com',
         port: '',
         pathname: '/**',
       },

@@ -1948,3 +1948,33 @@ Recommend running 1.1.2d-α next (independently shippable), then 1.1.2k-β once 
 **Risk and rollback:** None, docs only. Rollback: `git revert <slice sha>`.
 
 **Next slice:** Still **1.1.3b — Editorial conversion of `/shop/[slug]`** (unchanged). The Vercel rebuild blocker is an operator-side action, not a code slice.
+
+### 2026-05-21 — Slice 1.1.3a-2: Hetzner remotePatterns wildcard workaround
+
+**Goal:** Diagnostic + workaround for production `/_next/image` returning `400 INVALID_IMAGE_OPTIMIZE_REQUEST` on the Hetzner host. Swap the exact-match `farm-companion-blob-prod.hel1.your-objectstorage.com` entry for the wildcard `**.your-objectstorage.com`. Per Next.js 16 docs, `**.x` matches any number of subdomain segments at the beginning, so the wildcard covers all Hetzner buckets and regions.
+
+**Why this is justified after 1.1.3a-1 ruled out cache + dashboard override:**
+- Operator did a verified no-cache redeploy of `a144d3d` (build log showed "Creating build cache" instead of "Restored build cache").
+- Vercel project has no Project Settings, Images panel; no dashboard-level override exists for this project (verified via screenshot of the settings sidebar).
+- Other entries in `remotePatterns` work: Unsplash returns 200, cdn.farmcompanion.co.uk returns 502 DNS_HOSTNAME_NOT_FOUND, both pass allowlist validation.
+- Vercel Observability, Image Optimization shows 514 transformations in 12 hours, all from `im.runware.ai`, zero from Hetzner. Hetzner URLs never pass validation.
+- `od -c` of the exact-match block shows no hidden characters in the JS code; the em dash is in an adjacent comment only and is stripped at compile time.
+
+Only remaining hypothesis: Vercel's edge image optimizer is silently dropping that specific hostname string at runtime. Wildcard bypasses the issue regardless of root cause.
+
+**Files touched:** 1 source + 1 ledger.
+- MODIFY `farm-frontend/next.config.ts` (+8 / -3 LOC in the Hetzner block), replaces exact hostname with `**.your-objectstorage.com`. Comment updated to record diagnostic reasoning.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ `pnpm exec tsc --noEmit` clean.
+- ⏳ Operator must confirm Vercel auto-deploys the new commit, then re-curl `/_next/image` with a Hetzner URL.
+- ⏳ Success criterion: `HTTP/2 200`, `content-type: image/avif`, `x-vercel-cache: MISS` on first call.
+
+**Diagnostic outcomes:**
+- If 200, Vercel was rejecting the exact-match string (cause unknown but mitigated). A Vercel support ticket can root-cause later if it matters.
+- If still 400, deeper deployment issue. Next would be to add a fresh control hostname like `httpbin.org` to verify new entries are picked up at all.
+
+**Risk and rollback:** Low. The wildcard is strictly more permissive than the exact-match, and `your-objectstorage.com` is a Hetzner-controlled TLD so it cannot be hijacked by a third party. Rollback: `git revert <slice sha>`.
+
+**Next slice:** Still **1.1.3b** if this works; otherwise an `httpbin.org` control entry to disambiguate.
