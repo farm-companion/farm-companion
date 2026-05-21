@@ -1,15 +1,31 @@
 # FarmCompanion Execution Ledger
 
-## Production Infrastructure (current — May 2026)
+## Production Infrastructure (current, May 2026)
 
-> Older ledger entries reference Supabase. That was historically accurate; production was migrated to Coolify-managed Hetzner ~mid-May 2026. Do not assume Supabase when reading recent entries.
+> Older ledger entries reference Supabase as the full production stack. That was historically accurate; production was migrated in two passes. **Hybrid stack now**: app on Vercel, backing services on Coolify-managed Hetzner, blob storage on Hetzner Object Storage. The 2026-05-19 ledger correction (Slice 1.3a / commit `9583d9b`) documented the Coolify/Hetzner backing-services move but over-generalised it to "production infra"; the Next.js app hosting was never part of that migration and still lives on Vercel. This block is the canonical source of truth.
 
-- **Host**: Hetzner Cloud server `farm-companion-prod` (CPX42, x86, 320 GB, eu-central / Helsinki) — public IP `37.27.194.158`.
+**App hosting (Next.js / `www.farmcompanion.co.uk`)**
+- **Platform**: Vercel.
+- **Project**: `farm-frontend` (Vercel ID `prj_PMjHmuEOMXDanMXx5ZCPD1SFUsza`, team `team_B5k67LX6NEBzVixOHSQ6Eqyc`).
+- **Region**: `fra1` (Frankfurt) per root `vercel.json`.
+- **Deploys from**: GitHub master, auto-deploy on push.
+- **Config**: `/vercel.json` (root, build/install/output) and `/farm-frontend/vercel.json` (regions/crons/headers). `.vercel/project.json` is the Vercel-CLI link file. **All three of these files are active production config and must not be removed.**
+
+**Backing services (Coolify-managed Hetzner)**
+- **Host**: Hetzner Cloud server `farm-companion-prod` (CPX42, x86, 320 GB, eu-central / Helsinki), public IP `37.27.194.158`.
 - **Orchestrator**: Coolify v4.
 - **Postgres**: Coolify service `farm-companion-db`.
 - **Redis**: Coolify service `farm-companion-redis`.
 - **Meilisearch**: Coolify service `farm-companion-meili`.
-- An older Hetzner server IP (`134.122.102.159`) is decommissioned. Stale `.env.local` files may still point there.
+- The older Hetzner server IP `134.122.102.159` is decommissioned; stale `.env.local` files may still point there.
+
+**Blob storage (Hetzner Object Storage, not Coolify)**
+- **Bucket**: `farm-companion-blob-prod`.
+- **Endpoint**: `https://farm-companion-blob-prod.hel1.your-objectstorage.com/<path>` (bucket-as-subdomain, region `hel1`).
+- **Access**: public-read for image objects (verified 2026-05-21 with HEAD on `apothecary-farm-illustrations/darts-farm/main.webp` returning 200 / `image/webp`).
+- Path prefixes by style: `pitti-farm-images/`, `apothecary-farm-illustrations/`. Disjoint per Slice 1.1.3a so no style can overwrite another.
+
+**Image delivery dependency**: Vercel's `/_next/image` proxy must have the Hetzner host whitelisted in `farm-frontend/next.config.ts` `images.remotePatterns`. Whitelist entry landed in Slice 1.1.3a / `f558085`. **Known issue (2026-05-21)**: production `/_next/image` still returns `400 INVALID_IMAGE_OPTIMIZE_REQUEST` for Hetzner URLs even on the `f558085` deployment, with the same 400 hitting other already-whitelisted hosts like `upload.wikimedia.org`. Suggests Vercel build cache or a project-level Image Optimization setting in the dashboard is overriding the rebuilt edge config. Resolution requires a manual "Redeploy without build cache" from the Vercel dashboard and/or a check of Project Settings → Images.
 
 ## Queue Status
 
@@ -1907,3 +1923,28 @@ Recommend running 1.1.2d-α next (independently shippable), then 1.1.2k-β once 
 **Risk and rollback:** Low. All four files are additive or guarded; Apothecary cannot affect Pitti or harvest rows. Rollback: `git revert <slice sha>` and Coolify redeploy of the previous master.
 
 **Next slice:** **1.1.3b — Editorial conversion of `/shop/[slug]`.** Apply the `/best/[slug]` editorial typography and full-bleed hero pattern to the farm detail page, with selector chain real-admin-photo → Apothecary → typography-led. Pitti reserved for hero/county/popover surfaces, NOT /shop hero.
+
+### 2026-05-21 — Slice 1.1.3a-1: Ledger correction, hybrid Vercel + Coolify hosting
+
+**Goal:** Rewrite the "Production Infrastructure" block at the top of this ledger so future slice notes correctly reflect that the Next.js app is hosted on Vercel while only backing services (Postgres, Redis, Meilisearch) and blob storage are on Hetzner. Discovered while debugging the Slice 1.1.3a follow-up: the operator's Coolify dashboard had no application resource for the farm-frontend, and the active Vercel deployment of `f558085` confirmed Vercel is the app host. The 2026-05-19 ledger correction (commit `9583d9b`) over-generalised the Coolify/Hetzner backing-services move to "production infra", which misled this session into telling the operator the wrong place to redeploy.
+
+**Files touched:** 1.
+- MODIFY `docs/assistant/execution-ledger.md` — rewrote the top-of-file Production Infrastructure block into three explicit sub-sections (App hosting / Backing services / Blob storage), pinned Vercel project IDs, and added a "Known issue" note that production `/_next/image` is still 400ing on Hetzner URLs even after the `f558085` whitelist landed (suggests Vercel build cache or dashboard-level Image setting overrides; operator must redeploy without cache or check Project Settings → Images). Also appended this slice block.
+
+**Verification (run 2026-05-21):**
+- ✅ `curl -sI https://farm-companion-blob-prod.hel1.your-objectstorage.com/apothecary-farm-illustrations/darts-farm/main.webp` returns `HTTP/2 200`, `content-type: image/webp`, 220,194 bytes (raw blob intact).
+- ✅ `curl -sI 'https://www.farmcompanion.co.uk/_next/image?url=...darts-farm/main.webp&w=1536&q=75'` returns `HTTP/2 400` with `x-vercel-error: INVALID_IMAGE_OPTIMIZE_REQUEST`. Same 400 on the git-master branch alias and with cache-busters.
+- ✅ Vercel deployment detail page confirms Source `f558085`, Status Ready, Environment Production (Current), Domain `www.farmcompanion.co.uk`.
+- ✅ `git show f558085:farm-frontend/next.config.ts | grep -c farm-companion-blob-prod` returns 1 (entry is in the deployed commit).
+
+**Not verified, operator follow-up:**
+- ⏳ Manual "Redeploy without build cache" from the Vercel dashboard for project `farm-frontend`, or alternatively check Project Settings → Images for a stale allowlist override.
+- ⏳ Re-curl the `/_next/image` URL after the redeploy. Success = HTTP 200, `content-type: image/avif`, `x-vercel-cache: MISS` (then HIT on second call).
+
+**Decisions:**
+- **Keep `.vercel/`, `/vercel.json`, `/farm-frontend/vercel.json`.** Per operator instruction these are NOT orphans, they are the active Vercel production config. Earlier in this session I suggested deleting them as orphan; that suggestion was wrong and is explicitly retracted in the new top-of-ledger block.
+- **Hybrid is intentional, not transitional.** Vercel for app, Coolify/Hetzner for backing services and blob. No migration of app hosting away from Vercel is planned in the current queue.
+
+**Risk and rollback:** None, docs only. Rollback: `git revert <slice sha>`.
+
+**Next slice:** Still **1.1.3b — Editorial conversion of `/shop/[slug]`** (unchanged). The Vercel rebuild blocker is an operator-side action, not a code slice.
