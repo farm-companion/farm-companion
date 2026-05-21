@@ -2013,3 +2013,33 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Low. All changes are additive or guarded; `heroImage` is optional and the typography-led branch handles the null case cleanly. Rollback: `git revert <slice sha>`; the `FarmShop` `heroImage` field becomes inert but does not break consumers.
 
 **Next slice:** **Slice 1.1.3c**, gallery-side suppression of `ai_generator` rows and the URL-pattern backfill that flips legacy darts-farm Pitti rows from `ai_generator` to `ai_pitti`.
+
+### 2026-05-21 — Slice 1.1.3d-1: Pitti homepage hero
+
+**Goal:** First Pitti PLACE surface goes live. Replaces the legacy `/main_header.jpg` photographic fallback on the homepage hero with the Pitti Press railway-poster illustration that has been sitting unused in `public/images/pitti/` since Slice 1.1.2k-α. After this slice, visitors landing on `/` see the Pitti aesthetic immediately, and the Pitti-Apothecary split becomes legible cross-surface (Pitti = PLACE on homepage, Apothecary = PRODUCT on /shop/[slug] from 1.1.3b).
+
+**Context:** Operator viewed the live `/shop/darts-farm` after 1.1.3b shipped and asked "I thought we were mixing between the two styles". This surfaced that on a single page the design is correctly mono-style; the mixing happens across surfaces, none of which had been rewritten for Pitti yet. This slice is the first of three (homepage, county, map popover) to make the Pitti surface live.
+
+**Files touched:** 1 source + 1 ledger.
+- MODIFY `farm-frontend/src/components/AnimatedHero.tsx` (+2 / -2 LOC), swap `imageSrc` from `/main_header.jpg` to `/images/pitti/hero-homepage-dev-seed50920962-v2.webp` and update `imageAlt` to describe the Pitti illustration. Composition is the densest of the three pre-generated v1 candidates: red sun, dry-stone walls, multi-coloured fields, red tractor, cottages, distant mountains.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Pitti asset selection:** Three candidates lived at `public/images/pitti/hero-homepage-dev-seed50920962{,-v1,-v2}.webp` from Slice 1.1.2k-α/β. Picked v2 (May 19 18:18 mtime, 478 KB). Has a faint FLUX corner artifact in the bottom-right (partial text glyphs like "FAISI") because v1/v2 predate the `cropBottomStrip` step added in Slice 1.1.2k-δ; the AnimatedHero's strong bottom gradient (`bg-gradient-to-t from-black/70` plus `bg-gradient-to-b to-black/30`) obscures the artifact in production. If artifact is visible on operator's screen after deploy, regenerate the hero via `pnpm generate:pitti hero homepage` with the post-1.1.2k-δ pipeline (which crops).
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` exit 0.
+- ✅ Local dev smoke test: `curl http://localhost:3001/` returned HTTP 200; HTML contained the filename `hero-homepage-dev-seed50920962-v2.webp` as the rendered hero background.
+- ⏳ Operator browser check post-merge at `https://www.farmcompanion.co.uk/` confirming the Pitti illustration is the hero, the bottom artifact is invisible under the gradient, and the seasonal headline plus CTAs read legibly over the brighter Pitti colour palette.
+
+**Architectural decisions:**
+- **Static `public/` asset, not Hetzner blob.** Fastest possible ship; image was already in repo. Hetzner pattern is reserved for per-farm Pitti and Apothecary illustrations which are too numerous to ship in the build. One global hero is fine in `public/`.
+- **No code change to `HeroVideoBackground`.** Existing component already supports `imageSrc` fallback. We are only changing the value, not the contract.
+- **Bottom artifact accepted.** Gradient obscures it; regeneration deferred unless visible.
+
+**Out of scope (deferred to siblings):**
+- Slice 1.1.3d-2 — `/counties/[slug]` Pitti hero (requires batch generation of 50+ county images).
+- Slice 1.1.3d-3 — Map popover Pitti rendering on `MarkerPreview.tsx`.
+
+**Risk and rollback:** Very low. One-line image-path swap in a single component. Rollback: `git revert <slice sha>`.
+
+**Next slice:** **Slice 1.1.3d-2** (`/counties/[slug]` Pitti hero) or **Slice 1.1.3c** (`ai_generator` gallery suppression). Operator pick.
