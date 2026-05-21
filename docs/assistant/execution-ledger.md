@@ -2043,3 +2043,29 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Very low. One-line image-path swap in a single component. Rollback: `git revert <slice sha>`.
 
 **Next slice:** **Slice 1.1.3d-2** (`/counties/[slug]` Pitti hero) or **Slice 1.1.3c** (`ai_generator` gallery suppression). Operator pick.
+
+### 2026-05-21 — Slice 1.1.3c Part 1: /shop gallery `ai_generator` suppression
+
+**Goal:** Closes the original user-stated pain "REMOVE fake AI photos site-wide; do not replace with Pitti" for the `/shop/[slug]` gallery surface. One-line predicate added to the gallery filter in `getFarmBySlug` so legacy `uploadedBy='ai_generator'` rows no longer render below the editorial hero.
+
+**Files touched:** 1 source + 1 ledger.
+- MODIFY `farm-frontend/src/lib/farm-data.ts` (+5 / -2 LOC), gallery filter now excludes hero URL + `ai_pitti` + `ai_generator`. Comment updated to reflect the council mandate.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Effect on production:**
+- Farms whose only images are `ai_generator` rows (1213 farms per handover) get an empty gallery below the hero. Combined with Slice 1.1.3b's typography-led hero fallback, these pages become clean editorial.
+- `darts-farm` specifically: its legacy Pitti row is mislabeled `uploadedBy='ai_generator'` (predates style-aware labels). Filter hides it from the gallery. Apothecary hero remains. Page becomes Apothecary-hero + clean gallery.
+- Farms with real admin photos (`owner`/`admin`/`user`): unchanged, those still appear in the gallery alongside the hero.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` exit 0.
+- ⏳ Operator browser check post-merge at `https://www.farmcompanion.co.uk/shop/darts-farm`: gallery section should no longer show the Pitti illustration below the Apothecary hero.
+- ⏳ Operator spot-check at any farm with only legacy fake photos: gallery section should be absent / empty (clean editorial layout).
+
+**Out of scope (Slice 1.1.3c Part 2, deferred):**
+- DB backfill of legacy `darts-farm` Pitti row's `uploadedBy` from `ai_generator` to `ai_pitti` (one-shot script against production Postgres).
+- Listing-level suppression of `ai_generator` thumbnails on `/shop`, `/counties/[slug]`, `/find/[county]/[category]`, FarmCard, etc. (requires touching `getFarmData`, `searchFarms`, `getFarmsByCounty`, `getFeaturedFarms` in `lib/queries/farms.ts`, multi-surface).
+
+**Risk and rollback:** Very low. One predicate added to an in-memory filter; data unchanged. Rollback: `git revert <slice sha>`. Worst case if the filter is wrong: gallery shows the legacy fake photos again, which is the current state.
+
+**Next slice:** **Slice 1.1.3c Part 2** (DB backfill + listing suppression), **Slice 1.1.3d-2** (county Pitti), or **Slice 1.1.4** (Apothecary batch backfill). Operator pick.
