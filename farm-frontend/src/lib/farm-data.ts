@@ -125,12 +125,17 @@ export async function getFarmBySlug(slug: string): Promise<FarmShop | null> {
 
     const heroImage = selectFarmHeroImage(farm.images, farm.name)
 
-    // Gallery URLs exclude the hero (no duplicate render) and Pitti
-    // illustrations (council-reserved for hero/county/popover surfaces,
-    // not for /shop galleries). Legacy ai_generator rows still pass
-    // through here, suppression of those is Slice 1.1.3c.
+    // Gallery URLs exclude the hero (no duplicate render), Pitti
+    // illustrations (council-reserved for hero/county/popover surfaces),
+    // and legacy ai_generator fake-photo rows (Slice 1.1.3c Part 1,
+    // per the user-stated pain "REMOVE fake AI photos site-wide").
+    // Listing-level suppression on /shop, /counties, etc. is a follow-up.
     const galleryImages = farm.images
-      .filter(img => img.url !== heroImage?.url && img.uploadedBy !== 'ai_pitti')
+      .filter(img =>
+        img.url !== heroImage?.url &&
+        img.uploadedBy !== 'ai_pitti' &&
+        img.uploadedBy !== 'ai_generator'
+      )
       .map(img => img.url)
 
     return {
