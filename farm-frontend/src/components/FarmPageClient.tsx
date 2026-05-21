@@ -54,17 +54,67 @@ export function FarmPageClient({
         </div>
       </div>
 
-      {/* Hero Section */}
+      {/* Editorial Hero (Slice 1.1.3b)
+       * Image branch: full-bleed Apothecary illustration or admin photo,
+       * gradient overlay, serif title, county kicker.
+       * Null branch: typography-led hero with serif title + vertical
+       * line accents, no image. Pattern adapted from
+       * src/components/best/editorial/EditorialHero.tsx and the header
+       * block of src/components/best/EditorialArticle.tsx. */}
+      {shop.heroImage ? (
+        <section className="relative h-[60vh] min-h-[420px] max-h-[720px] overflow-hidden bg-slate-100 dark:bg-slate-900">
+          <div className="absolute inset-0">
+            <Image
+              src={shop.heroImage.url}
+              alt={shop.heroImage.alt}
+              fill
+              priority
+              sizes="100vw"
+              className="object-cover"
+            />
+            {/* Photo gets a stronger bottom gradient to land the title;
+              * Apothecary needs less because the illustration is calmer. */}
+            <div
+              className={
+                shop.heroImage.style === 'photo'
+                  ? 'absolute inset-0 bg-gradient-to-b from-black/15 via-transparent to-black/55'
+                  : 'absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/40'
+              }
+            />
+          </div>
+          <div className="relative h-full flex flex-col items-center justify-end pb-12 md:pb-16 text-center px-6">
+            <div className="w-px h-10 md:h-12 bg-white/70 mb-6" aria-hidden="true" />
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-normal text-white tracking-tight leading-[1.1] max-w-4xl drop-shadow-[0_2px_8px_rgba(0,0,0,0.4)]">
+              {name}
+            </h1>
+            <p className="mt-4 text-xs md:text-sm text-white/85 tracking-[0.2em] uppercase font-medium drop-shadow-[0_1px_4px_rgba(0,0,0,0.4)]">
+              {location.county}
+            </p>
+          </div>
+        </section>
+      ) : (
+        <section className="bg-white dark:bg-slate-900 py-20 md:py-28">
+          <div className="container mx-auto px-6 text-center max-w-3xl">
+            <div className="w-px h-10 md:h-12 bg-slate-300 dark:bg-slate-700 mx-auto mb-8" aria-hidden="true" />
+            <p className="text-xs tracking-[0.2em] uppercase text-slate-500 dark:text-slate-400 mb-6">
+              {location.county}
+            </p>
+            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl font-normal text-slate-900 dark:text-white tracking-tight leading-[1.1]">
+              {name}
+            </h1>
+            <div className="w-px h-10 md:h-12 bg-slate-300 dark:bg-slate-700 mx-auto mt-8" aria-hidden="true" />
+          </div>
+        </section>
+      )}
+
+      {/* Details Bar (post-hero): badges, address, Get Directions.
+       * Replaces the badges/location/CTA block that used to live inside
+       * the hero. Keeps the operator-critical Get Directions above the
+       * fold on most viewports without competing with the hero title. */}
       <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-        <div className="container mx-auto px-4 py-12 md:py-16">
-          <div className="max-w-3xl">
-            {/* Badges */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="flex items-center gap-3 mb-6 flex-wrap"
-            >
+        <div className="container mx-auto px-4 py-5 md:py-6">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
               {verified && (
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 text-[13px] font-semibold border border-emerald-200 dark:border-emerald-700">
                   <Shield className="h-4 w-4" />
@@ -72,46 +122,20 @@ export function FarmPageClient({
                 </div>
               )}
               <StatusBadge openingHours={hours} className="text-[13px] px-3 py-1.5" />
-            </motion.div>
-
-            {/* Farm Name */}
-            <motion.h1
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.05 }}
-              className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4 tracking-tight"
+              <div className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
+                <MapPin className="h-4 w-4 flex-shrink-0" />
+                <span>{location.address}, {location.county} {location.postcode}</span>
+              </div>
+            </div>
+            <a
+              href={directionsUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-xl bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 text-sm font-semibold transition-all duration-200 hover:bg-slate-800 dark:hover:bg-white hover:shadow-md active:scale-[0.98] flex-shrink-0"
             >
-              {name}
-            </motion.h1>
-
-            {/* Location */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="flex items-center gap-2 text-body text-slate-600 dark:text-slate-400 mb-6"
-            >
-              <MapPin className="h-5 w-5 flex-shrink-0" />
-              <span>{location.address}, {location.county} {location.postcode}</span>
-            </motion.div>
-
-            {/* Action Buttons */}
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.15 }}
-              className="flex flex-col sm:flex-row gap-3"
-            >
-              <a
-                href={directionsUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-xl bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 text-sm font-semibold transition-all duration-200 hover:bg-slate-800 dark:hover:bg-white hover:shadow-md active:scale-[0.98]"
-              >
-                <Navigation className="h-4 w-4" />
-                Get Directions
-              </a>
-            </motion.div>
+              <Navigation className="h-4 w-4" />
+              Get Directions
+            </a>
           </div>
         </div>
       </section>

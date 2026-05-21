@@ -1,5 +1,6 @@
 import type { FarmShop } from '@/types/farm'
 import { prisma } from '@/lib/prisma'
+import { selectFarmHeroImage } from '@/lib/farm-hero-image'
 
 // Server-side farm data loading (reads from Supabase via Prisma)
 export async function getFarmData(): Promise<FarmShop[]> {
@@ -122,6 +123,16 @@ export async function getFarmBySlug(slug: string): Promise<FarmShop | null> {
       return null
     }
 
+    const heroImage = selectFarmHeroImage(farm.images, farm.name)
+
+    // Gallery URLs exclude the hero (no duplicate render) and Pitti
+    // illustrations (council-reserved for hero/county/popover surfaces,
+    // not for /shop galleries). Legacy ai_generator rows still pass
+    // through here, suppression of those is Slice 1.1.3c.
+    const galleryImages = farm.images
+      .filter(img => img.url !== heroImage?.url && img.uploadedBy !== 'ai_pitti')
+      .map(img => img.url)
+
     return {
       id: farm.id,
       name: farm.name,
@@ -141,7 +152,8 @@ export async function getFarmBySlug(slug: string): Promise<FarmShop | null> {
         website: farm.website || undefined,
       },
       offerings: farm.categories.map((fc) => fc.category.name),
-      images: farm.images.length > 0 ? farm.images.map((img) => img.url) : undefined,
+      images: galleryImages.length > 0 ? galleryImages : undefined,
+      heroImage,
       verified: farm.verified,
     }
   } catch (error) {
