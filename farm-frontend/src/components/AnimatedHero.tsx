@@ -21,8 +21,8 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
       <HeroVideoBackground
         videoSrc={videoSrc}
         videoPoster={videoPoster}
-        imageSrc="/main_header.jpg"
-        imageAlt="Colorful display of fresh vegetables, fruits, and flowers arranged in baskets at a UK farm shop, showcasing the variety of local produce available"
+        imageSrc="/images/pitti/hero-homepage-dev-seed50920962-v2.webp"
+        imageAlt="Pitti Press illustration of the UK countryside in midsummer, rolling fields with dry-stone walls, a red tractor, cottages, and a low red sun"
         className="absolute inset-0"
         overlayClassName="hero-overlay"
       />
