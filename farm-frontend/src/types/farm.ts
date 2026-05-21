@@ -1,3 +1,6 @@
+import type { FarmHeroImage } from '@/lib/farm-hero-image'
+export type { FarmHeroImage }
+
 export interface FarmImage {
   url: string
   alt?: string
@@ -8,6 +11,13 @@ export interface FarmShop {
   name: string
   slug: string
   images?: (string | FarmImage)[] // Support both string URLs and {url, alt} objects
+  /**
+   * Pre-selected hero image (Slice 1.1.3b) used by /shop/[slug] for the
+   * full-bleed editorial hero. Null when no admin photo and no
+   * Apothecary illustration exist for the farm; the client then
+   * renders a typography-led hero instead.
+   */
+  heroImage?: FarmHeroImage | null
   location: {
     lat: number
     lng: number

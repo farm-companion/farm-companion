@@ -1978,3 +1978,38 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Low. The wildcard is strictly more permissive than the exact-match, and `your-objectstorage.com` is a Hetzner-controlled TLD so it cannot be hijacked by a third party. Rollback: `git revert <slice sha>`.
 
 **Next slice:** Still **1.1.3b** if this works; otherwise an `httpbin.org` control entry to disambiguate.
+
+### 2026-05-21 — Slice 1.1.3b: Editorial /shop/[slug] hero with style-aware selector
+
+**Goal:** Wire the Apothecary illustrations and any future admin-uploaded photos into the live /shop/[slug] hero, replacing the four-up gallery-grid hero with a full-bleed editorial pattern (Image fill, gradient overlay, serif title, county kicker). For farms with no admin photo and no Apothecary row, render a typography-led hero instead. Council-approved 2026-05-21.
+
+**Diagnostic that preceded this slice:** the operator and I spent 90 minutes on a non-bug: every test curl against `/_next/image` used `&w=1536&q=75`, but `1536` is not in `deviceSizes` `[640,750,828,1080,1200,1920,2048,3840]` or `imageSizes` `[16,32,48,64,96,128,256,384]` in `farm-frontend/next.config.ts:192-194`, so Next.js correctly returned `400 INVALID_IMAGE_OPTIMIZE_REQUEST` per spec. Re-tested with `w=1920`: HTTP 200, `content-type: image/jpeg`, Vercel transcoded the Apothecary WebP straight from Hetzner. The original Slice 1.1.3a allowlist (and the wildcard fix in 1.1.3a-2) worked from day one. Plan documenting the misdiagnosis at `~/.claude/plans/http-2-400-cache-control-public-enchanted-blanket.md`. Future verification curls must use widths from the configured size lists.
+
+**Files touched:** 5 source + 1 ledger.
+- CREATE `farm-frontend/src/lib/farm-hero-image.ts` (84 LOC), `selectFarmHeroImage(images, farmName)` returns `{ url, alt, style: 'photo' | 'apothecary' } | null`. Selection order: admin photo (`uploadedBy in owner|admin|user`, sorted by `isHero desc, displayOrder asc, createdAt desc`), then Apothecary (`uploadedBy = ai_apothecary`), then null. Explicitly excludes `ai_pitti` (reserved for hero/county/popover surfaces) and `ai_generator` (legacy fake-photo rows queued for Slice 1.1.3c suppression).
+- MODIFY `farm-frontend/src/types/farm.ts` (+10 LOC), re-export `FarmHeroImage` type and add `heroImage?: FarmHeroImage | null` optional field on `FarmShop`. Additive; all 35 existing importers continue to compile.
+- MODIFY `farm-frontend/src/lib/farm-data.ts` (+12 / -2 LOC), `getFarmBySlug` now computes the hero before projection and attaches it to the returned `FarmShop`. Gallery images filter out the hero (no duplicate render) and `ai_pitti` rows (Pitti is reserved for non-/shop surfaces per council). `ai_generator` gallery suppression deferred to 1.1.3c.
+- MODIFY `farm-frontend/src/components/FarmPageClient.tsx` (+~65 / -50 LOC net), replaces the badges/name/location/CTA hero with two branches: (a) full-bleed editorial hero when `shop.heroImage` is set, with style-aware gradient overlay (stronger for photo, softer for Apothecary illustration), serif `<h1>` and uppercase county kicker; (b) typography-led hero (serif `<h1>`, vertical line accents) when null. A new compact details bar below the hero holds the verified badge, status, address, and the Get Directions CTA.
+- MODIFY `farm-frontend/src/app/shop/[slug]/page.tsx` (+12 / -3 LOC), `jsonLd.image` now prefers the hero URL first, then deduped gallery URLs, capped at 3. Search engines now anchor the GroceryStore structured image on the canonical hero.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` exit 0.
+- ✅ `cd farm-frontend && pnpm build` succeeded; `/shop/[slug]` registered as `ƒ Dynamic`.
+- ✅ Local dev server smoke test: `curl http://localhost:3001/shop/darts-farm` returned HTTP 200 with Apothecary hero rendering correctly. Confirmed in HTML: `<img alt="Darts Farm botanical illustration" ... src="/_next/image?url=...apothecary-farm-illustrations/darts-farm/main.webp&w=3840&q=75"` plus full srcSet across all configured device sizes. JSON-LD `image` field starts with the Apothecary URL.
+- ✅ The legacy Pitti row for darts-farm still appears in the gallery below the hero (expected; its `uploadedBy='ai_generator'` predates style-aware labels and gallery suppression is deferred to Slice 1.1.3c).
+- ⏳ Operator browser check post-merge: visit `https://www.farmcompanion.co.uk/shop/darts-farm` and confirm Apothecary hero renders full-bleed with serif title overlay; visit one of the 1298 farms without an Apothecary row and confirm the typography-led hero is clean (no broken image placeholder).
+
+**Architectural decisions:**
+- **Sibling selector, do not replace `getHeroImage` in `farm-images.ts`.** The legacy helper sorts by the `source` column and is still used by `FarmCard`/`FarmList` gallery code that has no style awareness. Replacing it would cascade scope across the directory; siblings are cheap.
+- **Hero filtered out of gallery, Pitti also filtered.** Apothecary as gallery member is awkward (it is the hero) and Pitti on /shop violates the council assignment. `ai_generator` left in gallery on purpose, that is the explicit scope boundary of Slice 1.1.3c.
+- **Style-aware gradient.** Photo heroes need stronger bottom gradient to land the serif title against varied photographic backgrounds; Apothecary illustrations are calmer so a lighter overlay preserves the visual character.
+- **Details bar below the hero.** Get Directions is the highest-frequency action on /shop and must stay above the fold; moving it below the hero (rather than inside the hero) keeps it discoverable without competing for the title's centred composition.
+
+**Out of scope (deferred):**
+- Batch Apothecary generation for the remaining 1298 farms (Slice 1.1.4).
+- `ai_generator` gallery suppression and the legacy darts-farm Pitti row backfill from `ai_generator` to `ai_pitti` (Slice 1.1.3c).
+
+**Risk and rollback:** Low. All changes are additive or guarded; `heroImage` is optional and the typography-led branch handles the null case cleanly. Rollback: `git revert <slice sha>`; the `FarmShop` `heroImage` field becomes inert but does not break consumers.
+
+**Next slice:** **Slice 1.1.3c**, gallery-side suppression of `ai_generator` rows and the URL-pattern backfill that flips legacy darts-farm Pitti rows from `ai_generator` to `ai_pitti`.

@@ -78,9 +78,19 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
       name: shop.name,
       url: `${base}/shop/${encodeURIComponent(shop.slug)}`,
       description: cleanDescription || `${shop.name} - Farm shop in ${shop.location.county}`,
-      image: Array.isArray(shop.images) && shop.images.length > 0
-        ? shop.images.slice(0, 3).map(img => typeof img === 'string' ? img : img.url)
-        : undefined,
+      image: (() => {
+        // Prefer the selected hero (real photo or Apothecary illustration)
+        // first so search engines associate the canonical visual with the
+        // page; fall back to gallery URLs when no hero exists yet (Slice 1.1.3b).
+        const heroUrl = shop.heroImage?.url
+        const galleryUrls = Array.isArray(shop.images)
+          ? shop.images
+              .map(img => typeof img === 'string' ? img : img.url)
+              .filter((u): u is string => !!u && u !== heroUrl)
+          : []
+        const combined = heroUrl ? [heroUrl, ...galleryUrls] : galleryUrls
+        return combined.length > 0 ? combined.slice(0, 3) : undefined
+      })(),
       address: {
         '@type': 'PostalAddress',
         streetAddress: shop.location?.address || '',
