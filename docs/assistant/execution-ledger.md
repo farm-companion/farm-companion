@@ -2283,3 +2283,30 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Zero runtime risk. Comment-only edit; Prisma client output byte-identical. Rollback: `git revert <slice sha>` — pure documentation rollback with no consumer impact.
 
 **Next slice:** **Slice 1.3c — Supabase doc references cleanup**. Open since the May 2026 Coolify/Hetzner migration; README, SETUP_CHECKLIST, PRISMA_SETUP_SUCCESS, WEEK_0_*, the `prisma.ts` header comment, and `diagnose-database-connection.ts` still document Supabase environment variables and dashboard troubleshooting. Generalise to "managed Postgres" or remove.
+
+### 2026-05-22 — Slice 1.3c-1: prisma.ts comment + delete diagnose-database-connection.ts
+
+**Goal:** First of three sub-slices closing the Supabase-references backlog from the May 2026 Coolify/Hetzner migration. Covers the two code-resident touchpoints called out explicitly in the original Slice 1.3c note: the misleading "Supabase Pooler" docblock in `farm-frontend/src/lib/prisma.ts`, and the wholesale-Supabase diagnostic script `farm-frontend/scripts/diagnose-database-connection.ts`. The remaining operator-facing markdown (README, SETUP_CHECKLIST, WEEK_0_*, PRISMA_SETUP_SUCCESS, MIGRATION_SUCCESS, SUPABASE_SQL_SETUP) splits into Slice 1.3c-2 (historical-banner the snapshot docs) and Slice 1.3c-3 (rewrite the active setup docs).
+
+**Files touched:** 1 modified + 1 deleted + 1 ledger.
+- MODIFY `farm-frontend/src/lib/prisma.ts` (+8 / -5 LOC in the header docblock; file now 93 LOC) — replaces "Uses Supabase Pooler" with the provider-neutral "managed Postgres connection pooler (PgBouncer)"; "Supabase Pooler Modes" heading becomes "PgBouncer Pool Modes" (the pool semantics are PgBouncer concepts regardless of which managed provider hosts them); adds a 4-line block pinning the production stack (Coolify-managed Hetzner Postgres at `37.27.194.158`, app on Vercel calling pooler URL) with a back-reference to the Production Infrastructure block at the top of this ledger; `@see` link swapped from the Supabase docs to the Prisma docs on database connections.
+- DELETE `farm-frontend/scripts/diagnose-database-connection.ts` (-149 LOC) — last meaningful commit 2024-12-30 (`fix: add pgbouncer check and detailed troubleshooting`). Pre-migration. The script's troubleshooting paths are wholesale Supabase-flavoured ("Go to https://supabase.com/dashboard/projects", "In Supabase Dashboard > Settings > Database", Supabase-specific URL format examples). No `package.json` alias, no documentation references it, and Slice 1.3d already addressed the realistic connection-string debugging case (`.env.local` precedence with `override: true`). Per CLAUDE.md "If you are certain that something is unused, you can delete it completely" — easier to write a fresh Hetzner-aware diagnostic if/when one is needed than to maintain misleading code.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` exit 0.
+- ✅ `grep -rln -i "supabase" farm-frontend/src/lib/prisma.ts farm-frontend/scripts/` returns no matches (script deleted, prisma.ts comment cleaned).
+
+**Decisions:**
+- **Delete the diagnostic script rather than rewrite.** Rewriting would require Hetzner-specific dashboard paths, Coolify-specific connection-string conventions, and PgBouncer port semantics that drift with the provider. The script was an ad-hoc developer tool with no production hook; if Hetzner-aware DB diagnostics become a recurring need we add a fresh, small, focused one then.
+- **Keep `prisma.ts`'s PgBouncer pool-mode block.** PgBouncer is the same pooler regardless of which provider runs it (Supabase, Coolify, AWS RDS Proxy all use PgBouncer or compatible). Generalising the heading rather than removing the section keeps useful pool-mode guidance.
+- **Pin production-stack details inline.** A future contributor reading `prisma.ts` should not have to grep the ledger to learn what backs `DATABASE_POOLER_URL`. The 4-line block is the cheapest way to make the file self-explanatory while back-referencing the canonical infra source.
+
+**Out of scope (deferred to Slice 1.3c-2 / 1.3c-3):**
+- Operator-facing markdown (README, SETUP_CHECKLIST, snapshot docs).
+- Other technical docs that mention Supabase tangentially (POSTGIS_SETUP.md, DATABASE_CONNECTION_POOLING.md, GEOSPATIAL_README.md, CHECK_CONSTRAINTS.md) — most reference Supabase as the historical provider, which is accurate context; revisit if any read as active runbooks during 1.3c-3.
+- Historical assistant docs under `docs/assistant/audit-2026-05-18.md`, `migration-plan-2026-05-18.md`, etc. — dated snapshots; correct to leave intact as point-in-time records.
+
+**Risk and rollback:** Very low. The prisma.ts edit is a header-comment change; runtime byte-identical (verified by tsc). The deleted script was unused. Rollback: `git revert <slice sha>` restores both — the script restoration is exact since git tracks the full content.
+
+**Next slice:** **Slice 1.3c-2 — historical banner on Supabase-era snapshot docs** (PRISMA_SETUP_SUCCESS, WEEK_0_PROGRESS, WEEK_0_COMPLETE, MIGRATION_SUCCESS, SUPABASE_SQL_SETUP). Uniform "Historical note" block at the top of each, no rewrites; preserves the dated-record value while making the May 2026 stack switch unambiguous for new readers.
