@@ -59,6 +59,21 @@
   overflow: visible;
 }
 
+/* Keyboard focus ring (WCAG 2.1 AA). Suppress the default ring on :focus so
+   mouse clicks do not show an outline, then restore via :focus-visible.
+   Matches the convention used by .farm-marker in globals.css. */
+.maplibre-farm-marker:focus,
+.maplibre-cluster-marker:focus {
+  outline: none;
+}
+
+.maplibre-farm-marker:focus-visible,
+.maplibre-cluster-marker:focus-visible {
+  outline: 2px solid var(--primary, #00C2B2);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
 .maplibregl-marker {
   pointer-events: auto !important;
   touch-action: none !important;

@@ -2503,3 +2503,49 @@ The first item is the cleanest next slice: discrete (~3 test files to fix), boun
 1. **Google Maps → MapLibre runtime cutover** — structural plumbing in place since Slice 30.13 (`MapShellAuto.tsx`), but the default provider in production may still be Google Maps. Switching the default and pruning Google Maps deps from the runtime bundle would cut Google Maps API spend to zero. Requires browser smoke before merge.
 2. **Operator-pending unblock** — Slice 1.1.3c P3 backfill (3 steps, ~5 min) and Slice 1.1.4 dry-run audit (free) are both no-spend wins that don't need Claude action.
 3. **Content slices** — Pitti county/farm illustrations (operator-driven Runware runs, then trivial 2-line PR each).
+
+### 2026-05-22 — Slice 2.1: Map marker keyboard activation + focus rings (MapLibre)
+
+**Goal:** Land the first sub-slice of the Map Page Polish Pass opened in Slice 1.9's "Next slice" notes (on PR #194). WCAG 2.1 AA requires every interactive element to be operable by keyboard and to show a visible focus indicator. The MapLibre farm and cluster markers were created as bare `<div>`s with mouse/touch handlers only — not focusable via Tab, no `role`, no `aria-label`, no keyboard activation, no `:focus-visible` style. Adjacent infrastructure exists (`useMarkerKeyboardNav.ts` queries `[data-farm-id]` and calls `.focus()`; `lib/accessibility.ts` exports `getFarmMarkerLabel` and `getClusterMarkerLabel`) but is silently inert because the markers are not focusable.
+
+**Audit of the gap (anchored to working-tree pre-slice):**
+- `MapLibreShell.tsx:359-411` (cluster marker creation): no `tabindex`, no `role`, no `aria-label`, no `keydown` listener. Cluster click only fires from mouse/touch.
+- `MapLibreShell.tsx:422-460` (farm marker creation): same gap. Existing `el.dataset.farmId = farm.id` is set but unreachable by keyboard because the element is not focusable.
+- `app/map/map.css`: no `:focus` or `:focus-visible` rules for `.maplibre-farm-marker` or `.maplibre-cluster-marker`. The closest existing convention is `.farm-marker:focus-visible` in `globals.css:3423` (`outline: 2px solid var(--primary, #00C2B2); outline-offset: 2px; border-radius: 50%`).
+- `useMarkerKeyboardNav.ts:129` queries `document.querySelector('[data-farm-id="${farm.id}"]')` and calls `.focus()` after navigation. Without `tabindex`, calling `.focus()` on a `<div>` is a no-op — so the keyboard-nav hook was effectively broken at its final step.
+
+**Files touched:** 2 source + 1 ledger.
+- MODIFY `farm-frontend/src/features/map/ui/MapLibreShell.tsx` (+~25 LOC):
+  - Imported `getFarmMarkerLabel`, `getClusterMarkerLabel` from `../lib/accessibility`.
+  - Cluster marker (`maplibre-cluster-marker`): added `role="button"`, `tabindex="0"`, `aria-label={getClusterMarkerLabel(count)}` ("Cluster of N farms. Press Enter to expand."), and a `keydown` listener that activates `handleClusterClick` on Enter or Space (mirroring click semantics; `preventDefault` + `stopPropagation` to avoid the document-level Space-scrolls-page behaviour).
+  - Farm marker (`maplibre-farm-marker`): added the same triplet (`role`, `tabindex`, `aria-label`) plus a `keydown` listener that activates `handleMarkerClick`. The `aria-label` is built from `getFarmMarkerLabel({ name, location, isOpen: isOpen ?? undefined })`, normalising the local `boolean | null` into the helper's optional shape.
+- MODIFY `farm-frontend/src/app/map/map.css` (+15 LOC after the existing `.maplibre-farm-marker svg` rule):
+  - `.maplibre-farm-marker:focus, .maplibre-cluster-marker:focus { outline: none; }` — suppress the browser default on mouse-click activation.
+  - `.maplibre-farm-marker:focus-visible, .maplibre-cluster-marker:focus-visible { outline: 2px solid var(--primary, #00C2B2); outline-offset: 2px; border-radius: 50%; }` — restores a clearly visible ring only on keyboard focus. Matches the `.farm-marker:focus-visible` convention from `globals.css:3423`.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit -p tsconfig.json` exits 0 (no type errors; `farm.location` satisfies the helper's `{ city?: string; county: string }` shape since it has those fields plus the lat/lng).
+- ✅ `cd farm-frontend && pnpm test:unit` exits 0, **101 tests pass, 0 fail, 0 cancelled** in **674ms**. No regression in any selector / data / accessibility unit test.
+- ⏳ Manual browser smoke (operator) — open `/map`, press Tab until a marker has focus, confirm a teal `#00C2B2` outline appears 2px outside the marker; press Enter or Space to confirm the popover opens; press Escape to close (already wired via `useMarkerKeyboardNav`); repeat with a cluster (Enter zooms or opens preview per existing `handleClusterClick`).
+
+**Decisions and rejected alternatives:**
+- **Add a11y to MapLibre markers in-place (this slice) rather than refactor to a `Marker` component.** A separate component would cleanly own the a11y semantics but doubles the file count and risks regressing the carefully-tuned positioning behaviour documented in the existing comments ("NO transforms to avoid conflicting with MapLibre positioning"). The in-place addition is ~25 LOC and touches only the element-creation lines.
+- **`outline-offset: 2px` to match `globals.css:3423`'s `.farm-marker:focus-visible` rule, not a thicker 4px ring.** The 2px offset puts the ring outside the marker's 3px white border, clearly separated against the map background; a thicker ring would visually overlap the SVG drop shadow on light tiles and waste display weight.
+- **Suppress `:focus` outline first, then restore via `:focus-visible`** — same pattern as the existing `.farm-marker` rule. This prevents the outline from flashing on mouse click while preserving it for keyboard users. The browser's default focus-visible heuristic is the right discriminator here.
+- **Keyboard activation listens for Enter AND Space, not Enter only.** WCAG 2.1 SC 2.1.1 + ARIA Authoring Practices both require `role="button"` to be activatable by both keys. Space defaults to scrolling the page; `e.preventDefault()` is required.
+- **Defer `LeafletShell` parity to a follow-up slice.** Leaflet's `L.divIcon` wraps the HTML inside a Leaflet-managed `<div class="leaflet-marker-icon leaflet-div-icon">` element, so the a11y attributes belong on the wrapper, not the inner HTML. Leaflet also has its own `keyboard: true` marker option that interacts with this. Different pattern from MapLibre's direct DOM ownership — deserves its own thinking pass and its own slice. The ledger note about "screen-reader fallback parity with MapLibreShell" lives in the next sub-slice queue.
+- **Did NOT wire the `markerFocused` ARIA-live announcement on focus.** The `aria-label` on the focused element already gives screen readers the marker's name + city + open/closed state. Stacking a live-region announcement on top would produce double-speak. The existing `announce()` helper in `lib/accessibility.ts` remains available for non-focus events (e.g. "5 farms found in this area" after a search) which are not yet wired but are a separate concern.
+
+**Out of scope (deferred to future polish slices):**
+- LeafletShell parity (see "Decisions" above). Tracked: "Slice 2.2 — Leaflet marker keyboard parity + focus ring."
+- Popover keyboard parity desktop ↔ mobile — `FarmPreviewCard.tsx` and the mobile bottom-sheet need to ensure focus is trapped while the popover is open and returns to the marker on close. `createFocusTrap` in `lib/accessibility.ts:156` is the helper. Tracked: "Slice 2.3 — Popover keyboard parity."
+- Live-region announcements for cluster expansion / search results — uses the existing `announce()` helper, but needs wiring at the right callsites. Tracked: "Slice 2.4 — Map ARIA live announcements."
+- An eslint rule banning DOM-created interactive elements without `role` + `tabindex` + a keyboard handler. The current audit found one offender (this slice's two marker creations); a custom rule is more weight than the failure mode merits today.
+
+**Risk and rollback:** Very low. Pure additive a11y: all changes are new DOM attributes, new keyboard listeners (which delegate to existing click handlers), and new CSS rules on new pseudo-class selectors. No existing pointer / touch / hover behaviour is altered; the SVG markup, marker positioning, clustering math, and selected/hovered highlight all run unchanged. Rollback: `git revert <slice sha>` restores pre-slice state; the consequence is that keyboard-only users cannot reach or activate map markers, and the dormant `useMarkerKeyboardNav` hook remains a no-op at its final step.
+
+**Next slice:** Continue the Map Page Polish Pass in priority order:
+1. **Slice 2.2 — Leaflet marker keyboard parity + focus ring.** Mirror this slice's pattern onto `LeafletShell.tsx` accounting for Leaflet's `L.divIcon` wrapper semantics.
+2. **Slice 2.3 — Popover keyboard parity.** Trap focus inside `FarmPreviewCard` while open, return focus to the originating marker on close, Escape closes (already wired in `useMarkerKeyboardNav` for the map container; needs parity at the popover level).
+3. **Slice 2.4 — Map ARIA live announcements.** Wire the existing `announce()` helper at the cluster-click and search-result callsites.
