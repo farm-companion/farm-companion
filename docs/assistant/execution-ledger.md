@@ -2473,3 +2473,33 @@ Total prod-runtime exposure: 1 moderate (`uuid <11.1.1` via `resend > svix > uui
 3. **Operator-pending unblock** — Slice 1.1.3c P3 backfill (3 steps, ~5 min) and Slice 1.1.4 dry-run audit (free) are both no-spend wins that don't need Claude.
 
 The first item is the cleanest next slice: discrete (~3 test files to fix), bounded, and frees future contributors to trust `pnpm test:unit` as a pre-commit gate.
+
+### 2026-05-22 — Slice 1.7: Fix pnpm test:unit hang via setInterval.unref()
+
+**Goal:** Restore `pnpm test:unit` as a usable pre-commit gate. The script `tsx --test "src/**/*.test.ts"` was hanging indefinitely after running ~31 tests, leaving the test runner stuck on a pinned event loop. Bisection narrowed the hang to `cache-manager.test.ts`; root cause is a `setInterval` in `performance-monitor.ts` that pins Node's event loop open even when no test holds a reference to it.
+
+**Root cause analysis:** `cache-manager.ts` (imported by `cache-manager.test.ts`) imports `performance-monitor.ts`. The latter eagerly instantiates a `PerformanceMonitor` singleton via `PerformanceMonitor.getInstance()` at module-load time, whose private constructor schedules `setInterval(() => this.flushMetrics(), 30_000)`. Node's test runner waits for the event loop to drain before reporting final results; the 30s flush timer prevents the loop from ever draining, so the runner hangs until something kills the process. The fix is the standard Node idiom: call `.unref()` on the timer handle so it does not extend the process lifetime when nothing else holds the event loop open.
+
+**Files touched:** 1 source + 1 ledger.
+- MODIFY `farm-frontend/src/lib/performance-monitor.ts` (+7 / -1 LOC in the `PerformanceMonitor` private constructor) — `setInterval(...)` → `setInterval(...).unref()`. Added a comment block explaining the rationale and pointing at this slice. No behavioural change in production server contexts (the runtime keeps itself alive on HTTP listeners, etc.); `.unref()` only matters when nothing else holds the event loop, which is exactly the test and script-run case.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm test:unit` now completes in **426ms** with **101 tests, 101 pass, 0 fail, 0 cancelled** across all 10 test files (was previously hanging indefinitely after ~31 tests).
+- ✅ Slice 1.6's 27 new tests continue to pass within the full suite.
+- ✅ Production behaviour: the 30s flush cadence is preserved; the `.unref()` only changes the timer's "do you count as keeping the process alive" attribute, not its firing schedule. Production server processes are held alive by the HTTP listener, Prisma client, etc., so the metrics flush runs as before.
+
+**Decisions:**
+- **`.unref()` over `clearInterval` in a teardown hook.** A teardown hook would require every test file that transitively imports `performance-monitor` to know about the cleanup, which is fragile and leaky. `.unref()` is a one-line module-level fix that addresses the root cause once for all consumers.
+- **No environment guard around the `.unref()`.** Some codebases gate this behind `NODE_ENV === 'test'`; we don't, because `.unref()` is also correct in production (the interval still fires, it just doesn't artificially extend a process whose other work has all completed — exactly the semantics we want).
+
+**Out of scope (deferred):**
+- Auditing other modules for similar event-loop-pinning timers (`kv.ts`, `cache-manager.ts`, anywhere else that calls `setInterval` or `setTimeout`). Slice 1.7's grep for `setInterval` across `src/lib/` found this one entry; if more surface as more tests are added, each is a trivial `.unref()` fix.
+- Adding `pnpm test:unit` to a pre-commit hook or CI gate (a configuration slice, not a code slice).
+
+**Risk and rollback:** Very low. Single-method-call change in a singleton constructor; no consumer behaviour change. Production server lifetime is unchanged because servers are held alive by HTTP listeners, not by this background timer. Rollback: `git revert <slice sha>` — but the consequence is that `pnpm test:unit` hangs again.
+
+**Next slice:** Both named arcs (Pitti × Apothecary, Slice 1.3c cleanup) are closed, the most-recently-shipped code is covered by 27 unit tests, and the test suite is now green and fast. **Remaining open Claude-side work** in priority order:
+1. **Google Maps → MapLibre runtime cutover** — structural plumbing in place since Slice 30.13 (`MapShellAuto.tsx`), but the default provider in production may still be Google Maps. Switching the default and pruning Google Maps deps from the runtime bundle would cut Google Maps API spend to zero. Requires browser smoke before merge.
+2. **Operator-pending unblock** — Slice 1.1.3c P3 backfill (3 steps, ~5 min) and Slice 1.1.4 dry-run audit (free) are both no-spend wins that don't need Claude action.
+3. **Content slices** — Pitti county/farm illustrations (operator-driven Runware runs, then trivial 2-line PR each).
