@@ -242,7 +242,15 @@ export async function warmCache() {
         where: { featured: true, status: 'active' },
         take: 10,
         include: {
-          images: { where: { isHero: true }, take: 1 },
+          // Slice 1.1.3c Part 2: align cache warmer with listing predicate.
+          images: {
+            where: {
+              status: 'approved',
+              uploadedBy: { notIn: ['ai_generator', 'ai_pitti'] },
+            },
+            orderBy: [{ isHero: 'desc' }, { displayOrder: 'asc' }],
+            take: 1,
+          },
           categories: { include: { category: true } },
         },
       })

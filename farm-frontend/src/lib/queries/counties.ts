@@ -91,7 +91,12 @@ export async function getFarmsByCounty(
             },
           },
           images: {
-            where: { status: 'approved', isHero: true },
+            // Slice 1.1.3c Part 2: see queries/farms.ts for rationale.
+            where: {
+              status: 'approved',
+              uploadedBy: { notIn: ['ai_generator', 'ai_pitti'] },
+            },
+            orderBy: [{ isHero: 'desc' }, { displayOrder: 'asc' }],
             take: 1,
           },
         },

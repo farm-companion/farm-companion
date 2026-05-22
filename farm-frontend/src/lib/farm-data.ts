@@ -16,10 +16,17 @@ export async function getFarmData(): Promise<FarmShop[]> {
           },
         },
         images: {
+          // Listing thumbnails: same selector mandate as the /shop hero.
+          // Pitti is reserved for PLACE surfaces (homepage/county/popover);
+          // ai_generator are legacy fake-photo rows. Both are filtered so a
+          // farm whose admin photo or Apothecary illustration isn't flagged
+          // isHero still gets the right card art (orderBy promotes the hero
+          // when one exists, otherwise falls back to displayOrder).
           where: {
             status: 'approved',
-            isHero: true,
+            uploadedBy: { notIn: ['ai_generator', 'ai_pitti'] },
           },
+          orderBy: [{ isHero: 'desc' }, { displayOrder: 'asc' }],
           take: 1,
         },
       },

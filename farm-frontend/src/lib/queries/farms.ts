@@ -130,7 +130,15 @@ export async function searchFarms(params: SearchFarmsParams) {
           },
         },
         images: {
-          where: { status: 'approved', isHero: true },
+          // Slice 1.1.3c Part 2: listing thumbnails exclude legacy fake
+          // photos (ai_generator) and Pitti (PLACE-only per council). Drop
+          // strict isHero filter so Apothecary illustrations propagate
+          // when no admin hero exists; orderBy keeps admin heroes first.
+          where: {
+            status: 'approved',
+            uploadedBy: { notIn: ['ai_generator', 'ai_pitti'] },
+          },
+          orderBy: [{ isHero: 'desc' }, { displayOrder: 'asc' }],
           take: 1,
         },
       },
