@@ -2438,3 +2438,38 @@ Total prod-runtime exposure: 1 moderate (`uuid <11.1.1` via `resend > svix > uui
 **Risk and rollback:** Zero runtime risk (no code change). Rollback: not applicable (documentation-only).
 
 **Next slice:** **Slice 1.6 — Tests for Pitti × Apothecary selectors**, which is meaningful productive work: catch silent regressions in the rendering gates that affect ~1300 farm pages.
+
+### 2026-05-22 — Slice 1.6: Tests for Pitti × Apothecary selectors
+
+**Goal:** Cover the rendering gates shipped in Slices 1.1.3b (`selectFarmHeroImage`), 1.1.3d-2 (`pittiCountyImageUrl`), and 1.1.3d-3 (`pittiFarmImageUrl`) with unit tests. These three selectors silently gate the hero/popover image rendering for every farm and county page on the site — a typo in the precedence chain, an off-by-one in the URL constructor, or an accidental admission of `ai_pitti` or `ai_generator` would break ~1300 pages with no compiler signal. CLAUDE.md mandates "80%+ test coverage"; the most recently-shipped, highest-leverage code had zero coverage. This slice closes that.
+
+**Files touched:** 3 created + 1 ledger.
+- CREATE `farm-frontend/src/data/pitti-counties.test.ts` (50 LOC) — 4 tests: empty-manifest invariant; null for non-enrolled slugs; correct `/images/pitti/county-<slug>.webp` shape when enrolled; exact-slug membership (no prefix/suffix/case fuzzy match). Uses the `ReadonlySet as Set` cast to enroll a transient slug then deletes in a `finally` block.
+- CREATE `farm-frontend/src/data/pitti-farms.test.ts` (74 LOC) — 6 tests: empty-manifest invariant; null for non-enrolled slugs; Hetzner blob URL shape when enrolled; URL encoding for slugs with unsafe characters; sanity-check that returned URLs sit on the wildcard host whitelisted in `next.config.ts` (Slice 1.1.3a-2); exact-slug membership.
+- CREATE `farm-frontend/src/lib/farm-hero-image.test.ts` (179 LOC) — 17 tests: empty input returns null; admin photo wins over Apothecary; owner/user provenance counted as admin; Apothecary wins when no admin photo; **ai_pitti is ignored** on /shop hero (council mandate); **ai_generator is ignored** (Slice 1.1.3c suppression); Pitti+Apothecary together → Apothecary wins; precedence chain (isHero → displayOrder → createdAt); missing createdAt treated as epoch; explicit altText preserved; fallback alt strings ("farm shop" for photo, "botanical illustration" for apothecary); input array not mutated (ReadonlyArray contract); unknown uploadedBy values rejected (forward-compatible default).
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ `pnpm exec tsx --test src/data/pitti-counties.test.ts src/data/pitti-farms.test.ts src/lib/farm-hero-image.test.ts` reports **27 tests, 27 pass, 0 fail, 0 cancelled** in ~204ms.
+- ✅ Existing `preview-helpers.test.ts` continues to pass alongside the new tests (10 tests, all green when run together).
+
+**Pre-existing test infrastructure note:** The full `pnpm test:unit` (which runs `tsx --test "src/**/*.test.ts"`) hangs after ~31 tests during this session, somewhere in the existing `blob-adapter.test.ts` / `cache-manager.test.ts` / `kv.test.ts` set. The hang predates Slice 1.6 — the three new test files run cleanly when invoked directly, and excluding `blob-adapter.test.ts` still hangs elsewhere in the infrastructure-test suite. Likely cause: one of the existing tests opens a network connection (Redis/Hetzner blob/Vercel KV) and waits for a response without a per-test timeout. Out of scope for this slice; a future tests-infrastructure slice can isolate and either mock or move-to-integration. The Slice 1.6 deliverables are independently verifiable via the direct-file invocation above.
+
+**Architectural decisions:**
+- **`ReadonlySet as Set` cast for enrollment tests.** The manifest sets are typed `ReadonlySet<string>` at module boundary but at runtime are plain `Set`s. Casting to mutate inside a `try`/`finally` is the cleanest way to test the URL constructor without inventing a dedicated test-only export. The test always restores the manifest before returning, so test order does not matter.
+- **Forward-compatibility test for unknown `uploadedBy` values.** A future `ai_future_style` shipped before the selector knows about it should silently render the typography-led hero, not the unvetted illustration. The test pins this behaviour so a careless `else { return img }` would be caught.
+- **Image-proxy host canary in pitti-farms.test.ts.** One test specifically asserts that the resolver's URL begins with `https://farm-companion-blob-prod.hel1.your-objectstorage.com` and ends with the canonical path tail. If anyone later refactors the URL constructor in a way that drifts the host, the Next image proxy 400s every Pitti farm popover URL; this test catches that drift at unit-test time instead of in production smoke.
+
+**Out of scope (deferred):**
+- Integration tests for the Prisma `findMany` calls that feed `selectFarmHeroImage` (would require a test database).
+- E2E tests that render `/shop/[slug]` with a real farm and assert on the rendered DOM (Playwright; not configured here).
+- Investigation of the `pnpm test:unit` hang in `blob-adapter` / `cache-manager` / `kv` tests (pre-existing; tracked as a separate cleanup task).
+
+**Risk and rollback:** Zero runtime risk. Tests are additive-only. Rollback: `git rm` on the three test files restores pre-slice state byte-for-byte. The pre-existing `pnpm test:unit` hang is unaffected either way.
+
+**Next slice:** Both named arcs (Pitti × Apothecary, Slice 1.3c cleanup) are closed and the most-recently-shipped code is covered. **Highest-value remaining Claude-side work** in priority order:
+1. **Investigate `pnpm test:unit` hang** in the existing infrastructure tests (probably mock Redis/blob clients in `cache-manager.test.ts`, `kv.test.ts`, `blob-adapter.test.ts`). Restores green test runs site-wide.
+2. **Google Maps → MapLibre runtime cutover** — the structural plumbing is in place (Slices 30.1-30.14), but `MapShellAuto.tsx` may still default to Google Maps. Removing Google Maps from the runtime bundle and switching the default would cut Google Maps API spend to zero and shrink the production JS bundle.
+3. **Operator-pending unblock** — Slice 1.1.3c P3 backfill (3 steps, ~5 min) and Slice 1.1.4 dry-run audit (free) are both no-spend wins that don't need Claude.
+
+The first item is the cleanest next slice: discrete (~3 test files to fix), bounded, and frees future contributors to trust `pnpm test:unit` as a pre-commit gate.
