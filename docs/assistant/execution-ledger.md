@@ -2229,3 +2229,35 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Low. New manifest is an empty `Set`, so the fallback branch runs for every county — visually identical to today. `CountyHero` is a Server Component with no client surface and no data fetching. Page extraction is a faithful refactor (verified by tsc + line-count delta of -27 matching the extracted block). Rollback: `git revert <slice sha>`; counties revert to the inline hero with no behavioural drift.
 
 **Next slice:** **Slice 1.1.3d-2-content-1** (first county Pitti illustration, operator pick on which county — Devon and Cornwall are high-traffic candidates) or **Slice 1.1.3d-3** (map popover Pitti). After this slice's wiring lands, the 1.1.3 series is structurally complete; remaining work is incremental content shipping.
+
+### 2026-05-22 — Slice 1.1.3d-3: Pitti map popover wiring with empty manifest
+
+**Goal:** Last unshipped wiring slice in the Pitti × Apothecary arc. Both map popover surfaces (mobile/desktop `FarmPreviewCard` and the MapLibre-native `FarmPopup`) gain a per-farm Pitti fallback that renders the railway-poster illustration when no admin/Apothecary image exists. Manifest is empty at merge so user-visible behaviour is unchanged; the slice closes the Pitti PLACE trio (homepage → county → popover) structurally.
+
+**Why a manifest mirrors Slice 1.1.3d-2 rather than a DB column:** Popover data flows through `getFarmData` and `searchFarms`, whose `images.where` clauses deliberately exclude `ai_pitti` rows (Slice 1.1.3c Part 2). Threading a popover-only column through every listing consumer to re-include the Pitti row would broaden the diff and reopen a settled policy decision. A `ReadonlySet<string>` keyed by farm slug is the cheapest source of truth, makes Pitti enrollment a PR-reviewed gate against partially-baked illustrations, and decouples from the (operator-pending) Slice 1.1.3c Part 3 DB backfill — the Hetzner blob is the source of truth, the `Image` row's `uploadedBy` label is documentation.
+
+**Files touched:** 3 source + 1 ledger.
+- CREATE `farm-frontend/src/data/pitti-farms.ts` (46 LOC) — exports `PITTI_FARM_IMAGES: ReadonlySet<string>` (initially empty) and `pittiFarmImageUrl(slug): string | null`. Returns the Hetzner blob URL `https://farm-companion-blob-prod.hel1.your-objectstorage.com/pitti-farm-images/<slug>/main.webp` per the `pitti-blob.ts` upload-path convention. Hetzner host is already whitelisted in `next.config.ts` `images.remotePatterns` (Slice 1.1.3a-2 wildcard) so the Next image proxy can optimise the URL.
+- MODIFY `farm-frontend/src/features/map/ui/FarmPreviewCard.tsx` (+8 / -1 LOC; file now 215 LOC, under soft 300) — `heroImage` resolution now coalesces `farm.images?.[0]` → `pittiFarmImageUrl(farm.slug)` → undefined. Admin/Apothecary already wins by Slice 1.1.3c Part 2's `isHero desc` ordering on the upstream query; Pitti is the next fallback before the leaf placeholder.
+- MODIFY `farm-frontend/src/components/map/FarmPopup.tsx` (+7 / -1 LOC; file now 323 LOC, pre-existing over soft 300, under hard 500) — `imageUrl` in `PopupContent` gains the same Pitti fallback chain. The MapLibre-native popup renders the image header at h-32 with `object-cover` and the Pitti illustration at 1536×768 crops cleanly.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Architectural decisions:**
+- **Fallback after `farm.images`, not override.** Real photos (admin/owner/user) always win, and Apothecary illustrations that survive the popover query also continue to render. Pitti slots in only when neither exists. This deliberately under-uses Pitti compared to a strict "PLACE-surface Pitti wins" reading of the council mandate; the precedence policy can be tightened in a follow-up if visual QA at scale suggests Pitti should override Apothecary on the popover specifically.
+- **Manifest empty at merge.** Same shape as 1.1.3d-2: visible behaviour is byte-identical to pre-slice until the operator enrolls a slug. Every future per-farm Pitti landing is a trivial 3-line slice (1 manifest entry + 1 PR-reviewed visual QA on the blob URL + 1 ledger note).
+- **Hetzner URL, not `public/`.** Per-farm Pitti illustrations are too numerous to ship in `public/` (potentially 1213 farms). The Hetzner blob is where the `pnpm generate:pitti farm <slug>` CLI already uploads them (`pitti-blob.ts:buildPittiFarmObjectKey`), so the resolver simply addresses the existing upload path.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` exit 0.
+- ✅ File sizes within rules: pitti-farms.ts 46 LOC, FarmPreviewCard.tsx 215 LOC, FarmPopup.tsx 323 LOC (pre-existing over soft; no new file pushed over).
+- ⏳ Operator local smoke (post-merge): click any marker on `/map` — popover should render unchanged (manifest empty, fallback chain bottoms out at the leaf placeholder for image-less farms).
+- ⏳ Operator local manifest override test: temporarily add `'darts-farm'` to `PITTI_FARM_IMAGES`, hard-refresh `/map`, click the Darts Farm marker — popover image should be the Pitti illustration served from Hetzner via Next/Image proxy. Revert before commit. (Darts Farm's Pitti blob already exists at `pitti-farm-images/darts-farm/main.webp` per Slice 1.1.2k-δ.)
+
+**Out of scope (deferred):**
+- Enrolling any farm slugs in this slice. Each becomes its own micro-slice (Slice 1.1.3d-3-content-N): 1 manifest line + 1 ledger note, gated on operator-side `pnpm generate:pitti farm <slug>` if the blob does not already exist.
+- Strict "Pitti overrides Apothecary on popover" precedence (potential follow-up after visual QA at scale).
+- Cluster-preview Pitti rendering. `ClusterPreview` shows a list of farm names without per-farm images today; if that changes we re-evaluate.
+
+**Risk and rollback:** Very low. New manifest is an empty Set, so the fallback path is unreachable until a slug is enrolled. Both popover edits are guarded coalescing operators (`farmImage ?? pittiFarmImageUrl(...)`) so an undefined manifest entry returns the same value the popover had pre-slice. Rollback: `git revert <slice sha>`; popover reverts to admin/Apothecary-only with no behavioural drift.
+
+**Next slice:** **Pitti × Apothecary arc is structurally complete.** Remaining items in the arc are content slices (Slice 1.1.3d-2-content-N county illustrations; Slice 1.1.3d-3-content-N farm illustrations) and the operator-pending Slice 1.1.4 Apothecary batch sweep. Claude-side next: schema.prisma docstring update to document `ai_pitti`/`ai_apothecary` as valid `uploadedBy` values, then Slice 1.3c Supabase doc references cleanup.

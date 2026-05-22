@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'
 import { Popup, Map as MapLibreMapInstance } from 'maplibre-gl'
 import { FarmShop, getImageUrl } from '@/types/farm'
 import { getFarmStatus } from '@/lib/farm-status'
+import { pittiFarmImageUrl } from '@/data/pitti-farms'
 import { calculateDistance, formatDistance } from '@/shared/lib/geo'
 import { MapPin, Clock, ExternalLink, Navigation, Phone } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -54,7 +55,12 @@ function PopupContent({
   const status = getFarmStatus(farm.hours)
   const isOpen = status.status === 'open'
   const nextOpen = status.nextChange?.action === 'opens' ? status.nextChange.time : null
-  const imageUrl = farm.images?.[0] ? getImageUrl(farm.images[0]) : null
+  // Pitti = PLACE per council assignment; render the per-farm Pitti
+  // illustration on the map popover when no admin/Apothecary image is
+  // available (Slice 1.1.3d-3). Manifest is empty at slice merge so
+  // behaviour is unchanged until a slug is enrolled.
+  const farmImage = farm.images?.[0] ? getImageUrl(farm.images[0]) : null
+  const imageUrl = farmImage ?? pittiFarmImageUrl(farm.slug)
 
   const handleViewDetails = (e: React.MouseEvent) => {
     e.preventDefault()
