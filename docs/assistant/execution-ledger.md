@@ -2261,3 +2261,25 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Very low. New manifest is an empty Set, so the fallback path is unreachable until a slug is enrolled. Both popover edits are guarded coalescing operators (`farmImage ?? pittiFarmImageUrl(...)`) so an undefined manifest entry returns the same value the popover had pre-slice. Rollback: `git revert <slice sha>`; popover reverts to admin/Apothecary-only with no behavioural drift.
 
 **Next slice:** **Pitti × Apothecary arc is structurally complete.** Remaining items in the arc are content slices (Slice 1.1.3d-2-content-N county illustrations; Slice 1.1.3d-3-content-N farm illustrations) and the operator-pending Slice 1.1.4 Apothecary batch sweep. Claude-side next: schema.prisma docstring update to document `ai_pitti`/`ai_apothecary` as valid `uploadedBy` values, then Slice 1.3c Supabase doc references cleanup.
+
+### 2026-05-22 — Slice 1.1.3e: Prisma schema docstring update for style-aware uploadedBy values
+
+**Goal:** Close the schema-docs gap left by Slices 1.1.3a (Apothecary) and 1.1.3c Part 3 (Pitti backfill). The `Image.uploadedBy` column comment in `prisma/schema.prisma` still listed only `'owner', 'admin', 'user', 'ai_generator'` — `ai_pitti` and `ai_apothecary` had been writing into production for weeks without documentation. Pure comment-only diff; no migration, no client regeneration.
+
+**Files touched:** 1 source + 1 ledger.
+- MODIFY `farm-frontend/prisma/schema.prisma` (+11 / -1 LOC on the comment block above `uploadedBy`) — expands the inline doc to list all six valid values grouped by provenance (human uploads / legacy AI / Pitti / Apothecary) with one-line semantics for each, plus a back-reference to the slices that introduced the style-aware labels. Field declaration itself unchanged: `String @db.VarChar(50)`, no CHECK constraint added.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Why no CHECK constraint:** Slice 1.1.3c Part 3 deliberately leaves the column as a free-form string because the set of valid `uploadedBy` values is still drifting (`ai_harvest` was deprecated; a future `ai_<style>` may land). Hard-coding the enum in PG would force a migration on every style addition; the JS-side selectors already enforce the policy by filtering on specific values. Documentation is the source of truth for now; if the value set stabilises we can promote it to a `@db.Enum` then.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec prisma validate` reports `The schema at prisma/schema.prisma is valid`.
+- ⏳ Operator does NOT need to run `prisma generate` or `prisma migrate dev` — comment changes don't affect the generated client or emit a migration.
+
+**Out of scope (deferred):**
+- Promoting `uploadedBy` to a `@db.Enum` once the value set stabilises (see "Why no CHECK constraint" above).
+- Mirroring the same docstring in TypeScript callers that hardcode `uploadedBy` literals (e.g. `generate-farm-images.ts`'s style switch). Those call sites are already self-documenting via the `--style=<x>` CLI argument; no docs drift to fix.
+
+**Risk and rollback:** Zero runtime risk. Comment-only edit; Prisma client output byte-identical. Rollback: `git revert <slice sha>` — pure documentation rollback with no consumer impact.
+
+**Next slice:** **Slice 1.3c — Supabase doc references cleanup**. Open since the May 2026 Coolify/Hetzner migration; README, SETUP_CHECKLIST, PRISMA_SETUP_SUCCESS, WEEK_0_*, the `prisma.ts` header comment, and `diagnose-database-connection.ts` still document Supabase environment variables and dashboard troubleshooting. Generalise to "managed Postgres" or remove.

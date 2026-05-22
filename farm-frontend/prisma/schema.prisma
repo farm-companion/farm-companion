@@ -202,7 +202,16 @@ model Image {
   displayOrder Int     @default(0)
 
   // Metadata
-  // Valid uploadedBy values: 'owner', 'admin', 'user', 'ai_generator'
+  // Valid uploadedBy values:
+  //   'owner', 'admin', 'user'    — human uploads (real photos).
+  //   'ai_generator'              — legacy mixed-style AI rows; suppressed
+  //                                 site-wide from Slice 1.1.3c onwards.
+  //   'ai_pitti'                  — Pitti Press railway-poster style; PLACE
+  //                                 surfaces only (hero/county/popover).
+  //   'ai_apothecary'             — Botanical-engraving style; PRODUCT
+  //                                 surfaces (/shop/[slug] hero, listings).
+  // Style-aware labels were introduced in Slices 1.1.3a (Apothecary) and
+  // 1.1.3c Part 3 (Pitti backfill).
   uploadedBy String @db.VarChar(50)
   // Valid values: 'pending', 'approved', 'rejected'
   // CHECK constraint: status IN ('pending', 'approved', 'rejected')
