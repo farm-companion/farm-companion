@@ -2374,3 +2374,28 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Very low. Pure markdown documentation; no code paths or build artefacts affected. The only behavioural cost would be a new contributor following the old README example env block and trying to connect to `db.xxx.supabase.co:5432` — Slice 1.3c-3 fixes exactly that. Rollback: `git revert <slice sha>`; both files revert cleanly.
 
 **Next slice:** **Pitti × Apothecary arc + 1.3 cleanup arc are both structurally complete.** Remaining open Claude-side work: small cleanup of `farm-frontend/src/lib/farm-data.ts` if it has Supabase strings (carry-over from the initial grep; verify in a 30-line follow-up if any text remains). Major next thread is operator-pending: Slice 1.1.3c Part 3 darts-farm DB backfill (3-step protocol), Slice 1.1.4 Apothecary batch sweep (6-step protocol, ~$6-18 spend). After those land, the next active workstream is operator-picked — content slices (Slice 1.1.3d-2-content-N county illustrations, Slice 1.1.3d-3-content-N farm illustrations) or a new arc.
+
+### 2026-05-22 — Slice 1.3c-4: farm-data.ts comment tail
+
+**Goal:** One-line tail to the Slice 1.3c arc. The initial grep for `supabase` across the active source tree (Slice 1.3c-3 was supposed to be the closer) caught one stray comment in `farm-data.ts:5` describing the data source as "Supabase via Prisma". Pure comment edit; behaviour unchanged.
+
+**Files touched:** 1 source + 1 ledger.
+- MODIFY `farm-frontend/src/lib/farm-data.ts` (+1 / -1 LOC at line 5) — comment "(reads from Supabase via Prisma)" → "(reads from managed Postgres via Prisma)". The Prisma client itself routes through whichever provider hosts `DATABASE_POOLER_URL`, currently Coolify-managed Hetzner Postgres; the comment now matches.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ Active source tree: `grep -rln -i supabase farm-frontend/src` returns only `farm-frontend/src/lib/queries/GEOSPATIAL_README.md`, which is a "References" external-link list pointing to Supabase's public PostGIS documentation. That link is useful and not a stack claim — left intact.
+- ✅ `grep -rln -i supabase README.md` returns no matches (1.3c-3 cleaned).
+
+**Decisions:**
+- **Keep the Supabase PostGIS doc link in `GEOSPATIAL_README.md`.** Supabase's PostGIS guide is a high-quality public reference even for non-Supabase Postgres users. Removing the link would lose useful documentation for a benefit that does not exist (the doc is not a claim about our stack).
+- **No `prisma.ts` re-touch.** Slice 1.3c-1 already replaced the Supabase-flavoured docblock; verified above by the active-tree grep returning no Supabase mention in `farm-frontend/src/lib/prisma.ts`.
+
+**Risk and rollback:** Zero runtime risk. Single-character-class comment change. Rollback: `git revert <slice sha>`.
+
+**Next slice:** **Pitti × Apothecary arc AND Slice 1.3c cleanup arc both fully closed.** Remaining open Claude-side work in the queue:
+1. Google Maps → MapLibre reference scrubbing (deferred; tied to runtime cutover in `MapShellAuto.tsx`).
+2. Dependabot reports 2 low-severity vulnerabilities on `master` — worth a small audit slice when the operator next picks up.
+3. Tangential Supabase mentions in technical archives (`POSTGIS_SETUP.md`, `DATABASE_CONNECTION_POOLING.md`, `CHECK_CONSTRAINTS.md`) — historical context, low priority.
+
+Major next thread is operator-pending: Slice 1.1.3c Part 3 darts-farm DB backfill (3-step protocol), Slice 1.1.4 Apothecary batch sweep (6-step protocol, ~$6-18 spend, 1213 farms × botanical illustration). After those land, next workstream is operator-picked — Pitti county content slices (Devon/Cornwall recommended starting points), Pitti farm content slices, or a new arc.
