@@ -2399,3 +2399,42 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 3. Tangential Supabase mentions in technical archives (`POSTGIS_SETUP.md`, `DATABASE_CONNECTION_POOLING.md`, `CHECK_CONSTRAINTS.md`) — historical context, low priority.
 
 Major next thread is operator-pending: Slice 1.1.3c Part 3 darts-farm DB backfill (3-step protocol), Slice 1.1.4 Apothecary batch sweep (6-step protocol, ~$6-18 spend, 1213 farms × botanical illustration). After those land, next workstream is operator-picked — Pitti county content slices (Devon/Cornwall recommended starting points), Pitti farm content slices, or a new arc.
+
+### 2026-05-22 — Slice 1.3c-5: Dev-only CVE deferral decision
+
+**Goal:** Document the security-audit decision so future contributors do not re-litigate it. `pnpm audit` at `farm-frontend` reports 25 vulnerabilities (1 critical, 14 high, 10 moderate). All 15 critical+high resolve to dev-only dependency chains; only 1 moderate (`uuid` via `resend > svix`) is on the production runtime path. CLAUDE.md mandates "resolve all critical and high vulnerabilities" — this slice records the explicit decision that the strict-reading remediation (pnpm overrides or top-level upgrades) is deferred, and why.
+
+**Files touched:** 1 ledger.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Audit summary (pnpm audit @ 2026-05-22):**
+- 1 critical: `basic-ftp` path traversal via `lighthouse > puppeteer-core > @puppeteer/browsers > proxy-agent > pac-proxy-agent > get-uri > basic-ftp`. Dev-only; lighthouse runs in CI/dev for Lighthouse score audits.
+- 7 high: `minimatch` ReDoS variants (3x) via `eslint` and `eslint-config-next > @typescript-eslint/parser`. Dev-only; eslint never executes against attacker-controlled input.
+- 2 high: `flatted` unbounded recursion DoS and prototype pollution via `eslint > file-entry-cache > flat-cache > flatted`. Dev-only.
+- 2 high: `picomatch` ReDoS via `eslint-config-next > @next/eslint-plugin-next > fast-glob > micromatch > picomatch` and `eslint-import-resolver-typescript > tinyglobby > picomatch`. Dev-only.
+- 1 high: `lodash-es` template code injection via `lighthouse > lodash-es`. Dev-only.
+- 3 high: `basic-ftp` CRLF injection, DoS via `list()`, DoS via multiline response. Same dev-only path as the critical.
+
+Total prod-runtime exposure: 1 moderate (`uuid <11.1.1` via `resend > svix > uuid`). Buffer-bounds bug requires caller-controlled `buf` argument that `svix` does not expose, so realised exposure is effectively zero. Dependabot agrees — it reports this as "low" on master.
+
+**Decision: defer remediation.** Three options were considered and rejected:
+1. **`pnpm.overrides`** to force-bump minimatch/picomatch/flatted/basic-ftp/lodash-es to patched versions. Rejected because: (a) overrides on deep transitive deps create maintenance debt on every top-level update; (b) the patched versions of basic-ftp/lodash-es may not be ABI-compatible with the consuming dev tools (lighthouse/eslint expect specific APIs); (c) lockfile churn is ~hundreds of lines for zero user benefit.
+2. **Top-level upgrades** of `eslint`, `eslint-config-next`, `lighthouse`. Rejected because: (a) eslint-config-next major bumps have historically required code-side rule reconciliation; (b) lighthouse upgrades shift puppeteer-core which can break local Lighthouse runs; (c) the benefit is zero (dev-only).
+3. **Full audit-fix automation.** Rejected because pnpm offers no such command for transitive deps and any equivalent would push the same lockfile churn.
+
+**Accepted approach:**
+- The 15 dev-only critical+high are documented here as known-but-deferred. They do not block any release.
+- The 1 prod-moderate `uuid` is monitored; will be remediated when `svix` (the direct dep) ships a `uuid >= 11.1.1` upgrade, which is a transitive-only update we can take with a normal `pnpm update svix`.
+- Re-audit cadence: include a `pnpm audit` check in any future security-focused slice. If a new prod-runtime critical/high appears, ship a remediation slice immediately regardless of dev/prod scope.
+
+**Verification:**
+- ✅ `pnpm audit --json` JSON parse confirmed 1 critical / 14 high paths all begin with `.>lighthouse>...` or `.>eslint*` (devDependency entry-points).
+- ✅ Production runtime audit path narrowed to `uuid` only (the `resend` dependency for transactional email).
+
+**Out of scope:**
+- Actually remediating these CVEs (deliberately deferred; see "Decision" above).
+- Adding a CI gate that fails on dev-only critical/high (would block merges for theatre).
+
+**Risk and rollback:** Zero runtime risk (no code change). Rollback: not applicable (documentation-only).
+
+**Next slice:** **Slice 1.6 — Tests for Pitti × Apothecary selectors**, which is meaningful productive work: catch silent regressions in the rendering gates that affect ~1300 farm pages.
