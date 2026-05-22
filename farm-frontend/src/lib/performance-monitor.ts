@@ -59,9 +59,14 @@ export class PerformanceMonitor {
   private readonly flushInterval = 30000 // 30 seconds
 
   private constructor() {
-    // Start periodic flush
+    // Start periodic flush. `.unref()` is required so the background timer
+    // does not pin Node's event loop open in scripts and test runs that
+    // import this module transitively (Slice 1.7 — was causing pnpm
+    // test:unit to hang after cache-manager tests). In production server
+    // contexts the runtime stays alive on its own, so unref has no
+    // user-visible effect there.
     if (typeof window === 'undefined') {
-      setInterval(() => this.flushMetrics(), this.flushInterval)
+      setInterval(() => this.flushMetrics(), this.flushInterval).unref()
     }
   }
 

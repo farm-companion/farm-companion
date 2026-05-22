@@ -147,16 +147,30 @@ async function generateFarmImages() {
         }
       })
     } else {
-      // Find farms with no approved images
-      farms = await prisma.farm.findMany({
-        where: {
-          status: 'active',
-          images: {
-            none: {
-              status: 'approved'
-            }
+      // Style-aware list filter (Slice 1.1.4).
+      // - apothecary: target farms that don't yet have an ai_apothecary row,
+      //   regardless of whether they have a legacy ai_generator row. This is
+      //   the backfill case for the ~1213 farms whose only image is a legacy
+      //   fake photo now suppressed by Slice 1.1.3c. The query is naturally
+      //   resume-safe: a completed farm drops out of subsequent re-runs.
+      // - harvest / pitti / unset: preserve legacy "no approved image at all"
+      //   semantics so existing batch flows are not silently re-broadened.
+      const listWhere = options.style === 'apothecary'
+        ? {
+            status: 'active',
+            images: {
+              none: { uploadedBy: 'ai_apothecary' },
+            },
           }
-        },
+        : {
+            status: 'active',
+            images: {
+              none: { status: 'approved' },
+            },
+          }
+
+      farms = await prisma.farm.findMany({
+        where: listWhere,
         select: {
           id: true,
           name: true,

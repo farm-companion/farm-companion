@@ -2,7 +2,7 @@ import type { FarmShop } from '@/types/farm'
 import { prisma } from '@/lib/prisma'
 import { selectFarmHeroImage } from '@/lib/farm-hero-image'
 
-// Server-side farm data loading (reads from Supabase via Prisma)
+// Server-side farm data loading (reads from managed Postgres via Prisma)
 export async function getFarmData(): Promise<FarmShop[]> {
   try {
     const farms = await prisma.farm.findMany({

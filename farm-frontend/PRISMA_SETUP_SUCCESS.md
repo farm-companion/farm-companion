@@ -1,5 +1,7 @@
 # ✅ PRISMA SETUP SUCCESSFUL
 
+> **Historical note (2026-05-22):** This document was written when farm-companion was hosted on Supabase. In May 2026 the backing services (Postgres, Redis, Meilisearch) migrated to Coolify-managed Hetzner; blob storage moved to Hetzner Object Storage. Supabase environment variables, dashboards, and connection-string examples below are point-in-time accurate for the era this milestone records. The current production stack is documented in the Production Infrastructure block of `docs/assistant/execution-ledger.md`.
+
 **Date**: January 16, 2026
 **Status**: Prisma Client Generated Successfully
 

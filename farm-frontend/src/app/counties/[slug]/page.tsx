@@ -8,9 +8,10 @@ import {
   getCachedAllCounties,
 } from '@/lib/server-cache-counties'
 import { FarmCard } from '@/components/FarmCard'
-import { Badge } from '@/components/ui/Badge'
+import { CountyHero } from '@/components/CountyHero'
 import { CountyStats } from '@/components/CountyStats'
 import { countyFAQs } from '@/data/county-faqs'
+import { pittiCountyImageUrl } from '@/data/pitti-counties'
 
 // Revalidate every 6 hours
 export const revalidate = 21600
@@ -187,41 +188,14 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
         </div>
       </div>
 
-      {/* Hero Section */}
-      <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
-        <div className="container mx-auto px-4 py-12 md:py-16">
-          <div className="max-w-3xl">
-            {/* County Name */}
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
-              Farms & Producers in {countyName}
-            </h1>
-
-            {/* Description */}
-            <p className="text-body md:text-heading text-slate-600 dark:text-slate-400 mb-6">
-              Discover {total} local farm shops, pick your own farms, organic producers, and
-              agricultural businesses in {countyName}. Support local farmers and enjoy fresh,
-              locally-sourced produce.
-            </p>
-
-            {/* Stats */}
-            <div className="flex flex-wrap items-center gap-4">
-              <Badge variant="default" size="lg">
-                {total} {total === 1 ? 'Farm' : 'Farms'}
-              </Badge>
-              {stats && stats.verified > 0 && (
-                <Badge variant="success" size="lg">
-                  ✓ {stats.verified} Verified
-                </Badge>
-              )}
-              {stats && stats.averageRating > 0 && (
-                <Badge variant="outline" size="lg">
-                  ⭐ {stats.averageRating.toFixed(1)} Average Rating
-                </Badge>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Hero Section — Pitti variant when an illustration exists in
+          PITTI_COUNTY_IMAGES, typography-led fallback otherwise. */}
+      <CountyHero
+        countyName={countyName}
+        total={total}
+        stats={stats}
+        imageUrl={pittiCountyImageUrl(slug)}
+      />
 
       <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">

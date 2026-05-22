@@ -5,7 +5,7 @@
  * Prevents multiple instances from being created during hot reloads
  *
  * Connection Pooling Configuration:
- * - Uses Supabase Pooler for optimal connection management
+ * - Uses managed Postgres connection pooler (PgBouncer) for serverless workloads
  * - connection_limit: Max connections per instance (10 for serverless)
  * - pool_timeout: Time to wait for available connection (20s)
  * - connect_timeout: Time to establish new connection (10s)
@@ -14,11 +14,16 @@
  * - DATABASE_URL: Direct database connection (migrations, admin)
  * - DATABASE_POOLER_URL: Pooled connection (application queries)
  *
- * Supabase Pooler Modes:
+ * PgBouncer Pool Modes:
  * - Transaction mode: Best for serverless (Vercel, AWS Lambda)
  * - Session mode: Better for long-running processes
  *
- * @see https://supabase.com/docs/guides/database/connecting-to-postgres#connection-pooler
+ * Production stack (May 2026): Coolify-managed Postgres on Hetzner, host
+ * `farm-companion-db` on `37.27.194.158`. App on Vercel calls into the
+ * pooler endpoint via `DATABASE_POOLER_URL` (transaction mode). See the
+ * Production Infrastructure block at the top of the execution ledger.
+ *
+ * @see https://www.prisma.io/docs/orm/prisma-client/setup-and-configuration/databases-connections
  */
 
 import { PrismaClient } from '@prisma/client'

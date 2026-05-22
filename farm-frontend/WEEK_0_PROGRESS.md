@@ -1,5 +1,7 @@
 # WEEK 0: TRANSFORMATION PROGRESS
 
+> **Historical note (2026-05-22):** This document was written when farm-companion was hosted on Supabase. In May 2026 the backing services (Postgres, Redis, Meilisearch) migrated to Coolify-managed Hetzner; blob storage moved to Hetzner Object Storage. Supabase environment variables, dashboards, and connection-string examples below are point-in-time accurate for the era this snapshot records. The current production stack is documented in the Production Infrastructure block of `docs/assistant/execution-ledger.md`.
+
 **Status**: 65% Complete (Day 3-4)
 **Last Updated**: January 16, 2026
 

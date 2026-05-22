@@ -1,5 +1,7 @@
 # WEEK 0 SETUP CHECKLIST
 
+> **Historical note (2026-05-22): This document is a Week 0 snapshot.** It was written during the original January 2026 Supabase-era onboarding push and lists step-by-step instructions to create a Supabase project. In May 2026 the database migrated to Coolify-managed Hetzner Postgres, so the "Create Supabase Account" steps no longer apply. For current contributor setup, follow the README.md "Quick Start" section, which targets the live Vercel + Coolify/Hetzner hybrid stack. The text below is retained as a point-in-time record of the Week 0 onboarding experience.
+
 Complete these steps to finish Week 0 transformation setup.
 
 ---

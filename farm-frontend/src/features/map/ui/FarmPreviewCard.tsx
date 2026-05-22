@@ -6,6 +6,7 @@ import { X, Phone, Navigation, Share2, Circle, ChevronRight, Leaf } from 'lucide
 import type { FarmShop } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
 import { formatOpeningStatus } from '@/lib/opening-hours'
+import { pittiFarmImageUrl } from '@/data/pitti-farms'
 import {
   truncateHook,
   getOpeningTone,
@@ -42,7 +43,14 @@ export default function FarmPreviewCard({
     setMounted(true)
   }, [])
 
-  const heroImage = farm.images?.[0] ? getImageUrl(farm.images[0]) : undefined
+  // Image resolution: admin/Apothecary (already filtered by upstream
+  // queries to exclude ai_pitti/ai_generator) wins; per-farm Pitti
+  // illustration (Slice 1.1.3d-3 manifest) is the next fallback. Pitti
+  // is reserved for PLACE surfaces, and the map popover is a PLACE
+  // context. Manifest is empty at slice merge so behaviour is unchanged
+  // until a slug is enrolled.
+  const farmImage = farm.images?.[0] ? getImageUrl(farm.images[0]) : null
+  const heroImage = farmImage ?? pittiFarmImageUrl(farm.slug) ?? undefined
   const hasHours = farm.hours && farm.hours.length > 0
   const openingStatus = hasHours ? formatOpeningStatus(farm.hours!) : null
   const tone = getOpeningTone(openingStatus?.isOpen)

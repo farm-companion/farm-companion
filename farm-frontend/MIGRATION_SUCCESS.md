@@ -1,5 +1,7 @@
 # ✅ DATABASE MIGRATION COMPLETE
 
+> **Historical note (2026-05-22):** This document records the original January 2026 database migration into Supabase. In May 2026 the backing services (Postgres, Redis, Meilisearch) migrated again, this time to Coolify-managed Hetzner; blob storage moved to Hetzner Object Storage. References to Supabase below are point-in-time accurate for the January 2026 migration this document records. The current production stack is documented in the Production Infrastructure block of `docs/assistant/execution-ledger.md`.
+
 **Date**: January 16, 2026
 **Status**: Successfully migrated 1,299 farms to PostgreSQL
 
