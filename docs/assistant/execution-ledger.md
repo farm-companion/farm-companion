@@ -2150,3 +2150,44 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Low. Selector is narrow (must match both `uploadedBy='ai_generator'` AND a Pitti URL fragment) and read-only by default. Write path runs inside a Prisma transaction. Rollback: re-run the script after swapping `ai_pitti` and `ai_generator` in the SELECT and UPDATE clauses, or hand-flip the row in Prisma Studio.
 
 **Next slice:** **Slice 1.1.3d-2** (`/counties/[slug]` Pitti hero) or **Slice 1.1.4** (Apothecary batch backfill). Operator pick.
+
+### 2026-05-22 — Slice 1.1.4: Apothecary batch backfill — list-mode filter
+
+**Goal:** Unlock batch Apothecary illustration generation for the ~1213 farms whose only image is a legacy `ai_generator` row now suppressed by Slice 1.1.3c. The Apothecary pipeline (Runware FLUX [dev] → `cropBottomStrip` → Hetzner `apothecary-farm-illustrations/{slug}/main.webp` → `prisma.image.create` with `uploadedBy='ai_apothecary'`) already exists end-to-end as the `--style=apothecary` branch on `src/scripts/generate-farm-images.ts` (Slice 1.1.3a, verified live on `darts-farm`). The only blocker was a single broken predicate in list mode: the existing `where` clause `images.none.status='approved'` matches farms with ZERO approved images, but every target farm has an approved (now-suppressed) `ai_generator` row, so the query returned zero matches for the backfill case. This slice swaps that predicate for an Apothecary-aware version.
+
+**Why a 12-line predicate swap instead of a new harness:** I sized a sibling driver script with `--apply` gate, cost preview, and per-farm subprocess isolation. Rejected it because the existing generator already provides every safety the harness would replicate: `--upload` defaults to OFF (dry-run by default), `--limit` defaults to 10 (operator must explicitly raise it to go wide, so no accidental large API spend), per-farm try/catch isolates failures, Apothecary inserts are always additive, the new `where` clause makes the script naturally resume-safe (completed farms drop out of subsequent re-runs). Per CLAUDE.md's "Don't add features beyond what the task requires" and "Three similar lines is better than a premature abstraction", the minimum diff wins.
+
+**Files touched:** 1 source + 1 ledger.
+- MODIFY `farm-frontend/src/scripts/generate-farm-images.ts` (+33 / -10 LOC; file now 454 LOC, under 500 hard limit). The `else` branch of the list query now uses a `listWhere` const that switches on `options.style`. Apothecary mode filters `images.none.uploadedBy='ai_apothecary'`. All other styles (harvest, pitti, default) preserve the original `images.none.status='approved'` semantics so existing batch flows are not silently re-broadened.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` exit 0.
+- ⏳ Operator-side execution per the protocol below.
+
+**Operator-step protocol (resume-safe across steps; reply between each):**
+- Step 1 — Confirm production `DATABASE_URL` and `RUNWARE_API_KEY`. Owner: you. Action: `cd farm-frontend && echo "DB=$(echo "$DATABASE_URL" | sed 's|://.*@|://REDACTED@|')" && echo "RUNWARE=$([ -n "$RUNWARE_API_KEY" ] && echo set || echo MISSING)"`. Verify: DB host is Coolify `farm-companion-db` on `37.27.194.158`; `RUNWARE=set`. Reply: paste output.
+- Step 2 — Dry-run count audit (no API spend). Owner: you. Action: `cd farm-frontend && pnpm tsx src/scripts/generate-farm-images.ts --style=apothecary --limit=5`. Verify: Mode says `Dry-run (no save)`; prints `Processing 5 farms without images` (or fewer if catalogue has fewer than 5 missing apothecary rows). No `--upload`, so no Runware calls and no DB writes. Reply: paste the slugs.
+- Step 3 — Small live trial run (~$0.025-0.075 spend, ~2 min). Owner: you. Action: `cd farm-frontend && pnpm tsx src/scripts/generate-farm-images.ts --style=apothecary --limit=5 --upload`. Verify: 5 lines each ending `✅ Apothecary image uploaded: …` and `✅ Saved to database`; summary `✅ Success: 5 farms`. Reply: paste the summary block.
+- Step 4 — Visual QA on the 5 trial illustrations. Owner: you. Action: open each of the 5 returned blob URLs in a browser (or visit `https://www.farmcompanion.co.uk/shop/<slug>` for each). Verify: botanical-engraving style, sepia ink on cream, no text/watermark, subject matches farm offerings. Reply: `step 4 done` or list any failed slugs (their rows can be deleted via `DELETE FROM images WHERE slug=… AND uploadedBy='ai_apothecary'` plus a corresponding blob delete).
+- Step 5 — Full sweep (~$6-18 spend, ~7-10 hours runtime). Owner: you. Action: `cd farm-frontend && pnpm tsx src/scripts/generate-farm-images.ts --style=apothecary --limit=9999 --upload 2>&1 | tee /tmp/apothecary-backfill-$(date +%Y%m%d-%H%M%S).log`. Verify: progress lines tick through farms; intermediate failures are isolated and printed in the summary. Re-run the exact same command if the process dies — already-completed farms drop out of the query automatically (resume-safe). Reply: paste the final summary block when the run terminates.
+- Step 6 — Post-sweep DB audit. Owner: you. Action: `cd farm-frontend && pnpm tsx src/scripts/check-image-status.ts` (or run `SELECT COUNT(*) FROM images WHERE "uploadedBy"='ai_apothecary'` against production). Verify: count matches expected (initial 1 from `darts-farm` + N from step 3 + remaining from step 5; total close to the documented ~1213 + 1). Reply: paste the count.
+
+**Cost / time estimate (operator awareness):**
+- Per-image cost: Runware FLUX [dev] @ 28 steps, 1536×768 → ~$0.005-0.015 per image (compute-time-based; check the Runware dashboard for exact tier pricing).
+- Total cost for ~1213 farms: ~$6-18.
+- Per-image runtime: ~20-30s (generation) + 2s (built-in sleep) = ~22-32s sequential.
+- Total runtime: ~7.5-11 hours sequential. Acceptable for one-shot backfill; parallelism deferred.
+
+**Out of scope (deferred):**
+- Concurrency knob (default sequential is safe; parallelism would add complexity for a one-shot run).
+- Sub-batching by county or category (operator can use `--limit=N` to chunk if Hetzner storage cost spikes or Runware credit runs low).
+- Updating `prisma/schema.prisma` line 205 to document `ai_pitti`/`ai_apothecary` as valid `uploadedBy` values (pure docs touch; ride along with another schema-adjacent slice).
+- Deprecating the harvest branch (now-untrusted: Slice 1.1.3c would re-suppress new harvest rows as `ai_generator`). Belongs in a future cleanup slice that decides whether to delete harvest entirely or repurpose it.
+
+**Risk and rollback:**
+- Code risk: low. One predicate swap on one `findMany` in one CLI script; no behavior change for harvest/pitti/default paths.
+- Operational risk: medium-low. ~1213 production blob writes and ~1213 production DB row inserts. Each is independently revertible (`DELETE FROM images WHERE "uploadedBy"='ai_apothecary'` + bulk delete of `apothecary-farm-illustrations/*` from Hetzner). The trial step (step 3+4) is the gating QA against bad style outputs going to all 1213.
+- Rollback for the code change: `git revert <slice sha>`. Rollback for a bad full sweep: delete all `ai_apothecary` rows + blobs and re-run after fixing the prompt or model parameters.
+
+**Next slice:** **Slice 1.1.3d-2** (`/counties/[slug]` Pitti hero) is now the last unshipped item in the 1.1.3 series after Slice 1.1.4 ships. Operator can also defer 1.1.3d-2 until after the full Apothecary sweep completes if they want to QA the illustration aesthetic at scale first.
