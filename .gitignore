@@ -158,3 +158,8 @@ farm-frontend/security-test-report.json
 
 # Superpowers brainstorming visual-companion artefacts
 .superpowers/
+
+# Session handover artefacts (auto-generated per session boundary).
+# 14 pre-2026-05-19 handovers remain tracked as historical decision records
+# (one is referenced from line 154 above); new ones are local-only.
+/context/handover-*.md
