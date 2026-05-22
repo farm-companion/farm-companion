@@ -1,5 +1,7 @@
 # Supabase Database Setup - SQL Method
 
+> **Historical note (2026-05-22): This document is SUPERSEDED.** It was a Supabase-specific workaround for connecting to the database via the SQL Editor when direct port-5432 connections were unavailable. In May 2026 the database migrated to Coolify-managed Hetzner Postgres, where this workaround no longer applies. Schema changes are now managed via `pnpm prisma migrate` against the Coolify Postgres service (see Production Infrastructure in `docs/assistant/execution-ledger.md`). The text below is retained as a point-in-time record of the Supabase setup procedure.
+
 Since the direct connection (port 5432) isn't accessible, we'll create the database tables using **Supabase SQL Editor** instead.
 
 ## Why This Method?

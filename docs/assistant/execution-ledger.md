@@ -2310,3 +2310,34 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Very low. The prisma.ts edit is a header-comment change; runtime byte-identical (verified by tsc). The deleted script was unused. Rollback: `git revert <slice sha>` restores both — the script restoration is exact since git tracks the full content.
 
 **Next slice:** **Slice 1.3c-2 — historical banner on Supabase-era snapshot docs** (PRISMA_SETUP_SUCCESS, WEEK_0_PROGRESS, WEEK_0_COMPLETE, MIGRATION_SUCCESS, SUPABASE_SQL_SETUP). Uniform "Historical note" block at the top of each, no rewrites; preserves the dated-record value while making the May 2026 stack switch unambiguous for new readers.
+
+### 2026-05-22 — Slice 1.3c-2: Historical banner on Supabase-era snapshot docs
+
+**Goal:** Second of three sub-slices closing the Supabase-references backlog. Five point-in-time milestone documents from the January 2026 Supabase-era are still in the repo and would mislead a new reader landing on them without the May 2026 migration context. Rather than rewriting them (which would destroy the dated-record value), prepend a uniform "Historical note" blockquote immediately after each H1. Reader sees the migration context first; the original content remains intact below as a snapshot.
+
+**Files touched:** 5 markdown + 1 ledger.
+- MODIFY `farm-frontend/PRISMA_SETUP_SUCCESS.md` (+2 LOC) — banner.
+- MODIFY `farm-frontend/WEEK_0_PROGRESS.md` (+2 LOC) — banner.
+- MODIFY `farm-frontend/WEEK_0_COMPLETE.md` (+2 LOC) — banner.
+- MODIFY `farm-frontend/MIGRATION_SUCCESS.md` (+2 LOC) — banner, phrased to clarify it records the January 2026 migration into Supabase, with the May 2026 migration out documented in the ledger.
+- MODIFY `farm-frontend/SUPABASE_SQL_SETUP.md` (+2 LOC) — stronger "SUPERSEDED" banner, because the entire document is a Supabase-specific workaround (port 5432 unavailable → use Supabase SQL Editor) that no longer applies under the Hetzner Coolify stack.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Why banners rather than rewrites:** Each of these documents is a dated record (January 16, 2026 datestamps; "Week 0" terminology fixed to a specific calendar position). Rewriting them to reflect the current Hetzner stack would erase what they record — that's exactly the data we want to preserve. The banner pattern (blockquote immediately after the H1) is high-visibility, unambiguous, and idempotent; future migrations can add their own dated banner without restructuring the document.
+
+**Verification:**
+- ✅ Grep confirmed zero code importers for each file before editing (markdown files in the repo are never imported by TS/JS code paths).
+- ✅ All five files now lead with the same "Historical note (2026-05-22)" blockquote pattern, with phrasing adjusted per document (snapshot vs milestone vs superseded).
+
+**Decisions:**
+- **Uniform `> **Historical note (2026-05-22):**` opener.** Future scans for stale docs can grep for that string to enumerate the May 2026 migration-aware document set; future migrations follow the same pattern with a new date.
+- **SUPABASE_SQL_SETUP.md gets a stronger banner.** Its premise (direct port 5432 unavailable, use SQL Editor instead) is wholly Supabase-platform-specific. Calling it SUPERSEDED rather than just historically-contextualised matches reality and discourages a new contributor from copy-pasting workarounds that don't apply.
+
+**Out of scope (deferred to Slice 1.3c-3):**
+- Active operator-facing setup docs `README.md` and `farm-frontend/SETUP_CHECKLIST.md` — these are NOT snapshots; they are meant to be authoritative for new contributors today, so they need a real rewrite, not a banner.
+- Other technical docs with tangential Supabase references (POSTGIS_SETUP.md, DATABASE_CONNECTION_POOLING.md, CHECK_CONSTRAINTS.md, GEOSPATIAL_README.md). Will revisit during 1.3c-3 if any read as active runbooks; if they read as historical they get the same banner pattern.
+- Historical assistant docs under `docs/assistant/audit-2026-05-18.md` and similar — those are themselves dated point-in-time documents, internally consistent, with no need for a banner.
+
+**Risk and rollback:** Zero runtime risk. Pure markdown documentation prepend; no code path, no consumer, no build artefact. Rollback: `git revert <slice sha>` strips the banners cleanly.
+
+**Next slice:** **Slice 1.3c-3 — rewrite active operator setup docs** (`README.md`, `farm-frontend/SETUP_CHECKLIST.md`). These remain the canonical operator entry points for new contributors and must reflect the current Hetzner stack, not bear a banner. Touches the larger, more carefully-edited portion of the 1.3c backlog.
