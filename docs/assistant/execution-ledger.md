@@ -2191,3 +2191,41 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 - Rollback for the code change: `git revert <slice sha>`. Rollback for a bad full sweep: delete all `ai_apothecary` rows + blobs and re-run after fixing the prompt or model parameters.
 
 **Next slice:** **Slice 1.1.3d-2** (`/counties/[slug]` Pitti hero) is now the last unshipped item in the 1.1.3 series after Slice 1.1.4 ships. Operator can also defer 1.1.3d-2 until after the full Apothecary sweep completes if they want to QA the illustration aesthetic at scale first.
+
+### 2026-05-22 — Slice 1.1.3d-2: County Pitti hero, render-side wiring with empty manifest
+
+**Goal:** Add capability for `/counties/[slug]` to render a full-bleed Pitti railway-poster hero when a county-specific illustration exists. Ships the rendering plumbing only; the `PITTI_COUNTY_IMAGES` manifest starts empty so user-visible behaviour is unchanged at merge time. Operator then grows the manifest one slug at a time as Pitti county illustrations are generated, with no further code edits needed beyond appending to a `Set` and committing the binary asset.
+
+**Why ship the wiring without any seed images:** Generating a Pitti county illustration requires Runware credit (operator-side) and the seed images would push this slice over the diff cap once binary assets are counted. The clean split is wiring-first / content-second: this slice unblocks every future county Pitti landing as a trivial 2-line slice (Set entry + `.webp` asset). Behaviour-wise the slice is verifiable today (manifest empty → fallback hero is identical to pre-slice; locally adding a slug + dummy image → Pitti variant renders) without any production change visible to users until the operator generates the first illustration.
+
+**Why a manifest instead of an existence-check at render time:** Server Components run per request; a HEAD-check against `public/` or Hetzner would add 50-150ms of latency per render for the majority of slugs that will never have a Pitti illustration. A code-controlled `ReadonlySet<string>` is the cheapest source of truth, and PR review of manifest changes catches mismatches between "slug added" and "asset committed".
+
+**Files touched:** 3 source + 1 ledger.
+- CREATE `farm-frontend/src/data/pitti-counties.ts` (36 LOC) — exports `PITTI_COUNTY_IMAGES: ReadonlySet<string>` (initially empty) and `pittiCountyImageUrl(slug): string | null`. Doc comment specifies the 5-step recipe for adding a new county.
+- CREATE `farm-frontend/src/components/CountyHero.tsx` (111 LOC) — Server Component with two variants gated by the `imageUrl` prop. Pitti variant: full-bleed `<Image fill priority>` background, `bg-gradient-to-t from-black/75 via-black/30 to-black/10` overlay, uppercase tracking-widest farm-count kicker, bold white drop-shadow H1 of the county name; description + badges drop to a slim details bar directly under the hero so the hero composition stays clean. Fallback variant: original typography-led hero on the white card, visually identical to pre-1.1.3d-2.
+- MODIFY `farm-frontend/src/app/counties/[slug]/page.tsx` (371 → 344 LOC; net -27 lines from the extraction) — drops the `Badge` import (now only used inside `CountyHero`), adds `CountyHero` + `pittiCountyImageUrl` imports, replaces the inline `<section>` hero block with a single `<CountyHero countyName total stats imageUrl={pittiCountyImageUrl(slug)} />` call.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Visual pattern reference:** mirrors `/shop/[slug]`'s editorial hero from Slice 1.1.3b — same height envelope (~60vh, min 400px, max 640px), same gradient strength (top-from black/75), same drop-shadow language. Two intentional differences: county hero has no description over the image (counties are SEO-heavier so the description belongs in a details bar where it can wrap naturally), and the kicker is the farm count rather than the city/county (the county name IS the title here).
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` exit 0.
+- ✅ File sizes: page.tsx 344 LOC (under soft 300; was over already, shrunk this slice), CountyHero.tsx 111 LOC, pitti-counties.ts 36 LOC. All under soft 300 except the page, which already exceeded the soft limit pre-slice.
+- ⏳ Local dev smoke test (operator, post-merge): visit `/counties/devon` — should render the typography-led fallback hero, identical to pre-slice (manifest empty, so `imageUrl` is null).
+- ⏳ Local manifest override test (operator): temporarily add `'devon'` to `PITTI_COUNTY_IMAGES`, drop any 1536×768 WebP at `public/images/pitti/county-devon.webp`, visit `/counties/devon` — should render the full-bleed Pitti hero with the county name overlaid. Revert before commit.
+
+**Follow-up slice template (Slice 1.1.3d-2-content-N):** Each county illustration ships as its own micro-slice:
+- Step 1 — Generate (operator): `cd farm-frontend && pnpm generate:pitti county <slug> --feature="<one short feature phrase>"`. Output lands at `public/images/pitti/county-<slug>-dev-seed<seed>.webp`.
+- Step 2 — Promote (operator): rename to `public/images/pitti/county-<slug>.webp` (drop seed suffix so the manifest can address it without knowing the seed).
+- Step 3 — Manifest (operator): add `'<slug>'` to `PITTI_COUNTY_IMAGES` in `src/data/pitti-counties.ts` (alphabetical).
+- Step 4 — Commit: 1 binary + 1 source line + 1 ledger line. PR title `chore(counties): Pitti hero for <CountyName>`.
+- Cost per county: ~$0.005-0.015 in Runware credit; ~30 seconds generation time.
+
+**Out of scope (deferred):**
+- Generating any county illustrations in this slice (would require operator-side Runware run and would push past the diff cap once binary assets are committed; see follow-up template above).
+- Map popover Pitti rendering on `MarkerPreview.tsx` (Slice 1.1.3d-3).
+- Migrating county illustrations from `public/` to Hetzner blob storage once the manifest grows beyond ~25-30 entries (deferred until repo bloat becomes a real concern; current homepage hero pattern from 1.1.3d-1 keeps the asset in `public/` and that's fine for a handful of counties).
+
+**Risk and rollback:** Low. New manifest is an empty `Set`, so the fallback branch runs for every county — visually identical to today. `CountyHero` is a Server Component with no client surface and no data fetching. Page extraction is a faithful refactor (verified by tsc + line-count delta of -27 matching the extracted block). Rollback: `git revert <slice sha>`; counties revert to the inline hero with no behavioural drift.
+
+**Next slice:** **Slice 1.1.3d-2-content-1** (first county Pitti illustration, operator pick on which county — Devon and Cornwall are high-traffic candidates) or **Slice 1.1.3d-3** (map popover Pitti). After this slice's wiring lands, the 1.1.3 series is structurally complete; remaining work is incremental content shipping.
