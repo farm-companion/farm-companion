@@ -29,6 +29,30 @@
 
 ## Queue Status
 
+### Open Work Snapshot (2026-05-22, post Slice 1.8)
+
+The 31 numbered queues below are historical and mostly closed. For a cold reader, the **actually open** Claude-side and operator-side items are:
+
+**Claude-side (code/docs work):**
+- _None right now._ All named arcs (Pitti × Apothecary, Slice 1.3c Supabase cleanup, Slice 1.6 selector tests, Slice 1.7 test:unit unblock, Google Maps → MapLibre cutover) are closed as of 2026-05-22. Next thread is operator-picked from the list below or a new arc.
+
+**Operator-pending (no Claude work needed until operator acts):**
+- **Slice 1.1.3c Part 3 darts-farm DB backfill** — flip the single legacy darts-farm row `uploadedBy='ai_generator'` → `'ai_pitti'`. 3-step protocol, ~5 min, no spend. Ledger entry at "2026-05-22 — Slice 1.1.3c Part 3".
+- **Slice 1.1.4 Apothecary batch sweep** — Runware run across the ~1213 farms still on legacy `ai_generator` rows. ~£6-18 spend depending on model choice. List-mode filter shipped (commit `5b03f7a`); operator runs the batch.
+- **Slice 1.1.2k-δ-2 County batch Pitti adapter** — operator-pending if/when the county content sweep is wanted at scale. δ-3 split unblocked the file; the render-side wiring with empty manifest already shipped via Slice 1.1.3d-2 (commit `8144971`), so this only matters once county illustrations are being generated in bulk.
+- **Slice 1.1.2k-ε Mass regeneration sweep** — bump `SEED_VERSION`, batch-regenerate county + farm-header at FLUX schnell. Sequenced after δ-2.
+- **Vercel "Redeploy without build cache"** — last documented blocker for full Hetzner image-host parity. Per "Production Infrastructure" block above; operator action.
+
+**Content slices (operator-driven Runware runs, then trivial 2-line PR each):**
+- Pitti county illustrations (Slice 1.1.3d-2-content-N) — Devon, Cornwall are the high-traffic candidates per the 1.1.3d-2 closing notes.
+- Pitti farm header illustrations (Slice 1.1.3d-3-content-N) — high-traffic farm pages.
+
+**Known issues parked without owners:**
+- FLUX corner-watermark hallucination on Pitti generations (Slice 1.1.2k-β note) — pure prompt-side fix exhausted; mitigated by `cropBottomStrip` (Slice 1.1.2k-γ). Reopens only if a model swap regresses.
+- `pnpm test:unit` event-loop pinning from other `setInterval` modules (Slice 1.7 out-of-scope) — not currently a bug; check again if a new test hangs.
+
+When this snapshot drifts from reality, the next ledger-reality-check slice should rewrite it, not delete it.
+
 ### Queue 1: Security closure and secret removal
 - [x] Fix twitter-workflow critical Next.js vulnerabilities (CVE-2025-66478)
 - [x] Fix js-yaml vulnerability (not present, false positive)
@@ -450,10 +474,7 @@
   - Dropped `@supabase/supabase-js@^2.93.3` from `farm-frontend/package.json` (only consumer was the deleted file). `pnpm install` pruned 30+ transitive packages from `node_modules`.
   - Verified: `tsc --noEmit` PASS, `pnpm build` PASS (254 routes), no regressions.
   - Removes the `NEXT_PUBLIC_SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY` concern: env vars can now be safely dropped from `.env.local` (operator action; client bundle no longer references them).
-- [ ] Slice 1.3c: Update Supabase doc references (follow-up)
-  - `README.md`, `farm-frontend/SETUP_CHECKLIST.md`, `farm-frontend/PRISMA_SETUP_SUCCESS.md`, `farm-frontend/WEEK_0_*.md` still document Supabase env vars in setup instructions. Generalize to "managed Postgres" or remove.
-  - `farm-frontend/src/lib/prisma.ts` has Supabase-flavoured doc comments (lines 8, 17, 21) — comments only, no runtime impact, but misleading.
-  - `farm-frontend/scripts/diagnose-database-connection.ts` prints Supabase-specific troubleshooting (URL examples, dashboard links). Either rewrite for Hetzner or delete.
+- [x] Slice 1.3c: Update Supabase doc references (follow-up) — **shipped** as Slice 1.3c-1 through 1.3c-5 (commits `4403163`, `bb26a4c`, `1c4af25`, `bd2fe5f`, `d480284`). `prisma.ts` comments rewritten, `diagnose-database-connection.ts` deleted, README/SETUP_CHECKLIST rewritten for the Hetzner stack, snapshot docs (PRISMA_SETUP_SUCCESS, WEEK_0_*, MIGRATION_SUCCESS, SUPABASE_SQL_SETUP) carry a uniform historical banner, `farm-data.ts` comment tail tidied, dev-only CVEs (1.3c-5) explicitly deferred with rationale.
 
 ### Queue Pitti: Pitti Press Imagery (Slice 1.1.2k stack)
 - [x] Slice 1.1.2k-α: Runware scaffold + single-image CLI (commit `05a8881`)
@@ -2552,3 +2573,77 @@ The first item is the cleanest next slice: discrete (~3 test files to fix), boun
 1. **Slice 2.2 — Leaflet marker keyboard parity + focus ring.** Mirror this slice's pattern onto `LeafletShell.tsx` accounting for Leaflet's `L.divIcon` wrapper semantics.
 2. **Slice 2.3 — Popover keyboard parity.** Trap focus inside `FarmPreviewCard` while open, return focus to the originating marker on close, Escape closes (already wired in `useMarkerKeyboardNav` for the map container; needs parity at the popover level).
 3. **Slice 2.4 — Map ARIA live announcements.** Wire the existing `announce()` helper at the cluster-click and search-result callsites.
+
+### 2026-05-22 — Slice 1.8: Ledger reality check + retire MapLibre cutover item
+
+**Goal:** A fresh session opened the ledger and the named "next slice" was Google Maps → MapLibre runtime cutover, but the cutover had already shipped before this branch was opened. Verifying that, plus auditing the rest of the open checkboxes against committed reality, surfaced a stale "[ ] Slice 1.3c" line whose work shipped five commits ago, and a tail-of-file "Next slice" block that would mis-direct the next cold reader for the same reason. This slice tightens the ledger to match reality and gives a cold reader a 30-second snapshot block at the top of Queue Status so they don't have to scroll 2500 lines to find the actually-open work.
+
+**Evidence the MapLibre cutover is already done (anchored to the working tree at this commit):**
+- `farm-frontend/package.json` has zero Google Maps dependencies: grep for `google`, `gmaps`, `@react-google-maps`, `@vis.gl/react-google-maps`, `google-map-react` against `farm-frontend/package.json` and root `package.json` returns no matches. The only map deps are `leaflet`, `leaflet.markercluster`, `maplibre-gl`, `supercluster`, and their `@types/*`.
+- `farm-frontend/src/lib/map-provider.ts:3` reads `Google Maps is no longer used.` `MapProvider` is typed as `'leaflet' | 'maplibre' | 'auto'` only. `getEffectiveProvider()` returns `'leaflet' | 'maplibre'` — no Google branch.
+- `farm-frontend/src/features/map/ui/MapShellAuto.tsx` dynamic-imports `MapLibreShell` and `LeafletShell`, no `MapShell` (the old Google wrapper).
+- Codebase grep for `loadGoogleMaps`, `window.google`, `@react-google-maps` returns zero matches in `farm-frontend/src/`.
+- Combined: there is no Google Maps code or dep left to remove; the "switch the default" is already done because there is no other provider to default to.
+
+**What changed in the ledger (1 file touched, doc-only):**
+- MODIFY `docs/assistant/execution-ledger.md` (+~30 / -4 LOC):
+  - Added an **"Open Work Snapshot (2026-05-22, post Slice 1.8)"** block immediately below the `## Queue Status` heading. Lists current Claude-side work (none open), operator-pending items (1.1.3c P3 backfill, 1.1.4 Apothecary sweep, 1.1.2k-δ-2 county batch, 1.1.2k-ε mass regen, Vercel cache rebuild), content slices, and known parked issues. Designed so a cold reader sees the actual state in one screen.
+  - Flipped `- [ ] Slice 1.3c: Update Supabase doc references (follow-up)` to `- [x]` with a one-line pointer to the five shipping commits (`4403163`, `bb26a4c`, `1c4af25`, `bd2fe5f`, `d480284`).
+  - Appended this slice entry.
+
+**Decisions and rejected alternatives:**
+- **Snapshot block lives inside Queue Status, not at the very top.** The "Production Infrastructure" block already owns the top slot and is read first by any cold reader; tucking the snapshot under Queue Status keeps a clean read order (infra → current state → historical queues).
+- **Did NOT delete the 31 historical queue sections.** They are dated record of how the product reached the current state; deleting them loses context. The snapshot block is a navigation aid, not a replacement.
+- **Did NOT flip the "[ ] Slice 1.1.2k-δ-2" or "[ ] Slice 1.1.2k-ε" checkboxes.** δ-2 is structurally unblocked but is genuine operator-pending work (Runware spend); ε is sequenced after δ-2. The snapshot block surfaces both as operator-pending, which is the actual state.
+- **Did NOT rewrite the tail "Next slice" blocks of Slice 1.7 and earlier** to remove their now-stale references to the MapLibre cutover. Those are dated notes that capture _what was true when that slice closed_; rewriting them would falsify the historical record. The snapshot block is the canonical "current" view and overrides the older tail notes by design.
+- **Did NOT trigger Vercel image-host fix or any operator action.** That stays operator-pending in the snapshot block.
+
+**Verification:**
+- ✅ Ledger reads back cleanly: `wc -l` 2505 → 2533 (28 net line addition matches the diff). No code changed, no test runs needed.
+- ✅ The four claims in the snapshot block are anchored to commits / files / grep results that exist in this working tree at this commit.
+- ✅ The 1.3c-{1..5} pointer is verifiable: `git log --oneline | grep "Slice 1.3c"` returns the five commits cited.
+
+**Risk and rollback:** Zero — pure doc reshuffle, no code change. Rollback: `git revert` of this commit, but the consequence is restoring the stale-TODO line and removing the cold-reader snapshot, both of which were the failure mode that triggered this slice.
+
+**Next slice:** Open Claude-side queue is empty. Next thread is operator-picked:
+1. **Map page polish pass** — Discrete UX wins on `/map` (marker focus rings, popover keyboard parity desktop ↔ mobile, screen-reader fallback parity with `MapLibreShell`). Stays within slice budget, produces visible polish.
+2. **Audit other event-loop-pinning timers** — Slice 1.7 out-of-scope follow-up; grep `setInterval` / `setTimeout` across `src/lib`, `src/scripts`, `src/app`, classify which need `.unref()` for clean test/script teardown. Trivial, prevents 1.7's failure mode recurring.
+3. **Operator picks a new arc** — e.g. SEO programmatic-page expansion (Queue 28 closed but the pattern can extend to category × season pairs), accessibility tightening, or backend perf revisit on the indexes shipped in Queue 5.
+
+### 2026-05-22 — Slice 1.9: Event-loop-pinning timer audit + delete dead google-photos.ts
+
+**Goal:** Execute the Slice 1.7 out-of-scope follow-up: classify every `setInterval` / `setTimeout` in `farm-frontend/src/lib` and `src/scripts`, find any latent module-load-time event-loop-pinners that could trip `pnpm test:unit` the way `performance-monitor.ts` did, and either `.unref()` them or remove. Audit found exactly one offender, and the file containing it had zero importers anywhere in the codebase, so deletion is strictly better than `.unref()` (removes the latent bug AND ~100 LOC of dead code).
+
+**Audit result (21 timer calls classified):**
+- **18 short-lived** — `await new Promise(resolve => setTimeout(resolve, ms))` for sleep, AbortController timeouts in `kv.ts:55` / `email-verification.ts:180`, long-press gesture timer in `gestures.ts:97`, retry backoffs in `error-handler.ts:322` / `error-handling.ts:121`, geocoding rate-limit in `geocoding.ts:107`, image-gen retries in `produce-blob.ts:156` / `county-blob.ts:149` / `runware-client.ts:236` / `produce-image-generator.ts:1051` / `county-image-generator.ts:267` / `farm-image-generator.ts:306` / `generate-county-images.ts:213` / `generate-farm-images.ts:413`, and the 1s screen-reader announce clear in `accessibility.ts:16` plus the 212-line short setTimeout. None pin the event loop.
+- **1 React `useEffect` with `clearInterval` cleanup** — `accessibility.ts:118` `setInterval(checkScreenReader, 5000)`. Browser-only via React; cleanup-on-unmount makes it safe.
+- **1 already `.unref()`'d** — `performance-monitor.ts:69` (the Slice 1.7 fix).
+- **1 latent event-loop-pinner** — `google-photos.ts:95` `setInterval(cleanupPhotoCache, 60 * 60 * 1000)`. Module-load-time schedule, no `.unref()`. Same failure pattern as the Slice 1.7 bug.
+
+**Why deletion is the right fix (not `.unref()`):**
+- `grep -rn "from.*google-photos\|require.*google-photos" farm-frontend/src` returns **zero matches**. The only other mentions in the codebase are: (1) a comment in `farm-images.ts` referencing a sibling script, (2) `scripts/archive-google-photos.js` (standalone script naming itself, no import of the lib file), (3) historical handover and plan docs. No production code path can reach this module.
+- The file (`farm-frontend/src/lib/google-photos.ts`, 96 LOC) is orphaned from the Google Places photos era. The Google Maps cutover (Queue 30) replaced the map; the parallel decision to stop using Google Places photos retired this module's callers, but the file itself was left behind. This is the same dead-code pattern as `supabase-storage.ts` (Slice 1.3b).
+- Adding `.unref()` keeps the bug from tripping but leaves 96 LOC of dead code in `src/lib/`, which contradicts CLAUDE.md "If you are certain that something is unused, you can delete it completely." Zero importers across the working tree is certainty.
+
+**Files touched:** 1 source deletion + 1 ledger.
+- DELETE `farm-frontend/src/lib/google-photos.ts` (96 LOC). Module-load-time `setInterval` removed; orphaned `getGooglePhotoUrl` / `cleanupPhotoCache` exported functions removed; `photoUrlCache` Map removed. Zero behavior change in any reachable code path.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit -p tsconfig.json` exits 0 (clean type-check after deletion).
+- ✅ `cd farm-frontend && pnpm test:unit` exits 0, **101 tests pass, 0 fail, 0 cancelled** in **562ms** (vs 426ms in Slice 1.7; variance within run noise). No test regressed from the deletion.
+- ✅ The audit itself is reproducible: `grep -rn "setInterval\|setTimeout" farm-frontend/src/lib farm-frontend/src/scripts | grep -v "\.test\.ts"` returns the 21 matches above, with `google-photos.ts:95` now absent.
+
+**Decisions:**
+- **Did NOT delete `archive-google-photos.js`** in `scripts/` despite the matching name. That is an operator-run archival script that downloaded Google Places photos into Vercel Blob during the migration; it has no runtime impact on the app, and its presence preserves the migration record. Its only `setInterval`/`setTimeout` usage is none (verified above).
+- **Did NOT touch `accessibility.ts:118`** despite it being a `setInterval`. It is inside a `useEffect` with `clearInterval` cleanup and only runs in the browser via React, so it cannot pin a Node test loop. Adding `.unref()` to a browser-only `setInterval` is a no-op (`.unref()` is a Node API, not present on `Window.setInterval`'s return).
+
+**Out of scope (deferred):**
+- A repo-wide eslint rule banning module-load-time `setInterval` / `setTimeout` calls without `.unref()`. The current audit found exactly 1 offender across `src/lib` and `src/scripts`; a custom lint rule is more weight than the failure mode merits today. Reopen if a future audit finds 3+ recurrences.
+- Auditing `src/app` and `src/components` for the same pattern. Both directories should be browser-only at runtime (Next.js client/server components), so the Node-test-loop failure mode doesn't apply. Scoping the audit to `src/lib` + `src/scripts` matches the failure surface.
+
+**Risk and rollback:** Very low. File had zero importers; deletion is verified by type-check + full test suite. Rollback: `git revert <slice sha>` brings the file back; the latent bug returns with it.
+
+**Next slice:** Slice 1.7 follow-up closed. Open Claude-side queue is empty again. Next operator-picked thread:
+1. **Map page polish pass** on `/map` (focus rings, popover keyboard parity, screen-reader fallback parity with `MapLibreShell`). _(Now landed as Slice 2.1 above.)_
+2. **New arc** the operator nominates.
