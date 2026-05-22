@@ -59,15 +59,16 @@ farm-companion/
 - **Forms**: React Hook Form, Zod validation
 
 **Backend**
-- **Database**: PostgreSQL (Supabase)
+- **Database**: PostgreSQL on Coolify-managed Hetzner (`farm-companion-db`)
 - **ORM**: Prisma 5.22
-- **Cache**: Redis (Vercel KV)
-- **Storage**: Vercel Blob Storage
-- **Search**: Meilisearch
+- **Cache**: Redis on Coolify-managed Hetzner (`farm-companion-redis`)
+- **Storage**: Hetzner Object Storage (`farm-companion-blob-prod`, region `hel1`)
+- **Search**: Meilisearch on Coolify-managed Hetzner (`farm-companion-meili`)
 
 **DevOps**
-- **Hosting**: Vercel
-- **CI/CD**: GitHub Actions
+- **App hosting**: Vercel (Next.js, project `farm-frontend`, region `fra1`)
+- **Backing services**: Coolify v4 on Hetzner Cloud (`farm-companion-prod`, CPX42, eu-central)
+- **CI/CD**: GitHub Actions, Vercel auto-deploy on push to `master`
 - **Monitoring**: Vercel Analytics, Sentry (optional)
 
 ## 🚀 Quick Start
@@ -76,8 +77,8 @@ farm-companion/
 
 - **Node.js**: 20.18.3 or higher
 - **pnpm**: 10.12 or higher
-- **PostgreSQL**: Supabase account (free tier works)
-- **Google Maps API Key**: [Get one here](https://console.cloud.google.com/google/maps-apis)
+- **PostgreSQL**: any managed Postgres (production uses Coolify-managed Hetzner; for local development a local Postgres or Docker container works)
+- **Google Maps API Key** (legacy, being replaced — see Architecture): [Get one here](https://console.cloud.google.com/google/maps-apis)
 
 ### Installation
 
@@ -100,21 +101,23 @@ farm-companion/
    
    Edit `.env.local` and add your configuration:
    ```env
-   # Database (Supabase)
-   DATABASE_URL="postgresql://postgres:password@db.xxx.supabase.co:5432/postgres"
-   DATABASE_POOLER_URL="postgresql://postgres.xxx:password@aws-0-region.pooler.supabase.com:6543/postgres?pgbouncer=true"
-   
-   # Google Maps
+   # Database (managed Postgres — production uses Coolify on Hetzner)
+   DATABASE_URL="postgresql://user:password@host:5432/dbname"
+   DATABASE_POOLER_URL="postgresql://user:password@host:6543/dbname?pgbouncer=true"
+
+   # Google Maps (legacy — being replaced by MapLibre GL + free tile providers)
    NEXT_PUBLIC_GOOGLE_MAPS_API_KEY="your_frontend_web_key"
    GOOGLE_MAPS_API_KEY="your_backend_server_key"
-   
-   # Supabase
-   NEXT_PUBLIC_SUPABASE_URL="https://xxx.supabase.co"
-   NEXT_PUBLIC_SUPABASE_ANON_KEY="your_anon_key"
-   
-   # Redis (Vercel KV)
-   REDIS_URL="your_redis_url"
-   
+
+   # Hetzner Object Storage (production blob bucket)
+   HETZNER_S3_ACCESS_KEY="your_access_key"
+   HETZNER_S3_SECRET_KEY="your_secret_key"
+   HETZNER_S3_BUCKET="farm-companion-blob-prod"
+   HETZNER_S3_REGION="hel1"
+
+   # Redis (Coolify-managed Hetzner)
+   REDIS_URL="redis://user:password@host:6379"
+
    # Site Configuration
    NEXT_PUBLIC_SITE_URL="http://localhost:3000"
    ```
@@ -235,12 +238,13 @@ See [`farm-frontend/prisma/schema.prisma`](./farm-frontend/prisma/schema.prisma)
 
 Required environment variables for production:
 
-- `DATABASE_URL` - PostgreSQL connection string
-- `DATABASE_POOLER_URL` - Pooled connection (recommended)
-- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - Google Maps API key
-- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `REDIS_URL` - Redis connection string (optional)
+- `DATABASE_URL` - PostgreSQL direct connection string (migrations, admin)
+- `DATABASE_POOLER_URL` - Pooled connection string (PgBouncer; recommended for serverless)
+- `NEXT_PUBLIC_GOOGLE_MAPS_API_KEY` - Google Maps API key (legacy, being replaced by MapLibre)
+- `HETZNER_S3_ACCESS_KEY` / `HETZNER_S3_SECRET_KEY` - Hetzner Object Storage credentials
+- `HETZNER_S3_BUCKET` / `HETZNER_S3_REGION` - Hetzner blob bucket name and region (default: `farm-companion-blob-prod`, `hel1`)
+- `REDIS_URL` - Redis connection string (Coolify-managed Hetzner; optional)
+- `MEILISEARCH_HOST` / `MEILISEARCH_API_KEY` - Meilisearch endpoint and key (optional; PostgreSQL FTS used as fallback)
 
 See [`env.example`](./env.example) for all available variables.
 
@@ -303,10 +307,10 @@ We welcome contributions! Please follow these steps:
 
 ## 📚 Documentation
 
-- **[Setup Checklist](./farm-frontend/SETUP_CHECKLIST.md)**: Detailed setup instructions
 - **[Architecture](./farm-frontend/docs/assistant/architecture.md)**: System architecture overview
 - **[PuredgeOS Design System](./PuredgeOS.md)**: Complete design system documentation
 - **[API Documentation](./farm-frontend/docs/api/)**: API route documentation
+- **[Execution Ledger](./docs/assistant/execution-ledger.md)**: Slice-by-slice change log, with the canonical Production Infrastructure block at the top documenting the current Vercel + Coolify/Hetzner hybrid stack
 
 ## 🔗 Related Repositories
 
@@ -319,9 +323,10 @@ This project is proprietary. All rights reserved.
 
 ## 🙏 Acknowledgments
 
-- **Google Maps**: For mapping services
-- **Supabase**: For PostgreSQL hosting
-- **Vercel**: For hosting and deployment
+- **MapLibre GL** / **Stadia Maps**: For free, attribution-friendly mapping (replaced Google Maps in Queue 30)
+- **Hetzner Cloud**: For affordable, EU-based managed Postgres, Redis, Meilisearch, and Object Storage
+- **Coolify**: For self-hosted PaaS orchestration on top of Hetzner
+- **Vercel**: For Next.js app hosting and deployment
 - **Prisma**: For the excellent ORM
 - **Radix UI**: For accessible component primitives
 - **Tailwind CSS**: For utility-first styling

@@ -2341,3 +2341,36 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Zero runtime risk. Pure markdown documentation prepend; no code path, no consumer, no build artefact. Rollback: `git revert <slice sha>` strips the banners cleanly.
 
 **Next slice:** **Slice 1.3c-3 — rewrite active operator setup docs** (`README.md`, `farm-frontend/SETUP_CHECKLIST.md`). These remain the canonical operator entry points for new contributors and must reflect the current Hetzner stack, not bear a banner. Touches the larger, more carefully-edited portion of the 1.3c backlog.
+
+### 2026-05-22 — Slice 1.3c-3: README rewrite + SETUP_CHECKLIST banner
+
+**Goal:** Close the Supabase-references backlog. README.md remains the canonical contributor onboarding entry point, so it gets a surgical rewrite to reflect the current Vercel + Coolify-on-Hetzner hybrid stack. SETUP_CHECKLIST.md turned out on re-read to be a Week 0 snapshot ("Sign up at supabase.com" Step 1, hardcoded Week 0 framing), not a living onboarding doc — banner pattern from Slice 1.3c-2 applies, and the README link to it is removed because pointing new contributors at a historical doc would mislead.
+
+**Files touched:** 2 markdown + 1 ledger.
+- MODIFY `README.md` (+24 / -23 LOC net, file now 339 LOC) — five surgical edits:
+  1. Tech Stack "Backend" block now names Coolify-managed Hetzner services (`farm-companion-db`, `farm-companion-redis`, `farm-companion-meili`) and Hetzner Object Storage (`farm-companion-blob-prod`, `hel1`) instead of Supabase / Vercel KV / Vercel Blob.
+  2. "DevOps" block now distinguishes Vercel app hosting (`fra1`) from Coolify backing services on Hetzner Cloud (`farm-companion-prod`, CPX42, eu-central).
+  3. "Prerequisites" line for PostgreSQL generalised to "any managed Postgres"; Google Maps prereq annotated as legacy.
+  4. `.env.local` example block rewrote for Hetzner: generic Postgres URLs (no Supabase-flavoured `db.xxx.supabase.co:5432`), added `HETZNER_S3_*` keys, dropped `NEXT_PUBLIC_SUPABASE_*` (no longer used in the client bundle since Slice 1.3b's supabase-storage deletion), kept Redis but reframed as Coolify Hetzner.
+  5. "Required environment variables for production" list replaced Supabase entries with Hetzner blob credentials; Documentation section dropped the SETUP_CHECKLIST link and added an Execution Ledger link with its canonical Production Infrastructure block; Acknowledgments swapped Supabase + Google Maps for Hetzner + Coolify + MapLibre/Stadia Maps.
+- MODIFY `farm-frontend/SETUP_CHECKLIST.md` (+2 LOC) — same "Historical note" banner pattern as Slice 1.3c-2's snapshot docs, framed around the fact that the entire Step 1 ("Sign up at supabase.com") no longer applies. README link to this file removed in the same slice so the banner is the entry-point disclaimer for any future direct visitor.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Verification:**
+- ✅ `grep -i supabase README.md` returns no matches.
+- ✅ `grep "SETUP_CHECKLIST" README.md` returns no matches (link cleanly removed).
+- ✅ SETUP_CHECKLIST.md banner inserted directly after the H1, matching the 1.3c-2 pattern.
+
+**Architectural decisions:**
+- **Surgical rewrite, not full rewrite, for README.** The README has lots of non-Supabase content (mission, features, project structure, scripts, design system, deployment, performance, security, contributing) that is current and correct. Rewriting it whole would risk introducing drift in unrelated sections; surgical edits scoped to the five Supabase-impacted blocks keep the diff reviewable.
+- **Banner SETUP_CHECKLIST, do not rewrite.** The doc's frame ("WEEK 0 SETUP CHECKLIST", "✅ ALREADY COMPLETED (By Claude)", "When to do this: ASAP - blocks remaining Week 0 work") is intrinsically tied to a specific calendar position. Rewriting it as a generic local-dev setup doc would erase that context; the README "Quick Start" already covers the live onboarding path.
+- **Google Maps left as "legacy, being replaced" rather than fully scrubbed.** The Queue 30 MapLibre migration completed structurally but the runtime still calls Google Maps in some surfaces (per `MapShellAuto.tsx`'s provider switch). Cleaning out Google Maps references entirely is a separate slice that should land alongside the runtime cutover.
+
+**Out of scope (deferred):**
+- Tangential Supabase mentions in technical docs (`POSTGIS_SETUP.md`, `DATABASE_CONNECTION_POOLING.md`, `CHECK_CONSTRAINTS.md`, `GEOSPATIAL_README.md`). On re-skim these are mostly correct as historical/technical context ("PostGIS was enabled when we migrated to Supabase"); revisit only if any are misleading enough to cause user pain.
+- Google Maps → MapLibre reference cleanup (separate slice tied to the runtime cutover).
+- Historical assistant docs under `docs/assistant/audit-2026-05-18.md` and similar dated snapshots — those are internally consistent point-in-time records.
+
+**Risk and rollback:** Very low. Pure markdown documentation; no code paths or build artefacts affected. The only behavioural cost would be a new contributor following the old README example env block and trying to connect to `db.xxx.supabase.co:5432` — Slice 1.3c-3 fixes exactly that. Rollback: `git revert <slice sha>`; both files revert cleanly.
+
+**Next slice:** **Pitti × Apothecary arc + 1.3 cleanup arc are both structurally complete.** Remaining open Claude-side work: small cleanup of `farm-frontend/src/lib/farm-data.ts` if it has Supabase strings (carry-over from the initial grep; verify in a 30-line follow-up if any text remains). Major next thread is operator-pending: Slice 1.1.3c Part 3 darts-farm DB backfill (3-step protocol), Slice 1.1.4 Apothecary batch sweep (6-step protocol, ~$6-18 spend). After those land, the next active workstream is operator-picked — content slices (Slice 1.1.3d-2-content-N county illustrations, Slice 1.1.3d-3-content-N farm illustrations) or a new arc.
