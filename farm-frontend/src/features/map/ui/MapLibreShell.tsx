@@ -8,6 +8,7 @@ import { useClusteredMarkers, type ClusterOrPoint, type FarmCluster } from '../h
 import { useMapLocation } from '../hooks/useMapLocation'
 import { getContrastTextColor } from '@/lib/contrast'
 import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } from '../lib/pin-icons'
+import { getFarmMarkerLabel, getClusterMarkerLabel } from '../lib/accessibility'
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
 import LocationControl from './LocationControl'
@@ -358,6 +359,9 @@ export default function MapLibreShell({
 
         const el = document.createElement('div')
         el.className = 'maplibre-cluster-marker'
+        el.setAttribute('role', 'button')
+        el.setAttribute('tabindex', '0')
+        el.setAttribute('aria-label', getClusterMarkerLabel(count))
 
         const { size, color, textColor } = getClusterStyle(count)
         // NO transforms - just basic styling
@@ -390,6 +394,14 @@ export default function MapLibreShell({
           e.stopPropagation()
           e.preventDefault()
           handleClusterClick(clusterId, count, lng, lat)
+        })
+        // Keyboard activation: Enter or Space to mirror click semantics.
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            e.stopPropagation()
+            handleClusterClick(clusterId, count, lng, lat)
+          }
         })
         // Touch handlers - must capture touchstart to prevent map pan
         el.addEventListener('touchstart', (e) => {
@@ -424,6 +436,13 @@ export default function MapLibreShell({
         el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
         el.dataset.farmId = farm.id
         el.dataset.open = isOpen === true ? 'true' : isOpen === false ? 'false' : 'unknown'
+        el.setAttribute('role', 'button')
+        el.setAttribute('tabindex', '0')
+        el.setAttribute('aria-label', getFarmMarkerLabel({
+          name: farm.name,
+          location: farm.location,
+          isOpen: isOpen ?? undefined,
+        }))
         // Minimal styling - NO transforms to avoid conflicting with MapLibre positioning
         el.style.cssText = `
           width: ${markerSize}px;
@@ -447,6 +466,14 @@ export default function MapLibreShell({
           e.stopPropagation()
           e.preventDefault()
           handleMarkerClick(farm)
+        })
+        // Keyboard activation: Enter or Space to mirror click semantics.
+        el.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            e.stopPropagation()
+            handleMarkerClick(farm)
+          }
         })
         // Touch handlers - must capture touchstart to prevent map pan
         el.addEventListener('touchstart', (e) => {
