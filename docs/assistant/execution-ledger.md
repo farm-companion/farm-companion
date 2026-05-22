@@ -2120,3 +2120,33 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Low. Five `images.where` predicate changes, all symmetric. Worst case if Prisma misinterprets `notIn` against the `uploadedBy` column (string): the query errors and the page returns empty thumbnails, current state. Rollback: `git revert <slice sha>`.
 
 **Next slice:** **Slice 1.1.3c Part 3** (DB backfill of darts-farm Pitti row label), **Slice 1.1.3d-2** (county Pitti hero), or **Slice 1.1.4** (Apothecary batch backfill). Operator pick.
+
+### 2026-05-22 — Slice 1.1.3c Part 3: DB backfill of legacy Pitti rows
+
+**Goal:** Close the Slice 1.1.3c series. Part 2's listing-side filter excludes `uploadedBy IN ('ai_generator','ai_pitti')` so admin photos and Apothecary illustrations win. Any legacy row that is *actually* a Pitti illustration but is still labelled `ai_generator` (the pre-style-aware label) is now invisible everywhere. This slice ships the one-shot Prisma script that flips those rows from `ai_generator` to `ai_pitti`. The darts-farm legacy row is the known target; the URL-pattern selector catches any siblings that may exist.
+
+**Files touched:** 1 source + 1 ledger.
+- CREATE `farm-frontend/scripts/backfill-pitti-uploaded-by.ts` (111 LOC). Default mode is READ-ONLY (audit only); `--apply` performs the UPDATE inside `prisma.$transaction`. Selector: `uploadedBy = 'ai_generator' AND (url LIKE '%pitti-farm-images/%' OR url LIKE '%/images/pitti/%')`. Joins to farms for human-readable output. Prints every targeted row before any write. Exit code 2 if updated count differs from selected count.
+- MODIFY `docs/assistant/execution-ledger.md`, this entry.
+
+**Why a URL-pattern selector instead of a hardcoded `slug='darts-farm'`:** The original mislabel pattern (rows uploaded before the Pitti/Apothecary split landed in 1.1.3a) is not unique to darts-farm in principle. If other farms picked up a Pitti illustration during the same window they would have the same broken label. A pattern selector catches them; a hardcoded slug would not. Read-only-by-default protects against the (expected) common case where darts-farm is the only match.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` exit 0.
+- ⏳ Operator dry-run against production Postgres: `cd farm-frontend && npx tsx scripts/backfill-pitti-uploaded-by.ts` — expect 1 row listed (the darts-farm Pitti).
+- ⏳ Operator live run: `cd farm-frontend && npx tsx scripts/backfill-pitti-uploaded-by.ts --apply` — expect `Updated 1 row(s). Expected 1.`
+- ⏳ Post-apply spot check: visit `https://www.farmcompanion.co.uk/shop/darts-farm` — the previously hidden Pitti row should remain hidden from listing surfaces (Part 2's filter still excludes `ai_pitti`) but is now correctly labelled in the DB so future Pitti-aware surfaces (Slice 1.1.3d-2 county hero, MarkerPreview) can opt-in.
+
+**Operator-step protocol:**
+- Step 1 — Verify production DATABASE_URL is set in the shell that runs the script. Owner: you. Action: `cd farm-frontend && echo "$DATABASE_URL" | sed 's|://.*@|://REDACTED@|'`. Verify: prints the production Postgres host (Coolify `farm-companion-db` on `37.27.194.158`); not a localhost URL. Reply: paste the redacted host or `step 1 done`.
+- Step 2 — Dry-run audit. Owner: you. Action: `cd farm-frontend && npx tsx scripts/backfill-pitti-uploaded-by.ts`. Verify: header says `Mode: READ-ONLY`, lists the target rows (expected: 1 row, darts-farm), and prints `Re-run with --apply to commit the UPDATE.` Reply: paste the row list.
+- Step 3 — Apply if the audit matches expectations. Owner: you. Action: `cd farm-frontend && npx tsx scripts/backfill-pitti-uploaded-by.ts --apply`. Verify: prints `Updated N row(s). Expected N.` with N matching step 2. Reply: paste the final summary.
+
+**Out of scope (deferred):**
+- Updating the `model Image` schema comment (`schema.prisma` line 205) to add `ai_pitti` and `ai_apothecary` to the documented valid values for `uploadedBy`. Pure docs touch; lands separately to keep this slice focused on the runtime backfill.
+- Apothecary batch backfill for the ~1213 affected farms (Slice 1.1.4).
+- `/counties/[slug]` Pitti hero (Slice 1.1.3d-2).
+
+**Risk and rollback:** Low. Selector is narrow (must match both `uploadedBy='ai_generator'` AND a Pitti URL fragment) and read-only by default. Write path runs inside a Prisma transaction. Rollback: re-run the script after swapping `ai_pitti` and `ai_generator` in the SELECT and UPDATE clauses, or hand-flip the row in Prisma Studio.
+
+**Next slice:** **Slice 1.1.3d-2** (`/counties/[slug]` Pitti hero) or **Slice 1.1.4** (Apothecary batch backfill). Operator pick.
