@@ -2069,3 +2069,54 @@ Only remaining hypothesis: Vercel's edge image optimizer is silently dropping th
 **Risk and rollback:** Very low. One predicate added to an in-memory filter; data unchanged. Rollback: `git revert <slice sha>`. Worst case if the filter is wrong: gallery shows the legacy fake photos again, which is the current state.
 
 **Next slice:** **Slice 1.1.3c Part 2** (DB backfill + listing suppression), **Slice 1.1.3d-2** (county Pitti), or **Slice 1.1.4** (Apothecary batch backfill). Operator pick.
+
+### 2026-05-21 — Slice 1.1.3b-1 / 1.1.3b-2: /shop hero size and typography refinements
+
+**Goal:** Two CSS-only follow-up tweaks to Slice 1.1.3b's editorial hero after operator visual review. 1.1.3b-1 (PR #186) pushed the hero to full-screen with bolder typography; operator preferred the original medium size but wanted the title text more present. 1.1.3b-2 (PR #187) reverted the height to 60vh, kept the bolder weights, strengthened drop-shadows, and darkened the overlay gradients to lift the headline off the light-keyed Apothecary illustration.
+
+**Files touched:** 1 source + ledger.
+- MODIFY `farm-frontend/src/components/FarmPageClient.tsx` (~25 LOC across both PRs): hero height (60vh proportional with min/max), title `font-weight` from `semibold` → `bold`, kicker `font-weight` same bump, drop-shadow opacities raised (~0.7→0.85 headline, ~0.6→0.75 kicker), Apothecary and photo overlay gradients darkened (black/10–55 → black/25–65), headline tier recalibrated one size down (text-5xl→8xl → text-4xl→7xl).
+
+**Verification:**
+- ✅ TypeScript clean for both PRs (`pnpm exec tsc --noEmit`).
+- ✅ Operator visual sign-off on PR #187 deployment before next slice.
+
+**Risk and rollback:** Very low — Tailwind class deltas in one component. Rollback: `git revert <slice sha>`.
+
+**Next slice:** Slice 1.1.3c Part 2 listing-side suppression.
+
+### 2026-05-22 — Slice 1.1.3c Part 2: listing-level ai_generator suppression
+
+**Goal:** Closes the original user-stated pain "REMOVE fake AI photos site-wide" on the listing/thumbnail surfaces left untouched by Slice 1.1.3c Part 1. Part 1 fixed the detail-page gallery; this slice extends the same selector mandate to every place a Farm card is rendered: /shop grid, /counties/[slug], /find/[county]/[category], featured rails, and the cache warmer. Pure-code slice; no DB migration. DB backfill of the legacy darts-farm Pitti row (uploadedBy='ai_generator' → 'ai_pitti') deferred to its own operator-side slice.
+
+**Files touched:** 5 source + 1 ledger.
+- MODIFY `farm-frontend/src/lib/farm-data.ts` (+9 / -1 LOC, file now 206 LOC): `getFarmData` (the /shop grid + /api/farms feed) drops `isHero: true` from the where clause, adds `uploadedBy: { notIn: ['ai_generator', 'ai_pitti'] }`, and adds `orderBy: [{ isHero: 'desc' }, { displayOrder: 'asc' }]` so an admin-flagged hero still wins but Apothecary illustrations (which Slice 1.1.3a inserts with `isHero=false`) propagate as the thumbnail when no admin hero exists.
+- MODIFY `farm-frontend/src/lib/queries/farms.ts` (+9 / -1 LOC × 3 sites, file now 278 LOC): same predicate change applied to `searchFarms`, `getFarmsByCounty`, and `getFeaturedFarms`. Single-source rationale comment in `queries/farms.ts`; the other call sites reference it.
+- MODIFY `farm-frontend/src/lib/queries/categories.ts` (+7 / -1 LOC, file now 423 LOC): same predicate change in `getFarmsByCategory` (consumed by `/find/[county]/[category]` listings).
+- MODIFY `farm-frontend/src/lib/queries/counties.ts` (+7 / -1 LOC, file now 344 LOC): same predicate change in the county listing findMany.
+- MODIFY `farm-frontend/src/lib/cache-strategy.ts` (+9 / -1 LOC, file now 440 LOC): `warmCache`'s featured-farms findMany aligned with the same predicate. Note: `warmCache` is currently unwired; this edit prevents drift if it gets re-enabled.
+
+**Why drop `isHero: true` from the where clause:** Slice 1.1.3a's Apothecary INSERTs write `isHero=false` because the existing legacy row (almost always ai_generator) already owns the `isHero=true` slot. A strict `isHero: true` filter would therefore exclude the Apothecary illustration even after the predicate hides the legacy row, leaving farms with no thumbnail despite having a valid illustration. The new `orderBy [{ isHero: 'desc' }, ...]` keeps the original "hero first" semantics for admin-uploaded photos while allowing the selector to fall through to Apothecary on illustration-only farms.
+
+**Effect on production:**
+- /shop grid: farms with admin photos render unchanged (their `isHero=true` admin row still wins). darts-farm specifically: Apothecary row now propagates as the thumbnail. Farms with only `ai_generator` rows: empty card (per the original mandate — "REMOVE fake AI photos; do not replace with Pitti"). Map page (consumes `/api/farms` → `getFarmData`): same treatment, marker thumbnails drop legacy fake photos.
+- /counties/[slug] county listing cards: same treatment.
+- /find/[county]/[category] category listings: same treatment.
+- Featured rails (homepage / wherever `getFeaturedFarms` is consumed): same treatment.
+- 1213 farms with only legacy `ai_generator` rows (per prior handover): empty thumbnails on every listing surface. Combined with Slice 1.1.3c Part 1's gallery suppression and Slice 1.1.3b's typography-led hero fallback, those pages become fully clean editorial.
+
+**Verification:**
+- ✅ `cd farm-frontend && pnpm exec tsc --noEmit` exit 0.
+- ⏳ Operator browser check post-merge:
+  - `https://www.farmcompanion.co.uk/shop` — fake AI photos should be absent from cards; darts-farm card should show the Apothecary illustration.
+  - `https://www.farmcompanion.co.uk/counties/devon` (or any county with mixed image sources) — cards no longer show legacy fake photos.
+  - Map page — marker preview thumbnails should be clean.
+
+**Out of scope (deferred):**
+- DB backfill of legacy darts-farm Pitti row's `uploadedBy` from `ai_generator` to `ai_pitti`. Becomes its own operator-side slice (one-shot Prisma script against production Postgres).
+- Apothecary batch backfill for the ~1213 affected farms (Slice 1.1.4).
+- `/counties/[slug]` Pitti hero (Slice 1.1.3d-2).
+
+**Risk and rollback:** Low. Five `images.where` predicate changes, all symmetric. Worst case if Prisma misinterprets `notIn` against the `uploadedBy` column (string): the query errors and the page returns empty thumbnails, current state. Rollback: `git revert <slice sha>`.
+
+**Next slice:** **Slice 1.1.3c Part 3** (DB backfill of darts-farm Pitti row label), **Slice 1.1.3d-2** (county Pitti hero), or **Slice 1.1.4** (Apothecary batch backfill). Operator pick.
