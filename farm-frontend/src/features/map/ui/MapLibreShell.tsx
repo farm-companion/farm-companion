@@ -8,10 +8,10 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FarmShop } from '@/types/farm'
-import { useClusteredMarkers, type ClusterOrPoint, type FarmCluster } from '../hooks/useClusteredMarkers'
+import { useClusteredMarkers, type ClusterOrPoint } from '../hooks/useClusteredMarkers'
 import { useMapLocation } from '../hooks/useMapLocation'
 import { getContrastTextColor } from '@/lib/contrast'
-import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } from '../lib/pin-icons'
+import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen } from '../lib/pin-icons'
 import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } from '../lib/accessibility'
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
@@ -59,11 +59,6 @@ const UK_BOUNDS = {
   west: -8.5     // West Ireland
 }
 
-const UK_CENTER = {
-  lat: 54.0,
-  lng: -2.5
-}
-
 interface MarkerState {
   selected: FarmShop | null
   showActions: boolean
@@ -96,11 +91,8 @@ export default function MapLibreShell({
   onMapLoad,
   onBoundsChange,
   onZoomChange,
-  center = UK_CENTER,
   zoom = 5,
   className = 'w-full h-full',
-  userLocation: externalUserLocation,
-  bottomSheetHeight = 200,
   isDesktop = false,
   onMapReady
 }: MapLibreShellProps) {
@@ -136,8 +128,9 @@ export default function MapLibreShell({
     { radius: 50, maxZoom: 18 }  // Smaller radius + higher maxZoom for better expansion
   )
 
-  // Use our location hook
-  const { state: locationState, centerOnUser } = useMapLocation({
+  // User-location hook: manages its own map marker/accuracy circle as a side
+  // effect (showMarker/showAccuracyCircle); no return value is consumed here.
+  useMapLocation({
     map: mapInstance,
     showMarker: true,
     showAccuracyCircle: true,
@@ -571,20 +564,6 @@ export default function MapLibreShell({
     setShowClusterPreview(false)
     setSelectedCluster(null)
   }, [])
-
-  const handleShowAllFarms = useCallback((clusterFarms: FarmShop[]) => {
-    // TODO: Implement list view
-    setShowClusterPreview(false)
-    setSelectedCluster(null)
-  }, [])
-
-  // Merge external and internal location
-  const effectiveUserLocation = externalUserLocation || (locationState.lat && locationState.lng ? {
-    latitude: locationState.lat,
-    longitude: locationState.lng,
-    accuracy: locationState.accuracy || 0,
-    timestamp: locationState.lastUpdated || Date.now()
-  } : null)
 
   if (error) {
     return (

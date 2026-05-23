@@ -2897,3 +2897,39 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 - **Focus management on cluster zoom-expand** (still open from 2.5).
 
 **Next slice:** Map-a11y arc (Slices 2.1-2.7) is complete. Pivot to **Queue 4 — Design system & UI polish** (tokens, micro-interactions, WCAG AA states), or take the small **MapLibreShell lint-cleanup / further-extraction** slice noted above. Operator pick.
+
+---
+
+### 2026-05-23 — Slice 2.8: MapLibreShell lint-cleanup (dead code removal + render-purity fix)
+
+**Goal:** Clear the standing MapLibreShell lint debt — eliminate the build-relevant `react-hooks/purity` error and remove provably-dead code — without touching the public props API or the in-flight desktop-popover scaffolding.
+
+**Why now:** The 2.7 entry flagged MapLibreShell carrying 1 lint *error* (`Date.now()` called during render) plus a cluster of `no-unused-vars`. The error is the only build-relevant lint issue on the file; the dead vars are noise that obscures real review. Closing this before the larger Queue 4 design track keeps the map provider shell honest.
+
+**Key discovery (reshaped the removal set):** The `Date.now()` purity error sat inside `effectiveUserLocation`, which is itself **never read** anywhere — a half-finished "merge external + internal location" that no JSX or effect consumes (the visible user marker is rendered by `useMapLocation`'s own side effect via `showMarker: true`). So the honest fix for the purity error is *deletion of the dead value*, not refactoring it. Removing it also orphaned `externalUserLocation`, `locationState`, and `centerOnUser`, all of which were used only by that dead block.
+
+**Preserved deliberately (NOT deleted):** `markerState` / `setMarkerState`, `popoverPosition` / `setPopoverPosition`, and the `isDesktop` branch in `handleMarkerClick` write state that is currently unread — but this is live scaffolding for the **queued** "desktop marker interactions using popovers" item (Queue 3), not dead code. Per the "if uncertain, do not delete" rule, these stay; their two `no-unused-vars` warnings are expected until that slice lands.
+
+**Files touched:** 1 source + 1 ledger.
+- MODIFY `farm-frontend/src/features/map/ui/MapLibreShell.tsx` (680 → 659 lines):
+  - Removed unused imports `FarmCluster` (type) and `STATUS_COLORS`.
+  - Removed unused local const `UK_CENTER` (only referenced by the now-removed `center` prop default).
+  - Trimmed the component destructuring to only props actually used (dropped `center`, `bottomSheetHeight`, `userLocation: externalUserLocation`). **Props remain in `MapLibreShellProps`**, so the public component API and `{...props}` spreading in `MapShellAuto` are unchanged.
+  - `useMapLocation(...)` now called for side effects only (dropped the unused `state`/`centerOnUser` destructure; added a comment noting the hook owns the marker).
+  - Deleted the orphaned `handleShowAllFarms` callback (never wired; `ClusterPreview.onViewAll` uses `handleZoomToCluster`) and its `clusterFarms` param.
+  - Deleted the dead `effectiveUserLocation` merge block — **this removes the `react-hooks/purity` error**.
+
+**Verification:**
+- `pnpm exec eslint src/features/map/ui/MapLibreShell.tsx`: **13 problems (1 error, 12 warnings) → 4 problems (0 errors, 4 warnings)**. Error gone. Remaining 4 are intentional: `markerState` + `popoverPosition` (preserved popover scaffolding), pre-existing `exhaustive-deps` on the map-init effect, and `max-lines` (659 > 500; the Slice-2.5 `// rationale:` header stands).
+- `pnpm exec tsc --noEmit -p tsconfig.json` exits 0 (TSC_OK) — confirms no dangling refs to the removed bindings.
+- `pnpm test:unit`: 109 tests pass, 0 fail (unchanged; no behavior touched).
+
+**Risk and rollback:** Low. All removals are provably-unreferenced dead code; behavior is byte-equivalent (the visible user-location marker was already rendered by `useMapLocation`'s effect, never by the deleted merge value). Rollback: `git revert <sha>` restores the dead code and the purity error.
+
+**Out of scope (deferred):**
+- **`exhaustive-deps` on the map-init effect** — adding `onBoundsChange`/`onMapLoad`/`onMapReady`/`onZoomChange` risks re-running the init effect on every parent render; needs the parent to `useCallback`-wrap them. Its own slice.
+- **Further extraction toward the 500-line limit** — file is still 659 lines; the cluster/marker-layer extraction noted in 2.5/2.7 remains the path. Separate slice.
+- **Desktop popover feature** (`markerState`/`popoverPosition` consumption) — Queue 3 item; scaffolding intentionally preserved here.
+- **Stale duplicate ledger** at `farm-frontend/docs/assistant/execution-ledger.md` (431 lines, pre-2.x) noticed this session — not the source of truth (root ledger is). Flagged for a future cleanup slice; not deleted here per the no-uncertain-delete rule.
+
+**Next slice:** Pivot to **Queue 4 — Design system & UI polish** (tokens: color/spacing/typography/motion; micro-interactions; WCAG AA states), or take the **MapLibreShell cluster/marker-layer extraction** slice to bring the file under the 500-line hard limit. Operator pick.
