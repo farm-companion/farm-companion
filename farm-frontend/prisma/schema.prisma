@@ -73,6 +73,13 @@ model Farm {
   // Payment Methods (stored as JSON)
   paymentMethods Json?
 
+  // Provenance & matching (pipeline redesign, 2026-05-23)
+  provenance     Json?     // { "<field>": { "source": "...", "at": ISO8601 } }
+  osmId          String?   @db.VarChar(40)  // "node:123" | "way:456"
+  fsaId          String?   @db.VarChar(40)  // FHRSID
+  dataSource     String?   @db.VarChar(20)  // primary discovery source for the row
+  lastEnrichedAt DateTime?
+
   // Relationships
   categories FarmCategory[]
   products   Product[]
@@ -105,6 +112,8 @@ model Farm {
   @@index([status, googleRating]) // Active farms sorted by rating
   @@index([county, verified, status]) // Verified active farms in county
   @@index([featured, verified, status]) // Featured verified active farms
+  @@index([osmId])
+  @@index([fsaId])
   @@map("farms")
 }
 
@@ -225,6 +234,12 @@ model Image {
   googlePhotoRef    String? @db.VarChar(500)
   googleAttribution String? @db.Text
   urlExpiresAt      DateTime?
+
+  // CC / open-data provenance (pipeline redesign, 2026-05-23)
+  // `source` extended values: 'google' | 'runware' | 'upload' | 'geograph' | 'wikimedia'
+  license     String? @db.VarChar(40)  // "CC-BY-SA-2.0" | "OGL" | "CC0"
+  sourceUrl   String? @db.VarChar(500) // canonical source page for attribution
+  attribution String? @db.VarChar(255) // generalises googleAttribution
 
   // Timestamps
   createdAt  DateTime  @default(now())
