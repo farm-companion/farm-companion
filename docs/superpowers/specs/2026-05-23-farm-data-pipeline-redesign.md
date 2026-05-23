@@ -1,7 +1,7 @@
 # Farm Data Pipeline Redesign — Design Spec
 
-> Status: **DRAFT for operator review.** Authored 2026-05-23 by FlowCoder.
-> Brainstorm/design approved verbally at the end of session 2026-05-23 20:15 (see `context/handover-2026-05-23-2015.md` "Decisions"). This spec writes that approved design down in full and is the artifact to review before `superpowers:writing-plans` produces the task-by-task plan.
+> Status: **IMPLEMENTED (slices A-J) on branch `feat/farm-data-pipeline`, 2026-05-23.** CANONICAL pending the two operator steps in §14 (a live `--dry-run` over real data, then retiring the Python `farm-pipeline/`). Authored 2026-05-23 by FlowCoder; plan at `docs/superpowers/plans/2026-05-23-farm-data-pipeline-redesign.md`.
+> Brainstorm/design approved verbally at the end of session 2026-05-23 20:15 (see `context/handover-2026-05-23-2015.md` "Decisions"). Operator decisions locked in the plan: fuzzy match 150m + 0.85 name similarity (same-postcode only); attribution via `/data-attributions` page + footer link.
 >
 > **Supersedes:** ledger **Queue 32 (Farm Pipeline Enrichment & Database Integration)** and `docs/assistant/farm-enrichment-plan.md`. Both describe the Google-Places-crawl approach this redesign retires. See §12 Plan Reconciliation.
 

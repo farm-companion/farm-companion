@@ -37,7 +37,7 @@ The 31 numbered queues below are historical and mostly closed (Queue 32 is now S
 - **Map-a11y arc (Slices 2.1-2.8)** — keyboard + screen-reader parity for both map providers (MapLibre + Leaflet): focusable/labelled markers and clusters, Popover keyboard contract (focus-move/Escape/return-focus), consolidated `announce()` + `ANNOUNCEMENTS` live-region path, ClusterPreview extraction, and MapLibreShell lint-cleanup. Slices 2.1-2.7 are merged (PRs #195-#201). **Slice 2.8 is complete + verified but NOT yet committed** (working tree: `M MapLibreShell.tsx`, `M execution-ledger.md`, `?? check-image-schema.ts`).
 
 **Claude-side (code/docs work) — current active arc:**
-- **Farm data pipeline redesign** — spec written 2026-05-23 (`docs/superpowers/specs/2026-05-23-farm-data-pipeline-redesign.md`, DRAFT, in operator review). Replaces the Google-Places crawl (Queue 32) with open-data-first discovery (OSM Overpass + FSA), provenance-aware never-clobber merge, dry-run-first load. Delivered as slices A-J. **Next:** operator reviews the spec, then `superpowers:writing-plans` produces the task-by-task plan.
+- **Farm data pipeline redesign — slices A-J IMPLEMENTED** on branch `feat/farm-data-pipeline` (2026-05-23), TDD throughout, each slice spec + code-quality reviewed; `pnpm test:unit` 180 pass / 0 fail, `tsc --noEmit` clean. New TypeScript pipeline under `farm-frontend/src/scripts/pipeline/` (discover OSM+FSA -> normalize/dedupe -> geocode postcodes.io -> enrich -> CC images -> provenance-aware never-clobber merge -> dry-run-first load); additive provenance schema applied to the live Hetzner DB via `db push`. **Next (operator):** run `pnpm pipeline --dry-run --limit 50`, review the RunReport, then authorize retiring the Python `farm-pipeline/`; then merge the branch. See the dated entry below for the full slice list + deferred follow-ups.
 
 **Open threads (from 2026-05-23 handover, not blocking the pipeline arc):**
 - Commit Slice 2.8 + the `check-image-schema.ts` probe (operator decision: 3 files in the working tree).
@@ -2966,3 +2966,41 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 **Risk and rollback:** Very low — documentation only, no code or schema touched. Rollback: `git checkout docs/assistant/execution-ledger.md` and delete the new spec file.
 
 **Next slice:** Operator reviews the spec; on approval, run `superpowers:writing-plans` to produce the full task-by-task implementation plan for slices A-J at `docs/superpowers/plans/2026-05-23-farm-data-pipeline-redesign.md` (TDD, foundation slices A/B first).
+
+---
+
+### 2026-05-23 — Farm data pipeline redesign: slices A-J implemented (branch `feat/farm-data-pipeline`)
+
+**Goal:** Build the open-data-first TypeScript pipeline from the spec/plan, replacing the Google-Places Python crawler. Subagent-driven execution (fresh implementer + two-stage spec/code-quality review per slice), TDD throughout.
+
+**Workspace:** branch `feat/farm-data-pipeline` off `master`. Slice 2.8 (MapLibreShell lint-cleanup) was committed to `master` first (`afe2e50`); the pipeline docs + reconciliation are `6d06913`.
+
+**Slices (all spec + code-quality reviewed, all `pnpm test:unit` green; final: 180 pass / 0 fail, `tsc --noEmit` clean):**
+- **A** `50bc5f0` — `pipeline/types.ts` contracts + `SOURCE_PRECEDENCE`; additive nullable provenance columns on Farm/Image (`provenance`, `osmId`, `fsaId`, `dataSource`, `lastEnrichedAt`; image `license`/`sourceUrl`/`attribution`); extended `check-image-schema.ts` probe. Schema applied to the live Hetzner DB via `pnpm prisma db push` (operator).
+- **B** `d43bbec` — pure merge policy: Dice-bigram `nameSimilarity`; `mergeFarm` (precedence, never-clobber curated, fill-empty, coord/status/verified guards) + `matchExisting` (osmId/fsaId/googlePlaceId/slug, then fuzzy 150m + 0.85 same-postcode). 22 + 5 tests.
+- **C** `5a5710c` + `de351e6` + `a3afa80` — `config`, structured `log`, retrying `http` (cap Retry-After 60s, honour minDelay on retries); OSM Overpass + FSA clients (pure parsers on fixtures); stage 01 discover with `dedupeBySourceId`.
+- **D** `fa1b8af` — stage 02 normalize + dedupe (collapse OSM+FSA by name+coords+postcode, source-precedence field merge, slugify incl. curly apostrophes).
+- **E** `2e5c498` — stage 03 geocode (postcodes.io bulk; fills missing coords/county/city tagged `derived`, never overwrites; injectable `minDelayMs`).
+- **F** `0160230` — stage 04 enrich (OSM tags -> additive category slugs); Google hours seam OFF by default and proven not to fetch.
+- **G** `9b91b04` — stage 05 image ranking/gating (attach CC only with license+attribution+sourceUrl, else AI-fallback flag); Geograph + Wikimedia parsers (Wikimedia regex rejects NC/ND); `/data-attributions` page + footer link.
+- **H** `1d0e452` — stage 06 merge (pure `buildChangeSet` + read-only `loadDbSnapshot` Decimal->number; runMerge writes ChangeSet, no DB writes).
+- **I** `0ac9b99` — stage 07 dry-run-first load (`applyChangeSet`: zero writes on dry-run, noop never writes, updates located by primary-key `id`, creates persist slug+osmId/fsaId, no `--force`); extended `FarmChange` with `targetId`/`osmId`/`fsaId`.
+- **J** `c91840d` — orchestrator `run.ts` (`--from/--to/--limit`, dry-run-default `--apply`, `--dry-run` wins; env loaded via first side-effect import) + `pnpm pipeline` script.
+
+**Verification:** `pnpm tsc --noEmit` exit 0; `pnpm test:unit` 180 pass / 0 fail across 4 suites. Pure modules + source parsers tested against fixtures; load tested against a mock Prisma; no live network or DB touched by tests.
+
+**Operator steps still owed (before CANONICAL + merge):**
+1. Live dry-run: `pnpm pipeline --dry-run --limit 50`, review `.pipeline/run-report-*.json` (created/updated/noop/byField; errors must be 0; row counts unchanged via the probe).
+2. Authorize retiring the Python `farm-pipeline/` (confirm no deploy/cron references), then it is `git rm -r`'d.
+3. Merge `feat/farm-data-pipeline` to `master`.
+
+**Deferred follow-ups (recorded, not blockers):**
+- **Slice K — complete the image + category path (the one real incompleteness in A-J; required before the spec's §14 image DoD is met).** Two parts: (1) **wire the fetch** — stage 05 must call `fetchGeograph`/`fetchWikimedia` per candidate (using its lat/lng) to POPULATE `c.images` before ranking; today `c.images` is always `[]` (initialised empty in 02, never filled), so `runImages` marks every farm `aiFallbackEligible` and a dry-run shows no real CC images. (2) **persist** categories + CC image rows in the load — `FarmChange` carries no `categories`/`images`, and `07-load` writes neither, so `RunReport.categoriesLinked`/`imagesAttached` stay 0. Reuse the additive `farmCategory.upsert` pattern from `import-farms.ts:373-387` and `image.create` with `license/attribution/sourceUrl`. Until Slice K lands, a `pnpm pipeline --dry-run` exercises the farm-data core (discover/geocode/merge/farm-load) correctly but does NOT source images or link categories.
+- `dataSource` heuristic in `07-load.buildData` can flip `osm`/`fsa` on update; decide whether to set it on create only.
+- Geograph `score = 1000 - distance` assumes metres; confirm the API distance unit.
+- Add a missing-`sourceUrl` gate test in `05-images.test.ts`; tighten the Wikimedia `PD` regex branch (PD-Mark currently accepted, safe-direction).
+- `normalize` dedupe is O(n^2) (~1300 farms ok; revisit if dataset grows 10x).
+- FSA paginator caps at `FSA_MAX_PAGES=50` with a truncation warning; raise/parametrise for a full national sweep if needed.
+- Optional: add a Prisma `directUrl` (direct, no pgbouncer) so `prisma db push`/migrations stop needing the manual pgbouncer-strip; `.env` now points at Hetzner (was a stale DigitalOcean host).
+
+**Risk and rollback:** All schema changes are additive/nullable; the load is dry-run-first with no `--force`; no owner/user data path is overwritten by machine sources (merge policy + tests). Rollback: the arc is an unmerged branch; `git branch -D feat/farm-data-pipeline` discards it. The live DB only gained nullable columns (harmless if unused).
