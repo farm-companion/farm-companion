@@ -1,0 +1,7 @@
+{
+  "status": 200,
+  "result": [
+    { "query": "TQ11 0JU", "result": { "postcode": "TQ11 0JU", "latitude": 50.5008, "longitude": -3.7, "admin_county": "Devon", "admin_district": "South Hams" } },
+    { "query": "ZZ99 9ZZ", "result": null }
+  ]
+}
