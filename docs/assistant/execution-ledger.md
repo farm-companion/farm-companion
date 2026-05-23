@@ -29,12 +29,21 @@
 
 ## Queue Status
 
-### Open Work Snapshot (2026-05-22, post Slice 1.8)
+### Open Work Snapshot (2026-05-23, post Slice 2.8 + pipeline-redesign spec)
 
-The 31 numbered queues below are historical and mostly closed. For a cold reader, the **actually open** Claude-side and operator-side items are:
+The 31 numbered queues below are historical and mostly closed (Queue 32 is now SUPERSEDED — see its note). For a cold reader, the **actually open** Claude-side and operator-side items are:
 
-**Claude-side (code/docs work):**
-- _None right now._ All named arcs (Pitti × Apothecary, Slice 1.3c Supabase cleanup, Slice 1.6 selector tests, Slice 1.7 test:unit unblock, Google Maps → MapLibre cutover) are closed as of 2026-05-22. Next thread is operator-picked from the list below or a new arc.
+**Closed since the last snapshot (2026-05-22):**
+- **Map-a11y arc (Slices 2.1-2.8)** — keyboard + screen-reader parity for both map providers (MapLibre + Leaflet): focusable/labelled markers and clusters, Popover keyboard contract (focus-move/Escape/return-focus), consolidated `announce()` + `ANNOUNCEMENTS` live-region path, ClusterPreview extraction, and MapLibreShell lint-cleanup. Slices 2.1-2.7 are merged (PRs #195-#201). **Slice 2.8 is complete + verified but NOT yet committed** (working tree: `M MapLibreShell.tsx`, `M execution-ledger.md`, `?? check-image-schema.ts`).
+
+**Claude-side (code/docs work) — current active arc:**
+- **Farm data pipeline redesign** — spec written 2026-05-23 (`docs/superpowers/specs/2026-05-23-farm-data-pipeline-redesign.md`, DRAFT, in operator review). Replaces the Google-Places crawl (Queue 32) with open-data-first discovery (OSM Overpass + FSA), provenance-aware never-clobber merge, dry-run-first load. Delivered as slices A-J. **Next:** operator reviews the spec, then `superpowers:writing-plans` produces the task-by-task plan.
+
+**Open threads (from 2026-05-23 handover, not blocking the pipeline arc):**
+- Commit Slice 2.8 + the `check-image-schema.ts` probe (operator decision: 3 files in the working tree).
+- `MapLibreShell.tsx` is 659 lines (hard limit 500, on a `// rationale:` header) — cluster/marker-layer extraction slice still open.
+- `markerState`/`popoverPosition` scaffolding preserved in 2.8 is **likely dead, not pending** (desktop popovers are served by `FarmPreviewCard`); a follow-up should confirm and remove it to clear the last 2 lint warnings.
+- Stale duplicate ledger at `farm-frontend/docs/assistant/execution-ledger.md` (431 lines, pre-2.x) — not the source of truth (this root file is); flagged for cleanup.
 
 **Operator-pending (no Claude work needed until operator acts):**
 - **Slice 1.1.3c Part 3 darts-farm DB backfill** — flip the single legacy darts-farm row `uploadedBy='ai_generator'` → `'ai_pitti'`. 3-step protocol, ~5 min, no spend. Ledger entry at "2026-05-22 — Slice 1.1.3c Part 3".
@@ -849,6 +858,8 @@ When this snapshot drifts from reality, the next ledger-reality-check slice shou
   - Verification: grep confirms no hardcoded grays in Skeleton/EmptyState
 
 ### Queue 32: Farm Pipeline Enrichment & Database Integration
+> **SUPERSEDED 2026-05-23** by `docs/superpowers/specs/2026-05-23-farm-data-pipeline-redesign.md`. The Google-Places-crawl approach below (the Python `farm-pipeline`, `google-photos.ts`, `import-farms.ts --force` blind overwrite, and the unsafe `prisma migrate dev` "Next Steps") is retired by the redesign: open-data-first discovery (OSM Overpass + FSA), field-level provenance, never-clobber merge, dry-run-first load. The slices below remain as a record of what shipped; do not run the "Next Steps" `migrate dev` against the live DB. New work tracks against the redesign spec (slices A-J).
+
 **Goal:** Connect farm-pipeline output to the live PostgreSQL database with hybrid image support.
 
 **Phase 1: Schema & Pipeline Fixes**
@@ -2933,3 +2944,25 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 - **Stale duplicate ledger** at `farm-frontend/docs/assistant/execution-ledger.md` (431 lines, pre-2.x) noticed this session — not the source of truth (root ledger is). Flagged for a future cleanup slice; not deleted here per the no-uncertain-delete rule.
 
 **Next slice:** Pivot to **Queue 4 — Design system & UI polish** (tokens: color/spacing/typography/motion; micro-interactions; WCAG AA states), or take the **MapLibreShell cluster/marker-layer extraction** slice to bring the file under the 500-line hard limit. Operator pick.
+
+---
+
+### 2026-05-23 — Plan reconciliation: farm-data pipeline redesign spec + queue alignment
+
+**Goal:** Integrate the verbally-approved farm-data pipeline redesign (from the 2026-05-23 20:15 handover) into the plan-of-record, and close the drift between the numbered queues and the running slice log.
+
+**Context:** A continuity check found the most recent design (the pipeline redesign) lived only as a "Decisions" bullet list in `context/handover-2026-05-23-2015.md` — never written to a spec, never in `writing-plans`, never reconciled with the ledger, and in direct conflict with the still-open Queue 32 (Google-Places crawl). Separately, the map-a11y arc (Slices 2.1-2.8) was complete in the slice log but absent from the numbered queue, and the Open Work Snapshot was frozen at 2026-05-22 ("Claude-side: none right now").
+
+**Files touched:** 1 created + 1 modified (docs only; no code).
+- CREATE `docs/superpowers/specs/2026-05-23-farm-data-pipeline-redesign.md` — comprehensive design spec (DRAFT, operator review): problem, principles, architecture (7 stages under `farm-frontend/src/scripts/pipeline/`), data sources (OSM Overpass, FSA, postcodes.io, Geograph, Wikimedia, Google hours-seam), field-level provenance model, never-clobber merge policy, safety/idempotency, slice breakdown A-J, testing, licensing/risks, rejected alternatives.
+- MODIFY `docs/assistant/execution-ledger.md`:
+  - Queue 32 marked **SUPERSEDED** by the spec (with a do-not-run warning on its `migrate dev` "Next Steps").
+  - Open Work Snapshot rewritten (per its own "rewrite, do not delete" instruction) to 2026-05-23: records the map-a11y arc as closed (2.8 pending commit), names the pipeline redesign as the current active arc, and carries the live open threads from the handover.
+
+**Verification:**
+- `docs/superpowers/specs/2026-05-23-farm-data-pipeline-redesign.md` exists; `ls` previously returned "No such file", confirming this is the first write (no duplicate).
+- Queue 32 header now carries the SUPERSEDED block; Open Work Snapshot header reads "2026-05-23, post Slice 2.8 + pipeline-redesign spec".
+
+**Risk and rollback:** Very low — documentation only, no code or schema touched. Rollback: `git checkout docs/assistant/execution-ledger.md` and delete the new spec file.
+
+**Next slice:** Operator reviews the spec; on approval, run `superpowers:writing-plans` to produce the full task-by-task implementation plan for slices A-J at `docs/superpowers/plans/2026-05-23-farm-data-pipeline-redesign.md` (TDD, foundation slices A/B first).
