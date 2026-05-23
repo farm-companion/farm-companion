@@ -15,6 +15,8 @@ import BottomSheet from '@/components/BottomSheet'
 
 import { useHaptic } from '@/components/HapticFeedback'
 import MarkerPreview from '@/features/map/ui/MarkerPreview'
+import { buildSelectionAnnouncement } from '@/features/map/lib/announce-helpers'
+import { announceToScreenReader } from '@/lib/accessibility'
 import type { FarmShop } from '@/types/farm'
 
 // Debouncing hook to prevent excessive re-filtering
@@ -314,6 +316,9 @@ function MapPageContent() {
     const farm = farms.find(f => f.id === farmId)
     if (!farm) return
     setPreviewFarm(farm)
+    // Announce the selection to screen readers (provider-agnostic: fires for
+    // marker click, keyboard activation, and list selection alike).
+    announceToScreenReader(buildSelectionAnnouncement(farm))
     // Mobile: also scroll the bottom-sheet list to the tapped farm
     // so the user sees their selection in the list panel.
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
