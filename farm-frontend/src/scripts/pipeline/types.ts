@@ -115,7 +115,7 @@ export interface FieldDiff {
 
 export interface FarmChange {
   action: 'create' | 'update' | 'noop'
-  matchKey: string | null // e.g. "osmId", slug, "fuzzy", or null for create
+  matchKey: string | null // diagnostic only (how/whether matched, e.g. existing slug or 'fuzzy'); NOT a reliable row locator - use `slug` to locate the row
   slug?: string
   fields: FieldDiff[]
   provenanceNext: Provenance
