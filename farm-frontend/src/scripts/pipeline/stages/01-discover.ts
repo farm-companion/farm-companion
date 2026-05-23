@@ -8,6 +8,18 @@ import { fetchOverpass, UK_BBOXES } from '../sources/overpass'
 import { fetchFsaPage } from '../sources/fsa'
 import type { RawFarmCandidate } from '../types'
 
+/** Collapse exact duplicate candidates by source + sourceId (first wins). */
+export function dedupeBySourceId(candidates: RawFarmCandidate[]): RawFarmCandidate[] {
+  const seen = new Map<string, RawFarmCandidate>()
+  for (const c of candidates) {
+    const key = `${c.source}:${c.sourceId}`
+    if (!seen.has(key)) seen.set(key, c)
+  }
+  return [...seen.values()]
+}
+
+const FSA_MAX_PAGES = 50 // safety ceiling; the empty-page break ends a short run earlier
+
 export async function discover(opts: { limit?: number } = {}): Promise<RawFarmCandidate[]> {
   const started = Date.now()
   const candidates: RawFarmCandidate[] = []
@@ -19,15 +31,17 @@ export async function discover(opts: { limit?: number } = {}): Promise<RawFarmCa
     if (opts.limit && candidates.length >= opts.limit) break
   }
 
-  for (let page = 1; page <= 3; page++) {
+  for (let page = 1; page <= FSA_MAX_PAGES; page++) {
     const batch = await fetchFsaPage(page)
     if (batch.length === 0) break
+    if (page === FSA_MAX_PAGES) log('warn', 'fsa page ceiling hit; results may be truncated', { stage: '01', source: 'fsa', page })
     candidates.push(...batch)
     log('info', 'fsa page done', { stage: '01', source: 'fsa', count: batch.length, page })
     if (opts.limit && candidates.length >= opts.limit) break
   }
 
-  const result = opts.limit ? candidates.slice(0, opts.limit) : candidates
+  const unique = dedupeBySourceId(candidates)
+  const result = opts.limit ? unique.slice(0, opts.limit) : unique
   const dir = resolve(process.cwd(), PIPELINE_CONFIG.artifactDir)
   mkdirSync(dir, { recursive: true })
   writeFileSync(resolve(dir, '01-discover.json'), JSON.stringify(result, null, 2))

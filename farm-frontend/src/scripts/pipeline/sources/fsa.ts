@@ -34,7 +34,9 @@ function num(s: string | undefined): number | undefined {
 export function parseFsa(res: FsaResponse): RawFarmCandidate[] {
   const out: RawFarmCandidate[] = []
   for (const e of res.establishments ?? []) {
-    if (e.BusinessType && !FARM_RELEVANT_TYPES.has(e.BusinessType)) continue
+    // FSA is a corroborating source; require a known farm-relevant type so
+    // records with a missing/unknown type do not leak in as candidates.
+    if (!e.BusinessType || !FARM_RELEVANT_TYPES.has(e.BusinessType)) continue
     const addr = [e.AddressLine1, e.AddressLine2, e.AddressLine3].filter(Boolean).join(', ')
     out.push({
       source: 'fsa',

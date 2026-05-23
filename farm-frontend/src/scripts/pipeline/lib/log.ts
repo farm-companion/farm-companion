@@ -10,7 +10,7 @@ export interface LogFields {
 }
 
 export function log(level: Level, msg: string, fields: LogFields = {}): void {
-  const line = JSON.stringify({ ts: new Date().toISOString(), level, msg, ...fields })
+  const line = JSON.stringify({ ...fields, ts: new Date().toISOString(), level, msg })
   if (level === 'error') console.error(line)
   else console.log(line)
 }

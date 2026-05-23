@@ -20,3 +20,9 @@ test('filters out clearly non-farm business types', () => {
   const out = parseFsa(fixture)
   assert.equal(out.find((c) => c.sourceId === '67890'), undefined)
 })
+
+test('excludes establishments with a missing business type', () => {
+  const res = { establishments: [{ FHRSID: 111, BusinessName: 'No Type Co', PostCode: 'AA1 1AA' }] }
+  const out = parseFsa(res as unknown as Parameters<typeof parseFsa>[0])
+  assert.equal(out.length, 0)
+})

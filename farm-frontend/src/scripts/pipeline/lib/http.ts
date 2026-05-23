@@ -33,9 +33,10 @@ export async function fetchWithRetry<T = unknown>(
       throw new Error(`HTTP ${res.status} for ${url}`)
     }
     const retryAfter = Number(res.headers.get('retry-after'))
-    const wait = Number.isFinite(retryAfter) && retryAfter > 0
-      ? retryAfter * 1000
+    const base = Number.isFinite(retryAfter) && retryAfter > 0
+      ? Math.min(retryAfter, 60) * 1000 // cap server-asked delay at 60s
       : backoffBaseMs * 2 ** (attempt - 1) + Math.random() * backoffBaseMs
+    const wait = Math.max(base, minDelayMs) // honour the polite inter-request minimum on retries too
     log('warn', 'http retry', { url, status: res.status, attempt, waitMs: Math.round(wait) })
     lastErr = new Error(`HTTP ${res.status}`)
     await sleep(wait)
