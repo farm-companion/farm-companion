@@ -22,3 +22,23 @@ test('getClusterMarkerLabel pluralizes consistently with clusterExpanded', () =>
   assert.equal(getClusterMarkerLabel(1), 'Cluster of 1 farm. Press Enter to expand.')
   assert.equal(getClusterMarkerLabel(3), 'Cluster of 3 farms. Press Enter to expand.')
 })
+
+test('ANNOUNCEMENTS.markerSelected includes county when present', () => {
+  assert.equal(
+    ANNOUNCEMENTS.markerSelected('Daylesford Organic', 'Gloucestershire'),
+    'Selected: Daylesford Organic in Gloucestershire'
+  )
+})
+
+test('ANNOUNCEMENTS.markerSelected omits county when empty or missing', () => {
+  assert.equal(ANNOUNCEMENTS.markerSelected('Daylesford Organic', ''), 'Selected: Daylesford Organic')
+  assert.equal(ANNOUNCEMENTS.markerSelected('Daylesford Organic'), 'Selected: Daylesford Organic')
+})
+
+test('ANNOUNCEMENTS.markerSelected omits county when whitespace only', () => {
+  assert.equal(ANNOUNCEMENTS.markerSelected('Daylesford Organic', '   '), 'Selected: Daylesford Organic')
+})
+
+test('ANNOUNCEMENTS.markerSelected trims surrounding whitespace from county', () => {
+  assert.equal(ANNOUNCEMENTS.markerSelected('Riverford', '  Devon  '), 'Selected: Riverford in Devon')
+})

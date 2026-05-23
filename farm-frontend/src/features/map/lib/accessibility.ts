@@ -24,7 +24,10 @@ export const ANNOUNCEMENTS = {
     distance
       ? `${name}, ${formatDistance(distance)} away. Press Enter to view details.`
       : `${name}. Press Enter to view details.`,
-  markerSelected: (name: string) => `${name} selected. Details panel open.`,
+  markerSelected: (name: string, county?: string) => {
+    const c = county?.trim()
+    return c ? `Selected: ${name} in ${c}` : `Selected: ${name}`
+  },
 
   // Clusters
   clusterFocused: (count: number) =>

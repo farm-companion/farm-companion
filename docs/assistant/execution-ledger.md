@@ -2839,3 +2839,33 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 - **Announce-helper consolidation (Slice 2.6 candidate)**: Slice 2.4 wired selection via `announceToScreenReader` + `buildSelectionAnnouncement` (in `announce-helpers.ts`), while 2.5 uses the canonical `announce` + `ANNOUNCEMENTS`. Two mechanisms + the React region in `MapAccessibilityFallback` now coexist. A consolidation slice should migrate selection onto `announce`/`ANNOUNCEMENTS.markerSelected` (deciding the wording: 2.4's "Selected: {name} in {county}" vs the existing "{name} selected. Details panel open.") and retire the duplicate path. Not bundled here to keep the slice focused and avoid re-litigating merged 2.4 wording.
 
 **Next slice:** **Slice 2.6 — announcement consolidation** (single `announce` path + `ANNOUNCEMENTS` vocabulary across selection and clusters; resolve the two coexisting live-region mechanisms), or **ClusterPreview focus management**. Operator pick.
+
+---
+
+### 2026-05-23 — Slice 2.6: Announcement consolidation (one path, one vocabulary)
+
+**Goal:** Route map-interaction announcements (selection + clusters) through a single live region and vocabulary, retiring the parallel mechanism Slice 2.4 introduced.
+
+**Context:** Slice 2.4 wired selection via `announceToScreenReader` (`src/lib/accessibility.ts`, ephemeral-node helper) + a bespoke `buildSelectionAnnouncement` in `announce-helpers.ts`. Slice 2.5 wired clusters via the canonical `announce` (`features/map/lib/accessibility.ts`, reused `#map-announcements` region) + `ANNOUNCEMENTS`. Two map live regions plus the `MapAccessibilityFallback` count region = three. This slice collapses the two *map-interaction* paths into one; the `MapAccessibilityFallback` count region is a distinct concern (the SR data-table fallback) and is intentionally left alone.
+
+**Approach:** Absorbed `buildSelectionAnnouncement`'s exact wording into the canonical vocabulary as `ANNOUNCEMENTS.markerSelected(name, county?)` (reshaped from its old dead `(name) => "${name} selected. Details panel open."`; only dead-code callers existed, so no live regression). Selection now uses `announce(ANNOUNCEMENTS.markerSelected(...))` — the same `#map-announcements` region clusters use. User-facing selection wording is unchanged from 2.4 ("Selected: {name} in {county}"); only the plumbing moved.
+
+**Files touched:** 3 source modified + 2 deleted + 1 test + 1 ledger.
+- MODIFY `farm-frontend/src/features/map/lib/accessibility.ts` (4 lines): `markerSelected` reshaped to `(name, county?)` with the trim/omit-empty-county logic.
+- MODIFY `farm-frontend/src/features/map/lib/accessibility.test.ts` (+4 cases): `markerSelected` county-present / empty-or-missing / whitespace / trimmed — ported from the deleted `announce-helpers.test.ts`. TDD: red before the reshape, green after.
+- MODIFY `farm-frontend/src/app/map/page.tsx` (imports −2 +1, call swapped): `announce(ANNOUNCEMENTS.markerSelected(farm.name, farm.location.county))` replaces `announceToScreenReader(buildSelectionAnnouncement(farm))`.
+- DELETE `farm-frontend/src/features/map/lib/announce-helpers.ts` + `announce-helpers.test.ts` (single export + single consumer, both migrated; coverage preserved in `accessibility.test.ts`).
+
+**Verification:**
+- `pnpm exec tsc --noEmit -p tsconfig.json` exits 0 (TSC_OK) — confirms no dangling `buildSelectionAnnouncement` / `announceToScreenReader` refs.
+- `pnpm test:unit` reports 109 tests pass, 0 fail (unchanged total: −4 announce-helpers tests, +4 markerSelected tests).
+- `grep buildSelectionAnnouncement|announce-helpers src` returns nothing (no stragglers).
+
+**Risk and rollback:** Low. Pure plumbing consolidation — selection wording is byte-identical to 2.4's, just produced by `ANNOUNCEMENTS.markerSelected` and emitted via `announce` instead of `announceToScreenReader`. `announce` is SSR-guarded. `announceToScreenReader` remains defined in `src/lib/accessibility.ts` (general util, untouched, no longer used by the map). Rollback: `git revert <sha>` restores the helper files and the prior call.
+
+**Out of scope (deferred):**
+- **Merging the `MapAccessibilityFallback` count region into `#map-announcements`.** Different concern (SR data-table fallback), self-contained React component; merging risks regressions there for marginal gain. Left as two polite regions (allowed; they queue independently).
+- **ClusterPreview focus management** (still open from 2.5).
+- Removing the now-map-unused `announceToScreenReader` from `src/lib/accessibility.ts` — that file is a general utility library with many unused exports; pruning it is a separate dead-code slice, not this one.
+
+**Next slice:** **ClusterPreview focus management** (apply the Slice 2.3 Disclosure pattern — focus-move on open, Escape, return-focus — to MapLibre's small-cluster preview card), or pivot to **Queue 4 (Design system & UI polish)**. Operator pick.
