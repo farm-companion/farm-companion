@@ -30,7 +30,7 @@ export const ANNOUNCEMENTS = {
   clusterFocused: (count: number) =>
     `Cluster with ${count} farms. Press Enter to zoom in or view list.`,
   clusterExpanded: (count: number) =>
-    `Showing ${count} farms in this area.`,
+    `Showing ${count} farm${count === 1 ? '' : 's'} in this area.`,
 
   // Navigation
   zoomIn: (level: number) => `Zoomed in to level ${level}.`,

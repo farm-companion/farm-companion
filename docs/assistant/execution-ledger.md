@@ -2806,3 +2806,36 @@ So the genuine, un-covered, provider-agnostic gap is **selection**: `MapStateDes
 - Announce-on-popover-open beyond Slice 2.3's Close-button focus (which already reads "Close preview of {name}").
 
 **Next slice:** **Slice 2.5 — cluster expansion ARIA announcement.** Add `buildClusterAnnouncement(count)` to `announce-helpers.ts`; wire into MapLibre `handleClusterClick` (announce on preview-open and on zoom-expand) and a new Leaflet `clusterGroup.on('clusterclick', ...)` hook. Provider-specific, but the wording helper stays shared and unit-tested.
+
+---
+
+### 2026-05-23 — Slice 2.5: Cluster expansion ARIA announcement (reusing existing infra)
+
+**Goal:** Announce cluster expansion to screen readers when a keyboard/SR user activates a cluster, on both providers.
+
+**Discovery that reshaped the slice (supersedes the 2.4 plan above):** The 2.5 plan called for a *new* `buildClusterAnnouncement` helper. Reading ground truth first found the codebase **already has the infrastructure, unwired**:
+- `features/map/lib/accessibility.ts` exports a canonical `announce(message, priority)` (line 61 — this is the file the original 2.3-era plan meant by "`lib/accessibility.ts:61`"; Slice 2.4 mistakenly used the *different* `src/lib/accessibility.ts`) and a full `ANNOUNCEMENTS` vocabulary, including `clusterExpanded(count)` — exactly the message needed.
+- `announce` / `ANNOUNCEMENTS` are consumed **only by dead code** (`components/map/useMarkerKeyboardNav.tsx`, flagged dead in Slice 2.3; `components/accessibility/AccessibleButton.tsx`). `ANNOUNCEMENTS.*` is called nowhere live. Both shells import only the two label helpers from this file, never `announce`.
+
+So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.clusterExpanded(count)`** rather than invent a parallel helper. Also fixed a latent wording bug: `clusterExpanded` lacked singular handling ("Showing 1 farms").
+
+**Both providers' clusters are keyboard-reachable** (verified): MapLibre cluster `el` has `role=button`/`tabindex=0`/keydown→`handleClusterClick`; Leaflet `.leaflet-cluster-marker` runs through `decorateMarkerForA11y`. So the announcement has a real audience. On the zoom path the focused cluster element is destroyed (focus falls to `body`) and the zoom is invisible to SR users; on MapLibre's small-cluster preview path a card opens with no prior announcement. The existing `MapAccessibilityFallback` count region is inconsistent (fires only when `searchAsIMove` + count changes) and reports view-count, not "you expanded a cluster" — so this is non-redundant.
+
+**Files touched:** 4 source + 1 ledger.
+- MODIFY `farm-frontend/src/features/map/lib/accessibility.ts` (1 line): `clusterExpanded` singular/plural fix to match its siblings (`searchResults`, `getClusterMarkerLabel`).
+- CREATE `farm-frontend/src/features/map/lib/accessibility.test.ts` (4 node:test cases): `clusterExpanded` singular/plural/zero + `getClusterMarkerLabel` parity. TDD: `clusterExpanded(1)` red before the fix, green after.
+- MODIFY `farm-frontend/src/features/map/ui/MapLibreShell.tsx` (+import, +2 calls, +rationale header): import `announce, ANNOUNCEMENTS`; announce in both `handleClusterClick` branches (preview uses `clusterFarms.length`, zoom uses `count`). **File is 702 lines (> hard 500)** — added the required `// rationale:` header (cohesive provider shell; cluster/marker-layer extraction tracked as a future slice).
+- MODIFY `farm-frontend/src/features/map/ui/LeafletShell.tsx` (+import, +`clusterclick` listener; 487 → 496, under hard 500): `clusterGroup.on('clusterclick', e => announce(ANNOUNCEMENTS.clusterExpanded(cluster.getChildCount())))`, layer typed via `L.LeafletEvent & { layer: L.MarkerCluster }`.
+
+**Verification:**
+- `pnpm exec tsc --noEmit -p tsconfig.json` exits 0 (TSC_OK), including the Leaflet event cast.
+- `pnpm test:unit` reports 109 tests pass, 0 fail (was 105 pre-slice; +4 new). TDD red→green confirmed.
+
+**Risk and rollback:** Low. Additive announce side-effects on existing handlers plus a one-line wording correction; no zoom/preview/click behaviour changed, and `announce` is SSR-guarded (`typeof document === 'undefined'`). Possible minor chattiness on the zoom path if the bounds-driven count region also fires — both are `aria-live="polite"` (queued, not interrupting) and describe different facts (what you expanded vs. resulting view). Rollback: `git revert <sha>`.
+
+**Out of scope (deferred):**
+- **ClusterPreview focus management** (MapLibreShell ~line 650): the small-cluster preview card is not focus-trapped or focus-moved on open; the announcement is net-positive over silence but the card itself should get the Slice-2.3 Disclosure treatment in a follow-up.
+- **Focus management on cluster zoom-expand**: ideally focus moves to a revealed marker/sub-cluster; ambiguous which, provider-specific, deferred.
+- **Announce-helper consolidation (Slice 2.6 candidate)**: Slice 2.4 wired selection via `announceToScreenReader` + `buildSelectionAnnouncement` (in `announce-helpers.ts`), while 2.5 uses the canonical `announce` + `ANNOUNCEMENTS`. Two mechanisms + the React region in `MapAccessibilityFallback` now coexist. A consolidation slice should migrate selection onto `announce`/`ANNOUNCEMENTS.markerSelected` (deciding the wording: 2.4's "Selected: {name} in {county}" vs the existing "{name} selected. Details panel open.") and retire the duplicate path. Not bundled here to keep the slice focused and avoid re-litigating merged 2.4 wording.
+
+**Next slice:** **Slice 2.6 — announcement consolidation** (single `announce` path + `ANNOUNCEMENTS` vocabulary across selection and clusters; resolve the two coexisting live-region mechanisms), or **ClusterPreview focus management**. Operator pick.

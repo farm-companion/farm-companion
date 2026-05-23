@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { FarmShop } from '@/types/farm'
 import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS } from '../lib/pin-icons'
-import { getFarmMarkerLabel, getClusterMarkerLabel } from '../lib/accessibility'
+import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } from '../lib/accessibility'
 
 
 // Leaflet imports - client-side only
@@ -232,6 +232,15 @@ export default function LeafletShell({
       })
       map.addLayer(clusterGroup)
       clusterGroupRef.current = clusterGroup
+
+      // Announce cluster expansion to screen readers. markercluster handles
+      // the zoom/spiderfy itself; activating destroys the focused cluster
+      // element (focus falls to body) with no SR-visible cue, so the polite
+      // live region is the only feedback keyboard/SR users get.
+      clusterGroup.on('clusterclick', (e) => {
+        const cluster = (e as L.LeafletEvent & { layer: L.MarkerCluster }).layer
+        announce(ANNOUNCEMENTS.clusterExpanded(cluster.getChildCount()))
+      })
 
       // Re-decorate cluster icons after every cluster animation (zoom in/out,
       // spiderfy/unspiderfy). The farms useEffect handles initial decoration
