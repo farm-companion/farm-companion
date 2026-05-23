@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { X, Phone, Navigation, Share2, Circle, ChevronRight, Leaf } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
@@ -36,11 +36,69 @@ export default function FarmPreviewCard({
   className = '',
 }: FarmPreviewCardProps) {
   const [mounted, setMounted] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const closeButtonRef = useRef<HTMLButtonElement>(null)
+  // Stable refs so the focus-management effects can keep empty deps. The
+  // alternative — depending on [onClose, farm.id] — would tear down and
+  // re-bind listeners every time the parent re-rendered with a new inline
+  // onClose, and would fire focus-return on every farm switch (causing a
+  // mid-stream rAF to override the next render's focus target).
+  const onCloseRef = useRef(onClose)
+  const farmIdRef = useRef(farm.id)
+  useEffect(() => {
+    onCloseRef.current = onClose
+    farmIdRef.current = farm.id
+  })
+
   useEffect(() => {
     // Trigger entry animation after the first paint:
     // initial render → opacity-0 + translateY + scale(0.97), then this effect
     // adds data-mounted on the next tick, CSS transitions to neutral.
     setMounted(true)
+  }, [])
+
+  // Focus management (Slice 2.3).
+  //   - On open: move focus to the Close button. The :focus-visible heuristic
+  //     suppresses the ring for mouse-initiated opens and shows it for
+  //     keyboard-initiated opens, which is the correct WCAG 2.4.7 behaviour.
+  //   - On close (unmount): if focus has defaulted back to <body> (i.e. the
+  //     popover unmount lost focus), return it to the originating marker.
+  //     Querying by data-farm-id is necessary because both LeafletShell and
+  //     MapLibreShell tear down and re-add markers on every selectedFarmId
+  //     change, so a captured DOM ref would be stale.
+  //   - Non-modal: NO hard Tab trap. The popover floats over a still-operable
+  //     map; trapping Tab would prevent the user from reaching markers
+  //     behind it. ARIA Authoring Practices reserve hard traps for true
+  //     modal dialogs.
+  useEffect(() => {
+    closeButtonRef.current?.focus()
+    return () => {
+      const lastFarmId = farmIdRef.current
+      requestAnimationFrame(() => {
+        if (document.activeElement && document.activeElement !== document.body) {
+          return
+        }
+        const markerEl = document.querySelector<HTMLElement>(`[data-farm-id="${lastFarmId}"]`)
+        markerEl?.focus()
+      })
+    }
+  }, [])
+
+  // Escape-to-close, scoped to the container so it does not intercept an
+  // Escape destined for an overlapping FilterOverlayPanel, BottomSheet, or
+  // any of the other 8 components in the codebase that handle Escape.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        e.stopPropagation()
+        onCloseRef.current()
+      }
+    }
+    el.addEventListener('keydown', handleKeyDown)
+    return () => el.removeEventListener('keydown', handleKeyDown)
   }, [])
 
   // Image resolution: admin/Apothecary (already filtered by upstream
@@ -75,6 +133,7 @@ export default function FarmPreviewCard({
 
   return (
     <div
+      ref={containerRef}
       data-mounted={mounted ? '' : undefined}
       className={[
         'relative bg-paper text-ink rounded-2xl overflow-hidden',
@@ -91,9 +150,10 @@ export default function FarmPreviewCard({
     >
       {/* Close button */}
       <button
+        ref={closeButtonRef}
         onClick={onClose}
         className="absolute top-3 right-3 z-10 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/50 active:scale-[0.97] transition-[background-color,transform] duration-150"
-        aria-label="Close preview"
+        aria-label={`Close preview of ${farm.name}`}
       >
         <X className="w-4 h-4" />
       </button>
