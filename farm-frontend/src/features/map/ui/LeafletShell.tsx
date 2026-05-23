@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { FarmShop } from '@/types/farm'
 import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS } from '../lib/pin-icons'
+import { getFarmMarkerLabel, getClusterMarkerLabel } from '../lib/accessibility'
 
 
 // Leaflet imports - client-side only
@@ -74,6 +75,29 @@ const createStatusIcon = (
     iconSize: [size, size],
     iconAnchor: [size / 2, size],
     popupAnchor: [0, -size]
+  })
+}
+
+// Decorate a Leaflet marker wrapper element with ARIA button semantics and
+// Space-key activation. Leaflet's `keyboard: true` (default) already sets
+// tabindex=0 and binds Enter -> click via L.Marker._onKeyPress, so this
+// adds the gaps: role, aria-label, and Space activation. Idempotent.
+function decorateMarkerForA11y(
+  el: HTMLElement,
+  label: string,
+  onActivate: () => void,
+) {
+  if (el.dataset.a11yWired === 'true') return
+  el.dataset.a11yWired = 'true'
+  el.setAttribute('role', 'button')
+  el.setAttribute('aria-label', label)
+  if (!el.hasAttribute('tabindex')) el.setAttribute('tabindex', '0')
+  el.addEventListener('keydown', (e) => {
+    if (e.key === ' ' || e.code === 'Space') {
+      e.preventDefault()
+      e.stopPropagation()
+      onActivate()
+    }
   })
 }
 
@@ -209,6 +233,25 @@ export default function LeafletShell({
       map.addLayer(clusterGroup)
       clusterGroupRef.current = clusterGroup
 
+      // Re-decorate cluster icons after every cluster animation (zoom in/out,
+      // spiderfy/unspiderfy). The farms useEffect handles initial decoration
+      // via rAF; this handles every subsequent re-cluster.
+      clusterGroup.on('animationend', () => {
+        if (!mapContainerRef.current) return
+        mapContainerRef.current
+          .querySelectorAll<HTMLElement>('.leaflet-cluster-marker')
+          .forEach((el) => {
+            if (el.dataset.a11yWired === 'true') return
+            const countText = el.textContent?.trim() ?? ''
+            const count = countText === '99+' ? 100 : Number.parseInt(countText, 10) || 0
+            decorateMarkerForA11y(
+              el,
+              getClusterMarkerLabel(count),
+              () => el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })),
+            )
+          })
+      })
+
       // Fit to UK bounds
       map.fitBounds(UK_BOUNDS, { padding: [20, 20] })
 
@@ -281,6 +324,24 @@ export default function LeafletShell({
         onFarmHover?.(null)
       })
 
+      // Wire ARIA + Space-key activation onto the Leaflet wrapper element
+      // once it is mounted into the DOM. Leaflet does not provide aria-label
+      // for divIcon markers; without this the wrapper is reachable via Tab
+      // but read out by screen readers as an unlabeled button.
+      marker.on('add', () => {
+        const el = marker.getElement() as HTMLElement | null
+        if (!el) return
+        decorateMarkerForA11y(
+          el,
+          getFarmMarkerLabel({
+            name: farm.name,
+            location: farm.location,
+            isOpen: isOpen ?? undefined,
+          }),
+          () => handleMarkerClick(farm),
+        )
+      })
+
       // Highlight selected or hovered marker
       if (isHighlighted) {
         marker.setZIndexOffset(1000)
@@ -288,6 +349,30 @@ export default function LeafletShell({
 
       clusterGroup.addLayer(marker)
     })
+
+    // Decorate cluster icons after the cluster plugin has rendered them.
+    // Cluster icons are created internally by leaflet.markercluster, so we
+    // cannot hook marker.on('add') for them. Run after the current paint
+    // (rAF) and again on animationend (handled in the init effect).
+    const decorateClusters = () => {
+      if (!mapContainerRef.current) return
+      mapContainerRef.current
+        .querySelectorAll<HTMLElement>('.leaflet-cluster-marker')
+        .forEach((el) => {
+          const countText = el.textContent?.trim() ?? ''
+          const count = countText === '99+' ? 100 : Number.parseInt(countText, 10) || 0
+          decorateMarkerForA11y(
+            el,
+            getClusterMarkerLabel(count),
+            // Bridge Space activation to Leaflet's existing click handler
+            // (zoom or spiderfy) by dispatching a synthetic MouseEvent that
+            // bubbles to the map container's delegated listener.
+            () => el.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true })),
+          )
+        })
+    }
+    const rafId = requestAnimationFrame(decorateClusters)
+    return () => cancelAnimationFrame(rafId)
   }, [farms, selectedFarmId, hoveredFarmId, handleMarkerClick, onFarmHover])
 
   // Pan to selected farm
@@ -328,8 +413,12 @@ export default function LeafletShell({
           iconAnchor: [8, 8]
         })
 
-        userMarkerRef.current = L.marker([latitude, longitude], { icon: userIcon })
-          .addTo(map)
+        userMarkerRef.current = L.marker([latitude, longitude], {
+          icon: userIcon,
+          // Informational marker, not interactive — keep it out of the Tab order
+          // and the accessible-button set populated by the farm/cluster markers.
+          keyboard: false,
+        }).addTo(map)
 
         // Add accuracy circle
         if (accuracy) {
