@@ -2775,3 +2775,34 @@ e. **Container-scoped Escape, not document-scoped.** Nine other Escape handlers 
 **Risk and rollback:** Low. The focus management is purely additive: two new refs, one render-time sync effect, one mount/unmount focus effect, one Escape keydown effect, plus refs wired on two existing JSX nodes and a more-descriptive Close button `aria-label`. No existing animation, layout, or click behaviour is altered. The `el.dataset.farmId = farm.id` on Leaflet is one line inside the existing Slice-2.2 callback. The graceful-degradation guards (`document.activeElement !== document.body` check; container-scoped Escape with `stopPropagation`) mean the worst-case failure mode is "popover keyboard parity silently regresses to pre-slice behaviour", not a focus-stealing or Escape-collision regression. Rollback: `git revert <slice sha>` restores the pre-slice state; consequence is keyboard users get back the three pre-slice gaps (no auto-focus, no Escape, no return-to-marker).
 
 **Next slice:** Continue the Map Page Polish Pass with **Slice 2.4 — Map ARIA live announcements.** Wire the existing `announce()` helper from `lib/accessibility.ts:61` at the cluster-click ("Expanded cluster — showing N farms"), search-result ("M farms found for 'query'"), and selection ("Selected: {farm name}") callsites. Provider-agnostic; one helper-call per site. Sequenced after this slice because announce-on-popover-open should fire only once the popover has the focus-management contract this slice ships.
+
+---
+
+### 2026-05-23 — Slice 2.4: Map selection ARIA live announcement (re-scoped)
+
+**Goal:** Announce farm selection to screen readers via a polite live region, fired once at the provider-agnostic selection callsite.
+
+**Ledger-plan correction (read before trusting the 2.3 "Next slice" note above):** The 2.3 plan named three callsites and an `announce()` helper at `lib/accessibility.ts:61`. Reading ground truth before coding found two inaccuracies:
+1. **There is no `announce()` at `lib/accessibility.ts:61`.** Line 61 is inside `useFocusManagement`. The standalone, callable-from-any-event-handler primitive is `announceToScreenReader(message, level)` at `lib/accessibility.ts:203` (creates an `aria-live` node, appends, removes after 1s). `useAriaLiveRegion().announce` only sets React state and needs a rendered region, so it is unsuitable for event-handler callsites.
+2. **Search-result count is already announced.** `MapAccessibilityFallback` (`components/accessibility/MapAccessibilityFallback.tsx:43-53`, region at `:114-121`) already announces farm-count changes ("N more farms found / N total" or "N in view") on every search/filter/bounds change, fed `filteredFarms` from `map/page.tsx`. Re-announcing would double-speak.
+3. **Cluster expansion is provider-specific and divergent.** MapLibre has a custom `handleClusterClick` (preview vs zoom); Leaflet delegates to `leaflet.markercluster` (no custom handler — would need a new `clusterclick` hook). Different semantics each side, so it is its own slice (2.5), not bundled here.
+
+So the genuine, un-covered, provider-agnostic gap is **selection**: `MapStateDescription` (`MapAccessibilityFallback.tsx:253-273`) describes the selected farm but in a **non-live** `<p id="map-description" className="sr-only">`, so selection is not actively announced. Operator confirmed scope: **selection announce only**; cluster deferred to 2.5.
+
+**Files touched:** 2 source + 1 test + 1 ledger.
+- CREATE `farm-frontend/src/features/map/lib/announce-helpers.ts` (22 lines): pure `buildSelectionAnnouncement(farm)` returning `"Selected: {name} in {county}"`, county appended only when non-empty (trimmed). Named generically so 2.5 cluster wording can join it.
+- CREATE `farm-frontend/src/features/map/lib/announce-helpers.test.ts` (4 node:test cases): both fields present, empty county, whitespace-only county, county trimmed.
+- MODIFY `farm-frontend/src/app/map/page.tsx` (+4 LOC): import `buildSelectionAnnouncement` + `announceToScreenReader`; inside `handleFarmSelect`, after `setPreviewFarm(farm)`, call `announceToScreenReader(buildSelectionAnnouncement(farm))`. Single callsite covers marker-click, keyboard activation, and list selection on both providers.
+
+**Verification:**
+- `pnpm exec tsc --noEmit -p tsconfig.json` exits 0 (TSC_OK).
+- `pnpm test:unit` reports 105 tests pass, 0 fail (was 101 pre-slice; +4 new). TDD: confirmed red (module-not-found) before implementing, then green.
+
+**Risk and rollback:** Low. Purely additive — one new pure helper plus its tests, and one imperative announce call appended to an existing handler; no existing state, layout, or click behaviour altered, and `announceToScreenReader` self-cleans its DOM node after 1s. Rollback: `git revert <slice sha>` removes the announce call and helper; consequence is selection is no longer actively announced (the non-live `MapStateDescription` description remains).
+
+**Out of scope (deferred):**
+- **Slice 2.5 — cluster expansion announcement** (provider-specific: MapLibre `handleClusterClick` plus a new Leaflet `clusterclick` hook).
+- Live browser smoke with a screen reader (VoiceOver/NVDA) — code follows the same `announceToScreenReader` pattern already proven by `MapAccessibilityFallback`'s live region.
+- Announce-on-popover-open beyond Slice 2.3's Close-button focus (which already reads "Close preview of {name}").
+
+**Next slice:** **Slice 2.5 — cluster expansion ARIA announcement.** Add `buildClusterAnnouncement(count)` to `announce-helpers.ts`; wire into MapLibre `handleClusterClick` (announce on preview-open and on zoom-expand) and a new Leaflet `clusterGroup.on('clusterclick', ...)` hook. Provider-specific, but the wording helper stays shared and unit-tested.
