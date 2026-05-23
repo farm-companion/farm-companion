@@ -74,6 +74,23 @@
   border-radius: 50%;
 }
 
+/* Leaflet marker focus parity (Slice 2.2). Leaflet wraps each divIcon's
+   HTML in a .leaflet-marker-icon element which receives tabindex=0 via
+   the default `keyboard: true`. Mirror the MapLibre focus pattern:
+   suppress :focus to avoid mouse-click flashes, restore via :focus-visible
+   for keyboard users. */
+.leaflet-farm-marker:focus,
+.leaflet-cluster-marker:focus {
+  outline: none;
+}
+
+.leaflet-farm-marker:focus-visible,
+.leaflet-cluster-marker:focus-visible {
+  outline: 2px solid var(--primary, #00C2B2);
+  outline-offset: 2px;
+  border-radius: 50%;
+}
+
 .maplibregl-marker {
   pointer-events: auto !important;
   touch-action: none !important;
