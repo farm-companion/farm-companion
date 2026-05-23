@@ -117,6 +117,9 @@ export interface FarmChange {
   action: 'create' | 'update' | 'noop'
   matchKey: string | null // diagnostic only (how/whether matched, e.g. existing slug or 'fuzzy'); NOT a reliable row locator - use `slug` to locate the row
   slug?: string
+  targetId?: string // existing row primary key; the locator for updates
+  osmId?: string    // row-level match id to persist (idempotent re-matching)
+  fsaId?: string
   fields: FieldDiff[]
   provenanceNext: Provenance
 }

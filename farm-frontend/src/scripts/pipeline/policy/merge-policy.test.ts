@@ -181,3 +181,18 @@ test('curated user source CAN update verified on an existing row', () => {
   const change = mergeFarm(existing, inc, ISO)
   assert.equal(change.fields.find((f) => f.field === 'verified')?.to, true)
 })
+
+test('mergeFarm carries targetId (existing id) and match ids for the load stage', () => {
+  const existing = dbFarm({ id: 'row-1', osmId: 'node:1', fields: { address: 'Old' }, provenance: { address: { source: 'osm', at: ISO } } })
+  const inc = candidate({ osmId: 'node:1', fsaId: '999', fields: { address: { value: 'New Barn', source: 'fsa' } } })
+  const change = mergeFarm(existing, inc, ISO)
+  assert.equal(change.targetId, 'row-1')
+  assert.equal(change.osmId, 'node:1')
+  assert.equal(change.fsaId, '999')
+})
+
+test('mergeFarm on create has no targetId', () => {
+  const change = mergeFarm(null, candidate({ slug: 'new-farm', osmId: 'node:9', fields: { name: { value: 'New', source: 'osm' } } }), ISO)
+  assert.equal(change.targetId, undefined)
+  assert.equal(change.osmId, 'node:9')
+})

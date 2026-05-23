@@ -88,6 +88,9 @@ export function mergeFarm(
     action,
     matchKey: existing ? existing.slug : null,
     slug: incoming.slug ?? existing?.slug,
+    targetId: existing?.id,
+    osmId: (incoming.osmId ?? existing?.osmId) ?? undefined,
+    fsaId: (incoming.fsaId ?? existing?.fsaId) ?? undefined,
     fields,
     provenanceNext,
   }
