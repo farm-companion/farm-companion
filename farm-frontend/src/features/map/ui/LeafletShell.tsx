@@ -331,6 +331,11 @@ export default function LeafletShell({
       marker.on('add', () => {
         const el = marker.getElement() as HTMLElement | null
         if (!el) return
+        // data-farm-id is required for FarmPreviewCard's focus-return query
+        // selector (Slice 2.3). MapLibreShell sets it at marker creation;
+        // Leaflet defers DOM creation to the cluster plugin, so we set it
+        // in the same 'add' callback as the a11y decoration.
+        el.dataset.farmId = farm.id
         decorateMarkerForA11y(
           el,
           getFarmMarkerLabel({
