@@ -17,6 +17,7 @@ import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
 import LocationControl from './LocationControl'
 import MapControls from './MapControls'
+import ClusterPreview from './ClusterPreview'
 import ScaleBar from './ScaleBar'
 
 interface UserLocation {
@@ -69,6 +70,7 @@ interface MarkerState {
 }
 
 interface ClusterData {
+  clusterId: number
   position: { lat: number; lng: number }
   farms: FarmShop[]
   count: number
@@ -284,6 +286,7 @@ export default function MapLibreShell({
 
       if (clusterFarms.length > 0) {
         setSelectedCluster({
+          clusterId,
           position: { lat, lng },
           farms: clusterFarms,
           count: clusterFarms.length
@@ -372,6 +375,8 @@ export default function MapLibreShell({
         el.setAttribute('role', 'button')
         el.setAttribute('tabindex', '0')
         el.setAttribute('aria-label', getClusterMarkerLabel(count))
+        // Stable selector so ClusterPreview can return focus here on close.
+        el.dataset.clusterId = String(clusterId)
 
         const { size, color, textColor } = getClusterStyle(count)
         // NO transforms - just basic styling
@@ -656,46 +661,19 @@ export default function MapLibreShell({
 
       {/* Marker preview handled by MarkerPreview in map/page.tsx (mobile + desktop). */}
 
-      {/* Cluster Preview - simplified without Google Maps types */}
+      {/* Cluster Preview - extracted to ClusterPreview (Slice 2.7) for focus parity */}
       {showClusterPreview && selectedCluster && (
-        <div className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-4 z-50">
-          <div className="flex items-center justify-between mb-3">
-            <h3 className="font-semibold text-zinc-900 dark:text-white">
-              {selectedCluster.count} farms nearby
-            </h3>
-            <button
-              onClick={handleCloseClusterPreview}
-              className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {selectedCluster.farms.slice(0, 5).map(farm => (
-              <button
-                key={farm.id}
-                onClick={() => {
-                  handleMarkerClick(farm)
-                  handleCloseClusterPreview()
-                }}
-                className="w-full text-left p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-              >
-                <div className="font-medium text-sm text-zinc-900 dark:text-white">{farm.name}</div>
-                <div className="text-xs text-zinc-500 dark:text-zinc-400">{farm.location.city || farm.location.county}</div>
-              </button>
-            ))}
-          </div>
-          {selectedCluster.farms.length > 5 && (
-            <button
-              onClick={() => handleZoomToCluster(selectedCluster)}
-              className="w-full mt-3 py-2 text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:text-cyan-700"
-            >
-              View all {selectedCluster.count} farms
-            </button>
-          )}
-        </div>
+        <ClusterPreview
+          clusterId={selectedCluster.clusterId}
+          count={selectedCluster.count}
+          farms={selectedCluster.farms}
+          onClose={handleCloseClusterPreview}
+          onSelectFarm={(farm) => {
+            handleMarkerClick(farm)
+            handleCloseClusterPreview()
+          }}
+          onViewAll={() => handleZoomToCluster(selectedCluster)}
+        />
       )}
     </div>
   )

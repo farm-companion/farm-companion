@@ -2869,3 +2869,31 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 - Removing the now-map-unused `announceToScreenReader` from `src/lib/accessibility.ts` — that file is a general utility library with many unused exports; pruning it is a separate dead-code slice, not this one.
 
 **Next slice:** **ClusterPreview focus management** (apply the Slice 2.3 Disclosure pattern — focus-move on open, Escape, return-focus — to MapLibre's small-cluster preview card), or pivot to **Queue 4 (Design system & UI polish)**. Operator pick.
+
+---
+
+### 2026-05-23 — Slice 2.7: ClusterPreview extraction + focus management (closes the map-a11y arc)
+
+**Goal:** Give MapLibre's small-cluster preview card the Slice 2.3 Disclosure keyboard contract, and extract it from the over-limit shell.
+
+**Why extract:** The preview was ~40 lines of inline JSX in `MapLibreShell.tsx` (702 lines, over the hard 500 limit). The file-size rule says prefer extracting a sibling over inlining more, so the focus-management logic lands in its own component instead of growing the shell. Extraction also reduced MapLibreShell 702 → 680.
+
+**Pattern (mirrors FarmPreviewCard / Slice 2.3):** Non-modal Disclosure, NOT a hard Tab trap. On open, focus moves to the Close button; Escape closes (container-scoped + `stopPropagation`); on close, focus returns to the originating cluster marker. Key difference from 2.3: opening the preview does **not** re-render the cluster markers (it only sets `selectedCluster`/`showClusterPreview`), so the originating cluster element persists — the plain-close path reliably finds it via `[data-cluster-id]`. The View-all (zoom) and farm-pick paths destroy/replace it or hand off to FarmPreviewCard; the return-focus rAF guards on `document.activeElement === document.body`, so it no-ops gracefully when focus has already moved (e.g. FarmPreviewCard taking focus after a farm pick) or the cluster is gone (after zoom).
+
+**Files touched:** 1 created + 1 modified + 1 ledger.
+- CREATE `farm-frontend/src/features/map/ui/ClusterPreview.tsx` (125 lines, under soft 300): focus-managed card. Props `clusterId, count, farms, onClose, onSelectFarm, onViewAll`. Adds the Close button `aria-label="Close cluster preview"` (was missing) and `role="region"`/`aria-label` on the card.
+- MODIFY `farm-frontend/src/features/map/ui/MapLibreShell.tsx`: import `ClusterPreview`; `ClusterData` gains `clusterId: number`; preview branch of `handleClusterClick` passes `clusterId`; cluster element gets `el.dataset.clusterId = String(clusterId)`; inline preview JSX replaced with `<ClusterPreview .../>`. 702 → 680 lines (still > hard 500; the Slice-2.5 `// rationale:` header stands).
+
+**Verification:**
+- `pnpm exec tsc --noEmit -p tsconfig.json` exits 0 (TSC_OK).
+- `pnpm test:unit` reports 109 tests pass, 0 fail (no new pure logic — focus is DOM-effect-based, same constraint as 2.3; React focus-test infra remains deferred).
+- `eslint` on both files: **ClusterPreview.tsx is clean (0 problems)**; every issue reported on MapLibreShell is pre-existing and untouched by this slice — confirmed `Date.now()` purity error (line 586, `effectiveUserLocation`) is not in the diff, and prior PRs (#195-#200) all built green on Vercel, so it is a local-only `react-hooks/purity` rule, not build-blocking.
+
+**Risk and rollback:** Low. Behavior-preserving extraction (same JSX, same handlers, composed via props) plus additive focus effects and a `data-cluster-id` attribute. Worst case is silent regression to pre-slice keyboard behaviour (no focus-move/Escape/return), guarded against focus-stealing by the `activeElement === body` check. Rollback: `git revert <sha>` restores the inline preview.
+
+**Out of scope (deferred):**
+- **Live browser smoke** (VoiceOver/NVDA + a small-cluster activation) — deferred consistent with 2.3; verified by code review against the proven 2.3 pattern + tsc.
+- **Pre-existing MapLibreShell lint debt** (1 `react-hooks/purity` error on `Date.now()` in render, several `no-unused-vars` incl. dead `handleShowAllFarms`/`clusterFarms`, exhaustive-deps on the map-init effect). All predate this slice; a dedicated MapLibreShell lint-cleanup slice should address them (and could also pursue further extraction toward the 500-line limit).
+- **Focus management on cluster zoom-expand** (still open from 2.5).
+
+**Next slice:** Map-a11y arc (Slices 2.1-2.7) is complete. Pivot to **Queue 4 — Design system & UI polish** (tokens, micro-interactions, WCAG AA states), or take the small **MapLibreShell lint-cleanup / further-extraction** slice noted above. Operator pick.
