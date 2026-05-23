@@ -1,5 +1,9 @@
 'use client'
 
+// rationale: Cohesive MapLibre provider shell (map lifecycle, supercluster
+// markers, popovers, a11y wiring); splitting risks duplicating provider
+// lifecycle. Extraction of cluster + marker layers tracked as future slice.
+
 import { useEffect, useRef, useState, useCallback } from 'react'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -8,7 +12,7 @@ import { useClusteredMarkers, type ClusterOrPoint, type FarmCluster } from '../h
 import { useMapLocation } from '../hooks/useMapLocation'
 import { getContrastTextColor } from '@/lib/contrast'
 import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, STATUS_COLORS } from '../lib/pin-icons'
-import { getFarmMarkerLabel, getClusterMarkerLabel } from '../lib/accessibility'
+import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } from '../lib/accessibility'
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
 import { getMapStyle } from '@/lib/map-config'
 import LocationControl from './LocationControl'
@@ -285,6 +289,9 @@ export default function MapLibreShell({
           count: clusterFarms.length
         })
         setShowClusterPreview(true)
+        // Keyboard/SR users get no visual cue that the preview opened, so
+        // announce the cluster's farm count via the polite live region.
+        announce(ANNOUNCEMENTS.clusterExpanded(clusterFarms.length))
         return
       }
     }
@@ -311,6 +318,9 @@ export default function MapLibreShell({
       duration: 400,
       easing: (t) => t * (2 - t) // Ease-out quad for smooth deceleration
     })
+    // Activating a cluster destroys the focused element (focus falls to body)
+    // and the zoom is invisible to SR users, so announce what was expanded.
+    announce(ANNOUNCEMENTS.clusterExpanded(count))
   }, [getClusterLeaves, getClusterExpansionZoom, triggerHaptic])
 
   // Handle marker click
