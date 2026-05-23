@@ -12,7 +12,8 @@
     "generate:produce-images": "tsx src/scripts/generate-produce-images.ts",
     "generate:farm-images": "tsx src/scripts/generate-farm-images.ts",
     "generate:county-images": "tsx src/scripts/generate-county-images.ts",
-    "generate:pitti": "tsx src/scripts/generate-pitti-image.ts"
+    "generate:pitti": "tsx src/scripts/generate-pitti-image.ts",
+    "pipeline": "tsx src/scripts/pipeline/run.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.668.0",
