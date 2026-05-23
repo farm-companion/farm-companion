@@ -1,0 +1,7 @@
+{
+  "elements": [
+    { "type": "node", "id": 1234, "lat": 50.5008, "lon": -3.7, "tags": { "shop": "farm", "name": "Riverford Farm Shop", "addr:postcode": "TQ11 0JU", "addr:city": "Buckfastleigh", "website": "https://riverford.co.uk", "phone": "01803 762059", "opening_hours": "Mo-Sa 09:00-17:00" } },
+    { "type": "way", "id": 5678, "center": { "lat": 51.1, "lon": -1.2 }, "tags": { "shop": "farm", "name": "Nameless Way Farm" } },
+    { "type": "node", "id": 9999, "lat": 52.0, "lon": -1.0, "tags": { "amenity": "cafe", "name": "Not A Farm" } }
+  ]
+}
