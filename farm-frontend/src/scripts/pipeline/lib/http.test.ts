@@ -35,3 +35,34 @@ test('does not retry on 400 (client error)', async () => {
   await assert.rejects(fetchWithRetry('https://x', {}, { fetcher, minDelayMs: 0, maxAttempts: 3, backoffBaseMs: 1 }), /400/)
   assert.equal(calls, 1)
 })
+
+test('injects a descriptive User-Agent when caller provides none', async () => {
+  let seen: Headers | undefined
+  const fetcher = (async (_url: unknown, init?: RequestInit) => {
+    seen = new Headers(init?.headers)
+    return jsonResponse({ ok: true })
+  }) as unknown as typeof fetch
+  await fetchWithRetry('https://x', {}, { fetcher, minDelayMs: 0 })
+  assert.match(seen?.get('user-agent') ?? '', /FarmCompanion/i)
+})
+
+test('preserves a caller-provided User-Agent', async () => {
+  let seen: Headers | undefined
+  const fetcher = (async (_url: unknown, init?: RequestInit) => {
+    seen = new Headers(init?.headers)
+    return jsonResponse({ ok: true })
+  }) as unknown as typeof fetch
+  await fetchWithRetry('https://x', { headers: { 'User-Agent': 'custom/9' } }, { fetcher, minDelayMs: 0 })
+  assert.equal(seen?.get('user-agent'), 'custom/9')
+})
+
+test('preserves caller Content-Type while adding the default User-Agent', async () => {
+  let seen: Headers | undefined
+  const fetcher = (async (_url: unknown, init?: RequestInit) => {
+    seen = new Headers(init?.headers)
+    return jsonResponse({ ok: true })
+  }) as unknown as typeof fetch
+  await fetchWithRetry('https://x', { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }, { fetcher, minDelayMs: 0 })
+  assert.equal(seen?.get('content-type'), 'application/x-www-form-urlencoded')
+  assert.match(seen?.get('user-agent') ?? '', /FarmCompanion/i)
+})
