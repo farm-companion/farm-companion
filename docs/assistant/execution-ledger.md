@@ -101,6 +101,16 @@ When this snapshot drifts from reality, the next ledger-reality-check slice shou
 - [x] Add retries and backoff (Comprehensive retry.py with exponential backoff, jitter, async/sync decorators, retry context manager, predefined configs)
 - [x] Structured logging (Comprehensive logging.py with JSON formatter, colored console output, performance logger, progress logger, function call decorator)
 
+#### 2026-05-24 — First live `pnpm pipeline --apply` run + optional-location fix (branch `fix/pipeline-load-optional-address`)
+- **First real apply run** (not dry-run): report `created 3391 (incl. failed-create attempts), updated 214, noop 17, skipped 141, imagesAttached 9912, categoriesLinked 2071, errors 1534`. True successful creates ≈ 1850 (the `created` counter at `07-load.ts:117` increments before the DB call, so it overcounts failed creates — reporting-accuracy follow-up noted below).
+- **Root cause of 1534 errors** (systematic-debugging, evidence from `.pipeline/06-merge.json`): creates missing required columns — `address` 1381, `postcode` 544, `county` 666, `lat/lng` 956. FSA rows legitimately have sparse data (e.g. partial/outward postcodes like "SN10" that postcodes.io cannot geocode → no coordinates).
+- **Fix (Option A, user-approved):** `address`/`county`/`postcode` made OPTIONAL in `prisma/schema.prisma`; `latitude`/`longitude` kept REQUIRED. `applyChangeSet` now SKIPS creates lacking lat/lng (counted as `skipped`, logged, not errored) — map-first: no coordinates means no pin. TDD: 2 new tests in `07-load.test.ts` (RED→GREEN); existing create fixtures gained `COORDS`.
+- **Consumer null-handling** (nullable `string|null` ripple): coerced at the `Farm`→`FarmShop` boundary in `farm-data.ts`; null-county filtered out of stats in `queries/{categories,counties,farms}.ts` and `generate-county-images.ts`.
+- **Verified:** `tsc --noEmit` exit 0; `pnpm test:unit` 194 pass / 0 fail; `eslint` exit 0 on all touched files; `prisma validate` ok.
+- **File-count note:** 9 files touched (over the 8 soft cap) — all coupled to the nullable-schema change and required to keep `tsc` green in one slice; not splittable without a red build.
+- **PENDING (operator + rerun):** (1) `prisma db push` to live Hetzner Postgres (relaxes 3 NOT NULL constraints; non-destructive). (2) rerun `pnpm pipeline --from 6 --to 7 --apply` — merge re-snapshots the DB so the ~1850 existing rows become noop/update, the ~469 coord-having address-less rows get created, the ~956 coordless rows are cleanly skipped.
+- **Follow-ups:** fix `created` counter to increment only after a successful `prisma.farm.create` (report accuracy); display polish to hide empty address/postcode/county in farm UI (currently coerced to `''`); revisit the ~956 skipped rows when geocoding coverage improves (full-postcode enrichment); stage 05 concurrency pool (worker-pool approach chosen, brainstorm paused).
+
 ### Queue 8: Design System Foundation (God-Tier Transformation)
 - [x] Consolidate color tokens - Add primary color scale (Slice 1)
 - [x] Typography system - 5 semantic styles defined (Slice 2 - display/heading/body/caption/small)

@@ -32,11 +32,13 @@ export async function getAllCounties() {
       },
     })
 
-    return counties.map((county: { county: string; _count: { id: number } }) => ({
-      name: county.county,
-      slug: slugifyCounty(county.county),
-      farmCount: county._count.id,
-    }))
+    return counties
+      .filter((county: { county: string | null }) => county.county)
+      .map((county: { county: string | null; _count: { id: number } }) => ({
+        name: county.county ?? '',
+        slug: slugifyCounty(county.county ?? ''),
+        farmCount: county._count.id,
+      }))
   } catch (error) {
     console.warn(`[counties] getAllCounties failed (expected during build without DB): ${error}`)
     return []
@@ -316,7 +318,7 @@ async function getCountyNameFromSlug(slug: string): Promise<string | null> {
     })
 
     // Find matching county by slug
-    const match = counties.find((c: { county: string }) => slugifyCounty(c.county) === slug)
+    const match = counties.find((c: { county: string | null }) => c.county != null && slugifyCounty(c.county) === slug)
     return match?.county || null
   } catch (error) {
     console.warn(`[counties] getCountyNameFromSlug failed (expected during build without DB): ${error}`)

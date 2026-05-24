@@ -26,10 +26,13 @@ model Farm {
   description String? @db.Text
 
   // Location
-  address   String  @db.Text
+  // address/county/postcode are optional: FSA-sourced rows legitimately lack
+  // them (e.g. partial/outward postcodes). A farm is still a valid map pin with
+  // coordinates alone; the pipeline load gate (07-load.ts) requires lat/lng.
+  address   String? @db.Text
   city      String? @db.VarChar(100)
-  county    String  @db.VarChar(100)
-  postcode  String  @db.VarChar(10)
+  county    String? @db.VarChar(100)
+  postcode  String? @db.VarChar(10)
   // Coordinates with valid geographic bounds
   // CHECK constraint: latitude >= -90 AND latitude <= 90
   latitude  Decimal @db.Decimal(10, 8)

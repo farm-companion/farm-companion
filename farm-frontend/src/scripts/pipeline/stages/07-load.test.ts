@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import type { ChangeSet } from '../types'
+import type { ChangeSet, FieldDiff } from '../types'
 import { applyChangeSet } from './07-load'
 
 function mockPrisma(existingImages: { url: string }[] = []) {
@@ -27,8 +27,14 @@ function mockPrisma(existingImages: { url: string }[] = []) {
   }
 }
 
+// A valid create now requires coordinates (map-first gate in applyChangeSet).
+const COORDS: FieldDiff[] = [
+  { field: 'latitude', from: null, to: 51.5, reason: 'create' },
+  { field: 'longitude', from: null, to: -0.12, reason: 'create' },
+]
+
 const changeSet: ChangeSet = [
-  { action: 'create', matchKey: null, slug: 'a', osmId: 'node:1', fields: [{ field: 'name', from: null, to: 'A', reason: 'create' }], provenanceNext: { name: { source: 'osm', at: 'x' } } },
+  { action: 'create', matchKey: null, slug: 'a', osmId: 'node:1', fields: [{ field: 'name', from: null, to: 'A', reason: 'create' }, ...COORDS], provenanceNext: { name: { source: 'osm', at: 'x' } } },
   { action: 'update', matchKey: 'b', slug: 'b', targetId: 'row-b', fields: [{ field: 'address', from: 'old', to: 'new', reason: 'r' }], provenanceNext: {} },
   { action: 'noop', matchKey: 'c', slug: 'c', targetId: 'row-c', fields: [], provenanceNext: {} },
 ]
@@ -91,12 +97,38 @@ test('create with no slug (unnamed candidate) is a skip, not an error', async ()
   assert.equal(prisma.calls.filter((c) => c.op === 'create').length, 0)
 })
 
+test('create with no coordinates is a skip, not an error (map-first: no pin without lat/lng)', async () => {
+  const prisma = mockPrisma()
+  const cs: ChangeSet = [{
+    action: 'create', matchKey: null, slug: 'a',
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }, { field: 'postcode', from: null, to: 'SN10', reason: 'c' }],
+    provenanceNext: {},
+  }]
+  const report = await applyChangeSet(cs, prisma as never, { apply: true })
+  assert.equal(report.skipped, 1)
+  assert.equal(report.errors, 0)
+  assert.equal(report.created, 0)
+  assert.equal(prisma.calls.filter((c) => c.op === 'create').length, 0)
+})
+
+test('create with latitude but no longitude is still skipped (both required)', async () => {
+  const prisma = mockPrisma()
+  const cs: ChangeSet = [{
+    action: 'create', matchKey: null, slug: 'a',
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }, { field: 'latitude', from: null, to: 51.5, reason: 'c' }],
+    provenanceNext: {},
+  }]
+  const report = await applyChangeSet(cs, prisma as never, { apply: true })
+  assert.equal(report.skipped, 1)
+  assert.equal(report.created, 0)
+})
+
 test('apply: create links its categories (known slugs only) and counts them', async () => {
   const prisma = mockPrisma()
   const cs: ChangeSet = [{
     action: 'create', matchKey: null, slug: 'a', osmId: 'node:1',
     categories: ['farm-shops', 'organic', 'unknown-slug'],
-    fields: [{ field: 'name', from: null, to: 'A', reason: 'create' }],
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'create' }, ...COORDS],
     provenanceNext: {},
   }]
   const report = await applyChangeSet(cs, prisma as never, { apply: true })
@@ -125,7 +157,7 @@ test('dry-run: categories are counted but NO farmCategory.upsert calls happen', 
   const prisma = mockPrisma()
   const cs: ChangeSet = [{
     action: 'create', matchKey: null, slug: 'a', categories: ['farm-shops', 'organic'],
-    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }], provenanceNext: {},
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }, ...COORDS], provenanceNext: {},
   }]
   const report = await applyChangeSet(cs, prisma as never, { apply: false })
   assert.equal(prisma.calls.filter((c) => c.op === 'fc-upsert').length, 0)
@@ -140,7 +172,7 @@ test('apply create: CC images are created as pending/cc/non-hero and counted', a
   const cs: ChangeSet = [{
     action: 'create', matchKey: null, slug: 'a', osmId: 'node:1',
     images: [ccImg('https://img/1.jpg'), ccImg('https://img/2.jpg')],
-    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }], provenanceNext: {},
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }, ...COORDS], provenanceNext: {},
   }]
   const report = await applyChangeSet(cs, prisma as never, { apply: true })
   const creates = prisma.calls.filter((c) => c.op === 'img-create')
@@ -174,7 +206,7 @@ test('dry-run: images counted but NO img-create calls', async () => {
   const prisma = mockPrisma()
   const cs: ChangeSet = [{
     action: 'create', matchKey: null, slug: 'a', images: [ccImg('https://img/1.jpg')],
-    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }], provenanceNext: {},
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }, ...COORDS], provenanceNext: {},
   }]
   const report = await applyChangeSet(cs, prisma as never, { apply: false })
   assert.equal(prisma.calls.filter((c) => c.op === 'img-create').length, 0)

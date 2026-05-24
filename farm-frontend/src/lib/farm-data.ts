@@ -54,10 +54,10 @@ export async function getFarmData(): Promise<FarmShop[]> {
         location: {
           lat: Number(farm.latitude),
           lng: Number(farm.longitude),
-          address: farm.address,
+          address: farm.address ?? '',
           city: farm.city || undefined,
-          county: farm.county,
-          postcode: farm.postcode,
+          county: farm.county ?? '',
+          postcode: farm.postcode ?? '',
         },
         contact: {
           phone: farm.phone || undefined,
@@ -153,10 +153,10 @@ export async function getFarmBySlug(slug: string): Promise<FarmShop | null> {
       location: {
         lat,
         lng,
-        address: farm.address,
+        address: farm.address ?? '',
         city: farm.city || undefined,
-        county: farm.county,
-        postcode: farm.postcode,
+        county: farm.county ?? '',
+        postcode: farm.postcode ?? '',
       },
       contact: {
         phone: farm.phone || undefined,

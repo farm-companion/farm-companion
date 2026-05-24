@@ -113,6 +113,17 @@ export async function applyChangeSet(
           log('warn', 'create skipped: candidate has no name/slug', { stage: '07' })
           continue
         }
+        const hasCoords = change.fields.some((f) => f.field === 'latitude')
+          && change.fields.some((f) => f.field === 'longitude')
+        if (!hasCoords) {
+          // Map-first directory: a farm with no coordinates cannot be a pin and
+          // would fail the required lat/lng columns anyway (e.g. an FSA row with
+          // only a partial/outward postcode that postcodes.io could not geocode).
+          // Expected skip, not an error; revisit when geocoding coverage improves.
+          report.skipped++
+          log('warn', 'create skipped: candidate has no coordinates', { stage: '07', slug: change.slug })
+          continue
+        }
         for (const diff of change.fields) report.byField[diff.field] = (report.byField[diff.field] ?? 0) + 1
         report.created++
         const created = opts.apply ? await prisma.farm.create({ data: { ...buildData(change), slug: change.slug } }) : null
