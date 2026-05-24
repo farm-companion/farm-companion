@@ -1,0 +1,3 @@
+# Scrape sidecar (src/scrape_sidecar.py) — Python 3.12.
+# After install run: crawl4ai-setup   (downloads the pinned Chromium)
+crawl4ai==0.7.4

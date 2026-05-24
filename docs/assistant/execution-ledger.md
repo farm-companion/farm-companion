@@ -122,6 +122,16 @@ When this snapshot drifts from reality, the next ledger-reality-check slice shou
 - **PENDING (operator + rerun):** (1) `prisma db push` to live Hetzner Postgres (relaxes 3 NOT NULL constraints; non-destructive). (2) rerun `pnpm pipeline --from 6 --to 7 --apply` — merge re-snapshots the DB so the ~1850 existing rows become noop/update, the ~469 coord-having address-less rows get created, the ~956 coordless rows are cleanly skipped.
 - **Follow-ups:** fix `created` counter to increment only after a successful `prisma.farm.create` (report accuracy); display polish to hide empty address/postcode/county in farm UI (currently coerced to `''`); revisit the ~956 skipped rows when geocoding coverage improves (full-postcode enrichment); stage 05 concurrency pool (worker-pool approach chosen, brainstorm paused).
 
+#### 2026-05-24 — First live `pnpm pipeline --apply` run + optional-location fix (branch `fix/pipeline-load-optional-address`)
+- **First real apply run** (not dry-run): report `created 3391 (incl. failed-create attempts), updated 214, noop 17, skipped 141, imagesAttached 9912, categoriesLinked 2071, errors 1534`. True successful creates ≈ 1850 (the `created` counter at `07-load.ts:117` increments before the DB call, so it overcounts failed creates — reporting-accuracy follow-up noted below).
+- **Root cause of 1534 errors** (systematic-debugging, evidence from `.pipeline/06-merge.json`): creates missing required columns — `address` 1381, `postcode` 544, `county` 666, `lat/lng` 956. FSA rows legitimately have sparse data (e.g. partial/outward postcodes like "SN10" that postcodes.io cannot geocode → no coordinates).
+- **Fix (Option A, user-approved):** `address`/`county`/`postcode` made OPTIONAL in `prisma/schema.prisma`; `latitude`/`longitude` kept REQUIRED. `applyChangeSet` now SKIPS creates lacking lat/lng (counted as `skipped`, logged, not errored) — map-first: no coordinates means no pin. TDD: 2 new tests in `07-load.test.ts` (RED→GREEN); existing create fixtures gained `COORDS`.
+- **Consumer null-handling** (nullable `string|null` ripple): coerced at the `Farm`→`FarmShop` boundary in `farm-data.ts`; null-county filtered out of stats in `queries/{categories,counties,farms}.ts` and `generate-county-images.ts`.
+- **Verified:** `tsc --noEmit` exit 0; `pnpm test:unit` 194 pass / 0 fail; `eslint` exit 0 on all touched files; `prisma validate` ok.
+- **File-count note:** 9 files touched (over the 8 soft cap) — all coupled to the nullable-schema change and required to keep `tsc` green in one slice; not splittable without a red build.
+- **PENDING (operator + rerun):** (1) `prisma db push` to live Hetzner Postgres (relaxes 3 NOT NULL constraints; non-destructive). (2) rerun `pnpm pipeline --from 6 --to 7 --apply` — merge re-snapshots the DB so the ~1850 existing rows become noop/update, the ~469 coord-having address-less rows get created, the ~956 coordless rows are cleanly skipped.
+- **Follow-ups:** fix `created` counter to increment only after a successful `prisma.farm.create` (report accuracy); display polish to hide empty address/postcode/county in farm UI (currently coerced to `''`); revisit the ~956 skipped rows when geocoding coverage improves (full-postcode enrichment); stage 05 concurrency pool (worker-pool approach chosen, brainstorm paused).
+
 ### Queue 8: Design System Foundation (God-Tier Transformation)
 - [x] Consolidate color tokens - Add primary color scale (Slice 1)
 - [x] Typography system - 5 semantic styles defined (Slice 2 - display/heading/body/caption/small)
@@ -3044,3 +3054,136 @@ The first live runs surfaced real-API issues the fixture tests could not (each f
 **Verified — clean dry-run (`--limit 50`):** `created 34, updated 8, skipped 8, imagesAttached 210, categoriesLinked 42, errors 0`. All five sources working; OSM returned 1044 GB farm shops, FSA 1000 Farmers/growers. `pnpm test:unit` 192 pass / 0 fail, `tsc --noEmit` clean.
 
 **Still owed (operator):** optionally re-run to see the faster/progress-logged stage 05; then retire Python `farm-pipeline/` and merge; a real `--apply` populates the DB (idempotent; dry-run-first). Follow-ups: image-fetch concurrency for the full ~1300-farm run (currently sequential ~25min); a `fetchWithRetry` request timeout (no genuine hang observed, but a stalled request has no timeout); Retailers-other (4613) FSA corroboration + OL-2 low-confidence suppression.
+
+---
+
+### 2026-05-24 — Farm content backfill: Slice 4 — deterministic description validator (the gate)
+
+**Context:** Prod has 3,512 farms; 2,641 (75%) lack descriptions, ~3,426 lack real photos — the open-data pipeline (OSM+FSA) imported skeletons (name+coords). A retired Python workflow (recoverable at `git show 71d40af^:farm-pipeline/src/farm_description_workflow.py`) did scrape→DeepSeek→description but is a hallucination engine: 250-word floor, hardcoded `"Family-run farm with traditional values"` fallback, zero validation (its log: "Scraped 0 content sections → Generated 223 word description"). Approved plan (`~/.claude/plans/can-we-improve-upon-dapper-metcalfe.md`): two-stage backfill — Python crawl4ai scrapes → tested TS pipeline validates+writes; DeepSeek phrases only, never invents; a deterministic validator is the trust anchor. Decisions locked: reuse crawl4ai; skip web-discovery for ~1,317 FSA-only farms (honest brief lines); also backfill grounded openingHours/facilities/phone; run apothecary image generator in parallel (Track B).
+
+**Goal:** Ship the validator first — pure TS, fully locally verifiable, no external deps (DeepSeek/DB/crawl4ai all unneeded to test it).
+
+**Done (TDD, red→green):**
+- CREATE `farm-frontend/src/scripts/pipeline/enrich/validate.ts` (167 lines): `validateDescription(candidate, ground)` returns `{ok}` or `{ok:false, code, detail}`. Reject rules in order: empty, markup/link/emoji, name-only, too_short(<12), too_long(fact-scaled `clamp(80+60*factCount,120,480)`), invention markers (`INVENTION_MARKERS` regex set: family-run/established/heritage/award/superlatives — rejected even if in corpus), year-not-in-corpus, ungrounded facility/product noun (`FACILITY_PRODUCT_NOUNS` + `NOUN_TO_CATEGORY` grounding), ungrounded place (mid-sentence capitalized), ungrounded claim (every ≥4-char content token must be whitelisted, a fact-sheet value, or in corpus). Plus `buildFallback(factSheet)` — honest brief line built only from facts, passes the validator by construction.
+- CREATE `validate.test.ts` (120 lines, 18 table-driven cases): every rule ±, incl. retired-prompt samples ("family-run", "established with traditional values", "award-winning") asserted FAIL; fallback always validates incl. name-only farms.
+
+**Verification (ran, passed):** `tsx --test validate.test.ts` 18/18; `pnpm test:unit` 214 pass / 0 fail (no regression); `tsc --noEmit` exit 0. validate.ts 167 lines (under soft 300).
+
+**Risk/rollback:** Pure additive new module, imported by nothing in prod yet (only its test). Rollback: delete the two files. No schema, no DB, no network touched.
+
+**Next:** Slice 3 — DeepSeek client (`lib/deepseek.ts`, phrasing+extraction, low temp, injectable fetcher) TDD; then Slice 2 export-targets; then Slice 1 Python scrape sidecar (operator venv step); then Slice 5 wires 08-enrich + 07-load never-clobber/lastEnrichedAt; Track B images in parallel.
+
+---
+
+### 2026-05-24 — Farm content backfill: Slice 3 — DeepSeek client (phrasing + verbatim extraction)
+
+**Goal:** A thin DeepSeek client that PHRASES facts and EXTRACTS verbatim facts — never a content source — built on the pipeline's `fetchWithRetry` (injectable `fetcher`), TDD with a mock fetcher (no live API).
+
+**Done (TDD, red→green):**
+- CREATE `farm-frontend/src/scripts/pipeline/lib/deepseek.ts` (122 lines): `extractFacts(corpus)` → strict `ExtractedFacts` JSON (openingHours/phone/products/facilities/organic), tolerant parser (strips ```json fences, returns empty facts on unparseable content — never crashes). `phraseDescription(factSheet, facts)` → 1-3 plain sentences, closed-world system prompt that echoes `BANNED_WORD_HINTS` and states "no minimum length". `phraseMaxTokens(fs)` fact-scaled `clamp(120+40*factCount,160,512)`. Temp 0 (extract) / 0.1 (phrase), model `deepseek-chat` (env-overridable), key from `opts.apiKey ?? DEEPSEEK_API_KEY`, bearer auth.
+- MODIFY `enrich/validate.ts`: add `BANNED_WORD_HINTS` string list (human-readable echo of `INVENTION_MARKERS` for the prompt; validator regexes remain the authority).
+- CREATE `lib/deepseek.test.ts` (84 lines, 7 cases, mock fetcher): asserts deepseek-chat + temp<=0.2, prompt carries fact-sheet values + a banned hint (`family-run`), bearer key, fact-scaled+capped tokens, JSON/ fenced/ unparseable extraction.
+
+**Verification (ran, passed):** `tsx --test deepseek.test.ts` 7/7; `pnpm test:unit` 221 pass / 0 fail; `tsc --noEmit` exit 0. deepseek.ts 122 lines (under soft 300). No live API call (mock fetcher only).
+
+**Risk/rollback:** Additive; imported only by its test so far. Rollback: delete the two new files + revert the `BANNED_WORD_HINTS` block in validate.ts. No schema/DB/network touched in tests.
+
+**Next:** Slice 2 — `enrich/export-targets.ts` (read-only Prisma: website vs FSA-thin target lists → `.enrichment/_targets.json`) TDD with mock Prisma; then Slice 1 Python scrape sidecar (operator venv); then Slice 5 wires `08-enrich-content.ts` + `07-load` never-clobber/`lastEnrichedAt`; Track B images in parallel.
+
+---
+
+### 2026-05-24 — Farm content backfill: Slice 2 — enrichment target export (read-only)
+
+**Goal:** Produce the target list the Python sidecar + enrich stage consume, split into scrapeable (usable website) vs thin (FSA-only, honest brief line). Read-only; TDD with mock Prisma; verified against the live DB.
+
+**Done (TDD, red→green):**
+- CREATE `farm-frontend/src/scripts/pipeline/enrich/export-targets.ts` (97 lines): `buildTargets(rows)` (pure) → `EnrichTarget{slug,name,website,scrape,factSheet}`; `scrape` true only for `^https?://` non-social URLs (`SOCIAL` regex drops facebook/instagram/twitter/tiktok/linktr/whatsapp). `loadTargets(prisma,{limit})` selects description-less farms (`OR description null|''`) with categories→slugs. `runExportTargets` writes `.enrichment/_targets.json` (real PrismaClient, `$disconnect` in finally). CLI guarded by `import.meta.url` in an async IIFE (top-level await breaks the cjs test transform) with inline dotenv load.
+- CREATE `export-targets.test.ts` (4 cases, mock Prisma): website→scrape, no-website→thin, social→not scraped, `loadTargets` passes `take=limit` + description filter.
+- MODIFY `farm-frontend/.gitignore`: add `.enrichment/` (prod-derived corpus/targets, never commit).
+
+**Verification (ran, passed):** `tsx --test export-targets.test.ts` 4/4; `pnpm test:unit` 225 pass / 0 fail; `tsc --noEmit` exit 0. **Live read-only smoke** `export-targets --limit=5` → wrote `_targets.json` (5 targets, first 5 are FSA-thin no-website, e.g. `portna-bees`/Causeway Coast and Glens/BT51 5SH/farm-shops). No DB writes. export-targets.ts 97 lines (under soft 300).
+
+**Risk/rollback:** Read-only query + local artifact only. Rollback: delete the two files + revert the `.gitignore` line.
+
+**Status:** Slices 4 (validator), 3 (DeepSeek client), 2 (target export) complete — the pure-TS, locally-verifiable core. **Next: Slice 1 — Python crawl4ai scrape sidecar (revive from `git show 71d40af^`), which needs an OPERATOR venv install before it can be run/verified.** Then Slice 5 wires `08-enrich-content.ts` + extends `07-load` (never-clobber description, `lastEnrichedAt`). Track B (apothecary images) runs in parallel after a 50-image cost probe.
+
+---
+
+### 2026-05-24 — Farm content backfill: Slice 1 — Python crawl4ai scrape sidecar (built + verified live)
+
+**Surprise win:** no operator venv install was needed — `farm-pipeline/.venv` is intact (Python 3.12, **crawl4ai 0.7.4**, Playwright importable). Only crawl4ai's pinned Chromium was missing; `crawl4ai-setup` fetched it (Chromium Headless Shell 136, ~80 MiB). So the sidecar was built AND verified live this session.
+
+**Done (TDD for pure helpers, live integration for the crawl):**
+- CREATE `farm-pipeline/src/scrape_sidecar.py` (~210 lines incl. docstring): crawl4ai `AsyncWebCrawler`+`BrowserConfig(headless, user_agent)`; per farm fetch homepage + up to 4 same-domain keyword pages (`about|produce|shop|visit|hours|opening|...`), combine `clean_markdown`, write corpus artifact. Pure helpers `same_domain`/`pick_internal_links`/`clean_markdown`/`build_artifact`/`is_fresh`. Statuses `ok|empty|no_website|robots_blocked|fetch_error`. robots.txt respected (urllib RobotFileParser), polite `--min-delay` (default 2s), `--max-age-days` cache skip. NO LLM, NO fabricated text — observed markdown only. Reads `farm-frontend/.enrichment/_targets.json`, writes `farm-frontend/.enrichment/<slug>.json`.
+- CREATE `farm-pipeline/src/scrape_sidecar_test.py` (5 unittest cases for the pure helpers).
+- CREATE `farm-pipeline/requirements.txt` (pin `crawl4ai==0.7.4` + setup note).
+
+**Verification (ran, passed):** `python -m unittest scrape_sidecar_test` 5/5. **Live crawl** of dartsfarm.co.uk → `status ok, 101,708 chars, 5 pages, http 200`; **cache re-run → `cached`** (no-op). Graceful-degrade paths exercised via helpers + try/except (robots_blocked/fetch_error/no_website write an artifact, never crash the batch). Temp fixtures cleaned.
+
+**Follow-up (noted, not a blocker):** raw markdown carries nav/social-link noise and is large (~100KB); feed a capped/`fit_markdown`-filtered corpus to the DeepSeek extraction in Slice 5 to cut tokens/cost. Validator grounding is unaffected by the noise.
+
+**Risk/rollback:** Sidecar is read-the-web → write-local-JSON only; no DB, no prod writes. Rollback: delete the three files. `.enrichment/` is gitignored so artifacts never commit.
+
+**Status:** Data-production half COMPLETE + verified — validator (S4), DeepSeek client (S3), target export (S2), scrape sidecar (S1). **Next: Slice 5 — `08-enrich-content.ts` (corpus + factSheet → extractFacts/phrase → validate → ChangeSet) + extend `07-load.ts` (never-clobber description on curated provenance, set `lastEnrichedAt`, `derived` provenance) with new mock-Prisma tests; wire `run.ts` + `pnpm enrich`.** Then Track B images after a 50-image Runware cost probe. Both gated by a human spot-review of `--dry-run` prose before any `--apply`.
+
+---
+
+### 2026-05-24 — Farm content backfill: Slice 5a — enrich-content stage (extract → phrase → validate → ChangeSet)
+
+**Goal:** Wire the three verified pieces (S4 validator, S3 DeepSeek client, S2 target export) into the orchestration stage that produces a description-only ChangeSet, TDD with a mock fetcher + temp-dir fs (no live API, no DB). Split out of the original Slice 5: the 07-load `lastEnrichedAt`/never-clobber extension + `run.ts`/`pnpm enrich` wiring are Slice 5b.
+
+**Done (TDD, red→green):**
+- CREATE `farm-frontend/src/scripts/pipeline/enrich/08-enrich-content.ts` (111 lines): `enrichOne(target, corpus)` — thin (no-website) or empty-corpus targets skip DeepSeek and take an honest `buildFallback` line (saves API spend on ~1,317 FSA-only farms); scrapeable targets run `extractFacts` (corpus capped at 16k chars for cost; grounding still uses full text) → `phraseDescription` → `validateDescription`, falling back on any reject. `buildEnrichChange` (pure) → description-only `update` FarmChange located by `targetId`, `derived` provenance, reason encodes `enrich:validated` | `enrich:fallback:<code>`. `runEnrichContent` reads `.enrichment/_targets.json` + per-slug corpus artifacts, writes `.enrichment/_enrich-changeset.json` (loadable by 07-load), logs grounded/fallback counts. Injectable `dir`/`fetcher` for tests.
+- MODIFY `enrich/export-targets.ts`: add `id` (Farm PK) to `EnrichTarget` + `buildTargets` passthrough — the enrich update's `targetId` locator. `id` was already selected by `loadTargets`, just not surfaced.
+- CREATE `08-enrich-content.test.ts` (100 lines, 6 cases, sequenced mock fetcher + temp dir): buildEnrichChange shape/reason both branches; thin target skips fetcher; grounded prose ships; invented prose ("family-run") rejected → fallback; runEnrichContent writes a loadable changeset.
+- MODIFY `export-targets.test.ts`: assert `id` passthrough.
+
+**Verification (ran, passed):** `tsx --test 08-enrich-content.test.ts` 6/6; `pnpm test:unit` 231 pass / 0 fail (was 225); `tsc --noEmit` exit 0. 08-enrich-content.ts 111 lines, export-targets.ts 101 (both under soft 300). No live API/DB touched.
+
+**Risk/rollback:** Additive new stage; writes only a local artifact (`_enrich-changeset.json`), no DB. The `EnrichTarget.id` addition is consumed only by the enrich path. Rollback: delete `08-enrich-content.{ts,test.ts}` and revert the `id` lines in export-targets.{ts,test.ts}.
+
+**Note (housekeeping):** a stray duplicate ledger exists at `farm-frontend/docs/assistant/execution-ledger.md` (old Jan entries only); the canonical ledger is this repo-root file. Consider removing the stray copy in a future slice.
+
+**Next:** Slice 5b — extend `07-load.ts` (set `lastEnrichedAt` on enriched updates; never-clobber description when existing provenance is curated, read at apply time) + wire `pnpm enrich` (export-targets → scrape sidecar → 08 → 07-load dry-run) with mock-Prisma tests. Then a human spot-review of `--dry-run` prose before any `--apply`; Track B images after a 50-image Runware cost probe.
+
+---
+
+### 2026-05-24 — Farm content backfill: Slice 5b — 07-load enrich integration (lastEnrichedAt + never-clobber) + runnable scripts
+
+**Goal:** Make the enrich changeset loadable safely: stamp `lastEnrichedAt`, never overwrite a real curated description, and expose runnable `pnpm enrich:*` steps. TDD with mock Prisma (no live DB/API).
+
+**Done (TDD, red→green):**
+- MODIFY `types.ts`: add optional `FarmChange.enriched?: boolean` — the explicit marker 07-load keys on (a heuristic on description+derived provenance would be fragile, since geocode also writes `derived`). Additive/optional; no existing consumer changes.
+- MODIFY `enrich/08-enrich-content.ts`: `buildEnrichChange` sets `enriched: true`.
+- MODIFY `stages/07-load.ts` (206 lines, under soft 300): (1) `buildData` stamps `lastEnrichedAt = new Date()` when `change.enriched`; (2) update branch never-clobber guard — for enriched changes, `farm.findUnique({select:{provenance,description}})` at apply time; skip (report.skipped++) when a **non-empty** description with a **curated** provenance source (owner/admin/user) exists. Tightened to non-empty so a stale curated provenance over a cleared description does not strand the farm. Runs in dry-run too (read-only) so the report reflects the skip. Enrich changes are description-only, so the guard is binary (no field-filtering). (3) `runLoad` takes optional `changeSetPath` (default `06-merge.json`); (4) added an `import.meta` CLI guard (`--changeset=<path>` + dry-run-default `--apply`) so 07-load can load the enrich changeset standalone.
+- MODIFY `stages/07-load.test.ts`: `mockPrisma` gains optional `existingFarm` + `farm.findUnique`; 4 new tests (lastEnrichedAt stamped + description written when not curated; never-clobber skip on curated; proceeds when curated-but-empty; dry-run reports the skip with zero writes).
+- MODIFY `enrich/08-enrich-content.test.ts`: assert `buildEnrichChange` sets `enriched: true`.
+- MODIFY `package.json`: `enrich:targets`, `enrich:content`, `enrich:load` scripts (the Python scrape sidecar is the operator step between targets and content).
+
+**Verification (ran, passed):** new tests confirmed RED first (07-load 16/17/19 failing pre-impl), then GREEN. `tsx --test 07-load.test.ts 08-enrich-content.test.ts` 25/25; `pnpm test:unit` 235 pass / 0 fail (was 231); `tsc --noEmit` exit 0.
+
+**Risk/rollback:** The main pipeline's update path is unchanged — `findUnique` runs only for `enriched` changes, so non-enrich updates pay no extra read. `runLoad` default (06-merge.json) preserved. `--apply` still requires omitting `--dry-run`. Rollback: revert the six files (all diffs are additive/guarded).
+
+**Operator run order (enrich, all dry-run-first):**
+1. `pnpm enrich:targets` — writes `.enrichment/_targets.json` (read-only DB).
+2. `python farm-pipeline/src/scrape_sidecar.py` (venv) — writes `.enrichment/<slug>.json` corpora.
+3. `pnpm enrich:content` (needs `DEEPSEEK_API_KEY`) — writes `.enrichment/_enrich-changeset.json`; logs grounded/fallback counts.
+4. `pnpm enrich:load` — DRY-RUN load of the changeset; **human spot-review the prose** in the report before any `--apply`.
+
+**Next:** human spot-review of a small `enrich:content --limit` batch's prose, then a guarded `enrich:load --apply`. Track B (apothecary images) after a 50-image Runware cost probe. Consider deleting the stray `farm-frontend/docs/assistant/execution-ledger.md` duplicate.
+
+---
+
+### 2026-05-24 — Farm content backfill: Slice 5b-fix — stale targets guard (first live enrich:load)
+
+**Symptom:** first `pnpm enrich:load` reported `errors 5` — every change "update missing targetId; skipped". **Root cause (systematic-debugging):** `.enrichment/_targets.json` was the Slice 2 smoke file, generated before `EnrichTarget.id` existed (5a). So `buildEnrichChange` set `targetId: undefined` and 07-load correctly rejected the batch. The fallback prose itself was fine.
+
+**Done (TDD, red→green):**
+- MODIFY `enrich/08-enrich-content.ts`: `runEnrichContent` now fails fast (before any DeepSeek spend) if any selected target lacks `id`, with a message telling the operator to re-run `pnpm enrich:targets`. Prevents a stale targets file from silently producing a targetId-less, unloadable changeset.
+- MODIFY `08-enrich-content.test.ts`: +1 test (stale targets file without `id` → `runEnrichContent` rejects).
+
+**Verification (ran, passed):** `tsx --test 08-enrich-content.test.ts` 7/7; `pnpm test:unit` 236 pass / 0 fail; `tsc --noEmit` clean. **Live re-run end-to-end:** regenerated targets (`export-targets --limit=5`, id present) → `pnpm enrich:content` (5 thin targets, no scrape, no DeepSeek) → `pnpm enrich:load` DRY-RUN: `created 0, updated 5, noop 0, skipped 0, errors 0, byField{description:5}`. Spot-reviewed prose — all 5 honest fact-only fallback lines (FSA-only, no-corpus), e.g. "Portna Bees is a farm shop in Causeway Coast and Glens." No invention.
+
+**Risk/rollback:** Guard is additive (throws only on malformed/stale targets). Rollback: revert the two files.
+
+**Next (operator):** real enrich pass — `pnpm enrich:targets` (full or `--limit`), Python `scrape_sidecar.py` for scrapeable farms (needs corpus before grounded prose), `pnpm enrich:content` (needs `DEEPSEEK_API_KEY`), spot-review grounded prose, then guarded `enrich:load --apply`.

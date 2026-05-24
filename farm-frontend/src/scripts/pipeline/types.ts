@@ -122,6 +122,12 @@ export interface FarmChange {
   fsaId?: string
   categories?: string[] // category slugs to link additively (from the candidate)
   images?: ImageCandidate[] // CC image candidates to attach (gallery, pending review)
+  /**
+   * Set by the enrich stage (08). Marks a content backfill so 07-load stamps
+   * Farm.lastEnrichedAt and applies the curated-description never-clobber guard.
+   * Enrich changes are description-only by construction (buildEnrichChange).
+   */
+  enriched?: boolean
   fields: FieldDiff[]
   provenanceNext: Provenance
 }

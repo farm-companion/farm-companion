@@ -13,7 +13,10 @@
     "generate:farm-images": "tsx src/scripts/generate-farm-images.ts",
     "generate:county-images": "tsx src/scripts/generate-county-images.ts",
     "generate:pitti": "tsx src/scripts/generate-pitti-image.ts",
-    "pipeline": "tsx src/scripts/pipeline/run.ts"
+    "pipeline": "tsx src/scripts/pipeline/run.ts",
+    "enrich:targets": "tsx src/scripts/pipeline/enrich/export-targets.ts",
+    "enrich:content": "tsx src/scripts/pipeline/enrich/08-enrich-content.ts",
+    "enrich:load": "tsx src/scripts/pipeline/stages/07-load.ts --changeset=.enrichment/_enrich-changeset.json"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.668.0",
