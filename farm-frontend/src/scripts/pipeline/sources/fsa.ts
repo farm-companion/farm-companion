@@ -30,6 +30,26 @@ function num(s: string | undefined): number | undefined {
   return Number.isFinite(n) ? n : undefined
 }
 
+// The FSA files commercial fishing vessels under "Farmers/growers" (id 7838),
+// so they pass the business-type gate. They are not farms. Exclude by name:
+// port-registration suffix (e.g. "SR2", "NN 748"), FV/MFV prefix, an explicit
+// "(Vessel)"/"Fishing Vessel" tag, or "X Fishing"/"Fishing Ltd".
+const VESSEL_NAME_PATTERNS: RegExp[] = [
+  /\b[A-Z]{1,3}\s?\d{1,4}$/, // PLN port letters + number at end
+  /^m?fv\b/i, // FV / MFV prefix
+  /\(\s*(fishing\s+)?vessel\s*\)/i, // "(Vessel)" / "(Fishing Vessel)"
+  /\bfishing\s+vessel\b/i,
+  /\bfishing\s+(ltd|limited)\b/i,
+  /\bfishing$/i, // name ending in "Fishing"
+]
+
+/** True when an FSA business name is a fishing vessel rather than a farm. */
+export function isVesselName(name: string | undefined): boolean {
+  if (!name) return false
+  const n = name.trim()
+  return VESSEL_NAME_PATTERNS.some((re) => re.test(n))
+}
+
 /** Pure parser - tested against fixtures. */
 export function parseFsa(res: FsaResponse): RawFarmCandidate[] {
   const out: RawFarmCandidate[] = []
@@ -37,6 +57,8 @@ export function parseFsa(res: FsaResponse): RawFarmCandidate[] {
     // FSA is a corroborating source; require a known farm-relevant type so
     // records with a missing/unknown type do not leak in as candidates.
     if (!e.BusinessType || !FARM_RELEVANT_TYPES.has(e.BusinessType)) continue
+    // Drop fishing vessels mis-filed under a farm business type.
+    if (isVesselName(e.BusinessName)) continue
     const addr = [e.AddressLine1, e.AddressLine2, e.AddressLine3].filter(Boolean).join(', ')
     out.push({
       source: 'fsa',

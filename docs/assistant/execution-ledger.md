@@ -1,5 +1,15 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-24 — FSA fishing-vessel contamination cleanup + filter
+
+The first full `--apply` run loaded 3,711 farms. Audit (triggered by "have we duplicated the farms") found NO duplicates (slugs/name+postcode unique) but 194 non-farm records: commercial fishing vessels the FSA files under "Farmers/growers" (businessTypeId 7838), all `dataSource='fsa'`, mostly snapped to shared harbour coordinates.
+
+- **Removed 194 records** in four backed-up passes (`farm-frontend/.cleanup-backups/*.json`, full rows incl. relations, reversible): 156 PLN-suffix names (`BH45`, `NN 748`), 25 `FV`/`MFV`/`(Vessel)` names, 7 Sovereign-Harbour coordinate boats, 6 commercial "X Fishing Ltd" firms. **Count 3,711 -> 3,517** (all active). Zero real farms removed (every name reviewed). Cascade deletes handled category/image/etc. links.
+- **Durable fix:** `sources/fsa.ts` now has `isVesselName()` + a `parseFsa` guard (PLN suffix, FV/MFV prefix, `(Vessel)`/`fishing vessel`, `fishing ltd`/ending in `fishing`). Without it the 194 re-import next run. TDD: `sources/fsa.test.ts` +2 tests; `tsx --test` pipeline suite 87/87 pass.
+- **Residual (not deleted, awaiting decision):** ~6 ambiguous names (Picalo, Pride of Parelle, Clarrisa, MA-NICK'S, G N Marine, "Boy Clive CO7"). Remaining coordinate collisions (35 groups) are legitimate businesses sharing postcode centroids (dairies, deer larders, distilleries), NOT duplicates.
+- **Site refresh owed (operator):** no on-demand revalidate route exists; the live site reflects the new count only after ISR expiry (homepage 1h, /shop+county 6h) or a fresh Vercel production redeploy. DB host is the prod Hetzner Postgres, so the data source is already correct.
+- **Follow-up:** the bare-named harbour boats (e.g. "Viking Princess", "Moon Star") have no name signal and were only caught by coordinate; a future FSA pass could store `BusinessType`/raw to enable a non-name filter.
+
 ## Production Infrastructure (current, May 2026)
 
 > Older ledger entries reference Supabase as the full production stack. That was historically accurate; production was migrated in two passes. **Hybrid stack now**: app on Vercel, backing services on Coolify-managed Hetzner, blob storage on Hetzner Object Storage. The 2026-05-19 ledger correction (Slice 1.3a / commit `9583d9b`) documented the Coolify/Hetzner backing-services move but over-generalised it to "production infra"; the Next.js app hosting was never part of that migration and still lives on Vercel. This block is the canonical source of truth.

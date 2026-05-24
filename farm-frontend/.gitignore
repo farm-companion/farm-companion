@@ -44,3 +44,6 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 .env*.local
+
+# local data-cleanup row backups (recovery only, never commit)
+.cleanup-backups/
