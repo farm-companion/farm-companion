@@ -18,6 +18,7 @@ export function buildChangeSet(
     const change = mergeFarm(match, c, now)
     if (matchKey === 'fuzzy') change.matchKey = 'fuzzy'
     if (c.categories.length > 0) change.categories = c.categories
+    if (c.images.length > 0) change.images = c.images
     return change
   })
 }

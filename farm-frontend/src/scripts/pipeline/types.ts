@@ -121,6 +121,7 @@ export interface FarmChange {
   osmId?: string    // row-level match id to persist (idempotent re-matching)
   fsaId?: string
   categories?: string[] // category slugs to link additively (from the candidate)
+  images?: ImageCandidate[] // CC image candidates to attach (gallery, pending review)
   fields: FieldDiff[]
   provenanceNext: Provenance
 }

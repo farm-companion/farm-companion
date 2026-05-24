@@ -5,7 +5,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { PIPELINE_CONFIG } from '../config'
 import { log } from '../lib/log'
-import type { ChangeSet, FarmChange, RunReport } from '../types'
+import type { ChangeSet, FarmChange, ImageCandidate, RunReport } from '../types'
 
 interface MinimalPrisma {
   farm: {
@@ -14,6 +14,10 @@ interface MinimalPrisma {
   }
   category: { findMany: (args: unknown) => Promise<{ id: string; slug: string }[]> }
   farmCategory: { upsert: (args: unknown) => Promise<unknown> }
+  image: {
+    findMany: (args: unknown) => Promise<{ url: string }[]>
+    create: (args: unknown) => Promise<unknown>
+  }
 }
 
 function emptyReport(): RunReport {
@@ -56,6 +60,38 @@ async function linkCategories(
   }
 }
 
+async function attachImages(
+  prisma: MinimalPrisma,
+  farmId: string | null,
+  images: ImageCandidate[] | undefined,
+  apply: boolean,
+  report: RunReport,
+): Promise<void> {
+  if (!images || images.length === 0) return
+  // Existing urls only knowable when we have a real farmId in apply mode.
+  const existing = (apply && farmId)
+    ? new Set((await prisma.image.findMany({ where: { farmId }, select: { url: true } })).map((r) => r.url))
+    : new Set<string>()
+  for (const img of images) {
+    if (existing.has(img.url)) continue
+    report.imagesAttached++
+    if (apply && farmId) {
+      await prisma.image.create({ data: {
+        farmId,
+        url: img.url,
+        source: img.source,
+        license: img.license,
+        attribution: img.attribution,
+        sourceUrl: img.sourceUrl,
+        uploadedBy: 'cc',
+        status: 'pending',
+        isHero: false,
+        displayOrder: 100,
+      } })
+    }
+  }
+}
+
 export async function applyChangeSet(
   changeSet: ChangeSet,
   prisma: MinimalPrisma,
@@ -78,6 +114,7 @@ export async function applyChangeSet(
         report.created++
         const created = opts.apply ? await prisma.farm.create({ data: { ...buildData(change), slug: change.slug } }) : null
         await linkCategories(prisma, created?.id ?? null, change.categories, categoryIdBySlug, opts.apply, report)
+        await attachImages(prisma, created?.id ?? null, change.images, opts.apply, report)
         continue
       }
 
@@ -91,6 +128,7 @@ export async function applyChangeSet(
       report.updated++
       if (opts.apply) await prisma.farm.update({ where: { id: change.targetId }, data: buildData(change) })
       await linkCategories(prisma, change.targetId, change.categories, categoryIdBySlug, opts.apply, report)
+      await attachImages(prisma, change.targetId, change.images, opts.apply, report)
     } catch (e) {
       report.errors++
       log('error', 'load row failed', { stage: '07', slug: change.slug, error: e instanceof Error ? e.message : String(e) })

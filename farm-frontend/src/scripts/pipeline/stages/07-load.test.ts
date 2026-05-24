@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import type { ChangeSet } from '../types'
 import { applyChangeSet } from './07-load'
 
-function mockPrisma() {
+function mockPrisma(existingImages: { url: string }[] = []) {
   const calls: { op: string; args: unknown }[] = []
   return {
     calls,
@@ -19,6 +19,10 @@ function mockPrisma() {
     },
     farmCategory: {
       upsert: async (args: unknown) => { calls.push({ op: 'fc-upsert', args }); return {} },
+    },
+    image: {
+      findMany: async () => existingImages,
+      create: async (args: unknown) => { calls.push({ op: 'img-create', args }); return {} },
     },
   }
 }
@@ -117,4 +121,52 @@ test('dry-run: categories are counted but NO farmCategory.upsert calls happen', 
   assert.equal(prisma.calls.filter((c) => c.op === 'fc-upsert').length, 0)
   assert.equal(prisma.calls.filter((c) => c.op === 'create').length, 0)
   assert.equal(report.categoriesLinked, 2)
+})
+
+const ccImg = (url: string) => ({ url, source: 'geograph' as const, license: 'CC-BY-SA-2.0', attribution: 'Jane Doe', sourceUrl: 'https://geograph/1', score: 5 })
+
+test('apply create: CC images are created as pending/cc/non-hero and counted', async () => {
+  const prisma = mockPrisma()
+  const cs: ChangeSet = [{
+    action: 'create', matchKey: null, slug: 'a', osmId: 'node:1',
+    images: [ccImg('https://img/1.jpg'), ccImg('https://img/2.jpg')],
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }], provenanceNext: {},
+  }]
+  const report = await applyChangeSet(cs, prisma as never, { apply: true })
+  const creates = prisma.calls.filter((c) => c.op === 'img-create')
+  assert.equal(creates.length, 2)
+  assert.equal(report.imagesAttached, 2)
+  const data = (creates[0].args as { data: Record<string, unknown> }).data
+  assert.equal(data.uploadedBy, 'cc')
+  assert.equal(data.status, 'pending')
+  assert.equal(data.isHero, false)
+  assert.equal(data.source, 'geograph')
+  assert.equal(data.license, 'CC-BY-SA-2.0')
+  assert.equal(data.farmId, 'new-id')
+})
+
+test('apply update: only NEW image urls are created (dedupe vs existing)', async () => {
+  const prisma = mockPrisma([{ url: 'https://img/1.jpg' }]) // already present
+  const cs: ChangeSet = [{
+    action: 'update', matchKey: 'b', slug: 'b', targetId: 'row-b',
+    images: [ccImg('https://img/1.jpg'), ccImg('https://img/2.jpg')],
+    fields: [{ field: 'address', from: 'old', to: 'new', reason: 'r' }], provenanceNext: {},
+  }]
+  const report = await applyChangeSet(cs, prisma as never, { apply: true })
+  const creates = prisma.calls.filter((c) => c.op === 'img-create')
+  assert.equal(creates.length, 1) // only img/2
+  assert.equal((creates[0].args as { data: { url: string; farmId: string } }).data.url, 'https://img/2.jpg')
+  assert.equal((creates[0].args as { data: { farmId: string } }).data.farmId, 'row-b')
+  assert.equal(report.imagesAttached, 1)
+})
+
+test('dry-run: images counted but NO img-create calls', async () => {
+  const prisma = mockPrisma()
+  const cs: ChangeSet = [{
+    action: 'create', matchKey: null, slug: 'a', images: [ccImg('https://img/1.jpg')],
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }], provenanceNext: {},
+  }]
+  const report = await applyChangeSet(cs, prisma as never, { apply: false })
+  assert.equal(prisma.calls.filter((c) => c.op === 'img-create').length, 0)
+  assert.equal(report.imagesAttached, 1)
 })
