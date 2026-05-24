@@ -1,0 +1,6 @@
+{
+  "establishments": [
+    { "FHRSID": 12345, "BusinessName": "Riverford Farm Shop", "BusinessType": "Retailers - other", "AddressLine1": "Wash Barn", "AddressLine2": "Buckfastleigh", "PostCode": "TQ11 0JU", "LocalAuthorityName": "South Hams", "geocode": { "latitude": "50.5008", "longitude": "-3.7" } },
+    { "FHRSID": 67890, "BusinessName": "City Kebab House", "BusinessType": "Takeaway/sandwich shop", "PostCode": "M1 1AA", "geocode": { "latitude": "53.4", "longitude": "-2.2" } }
+  ]
+}

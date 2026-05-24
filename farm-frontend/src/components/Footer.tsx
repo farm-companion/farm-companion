@@ -14,6 +14,7 @@ const discoverLinks = [
 const aboutLinks = [
   { href: '/about', label: 'About' },
   { href: '/privacy', label: 'Privacy & Terms' },
+  { href: '/data-attributions', label: 'Data & attributions' },
 ]
 
 const farmShopLinks = [

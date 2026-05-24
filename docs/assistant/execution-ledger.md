@@ -29,12 +29,21 @@
 
 ## Queue Status
 
-### Open Work Snapshot (2026-05-22, post Slice 1.8)
+### Open Work Snapshot (2026-05-23, post Slice 2.8 + pipeline-redesign spec)
 
-The 31 numbered queues below are historical and mostly closed. For a cold reader, the **actually open** Claude-side and operator-side items are:
+The 31 numbered queues below are historical and mostly closed (Queue 32 is now SUPERSEDED — see its note). For a cold reader, the **actually open** Claude-side and operator-side items are:
 
-**Claude-side (code/docs work):**
-- _None right now._ All named arcs (Pitti × Apothecary, Slice 1.3c Supabase cleanup, Slice 1.6 selector tests, Slice 1.7 test:unit unblock, Google Maps → MapLibre cutover) are closed as of 2026-05-22. Next thread is operator-picked from the list below or a new arc.
+**Closed since the last snapshot (2026-05-22):**
+- **Map-a11y arc (Slices 2.1-2.8)** — keyboard + screen-reader parity for both map providers (MapLibre + Leaflet): focusable/labelled markers and clusters, Popover keyboard contract (focus-move/Escape/return-focus), consolidated `announce()` + `ANNOUNCEMENTS` live-region path, ClusterPreview extraction, and MapLibreShell lint-cleanup. Slices 2.1-2.7 are merged (PRs #195-#201). **Slice 2.8 is complete + verified but NOT yet committed** (working tree: `M MapLibreShell.tsx`, `M execution-ledger.md`, `?? check-image-schema.ts`).
+
+**Claude-side (code/docs work) — current active arc:**
+- **Farm data pipeline redesign — slices A-J IMPLEMENTED** on branch `feat/farm-data-pipeline` (2026-05-23), TDD throughout, each slice spec + code-quality reviewed; `pnpm test:unit` 180 pass / 0 fail, `tsc --noEmit` clean. New TypeScript pipeline under `farm-frontend/src/scripts/pipeline/` (discover OSM+FSA -> normalize/dedupe -> geocode postcodes.io -> enrich -> CC images -> provenance-aware never-clobber merge -> dry-run-first load); additive provenance schema applied to the live Hetzner DB via `db push`. **Next (operator):** run `pnpm pipeline --dry-run --limit 50`, review the RunReport, then authorize retiring the Python `farm-pipeline/`; then merge the branch. See the dated entry below for the full slice list + deferred follow-ups.
+
+**Open threads (from 2026-05-23 handover, not blocking the pipeline arc):**
+- Commit Slice 2.8 + the `check-image-schema.ts` probe (operator decision: 3 files in the working tree).
+- `MapLibreShell.tsx` is 659 lines (hard limit 500, on a `// rationale:` header) — cluster/marker-layer extraction slice still open.
+- `markerState`/`popoverPosition` scaffolding preserved in 2.8 is **likely dead, not pending** (desktop popovers are served by `FarmPreviewCard`); a follow-up should confirm and remove it to clear the last 2 lint warnings.
+- Stale duplicate ledger at `farm-frontend/docs/assistant/execution-ledger.md` (431 lines, pre-2.x) — not the source of truth (this root file is); flagged for cleanup.
 
 **Operator-pending (no Claude work needed until operator acts):**
 - **Slice 1.1.3c Part 3 darts-farm DB backfill** — flip the single legacy darts-farm row `uploadedBy='ai_generator'` → `'ai_pitti'`. 3-step protocol, ~5 min, no spend. Ledger entry at "2026-05-22 — Slice 1.1.3c Part 3".
@@ -849,6 +858,8 @@ When this snapshot drifts from reality, the next ledger-reality-check slice shou
   - Verification: grep confirms no hardcoded grays in Skeleton/EmptyState
 
 ### Queue 32: Farm Pipeline Enrichment & Database Integration
+> **SUPERSEDED 2026-05-23** by `docs/superpowers/specs/2026-05-23-farm-data-pipeline-redesign.md`. The Google-Places-crawl approach below (the Python `farm-pipeline`, `google-photos.ts`, `import-farms.ts --force` blind overwrite, and the unsafe `prisma migrate dev` "Next Steps") is retired by the redesign: open-data-first discovery (OSM Overpass + FSA), field-level provenance, never-clobber merge, dry-run-first load. The slices below remain as a record of what shipped; do not run the "Next Steps" `migrate dev` against the live DB. New work tracks against the redesign spec (slices A-J).
+
 **Goal:** Connect farm-pipeline output to the live PostgreSQL database with hybrid image support.
 
 **Phase 1: Schema & Pipeline Fixes**
@@ -2933,3 +2944,82 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 - **Stale duplicate ledger** at `farm-frontend/docs/assistant/execution-ledger.md` (431 lines, pre-2.x) noticed this session — not the source of truth (root ledger is). Flagged for a future cleanup slice; not deleted here per the no-uncertain-delete rule.
 
 **Next slice:** Pivot to **Queue 4 — Design system & UI polish** (tokens: color/spacing/typography/motion; micro-interactions; WCAG AA states), or take the **MapLibreShell cluster/marker-layer extraction** slice to bring the file under the 500-line hard limit. Operator pick.
+
+---
+
+### 2026-05-23 — Plan reconciliation: farm-data pipeline redesign spec + queue alignment
+
+**Goal:** Integrate the verbally-approved farm-data pipeline redesign (from the 2026-05-23 20:15 handover) into the plan-of-record, and close the drift between the numbered queues and the running slice log.
+
+**Context:** A continuity check found the most recent design (the pipeline redesign) lived only as a "Decisions" bullet list in `context/handover-2026-05-23-2015.md` — never written to a spec, never in `writing-plans`, never reconciled with the ledger, and in direct conflict with the still-open Queue 32 (Google-Places crawl). Separately, the map-a11y arc (Slices 2.1-2.8) was complete in the slice log but absent from the numbered queue, and the Open Work Snapshot was frozen at 2026-05-22 ("Claude-side: none right now").
+
+**Files touched:** 1 created + 1 modified (docs only; no code).
+- CREATE `docs/superpowers/specs/2026-05-23-farm-data-pipeline-redesign.md` — comprehensive design spec (DRAFT, operator review): problem, principles, architecture (7 stages under `farm-frontend/src/scripts/pipeline/`), data sources (OSM Overpass, FSA, postcodes.io, Geograph, Wikimedia, Google hours-seam), field-level provenance model, never-clobber merge policy, safety/idempotency, slice breakdown A-J, testing, licensing/risks, rejected alternatives.
+- MODIFY `docs/assistant/execution-ledger.md`:
+  - Queue 32 marked **SUPERSEDED** by the spec (with a do-not-run warning on its `migrate dev` "Next Steps").
+  - Open Work Snapshot rewritten (per its own "rewrite, do not delete" instruction) to 2026-05-23: records the map-a11y arc as closed (2.8 pending commit), names the pipeline redesign as the current active arc, and carries the live open threads from the handover.
+
+**Verification:**
+- `docs/superpowers/specs/2026-05-23-farm-data-pipeline-redesign.md` exists; `ls` previously returned "No such file", confirming this is the first write (no duplicate).
+- Queue 32 header now carries the SUPERSEDED block; Open Work Snapshot header reads "2026-05-23, post Slice 2.8 + pipeline-redesign spec".
+
+**Risk and rollback:** Very low — documentation only, no code or schema touched. Rollback: `git checkout docs/assistant/execution-ledger.md` and delete the new spec file.
+
+**Next slice:** Operator reviews the spec; on approval, run `superpowers:writing-plans` to produce the full task-by-task implementation plan for slices A-J at `docs/superpowers/plans/2026-05-23-farm-data-pipeline-redesign.md` (TDD, foundation slices A/B first).
+
+---
+
+### 2026-05-23 — Farm data pipeline redesign: slices A-J implemented (branch `feat/farm-data-pipeline`)
+
+**Goal:** Build the open-data-first TypeScript pipeline from the spec/plan, replacing the Google-Places Python crawler. Subagent-driven execution (fresh implementer + two-stage spec/code-quality review per slice), TDD throughout.
+
+**Workspace:** branch `feat/farm-data-pipeline` off `master`. Slice 2.8 (MapLibreShell lint-cleanup) was committed to `master` first (`afe2e50`); the pipeline docs + reconciliation are `6d06913`.
+
+**Slices (all spec + code-quality reviewed, all `pnpm test:unit` green; final: 180 pass / 0 fail, `tsc --noEmit` clean):**
+- **A** `50bc5f0` — `pipeline/types.ts` contracts + `SOURCE_PRECEDENCE`; additive nullable provenance columns on Farm/Image (`provenance`, `osmId`, `fsaId`, `dataSource`, `lastEnrichedAt`; image `license`/`sourceUrl`/`attribution`); extended `check-image-schema.ts` probe. Schema applied to the live Hetzner DB via `pnpm prisma db push` (operator).
+- **B** `d43bbec` — pure merge policy: Dice-bigram `nameSimilarity`; `mergeFarm` (precedence, never-clobber curated, fill-empty, coord/status/verified guards) + `matchExisting` (osmId/fsaId/googlePlaceId/slug, then fuzzy 150m + 0.85 same-postcode). 22 + 5 tests.
+- **C** `5a5710c` + `de351e6` + `a3afa80` — `config`, structured `log`, retrying `http` (cap Retry-After 60s, honour minDelay on retries); OSM Overpass + FSA clients (pure parsers on fixtures); stage 01 discover with `dedupeBySourceId`.
+- **D** `fa1b8af` — stage 02 normalize + dedupe (collapse OSM+FSA by name+coords+postcode, source-precedence field merge, slugify incl. curly apostrophes).
+- **E** `2e5c498` — stage 03 geocode (postcodes.io bulk; fills missing coords/county/city tagged `derived`, never overwrites; injectable `minDelayMs`).
+- **F** `0160230` — stage 04 enrich (OSM tags -> additive category slugs); Google hours seam OFF by default and proven not to fetch.
+- **G** `9b91b04` — stage 05 image ranking/gating (attach CC only with license+attribution+sourceUrl, else AI-fallback flag); Geograph + Wikimedia parsers (Wikimedia regex rejects NC/ND); `/data-attributions` page + footer link.
+- **H** `1d0e452` — stage 06 merge (pure `buildChangeSet` + read-only `loadDbSnapshot` Decimal->number; runMerge writes ChangeSet, no DB writes).
+- **I** `0ac9b99` — stage 07 dry-run-first load (`applyChangeSet`: zero writes on dry-run, noop never writes, updates located by primary-key `id`, creates persist slug+osmId/fsaId, no `--force`); extended `FarmChange` with `targetId`/`osmId`/`fsaId`.
+- **J** `c91840d` — orchestrator `run.ts` (`--from/--to/--limit`, dry-run-default `--apply`, `--dry-run` wins; env loaded via first side-effect import) + `pnpm pipeline` script.
+- **K1** `61360ab` — stage 05 image fetch wired: `runImages` (now async) calls `fetchGeograph`/`fetchWikimedia` per candidate using lat/lng (per-source failure tolerated), combines with existing images deduped by url, then ranks; `aiFallbackEligible` now reflects real CC image absence. Orchestrator awaits it.
+- **K2a** `3094994` — persist farm-category links in load. `FarmChange.categories?: string[]`; `buildChangeSet` carries candidate slugs; `applyChangeSet` resolves slug->id once via `category.findMany`, upserts `farmCategory` idempotently for create/update rows (dry-run counts, no write; unknown slugs skipped). `RunReport.categoriesLinked` increments.
+- **K2b** `ef6ed87` — persist CC image rows in load. `FarmChange.images?: ImageCandidate[]`; `buildChangeSet` carries them; `applyChangeSet` creates `image` rows deduped by url for create/update (operator-locked: `status='pending'`, `uploadedBy='cc'`, `isHero=false`, `displayOrder=100`); dry-run counts `imagesAttached`, no write. Hero coverage unaffected (CC images are not selected by `selectFarmHeroImage`, which uses owner/admin/user -> ai_apothecary -> typography fallback).
+
+**Verification (A-J + K complete):** `pnpm tsc --noEmit` exit 0; `pnpm test:unit` 187 pass / 0 fail across 4 suites. Every slice spec + code-quality reviewed. Pure modules + source parsers tested against fixtures; load tested against a mock Prisma; no live network or DB touched by tests. The spec's §14 image/category DoD is now met in code; only the operator steps below remain.
+
+**Operator steps still owed (before CANONICAL + merge):**
+1. Live dry-run: `pnpm pipeline --dry-run --limit 50`, review `.pipeline/run-report-*.json` (created/updated/noop/byField; errors must be 0; row counts unchanged via the probe).
+2. Authorize retiring the Python `farm-pipeline/` (confirm no deploy/cron references), then it is `git rm -r`'d.
+3. Merge `feat/farm-data-pipeline` to `master`.
+
+**Deferred follow-ups (recorded, not blockers):**
+- **Slice K complete** — K1 `61360ab` (fetch wiring), K2a `3094994` (category links), K2b `ef6ed87` (CC image rows). The image+category path the earlier integration review flagged is now closed end-to-end; the pipeline is feature-complete in code.
+- **runImages performance (follow-up, not a blocker):** stage 05 fetches sequentially per candidate, 2 sources each with ~1s politeness delay, so a FULL run over ~1300 farms is ~40+ min wall-clock. Fine for `--dry-run --limit 50` (~100s). A future concurrency pass (small pool, e.g. p-limit 3-5) would cut this without breaking per-source courtesy. Document expected runtime for the operator.
+- `dataSource` heuristic in `07-load.buildData` can flip `osm`/`fsa` on update; decide whether to set it on create only.
+- Geograph `score = 1000 - distance` assumes metres; confirm the API distance unit.
+- Add a missing-`sourceUrl` gate test in `05-images.test.ts`; tighten the Wikimedia `PD` regex branch (PD-Mark currently accepted, safe-direction).
+- `normalize` dedupe is O(n^2) (~1300 farms ok; revisit if dataset grows 10x).
+- FSA paginator caps at `FSA_MAX_PAGES=50` with a truncation warning; raise/parametrise for a full national sweep if needed.
+- Optional: add a Prisma `directUrl` (direct, no pgbouncer) so `prisma db push`/migrations stop needing the manual pgbouncer-strip; `.env` now points at Hetzner (was a stale DigitalOcean host).
+
+**Risk and rollback:** All schema changes are additive/nullable; the load is dry-run-first with no `--force`; no owner/user data path is overwritten by machine sources (merge policy + tests). Rollback: the arc is an unmerged branch; `git branch -D feat/farm-data-pipeline` discards it. The live DB only gained nullable columns (harmless if unused).
+
+---
+
+### 2026-05-24 — Live dry-run hardening (first real `pnpm pipeline --dry-run --limit 50`)
+
+The first live runs surfaced real-API issues the fixture tests could not (each fixed via systematic-debugging: reproduce -> isolate -> fix -> verify against the live API):
+- `2693076` **Overpass HTTP 406** — its WAF blocklists the default Node/undici User-Agent (also curl/node/empty). `fetchWithRetry` now injects a descriptive `User-Agent` (env `PIPELINE_USER_AGENT`) on all requests; preserves caller UA/Content-Type. Verified undici -> 200. Also pre-empts Wikimedia's UA requirement.
+- `78bac55` **FSA HTTP 403** — an unfiltered `/Establishments` query is rejected ("CPU intensive"). Query `businessTypeId=7838` (Farmers/growers) instead. Plus stage 01 now wraps each source in try/catch so one source failing no longer aborts the run (OSM is primary).
+- `65502c4` **errors vs skipped** — an unnamed OSM `shop=farm` node has no slug and cannot become a farm; that create is now `skipped`, not `errors` (RunReport.errors reflects real failures only).
+- `ec60667` **Geograph HTTP 400** — `/api/0.1/geophotos` needs an API key ("Unknown method"); switched to the keyless `syndicator.php` JSON feed, proximity-filtered to <=0.5km, ranked by closeness, capped at 5. Verified undici -> 200.
+- `f08bfcb` **stage 05 perf/UX** — it fetched images per candidate silently for ~2min (looked hung). Added progress logging every 10 candidates and dropped the per-call delay 1000ms -> 250ms (Geograph ~50ms / Wikimedia ~600ms responses). ~140s -> ~40s for 50.
+
+**Verified — clean dry-run (`--limit 50`):** `created 34, updated 8, skipped 8, imagesAttached 210, categoriesLinked 42, errors 0`. All five sources working; OSM returned 1044 GB farm shops, FSA 1000 Farmers/growers. `pnpm test:unit` 192 pass / 0 fail, `tsc --noEmit` clean.
+
+**Still owed (operator):** optionally re-run to see the faster/progress-logged stage 05; then retire Python `farm-pipeline/` and merge; a real `--apply` populates the DB (idempotent; dry-run-first). Follow-ups: image-fetch concurrency for the full ~1300-farm run (currently sequential ~25min); a `fetchWithRetry` request timeout (no genuine hang observed, but a stalled request has no timeout); Retailers-other (4613) FSA corroboration + OL-2 low-confidence suppression.

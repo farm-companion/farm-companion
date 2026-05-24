@@ -1,0 +1,7 @@
+{
+  "items": [
+    { "guid": "246730", "title": "TR0050 : Green Lane", "link": "https://www.geograph.org.uk/photo/246730", "author": "Jane Doe", "lat": "51.2205", "long": "0.8705", "thumb": "https://s2.geograph.org.uk/photos/24/67/246730_d5bf40d2_120x120.jpg" },
+    { "guid": "999", "title": "Far away", "link": "https://www.geograph.org.uk/photo/999", "author": "Far Person", "lat": "51.30", "long": "0.95", "thumb": "https://s2.geograph.org.uk/photos/99/99/999_120x120.jpg" },
+    { "guid": "111", "title": "No thumb", "link": "https://www.geograph.org.uk/photo/111", "author": "No Thumb", "lat": "51.2206", "long": "0.8706" }
+  ]
+}
