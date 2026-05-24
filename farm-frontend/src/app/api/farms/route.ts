@@ -190,7 +190,7 @@ async function farmsHandler(request: NextRequest) {
       offset,
       limit,
       facets: {
-        counties: countyFacets.map(c => c.county),
+        counties: countyFacets.map(c => c.county).filter((c): c is string => c !== null),
         categories: categoryFacets
           .filter(c => c._count.farms > 0)
           .map(c => c.slug)
