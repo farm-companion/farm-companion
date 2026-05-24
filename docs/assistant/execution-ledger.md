@@ -2986,8 +2986,10 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 - **H** `1d0e452` — stage 06 merge (pure `buildChangeSet` + read-only `loadDbSnapshot` Decimal->number; runMerge writes ChangeSet, no DB writes).
 - **I** `0ac9b99` — stage 07 dry-run-first load (`applyChangeSet`: zero writes on dry-run, noop never writes, updates located by primary-key `id`, creates persist slug+osmId/fsaId, no `--force`); extended `FarmChange` with `targetId`/`osmId`/`fsaId`.
 - **J** `c91840d` — orchestrator `run.ts` (`--from/--to/--limit`, dry-run-default `--apply`, `--dry-run` wins; env loaded via first side-effect import) + `pnpm pipeline` script.
+- **K1** `e7cd2f0` — stage 05 image fetch wired: `runImages` calls `fetchGeograph`/`fetchWikimedia` per candidate using lat/lng, populates `c.images` before ranking; `aiFallbackEligible` now reflects real CC image absence.
+- **K2a** `3094994` — Slice K2a: persist farm-category links in load. `FarmChange.categories?: string[]` added to types; `buildChangeSet` carries candidate slugs onto each change; `applyChangeSet` resolves slug->id once via `category.findMany`, upserts `farmCategory` idempotently for create/update rows; dry-run counts but does not write; unknown slugs skipped. `RunReport.categoriesLinked` now increments correctly. 9/9 load tests pass; 4/4 merge tests pass; `tsc --noEmit` clean; `pnpm test:unit` 184 pass / 0 fail.
 
-**Verification:** `pnpm tsc --noEmit` exit 0; `pnpm test:unit` 180 pass / 0 fail across 4 suites. Pure modules + source parsers tested against fixtures; load tested against a mock Prisma; no live network or DB touched by tests.
+**Verification:** `pnpm tsc --noEmit` exit 0; `pnpm test:unit` 184 pass / 0 fail across all suites. Pure modules + source parsers tested against fixtures; load tested against a mock Prisma; no live network or DB touched by tests.
 
 **Operator steps still owed (before CANONICAL + merge):**
 1. Live dry-run: `pnpm pipeline --dry-run --limit 50`, review `.pipeline/run-report-*.json` (created/updated/noop/byField; errors must be 0; row counts unchanged via the probe).
@@ -2995,7 +2997,9 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 3. Merge `feat/farm-data-pipeline` to `master`.
 
 **Deferred follow-ups (recorded, not blockers):**
-- **Slice K — complete the image + category path (the one real incompleteness in A-J; required before the spec's §14 image DoD is met).** Two parts: (1) **wire the fetch** — stage 05 must call `fetchGeograph`/`fetchWikimedia` per candidate (using its lat/lng) to POPULATE `c.images` before ranking; today `c.images` is always `[]` (initialised empty in 02, never filled), so `runImages` marks every farm `aiFallbackEligible` and a dry-run shows no real CC images. (2) **persist** categories + CC image rows in the load — `FarmChange` carries no `categories`/`images`, and `07-load` writes neither, so `RunReport.categoriesLinked`/`imagesAttached` stay 0. Reuse the additive `farmCategory.upsert` pattern from `import-farms.ts:373-387` and `image.create` with `license/attribution/sourceUrl`. Until Slice K lands, a `pnpm pipeline --dry-run` exercises the farm-data core (discover/geocode/merge/farm-load) correctly but does NOT source images or link categories.
+- **Slice K1 DONE** (commit `e7cd2f0`): stage 05 fetch wired.
+- **Slice K2a DONE** (commit `3094994`): `FarmChange.categories` + `applyChangeSet` category link upserts.
+- **Slice K2b OPEN** — persist CC image rows in load: extend `FarmChange` with `images?: ImageCandidate[]`, carry them from `buildChangeSet`, and upsert `image` rows (license/attribution/sourceUrl/score) in the CREATE/UPDATE branches of `applyChangeSet`; increment `RunReport.imagesAttached`. Until K2b lands, `RunReport.imagesAttached` stays 0 and CC images are not persisted even when sourced by stage 05.
 - `dataSource` heuristic in `07-load.buildData` can flip `osm`/`fsa` on update; decide whether to set it on create only.
 - Geograph `score = 1000 - distance` assumes metres; confirm the API distance unit.
 - Add a missing-`sourceUrl` gate test in `05-images.test.ts`; tighten the Wikimedia `PD` regex branch (PD-Mark currently accepted, safe-direction).
