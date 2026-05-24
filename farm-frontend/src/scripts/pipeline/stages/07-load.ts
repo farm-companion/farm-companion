@@ -106,8 +106,11 @@ export async function applyChangeSet(
 
       if (change.action === 'create') {
         if (!change.slug) {
-          report.errors++
-          log('error', 'create missing slug; skipped', { stage: '07' })
+          // A candidate with no name (hence no slug) cannot become a farm.
+          // This is an expected skip (e.g. an unnamed OSM shop=farm node), not
+          // a failure, so it counts as skipped rather than an error.
+          report.skipped++
+          log('warn', 'create skipped: candidate has no name/slug', { stage: '07' })
           continue
         }
         for (const diff of change.fields) report.byField[diff.field] = (report.byField[diff.field] ?? 0) + 1

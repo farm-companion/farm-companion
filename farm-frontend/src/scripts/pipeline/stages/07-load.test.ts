@@ -81,6 +81,16 @@ test('update missing targetId is recorded as an error, not a crash', async () =>
   assert.equal(prisma.calls.length, 0)
 })
 
+test('create with no slug (unnamed candidate) is a skip, not an error', async () => {
+  const prisma = mockPrisma()
+  const cs: ChangeSet = [{ action: 'create', matchKey: null, fields: [{ field: 'website', from: null, to: 'https://x', reason: 'c' }], provenanceNext: {} }]
+  const report = await applyChangeSet(cs, prisma as never, { apply: true })
+  assert.equal(report.skipped, 1)
+  assert.equal(report.errors, 0)
+  assert.equal(report.created, 0)
+  assert.equal(prisma.calls.filter((c) => c.op === 'create').length, 0)
+})
+
 test('apply: create links its categories (known slugs only) and counts them', async () => {
   const prisma = mockPrisma()
   const cs: ChangeSet = [{
