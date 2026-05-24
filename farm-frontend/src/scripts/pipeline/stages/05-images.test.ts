@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { ImageCandidate } from '../types'
-import { rankImages, attachableImages, decideImages } from './05-images'
+import { rankImages, attachableImages, decideImages, combineImages } from './05-images'
 
 const cc = (over: Partial<ImageCandidate> = {}): ImageCandidate => ({
   url: 'https://x/img.jpg', source: 'geograph', license: 'CC-BY-SA-2.0',
@@ -34,4 +34,14 @@ test('attachable CC images present -> aiFallbackEligible false, highest score fi
   const r = decideImages([cc({ score: 2 }), cc({ score: 9 })])
   assert.equal(r.aiFallbackEligible, false)
   assert.equal(r.images[0].score, 9)
+})
+
+test('combineImages concatenates existing + fetched and dedupes by url (existing wins)', () => {
+  const existing = [cc({ url: 'https://a', source: 'wikimedia', score: 1 })]
+  const fetched = [cc({ url: 'https://a', source: 'geograph', score: 9 }), cc({ url: 'https://b', source: 'geograph', score: 5 })]
+  const out = combineImages(existing, fetched)
+  assert.equal(out.length, 2)
+  // existing 'https://a' is kept (not replaced by the fetched duplicate)
+  assert.equal(out.find((i) => i.url === 'https://a')?.source, 'wikimedia')
+  assert.ok(out.find((i) => i.url === 'https://b'))
 })

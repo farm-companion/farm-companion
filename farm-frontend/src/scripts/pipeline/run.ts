@@ -41,7 +41,7 @@ async function main() {
   if (inRange(2)) runNormalize()
   if (inRange(3)) await runGeocode()
   if (inRange(4)) runEnrich()
-  if (inRange(5)) runImages()
+  if (inRange(5)) await runImages()
   if (inRange(6)) await runMerge()
   if (inRange(7)) {
     const report = await runLoad({ apply })
