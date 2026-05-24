@@ -2986,10 +2986,11 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 - **H** `1d0e452` — stage 06 merge (pure `buildChangeSet` + read-only `loadDbSnapshot` Decimal->number; runMerge writes ChangeSet, no DB writes).
 - **I** `0ac9b99` — stage 07 dry-run-first load (`applyChangeSet`: zero writes on dry-run, noop never writes, updates located by primary-key `id`, creates persist slug+osmId/fsaId, no `--force`); extended `FarmChange` with `targetId`/`osmId`/`fsaId`.
 - **J** `c91840d` — orchestrator `run.ts` (`--from/--to/--limit`, dry-run-default `--apply`, `--dry-run` wins; env loaded via first side-effect import) + `pnpm pipeline` script.
-- **K1** `e7cd2f0` — stage 05 image fetch wired: `runImages` calls `fetchGeograph`/`fetchWikimedia` per candidate using lat/lng, populates `c.images` before ranking; `aiFallbackEligible` now reflects real CC image absence.
-- **K2a** `3094994` — Slice K2a: persist farm-category links in load. `FarmChange.categories?: string[]` added to types; `buildChangeSet` carries candidate slugs onto each change; `applyChangeSet` resolves slug->id once via `category.findMany`, upserts `farmCategory` idempotently for create/update rows; dry-run counts but does not write; unknown slugs skipped. `RunReport.categoriesLinked` now increments correctly. 9/9 load tests pass; 4/4 merge tests pass; `tsc --noEmit` clean; `pnpm test:unit` 184 pass / 0 fail.
+- **K1** `61360ab` — stage 05 image fetch wired: `runImages` (now async) calls `fetchGeograph`/`fetchWikimedia` per candidate using lat/lng (per-source failure tolerated), combines with existing images deduped by url, then ranks; `aiFallbackEligible` now reflects real CC image absence. Orchestrator awaits it.
+- **K2a** `3094994` — persist farm-category links in load. `FarmChange.categories?: string[]`; `buildChangeSet` carries candidate slugs; `applyChangeSet` resolves slug->id once via `category.findMany`, upserts `farmCategory` idempotently for create/update rows (dry-run counts, no write; unknown slugs skipped). `RunReport.categoriesLinked` increments.
+- **K2b** `ef6ed87` — persist CC image rows in load. `FarmChange.images?: ImageCandidate[]`; `buildChangeSet` carries them; `applyChangeSet` creates `image` rows deduped by url for create/update (operator-locked: `status='pending'`, `uploadedBy='cc'`, `isHero=false`, `displayOrder=100`); dry-run counts `imagesAttached`, no write. Hero coverage unaffected (CC images are not selected by `selectFarmHeroImage`, which uses owner/admin/user -> ai_apothecary -> typography fallback).
 
-**Verification:** `pnpm tsc --noEmit` exit 0; `pnpm test:unit` 184 pass / 0 fail across all suites. Pure modules + source parsers tested against fixtures; load tested against a mock Prisma; no live network or DB touched by tests.
+**Verification (A-J + K complete):** `pnpm tsc --noEmit` exit 0; `pnpm test:unit` 187 pass / 0 fail across 4 suites. Every slice spec + code-quality reviewed. Pure modules + source parsers tested against fixtures; load tested against a mock Prisma; no live network or DB touched by tests. The spec's §14 image/category DoD is now met in code; only the operator steps below remain.
 
 **Operator steps still owed (before CANONICAL + merge):**
 1. Live dry-run: `pnpm pipeline --dry-run --limit 50`, review `.pipeline/run-report-*.json` (created/updated/noop/byField; errors must be 0; row counts unchanged via the probe).
@@ -2997,9 +2998,8 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 3. Merge `feat/farm-data-pipeline` to `master`.
 
 **Deferred follow-ups (recorded, not blockers):**
-- **Slice K1 DONE** (commit `e7cd2f0`): stage 05 fetch wired.
-- **Slice K2a DONE** (commit `3094994`): `FarmChange.categories` + `applyChangeSet` category link upserts.
-- **Slice K2b OPEN** — persist CC image rows in load: extend `FarmChange` with `images?: ImageCandidate[]`, carry them from `buildChangeSet`, and upsert `image` rows (license/attribution/sourceUrl/score) in the CREATE/UPDATE branches of `applyChangeSet`; increment `RunReport.imagesAttached`. Until K2b lands, `RunReport.imagesAttached` stays 0 and CC images are not persisted even when sourced by stage 05.
+- **Slice K complete** — K1 `61360ab` (fetch wiring), K2a `3094994` (category links), K2b `ef6ed87` (CC image rows). The image+category path the earlier integration review flagged is now closed end-to-end; the pipeline is feature-complete in code.
+- **runImages performance (follow-up, not a blocker):** stage 05 fetches sequentially per candidate, 2 sources each with ~1s politeness delay, so a FULL run over ~1300 farms is ~40+ min wall-clock. Fine for `--dry-run --limit 50` (~100s). A future concurrency pass (small pool, e.g. p-limit 3-5) would cut this without breaking per-source courtesy. Document expected runtime for the operator.
 - `dataSource` heuristic in `07-load.buildData` can flip `osm`/`fsa` on update; decide whether to set it on create only.
 - Geograph `score = 1000 - distance` assumes metres; confirm the API distance unit.
 - Add a missing-`sourceUrl` gate test in `05-images.test.ts`; tighten the Wikimedia `PD` regex branch (PD-Mark currently accepted, safe-direction).
