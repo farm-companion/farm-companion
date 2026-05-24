@@ -53,16 +53,22 @@ export function parseFsa(res: FsaResponse): RawFarmCandidate[] {
   return out
 }
 
+// FSA "Farmers/growers" business type. An UNFILTERED /Establishments query is
+// rejected with HTTP 403 ("This is a CPU intensive query: please use one of the
+// documented filters"); a businessTypeId filter is required. 7838 is the clean
+// farm signal (Retailers-other 4613 is large/noisy and is left to a follow-up).
+export const FARM_BUSINESS_TYPE_ID = 7838
+
 export async function fetchFsaPage(
   pageNumber: number,
-  opts: { fetcher?: typeof fetch } = {},
+  opts: { fetcher?: typeof fetch; minDelayMs?: number } = {},
 ): Promise<RawFarmCandidate[]> {
   const { endpoint, apiVersion, pageSize } = PIPELINE_CONFIG.fsa
-  const url = `${endpoint}/Establishments?pageNumber=${pageNumber}&pageSize=${pageSize}`
+  const url = `${endpoint}/Establishments?businessTypeId=${FARM_BUSINESS_TYPE_ID}&pageNumber=${pageNumber}&pageSize=${pageSize}`
   const res = await fetchWithRetry<FsaResponse>(
     url,
     { headers: { 'x-api-version': apiVersion, accept: 'application/json' } },
-    { fetcher: opts.fetcher, minDelayMs: 1000 },
+    { fetcher: opts.fetcher, minDelayMs: opts.minDelayMs ?? 1000 },
   )
   return parseFsa(res)
 }

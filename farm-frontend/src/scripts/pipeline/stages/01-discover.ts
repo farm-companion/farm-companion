@@ -24,20 +24,31 @@ export async function discover(opts: { limit?: number } = {}): Promise<RawFarmCa
   const started = Date.now()
   const candidates: RawFarmCandidate[] = []
 
-  for (const bbox of UK_BBOXES) {
-    const batch = await fetchOverpass(bbox)
-    candidates.push(...batch)
-    log('info', 'overpass region done', { stage: '01', source: 'osm', count: batch.length })
-    if (opts.limit && candidates.length >= opts.limit) break
+  // Each source is best-effort: a failure (e.g. a provider outage or block) is
+  // logged and tolerated so one source cannot abort the whole run. OSM is the
+  // primary discovery source; FSA corroborates.
+  try {
+    for (const bbox of UK_BBOXES) {
+      const batch = await fetchOverpass(bbox)
+      candidates.push(...batch)
+      log('info', 'overpass region done', { stage: '01', source: 'osm', count: batch.length })
+      if (opts.limit && candidates.length >= opts.limit) break
+    }
+  } catch (e) {
+    log('error', 'overpass discovery failed; continuing with other sources', { stage: '01', source: 'osm', error: e instanceof Error ? e.message : String(e) })
   }
 
-  for (let page = 1; page <= FSA_MAX_PAGES; page++) {
-    const batch = await fetchFsaPage(page)
-    if (batch.length === 0) break
-    if (page === FSA_MAX_PAGES) log('warn', 'fsa page ceiling hit; results may be truncated', { stage: '01', source: 'fsa', page })
-    candidates.push(...batch)
-    log('info', 'fsa page done', { stage: '01', source: 'fsa', count: batch.length, page })
-    if (opts.limit && candidates.length >= opts.limit) break
+  try {
+    for (let page = 1; page <= FSA_MAX_PAGES; page++) {
+      const batch = await fetchFsaPage(page)
+      if (batch.length === 0) break
+      if (page === FSA_MAX_PAGES) log('warn', 'fsa page ceiling hit; results may be truncated', { stage: '01', source: 'fsa', page })
+      candidates.push(...batch)
+      log('info', 'fsa page done', { stage: '01', source: 'fsa', count: batch.length, page })
+      if (opts.limit && candidates.length >= opts.limit) break
+    }
+  } catch (e) {
+    log('error', 'fsa discovery failed; continuing', { stage: '01', source: 'fsa', error: e instanceof Error ? e.message : String(e) })
   }
 
   const unique = dedupeBySourceId(candidates)

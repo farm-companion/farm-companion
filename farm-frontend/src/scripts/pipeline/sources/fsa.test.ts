@@ -2,7 +2,7 @@ import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { parseFsa } from './fsa'
+import { parseFsa, fetchFsaPage, FARM_BUSINESS_TYPE_ID } from './fsa'
 
 const fixture = JSON.parse(readFileSync(resolve(__dirname, '../__fixtures__/fsa-sample.json'), 'utf8'))
 
@@ -25,4 +25,14 @@ test('excludes establishments with a missing business type', () => {
   const res = { establishments: [{ FHRSID: 111, BusinessName: 'No Type Co', PostCode: 'AA1 1AA' }] }
   const out = parseFsa(res as unknown as Parameters<typeof parseFsa>[0])
   assert.equal(out.length, 0)
+})
+
+test('fetchFsaPage filters by the farm businessTypeId (an unfiltered query is 403d)', async () => {
+  let seenUrl = ''
+  const fetcher = (async (url: string) => {
+    seenUrl = url
+    return new Response(JSON.stringify({ establishments: [] }), { status: 200 })
+  }) as unknown as typeof fetch
+  await fetchFsaPage(1, { fetcher, minDelayMs: 0 })
+  assert.match(seenUrl, new RegExp(`businessTypeId=${FARM_BUSINESS_TYPE_ID}`))
 })
