@@ -3,13 +3,17 @@ import assert from 'node:assert/strict'
 import type { ChangeSet, FieldDiff } from '../types'
 import { applyChangeSet } from './07-load'
 
-function mockPrisma(existingImages: { url: string }[] = []) {
+function mockPrisma(
+  existingImages: { url: string }[] = [],
+  existingFarm: { provenance?: unknown; description?: string | null } | null = null,
+) {
   const calls: { op: string; args: unknown }[] = []
   return {
     calls,
     farm: {
       create: async (args: unknown) => { calls.push({ op: 'create', args }); return { id: 'new-id' } },
       update: async (args: unknown) => { calls.push({ op: 'update', args }); return { id: 'upd' } },
+      findUnique: async (args: unknown) => { calls.push({ op: 'find', args }); return existingFarm },
     },
     category: {
       findMany: async () => [
@@ -211,4 +215,44 @@ test('dry-run: images counted but NO img-create calls', async () => {
   const report = await applyChangeSet(cs, prisma as never, { apply: false })
   assert.equal(prisma.calls.filter((c) => c.op === 'img-create').length, 0)
   assert.equal(report.imagesAttached, 1)
+})
+
+// --- enrich content (stage 08 -> 07-load): lastEnrichedAt + never-clobber ---
+
+const enrichChange = (to: string): ChangeSet => [{
+  action: 'update', matchKey: 's', slug: 's', targetId: 'row-s', enriched: true,
+  fields: [{ field: 'description', from: null, to, reason: 'enrich:validated' }],
+  provenanceNext: { description: { source: 'derived', at: 'x' } },
+}]
+
+test('enriched update stamps lastEnrichedAt and writes the description when not curated', async () => {
+  const prisma = mockPrisma([], { provenance: null, description: null })
+  const report = await applyChangeSet(enrichChange('A grounded line about the shop.'), prisma as never, { apply: true })
+  assert.equal(report.updated, 1)
+  assert.equal(report.skipped, 0)
+  const data = (prisma.calls.find((c) => c.op === 'update')?.args as { data: Record<string, unknown> }).data
+  assert.ok(data.lastEnrichedAt instanceof Date)
+  assert.equal(data.description, 'A grounded line about the shop.')
+})
+
+test('enriched update is skipped (never-clobber) when an existing curated description is present', async () => {
+  const prisma = mockPrisma([], { provenance: { description: { source: 'owner', at: 'x' } }, description: 'Owner wrote this.' })
+  const report = await applyChangeSet(enrichChange('machine prose'), prisma as never, { apply: true })
+  assert.equal(report.skipped, 1)
+  assert.equal(report.updated, 0)
+  assert.equal(prisma.calls.filter((c) => c.op === 'update').length, 0)
+})
+
+test('enriched update proceeds when curated provenance is stale but the description is empty', async () => {
+  const prisma = mockPrisma([], { provenance: { description: { source: 'owner', at: 'x' } }, description: '' })
+  const report = await applyChangeSet(enrichChange('machine prose here'), prisma as never, { apply: true })
+  assert.equal(report.updated, 1)
+  assert.equal(report.skipped, 0)
+})
+
+test('dry-run enriched update still reports the never-clobber skip and writes nothing', async () => {
+  const prisma = mockPrisma([], { provenance: { description: { source: 'admin', at: 'x' } }, description: 'Admin text.' })
+  const report = await applyChangeSet(enrichChange('machine prose'), prisma as never, { apply: false })
+  assert.equal(report.skipped, 1)
+  assert.equal(prisma.calls.filter((c) => c.op === 'update').length, 0)
 })
