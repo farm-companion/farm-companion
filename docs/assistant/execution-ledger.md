@@ -1,5 +1,15 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-24 — FSA fishing-vessel contamination cleanup + filter
+
+The first full `--apply` run loaded 3,711 farms. Audit (triggered by "have we duplicated the farms") found NO duplicates (slugs/name+postcode unique) but 194 non-farm records: commercial fishing vessels the FSA files under "Farmers/growers" (businessTypeId 7838), all `dataSource='fsa'`, mostly snapped to shared harbour coordinates.
+
+- **Removed 199 records** in five backed-up passes (`farm-frontend/.cleanup-backups/*.json`, full rows incl. relations, reversible): 156 PLN-suffix names (`BH45`, `NN 748`), 25 `FV`/`MFV`/`(Vessel)` names, 7 Sovereign-Harbour coordinate boats, 6 commercial "X Fishing Ltd" firms, then 5 evidence-resolved ambiguous (Clarrisa + G N Marine at port quays, Picalo/Pride of Parelle vessel-named pair, "Boy Clive CO7" vessel). **Count 3,711 -> 3,512** (all active). Zero real farms removed (every name reviewed). Cascade deletes handled category/image/etc. links.
+- **Durable fix:** `sources/fsa.ts` now has `isVesselName()` + a `parseFsa` guard (PLN suffix, FV/MFV prefix, `(Vessel)`/`fishing vessel`, `fishing ltd`/ending in `fishing`). Without it the vessels re-import next run. TDD: `sources/fsa.test.ts` +2 tests; `tsx --test` pipeline suite 87/87 pass. Committed `319706d`, pushed.
+- **Residual resolved:** kept `MA- NICK'S` (food kiosk at Shell Island campsite, no vessel signal) and the plain `Kevin Massarelli` (shore registration). Remaining coordinate collisions (~30 groups) are legitimate businesses sharing postcode centroids (dairies, deer larders, distilleries), NOT duplicates.
+- **Site refresh owed (operator):** no on-demand revalidate route exists; the live site reflects the new count only after ISR expiry (homepage 1h, /shop+county 6h) or a fresh Vercel production redeploy. DB host is the prod Hetzner Postgres, so the data source is already correct.
+- **Follow-up:** the bare-named harbour boats (e.g. "Viking Princess", "Moon Star") have no name signal and were only caught by coordinate; a future FSA pass could store `BusinessType`/raw to enable a non-name filter.
+
 ## Production Infrastructure (current, May 2026)
 
 > Older ledger entries reference Supabase as the full production stack. That was historically accurate; production was migrated in two passes. **Hybrid stack now**: app on Vercel, backing services on Coolify-managed Hetzner, blob storage on Hetzner Object Storage. The 2026-05-19 ledger correction (Slice 1.3a / commit `9583d9b`) documented the Coolify/Hetzner backing-services move but over-generalised it to "production infra"; the Next.js app hosting was never part of that migration and still lives on Vercel. This block is the canonical source of truth.
@@ -101,6 +111,16 @@ When this snapshot drifts from reality, the next ledger-reality-check slice shou
 - [x] Add retries and backoff (Comprehensive retry.py with exponential backoff, jitter, async/sync decorators, retry context manager, predefined configs)
 - [x] Structured logging (Comprehensive logging.py with JSON formatter, colored console output, performance logger, progress logger, function call decorator)
 - [x] **TS pipeline hardening (2026-05-24, branch `chore/pipeline-http-timeout`):** the Python items above are retired with `farm-pipeline/`; equivalents now live in `farm-frontend/src/scripts/pipeline/lib/` (retry+backoff+jitter+Retry-After in `http.ts`, structured `log.ts`). Closed the deferred request-timeout gap: `fetchWithRetry` now aborts a stalled attempt via `AbortController` after `timeoutMs` (default 180s, above Overpass's server `[timeout:120]`) and treats timeouts/transient network errors as retryable. TDD: 3 new tests in `http.test.ts`; `pnpm test:unit` 195 pass / 0 fail, tsc + eslint clean.
+
+#### 2026-05-24 — First live `pnpm pipeline --apply` run + optional-location fix (branch `fix/pipeline-load-optional-address`)
+- **First real apply run** (not dry-run): report `created 3391 (incl. failed-create attempts), updated 214, noop 17, skipped 141, imagesAttached 9912, categoriesLinked 2071, errors 1534`. True successful creates ≈ 1850 (the `created` counter at `07-load.ts:117` increments before the DB call, so it overcounts failed creates — reporting-accuracy follow-up noted below).
+- **Root cause of 1534 errors** (systematic-debugging, evidence from `.pipeline/06-merge.json`): creates missing required columns — `address` 1381, `postcode` 544, `county` 666, `lat/lng` 956. FSA rows legitimately have sparse data (e.g. partial/outward postcodes like "SN10" that postcodes.io cannot geocode → no coordinates).
+- **Fix (Option A, user-approved):** `address`/`county`/`postcode` made OPTIONAL in `prisma/schema.prisma`; `latitude`/`longitude` kept REQUIRED. `applyChangeSet` now SKIPS creates lacking lat/lng (counted as `skipped`, logged, not errored) — map-first: no coordinates means no pin. TDD: 2 new tests in `07-load.test.ts` (RED→GREEN); existing create fixtures gained `COORDS`.
+- **Consumer null-handling** (nullable `string|null` ripple): coerced at the `Farm`→`FarmShop` boundary in `farm-data.ts`; null-county filtered out of stats in `queries/{categories,counties,farms}.ts` and `generate-county-images.ts`.
+- **Verified:** `tsc --noEmit` exit 0; `pnpm test:unit` 194 pass / 0 fail; `eslint` exit 0 on all touched files; `prisma validate` ok.
+- **File-count note:** 9 files touched (over the 8 soft cap) — all coupled to the nullable-schema change and required to keep `tsc` green in one slice; not splittable without a red build.
+- **PENDING (operator + rerun):** (1) `prisma db push` to live Hetzner Postgres (relaxes 3 NOT NULL constraints; non-destructive). (2) rerun `pnpm pipeline --from 6 --to 7 --apply` — merge re-snapshots the DB so the ~1850 existing rows become noop/update, the ~469 coord-having address-less rows get created, the ~956 coordless rows are cleanly skipped.
+- **Follow-ups:** fix `created` counter to increment only after a successful `prisma.farm.create` (report accuracy); display polish to hide empty address/postcode/county in farm UI (currently coerced to `''`); revisit the ~956 skipped rows when geocoding coverage improves (full-postcode enrichment); stage 05 concurrency pool (worker-pool approach chosen, brainstorm paused).
 
 ### Queue 8: Design System Foundation (God-Tier Transformation)
 - [x] Consolidate color tokens - Add primary color scale (Slice 1)

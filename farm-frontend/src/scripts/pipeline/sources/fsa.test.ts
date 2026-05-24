@@ -27,6 +27,32 @@ test('excludes establishments with a missing business type', () => {
   assert.equal(out.length, 0)
 })
 
+test('excludes fishing vessels filed under a farm-relevant business type', () => {
+  // FSA registers commercial fishing vessels under "Farmers/growers" (id 7838).
+  const vessels = [
+    { FHRSID: 201, BusinessName: 'Intrepid SR2', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 202, BusinessName: 'Beachy Head NN 748', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 203, BusinessName: 'FV Lady Sophie', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 204, BusinessName: 'MFV Eventide', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 205, BusinessName: 'Green Eye BD58 (Vessel)', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 206, BusinessName: 'Cari - Fishing Vessel', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 207, BusinessName: 'Argosy Fishing Limited', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 208, BusinessName: 'Good One Fishing', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+  ]
+  const out = parseFsa({ establishments: vessels } as unknown as Parameters<typeof parseFsa>[0])
+  assert.equal(out.length, 0)
+})
+
+test('keeps genuine farm names that are not vessels', () => {
+  const farms = [
+    { FHRSID: 301, BusinessName: 'Riverford Farm Shop', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 302, BusinessName: 'Hill Farm Eggs', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 303, BusinessName: 'Gilcombe Farm Dairy Raw', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+  ]
+  const out = parseFsa({ establishments: farms } as unknown as Parameters<typeof parseFsa>[0])
+  assert.equal(out.length, 3)
+})
+
 test('fetchFsaPage filters by the farm businessTypeId (an unfiltered query is 403d)', async () => {
   let seenUrl = ''
   const fetcher = (async (url: string) => {

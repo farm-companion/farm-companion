@@ -248,10 +248,12 @@ export async function getCountiesWithCounts() {
     },
   })
 
-  return counties.map((item: { county: string; _count: number }) => ({
-    county: item.county,
-    count: item._count,
-  }))
+  return counties
+    .filter((item: { county: string | null }) => item.county)
+    .map((item: { county: string | null; _count: number }) => ({
+      county: item.county ?? '',
+      count: item._count,
+    }))
 }
 
 /**

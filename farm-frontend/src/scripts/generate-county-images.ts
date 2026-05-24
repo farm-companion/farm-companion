@@ -107,12 +107,14 @@ async function generateCountyImages() {
       }
     })
 
-    // Transform to array with slugs
-    let counties = countyData.map(c => ({
-      name: c.county,
-      slug: slugifyCounty(c.county),
-      farmCount: c._count.id
-    }))
+    // Transform to array with slugs (skip rows with no county: not a real county)
+    let counties = countyData
+      .filter(c => c.county)
+      .map(c => ({
+        name: c.county ?? '',
+        slug: slugifyCounty(c.county ?? ''),
+        farmCount: c._count.id
+      }))
 
     // Filter by specific county if requested
     if (options.county) {
@@ -121,7 +123,7 @@ async function generateCountyImages() {
         console.log(`No county found with slug: ${options.county}`)
         console.log('\nAvailable counties:')
         countyData.slice(0, 20).forEach(c => {
-          console.log(`  - ${slugifyCounty(c.county)} (${c.county})`)
+          console.log(`  - ${slugifyCounty(c.county ?? '')} (${c.county ?? ''})`)
         })
         return
       }

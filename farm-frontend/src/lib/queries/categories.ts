@@ -249,10 +249,12 @@ export async function getCategoryStats(categorySlug: string): Promise<{
       }),
     ])
 
-    const topCounties = countyStats.map((stat: { county: string; _count: { county: number } }) => ({
-      county: stat.county,
-      count: stat._count.county,
-    }))
+    const topCounties = countyStats
+      .filter((stat: { county: string | null }) => stat.county)
+      .map((stat: { county: string | null; _count: { county: number } }) => ({
+        county: stat.county ?? '',
+        count: stat._count.county,
+      }))
 
     return {
       total,
