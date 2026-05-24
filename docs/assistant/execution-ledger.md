@@ -100,6 +100,7 @@ When this snapshot drifts from reality, the next ledger-reality-check slice shou
 - [x] Pin requirements.txt (All dependencies pinned with specific versions in requirements.txt)
 - [x] Add retries and backoff (Comprehensive retry.py with exponential backoff, jitter, async/sync decorators, retry context manager, predefined configs)
 - [x] Structured logging (Comprehensive logging.py with JSON formatter, colored console output, performance logger, progress logger, function call decorator)
+- [x] **TS pipeline hardening (2026-05-24, branch `chore/pipeline-http-timeout`):** the Python items above are retired with `farm-pipeline/`; equivalents now live in `farm-frontend/src/scripts/pipeline/lib/` (retry+backoff+jitter+Retry-After in `http.ts`, structured `log.ts`). Closed the deferred request-timeout gap: `fetchWithRetry` now aborts a stalled attempt via `AbortController` after `timeoutMs` (default 180s, above Overpass's server `[timeout:120]`) and treats timeouts/transient network errors as retryable. TDD: 3 new tests in `http.test.ts`; `pnpm test:unit` 195 pass / 0 fail, tsc + eslint clean.
 
 ### Queue 8: Design System Foundation (God-Tier Transformation)
 - [x] Consolidate color tokens - Add primary color scale (Slice 1)
