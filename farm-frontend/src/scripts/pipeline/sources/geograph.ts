@@ -55,6 +55,6 @@ export async function fetchGeograph(
   opts: { fetcher?: typeof fetch; minDelayMs?: number } = {},
 ): Promise<ImageCandidate[]> {
   const url = `https://api.geograph.org.uk/syndicator.php?format=JSON&q=${lat},${lng}&perpage=20`
-  const res = await fetchWithRetry<SyndicatorResponse>(url, {}, { fetcher: opts.fetcher, minDelayMs: opts.minDelayMs ?? 1000 })
+  const res = await fetchWithRetry<SyndicatorResponse>(url, {}, { fetcher: opts.fetcher, minDelayMs: opts.minDelayMs ?? 250 })
   return parseGeograph(res, lat, lng)
 }

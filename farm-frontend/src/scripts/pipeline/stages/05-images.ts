@@ -51,6 +51,7 @@ export function decideImages(images: ImageCandidate[]): { images: ImageCandidate
 export async function runImages(): Promise<NormalizedCandidate[]> {
   const dir = resolve(process.cwd(), PIPELINE_CONFIG.artifactDir)
   const input = JSON.parse(readFileSync(resolve(dir, '04-enrich.json'), 'utf8')) as NormalizedCandidate[]
+  let done = 0
   for (const c of input) {
     const fetched = (c.latitude != null && c.longitude != null)
       ? await fetchImagesFor(c.latitude, c.longitude)
@@ -58,6 +59,12 @@ export async function runImages(): Promise<NormalizedCandidate[]> {
     const decided = decideImages(combineImages(c.images ?? [], fetched))
     c.images = decided.images
     c.aiFallbackEligible = decided.aiFallbackEligible
+    done++
+    // Per-candidate network fetches make this the slowest stage; emit progress
+    // so a long run is visibly working rather than appearing to hang.
+    if (done % 10 === 0 || done === input.length) {
+      log('info', 'images progress', { stage: '05', done, total: input.length })
+    }
   }
   mkdirSync(dir, { recursive: true })
   writeFileSync(resolve(dir, '05-images.json'), JSON.stringify(input, null, 2))

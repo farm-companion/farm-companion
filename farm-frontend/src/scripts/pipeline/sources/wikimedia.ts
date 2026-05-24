@@ -33,9 +33,9 @@ export function parseWikimedia(res: CommonsResponse): ImageCandidate[] {
 
 export async function fetchWikimedia(
   lat: number, lng: number,
-  opts: { fetcher?: typeof fetch } = {},
+  opts: { fetcher?: typeof fetch; minDelayMs?: number } = {},
 ): Promise<ImageCandidate[]> {
   const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=geosearch&ggscoord=${lat}|${lng}&ggsradius=1000&ggslimit=10&prop=imageinfo&iiprop=url|extmetadata&format=json`
-  const res = await fetchWithRetry<CommonsResponse>(url, {}, { fetcher: opts.fetcher, minDelayMs: 1000 })
+  const res = await fetchWithRetry<CommonsResponse>(url, {}, { fetcher: opts.fetcher, minDelayMs: opts.minDelayMs ?? 250 })
   return parseWikimedia(res)
 }
