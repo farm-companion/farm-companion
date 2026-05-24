@@ -3008,3 +3008,18 @@ So the consistent move is to **wire the existing `announce()` + `ANNOUNCEMENTS.c
 - Optional: add a Prisma `directUrl` (direct, no pgbouncer) so `prisma db push`/migrations stop needing the manual pgbouncer-strip; `.env` now points at Hetzner (was a stale DigitalOcean host).
 
 **Risk and rollback:** All schema changes are additive/nullable; the load is dry-run-first with no `--force`; no owner/user data path is overwritten by machine sources (merge policy + tests). Rollback: the arc is an unmerged branch; `git branch -D feat/farm-data-pipeline` discards it. The live DB only gained nullable columns (harmless if unused).
+
+---
+
+### 2026-05-24 — Live dry-run hardening (first real `pnpm pipeline --dry-run --limit 50`)
+
+The first live runs surfaced real-API issues the fixture tests could not (each fixed via systematic-debugging: reproduce -> isolate -> fix -> verify against the live API):
+- `2693076` **Overpass HTTP 406** — its WAF blocklists the default Node/undici User-Agent (also curl/node/empty). `fetchWithRetry` now injects a descriptive `User-Agent` (env `PIPELINE_USER_AGENT`) on all requests; preserves caller UA/Content-Type. Verified undici -> 200. Also pre-empts Wikimedia's UA requirement.
+- `78bac55` **FSA HTTP 403** — an unfiltered `/Establishments` query is rejected ("CPU intensive"). Query `businessTypeId=7838` (Farmers/growers) instead. Plus stage 01 now wraps each source in try/catch so one source failing no longer aborts the run (OSM is primary).
+- `65502c4` **errors vs skipped** — an unnamed OSM `shop=farm` node has no slug and cannot become a farm; that create is now `skipped`, not `errors` (RunReport.errors reflects real failures only).
+- `ec60667` **Geograph HTTP 400** — `/api/0.1/geophotos` needs an API key ("Unknown method"); switched to the keyless `syndicator.php` JSON feed, proximity-filtered to <=0.5km, ranked by closeness, capped at 5. Verified undici -> 200.
+- `f08bfcb` **stage 05 perf/UX** — it fetched images per candidate silently for ~2min (looked hung). Added progress logging every 10 candidates and dropped the per-call delay 1000ms -> 250ms (Geograph ~50ms / Wikimedia ~600ms responses). ~140s -> ~40s for 50.
+
+**Verified — clean dry-run (`--limit 50`):** `created 34, updated 8, skipped 8, imagesAttached 210, categoriesLinked 42, errors 0`. All five sources working; OSM returned 1044 GB farm shops, FSA 1000 Farmers/growers. `pnpm test:unit` 192 pass / 0 fail, `tsc --noEmit` clean.
+
+**Still owed (operator):** optionally re-run to see the faster/progress-logged stage 05; then retire Python `farm-pipeline/` and merge; a real `--apply` populates the DB (idempotent; dry-run-first). Follow-ups: image-fetch concurrency for the full ~1300-farm run (currently sequential ~25min); a `fetchWithRetry` request timeout (no genuine hang observed, but a stalled request has no timeout); Retailers-other (4613) FSA corroboration + OL-2 low-confidence suppression.
