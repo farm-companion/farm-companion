@@ -8,8 +8,17 @@ function mockPrisma() {
   return {
     calls,
     farm: {
-      create: async (args: unknown) => { calls.push({ op: 'create', args }); return { id: 'new' } },
+      create: async (args: unknown) => { calls.push({ op: 'create', args }); return { id: 'new-id' } },
       update: async (args: unknown) => { calls.push({ op: 'update', args }); return { id: 'upd' } },
+    },
+    category: {
+      findMany: async () => [
+        { id: 'cat-farm-shops', slug: 'farm-shops' },
+        { id: 'cat-organic', slug: 'organic' },
+      ],
+    },
+    farmCategory: {
+      upsert: async (args: unknown) => { calls.push({ op: 'fc-upsert', args }); return {} },
     },
   }
 }
@@ -66,4 +75,46 @@ test('update missing targetId is recorded as an error, not a crash', async () =>
   const report = await applyChangeSet(bad, prisma as never, { apply: true })
   assert.equal(report.errors, 1)
   assert.equal(prisma.calls.length, 0)
+})
+
+test('apply: create links its categories (known slugs only) and counts them', async () => {
+  const prisma = mockPrisma()
+  const cs: ChangeSet = [{
+    action: 'create', matchKey: null, slug: 'a', osmId: 'node:1',
+    categories: ['farm-shops', 'organic', 'unknown-slug'],
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'create' }],
+    provenanceNext: {},
+  }]
+  const report = await applyChangeSet(cs, prisma as never, { apply: true })
+  const links = prisma.calls.filter((c) => c.op === 'fc-upsert')
+  // farm-shops + organic resolve; unknown-slug is skipped
+  assert.equal(links.length, 2)
+  assert.equal(report.categoriesLinked, 2)
+})
+
+test('apply: update links categories against the existing row id (targetId)', async () => {
+  const prisma = mockPrisma()
+  const cs: ChangeSet = [{
+    action: 'update', matchKey: 'b', slug: 'b', targetId: 'row-b',
+    categories: ['farm-shops'],
+    fields: [{ field: 'address', from: 'old', to: 'new', reason: 'r' }],
+    provenanceNext: {},
+  }]
+  await applyChangeSet(cs, prisma as never, { apply: true })
+  const link = prisma.calls.find((c) => c.op === 'fc-upsert')
+  assert.ok(link)
+  // the link must target the existing row id, and the resolved category id
+  assert.deepEqual((link?.args as { where: { farmId_categoryId: unknown } }).where.farmId_categoryId, { farmId: 'row-b', categoryId: 'cat-farm-shops' })
+})
+
+test('dry-run: categories are counted but NO farmCategory.upsert calls happen', async () => {
+  const prisma = mockPrisma()
+  const cs: ChangeSet = [{
+    action: 'create', matchKey: null, slug: 'a', categories: ['farm-shops', 'organic'],
+    fields: [{ field: 'name', from: null, to: 'A', reason: 'c' }], provenanceNext: {},
+  }]
+  const report = await applyChangeSet(cs, prisma as never, { apply: false })
+  assert.equal(prisma.calls.filter((c) => c.op === 'fc-upsert').length, 0)
+  assert.equal(prisma.calls.filter((c) => c.op === 'create').length, 0)
+  assert.equal(report.categoriesLinked, 2)
 })

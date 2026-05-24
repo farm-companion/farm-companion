@@ -9,9 +9,11 @@ import type { ChangeSet, FarmChange, RunReport } from '../types'
 
 interface MinimalPrisma {
   farm: {
-    create: (args: unknown) => Promise<unknown>
+    create: (args: unknown) => Promise<{ id: string }>
     update: (args: unknown) => Promise<unknown>
   }
+  category: { findMany: (args: unknown) => Promise<{ id: string; slug: string }[]> }
+  farmCategory: { upsert: (args: unknown) => Promise<unknown> }
 }
 
 function emptyReport(): RunReport {
@@ -32,12 +34,36 @@ function buildData(change: FarmChange): Record<string, unknown> {
   return data
 }
 
+async function linkCategories(
+  prisma: MinimalPrisma,
+  farmId: string | null,
+  slugs: string[] | undefined,
+  categoryIdBySlug: Map<string, string>,
+  apply: boolean,
+  report: RunReport,
+): Promise<void> {
+  for (const slug of slugs ?? []) {
+    const categoryId = categoryIdBySlug.get(slug)
+    if (!categoryId) continue // unknown slug: skip (do not invent categories)
+    report.categoriesLinked++
+    if (apply && farmId) {
+      await prisma.farmCategory.upsert({
+        where: { farmId_categoryId: { farmId, categoryId } },
+        create: { farmId, categoryId },
+        update: {},
+      })
+    }
+  }
+}
+
 export async function applyChangeSet(
   changeSet: ChangeSet,
   prisma: MinimalPrisma,
   opts: { apply: boolean },
 ): Promise<RunReport> {
   const report = emptyReport()
+  const categoryRows = await prisma.category.findMany({ select: { id: true, slug: true } })
+  const categoryIdBySlug = new Map(categoryRows.map((c) => [c.slug, c.id]))
   for (const change of changeSet) {
     try {
       if (change.action === 'noop') { report.noop++; continue }
@@ -50,7 +76,8 @@ export async function applyChangeSet(
         }
         for (const diff of change.fields) report.byField[diff.field] = (report.byField[diff.field] ?? 0) + 1
         report.created++
-        if (opts.apply) await prisma.farm.create({ data: { ...buildData(change), slug: change.slug } })
+        const created = opts.apply ? await prisma.farm.create({ data: { ...buildData(change), slug: change.slug } }) : null
+        await linkCategories(prisma, created?.id ?? null, change.categories, categoryIdBySlug, opts.apply, report)
         continue
       }
 
@@ -63,6 +90,7 @@ export async function applyChangeSet(
       for (const diff of change.fields) report.byField[diff.field] = (report.byField[diff.field] ?? 0) + 1
       report.updated++
       if (opts.apply) await prisma.farm.update({ where: { id: change.targetId }, data: buildData(change) })
+      await linkCategories(prisma, change.targetId, change.categories, categoryIdBySlug, opts.apply, report)
     } catch (e) {
       report.errors++
       log('error', 'load row failed', { stage: '07', slug: change.slug, error: e instanceof Error ? e.message : String(e) })

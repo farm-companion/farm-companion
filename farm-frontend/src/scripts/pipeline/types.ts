@@ -120,6 +120,7 @@ export interface FarmChange {
   targetId?: string // existing row primary key; the locator for updates
   osmId?: string    // row-level match id to persist (idempotent re-matching)
   fsaId?: string
+  categories?: string[] // category slugs to link additively (from the candidate)
   fields: FieldDiff[]
   provenanceNext: Provenance
 }

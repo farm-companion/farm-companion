@@ -17,6 +17,7 @@ export function buildChangeSet(
     const { match, matchKey } = matchExisting(c, rows)
     const change = mergeFarm(match, c, now)
     if (matchKey === 'fuzzy') change.matchKey = 'fuzzy'
+    if (c.categories.length > 0) change.categories = c.categories
     return change
   })
 }
