@@ -66,3 +66,47 @@ test('preserves caller Content-Type while adding the default User-Agent', async 
   assert.equal(seen?.get('content-type'), 'application/x-www-form-urlencoded')
   assert.match(seen?.get('user-agent') ?? '', /FarmCompanion/i)
 })
+
+// A fetcher that never resolves unless its request is aborted, simulating a
+// stalled socket. Rejects with the abort reason so the timeout path is exercised.
+function stallUntilAborted(onCall?: () => void): typeof fetch {
+  return ((_url: unknown, init?: RequestInit) => {
+    onCall?.()
+    return new Promise<Response>((_resolve, reject) => {
+      const signal = init?.signal
+      signal?.addEventListener('abort', () => reject(signal.reason ?? new Error('aborted')))
+    })
+  }) as unknown as typeof fetch
+}
+
+test('passes an abort signal to the fetcher', async () => {
+  let seenSignal: unknown
+  const fetcher = (async (_url: unknown, init?: RequestInit) => {
+    seenSignal = init?.signal
+    return jsonResponse({ ok: true })
+  }) as unknown as typeof fetch
+  await fetchWithRetry('https://x', {}, { fetcher, minDelayMs: 0, timeoutMs: 1000 })
+  assert.ok(seenSignal instanceof AbortSignal)
+})
+
+test('aborts a stalled request via timeout, then retries and succeeds', { timeout: 2000 }, async () => {
+  let calls = 0
+  const fetcher = ((_url: unknown, init?: RequestInit) => {
+    calls++
+    if (calls >= 2) return Promise.resolve(jsonResponse({ ok: true }))
+    return stallUntilAborted()(_url as string, init)
+  }) as unknown as typeof fetch
+  const result = await fetchWithRetry('https://x', {}, { fetcher, minDelayMs: 0, maxAttempts: 3, backoffBaseMs: 1, timeoutMs: 10 })
+  assert.deepEqual(result, { ok: true })
+  assert.equal(calls, 2)
+})
+
+test('throws after exhausting attempts when every request times out', { timeout: 2000 }, async () => {
+  let calls = 0
+  const fetcher = stallUntilAborted(() => { calls++ })
+  await assert.rejects(
+    fetchWithRetry('https://x', {}, { fetcher, minDelayMs: 0, maxAttempts: 2, backoffBaseMs: 1, timeoutMs: 10 }),
+    /timeout|abort/i,
+  )
+  assert.equal(calls, 2)
+})
