@@ -1,5 +1,14 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-25 — Fix PR #210 Vercel build (oversized /shop ISR fallback)
+
+PR #210 (whole-site Pitti) was MERGEABLE but Vercel CI was FAILURE: `Oversized ISR page: shop.fallback (20.52 MB) > 19.07 MB (FALLBACK_BODY_TOO_LARGE)`. Local `next build` passes (the size cap is Vercel-runtime-enforced), so it never surfaced before push.
+
+- **Root cause:** the PR made `pittiFarmImageUrl()` return a URL for every slug, so `FarmCard` set `hasPhotos` true for all ~3,500 farms and rendered `<Image fill sizes>` for each. Next emitted an ~11-entry responsive `srcset` per card, each URL-encoding the long Hetzner blob URL. Evidence: `shop.html` held 38,644 `_next/image?url` occurrences = 21 MB. Pre-PR, only 6 farms had a Pitti URL; the rest rendered the lightweight `FarmFallbackHero`.
+- **Fix:** `FarmCard.tsx` — `unoptimized={!realImageUrl}` on the hero `<Image>`. Pitti blobs are pre-optimised webps, so skipping the optimiser emits a single `src` per card (no srcset). Real owner photos keep optimisation. Bonus: also sidesteps the documented production `/_next/image` 400 for the Hetzner host.
+- **Verified:** rebuild `shop.html` 21 MB -> 15 MB (under cap), srcset occurrences 38,644 -> 969, no oversized warning; `tsc --noEmit` clean; eslint clean; `pnpm test:unit` 252 pass / 0 fail.
+- **Follow-up (not blocking):** /shop renders all ~3,500 cards in one SSG page (15 MB). As farm count grows this creeps back toward the cap; pagination/virtualisation of /shop is the durable fix. The same latent risk applies to large `/find/[county]/[category]` pages (~1.1 MB today).
+
 ### 2026-05-24 — FSA fishing-vessel contamination cleanup + filter
 
 The first full `--apply` run loaded 3,711 farms. Audit (triggered by "have we duplicated the farms") found NO duplicates (slugs/name+postcode unique) but 194 non-farm records: commercial fishing vessels the FSA files under "Farmers/growers" (businessTypeId 7838), all `dataSource='fsa'`, mostly snapped to shared harbour coordinates.

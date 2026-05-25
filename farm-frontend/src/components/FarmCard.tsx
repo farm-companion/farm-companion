@@ -85,6 +85,12 @@ export function FarmCard({
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 25vw"
+            // Pitti blobs are pre-optimised webps served from Hetzner. Skip the
+            // Next optimiser for them so list pages emit a single src per card
+            // (not an ~11-entry srcset): keeps the /shop SSG HTML under Vercel's
+            // 19MB FALLBACK_BODY_TOO_LARGE cap, and sidesteps the /_next/image
+            // 400 for the Hetzner host. Real owner photos keep optimisation.
+            unoptimized={!realImageUrl}
             onError={() => setImageError(true)}
           />
         ) : (
