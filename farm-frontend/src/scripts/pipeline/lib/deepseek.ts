@@ -57,7 +57,8 @@ async function chat(messages: ChatMessage[], temperature: number, maxTokens: num
   return res.choices?.[0]?.message?.content?.trim() ?? ''
 }
 
-const EXTRACTION_SYSTEM =
+// The prompts and parsers below are model-agnostic (shared with lib/anthropic.ts).
+export const EXTRACTION_SYSTEM =
   'You extract facts that are stated verbatim on a farm-shop web page. ' +
   'Return ONLY a JSON object: {"openingHours":string|null,"phone":string|null,' +
   '"products":string[],"facilities":string[],"organic":boolean}. ' +
@@ -74,7 +75,7 @@ export async function extractFacts(corpus: string, opts: DeepSeekOptions = {}): 
   return parseFacts(content)
 }
 
-function parseFacts(content: string): ExtractedFacts {
+export function parseFacts(content: string): ExtractedFacts {
   const empty: ExtractedFacts = { products: [], facilities: [] }
   const txt = content.trim().replace(/^```(?:json)?/i, '').replace(/```$/, '').trim()
   const start = txt.indexOf('{')
@@ -94,13 +95,13 @@ function parseFacts(content: string): ExtractedFacts {
   }
 }
 
-const PHRASING_SYSTEM =
+export const PHRASING_SYSTEM =
   'You rephrase a fixed list of facts about a UK farm shop into 1-3 plain, factual sentences. ' +
   'Use ONLY the facts in the INPUT. Do NOT add history, dates, ownership, awards, opinions, ' +
   'or any place not listed. If the facts are thin, write fewer/shorter sentences - there is no minimum length. ' +
   `Do not use words like: ${BANNED_WORD_HINTS.join(', ')}. Output the description only, no preamble.`
 
-function factBullets(fs: FactSheet, facts: ExtractedFacts): string {
+export function factBullets(fs: FactSheet, facts: ExtractedFacts): string {
   const lines = [
     `Name: ${fs.name}`,
     `Location: ${[fs.city, fs.county].filter(Boolean).join(', ') || 'unknown'}`,
