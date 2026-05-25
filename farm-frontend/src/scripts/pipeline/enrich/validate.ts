@@ -84,6 +84,11 @@ const WHITELIST: ReadonlySet<string> = new Set([
   'with', 'from', 'also', 'range', 'including', 'visit', 'open', 'goods',
   'items', 'product', 'products', 'produce', 'fresh', 'local', 'area',
   'this', 'that', 'their', 'they', 'sale', 'available', 'farmshop',
+  // Safe, neutral descriptors/connectives (cannot form a harmful invented claim
+  // on their own; specific claims are still gated by the checks above).
+  'selection', 'variety', 'seasonal', 'locally', 'sourced', 'quality',
+  'alongside', 'featuring', 'options', 'choice', 'wide', 'onsite',
+  'daily', 'weekly', 'plus', 'well', 'serving', 'features',
 ])
 
 function normalize(s: string): string {
@@ -102,7 +107,8 @@ function factCount(fs: FactSheet, corpus: string): number {
     (corpus.trim() ? 2 : 0)
 }
 function maxChars(fs: FactSheet, corpus: string): number {
-  return clamp(80 + 60 * factCount(fs, corpus), 120, 480)
+  // Allow 1-3 real sentences; fact-rich corpus farms get more headroom.
+  return clamp(120 + 80 * factCount(fs, corpus), 200, 600)
 }
 
 /** Tokens that need no grounding: whitelist + every fact-sheet value's words. */
