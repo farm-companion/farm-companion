@@ -1,5 +1,17 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-25 — Pitti hero on farm detail page (`/shop/[slug]`)
+
+Gap found after the batch: the batch + PR #210 wired Pitti into `FarmCard` (list/grid surfaces) but NOT the farm detail page. `FarmPageClient` rendered its full-bleed hero only when `shop.heroImage` was set (a DB-derived real photo / Apothecary illustration); with none it fell back to a typography-only hero — so e.g. `/shop/apna-local` showed no image despite its Pitti blob existing (HEAD 200).
+
+- **Fix:** `FarmPageClient.tsx` now synthesises a hero from `pittiFarmImageUrl(shop.slug)` (style `'pitti'`) when `shop.heroImage` is null, rendered full-bleed in the existing 60vh image hero with the lighter illustration gradient. `unoptimized` (Hetzner blob, dodges `/_next/image` 400, consistent with FarmCard) + `onError` drops to the typography hero only if the image fails. `farm-hero-image.ts` `FarmHeroImage.style` union extended with `'pitti'` (additive; sole consumer is the gradient choice).
+- **Verified:** `tsc --noEmit` clean; eslint clean; farm-hero-image 17/17 tests pass; `pnpm build` EXIT 0; runtime `next start` + curl `/shop/apna-local` -> HTTP 200 with hero `<img alt="APNA Local, Hounslow" src=".../pitti-farm-images/apna-local/main.webp">`.
+- **Deferred (optional):** the page JSON-LD `image` (`page.tsx:81`) still only uses `shop.heroImage`; could also include the Pitti URL for SEO, but AI-illustration-as-schema-image is a debatable call, left out of this slice.
+
+### 2026-05-25 — Whole-site Pitti batch generated (3,426 farms, 0 failures)
+
+After PR #210 merged (resolver + fallback wiring live in prod), ran the full image generation: `pnpm tsx src/scripts/generate-pitti-batch.ts --concurrency=6`. Result `DONE: ok=1730 skip=1696 fail=0 of 3426` — every active farm without a real owner/admin/user photo now has a Pitti railway-poster illustration at `pitti-farm-images/<slug>/main.webp` on Hetzner blob (1,730 freshly generated via Runware FLUX-dev, 1,696 already present from prior out-of-band runs, skipped via HEAD check). Verified 3 sample URLs return `200 image/webp`. No redeploy needed — the live resolver serves them immediately; FarmCard renders them `unoptimized`. Smoke-tested with `--limit=2` first.
+
 ### 2026-05-25 — Fix PR #210 Vercel build (oversized /shop ISR fallback)
 
 PR #210 (whole-site Pitti) was MERGEABLE but Vercel CI was FAILURE: `Oversized ISR page: shop.fallback (20.52 MB) > 19.07 MB (FALLBACK_BODY_TOO_LARGE)`. Local `next build` passes (the size cap is Vercel-runtime-enforced), so it never surfaced before push.

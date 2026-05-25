@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -15,8 +16,9 @@ import {
   Camera,
   Shield
 } from 'lucide-react'
-import type { FarmShop } from '@/types/farm'
+import type { FarmShop, FarmHeroImage } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
+import { pittiFarmImageUrl } from '@/data/pitti-farms'
 import { ObfuscatedEmail, ObfuscatedPhone } from './ObfuscatedContact'
 import { StatusBadge } from './StatusBadge'
 
@@ -34,6 +36,17 @@ export function FarmPageClient({
   issueUrl
 }: FarmPageClientProps) {
   const { name, location, contact, offerings, verified, hours } = shop
+
+  // Hero image: a real photo / Apothecary hero wins; otherwise serve the farm's
+  // Pitti illustration full-bleed so every farm has a hero. Falls back to the
+  // typography hero only if the Pitti image fails to load (e.g. a brand-new
+  // farm not yet generated).
+  const [pittiError, setPittiError] = useState(false)
+  const heroImage: FarmHeroImage | null =
+    shop.heroImage ??
+    (pittiError
+      ? null
+      : { url: pittiFarmImageUrl(shop.slug), alt: `${name}, ${location.county}`, style: 'pitti' })
 
   return (
     <>
@@ -61,16 +74,21 @@ export function FarmPageClient({
        * line accents, no image. Pattern adapted from
        * src/components/best/editorial/EditorialHero.tsx and the header
        * block of src/components/best/EditorialArticle.tsx. */}
-      {shop.heroImage ? (
+      {heroImage ? (
         <section className="relative h-[60vh] min-h-[420px] max-h-[720px] overflow-hidden bg-slate-100 dark:bg-slate-900">
           <div className="absolute inset-0">
             <Image
-              src={shop.heroImage.url}
-              alt={shop.heroImage.alt}
+              src={heroImage.url}
+              alt={heroImage.alt}
               fill
               priority
               sizes="100vw"
               className="object-cover"
+              // Pitti illustrations are pre-optimised webps on Hetzner blob:
+              // skip the Next optimiser (consistent with FarmCard; also dodges
+              // the production /_next/image 400 for that host).
+              unoptimized={heroImage.style === 'pitti'}
+              onError={heroImage.style === 'pitti' ? () => setPittiError(true) : undefined}
             />
             {/* Stronger gradient (vs Slice 1.1.3b-1) to lift the bolder
               * title cleanly off the light-keyed Apothecary illustration.
@@ -78,7 +96,7 @@ export function FarmPageClient({
               * photographic backgrounds. */}
             <div
               className={
-                shop.heroImage.style === 'photo'
+                heroImage.style === 'photo'
                   ? 'absolute inset-0 bg-gradient-to-b from-black/35 via-black/15 to-black/75'
                   : 'absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/65'
               }
