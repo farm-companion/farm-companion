@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import Link from 'next/link'
 import { getCachedAllCategories } from '@/lib/server-cache-categories'
 import { Badge } from '@/components/ui/Badge'
+import { CategoryIcon } from '@/components/CategoryIcon'
 
 export const metadata: Metadata = {
   title: 'Farm Categories | Farm Companion',
@@ -20,7 +21,8 @@ export const metadata: Metadata = {
 }
 
 export default async function CategoriesPage() {
-  const categories = await getCachedAllCategories()
+  // Show only categories that actually have farms (no empty "0 Farms" cards).
+  const categories = (await getCachedAllCategories()).filter((cat) => cat.farmCount > 0)
 
   // Group categories by display order ranges for better organization
   const primaryCategories = categories.filter((cat) => cat.displayOrder <= 10)
@@ -84,11 +86,7 @@ export default async function CategoriesPage() {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
               Popular Categories
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {primaryCategories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
-              ))}
-            </div>
+            <CategoryCardGrid categories={primaryCategories} />
           </section>
         )}
 
@@ -98,11 +96,7 @@ export default async function CategoriesPage() {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
               Specialized & Seasonal
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {specializedCategories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
-              ))}
-            </div>
+            <CategoryCardGrid categories={specializedCategories} />
           </section>
         )}
 
@@ -112,11 +106,7 @@ export default async function CategoriesPage() {
             <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
               Products & Practices
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {otherCategories.map((category) => (
-                <CategoryCard key={category.id} category={category} />
-              ))}
-            </div>
+            <CategoryCardGrid categories={otherCategories} />
           </section>
         )}
       </div>
@@ -124,19 +114,36 @@ export default async function CategoriesPage() {
   )
 }
 
+// Centered grid: few cards are centered so they don't strand left; many flow as a grid.
+function CategoryCardGrid({ categories }: { categories: Awaited<ReturnType<typeof getCachedAllCategories>> }) {
+  const few = categories.length <= 3
+  return (
+    <div className={
+      few
+        ? 'flex flex-wrap justify-center gap-4 md:gap-6'
+        : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6'
+    }>
+      {categories.map((category) => (
+        <CategoryCard key={category.id} category={category} fixedWidth={few} />
+      ))}
+    </div>
+  )
+}
+
 // Category Card Component
-function CategoryCard({ category }: { category: Awaited<ReturnType<typeof getCachedAllCategories>>[number] }) {
+function CategoryCard({ category, fixedWidth = false }: { category: Awaited<ReturnType<typeof getCachedAllCategories>>[number]; fixedWidth?: boolean }) {
   return (
     <Link
       href={`/categories/${category.slug}`}
-      className="group relative bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-brand-primary dark:hover:border-brand-primary"
+      className={
+        'group relative bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-brand-primary dark:hover:border-brand-primary ' +
+        (fixedWidth ? 'w-44 sm:w-56 md:w-64' : '')
+      }
     >
       {/* Icon */}
-      {category.icon && (
-        <div className="text-4xl md:text-5xl mb-3 transform transition-transform group-hover:scale-110">
-          {category.icon}
-        </div>
-      )}
+      <div className="mb-3">
+        <CategoryIcon slug={category.slug} />
+      </div>
 
       {/* Category Name */}
       <h3 className="font-semibold text-slate-900 dark:text-white mb-2 text-caption md:text-body">

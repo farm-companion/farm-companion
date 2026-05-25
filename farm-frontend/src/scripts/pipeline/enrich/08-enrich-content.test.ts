@@ -26,7 +26,7 @@ function seqFetcher(contents: string[]) {
   const f = (async (url: string, init: RequestInit = {}) => {
     calls.push({ url, init })
     const content = contents[Math.min(i++, contents.length - 1)]
-    return { ok: true, status: 200, headers: new Headers(), json: async () => ({ choices: [{ message: { content } }] }) } as unknown as Response
+    return { ok: true, status: 200, headers: new Headers(), json: async () => ({ content: [{ type: 'text', text: content }] }) } as unknown as Response
   }) as unknown as typeof fetch
   return { f, calls }
 }
@@ -68,6 +68,28 @@ test('enrichOne ships validated DeepSeek prose when it grounds in the fact sheet
   assert.equal(out.description, 'Dales Farm Shop is a farm shop in Yorkshire selling dairy.')
 })
 
+test('enrichOne credits extracted facts as grounding (product not in the raw corpus)', async () => {
+  const { f } = seqFetcher([
+    '{"products":["asparagus"],"facilities":[]}',
+    'Dales Farm Shop in Yorkshire sells asparagus.',
+  ])
+  // corpus does NOT contain "asparagus"; only the extracted facts do.
+  const out = await enrichOne(target(), 'Dales Farm Shop is in Yorkshire.', { fetcher: f, apiKey: 'k' })
+  assert.equal(out.grounded, true)
+  assert.equal(out.reason, 'validated')
+})
+
+test('enrichOne derives categories from extracted facts', async () => {
+  const { f } = seqFetcher([
+    '{"products":["beef","cheese"],"facilities":["cafe"]}',
+    'Dales Farm Shop in Yorkshire sells beef and cheese.',
+  ])
+  const out = await enrichOne(target(), 'Dales Farm Shop in Yorkshire sells beef and cheese with a cafe.', { fetcher: f, apiKey: 'k' })
+  assert.ok(out.categories?.includes('meat-producers'))
+  assert.ok(out.categories?.includes('cheese-makers'))
+  assert.ok(out.categories?.includes('farm-cafes'))
+})
+
 test('enrichOne rejects invented prose and falls back to an honest line', async () => {
   const { f } = seqFetcher([
     '{"products":[],"facilities":[]}',
@@ -77,6 +99,22 @@ test('enrichOne rejects invented prose and falls back to an honest line', async 
   assert.equal(out.grounded, false)
   assert.equal(out.reason, 'invention_marker')
   assert.ok(!/family-run/i.test(out.description))
+})
+
+test('enrichOne degrades to a fallback (not a crash) on a transient DeepSeek error', async () => {
+  const throwFetcher = (async () => { throw new Error('network down') }) as unknown as typeof fetch
+  const out = await enrichOne(target(), 'Dales Farm Shop in Yorkshire sells dairy produce.', { fetcher: throwFetcher, apiKey: 'k' })
+  assert.equal(out.grounded, false)
+  assert.equal(out.reason, 'deepseek_error')
+  assert.ok(out.description.includes('Dales Farm Shop'))
+})
+
+test('enrichOne rethrows a systemic DeepSeek billing/auth error (HTTP 402) so the run aborts loudly', async () => {
+  const billingFetcher = (async () => ({ ok: false, status: 402, headers: new Headers(), json: async () => ({}) }) as unknown as Response) as unknown as typeof fetch
+  await assert.rejects(
+    enrichOne(target(), 'Dales Farm Shop in Yorkshire sells dairy produce.', { fetcher: billingFetcher, apiKey: 'k' }),
+    /402/,
+  )
 })
 
 test('runEnrichContent fails fast on a stale targets file (target without id)', async () => {
