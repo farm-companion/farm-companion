@@ -7,6 +7,7 @@ import { MapPin, Navigation, CheckCircle, ExternalLink } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
 import { FarmFallbackHero } from './FarmFallbackHero'
+import { pittiFarmImageUrl } from '@/data/pitti-farms'
 import { StatusBadgeCompact } from './StatusBadge'
 import { AmenityIcons } from './shop/AmenityIcons'
 import { formatDistance } from '@/shared/lib/geo'
@@ -38,7 +39,9 @@ export function FarmCard({
 }: FarmCardProps) {
   const [imageError, setImageError] = useState(false)
   const firstImageUrl = farm.images?.[0] ? getImageUrl(farm.images[0]) : undefined
-  const hasPhotos = !!firstImageUrl && !imageError
+  // Hero priority: real photo -> enrolled Pitti illustration -> designed fallback.
+  const heroUrl = (!imageError && firstImageUrl) ? firstImageUrl : (pittiFarmImageUrl(farm.slug) ?? undefined)
+  const hasPhotos = !!heroUrl
   const isVerified = farm.verified || false
 
   const handleDirections = (e: React.MouseEvent) => {
@@ -73,9 +76,9 @@ export function FarmCard({
     >
       {/* Image Section - Taller for better visual impact */}
       <div className="relative h-44 sm:h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0">
-        {hasPhotos && firstImageUrl ? (
+        {hasPhotos && heroUrl ? (
           <Image
-            src={firstImageUrl}
+            src={heroUrl}
             alt={`${farm.name} farm shop`}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"

@@ -27,20 +27,23 @@
 //   3. Add the slug to `PITTI_FARM_IMAGES` below (alphabetical)
 //   4. Verify map popover renders the Pitti illustration locally
 
-const PITTI_BLOB_BASE =
-  'https://farm-companion-blob-prod.hel1.your-objectstorage.com/pitti-farm-images'
-
 export const PITTI_FARM_IMAGES: ReadonlySet<string> = new Set<string>([
-  // Seed slugs land here as per-farm Pitti illustrations are generated.
+  // Probe batch (2026-05-25): top-rated farms. Pitti railway-poster
+  // illustrations generated via `pnpm generate:pitti farm-header <slug>
+  // --county=...` and committed under public/images/pitti/. Grow this set.
+  'cumbria-farmers',
+  'roots-grocer',
+  'ryedale-rare-native-breeds',
+  'skelwith-fold-farm',
+  'the-egg-shed-farm-shop',
+  'town-end-farm-community-store',
 ])
 
 /**
- * Resolve the Pitti illustration URL for a farm slug, or null if no
- * illustration has been enrolled in the manifest yet. The Hetzner host
- * is whitelisted in `next.config.ts` `images.remotePatterns` so the
- * Next image proxy can optimise the returned URL.
+ * Resolve the Pitti illustration URL for a farm slug, or null if not enrolled.
+ * Served as a committed static asset: public/images/pitti/farm-header-<slug>.webp.
  */
 export function pittiFarmImageUrl(slug: string): string | null {
   if (!PITTI_FARM_IMAGES.has(slug)) return null
-  return `${PITTI_BLOB_BASE}/${encodeURIComponent(slug)}/main.webp`
+  return `/images/pitti/farm-header-${slug}.webp`
 }
