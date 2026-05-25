@@ -20,7 +20,7 @@
  */
 
 import { getAllCounties } from '@/lib/queries/counties'
-import { getAllCategories, getFarmsByCategory } from '@/lib/queries/categories'
+import { getAllCategories, getFarmsByCategory, getActiveCountyCategoryPairs } from '@/lib/queries/categories'
 import { SITE_URL } from '@/lib/site'
 
 // =============================================================================
@@ -140,26 +140,26 @@ export function getSEOPageUrl(countySlug: string, categorySlug: string): string 
  * This prevents generating empty pages that hurt SEO.
  */
 export async function generateSEOPageParams(): Promise<SEOPageParams[]> {
-  const [counties, categoriesRaw] = await Promise.all([
+  // Prerender only county+category combos that actually have farms (non-empty).
+  // The naive counties x populated-categories product (~6k pages) overflows the
+  // build disk; empty combos still render on-demand via ISR (revalidate above).
+  const [counties, pairs] = await Promise.all([
     getAllCounties(),
-    getAllCategories(),
+    getActiveCountyCategoryPairs(),
   ])
 
-  // Cast to proper types (Prisma returns full object but TS infers partial)
-  const categories = categoriesRaw as unknown as CategoryWithCount[]
+  const slugByName = new Map(counties.map((c) => [c.name, c.slug]))
 
   const params: SEOPageParams[] = []
+  const seen = new Set<string>()
 
-  // For each county-category combination
-  for (const county of counties) {
-    for (const category of categories) {
-      // Only include if category has farms (we'll filter by county in the page)
-      if (category.farmCount > 0) {
-        params.push({
-          county: county.slug,
-          category: category.slug,
-        })
-      }
+  for (const { county, categorySlug } of pairs) {
+    const countySlug = slugByName.get(county)
+    if (!countySlug) continue
+    const key = `${countySlug}|${categorySlug}`
+    if (!seen.has(key)) {
+      seen.add(key)
+      params.push({ county: countySlug, category: categorySlug })
     }
   }
 

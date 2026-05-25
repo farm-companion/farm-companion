@@ -398,6 +398,35 @@ export async function getTopCategories(limit = 12) {
 }
 
 /**
+ * Distinct (county name, category slug) pairs that actually have an active farm.
+ * Used to prerender only NON-EMPTY /find/[county]/[category] pages (the naive
+ * counties x populated-categories product is ~6k pages and overflows the build
+ * disk; non-empty combos are ~500). Empty combos still render on-demand via ISR.
+ */
+export async function getActiveCountyCategoryPairs(): Promise<Array<{ county: string; categorySlug: string }>> {
+  try {
+    const rows = await prisma.farmCategory.findMany({
+      where: { farm: { status: 'active', county: { not: null } } },
+      select: { category: { select: { slug: true } }, farm: { select: { county: true } } },
+    })
+    const seen = new Set<string>()
+    const out: Array<{ county: string; categorySlug: string }> = []
+    for (const r of rows) {
+      const county = r.farm.county
+      if (!county) continue
+      const key = `${county}|${r.category.slug}`
+      if (seen.has(key)) continue
+      seen.add(key)
+      out.push({ county, categorySlug: r.category.slug })
+    }
+    return out
+  } catch (error) {
+    console.warn(`[categories] getActiveCountyCategoryPairs failed (expected during build without DB): ${error}`)
+    return []
+  }
+}
+
+/**
  * Search categories by name
  */
 export async function searchCategories(query: string) {
