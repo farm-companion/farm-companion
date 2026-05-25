@@ -38,10 +38,12 @@ export function FarmCard({
   selected = false,
 }: FarmCardProps) {
   const [imageError, setImageError] = useState(false)
-  const firstImageUrl = farm.images?.[0] ? getImageUrl(farm.images[0]) : undefined
-  // Hero priority: real photo -> enrolled Pitti illustration -> designed fallback.
-  const heroUrl = (!imageError && firstImageUrl) ? firstImageUrl : (pittiFarmImageUrl(farm.slug) ?? undefined)
-  const hasPhotos = !!heroUrl
+  const realImageUrl = farm.images?.[0] ? getImageUrl(farm.images[0]) : undefined
+  // Hero priority: real photo -> Pitti illustration -> designed fallback.
+  // On any load error (e.g. a farm whose Pitti isn't generated yet) we drop
+  // straight to the designed fallback rather than retrying.
+  const heroUrl = realImageUrl ?? pittiFarmImageUrl(farm.slug)
+  const hasPhotos = !!heroUrl && !imageError
   const isVerified = farm.verified || false
 
   const handleDirections = (e: React.MouseEvent) => {
