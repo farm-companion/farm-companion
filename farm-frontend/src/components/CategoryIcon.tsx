@@ -56,18 +56,25 @@ export function getCategoryIcon(slug: string): LucideIcon {
   return ICON_BY_SLUG[slug] ?? FALLBACK
 }
 
-export function CategoryIcon({ slug, className }: { slug: string; className?: string }) {
+const SIZES = {
+  sm: { tile: 'w-9 h-9 rounded-lg', icon: 'w-5 h-5' },
+  md: { tile: 'w-12 h-12 rounded-xl', icon: 'w-6 h-6' },
+  lg: { tile: 'w-16 h-16 rounded-2xl', icon: 'w-8 h-8' },
+} as const
+
+export function CategoryIcon({ slug, size = 'md', className }: { slug: string; size?: keyof typeof SIZES; className?: string }) {
   // getCategoryIcon returns a stable, module-level Lucide component; createElement
   // selects it without tripping react-hooks/static-components (no render-scope component).
+  const s = SIZES[size]
   return (
     <span
       className={
-        'inline-flex items-center justify-center w-12 h-12 rounded-xl bg-brand-primary/10 text-brand-primary ' +
+        `inline-flex items-center justify-center ${s.tile} bg-brand-primary/10 text-brand-primary ` +
         'transition-colors duration-300 group-hover:bg-brand-primary group-hover:text-white ' +
         (className ?? '')
       }
     >
-      {createElement(getCategoryIcon(slug), { className: 'w-6 h-6', strokeWidth: 1.75, 'aria-hidden': true })}
+      {createElement(getCategoryIcon(slug), { className: s.icon, strokeWidth: 1.75, 'aria-hidden': true })}
     </span>
   )
 }

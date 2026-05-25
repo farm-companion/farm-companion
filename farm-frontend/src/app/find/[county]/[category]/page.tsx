@@ -11,6 +11,7 @@ import {
 import { FarmCard } from '@/components/FarmCard'
 import { Badge } from '@/components/ui/Badge'
 import { MapPin, ChevronRight, Store, ArrowRight } from 'lucide-react'
+import { CategoryIcon } from '@/components/CategoryIcon'
 
 // Revalidate every 6 hours
 export const revalidate = 21600
@@ -119,11 +120,7 @@ export default async function FindPage({ params }: FindPageProps) {
         <section className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex items-start gap-4">
-              {data.category.icon && (
-                <div className="w-16 h-16 rounded-2xl bg-brand-primary/10 flex items-center justify-center text-3xl">
-                  {data.category.icon}
-                </div>
-              )}
+              <CategoryIcon slug={data.category.slug} size="lg" />
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">
                   {data.category.name} in {data.county.name}
