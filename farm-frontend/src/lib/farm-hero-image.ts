@@ -35,7 +35,10 @@ export interface FarmHeroImageInput {
 export interface FarmHeroImage {
   url: string
   alt: string
-  style: 'photo' | 'apothecary'
+  // 'pitti' is synthesised by the page (not this builder) when a farm has no
+  // real photo/Apothecary hero: it serves the farm's Pitti illustration and
+  // takes the same lighter overlay treatment as 'apothecary'.
+  style: 'photo' | 'apothecary' | 'pitti'
 }
 
 const ADMIN_PHOTO_LABELS = new Set(['owner', 'admin', 'user'])
