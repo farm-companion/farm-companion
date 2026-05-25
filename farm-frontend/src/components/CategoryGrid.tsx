@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { getCachedTopCategories } from '@/lib/server-cache-categories'
 import { Badge } from './ui/Badge'
+import { CategoryIcon } from './CategoryIcon'
 
 interface CategoryGridProps {
   limit?: number
@@ -14,6 +15,9 @@ export async function CategoryGrid({ limit = 12, featured = false }: CategoryGri
   if (categories.length === 0) {
     return null
   }
+
+  // Few populated categories would strand in a left-aligned grid; center them.
+  const few = categories.length <= 3
 
   return (
     <section className="relative py-24 md:py-32 lg:py-40 bg-white dark:bg-slate-950">
@@ -29,19 +33,24 @@ export async function CategoryGrid({ limit = 12, featured = false }: CategoryGri
         </div>
 
         {/* Category Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
+        <div className={
+          few
+            ? 'flex flex-wrap justify-center gap-3 sm:gap-4 md:gap-6'
+            : 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6'
+        }>
           {categories.map((category) => (
             <Link
               key={category.id}
               href={`/categories/${category.slug}`}
-              className="group relative bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 md:p-6 min-h-[120px] sm:min-h-[140px] transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-brand-primary dark:hover:border-brand-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2"
+              className={
+                'group relative bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 md:p-6 min-h-[120px] sm:min-h-[140px] transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-brand-primary dark:hover:border-brand-primary active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary focus-visible:ring-offset-2 ' +
+                (few ? 'w-44 sm:w-56 md:w-64' : '')
+              }
             >
               {/* Icon */}
-              {category.icon && (
-                <div className="text-3xl sm:text-4xl md:text-5xl mb-2 sm:mb-3 transform transition-transform group-hover:scale-110">
-                  {category.icon}
-                </div>
-              )}
+              <div className="mb-2 sm:mb-3">
+                <CategoryIcon slug={category.slug} />
+              </div>
 
               {/* Category Name */}
               <h3 className="font-semibold text-slate-900 dark:text-white mb-1 sm:mb-2 text-caption leading-tight">
