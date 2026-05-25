@@ -10,6 +10,7 @@ import {
   getCachedAllCategories,
 } from '@/lib/server-cache-categories'
 import { FarmCard } from '@/components/FarmCard'
+import { CategoryIcon } from '@/components/CategoryIcon'
 import { Badge } from '@/components/ui/Badge'
 import { Skeleton } from '@/components/ui/Skeleton'
 import { categoryFAQs, genericCategoryFAQs } from '@/data/category-faqs'
@@ -202,11 +203,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <div className="max-w-3xl">
             {/* Category Icon & Name */}
             <div className="flex items-center gap-4 mb-4">
-              {category.icon && (
-                <span className="text-5xl md:text-6xl" aria-hidden="true">
-                  {category.icon}
-                </span>
-              )}
+              <CategoryIcon slug={category.slug} size="lg" />
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white">
                 {category.name}
               </h1>
@@ -291,7 +288,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                         href={`/categories/${relatedCat.slug}`}
                         className="flex items-center gap-2 px-3 py-2 rounded-md text-caption text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
                       >
-                        {relatedCat.icon && <span className="text-body">{relatedCat.icon}</span>}
+                        <CategoryIcon slug={relatedCat.slug} size="sm" />
                         <span>{relatedCat.name}</span>
                       </Link>
                     ))}
