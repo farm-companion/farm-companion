@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { MapPin, Navigation, CheckCircle, ExternalLink } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
+import { FarmFallbackHero } from './FarmFallbackHero'
 import { StatusBadgeCompact } from './StatusBadge'
 import { AmenityIcons } from './shop/AmenityIcons'
 import { formatDistance } from '@/shared/lib/geo'
@@ -82,9 +83,7 @@ export function FarmCard({
             onError={() => setImageError(true)}
           />
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700">
-            <MapPin className="h-12 w-12 text-slate-400 dark:text-slate-500" />
-          </div>
+          <FarmFallbackHero name={farm.name} county={farm.location?.county} />
         )}
 
         {/* Status Badge Overlay */}
