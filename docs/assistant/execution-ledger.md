@@ -1,5 +1,15 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-25 — Targeted Apothecary rollout (1,019 well-reviewed farms)
+
+Image design system spec (`docs/superpowers/specs/2026-05-25-image-design-system-design.md`) realized the council two-style intent: real photo -> Apothecary (per-farm) -> Pitti (place/long-tail fallback) -> typography. CC photos investigated and DROPPED (11,752 rows but all `status='pending'` 120x120 Geograph geo-search thumbnails; not premium). Inventory at decision time: 3,512 active farms, only 86 with a real photo, 1 apothecary, Pitti on all via resolver.
+
+- **Decision:** generate Apothecary only for farms that matter. `verified`/`featured` flags are unused (0/0), so the signal is Google reviews: targeted farms with `googleReviewsCount >= 20`, excluding the 86 real-photo farms and any already-done.
+- **New script** `generate-apothecary-batch.ts` (branch `feat/image-design-system`): concurrent, resumable, mirrors `generate-pitti-batch.ts`; generates via `buildApothecaryFarmOfferingsPrompt` + `cropBottomStrip` + `uploadApothecaryFarmImage`, then creates the approved `ai_apothecary` Image row (`isHero=true`).
+- **Run:** `DONE: ok=1008 skip=0 fail=0`. Total `ai_apothecary` coverage now 1,019 farms.
+- **Self-wiring:** no app rewire needed. `selectFarmHeroImage` already prefers `ai_apothecary` for the detail hero; `getFarmData` includes it as `farm.images[0]` for cards. Verified: prod `/shop/a-good-idea` renders the Apothecary hero live; blob HEAD 200. Real-photo farms excluded so the isHero row never outranks an owner photo. Card (ISR) surfaces reflect on next revalidation (6h).
+- **Cost:** ~£2-4 (FLUX-dev). **Follow-ups (optional):** Phase 3 placement polish, Phase 4 premium treatment (consistent framing/overlays/motion).
+
 ### 2026-05-25 — Pitti hero on farm detail page (`/shop/[slug]`)
 
 Gap found after the batch: the batch + PR #210 wired Pitti into `FarmCard` (list/grid surfaces) but NOT the farm detail page. `FarmPageClient` rendered its full-bleed hero only when `shop.heroImage` was set (a DB-derived real photo / Apothecary illustration); with none it fell back to a typography-only hero — so e.g. `/shop/apna-local` showed no image despite its Pitti blob existing (HEAD 200).
