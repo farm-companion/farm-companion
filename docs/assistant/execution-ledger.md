@@ -3187,3 +3187,27 @@ The first live runs surfaced real-API issues the fixture tests could not (each f
 **Risk/rollback:** Guard is additive (throws only on malformed/stale targets). Rollback: revert the two files.
 
 **Next (operator):** real enrich pass — `pnpm enrich:targets` (full or `--limit`), Python `scrape_sidecar.py` for scrapeable farms (needs corpus before grounded prose), `pnpm enrich:content` (needs `DEEPSEEK_API_KEY`), spot-review grounded prose, then guarded `enrich:load --apply`.
+
+---
+
+### 2026-05-25 — Enrich applied to prod: Anthropic backend + fact-grounded descriptions + derived categories + premium category UI
+
+**Outcome (verified against prod):** every farm now has a description (**3,512 / 3,512**) and **~20 categories are populated** (farm-shops 2402, meat 95, vegetables 85, fruit 69, dairy 68, bakeries 59, eggs 57, cafes 52, preserves 36, cheese 35, organic 30, honey/ice-cream 22, …). `07-load --apply` report: `updated 2641, skipped 0, errors 0, categoriesLinked 891, description on 2641`. Zero hallucinations shipped.
+
+**The run that got here:**
+- First full scrape (285 scrapeable of 2,641 description-less; 226 `ok` corpora; rest thin/fetch-error → honest fallback). Corpora cached 14 days.
+- DeepSeek backend hit **HTTP 402 (no credit)** on the first call. Switched LLM backend to **Anthropic Claude** (operator funded key, $8.75). First Sonnet run: only 66 grounded — the validator was too strict (grounded lines were trivial "X is in Y"; 154 good descriptions rejected as ungrounded_claim/too_long).
+- **Tuned (TDD):** validator now credits the extracted facts as grounding (08 appends `facts.products/facilities` to the grounding corpus) + relaxed length cap (`clamp(120+80*factCount,200,600)`) + a few safe descriptor words whitelisted; rejected candidates are now logged for audit. Re-ran on **Haiku** (~$1, respecting the <$4 floor): grounded 66→99, too_long 39→9. Audit showed the remaining ~97 `ungrounded_claim` are good product-list descriptions failing only on minor generalisations (mutton/soft-fruits) not literally in corpus — left as honest fallbacks (trust anchor preserved). Applied all.
+
+**Slices (code, all TDD, `pnpm test:unit` 252 pass, tsc + eslint clean) — UNCOMMITTED at time of writing, committing next:**
+- `lib/anthropic.ts` (+test): Claude Messages-API client behind the same extractFacts/phraseDescription seam; shared model-agnostic prompts/parsers exported from `deepseek.ts`. Env: `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` (default `claude-sonnet-4-6`).
+- `08-enrich-content.ts`: per-farm LLM failure degrades to fallback (systemic 400/401/402/403 aborts loudly); progress logging; stale-targets-file fail-fast; fact-grounding; `deriveCategories`; rejected-candidate logging.
+- `enrich/derive-categories.ts` (+test): products/facilities/organic → seeded category slugs (additive; 07-load links them).
+- `enrich/validate.ts`: relaxed length + safe-descriptor whitelist additions.
+- `components/CategoryIcon.tsx` (+test): premium Lucide line-icons per slug (replaces emoji `Category.icon`). `CategoryGrid.tsx` + `categories/page.tsx`: use it, hide 0-farm categories, centre when few.
+
+**Risk/rollback:** All description writes never-clobber curated provenance and are `derived`-tagged with `lastEnrichedAt`; category links are additive upserts. Reversible by source. UI is additive.
+
+**Operator step still owed:** the live site reflects the new descriptions/categories only after ISR expiry (homepage 1h, /shop + county 6h) or a fresh Vercel redeploy. DB (prod Hetzner) is already updated.
+
+**Follow-ups (not blockers):** ~97 good product-list descriptions remain fallbacks (validator strictness — could rescue with a food-noun lexicon or single extract+phrase call); 59 scrape fetch_errors could be retried; consider deleting the stray `farm-frontend/docs/assistant/execution-ledger.md`.
