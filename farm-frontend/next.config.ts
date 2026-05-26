@@ -27,6 +27,11 @@ const headersCommon = [
 // Note: Geolocation is now allowed site-wide in headersCommon for map functionality
 
 const nextConfig: NextConfig = {
+  // Dev-only: disable React Strict Mode's double-invoke, which trips
+  // framer-motion's useScroll "target ref not hydrated" error and blanks
+  // the page in local dev. No effect on production builds (which never
+  // double-invoke). See homepage-redesign spec 2026-05-26.
+  reactStrictMode: false,
   // Self-contained server bundle for Docker / Coolify deploys.
   // Produces .next/standalone with a minimal node_modules and server.js.
   output: 'standalone',

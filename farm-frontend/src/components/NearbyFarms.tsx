@@ -143,9 +143,10 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
 
   const seasonal = SEASONAL_HEADLINES[currentMonth]
 
-  // Scroll-driven animations
+  // Scroll-driven animations. Gate target until mounted so motion's
+  // useScroll doesn't throw on the unhydrated ref in dev Strict Mode.
   const { scrollYProgress } = useScroll({
-    target: sectionRef,
+    target: mounted ? sectionRef : undefined,
     offset: ['start end', 'end start'],
   })
   const contentY = useTransform(scrollYProgress, [0.08, 0.3], [50, 0])

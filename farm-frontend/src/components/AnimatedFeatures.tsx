@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -11,8 +11,13 @@ const ease = [0.16, 1, 0.3, 1] as const
 
 export function AnimatedFeatures() {
   const sectionRef = useRef<HTMLElement>(null)
+  // Gate the scroll target until after hydration: motion's useScroll throws
+  // "target ref defined but not hydrated" in dev Strict Mode when the ref'd
+  // element isn't attached on first render. Track viewport until mounted.
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
   const { scrollYProgress } = useScroll({
-    target: sectionRef,
+    target: mounted ? sectionRef : undefined,
     offset: ['start end', 'end start'],
   })
 
