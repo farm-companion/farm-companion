@@ -1,5 +1,40 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-26 — Non-farm contamination removal (Farmfoods + chains) + ingest filter
+
+**Trigger:** user spotted "Farmfoods" (frozen-food supermarket chain) listed as a farm. **Root cause (systematic-debugging):** the OSM parser (`parseOverpass`) accepted ANY element tagged `shop=farm` with zero filtering — the Farmfoods Norwich branch (`way:292181031`, ex-Carpetright unit, `website=farmfoods.co.uk/store-finder...`) was mis-tagged `shop=farm`. FSA contaminants (Tesco etc.) were mis-filed under "Farmers/growers" (7838). Only `isVesselName` existed; no chain filter. **Council (ecc:council, 4 voices):** no fuzzy substring matching (collides with real farms — "Aldis Farm Shop", "Spalding"); fix the OSM pipe; hand-fix the rows; delete-with-reversible-backup over a suspend queue. Plan: `docs/superpowers/plans/2026-05-26-non-farm-contamination.md`. Executed via subagent-driven-development.
+
+**Done (TDD, red->green; subagent-implemented, controller-reviewed):**
+- CREATE `pipeline/sources/non-farm-chains.ts` (+test, 9 cases): `isNonFarmChain({name,website,tags})` using PRECISE signals only — whole-token name match (so "aldis" never matches "aldi"), multi-word chain phrases, known chain web-domains, and OSM brand/operator tags. Verified false-positive-safe against real farms (Aldis Farm Shop, Spalding, Sparkle-Ness, Alasdair, Newton/Eco Farm Foods).
+- MODIFY `pipeline/sources/overpass.ts` + `fsa.ts`: apply `isNonFarmChain` guard in both parsers (closes the unguarded OSM pipe + extends the FSA filter beyond vessels). +test each.
+- CREATE `scripts/audit-non-farm.ts` (read-only contamination scan; ongoing review surface) + `scripts/remove-farms.ts` (dry-run default, full-row JSON backup to `.cleanup-backups/`, cascade delete on `--apply`).
+- Added `wiltshire farm foods` to the phrase denylist (FSA-sourced national meal-delivery chain that the token rules missed) so it cannot re-import.
+
+**Cleanup applied to prod (reversible):** audit flagged 6 chains; manually classified the broader "Farm Foods"/garden-centre set (most are GENUINE farm shops — Rhug Estate, "Farm Shop & Garden Centre" combos — deliberately KEPT; pure garden centres left for a separate decision). Deleted **8 confirmed non-farm rows** (backup `non-farm-2026-05-26T18-03-31-469Z.json`): farmfoods, Tesco Superstore, Tesco, Washington Teal Farm Sainsbury's (Argos pt), Carnagh House Off Licence & NISA, Premier Stores/Nikki's Kitchen, Wiltshire Farm Foods, Mwanaka Fresh Farm Foods. **Active farms 3,512 -> 3,504.** Post-delete audit: 0 chain candidates remaining; all deleted names gone.
+
+**Verification (ran, passed):** `pnpm test:unit` 269 pass / 0 fail (was 259); `tsc --noEmit` exit 0; eslint exit 0 on all touched files. Implementer commits: 75d171f, b401eb6, ba44325.
+
+**Risk/rollback:** Deletion reversible from the backup JSON (full rows + relations). Ingest filter is precise (token/domain), reviewed against known false positives. Rollback: revert the parser guards + re-insert from backup.
+
+**Follow-ups (not blockers):** 5 pure garden centres (Planters Pacific, Coleman's, Polhill, Homeleigh, Old Railway Line) await a keep/remove decision; the name denylist needs periodic `audit-non-farm.ts` runs (Critic: it misses unknown chains).
+
+### 2026-05-26 — County hero coverage: reuse existing farm imagery (no new generation)
+
+**Goal:** every `/counties/[slug]` page has a hero image. Audit found counties were the only uncovered public surface: `PITTI_COUNTY_IMAGES` is an empty Set, so `CountyHero` dropped to a typography-only fallback for all 286 counties. (Farms, seasonal/produce, best-lists, homepage, categories were already covered.) Directive: use what we already have, generate nothing.
+
+**Done (TDD, red->green):**
+- CREATE `src/lib/county-hero-image.ts` (56 lines) + `.test.ts` (7 cases): pure `pickCountyHeroImage(images)` — precedence real photo (owner/admin/user) > `ai_apothecary` > `ai_pitti`; ignores `ai_generator`/unknown; isHero then displayOrder tiebreak.
+- MODIFY `src/lib/queries/counties.ts` (406 lines): new `getCountyHeroImageUrl(slug)`. Tier 1 = best approved DB Image row for a county farm (via picker). Tier 2 = the county's top no-real-photo farm's Pitti URL by convention (`pittiFarmImageUrl`, the same builder FarmCard uses), HEAD-verified so a server-rendered hero never 404s. Runs at build/revalidation (pages are static).
+- MODIFY `src/lib/server-cache-counties.ts`: `getCachedCountyHeroImageUrl` wrapper.
+- MODIFY `src/app/counties/[slug]/page.tsx`: `imageUrl = pittiCountyImageUrl(slug) ?? await getCachedCountyHeroImageUrl(slug)`.
+- MODIFY `src/components/CountyHero.tsx`: hero alt generalized from "railway-poster illustration" to `Farms and local producers in {county}` (now also covers reused photos/Apothecary).
+
+**Verification (ran, passed):** `pnpm test:unit` 259 pass / 0 fail (was 252); `tsc --noEmit` exit 0; eslint exit 0. **Live DB sweep** (read-only): 286 counties total; sampled 134 incl. all 80 single-farm counties -> 134 with hero, 0 null. Tier-2 convention URLs HEAD-200 confirmed for prior-null counties (anglesey, ashford, babergh, ...). No new images generated, no spend.
+
+**Risk/rollback:** Additive; existing Pitti-county-illustration path is preserved (still preferred when present). Worst case a county with no usable imagery returns null and shows the original typography hero (no regression). Rollback: revert the five files + delete `county-hero-image.{ts,test.ts}`.
+
+**Follow-ups (not blockers):** `counties.ts` now 406 lines (over 300 soft, under 500 hard) — consider extracting the hero-image query to a sibling. Per-page dynamic OG/social cards for `/shop/[slug]`, `/counties/[slug]`, `/seasonal/[slug]` still fall back to the generic `/og.jpg` (secondary, social-only).
+
 ### 2026-05-25 — Targeted Apothecary rollout (1,019 well-reviewed farms)
 
 Image design system spec (`docs/superpowers/specs/2026-05-25-image-design-system-design.md`) realized the council two-style intent: real photo -> Apothecary (per-farm) -> Pitti (place/long-tail fallback) -> typography. CC photos investigated and DROPPED (11,752 rows but all `status='pending'` 120x120 Geograph geo-search thumbnails; not premium). Inventory at decision time: 3,512 active farms, only 86 with a real photo, 1 apothecary, Pitti on all via resolver.

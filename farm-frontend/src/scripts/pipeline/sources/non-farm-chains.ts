@@ -18,7 +18,7 @@ const CHAIN_NAME_TOKENS: ReadonlySet<string> = new Set([
 // Multi-word chain identifiers, matched as whole space-bounded phrases.
 const CHAIN_NAME_PHRASES: readonly string[] = [
   'premier stores', 'heron foods', 'one stop', 'marks and spencer',
-  'whole foods market', 'co op food',
+  'whole foods market', 'co op food', 'wiltshire farm foods',
 ]
 
 // Registrable chain web domains, matched against the OSM website tag host.
