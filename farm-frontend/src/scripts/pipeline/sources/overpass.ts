@@ -1,6 +1,7 @@
 import type { RawFarmCandidate } from '../types'
 import { fetchWithRetry } from '../lib/http'
 import { PIPELINE_CONFIG } from '../config'
+import { isNonFarmChain } from './non-farm-chains'
 
 interface OverpassElement {
   type: 'node' | 'way' | 'relation'
@@ -18,6 +19,8 @@ export function parseOverpass(res: OverpassResponse): RawFarmCandidate[] {
   for (const el of res.elements ?? []) {
     const tags = el.tags ?? {}
     if (tags.shop !== 'farm') continue
+    // Drop national retail chains mis-tagged shop=farm in OSM (e.g. Farmfoods).
+    if (isNonFarmChain({ name: tags.name, website: tags.website ?? tags['contact:website'], tags })) continue
     const lat = el.lat ?? el.center?.lat
     const lon = el.lon ?? el.center?.lon
     const addr = [tags['addr:housename'], tags['addr:street'], tags['addr:city']].filter(Boolean).join(', ')

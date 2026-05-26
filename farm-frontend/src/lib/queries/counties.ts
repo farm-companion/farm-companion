@@ -13,6 +13,8 @@
  */
 
 import { prisma } from '@/lib/prisma'
+import { pickCountyHeroImage } from '@/lib/county-hero-image'
+import { pittiFarmImageUrl } from '@/data/pitti-farms'
 
 /**
  * Get all unique counties with farm counts
@@ -257,6 +259,64 @@ export async function getCountyStats(countySlug: string) {
     }
   } catch (error) {
     console.warn(`[counties] getCountyStats failed (expected during build without DB): ${error}`)
+    return null
+  }
+}
+
+/**
+ * Get a representative hero image URL for a county by reusing imagery
+ * from the county's own farms (real photo > Apothecary > Pitti). Returns
+ * null only for an unknown county or one with no usable farm images.
+ * Used as the /counties/[slug] hero fallback when no dedicated Pitti
+ * county illustration exists.
+ */
+export async function getCountyHeroImageUrl(countySlug: string): Promise<string | null> {
+  try {
+    const countyName = await getCountyNameFromSlug(countySlug)
+    if (!countyName) return null
+
+    // Tier 1: a real photo or Apothecary illustration recorded as an
+    // approved DB Image row for one of the county's farms (richest source).
+    const images = await prisma.image.findMany({
+      where: {
+        status: 'approved',
+        uploadedBy: { in: ['owner', 'admin', 'user', 'ai_apothecary', 'ai_pitti'] },
+        farm: { status: 'active', county: countyName },
+      },
+      orderBy: [{ isHero: 'desc' }, { displayOrder: 'asc' }],
+      take: 60,
+      select: { url: true, uploadedBy: true, isHero: true, displayOrder: true },
+    })
+    const dbUrl = pickCountyHeroImage(images)
+    if (dbUrl) return dbUrl
+
+    // Tier 2: Pitti is served by URL convention (not a DB row) for farms
+    // with no real photo. Pick the county's top such farm and reuse its
+    // Pitti illustration. HEAD-verify so a server-rendered hero never
+    // points at a 404. This runs only for counties Tier 1 missed, at
+    // build/revalidation time (pages are statically generated).
+    const topFarm = await prisma.farm.findFirst({
+      where: {
+        status: 'active',
+        county: countyName,
+        NOT: {
+          images: { some: { status: 'approved', uploadedBy: { in: ['owner', 'admin', 'user'] } } },
+        },
+      },
+      orderBy: [
+        { featured: 'desc' },
+        { verified: 'desc' },
+        { googleRating: { sort: 'desc', nulls: 'last' } },
+      ],
+      select: { slug: true },
+    })
+    if (!topFarm) return null
+
+    const pittiUrl = pittiFarmImageUrl(topFarm.slug)
+    const res = await fetch(pittiUrl, { method: 'HEAD' }).catch(() => null)
+    return res?.ok ? pittiUrl : null
+  } catch (error) {
+    console.warn(`[counties] getCountyHeroImageUrl failed (expected during build without DB): ${error}`)
     return null
   }
 }

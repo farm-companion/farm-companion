@@ -28,3 +28,18 @@ test('ignores non-farm elements', () => {
   const out = parseOverpass(fixture)
   assert.equal(out.find((c) => c.sourceId === 'node:9999'), undefined)
 })
+
+test('parseOverpass drops a mis-tagged chain store (Farmfoods)', () => {
+  const res = {
+    elements: [
+      { type: 'way', id: 292181031, center: { lat: 52.6, lon: 1.28 }, tags: {
+        shop: 'farm', name: 'farmfoods', old_name: 'Carpetright',
+        website: 'https://www.farmfoods.co.uk/store-finder.php?branch_code=690',
+      } },
+      { type: 'node', id: 1, lat: 51, lon: -1, tags: { shop: 'farm', name: 'Newton Farm Foods' } },
+    ],
+  }
+  const out = parseOverpass(res as unknown as Parameters<typeof parseOverpass>[0])
+  assert.equal(out.find((c) => c.sourceId === 'way:292181031'), undefined)
+  assert.ok(out.find((c) => c.name === 'Newton Farm Foods'))
+})

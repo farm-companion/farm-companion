@@ -9,6 +9,7 @@ import {
   getAllCounties,
   getFarmsByCounty,
   getCountyStats,
+  getCountyHeroImageUrl,
   getRelatedCounties,
   getTopCounties,
   searchCounties,
@@ -34,6 +35,10 @@ export const getCachedFarmsByCounty = cache(
 
 export const getCachedCountyStats = cache(async (countySlug: string) => {
   return getCountyStats(countySlug)
+})
+
+export const getCachedCountyHeroImageUrl = cache(async (countySlug: string) => {
+  return getCountyHeroImageUrl(countySlug)
 })
 
 export const getCachedRelatedCounties = cache(async (countySlug: string, limit = 6) => {
