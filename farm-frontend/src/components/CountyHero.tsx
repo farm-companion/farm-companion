@@ -65,7 +65,7 @@ export function CountyHero({ countyName, total, stats, imageUrl }: CountyHeroPro
         <section className="relative h-[60vh] min-h-[400px] max-h-[640px] w-full overflow-hidden">
           <Image
             src={imageUrl}
-            alt={`${countyName} railway-poster landscape illustration`}
+            alt={`Farms and local producers in ${countyName}`}
             fill
             priority
             sizes="100vw"
