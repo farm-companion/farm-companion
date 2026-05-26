@@ -19,6 +19,7 @@ test('matches chain token in suffix/mid position', () => {
 test('matches multi-word chain phrases', () => {
   assert.equal(isChainName('Premier Stores/Nikki\'s Kitchen'), true)
   assert.equal(isChainName('Heron Foods'), true)
+  assert.equal(isChainName('Wiltshire Farm Foods'), true) // national frozen-meal delivery chain
 })
 
 // --- False positives: real farm shops that MUST survive ---
