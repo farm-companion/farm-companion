@@ -4,6 +4,7 @@ import Link from 'next/link'
 import {
   getCachedFarmsByCounty,
   getCachedCountyStats,
+  getCachedCountyHeroImageUrl,
   getCachedRelatedCounties,
   getCachedAllCounties,
 } from '@/lib/server-cache-counties'
@@ -94,6 +95,11 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
 
   // Fetch related counties
   const relatedCounties = await getCachedRelatedCounties(slug, 6)
+
+  // Hero image: a dedicated Pitti county illustration when one exists,
+  // otherwise reuse a representative image from the county's own farms so
+  // every county page has a hero (no new image generation).
+  const heroImageUrl = pittiCountyImageUrl(slug) ?? (await getCachedCountyHeroImageUrl(slug))
 
   const totalPages = Math.ceil(total / limit)
 
@@ -188,13 +194,14 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
         </div>
       </div>
 
-      {/* Hero Section — Pitti variant when an illustration exists in
-          PITTI_COUNTY_IMAGES, typography-led fallback otherwise. */}
+      {/* Hero Section — dedicated Pitti county illustration when one exists,
+          otherwise a representative image reused from the county's farms;
+          typography-led fallback only when a county has no usable imagery. */}
       <CountyHero
         countyName={countyName}
         total={total}
         stats={stats}
-        imageUrl={pittiCountyImageUrl(slug)}
+        imageUrl={heroImageUrl}
       />
 
       <div className="container mx-auto px-4 py-8 md:py-12">
