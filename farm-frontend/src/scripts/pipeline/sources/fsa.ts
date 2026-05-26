@@ -1,6 +1,7 @@
 import type { RawFarmCandidate } from '../types'
 import { fetchWithRetry } from '../lib/http'
 import { PIPELINE_CONFIG } from '../config'
+import { isNonFarmChain } from './non-farm-chains'
 
 interface FsaEstablishment {
   FHRSID: number
@@ -59,6 +60,8 @@ export function parseFsa(res: FsaResponse): RawFarmCandidate[] {
     if (!e.BusinessType || !FARM_RELEVANT_TYPES.has(e.BusinessType)) continue
     // Drop fishing vessels mis-filed under a farm business type.
     if (isVesselName(e.BusinessName)) continue
+    // Drop national retail chains mis-filed under a farm business type.
+    if (isNonFarmChain({ name: e.BusinessName })) continue
     const addr = [e.AddressLine1, e.AddressLine2, e.AddressLine3].filter(Boolean).join(', ')
     out.push({
       source: 'fsa',

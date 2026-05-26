@@ -53,6 +53,18 @@ test('keeps genuine farm names that are not vessels', () => {
   assert.equal(out.length, 3)
 })
 
+test('parseFsa drops retail chains mis-filed under Farmers/growers', () => {
+  const res = { establishments: [
+    { FHRSID: 301, BusinessName: 'Tesco Superstore', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 302, BusinessName: 'Carnagh House Off Licence & NISA', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+    { FHRSID: 303, BusinessName: 'River Cottage Farm Shop', BusinessType: 'Farmers/growers', PostCode: 'AA1 1AA' },
+  ] }
+  const out = parseFsa(res as unknown as Parameters<typeof parseFsa>[0])
+  assert.equal(out.find((c) => c.sourceId === '301'), undefined)
+  assert.equal(out.find((c) => c.sourceId === '302'), undefined)
+  assert.ok(out.find((c) => c.sourceId === '303'))
+})
+
 test('fetchFsaPage filters by the farm businessTypeId (an unfiltered query is 403d)', async () => {
   let seenUrl = ''
   const fetcher = (async (url: string) => {
