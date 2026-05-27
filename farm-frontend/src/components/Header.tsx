@@ -11,14 +11,14 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { ExploreMenu } from '@/components/navigation/ExploreMenu'
 
 /* ------------------------------------------------------------------ */
 /*  Hooks                                                              */
 /* ------------------------------------------------------------------ */
 
 function useScrollBehaviour() {
-  const [compact, setCompact] = useState(false)
+  // Brief §4: the 1px rule bottom border appears only once scrolled past 8px.
+  const [scrolled, setScrolled] = useState(false)
   const [visible, setVisible] = useState(true)
   const lastY = useRef(0)
 
@@ -26,19 +26,16 @@ function useScrollBehaviour() {
     const onScroll = () => {
       const y = window.scrollY
       const desktop = window.innerWidth >= 768
-      setCompact(y > 400)
-      if (!desktop) {
-        setVisible(y < lastY.current || y < 48)
-      } else {
-        setVisible(true)
-      }
+      setScrolled(y > 8)
+      setVisible(desktop ? true : y < lastY.current || y < 48)
       lastY.current = y
     }
     window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  return { compact, visible }
+  return { scrolled, visible }
 }
 
 function useLockBody(locked: boolean) {
@@ -52,40 +49,16 @@ function useLockBody(locked: boolean) {
   }, [locked])
 }
 
-/* ------------------------------------------------------------------ */
-/*  Search Trigger (desktop pill)                                      */
-/* ------------------------------------------------------------------ */
+const openCommandPalette = () =>
+  window.dispatchEvent(new CustomEvent('open-command-palette'))
 
-function SearchTrigger({ compact }: { compact: boolean }) {
-  const [isMac, setIsMac] = useState(true)
-
-  useEffect(() => {
-    setIsMac(navigator.platform.toUpperCase().includes('MAC'))
-  }, [])
-
-  return (
-    <button
-      onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-      className={cn(
-        'hidden md:flex items-center gap-3 rounded-full transition-all duration-200',
-        'bg-[#F5F5F5] dark:bg-white/[0.06]',
-        'hover:bg-[#EFEFEF] dark:hover:bg-white/[0.08]',
-        'text-[#8C8C8C] dark:text-zinc-400',
-        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2D5016] focus-visible:bg-white dark:focus-visible:bg-[#121214] focus-visible:shadow-[0_2px_8px_rgba(0,0,0,0.08)]',
-        compact ? 'h-10 min-w-[280px] lg:min-w-[320px] px-4' : 'h-11 min-w-[340px] lg:min-w-[440px] px-4',
-      )}
-      aria-label="Search farms, produce, or places"
-    >
-      <Search className="h-4 w-4 flex-shrink-0" />
-      <span className="flex-1 text-left text-[15px]">
-        Search farms, produce, or places...
-      </span>
-      <kbd className="hidden lg:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[12px] text-[#CCCCCC] dark:text-zinc-500 font-mono">
-        {isMac ? '\u2318' : 'Ctrl+'}K
-      </kbd>
-    </button>
-  )
-}
+/* Brief §4: Map / Seasonal / Journal / About. Journal has no content yet
+ * (brief §15 open Q4), so it is omitted until it ships. "Explore" is dropped. */
+const DESKTOP_NAV: { href: string; label: string }[] = [
+  { href: '/map', label: 'Map' },
+  { href: '/seasonal', label: 'Seasonal' },
+  { href: '/about', label: 'About' },
+]
 
 /* ------------------------------------------------------------------ */
 /*  Mobile Full-Screen Overlay                                         */
@@ -107,7 +80,7 @@ const MOBILE_NAV_SECTIONS: NavSection[] = [
   {
     title: null,
     items: [
-      { href: '/map', label: 'Explore Map', icon: MapPin },
+      { href: '/map', label: 'Map', icon: MapPin },
       { href: '/shop', label: 'All Farm Shops', icon: ShoppingBag },
     ],
   },
@@ -123,7 +96,7 @@ const MOBILE_NAV_SECTIONS: NavSection[] = [
   {
     title: 'More',
     items: [
-      { href: '/about', label: 'About Us', icon: Info },
+      { href: '/about', label: 'About', icon: Info },
       { href: '/contact', label: 'Contact', icon: MessageCircle },
     ],
   },
@@ -180,12 +153,12 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
 
   const openSearch = () => {
     onClose()
-    setTimeout(() => window.dispatchEvent(new CustomEvent('open-command-palette')), 150)
+    setTimeout(openCommandPalette, 150)
   }
 
   return createPortal(
     <div className="fixed inset-0 z-[100]">
-      <div className="absolute inset-0 bg-white dark:bg-[#0C0A09]" />
+      <div className="absolute inset-0 bg-paper" />
 
       <div
         ref={panelRef}
@@ -201,35 +174,35 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
           <Link
             href="/"
             onClick={onClose}
-            className="text-[18px] font-medium tracking-[0.5px] text-zinc-900 dark:text-zinc-50"
+            className="font-clash text-xl text-ink"
           >
             Farm Companion
           </Link>
           <button
             onClick={onClose}
-            className="h-10 w-10 flex items-center justify-center rounded-full bg-zinc-100 dark:bg-white/[0.06] text-zinc-600 dark:text-zinc-300 transition-colors hover:bg-zinc-200 dark:hover:bg-white/[0.08]"
+            className="h-10 w-10 flex items-center justify-center rounded-full bg-surface-2 text-ink-muted transition-colors hover:text-ink"
             aria-label="Close menu"
           >
             <X className="h-5 w-5" />
           </button>
         </div>
 
-        {/* Search trigger */}
+        {/* Search trigger (the one pill-shaped input signal, brief §4) */}
         <div className="px-5 pt-3">
           <button
             onClick={openSearch}
-            className="w-full h-11 flex items-center gap-3 px-4 rounded-xl bg-zinc-100 dark:bg-white/[0.06] text-zinc-400 dark:text-zinc-500 text-[15px] transition-colors hover:bg-zinc-200 dark:hover:bg-white/[0.08]"
+            className="w-full h-11 flex items-center gap-3 px-4 rounded-full border border-border bg-surface text-ink-muted text-[15px] transition-colors hover:text-ink"
           >
             <Search className="h-4 w-4 flex-shrink-0" />
-            Search farms, produce...
+            Postcode, town, or farm name
           </button>
         </div>
 
-        {/* Primary CTA */}
+        {/* Primary CTA — Vermilion (brief §4 primary: radius 0) */}
         <div className="px-5 pt-4">
           <button
             onClick={handleNearMe}
-            className="w-full h-14 flex items-center justify-center gap-2 rounded-xl bg-[#2D5016] text-white text-[15px] font-medium transition-colors hover:bg-[#1E3A10] active:bg-[#162D0C]"
+            className="w-full h-14 flex items-center justify-center gap-2 rounded-none bg-brand text-brand-text text-[15px] font-semibold transition-colors hover:bg-brand-hover"
           >
             <MapPin className="h-4 w-4" />
             Farms Near Me
@@ -241,7 +214,7 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
           {MOBILE_NAV_SECTIONS.map((section, si) => (
             <div key={si} className={si > 0 ? 'mt-5' : ''}>
               {section.title && (
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-zinc-400 dark:text-zinc-500 mb-1.5 px-1">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-ink-muted mb-1.5 px-1">
                   {section.title}
                 </p>
               )}
@@ -254,31 +227,31 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
                     href={item.href}
                     onClick={onClose}
                     className={cn(
-                      'flex items-center gap-3.5 py-3.5 border-b border-zinc-100 dark:border-white/[0.06] group',
-                      active && 'bg-zinc-50 dark:bg-white/[0.03] -mx-2 px-2 rounded-lg border-transparent'
+                      'flex items-center gap-3.5 py-3.5 border-b border-border group',
+                      active && 'bg-surface-2 -mx-2 px-2 rounded-[2px] border-transparent'
                     )}
                     aria-current={active ? 'page' : undefined}
                   >
                     <span className={cn(
-                      'h-9 w-9 flex items-center justify-center rounded-lg transition-colors',
+                      'h-9 w-9 flex items-center justify-center rounded-[2px] transition-colors',
                       active
-                        ? 'bg-[#2D5016]/10 dark:bg-emerald-900/20 text-[#2D5016] dark:text-emerald-400'
-                        : 'bg-zinc-50 dark:bg-white/[0.04] text-zinc-500 dark:text-zinc-400 group-hover:bg-zinc-100 dark:group-hover:bg-white/[0.08]'
+                        ? 'bg-brand/10 text-brand'
+                        : 'bg-surface-2 text-ink-muted group-hover:text-ink'
                     )}>
                       <Icon className="h-[18px] w-[18px]" />
                     </span>
                     <span className={cn(
                       'flex-1 text-[16px]',
-                      active ? 'text-[#2D5016] dark:text-emerald-400 font-medium' : 'text-zinc-900 dark:text-zinc-50'
+                      active ? 'text-brand font-medium' : 'text-ink'
                     )}>
                       {item.label}
                     </span>
                     {item.badge && (
-                      <span className="px-2 py-0.5 text-[11px] font-medium bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400 rounded-full">
+                      <span className="px-2 py-0.5 text-[11px] font-medium border border-accent text-accent rounded-full">
                         {item.badge}
                       </span>
                     )}
-                    <ChevronRight className="h-4 w-4 text-zinc-300 dark:text-zinc-600" />
+                    <ChevronRight className="h-4 w-4 text-ink-muted" />
                   </Link>
                 )
               })}
@@ -297,19 +270,9 @@ function MobileMenu({ open, onClose }: { open: boolean; onClose: () => void }) {
 /* ------------------------------------------------------------------ */
 
 export default function Header() {
-  const { compact, visible } = useScrollBehaviour()
+  const { scrolled, visible } = useScrollBehaviour()
   const [menuOpen, setMenuOpen] = useState(false)
-  const [exploreOpen, setExploreOpen] = useState(false)
   const pathname = usePathname()
-  const router = useRouter()
-
-  useEffect(() => {
-    setExploreOpen(false)
-  }, [pathname])
-
-  const handleNearMe = () => {
-    router.push('/map?nearby=true')
-  }
 
   const isActive = (href: string) => pathname === href || (pathname?.startsWith(href + '/') ?? false)
 
@@ -317,105 +280,64 @@ export default function Header() {
     <>
       <header
         className={cn(
-          'sticky top-0 z-50 bg-white dark:bg-[#0C0A09] border-b border-[#E8E8E8] dark:border-white/[0.08] transition-all duration-200',
+          'sticky top-0 z-50 bg-paper transition-all duration-200',
           !visible && '-translate-y-full',
-          compact && 'shadow-[0_1px_3px_rgba(0,0,0,0.06)]',
+          scrolled ? 'border-b border-border' : 'border-b border-transparent',
         )}
       >
-        <div
-          className={cn(
-            'relative mx-auto max-w-7xl flex items-center justify-between transition-all duration-200',
-            compact
-              ? 'h-12 px-4 md:px-6 lg:px-12'
-              : 'h-12 md:h-14 lg:h-16 px-4 md:px-6 lg:px-12',
-          )}
-        >
-          {/* Left: Brand */}
+        <div className="relative mx-auto max-w-[1320px] flex items-center justify-between h-[72px] px-4 md:px-6 lg:px-12">
+          {/* Left: wordmark (set as text in the display face, brief §4) */}
           <Link
             href="/"
-            className="text-[18px] font-medium tracking-[0.5px] text-[#1A1A1A] dark:text-zinc-50 shrink-0"
+            className="font-clash text-2xl tracking-tight text-ink shrink-0"
           >
             Farm Companion
           </Link>
 
-          {/* Centre: Search (desktop only) */}
-          <div className="hidden md:flex flex-1 justify-center mx-8 lg:mx-12">
-            <SearchTrigger compact={compact} />
-          </div>
-
-          {/* Right: Nav + CTA (desktop) */}
-          <div className="hidden md:flex items-center gap-8">
-            <nav className="flex items-center gap-8" aria-label="Primary">
-              {/* Explore (mega-menu) */}
-              <div className="relative">
-                <button
-                  onClick={() => setExploreOpen(!exploreOpen)}
-                  className={cn(
-                    'text-[15px] transition-colors',
-                    isActive('/map') || isActive('/counties') || isActive('/best') || exploreOpen
-                      ? 'text-[#1A1A1A] dark:text-zinc-50'
-                      : 'text-[#5C5C5C] dark:text-zinc-400 hover:text-[#1A1A1A] dark:hover:text-zinc-50',
-                    (isActive('/map') || isActive('/counties') || isActive('/best')) && 'underline underline-offset-4',
-                  )}
-                  aria-expanded={exploreOpen}
-                  aria-haspopup="true"
-                >
-                  Explore
-                </button>
-                {exploreOpen && (
-                  <ExploreMenu onClose={() => setExploreOpen(false)} />
-                )}
-              </div>
-
-              <Link
-                href="/seasonal"
-                className={cn(
-                  'text-[15px] transition-colors',
-                  isActive('/seasonal')
-                    ? 'text-[#1A1A1A] dark:text-zinc-50 underline underline-offset-4'
-                    : 'text-[#5C5C5C] dark:text-zinc-400 hover:text-[#1A1A1A] dark:hover:text-zinc-50',
-                )}
-                aria-current={isActive('/seasonal') ? 'page' : undefined}
-              >
-                Seasonal
-              </Link>
-
-              <Link
-                href="/about"
-                className={cn(
-                  'text-[15px] transition-colors',
-                  isActive('/about')
-                    ? 'text-[#1A1A1A] dark:text-zinc-50 underline underline-offset-4'
-                    : 'text-[#5C5C5C] dark:text-zinc-400 hover:text-[#1A1A1A] dark:hover:text-zinc-50',
-                )}
-                aria-current={isActive('/about') ? 'page' : undefined}
-              >
-                About
-              </Link>
+          {/* Right: nav links + search (desktop) */}
+          <div className="hidden md:flex items-center gap-9">
+            <nav className="flex items-center gap-9" aria-label="Primary">
+              {DESKTOP_NAV.map((item) => {
+                const active = isActive(item.href)
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      'text-[15px] font-medium uppercase tracking-[0.04em] underline-offset-[6px] decoration-1 transition-colors',
+                      active
+                        ? 'text-brand underline'
+                        : 'text-ink-muted hover:text-ink hover:underline',
+                    )}
+                    aria-current={active ? 'page' : undefined}
+                  >
+                    {item.label}
+                  </Link>
+                )
+              })}
             </nav>
 
-            {/* Near Me CTA */}
             <button
-              onClick={handleNearMe}
-              className="inline-flex items-center gap-2 h-10 px-5 rounded-lg bg-[#2D5016] text-white text-[15px] font-medium transition-all hover:bg-[#1E3A10] hover:-translate-y-px hover:shadow-md active:bg-[#162D0C] active:translate-y-0 shrink-0"
+              onClick={openCommandPalette}
+              className="h-10 w-10 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-surface-2 transition-colors"
+              aria-label="Search farms, produce, or places"
             >
-              Near Me
-              <MapPin className="h-3.5 w-3.5" />
+              <Search className="h-5 w-5" />
             </button>
           </div>
 
-          {/* Right: Mobile controls */}
+          {/* Right: mobile controls */}
           <div className="flex md:hidden items-center gap-1">
             <button
-              onClick={() => window.dispatchEvent(new CustomEvent('open-command-palette'))}
-              className="h-11 w-11 flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/[0.06] transition-colors"
+              onClick={openCommandPalette}
+              className="h-11 w-11 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-surface-2 transition-colors"
               aria-label="Search"
             >
               <Search className="h-5 w-5" />
             </button>
             <button
               onClick={() => setMenuOpen(true)}
-              className="h-11 w-11 flex items-center justify-center rounded-full text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-white/[0.06] transition-colors"
+              className="h-11 w-11 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-surface-2 transition-colors"
               aria-label="Open menu"
               aria-haspopup="dialog"
               aria-expanded={menuOpen}

@@ -34,7 +34,9 @@
 
 **Verification (ran, passed):** `tsc --noEmit` exit 0; `eslint` 0 errors; Playwright screenshots before/after confirm the fixes.
 
-**Next:** global nav redesign (brief §4) + reduce the Vermilion newsletter band; then the card/listing imagery decision (per-surface: Layer-1 Pitti OK on editorial cards, category marks on functional lists).
+**Slice 2.5 (DONE, code) — global nav (brief §4):** rewrote `Header.tsx` to the brief's nav. Wordmark left in the display face (`font-clash`); right-aligned uppercase tracked links MAP / SEASONAL / ABOUT (dropped "Explore"; Journal omitted until content exists); search icon → existing command palette (`open-command-palette` event preserved); removed the centred giant search and the hardcoded green `#2D5016` "Near Me" CTA. `bg-paper`, 72px, sticky, 1px `border-border` bottom that appears only past 8px scroll. Mobile menu restyled to tokens; its CTA is now Vermilion. Scroll/focus-trap/inert logic preserved. `ExploreMenu.tsx` now orphaned (dead code — queued for cleanup). Verified: tsc 0, eslint 0, desktop+mobile screenshots on-brief.
+
+**Next:** reduce the full-bleed Vermilion newsletter band (Vermilion should be rare); then the homepage §5 cut (council-flagged: removes live social proof — high-visibility) and the card/listing imagery decision (per-surface: Layer-1 Pitti OK on editorial cards, category marks on functional lists).
 
 ---
 
