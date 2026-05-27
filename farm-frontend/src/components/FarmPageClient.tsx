@@ -1,6 +1,5 @@
 'use client'
 
-import { useState } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -18,7 +17,6 @@ import {
 } from 'lucide-react'
 import type { FarmShop, FarmHeroImage } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
-import { pittiFarmImageUrl } from '@/data/pitti-farms'
 import { ObfuscatedEmail, ObfuscatedPhone } from './ObfuscatedContact'
 import { StatusBadge } from './StatusBadge'
 
@@ -37,16 +35,12 @@ export function FarmPageClient({
 }: FarmPageClientProps) {
   const { name, location, contact, offerings, verified, hours } = shop
 
-  // Hero image: a real photo / Apothecary hero wins; otherwise serve the farm's
-  // Pitti illustration full-bleed so every farm has a hero. Falls back to the
-  // typography hero only if the Pitti image fails to load (e.g. a brand-new
-  // farm not yet generated).
-  const [pittiError, setPittiError] = useState(false)
+  // Imagery law (design-law-reconciliation 2026-05-27, DESIGN_BRIEF §2): only a
+  // real submitted photograph heroes the page. No AI illustration stands in for
+  // a documentary photo of the farm. Absent a photo, the hero IS the name — the
+  // typographic default below. (selectFarmHeroImage already returns only photos.)
   const heroImage: FarmHeroImage | null =
-    shop.heroImage ??
-    (pittiError
-      ? null
-      : { url: pittiFarmImageUrl(shop.slug), alt: `${name}, ${location.county}`, style: 'pitti' })
+    shop.heroImage?.style === 'photo' ? shop.heroImage : null
 
   return (
     <>
@@ -75,7 +69,7 @@ export function FarmPageClient({
        * src/components/best/editorial/EditorialHero.tsx and the header
        * block of src/components/best/EditorialArticle.tsx. */}
       {heroImage ? (
-        <section className="relative h-[60vh] min-h-[420px] max-h-[720px] overflow-hidden bg-slate-100 dark:bg-slate-900">
+        <section className="relative h-[60vh] min-h-[420px] max-h-[720px] overflow-hidden bg-paper">
           <div className="absolute inset-0">
             <Image
               src={heroImage.url}
@@ -84,45 +78,35 @@ export function FarmPageClient({
               priority
               sizes="100vw"
               className="object-cover"
-              // Pitti illustrations are pre-optimised webps on Hetzner blob:
-              // skip the Next optimiser (consistent with FarmCard; also dodges
-              // the production /_next/image 400 for that host).
-              unoptimized={heroImage.style === 'pitti'}
-              onError={heroImage.style === 'pitti' ? () => setPittiError(true) : undefined}
             />
-            {/* Stronger gradient (vs Slice 1.1.3b-1) to lift the bolder
-              * title cleanly off the light-keyed Apothecary illustration.
-              * Photo branch proportionally darker to anchor against varied
-              * photographic backgrounds. */}
-            <div
-              className={
-                heroImage.style === 'photo'
-                  ? 'absolute inset-0 bg-gradient-to-b from-black/35 via-black/15 to-black/75'
-                  : 'absolute inset-0 bg-gradient-to-b from-black/25 via-black/15 to-black/65'
-              }
-            />
+            {/* Only real submitted photographs reach this branch; a firm
+              * gradient anchors the title against varied photography. */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/15 to-black/75" />
           </div>
           <div className="relative h-full flex flex-col items-center justify-end pb-12 md:pb-20 text-center px-6">
             <div className="w-px h-10 md:h-14 bg-white/80 mb-7" aria-hidden="true" />
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white tracking-tight leading-[1.05] max-w-5xl drop-shadow-[0_4px_28px_rgba(0,0,0,0.85)]">
+            <h1 className="font-clash text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-white tracking-tight leading-[1.05] max-w-5xl drop-shadow-[0_4px_28px_rgba(0,0,0,0.85)]">
               {name}
             </h1>
-            <p className="mt-5 text-sm md:text-base text-white tracking-[0.25em] uppercase font-bold drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)]">
+            <p className="mt-5 text-sm md:text-base text-white tracking-[0.25em] uppercase font-semibold drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)]">
               {location.county}
             </p>
           </div>
         </section>
       ) : (
-        <section className="bg-white dark:bg-slate-900 py-20 md:py-28">
+        /* Typographic default (DESIGN_BRIEF §6.1): the hero IS the name.
+         * All-light Pitti Press — Clash Display ink on cream, sea-ink kicker,
+         * hairline rules. This is the page, not a fallback. */
+        <section className="bg-paper py-24 md:py-32">
           <div className="container mx-auto px-6 text-center max-w-4xl">
-            <div className="w-px h-10 md:h-14 bg-slate-300 dark:bg-slate-700 mx-auto mb-8" aria-hidden="true" />
-            <p className="text-sm tracking-[0.25em] uppercase text-slate-500 dark:text-slate-400 font-bold mb-7">
+            <div className="w-px h-10 md:h-14 bg-[var(--border)] mx-auto mb-8" aria-hidden="true" />
+            <p className="text-sm tracking-[0.25em] uppercase text-accent font-semibold mb-7">
               {location.county}
             </p>
-            <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 dark:text-white tracking-tight leading-[1.05]">
+            <h1 className="font-clash text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold text-ink tracking-tight leading-[1.0]">
               {name}
             </h1>
-            <div className="w-px h-10 md:h-14 bg-slate-300 dark:bg-slate-700 mx-auto mt-8" aria-hidden="true" />
+            <div className="w-px h-10 md:h-14 bg-[var(--border)] mx-auto mt-8" aria-hidden="true" />
           </div>
         </section>
       )}

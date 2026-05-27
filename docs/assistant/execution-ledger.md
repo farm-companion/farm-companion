@@ -1,5 +1,24 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-27 — Design law reconciled (brief ⟷ Pitti Press) + Slice 2.1: farm typographic-default hero
+
+**Decision (DONE):** Convened ecc:council + ground-truthed the codebase + read on-disk mem. Reconciled `~/Downloads/DESIGN_BRIEF.md` (English-editorial) against the locked Pitti Press specs. Both are ~90% the same; only two hard conflicts, and mem shows both already decided against the brief: **oxblood rejected 2026-05-19 ("too sombre") → keep Vermilion**; **serif purged 2026-05-26 → keep Clash Display** (not Caslon). Map: keep the Stadia/MapLibre reskin, reject the Mapbox rewrite. Adopt from the brief: farm typographic default, four-layer imagery governance, 5-section homepage, kill-list, editorial voice. Net: **Pitti Press = skin; brief = structure/governance.** Recorded in `docs/superpowers/specs/2026-05-27-design-law-reconciliation.md`.
+
+**Ground-truth found:** AI illustrations (Apothecary + Pitti) were live as bare, uncaptioned, full-bleed farm-page heroes across ~1–2k farms — reads as documentary. `/claim` photo-upload path is vapor (no route; `/add` stub; `ImageUpload` is a base64 placeholder). All 3,504 active farms already have fact-grounded descriptions (2026-05-25), so typographic heroes are not empty.
+
+**Slice 2.1 (DONE, code):** Operator chose "strip AI heroes to typographic now."
+- `src/lib/farm-hero-image.ts`: removed the `ai_apothecary` hero branch. Selector now returns a real photo (`'photo'`) or `null`. No AI illustration can hero a farm.
+- `src/lib/farm-hero-image.test.ts` (TDD, red→green): 3 cases rewritten — apothecary alone → null; pitti+apothecary → null; apothecary alt-fallback → null.
+- `src/components/FarmPageClient.tsx`: dropped the client-side Pitti synthesis (`useState`/`pittiError`/`pittiFarmImageUrl` removed); image hero now gated to `style === 'photo'`; typographic hero restyled to all-light Pitti Press (Clash Display ink on `--paper`, sea-ink kicker, `--border` hairlines) — no more `font-serif`/white/`dark:`.
+
+**Verification (ran, passed):** `tsc --noEmit` exit 0; `tsx --test farm-hero-image.test.ts` 17/17; `eslint` on the 3 files exit 0.
+
+**Risk/rollback:** Presentational + selector-policy change, no schema/data writes; revert the 3 files. Live effect only after ISR expiry (/shop 6h) or redeploy.
+
+**Next (slice 2.2):** convert the rest of `/shop/[slug]` (detail bar, gallery, sidebar, footer) off `bg-white`/`dark:`/`rounded-2xl`/shadows to all-light Pitti Press tokens.
+
+---
+
 ### 2026-05-26 — Non-farm contamination removal (Farmfoods + chains) + ingest filter
 
 **Trigger:** user spotted "Farmfoods" (frozen-food supermarket chain) listed as a farm. **Root cause (systematic-debugging):** the OSM parser (`parseOverpass`) accepted ANY element tagged `shop=farm` with zero filtering — the Farmfoods Norwich branch (`way:292181031`, ex-Carpetright unit, `website=farmfoods.co.uk/store-finder...`) was mis-tagged `shop=farm`. FSA contaminants (Tesco etc.) were mis-filed under "Farmers/growers" (7838). Only `isVesselName` existed; no chain filter. **Council (ecc:council, 4 voices):** no fuzzy substring matching (collides with real farms — "Aldis Farm Shop", "Spalding"); fix the OSM pipe; hand-fix the rows; delete-with-reversible-backup over a suspend queue. Plan: `docs/superpowers/plans/2026-05-26-non-farm-contamination.md`. Executed via subagent-driven-development.

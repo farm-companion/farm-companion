@@ -1,18 +1,21 @@
-// Hero-image selector for /shop/[slug] under the Pitti + Apothecary
-// two-style visual system (council-approved 2026-05-21).
+// Hero-image selector for /shop/[slug].
+//
+// Imagery law (design-law-reconciliation 2026-05-27, DESIGN_BRIEF §2): an AI
+// illustration must never hero a farm page — that implies "this is what this
+// farm looks like", a claim we cannot back. Only a real submitted photograph
+// earns the photo-led hero. Absent one, the hero is the name (typographic
+// default), which the caller renders.
 //
 // Selection order:
-//   1. Real admin photo: uploadedBy in owner|admin|user
-//   2. Apothecary illustration: uploadedBy = ai_apothecary
-//   3. null, caller renders a typography-led hero with no image
+//   1. Real submitted photo: uploadedBy in owner|admin|user  -> 'photo'
+//   2. null -> caller renders the typographic hero (no image)
 //
-// Explicitly excluded:
-//   - uploadedBy = ai_pitti: Pitti is reserved for hero, county, and
-//     popover surfaces; it is not the per-farm /shop hero.
-//   - uploadedBy = ai_generator: legacy fake-photo rows queued for
-//     suppression in Slice 1.1.3c.
+// Explicitly excluded as farm-page heroes (all AI imagery):
+//   - ai_apothecary, ai_pitti: branded illustration, allowed on
+//     homepage/county/seasonal surfaces (Layer 1/4), never the /shop hero.
+//   - ai_generator: legacy fake-photo rows.
 //
-// Slice: 1.1.3b
+// Slice: 2.1 (typographic-default farm hero)
 
 /**
  * Minimal shape required by the selector. Compatible with the Prisma
@@ -35,9 +38,9 @@ export interface FarmHeroImageInput {
 export interface FarmHeroImage {
   url: string
   alt: string
-  // 'pitti' is synthesised by the page (not this builder) when a farm has no
-  // real photo/Apothecary hero: it serves the farm's Pitti illustration and
-  // takes the same lighter overlay treatment as 'apothecary'.
+  // The selector only ever returns 'photo'. The 'apothecary' | 'pitti'
+  // members are retained for other surfaces (cards, county, popovers) that
+  // still render branded illustration — they are never a farm-page hero.
   style: 'photo' | 'apothecary' | 'pitti'
 }
 
@@ -73,14 +76,7 @@ export function selectFarmHeroImage(
     }
   }
 
-  const apothecary = sorted.find(img => img.uploadedBy === 'ai_apothecary')
-  if (apothecary) {
-    return {
-      url: apothecary.url,
-      alt: apothecary.altText || `${farmName} botanical illustration`,
-      style: 'apothecary',
-    }
-  }
-
+  // No real photo: caller renders the typographic hero. Apothecary/Pitti/
+  // ai_generator rows are deliberately not promoted to the farm hero.
   return null
 }

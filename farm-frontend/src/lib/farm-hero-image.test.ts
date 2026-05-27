@@ -58,13 +58,15 @@ test('user provenance counts as admin photo (style=photo)', () => {
   assert.equal(result?.style, 'photo')
 })
 
-test('apothecary illustration wins when no admin photo exists', () => {
+test('apothecary illustration does NOT hero a farm (AI is never documentary)', () => {
+  // design-law-reconciliation 2026-05-27: an AI illustration at hero size
+  // implies "this is what this farm looks like". A farm with ONLY an
+  // Apothecary row must render the typographic hero (null).
   const result = selectFarmHeroImage(
     [img({ url: '/apo.webp', uploadedBy: 'ai_apothecary' })],
     'Test Farm',
   )
-  assert.equal(result?.url, '/apo.webp')
-  assert.equal(result?.style, 'apothecary')
+  assert.equal(result, null)
 })
 
 test('ai_pitti is ignored on /shop hero (reserved for hero/county/popover)', () => {
@@ -87,7 +89,7 @@ test('ai_generator legacy fake-photo rows are ignored', () => {
   assert.equal(result, null)
 })
 
-test('Pitti present + Apothecary present → Apothecary wins (Pitti still ignored)', () => {
+test('Pitti + Apothecary present, no real photo → null (both are AI)', () => {
   const result = selectFarmHeroImage(
     [
       img({ url: '/pitti.webp', uploadedBy: 'ai_pitti' }),
@@ -95,8 +97,7 @@ test('Pitti present + Apothecary present → Apothecary wins (Pitti still ignore
     ],
     'Test Farm',
   )
-  assert.equal(result?.url, '/apo.webp')
-  assert.equal(result?.style, 'apothecary')
+  assert.equal(result, null)
 })
 
 test('isHero=true wins among admin photos', () => {
@@ -159,12 +160,12 @@ test('falls back to "{farm} farm shop" alt for photo with no altText', () => {
   assert.equal(result?.alt, 'Cherry Hinton farm shop')
 })
 
-test('falls back to "{farm} botanical illustration" alt for apothecary', () => {
+test('apothecary returns null even with altText (AI never heroes a farm)', () => {
   const result = selectFarmHeroImage(
-    [img({ uploadedBy: 'ai_apothecary', altText: null })],
+    [img({ uploadedBy: 'ai_apothecary', altText: 'Custom apothecary alt' })],
     'Cherry Hinton',
   )
-  assert.equal(result?.alt, 'Cherry Hinton botanical illustration')
+  assert.equal(result, null)
 })
 
 test('input array is not mutated by the sort', () => {
