@@ -15,7 +15,15 @@
 
 **Risk/rollback:** Presentational + selector-policy change, no schema/data writes; revert the 3 files. Live effect only after ISR expiry (/shop 6h) or redeploy.
 
-**Next (slice 2.2):** convert the rest of `/shop/[slug]` (detail bar, gallery, sidebar, footer) off `bg-white`/`dark:`/`rounded-2xl`/shadows to all-light Pitti Press tokens.
+**Slice 2.2 (DONE, code):** Converted the rest of `/shop/[slug]` to all-light Pitti Press tokens.
+- `FarmPageClient.tsx`: breadcrumb, detail bar, gallery, About/Offerings, sidebar (Contact/Hours/Explore), footer — all `slate-*`/`dark:`/`bg-white`/`rounded-2xl`/`hover:shadow` removed → `bg-paper`/`bg-surface`/`bg-surface-2`, `text-ink`/`text-ink-muted`, `border-border`, `rounded-[2px]`. Navy "Get Directions" → Vermilion primary (`bg-brand`, `rounded-none`, no shadow) per brief §6.1. Verified pill emerald → sea-ink accent. Offering check icons → `text-brand`. Prose clamped `max-w-[68ch]`.
+- `app/shop/[slug]/page.tsx`: outer `<main>` slate→white **gradient** + dark variants → `bg-paper` (gradients banned; all-light).
+- Kept intentionally: white text + `drop-shadow` on the real-photo hero (text legibility over photography, not a surface box-shadow).
+- Deferred (own slice): the brief's "no pure white anywhere" is a global token call (Pitti Press uses white `--surface` cards for lift) — not litigated per-page; sharp-corner radius applied here but should go site-wide.
+
+**Verification (ran, passed):** `tsc --noEmit` exit 0; `eslint` 0 errors (3 pre-existing unused-var warnings in page.tsx, not introduced here); selector tests 17/17.
+
+**Next (slice 2.3):** propagate the same all-light token sweep to listing/card surfaces (FarmCard, map list rows) and suppress `ai_pitti`/`ai_generator` thumbnails there in favour of Layer-4 category marks.
 
 ---
 
