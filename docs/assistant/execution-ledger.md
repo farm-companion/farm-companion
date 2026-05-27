@@ -38,7 +38,18 @@
 
 **Slice 2.6 (DONE, code) — global Footer (brief §5.5):** the newsletter band was a full-bleed `bg-brand-primary` (Vermilion) field — too much of the rare accent. Recoloured to a calm warm `bg-surface-2` band with Clash ink heading + ink-muted body; Vermilion now appears only on the small Subscribe button (the rare accent). Email input → `rounded-none border-border` (brief inputs radius 0). Main footer + bottom bar `bg-[#FFFDF9]`/`bg-[#FAFAFA]` + `dark:` → `bg-surface-2` (all-light, no hardcoded hex). Also fixed a pre-existing eslint error (year setState-in-effect → lazy const). Verified: tsc 0, eslint 0, full-page screenshot confirms the calm band.
 
-**Next:** homepage §5 cut — council-flagged (removes live Site Statistics / How-It-Works / Taste-the-Difference social proof; high-visibility, git-reversible). Then card/listing imagery (per-surface: Layer-1 Pitti OK on editorial cards, category marks on functional lists), then strip legacy teal `#00C2B2` from globals.css.
+**Slice 2.7 (DONE on branch, NOT merged) — homepage five-section cut (brief §5/§11):** `app/page.tsx` now renders Hero / Worth-the-detour (NearbyFarms) / Browse (CategoryGrid) / Seasonal / Journal (FeaturedGuides). Removed Site Statistics (AnimatedStats), social-proof ticker, How-It-Works editorial, Taste-the-Difference (AnimatedFeatures), Weekend Planner. Production build green; prod server renders all 5 (the dev `useScroll` "ref not hydrated" error is the documented dev-only Strict-Mode issue, no prod effect). **Held from master on purpose** (redesign-spec rule: ship the homepage only as a coherent whole, after the sections below are restyled).
+
+**Orphaned dead code to delete (cleanup slice):** `SocialProofTicker`, `AnimatedStats`, `WeekendPlanner`, `AnimatedFeatures` (0 importers after 2.7); `ExploreMenu` (0 after 2.5).
+
+**Remaining homepage slices before merging the homepage to master:**
+- 2.8 Convert `AnimatedHero` to brief §5.2 (Pitti illustration hero, cream overlay, single search, one CTA; kill the dark photo + red "Fresh Spring Harvest"/two-CTA treatment).
+- 2.9 `CategoryGrid` tile grid → editorial vertical list (brief §5.4).
+- 2.10 `NearbyFarms` + `SeasonalShowcase` + `FeaturedGuides` to all-light Pitti tokens (kill dark photo cards/red CTAs); then build + full-homepage screenshot + merge as a unit.
+
+**Then (post-homepage):** card/listing imagery (per-surface), strip legacy teal `#00C2B2` from globals.css, delete orphaned components.
+
+**Shipped to master this session (LIVE):** design-law reconciliation; /shop typographic+all-light (2.1–2.4); global nav §4 (2.5); footer §5.5 (2.6). master @ 2c4f63d; branch ahead by the homepage cut (2.7).
 
 ---
 
