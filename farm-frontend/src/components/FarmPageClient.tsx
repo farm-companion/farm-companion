@@ -1,6 +1,5 @@
 'use client'
 
-import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import {
@@ -191,13 +190,7 @@ export function FarmPageClient({
           <main className="lg:col-span-3 space-y-8">
             {/* About Section */}
             {cleanDescription && (
-              <motion.section
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4 }}
-                className="bg-surface rounded-[2px] border border-border p-6 md:p-8"
-              >
+              <section className="bg-surface rounded-[2px] border border-border p-6 md:p-8">
                 <h2 className="font-clash text-2xl font-semibold text-ink mb-6">
                   About {name}
                 </h2>
@@ -215,18 +208,12 @@ export function FarmPageClient({
                     </p>
                   ))}
                 </div>
-              </motion.section>
+              </section>
             )}
 
             {/* Offerings */}
             {offerings && offerings.length > 0 && (
-              <motion.section
-                initial={{ opacity: 0, y: 12 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.4 }}
-                className="bg-surface rounded-[2px] border border-border p-6 md:p-8"
-              >
+              <section className="bg-surface rounded-[2px] border border-border p-6 md:p-8">
                 <h2 className="font-clash text-2xl font-semibold text-ink mb-6">
                   What We Offer
                 </h2>
@@ -241,7 +228,7 @@ export function FarmPageClient({
                     </div>
                   ))}
                 </div>
-              </motion.section>
+              </section>
             )}
 
           </main>

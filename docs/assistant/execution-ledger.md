@@ -23,7 +23,18 @@
 
 **Verification (ran, passed):** `tsc --noEmit` exit 0; `eslint` 0 errors (3 pre-existing unused-var warnings in page.tsx, not introduced here); selector tests 17/17.
 
-**Next (slice 2.3):** propagate the same all-light token sweep to listing/card surfaces (FarmCard, map list rows) and suppress `ai_pitti`/`ai_generator` thumbnails there in favour of Layer-4 category marks.
+**Slice 2.3 (DONE, code) — surfaced by Playwright screenshot review of /shop:** the About + Offerings sections were `motion.section` with `whileInView` fade-in-on-scroll, which the brief §3.4 explicitly forbids ("the page does not perform") — and which left the body invisible in headless capture. De-animated to plain `<section>` (removed `framer-motion` import). Content now renders statically.
+
+**Slice 2.4 (DONE, code) — same review:** the /shop Gallery was rendering the farm's `ai_apothecary` botanical illustration (the brief's "gourds" problem, relocated from hero to gallery). `farm-data.ts` gallery filter now excludes `ai_apothecary` alongside `ai_pitti`/`ai_generator` — galleries are real photographs only (owner/admin/user + CC). Re-screenshot confirmed the AI illustration is gone.
+
+**Screenshot findings (for the operator):**
+- Typographic hero (both states) looks strong; photo-led page (e.g. `cw-shenton-farm-shop`, rich prose + real photo) is complete and excellent.
+- **Content variance is the real risk, not code:** farms with rich enriched prose look great; farms with only the one-line FSA fallback (e.g. `a-a-mulholland`: "A & A Mulholland is a farm shop in Highland.") render sparse. All 3,504 have *a* description, but many are thin. This is the council's thin-content risk — a content-ops decision (enrich further) not a design blocker.
+- Out of scope, still pre-redesign: the global nav (old "EXPLORE", hardcoded green `#2D5016` "Near Me" button, giant centred search) and a large full-bleed Vermilion newsletter band (Vermilion should be rare per Pitti Press). Queued.
+
+**Verification (ran, passed):** `tsc --noEmit` exit 0; `eslint` 0 errors; Playwright screenshots before/after confirm the fixes.
+
+**Next:** global nav redesign (brief §4) + reduce the Vermilion newsletter band; then the card/listing imagery decision (per-surface: Layer-1 Pitti OK on editorial cards, category marks on functional lists).
 
 ---
 
