@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './ui/Accordion'
 
@@ -24,13 +24,9 @@ const farmShopLinks = [
 
 
 export default function Footer() {
-  const [currentYear, setCurrentYear] = useState(2026)
+  const currentYear = new Date().getFullYear()
   const [email, setEmail] = useState('')
   const [subscribeStatus, setSubscribeStatus] = useState<'idle' | 'success' | 'error'>('idle')
-
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear())
-  }, [])
 
   const handleSubscribe = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -42,15 +38,16 @@ export default function Footer() {
   return (
     <footer className="mt-16 border-t border-border">
 
-      {/* Email Capture Banner */}
-      <div className="bg-brand-primary">
-        <div className="mx-auto max-w-6xl px-6 py-8 md:px-12">
+      {/* Email Capture Banner — calm warm band; Vermilion only on the button
+        * (brief §5.5: Vermilion is rare, never a full-bleed field). */}
+      <div className="bg-surface-2 border-b border-border">
+        <div className="mx-auto max-w-6xl px-6 py-10 md:px-12">
           <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
             <div>
-              <h3 className="text-xl font-medium text-white leading-snug">
+              <h3 className="font-clash text-2xl text-ink leading-snug">
                 What&apos;s in season. What&apos;s worth the drive.
               </h3>
-              <p className="mt-1 text-sm text-white/80">
+              <p className="mt-1 text-sm text-ink-muted">
                 One email per month. No spam. Unsubscribe anytime.
               </p>
             </div>
@@ -71,19 +68,19 @@ export default function Footer() {
                 }}
                 placeholder="Your email address"
                 required
-                className="h-11 flex-1 rounded-l-lg border-0 bg-white px-4 text-[15px] text-foreground placeholder:text-foreground-muted/50 outline-none focus:ring-2 focus:ring-white/40"
+                className="h-11 flex-1 rounded-none border border-border bg-surface px-4 text-[15px] text-ink placeholder:text-ink-muted outline-none focus:border-ink focus:ring-1 focus:ring-ink"
               />
               <button
                 type="submit"
                 aria-label="Subscribe"
-                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-r-lg bg-white text-brand-primary transition-colors hover:bg-neutral-100 focus:outline-none focus:ring-2 focus:ring-white/40"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-none bg-brand text-brand-text transition-colors hover:bg-brand-hover focus:outline-none focus:ring-2 focus:ring-brand"
               >
                 <span className="text-xl leading-none" aria-hidden="true">&rarr;</span>
               </button>
             </form>
           </div>
           {subscribeStatus === 'success' && (
-            <p className="mt-3 text-sm text-white/90">
+            <p className="mt-3 text-sm text-ink-muted">
               Thanks! You&apos;ll hear from us soon.
             </p>
           )}
@@ -91,7 +88,7 @@ export default function Footer() {
       </div>
 
       {/* Main Footer */}
-      <div className="bg-[#FFFDF9] dark:bg-background-secondary">
+      <div className="bg-surface-2">
         <div className="mx-auto max-w-6xl px-6 py-12 md:px-12">
 
           {/* Desktop: 3-column grid */}
@@ -273,7 +270,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-border bg-[#FAFAFA] dark:bg-background-secondary">
+        <div className="border-t border-border bg-surface-2">
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-4 text-[13px] text-foreground-muted md:flex-row md:px-12">
             <p>&copy; {currentYear} Farm Companion</p>
             <div className="flex items-center gap-4">

@@ -36,7 +36,9 @@
 
 **Slice 2.5 (DONE, code) — global nav (brief §4):** rewrote `Header.tsx` to the brief's nav. Wordmark left in the display face (`font-clash`); right-aligned uppercase tracked links MAP / SEASONAL / ABOUT (dropped "Explore"; Journal omitted until content exists); search icon → existing command palette (`open-command-palette` event preserved); removed the centred giant search and the hardcoded green `#2D5016` "Near Me" CTA. `bg-paper`, 72px, sticky, 1px `border-border` bottom that appears only past 8px scroll. Mobile menu restyled to tokens; its CTA is now Vermilion. Scroll/focus-trap/inert logic preserved. `ExploreMenu.tsx` now orphaned (dead code — queued for cleanup). Verified: tsc 0, eslint 0, desktop+mobile screenshots on-brief.
 
-**Next:** reduce the full-bleed Vermilion newsletter band (Vermilion should be rare); then the homepage §5 cut (council-flagged: removes live social proof — high-visibility) and the card/listing imagery decision (per-surface: Layer-1 Pitti OK on editorial cards, category marks on functional lists).
+**Slice 2.6 (DONE, code) — global Footer (brief §5.5):** the newsletter band was a full-bleed `bg-brand-primary` (Vermilion) field — too much of the rare accent. Recoloured to a calm warm `bg-surface-2` band with Clash ink heading + ink-muted body; Vermilion now appears only on the small Subscribe button (the rare accent). Email input → `rounded-none border-border` (brief inputs radius 0). Main footer + bottom bar `bg-[#FFFDF9]`/`bg-[#FAFAFA]` + `dark:` → `bg-surface-2` (all-light, no hardcoded hex). Also fixed a pre-existing eslint error (year setState-in-effect → lazy const). Verified: tsc 0, eslint 0, full-page screenshot confirms the calm band.
+
+**Next:** homepage §5 cut — council-flagged (removes live Site Statistics / How-It-Works / Taste-the-Difference social proof; high-visibility, git-reversible). Then card/listing imagery (per-surface: Layer-1 Pitti OK on editorial cards, category marks on functional lists), then strip legacy teal `#00C2B2` from globals.css.
 
 ---
 
