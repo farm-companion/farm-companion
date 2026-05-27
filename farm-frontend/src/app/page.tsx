@@ -1,20 +1,14 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { MapPin, Calendar, Heart } from 'lucide-react'
 import { getFarmStats } from '@/lib/farm-data'
 import { SITE_URL } from '@/lib/site'
 import { AnimatedHero } from '@/components/AnimatedHero'
 import { OpenNowCTA } from '@/components/OpenNowCTA'
 
-// Lazy-load below-fold sections to reduce initial JS bundle via code splitting.
-// Each dynamic() call produces a separate chunk loaded on demand.
-const SocialProofTicker = dynamic(
-  () => import('@/components/SocialProofTicker').then(m => m.SocialProofTicker)
-)
-const AnimatedStats = dynamic(
-  () => import('@/components/AnimatedStats').then(m => m.AnimatedStats)
-)
+// Five-section homepage (brief §5). Removed: Site Statistics, social-proof
+// ticker, "How It Works", "Taste the Difference"/animated features, and the
+// Weekend Planner — see DESIGN_BRIEF §5/§11. Below-fold sections are lazy
+// chunks loaded on demand.
 const SeasonalShowcase = dynamic(
   () => import('@/components/SeasonalShowcase').then(m => m.SeasonalShowcase)
 )
@@ -26,12 +20,6 @@ const CategoryGrid = dynamic(
 )
 const NearbyFarms = dynamic(
   () => import('@/components/NearbyFarms').then(m => m.NearbyFarms)
-)
-const WeekendPlanner = dynamic(
-  () => import('@/components/WeekendPlanner').then(m => m.WeekendPlanner)
-)
-const AnimatedFeatures = dynamic(
-  () => import('@/components/AnimatedFeatures').then(m => m.AnimatedFeatures)
 )
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -80,7 +68,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export const revalidate = 3600 // Revalidate every hour
 
 export default async function HomePage() {
-  const { farmCount, countyCount } = await getFarmStats()
+  const { countyCount } = await getFarmStats()
 
   return (
     <div className="min-h-screen bg-background-canvas">
@@ -132,109 +120,22 @@ export default async function HomePage() {
       {/* Floating Open Now CTA */}
       <OpenNowCTA variant="floating" />
 
-      {/* Animated Hero Section */}
+      {/* Hero (brief §5.2) */}
       <AnimatedHero
         countyCount={countyCount}
       />
 
-      {/* Social Proof Ticker */}
-      <SocialProofTicker />
-
-      {/* Animated Stats Section */}
-      <AnimatedStats farmCount={farmCount} countyCount={countyCount} />
-
-      {/* Seasonal Showcase Section */}
-      <SeasonalShowcase />
-
-      {/* Featured Guides Section */}
-      <FeaturedGuides />
-
-      {/* Category Grid Section */}
-      <CategoryGrid limit={8} />
-
-      {/* Nearby Farms Section */}
+      {/* Worth the Detour — curated nearby picks (brief §5.3) */}
       <NearbyFarms limit={4} />
 
-      {/* Weekend Planner Section */}
-      <WeekendPlanner limit={4} />
+      {/* Browse by what you're after (brief §5.4) */}
+      <CategoryGrid limit={8} />
 
-      {/* Animated Features Section */}
-      <AnimatedFeatures />
+      {/* Seasonal */}
+      <SeasonalShowcase />
 
-
-      {/* SEO Content Section - LV Editorial */}
-      <section className="bg-background-canvas dark:bg-[#0C0A09] border-t border-border-default section-lazy">
-        <div className="max-w-3xl mx-auto px-6 sm:px-8 py-20 md:py-28">
-          {/* Heading block */}
-          <div className="text-center mb-12">
-            <p className="text-xs uppercase tracking-[0.2em] text-foreground-muted mb-4 font-accent">
-              How It Works
-            </p>
-            <h2 className="text-3xl md:text-4xl font-heading font-bold text-text-heading mb-6 leading-tight">
-              UK Farm Shops Directory
-            </h2>
-            <div className="w-12 h-px bg-border-strong mx-auto" />
-          </div>
-
-          {/* Intro */}
-          <p className="text-center text-text-body leading-relaxed mb-14 max-w-2xl mx-auto">
-            Over <span className="font-semibold text-text-heading">{farmCount}</span> verified farm shops across <span className="font-semibold text-text-heading">{countyCount}</span> counties.
-            Search by location, by what's in season, or by what you're craving.
-          </p>
-
-          {/* Feature list */}
-          <div className="space-y-10">
-            <div className="flex gap-5">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background-surface dark:bg-background-elevated border border-border-default flex items-center justify-center">
-                <MapPin className="w-4 h-4 text-text-muted" />
-              </div>
-              <div>
-                <h3 className="text-lg font-heading font-semibold text-text-heading mb-2">
-                  Search by Location
-                </h3>
-                <p className="text-text-body leading-relaxed">
-                  Enter a postcode or town and see verified farm shops on the map. Each listing shows
-                  contact details, opening hours, and what they sell.
-                </p>
-              </div>
-            </div>
-
-            <div className="w-full h-px bg-border-subtle" />
-
-            <div className="flex gap-5">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background-surface dark:bg-background-elevated border border-border-default flex items-center justify-center">
-                <Calendar className="w-4 h-4 text-text-muted" />
-              </div>
-              <div>
-                <h3 className="text-lg font-heading font-semibold text-text-heading mb-2">
-                  Seasonal Produce Guides
-                </h3>
-                <p className="text-text-body leading-relaxed">
-                  See what's in season each month and where to find it at its best.
-                  Tips on choosing, storing, and cooking what's ripe right now.
-                </p>
-              </div>
-            </div>
-
-            <div className="w-full h-px bg-border-subtle" />
-
-            <div className="flex gap-5">
-              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-background-surface dark:bg-background-elevated border border-border-default flex items-center justify-center">
-                <Heart className="w-4 h-4 text-text-muted" />
-              </div>
-              <div>
-                <h3 className="text-lg font-heading font-semibold text-text-heading mb-2">
-                  Every Listing Verified
-                </h3>
-                <p className="text-text-body leading-relaxed">
-                  We check opening hours, confirm named suppliers, and verify that each shop
-                  sells produce with a genuine connection to farming. No glorified delis.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Journal (brief §5.5; newsletter lives in the footer) */}
+      <FeaturedGuides />
     </div>
   )
 }
