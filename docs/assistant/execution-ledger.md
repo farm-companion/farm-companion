@@ -1,5 +1,22 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-28 — Finish the hex-token-opacity bug: remaining transparent badges + credit
+
+**Problem (deferred from the navbar slice, line "Still broken"):** because `--paper` is a **hex** (`#F2EBDA`), Tailwind compiles `bg-paper/NN` / `text-paper/NN` to `rgb(var(--paper) / 0.9)`, which is invalid for a hex value, so the declaration is dropped and the element renders transparent (or inherits). Three known homepage instances remained: `AnimatedHero` credit (`text-paper/70`), `FarmCard` Verified badge (`bg-paper/90` + same-element `border-accent/20`), `SeasonalShowcase` season badge (`bg-paper/90`).
+
+**Investigation (this slice):** confirmed dark mode is effectively dead in the running app — `ThemeProvider.tsx` sets `forcedTheme="light"` + `enableSystem={false}`, so `<html>` always carries `.light`, which neutralizes the `@media (prefers-color-scheme: dark) :root:not(.light)` block, and `.dark` is never applied. So literal light-mode hexes are safe and correct (same call the navbar slice made). Also confirmed the bug is wider than these three: every `border-*/NN` / `ring-*/NN` on a hex token (e.g. `ring-brand/30`, `hover:border-ink/30`) is likewise silently dropped — these are subtle (missing hairline/ring) and are left for the systemic slice.
+
+**Slice (DONE on branch `feat/homepage-pitti-press-redesign`):** class-only, 3 files, matching the proven navbar literal-hex pattern.
+- `AnimatedHero.tsx`: credit `text-paper/70` → `text-[#F2EBDA]/70` (cream over the fixed illustration).
+- `FarmCard.tsx`: Verified badge `bg-paper/90` → `bg-[#F2EBDA]/90`, and the same-element `border-accent/20` → `border-[#1F3A5F]/20` (was rendering borderless). `text-accent` left as-is (solid, renders fine).
+- `SeasonalShowcase.tsx`: season badge `bg-paper/90` → `bg-[#F2EBDA]/90`. `text-ink` left as-is (solid).
+
+**Verification (ran, passed):** `tsc --noEmit` exit 0; `eslint` on the 3 files exit 0. Render mechanism is identical to commit 33607c3, which screenshot-confirmed `bg-[#F2EBDA]/92` computes to a real `oklab(… / 0.92)` fill. Recommend an eyeball pass (`pnpm start`) of the homepage hero credit + a verified FarmCard + the seasonal carousel before merge.
+
+**Risk/rollback:** Presentational, class-only; no schema/data/route changes; revert the 3 files. Hexes are the light-mode token values, and light is force-locked, so no theme regression.
+
+**Follow-up (recommended next slice — systemic, needs operator go):** kill the footgun for good. Low-blast option: ADD `--paper-rgb: 242 235 218` (and the same for `--ink`/`--brand`/`--accent`) channel tokens in `harvest-theme.css`, then redefine the Tailwind colours as `rgb(var(--<token>-rgb) / <alpha-value>)`. This keeps the existing hex `--paper` for the dozens of direct `var(--paper)` CSS consumers (so they do NOT break — the risk the original deferral feared), while making every `bg-*/NN` / `border-*/NN` / `ring-*/NN` render correctly everywhere at once. Border-as-`rgba()` tokens (`--border` in dark) stay as-is. This supersedes the original "convert the tokens" plan, which would have broken direct consumers.
+
 ### 2026-05-28 — Navbar: tone-aware frosted-glass over hero sections
 
 **Problem (operator-reported):** the sticky navbar was an opaque `bg-paper` slab in every state; over a full-bleed hero it cut across the artwork on scroll ("doesn't work over dark"). Operator chose **frosted glass, tone-aware, applied to all true hero pages.**
@@ -15,7 +32,7 @@
 
 **Follow-up fix (operator: "hero unreadable"):** Root cause — `--paper` is a **hex** (`#f2ebda`), so Tailwind's opacity modifier `bg-paper/NN` silently computes to `rgba(0,0,0,0)` (transparent). The homepage hero copy box (`AnimatedHero.tsx` `bg-paper/90`) therefore had no cream fill — only `backdrop-blur` — so the illustration's dark stone-wall path bled through and the copy lost contrast. Same bug had made my navbar light-frost (`Header.tsx` `bg-paper/65`) tint-less. Fixed both with literal-hex alpha (`bg-[#F2EBDA]/92` box, `/70` navbar) — guaranteed to render, consistent with the existing `bg-[#15120D]/25` dark frost. Verified: computed bg now `oklab(… / 0.92)` / `/0.7`, hero readable on screenshot, tsc 0, eslint 0.
 
-**Still broken (same hex-token-opacity bug, deferred — not litigated this slice):** `AnimatedHero` credit `text-paper/70` (renders inherited-dark, accidentally legible), and `FarmCard.tsx` + `SeasonalShowcase.tsx` badges `bg-paper/90` (transparent). Proper systemic fix = move design tokens to space-separated RGB channels + `<alpha-value>` in `tailwind.config.js`, but that breaks every direct `var(--paper)` consumer (e.g. `--background-canvas`), so it needs its own slice.
+**RESOLVED 2026-05-28 (fixed in the top entry; was deferred from this slice):** `AnimatedHero` credit `text-paper/70` (rendered inherited-dark, accidentally legible), and `FarmCard.tsx` + `SeasonalShowcase.tsx` badges `bg-paper/90` (transparent). Proper systemic fix = move design tokens to space-separated RGB channels + `<alpha-value>` in `tailwind.config.js`, but that breaks every direct `var(--paper)` consumer (e.g. `--background-canvas`), so it needs its own slice.
 
 ### 2026-05-27 — Design law reconciled (brief ⟷ Pitti Press) + Slice 2.1: farm typographic-default hero
 

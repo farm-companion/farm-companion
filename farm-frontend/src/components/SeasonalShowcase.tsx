@@ -124,7 +124,7 @@ export function SeasonalShowcase({ className = '' }: SeasonalShowcaseProps) {
 
                 {/* Season badge - minimal editorial style */}
                 <div className="absolute top-6 left-6">
-                  <span className="inline-block px-4 py-2 text-xs tracking-[0.15em] uppercase bg-paper/90 text-ink backdrop-blur-sm">
+                  <span className="inline-block px-4 py-2 text-xs tracking-[0.15em] uppercase bg-[#F2EBDA]/90 text-ink backdrop-blur-sm">
                     {seasonLabel}
                   </span>
                 </div>
