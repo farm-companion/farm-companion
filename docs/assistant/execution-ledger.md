@@ -46,8 +46,15 @@
 
 **Slice 2.9 (DONE on branch) — `CategoryGrid` → brief §5.4:** Rewrote `farm-frontend/src/components/CategoryGrid.tsx` (71 lines). Dropped the SaaS tile grid (dark `bg-white dark:bg-slate-950`, icons, badges, hover-lift cards) for an editorial contents-page list: left 5/12 Clash heading "Browse by what you're after." + italic editorial intro; right 7/12 vertical list, each row 64px (`h-16`) with Clash name left, `tabular-nums` count right (`toLocaleString('en-GB')` → e.g. "2,397"), 1px `--border` rule, hover `surface-2` bg + brand underline. "All categories →" text link, no button chrome. Removed `CategoryIcon`/`Badge` imports (both still used elsewhere, not orphaned) and the unused `featured` prop. Em dash in the brief's intro copy swapped for a comma per CLAUDE.md. Verified: `tsc` 0, `eslint` 0, dev SSR (`:3100`) renders 8 real categories (Farm Shops 2,397 … Farm Cafes 52), old tile copy gone.
 
+**Slice 2.10 split into a/b/c/d (each component is its own committable unit; 300-line/8-file limits make a single slice impossible):**
+
+**Slice 2.10a (DONE on branch) — `FeaturedGuides` → brief §5.5 Journal:** Rewrote `farm-frontend/src/components/FeaturedGuides.tsx` (120 → 73 lines). Dropped the dark full-bleed `/seasonal-header.jpg` backdrop + black overlays, `font-serif`, glass cards, FAQ counts, and the white-pill "See All Recommendations" CTA. Now all-light on `bg-paper`: caption "From the journal" overline, Clash heading "Worth planning a day around.", editorial intro; 3-col guide cards (border-top rule, Clash title with brand underline on hover, excerpt, "Read on →"); "All guides →" text link. Removed `Image`/`Badge`/`BookOpen`/`ArrowRight` imports. Verified: `tsc` 0, `eslint` 0, dev SSR renders new copy, old copy gone.
+
+**Slice 2.10b (DONE on branch) — `SeasonalShowcase` all-light fixups:** `farm-frontend/src/components/SeasonalShowcase.tsx` was already on semantic Pitti-mapped tokens; fixed the two brief violations — `font-serif` (×5, serif purged 2026-05-26) → `font-clash`, and the pure-white `bg-white/90` season chip → `bg-paper/90`/`text-ink`. Also converted the two init `useEffect`s (`seasonalItems`, `currentMonth`) to lazy `useState` initializers: clears the pre-existing `react-hooks/set-state-in-effect` errors AND lets the carousel render server-side instead of popping in post-hydration. Verified: `tsc` 0, `eslint` 0, dev SSR now renders the section ("Fresh This May"/"View All Seasonal Produce"), zero `font-serif` in homepage HTML.
+
 **Remaining homepage slices before merging the homepage to master:**
-- 2.10 `NearbyFarms` + `SeasonalShowcase` + `FeaturedGuides` to all-light Pitti tokens (kill dark photo cards/red CTAs); then build + full-homepage screenshot + merge as a unit.
+- 2.10c `NearbyFarms` — de-animate (remove framer-motion `useScroll`/`whileInView`) + remove dark cinematic `SectionBackground`, reskin section chrome to all-light, brand CTAs.
+- 2.10d `FarmCard` (shared by 11 surfaces incl. master-shipped pages) — all-light reskin (kill `bg-white dark:bg-slate-900` cards + `bg-slate-900` CTA); verify no master regressions. Then build + full-homepage screenshot + merge as a unit.
 
 **Then (post-homepage):** card/listing imagery (per-surface), strip legacy teal `#00C2B2` from globals.css, delete orphaned components.
 
