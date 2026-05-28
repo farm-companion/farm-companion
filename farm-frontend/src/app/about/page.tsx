@@ -96,6 +96,7 @@ export default function AboutPage() {
     <main className="min-h-screen">
       {/* ─── Section 1: Hero ─── */}
       <section
+        data-immersive-hero="dark"
         className="relative min-h-[360px] md:min-h-[480px] flex items-center justify-center overflow-hidden"
         aria-labelledby="hero-heading"
       >

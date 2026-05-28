@@ -1,5 +1,79 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-29 — Council-decided convergence slice: revert no-op literal-hex to semantic tokens
+
+**Council (ecc:council):** convened on "which next slice." Verdict: the teal-strip was a TRAP (Pragmatist + Critic grep-verified `#00C2B2` is live in ~14 files, not a dead colour). Imagery + merge are not agent-now-ready. Consensus leaned "converge to merge, stop adding scope." Chosen slice: revert the wrong-premise literal-hex so the soon-to-be-shared baseline is clean (this IS convergence, not new scope).
+
+**Slice (DONE on branch):** reverted the badge/credit literal-hex from `4355bee` back to semantic tokens — `FarmCard` badge `bg-[#F2EBDA]/90 border-[#1F3A5F]/20` to `bg-paper/90 border-accent/20`; `SeasonalShowcase` badge `bg-[#F2EBDA]/90` to `bg-paper/90`; `AnimatedHero` credit `text-[#F2EBDA]/70` to `text-paper/70`. Left the nav tone-frost literals as-is (`Header` `bg-[#F2EBDA]/70` light-frost + `bg-[#15120D]/25` dark-frost): those match HERO-ARTWORK tone, not the page theme, and `#15120D` has no light-theme semantic token.
+
+**Verification (ran, passed):** `tsc` 0; `eslint` 0; the v4 CLI proof (entry below) shows `bg-paper/90` / `text-paper/70` / `border-accent/20` compile to valid color-mix; Playwright screenshot of the running dev server confirms the homepage renders identically (no regression).
+
+**Recorded for a FUTURE deliberate slice (NOT now) — strip legacy teal `#00C2B2`:** council grep blast-radius ~14 live files: `globals.css` (gradients / focus-outlines / borders, ~8 sites), `layout.tsx`, SEO `theme-color` (`og/route.tsx`, `seo-optimizer.ts` / `seo-middleware.ts`), `pin-icons.ts`, email templates. Touches accessibility + the SEO theme-color contract + master-shipped surfaces; must be its own master-targeted slice with per-surface verification, replacing teal with `--brand` / `--accent` semantics. NOT a quick kill-list cleanup.
+
+**Next (council consensus):** branch is complete, verified, and clean. STOP slicing; merge `feat/homepage-pitti-press-redesign` to master is the operator's deploy decision.
+
+### 2026-05-28 — Investigated the systemic token fix: NOT needed (Tailwind v4 has no hex-opacity footgun)
+
+**Finding:** the planned systemic refactor (add `--*-rgb` channel tokens + redefine Tailwind colours as `rgb(var(--*-rgb) / <alpha-value>)`) was premised on a **v3-era** diagnosis. This project is **Tailwind v4** (`tailwindcss 4.1.18`, `@tailwindcss/postcss`, `@import "tailwindcss"`; the JS `tailwind.config.js` is auto-loaded by the v4 postcss plugin, confirmed by 69 `var(--brand|ink|paper|accent)` refs in the compiled CSS). v4 compiles every opacity modifier on a named token to a `var(--x)` solid fallback PLUS `@supports { color-mix(in oklab, var(--x) NN%, transparent) }` — always a real colour, never transparent.
+
+**Proof (isolated v4.1.18 compile, only-fixture content, project config via `@config`):** `bg-paper/90`, `text-paper/70`, `bg-brand/50`, `bg-ink/50`, `bg-accent/50`, `bg-surface/50` ALL generate the valid color-mix-with-fallback pattern. So there is no footgun; `<alpha-value>` is a v3 idiom that would not help and risks breaking solids. Reverted the speculative edits to `tailwind.config.js` + `harvest-theme.css`; working tree clean.
+
+**Correction to prior entries:** the "hex-token-opacity bug" recorded in the navbar slices (33607c3 / 054ac6c) and the badge slice (4355bee) is a **v3 artifact**. Under v4, `bg-paper/90` renders identically to the literal `bg-[#F2EBDA]/90` (cream at 90%), so those literal-hex changes were cosmetic no-ops in v4 — harmless, but they hardcode hex against the "always semantic tokens" rule. Optional low-priority follow-up: revert the badge/credit/nav literal-hex back to semantic tokens (verify in a real build first). Most likely the project was on v3 when the symptom was diagnosed and the v4 migration auto-resolved it via color-mix.
+
+### 2026-05-28 — Merge-prep cleanup: delete redesign-orphaned components
+
+**Slice (DONE on branch `feat/homepage-pitti-press-redesign`):** removed dead code left by the homepage cut (2.7), nav rewrite (2.5), and hero rewrite (2.8) so the redesign does not ship orphans. Deleted 6 files: `SocialProofTicker.tsx`, `AnimatedStats.tsx`, `WeekendPlanner.tsx`, `AnimatedFeatures.tsx`, `HeroSearch.tsx`, `navigation/ExploreMenu.tsx`; and dropped the `ExploreMenu` re-export from `navigation/index.ts`.
+
+**Safety check (before deleting):** grep confirmed 0 external importers for all six, no `.test`/`.stories` companions, and the `@/components/navigation` barrel itself has **no importers** (so removing the ExploreMenu export affects no consumer). Deletions are git-recoverable.
+
+**Verification (ran, passed):** `tsc --noEmit` exit 0 (resolves every import across the project, so a dangling reference to any deleted module would have failed) and `eslint` exit 0 on the barrel + `app/page.tsx`. 7 files touched (6 deletes + 1 edit), within slice limits; line cap N/A (deletions excluded).
+
+**Risk/rollback:** Dead-code removal only; tsc proves nothing referenced them. Revert with `git checkout` of the 7 paths. Note: the navigation barrel's other exports (`BottomNav`/`MegaMenu`/`CountiesPreview`/`SeasonalPreview`/`LocationContext`) may also be unused via the barrel, but they are out of scope for this queued slice.
+
+### 2026-05-28 — Security (Queue 1): cleared 3 stale Dependabot alerts (farm-produce-images)
+
+**Finding:** GitHub reported 3 open Dependabot alerts on push: postcss (medium, #66) and next (low, #65/#64), all against `farm-produce-images/package-lock.json` (+ `package.json` for #64). Verified on `origin/master` HEAD `cb4ef5b`: the directory migrated npm to pnpm on 2026-05-18, so `package-lock.json` no longer exists; `pnpm-lock.yaml` resolves `next@16.2.6` and `postcss@8.5.14` (both past the patched releases 15.5.16 / 8.5.10) and `package.json` pins `next@16.2.6`. No real exposure. Root cause: PR #215 (homepage merge) did not touch `farm-produce-images`, so GitHub never re-scanned that subdirectory and an orphaned dependency-graph entry for the removed npm lockfile kept matching advisories (today's postcss advisory matched the ghost lockfile at 16:48 UTC).
+
+**Action (operator-approved choice "dismiss as inaccurate"):** dismissed alerts #64/#65/#66 via `gh api PATCH .../dependabot/alerts/{n}` with `dismissed_reason=inaccurate` + audit comment. The auto-mode classifier correctly blocked the first attempt (suppressing a shared security signal is the operator's call); proceeded only after explicit operator selection. Reversible — alerts can be reopened.
+
+**Verification (ran, passed):** `gh api .../dependabot/alerts --jq '[.[]|select(.state=="open")]|length'` returns **0**. All three now `state=dismissed, reason=inaccurate`.
+
+**Follow-up (not a blocker):** the stuck dependency graph self-heals on the next dependency change in `farm-produce-images`; the existing `pnpm.overrides` block already pins safe transitive versions. If stale alerts recur, force a graph re-scan with a manifest touch on master.
+
+### 2026-05-28 — Finish the hex-token-opacity bug: remaining transparent badges + credit
+
+**Problem (deferred from the navbar slice, line "Still broken"):** because `--paper` is a **hex** (`#F2EBDA`), Tailwind compiles `bg-paper/NN` / `text-paper/NN` to `rgb(var(--paper) / 0.9)`, which is invalid for a hex value, so the declaration is dropped and the element renders transparent (or inherits). Three known homepage instances remained: `AnimatedHero` credit (`text-paper/70`), `FarmCard` Verified badge (`bg-paper/90` + same-element `border-accent/20`), `SeasonalShowcase` season badge (`bg-paper/90`).
+
+**Investigation (this slice):** confirmed dark mode is effectively dead in the running app — `ThemeProvider.tsx` sets `forcedTheme="light"` + `enableSystem={false}`, so `<html>` always carries `.light`, which neutralizes the `@media (prefers-color-scheme: dark) :root:not(.light)` block, and `.dark` is never applied. So literal light-mode hexes are safe and correct (same call the navbar slice made). Also confirmed the bug is wider than these three: every `border-*/NN` / `ring-*/NN` on a hex token (e.g. `ring-brand/30`, `hover:border-ink/30`) is likewise silently dropped — these are subtle (missing hairline/ring) and are left for the systemic slice.
+
+**Slice (DONE on branch `feat/homepage-pitti-press-redesign`):** class-only, 3 files, matching the proven navbar literal-hex pattern.
+- `AnimatedHero.tsx`: credit `text-paper/70` → `text-[#F2EBDA]/70` (cream over the fixed illustration).
+- `FarmCard.tsx`: Verified badge `bg-paper/90` → `bg-[#F2EBDA]/90`, and the same-element `border-accent/20` → `border-[#1F3A5F]/20` (was rendering borderless). `text-accent` left as-is (solid, renders fine).
+- `SeasonalShowcase.tsx`: season badge `bg-paper/90` → `bg-[#F2EBDA]/90`. `text-ink` left as-is (solid).
+
+**Verification (ran, passed):** `tsc --noEmit` exit 0; `eslint` on the 3 files exit 0. Render mechanism is identical to commit 33607c3, which screenshot-confirmed `bg-[#F2EBDA]/92` computes to a real `oklab(… / 0.92)` fill. Recommend an eyeball pass (`pnpm start`) of the homepage hero credit + a verified FarmCard + the seasonal carousel before merge.
+
+**Risk/rollback:** Presentational, class-only; no schema/data/route changes; revert the 3 files. Hexes are the light-mode token values, and light is force-locked, so no theme regression.
+
+**Follow-up (recommended next slice — systemic, needs operator go):** kill the footgun for good. Low-blast option: ADD `--paper-rgb: 242 235 218` (and the same for `--ink`/`--brand`/`--accent`) channel tokens in `harvest-theme.css`, then redefine the Tailwind colours as `rgb(var(--<token>-rgb) / <alpha-value>)`. This keeps the existing hex `--paper` for the dozens of direct `var(--paper)` CSS consumers (so they do NOT break — the risk the original deferral feared), while making every `bg-*/NN` / `border-*/NN` / `ring-*/NN` render correctly everywhere at once. Border-as-`rgba()` tokens (`--border` in dark) stay as-is. This supersedes the original "convert the tokens" plan, which would have broken direct consumers.
+
+### 2026-05-28 — Navbar: tone-aware frosted-glass over hero sections
+
+**Problem (operator-reported):** the sticky navbar was an opaque `bg-paper` slab in every state; over a full-bleed hero it cut across the artwork on scroll ("doesn't work over dark"). Operator chose **frosted glass, tone-aware, applied to all true hero pages.**
+
+**Slice (DONE on branch `feat/homepage-pitti-press-redesign`):**
+- `Header.tsx`: new `useImmersiveHeroTone` hook — an `IntersectionObserver` watches `[data-immersive-hero="light|dark"]` and, while that hero sits behind the 72px bar, swaps the header to a tone-matched frosted glass (`backdrop-blur-md backdrop-saturate-150`; light hero → `bg-paper/65` + ink text, dark hero → `bg-[#15120D]/25` + warm cream-white `#F4F1EA` text), no rule border. Off-hero (and every non-hero route) keeps the existing opaque `bg-paper` + scroll-border behaviour. Wordmark/links/icons are tone-aware. `transition: all` → `transition-[transform,background-color,border-color]` with a strong ease-out curve (emil).
+- Opted in: `AnimatedHero.tsx` (`="light"`); `about/page.tsx` + `counties/page.tsx` (`="dark"`, full-bleed photo heroes).
+- Left solid on purpose: `/best`, `/seasonal/[slug]`, `/counties/[slug]`, `/compare` — their images are contained cards, not full-bleed heroes behind the bar.
+
+**Verification (ran, passed):** `tsc --noEmit` 0; `eslint` 0; production `next build` exit 0 (full route manifest). Playwright screenshots: homepage light-frost (top + mid-scroll legible) + solid-on-scroll, /about + /counties dark-frost with cream text, mobile homepage. Fixed an `eslint react-hooks/set-state-in-effect` error by moving the reset into the IO cleanup.
+
+**Risk/rollback:** Presentational only; no schema/data/route changes; revert the 4 files. New routes opt in via the `data-immersive-hero` attribute.
+
+**Follow-up fix (operator: "hero unreadable"):** Root cause — `--paper` is a **hex** (`#f2ebda`), so Tailwind's opacity modifier `bg-paper/NN` silently computes to `rgba(0,0,0,0)` (transparent). The homepage hero copy box (`AnimatedHero.tsx` `bg-paper/90`) therefore had no cream fill — only `backdrop-blur` — so the illustration's dark stone-wall path bled through and the copy lost contrast. Same bug had made my navbar light-frost (`Header.tsx` `bg-paper/65`) tint-less. Fixed both with literal-hex alpha (`bg-[#F2EBDA]/92` box, `/70` navbar) — guaranteed to render, consistent with the existing `bg-[#15120D]/25` dark frost. Verified: computed bg now `oklab(… / 0.92)` / `/0.7`, hero readable on screenshot, tsc 0, eslint 0.
+
+**RESOLVED 2026-05-28 (fixed in the top entry; was deferred from this slice):** `AnimatedHero` credit `text-paper/70` (rendered inherited-dark, accidentally legible), and `FarmCard.tsx` + `SeasonalShowcase.tsx` badges `bg-paper/90` (transparent). Proper systemic fix = move design tokens to space-separated RGB channels + `<alpha-value>` in `tailwind.config.js`, but that breaks every direct `var(--paper)` consumer (e.g. `--background-canvas`), so it needs its own slice.
+
 ### 2026-05-27 — Design law reconciled (brief ⟷ Pitti Press) + Slice 2.1: farm typographic-default hero
 
 **Decision (DONE):** Convened ecc:council + ground-truthed the codebase + read on-disk mem. Reconciled `~/Downloads/DESIGN_BRIEF.md` (English-editorial) against the locked Pitti Press specs. Both are ~90% the same; only two hard conflicts, and mem shows both already decided against the brief: **oxblood rejected 2026-05-19 ("too sombre") → keep Vermilion**; **serif purged 2026-05-26 → keep Clash Display** (not Caslon). Map: keep the Stadia/MapLibre reskin, reject the Mapbox rewrite. Adopt from the brief: farm typographic default, four-layer imagery governance, 5-section homepage, kill-list, editorial voice. Net: **Pitti Press = skin; brief = structure/governance.** Recorded in `docs/superpowers/specs/2026-05-27-design-law-reconciliation.md`.
