@@ -326,7 +326,7 @@ export default function Header() {
           !visible && '-translate-y-full',
           // Over a hero: tone-matched frosted glass (vibrancy = blur + saturate),
           // no hard edge. Off-hero: opaque paper, rule border once scrolled.
-          tone === 'light' && 'bg-paper/65 backdrop-blur-md backdrop-saturate-150 border-b border-transparent',
+          tone === 'light' && 'bg-[#F2EBDA]/70 backdrop-blur-md backdrop-saturate-150 border-b border-transparent',
           tone === 'dark' && 'bg-[#15120D]/25 backdrop-blur-md backdrop-saturate-150 border-b border-transparent',
           !onHero && (scrolled ? 'bg-paper border-b border-border' : 'bg-paper border-b border-transparent'),
         )}
