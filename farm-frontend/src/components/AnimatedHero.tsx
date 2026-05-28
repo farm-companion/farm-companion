@@ -41,7 +41,10 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
   }
 
   return (
-    <section className="relative overflow-hidden bg-paper h-[65vh] min-h-[460px] md:h-[78vh] md:max-h-[820px]">
+    <section
+      data-immersive-hero="light"
+      className="relative overflow-hidden bg-paper h-[65vh] min-h-[460px] md:h-[78vh] md:max-h-[820px]"
+    >
       <HeroVideoBackground
         videoSrc={videoSrc}
         videoPoster={videoPoster}

@@ -38,6 +38,35 @@ function useScrollBehaviour() {
   return { scrolled, visible }
 }
 
+type HeroTone = 'light' | 'dark'
+
+function useImmersiveHeroTone(pathname: string | null): HeroTone | null {
+  // A page opts into a full-bleed hero by marking it
+  // [data-immersive-hero="light|dark"]. While that hero sits behind the 72px
+  // header the bar turns into a tone-matched frosted glass (so the artwork reads
+  // through it), then solidifies to opaque paper once scrolled past it. The tone
+  // selects text + frost colour: light artwork -> dark ink, dark artwork -> light.
+  // Pages without the marker (every non-hero route) keep the solid header.
+  const [tone, setTone] = useState<HeroTone | null>(null)
+
+  useEffect(() => {
+    const hero = document.querySelector<HTMLElement>('[data-immersive-hero]')
+    if (!hero) return
+    const heroTone: HeroTone = hero.dataset.immersiveHero === 'dark' ? 'dark' : 'light'
+    const io = new IntersectionObserver(
+      ([entry]) => setTone(entry.isIntersecting ? heroTone : null),
+      { rootMargin: '-72px 0px 0px 0px', threshold: 0 },
+    )
+    io.observe(hero)
+    return () => {
+      io.disconnect()
+      setTone(null)
+    }
+  }, [pathname])
+
+  return tone
+}
+
 function useLockBody(locked: boolean) {
   useEffect(() => {
     if (!locked) return
@@ -273,23 +302,40 @@ export default function Header() {
   const { scrolled, visible } = useScrollBehaviour()
   const [menuOpen, setMenuOpen] = useState(false)
   const pathname = usePathname()
+  const tone = useImmersiveHeroTone(pathname)
+  const onHero = tone !== null
+  const onDark = tone === 'dark'
 
   const isActive = (href: string) => pathname === href || (pathname?.startsWith(href + '/') ?? false)
+
+  // Tone-aware foreground: warm cream-white (#F4F1EA) over dark heroes, ink otherwise.
+  const wordmarkColor = onDark ? 'text-[#F4F1EA]' : 'text-ink'
+  const linkIdle = onDark
+    ? 'text-[#F4F1EA]/75 hover:text-[#F4F1EA] hover:underline'
+    : 'text-ink-muted hover:text-ink hover:underline'
+  const linkActive = onDark ? 'text-[#F4F1EA] underline' : 'text-brand underline'
+  const iconBtn = onDark
+    ? 'text-[#F4F1EA]/90 hover:text-[#F4F1EA] hover:bg-white/10'
+    : 'text-ink-muted hover:text-ink hover:bg-surface-2'
 
   return (
     <>
       <header
         className={cn(
-          'sticky top-0 z-50 bg-paper transition-all duration-200',
+          'sticky top-0 z-50 transition-[transform,background-color,border-color] duration-300 ease-[cubic-bezier(0.23,1,0.32,1)]',
           !visible && '-translate-y-full',
-          scrolled ? 'border-b border-border' : 'border-b border-transparent',
+          // Over a hero: tone-matched frosted glass (vibrancy = blur + saturate),
+          // no hard edge. Off-hero: opaque paper, rule border once scrolled.
+          tone === 'light' && 'bg-paper/65 backdrop-blur-md backdrop-saturate-150 border-b border-transparent',
+          tone === 'dark' && 'bg-[#15120D]/25 backdrop-blur-md backdrop-saturate-150 border-b border-transparent',
+          !onHero && (scrolled ? 'bg-paper border-b border-border' : 'bg-paper border-b border-transparent'),
         )}
       >
         <div className="relative mx-auto max-w-[1320px] flex items-center justify-between h-[72px] px-4 md:px-6 lg:px-12">
           {/* Left: wordmark (set as text in the display face, brief §4) */}
           <Link
             href="/"
-            className="font-clash text-2xl tracking-tight text-ink shrink-0"
+            className={cn('font-clash text-2xl tracking-tight shrink-0 transition-colors', wordmarkColor)}
           >
             Farm Companion
           </Link>
@@ -305,9 +351,7 @@ export default function Header() {
                     href={item.href}
                     className={cn(
                       'text-[15px] font-medium uppercase tracking-[0.04em] underline-offset-[6px] decoration-1 transition-colors',
-                      active
-                        ? 'text-brand underline'
-                        : 'text-ink-muted hover:text-ink hover:underline',
+                      active ? linkActive : linkIdle,
                     )}
                     aria-current={active ? 'page' : undefined}
                   >
@@ -319,7 +363,7 @@ export default function Header() {
 
             <button
               onClick={openCommandPalette}
-              className="h-10 w-10 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-surface-2 transition-colors"
+              className={cn('h-10 w-10 flex items-center justify-center rounded-full transition-colors', iconBtn)}
               aria-label="Search farms, produce, or places"
             >
               <Search className="h-5 w-5" />
@@ -330,14 +374,14 @@ export default function Header() {
           <div className="flex md:hidden items-center gap-1">
             <button
               onClick={openCommandPalette}
-              className="h-11 w-11 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-surface-2 transition-colors"
+              className={cn('h-11 w-11 flex items-center justify-center rounded-full transition-colors', iconBtn)}
               aria-label="Search"
             >
               <Search className="h-5 w-5" />
             </button>
             <button
               onClick={() => setMenuOpen(true)}
-              className="h-11 w-11 flex items-center justify-center rounded-full text-ink-muted hover:text-ink hover:bg-surface-2 transition-colors"
+              className={cn('h-11 w-11 flex items-center justify-center rounded-full transition-colors', iconBtn)}
               aria-label="Open menu"
               aria-haspopup="dialog"
               aria-expanded={menuOpen}

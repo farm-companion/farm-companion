@@ -78,7 +78,7 @@ export default async function CountiesPage() {
   return (
     <main className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
       {/* Professional Hero Section with Counties Page Image */}
-      <section className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
+      <section data-immersive-hero="dark" className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
         {/* Background Image with Professional Handling */}
         <div className="absolute inset-0">
           <Image

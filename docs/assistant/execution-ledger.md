@@ -1,5 +1,18 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-28 — Navbar: tone-aware frosted-glass over hero sections
+
+**Problem (operator-reported):** the sticky navbar was an opaque `bg-paper` slab in every state; over a full-bleed hero it cut across the artwork on scroll ("doesn't work over dark"). Operator chose **frosted glass, tone-aware, applied to all true hero pages.**
+
+**Slice (DONE on branch `feat/homepage-pitti-press-redesign`):**
+- `Header.tsx`: new `useImmersiveHeroTone` hook — an `IntersectionObserver` watches `[data-immersive-hero="light|dark"]` and, while that hero sits behind the 72px bar, swaps the header to a tone-matched frosted glass (`backdrop-blur-md backdrop-saturate-150`; light hero → `bg-paper/65` + ink text, dark hero → `bg-[#15120D]/25` + warm cream-white `#F4F1EA` text), no rule border. Off-hero (and every non-hero route) keeps the existing opaque `bg-paper` + scroll-border behaviour. Wordmark/links/icons are tone-aware. `transition: all` → `transition-[transform,background-color,border-color]` with a strong ease-out curve (emil).
+- Opted in: `AnimatedHero.tsx` (`="light"`); `about/page.tsx` + `counties/page.tsx` (`="dark"`, full-bleed photo heroes).
+- Left solid on purpose: `/best`, `/seasonal/[slug]`, `/counties/[slug]`, `/compare` — their images are contained cards, not full-bleed heroes behind the bar.
+
+**Verification (ran, passed):** `tsc --noEmit` 0; `eslint` 0; production `next build` exit 0 (full route manifest). Playwright screenshots: homepage light-frost (top + mid-scroll legible) + solid-on-scroll, /about + /counties dark-frost with cream text, mobile homepage. Fixed an `eslint react-hooks/set-state-in-effect` error by moving the reset into the IO cleanup.
+
+**Risk/rollback:** Presentational only; no schema/data/route changes; revert the 4 files. New routes opt in via the `data-immersive-hero` attribute.
+
 ### 2026-05-27 — Design law reconciled (brief ⟷ Pitti Press) + Slice 2.1: farm typographic-default hero
 
 **Decision (DONE):** Convened ecc:council + ground-truthed the codebase + read on-disk mem. Reconciled `~/Downloads/DESIGN_BRIEF.md` (English-editorial) against the locked Pitti Press specs. Both are ~90% the same; only two hard conflicts, and mem shows both already decided against the brief: **oxblood rejected 2026-05-19 ("too sombre") → keep Vermilion**; **serif purged 2026-05-26 → keep Clash Display** (not Caslon). Map: keep the Stadia/MapLibre reskin, reject the Mapbox rewrite. Adopt from the brief: farm typographic default, four-layer imagery governance, 5-section homepage, kill-list, editorial voice. Net: **Pitti Press = skin; brief = structure/governance.** Recorded in `docs/superpowers/specs/2026-05-27-design-law-reconciliation.md`.
