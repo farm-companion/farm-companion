@@ -94,7 +94,7 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
       </div>
 
       {/* Illustration credit, bottom-right (brief §5.2) */}
-      <p className="absolute bottom-3 right-4 text-[11px] tracking-wide text-[#F2EBDA]/70 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] pointer-events-none">
+      <p className="absolute bottom-3 right-4 text-[11px] tracking-wide text-paper/70 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] pointer-events-none">
         Illustration · Pitti Press for Farm Companion
       </p>
     </section>

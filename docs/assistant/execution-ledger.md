@@ -1,5 +1,25 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-29 — Council-decided convergence slice: revert no-op literal-hex to semantic tokens
+
+**Council (ecc:council):** convened on "which next slice." Verdict: the teal-strip was a TRAP (Pragmatist + Critic grep-verified `#00C2B2` is live in ~14 files, not a dead colour). Imagery + merge are not agent-now-ready. Consensus leaned "converge to merge, stop adding scope." Chosen slice: revert the wrong-premise literal-hex so the soon-to-be-shared baseline is clean (this IS convergence, not new scope).
+
+**Slice (DONE on branch):** reverted the badge/credit literal-hex from `4355bee` back to semantic tokens — `FarmCard` badge `bg-[#F2EBDA]/90 border-[#1F3A5F]/20` to `bg-paper/90 border-accent/20`; `SeasonalShowcase` badge `bg-[#F2EBDA]/90` to `bg-paper/90`; `AnimatedHero` credit `text-[#F2EBDA]/70` to `text-paper/70`. Left the nav tone-frost literals as-is (`Header` `bg-[#F2EBDA]/70` light-frost + `bg-[#15120D]/25` dark-frost): those match HERO-ARTWORK tone, not the page theme, and `#15120D` has no light-theme semantic token.
+
+**Verification (ran, passed):** `tsc` 0; `eslint` 0; the v4 CLI proof (entry below) shows `bg-paper/90` / `text-paper/70` / `border-accent/20` compile to valid color-mix; Playwright screenshot of the running dev server confirms the homepage renders identically (no regression).
+
+**Recorded for a FUTURE deliberate slice (NOT now) — strip legacy teal `#00C2B2`:** council grep blast-radius ~14 live files: `globals.css` (gradients / focus-outlines / borders, ~8 sites), `layout.tsx`, SEO `theme-color` (`og/route.tsx`, `seo-optimizer.ts` / `seo-middleware.ts`), `pin-icons.ts`, email templates. Touches accessibility + the SEO theme-color contract + master-shipped surfaces; must be its own master-targeted slice with per-surface verification, replacing teal with `--brand` / `--accent` semantics. NOT a quick kill-list cleanup.
+
+**Next (council consensus):** branch is complete, verified, and clean. STOP slicing; merge `feat/homepage-pitti-press-redesign` to master is the operator's deploy decision.
+
+### 2026-05-28 — Investigated the systemic token fix: NOT needed (Tailwind v4 has no hex-opacity footgun)
+
+**Finding:** the planned systemic refactor (add `--*-rgb` channel tokens + redefine Tailwind colours as `rgb(var(--*-rgb) / <alpha-value>)`) was premised on a **v3-era** diagnosis. This project is **Tailwind v4** (`tailwindcss 4.1.18`, `@tailwindcss/postcss`, `@import "tailwindcss"`; the JS `tailwind.config.js` is auto-loaded by the v4 postcss plugin, confirmed by 69 `var(--brand|ink|paper|accent)` refs in the compiled CSS). v4 compiles every opacity modifier on a named token to a `var(--x)` solid fallback PLUS `@supports { color-mix(in oklab, var(--x) NN%, transparent) }` — always a real colour, never transparent.
+
+**Proof (isolated v4.1.18 compile, only-fixture content, project config via `@config`):** `bg-paper/90`, `text-paper/70`, `bg-brand/50`, `bg-ink/50`, `bg-accent/50`, `bg-surface/50` ALL generate the valid color-mix-with-fallback pattern. So there is no footgun; `<alpha-value>` is a v3 idiom that would not help and risks breaking solids. Reverted the speculative edits to `tailwind.config.js` + `harvest-theme.css`; working tree clean.
+
+**Correction to prior entries:** the "hex-token-opacity bug" recorded in the navbar slices (33607c3 / 054ac6c) and the badge slice (4355bee) is a **v3 artifact**. Under v4, `bg-paper/90` renders identically to the literal `bg-[#F2EBDA]/90` (cream at 90%), so those literal-hex changes were cosmetic no-ops in v4 — harmless, but they hardcode hex against the "always semantic tokens" rule. Optional low-priority follow-up: revert the badge/credit/nav literal-hex back to semantic tokens (verify in a real build first). Most likely the project was on v3 when the symptom was diagnosed and the v4 migration auto-resolved it via color-mix.
+
 ### 2026-05-28 — Merge-prep cleanup: delete redesign-orphaned components
 
 **Slice (DONE on branch `feat/homepage-pitti-press-redesign`):** removed dead code left by the homepage cut (2.7), nav rewrite (2.5), and hero rewrite (2.8) so the redesign does not ship orphans. Deleted 6 files: `SocialProofTicker.tsx`, `AnimatedStats.tsx`, `WeekendPlanner.tsx`, `AnimatedFeatures.tsx`, `HeroSearch.tsx`, `navigation/ExploreMenu.tsx`; and dropped the `ExploreMenu` re-export from `navigation/index.ts`.
