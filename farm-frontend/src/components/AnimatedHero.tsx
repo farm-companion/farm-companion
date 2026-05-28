@@ -57,7 +57,7 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
 
       {/* Contained bottom-left overlay (max 580px, translucent paper) */}
       <div className="relative h-full flex items-end">
-        <div className="w-full max-w-[580px] m-5 md:m-10 p-6 md:p-8 bg-[#F2EBDA]/92 backdrop-blur-sm border border-border shadow-sm">
+        <div className="w-full max-w-[580px] m-5 md:m-10 p-6 md:p-8 bg-paper/90 backdrop-blur-sm border border-border shadow-sm">
           <p
             className="text-caption uppercase tracking-[0.18em] text-ink-muted mb-3"
             suppressHydrationWarning
