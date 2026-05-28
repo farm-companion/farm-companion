@@ -68,16 +68,16 @@ export function FarmCard({
     <article
       onClick={handleCardClick}
       className={`
-        group relative bg-white dark:bg-slate-900 rounded-2xl overflow-hidden
-        border-2 transition-all duration-200 cursor-pointer flex flex-col h-full
+        group relative bg-surface rounded-[2px] overflow-hidden
+        border transition-colors duration-200 cursor-pointer flex flex-col h-full
         ${selected
-          ? 'border-primary-500 shadow-lg ring-2 ring-primary-500/20'
-          : 'border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:shadow-xl'
+          ? 'border-brand ring-1 ring-brand/30'
+          : 'border-border hover:border-ink/30'
         }
       `}
     >
       {/* Image Section - Taller for better visual impact */}
-      <div className="relative h-44 sm:h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden flex-shrink-0">
+      <div className="relative h-44 sm:h-48 bg-surface-2 overflow-hidden flex-shrink-0">
         {hasPhotos && heroUrl ? (
           <Image
             src={heroUrl}
@@ -105,7 +105,7 @@ export function FarmCard({
         {/* Verified Badge */}
         {isVerified && (
           <div className="absolute top-3 right-3">
-            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full bg-white/90 dark:bg-slate-900/90 text-green-700 dark:text-green-400 shadow-sm backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-[2px] bg-paper/90 text-accent border border-accent/20 backdrop-blur-sm">
               <CheckCircle className="h-3.5 w-3.5" />
               Verified
             </span>
@@ -116,18 +116,18 @@ export function FarmCard({
       {/* Content Section - Generous padding for breathing room */}
       <div className="p-6 flex flex-col flex-grow">
         {/* Farm Name - Full display, no truncation */}
-        <h3 className="text-lg font-bold text-slate-900 dark:text-slate-50 mb-3 leading-tight group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors line-clamp-2">
+        <h3 className="font-clash text-lg font-semibold text-ink mb-3 leading-tight group-hover:text-brand transition-colors line-clamp-2">
           {farm.name}
         </h3>
 
         {/* Location & Distance */}
-        <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 mb-3">
+        <div className="flex items-center gap-2 text-sm text-ink-muted mb-3">
           <MapPin className="h-4 w-4 flex-shrink-0" />
           <span className="truncate">{farm.location?.county || 'United Kingdom'}</span>
           {farm.distance !== undefined && farm.distance > 0 && (
             <>
-              <span className="text-slate-400 dark:text-slate-500 flex-shrink-0">·</span>
-              <span className="font-semibold text-primary-600 dark:text-primary-400 flex-shrink-0">
+              <span className="text-ink-subtle flex-shrink-0">·</span>
+              <span className="font-semibold text-accent flex-shrink-0">
                 {formatDistance(farm.distance)}
               </span>
             </>
@@ -152,7 +152,7 @@ export function FarmCard({
           <Link
             href={`/shop/${farm.slug}`}
             onClick={(e) => e.stopPropagation()}
-            className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-4 rounded-xl bg-slate-900 dark:bg-slate-50 text-white dark:text-slate-900 text-sm font-semibold transition-all duration-200 hover:bg-slate-800 dark:hover:bg-white hover:shadow-md active:scale-[0.98]"
+            className="flex-1 inline-flex items-center justify-center gap-2 h-11 px-4 rounded-[2px] bg-brand text-brand-text text-sm font-semibold transition-colors duration-200 hover:bg-brand-hover active:scale-[0.98]"
           >
             View Details
             <ExternalLink className="h-4 w-4" />
@@ -161,7 +161,7 @@ export function FarmCard({
           {/* Secondary CTA - Directions (icon only to save space) */}
           <button
             onClick={handleDirections}
-            className="inline-flex items-center justify-center h-11 w-11 rounded-xl border-2 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 transition-all duration-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:border-slate-400 dark:hover:border-slate-500 active:scale-[0.98]"
+            className="inline-flex items-center justify-center h-11 w-11 rounded-[2px] border border-border text-ink-muted transition-colors duration-200 hover:bg-surface-2 hover:text-ink active:scale-[0.98]"
             title="Get directions"
             aria-label="Get directions"
           >
