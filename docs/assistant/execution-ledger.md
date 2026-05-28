@@ -1,5 +1,25 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-28 — Merge-prep cleanup: delete redesign-orphaned components
+
+**Slice (DONE on branch `feat/homepage-pitti-press-redesign`):** removed dead code left by the homepage cut (2.7), nav rewrite (2.5), and hero rewrite (2.8) so the redesign does not ship orphans. Deleted 6 files: `SocialProofTicker.tsx`, `AnimatedStats.tsx`, `WeekendPlanner.tsx`, `AnimatedFeatures.tsx`, `HeroSearch.tsx`, `navigation/ExploreMenu.tsx`; and dropped the `ExploreMenu` re-export from `navigation/index.ts`.
+
+**Safety check (before deleting):** grep confirmed 0 external importers for all six, no `.test`/`.stories` companions, and the `@/components/navigation` barrel itself has **no importers** (so removing the ExploreMenu export affects no consumer). Deletions are git-recoverable.
+
+**Verification (ran, passed):** `tsc --noEmit` exit 0 (resolves every import across the project, so a dangling reference to any deleted module would have failed) and `eslint` exit 0 on the barrel + `app/page.tsx`. 7 files touched (6 deletes + 1 edit), within slice limits; line cap N/A (deletions excluded).
+
+**Risk/rollback:** Dead-code removal only; tsc proves nothing referenced them. Revert with `git checkout` of the 7 paths. Note: the navigation barrel's other exports (`BottomNav`/`MegaMenu`/`CountiesPreview`/`SeasonalPreview`/`LocationContext`) may also be unused via the barrel, but they are out of scope for this queued slice.
+
+### 2026-05-28 — Security (Queue 1): cleared 3 stale Dependabot alerts (farm-produce-images)
+
+**Finding:** GitHub reported 3 open Dependabot alerts on push: postcss (medium, #66) and next (low, #65/#64), all against `farm-produce-images/package-lock.json` (+ `package.json` for #64). Verified on `origin/master` HEAD `cb4ef5b`: the directory migrated npm to pnpm on 2026-05-18, so `package-lock.json` no longer exists; `pnpm-lock.yaml` resolves `next@16.2.6` and `postcss@8.5.14` (both past the patched releases 15.5.16 / 8.5.10) and `package.json` pins `next@16.2.6`. No real exposure. Root cause: PR #215 (homepage merge) did not touch `farm-produce-images`, so GitHub never re-scanned that subdirectory and an orphaned dependency-graph entry for the removed npm lockfile kept matching advisories (today's postcss advisory matched the ghost lockfile at 16:48 UTC).
+
+**Action (operator-approved choice "dismiss as inaccurate"):** dismissed alerts #64/#65/#66 via `gh api PATCH .../dependabot/alerts/{n}` with `dismissed_reason=inaccurate` + audit comment. The auto-mode classifier correctly blocked the first attempt (suppressing a shared security signal is the operator's call); proceeded only after explicit operator selection. Reversible — alerts can be reopened.
+
+**Verification (ran, passed):** `gh api .../dependabot/alerts --jq '[.[]|select(.state=="open")]|length'` returns **0**. All three now `state=dismissed, reason=inaccurate`.
+
+**Follow-up (not a blocker):** the stuck dependency graph self-heals on the next dependency change in `farm-produce-images`; the existing `pnpm.overrides` block already pins safe transitive versions. If stale alerts recur, force a graph re-scan with a manifest touch on master.
+
 ### 2026-05-28 — Finish the hex-token-opacity bug: remaining transparent badges + credit
 
 **Problem (deferred from the navbar slice, line "Still broken"):** because `--paper` is a **hex** (`#F2EBDA`), Tailwind compiles `bg-paper/NN` / `text-paper/NN` to `rgb(var(--paper) / 0.9)`, which is invalid for a hex value, so the declaration is dropped and the element renders transparent (or inherits). Three known homepage instances remained: `AnimatedHero` credit (`text-paper/70`), `FarmCard` Verified badge (`bg-paper/90` + same-element `border-accent/20`), `SeasonalShowcase` season badge (`bg-paper/90`).
