@@ -42,8 +42,9 @@
 
 **Orphaned dead code to delete (cleanup slice):** `SocialProofTicker`, `AnimatedStats`, `WeekendPlanner`, `AnimatedFeatures` (0 importers after 2.7); `ExploreMenu` (0 after 2.5).
 
+**Slice 2.8 (DONE on branch) — `AnimatedHero` → brief §5.2:** Rewrote `farm-frontend/src/components/AnimatedHero.tsx` (99 lines). All-light: removed the four dark gradient overlays and the dead `data-header-invert`; illustration now shows through. Copy moved into a contained bottom-left `bg-paper/90` overlay (max-w 580px) so it never floats on the busiest part of the illustration. Fixed Clash headline "Farm shops worth the detour."; dynamic `{month} · WHAT'S IN SEASON NOW` kicker + produce-driven subhead computed via lazy `useState` initializer (no setState-in-effect). Single pill search → `/map?q=`; dropped the two-CTA pattern, the floating month pill, and the seasonal "Fresh Spring Harvest"/"Awaits You" treatment. Illustration credit bottom-right per spec. Verified: `tsc` 0, `eslint` 0, dev SSR (`:3100`) renders new copy + dynamic "May ·", old hero copy gone, no compile errors.
+
 **Remaining homepage slices before merging the homepage to master:**
-- 2.8 Convert `AnimatedHero` to brief §5.2 (Pitti illustration hero, cream overlay, single search, one CTA; kill the dark photo + red "Fresh Spring Harvest"/two-CTA treatment).
 - 2.9 `CategoryGrid` tile grid → editorial vertical list (brief §5.4).
 - 2.10 `NearbyFarms` + `SeasonalShowcase` + `FeaturedGuides` to all-light Pitti tokens (kill dark photo cards/red CTAs); then build + full-homepage screenshot + merge as a unit.
 

@@ -1,9 +1,10 @@
 'use client'
 
-import Link from 'next/link'
-import { MapPin, ArrowRight } from 'lucide-react'
-import { DynamicSeasonalHeadline, DynamicSeasonalSubheadline, SeasonBadge } from './DynamicSeasonalHeadline'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { Search } from 'lucide-react'
 import { HeroVideoBackground } from './HeroVideoBackground'
+import { getCurrentMonth, getMonthName, getProduceInSeason } from '@/lib/seasonal-utils'
 
 interface AnimatedHeroProps {
   countyCount: number
@@ -11,84 +12,88 @@ interface AnimatedHeroProps {
   videoPoster?: string
 }
 
+/**
+ * Homepage hero — brief §5.2 (Pitti Press, all-light).
+ * Full-bleed illustration with a contained, left-aligned --paper overlay so
+ * copy never floats on the illustration's busiest section. One search field,
+ * no second CTA, no floating month pill.
+ */
 export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHeroProps) {
+  const router = useRouter()
+  const [query, setQuery] = useState('')
+
+  // Deterministic and pure, so compute once on render (no effect, no
+  // hydration mismatch beyond the negligible month-boundary case).
+  const [{ monthName, produceLine }] = useState(() => {
+    const month = getCurrentMonth()
+    const top = getProduceInSeason(month).slice(0, 3).map((p) => p.name.toLowerCase())
+    const line = top.length > 0 ? top.join(', ') : 'fresh seasonal produce'
+    return {
+      monthName: getMonthName(month),
+      produceLine: line.charAt(0).toUpperCase() + line.slice(1),
+    }
+  })
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = query.trim()
+    router.push(trimmed ? `/map?q=${encodeURIComponent(trimmed)}` : '/map')
+  }
+
   return (
-    <section
-      data-header-invert
-      className="relative h-screen min-h-[600px] max-h-[900px] overflow-hidden"
-    >
-      {/* Background with optional video support */}
+    <section className="relative overflow-hidden bg-paper h-[65vh] min-h-[460px] md:h-[78vh] md:max-h-[820px]">
       <HeroVideoBackground
         videoSrc={videoSrc}
         videoPoster={videoPoster}
         imageSrc="/images/pitti/hero-homepage-dev-seed50920962-v2.webp"
         imageAlt="Pitti Press illustration of the UK countryside in midsummer, rolling fields with dry-stone walls, a red tractor, cottages, and a low red sun"
         className="absolute inset-0"
-        overlayClassName="hero-overlay"
       />
-      {/* Overlay gradients applied separately for consistent styling */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/30" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.1),transparent_70%)]" />
-      </div>
 
-      {/* Content Overlay */}
-      <div className="relative h-full flex items-center justify-center pt-16 pb-16 md:pt-20 md:pb-20">
-        <div className="text-center max-w-4xl mx-auto px-6">
-          <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
+      <h1 className="sr-only">Farm Companion — Find UK Farm Shops</h1>
 
-          {/* Season Badge */}
-          <div className="hero-animate hero-stagger-1 mb-4">
-            <SeasonBadge className="bg-white/10 backdrop-blur-sm px-3 py-1.5 rounded-full text-white/90 border border-white/20" />
-          </div>
-
-          <h2
-            className="hero-animate hero-stagger-2 text-3xl sm:text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-4 md:mb-6 leading-tight text-white drop-shadow-lg"
-          >
-            <DynamicSeasonalHeadline
-              accentClassName="text-serum drop-shadow-lg"
-            />
-          </h2>
-
+      {/* Contained bottom-left overlay (max 580px, translucent paper) */}
+      <div className="relative h-full flex items-end">
+        <div className="w-full max-w-[580px] m-5 md:m-10 p-6 md:p-8 bg-paper/90 backdrop-blur-sm border border-border shadow-sm">
           <p
-            className="hero-animate hero-stagger-3 text-body sm:text-lg md:text-xl lg:text-2xl text-white/90 mb-6 md:mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto px-4"
+            className="text-caption uppercase tracking-[0.18em] text-ink-muted mb-3"
+            suppressHydrationWarning
           >
-            <DynamicSeasonalSubheadline countyCount={countyCount} />
+            {monthName ? `${monthName} · ` : ''}What&apos;s in season now
           </p>
 
-          <div
-            className="hero-animate hero-stagger-4 flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center px-4"
-          >
-            <Link
-              href="/map"
-              className="bg-serum text-black h-12 sm:h-14 px-6 sm:px-8 rounded-lg font-semibold hover:bg-serum/90 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm hover:scale-105 transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-serum focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+          <h2 className="font-clash text-4xl md:text-5xl lg:text-6xl font-semibold text-ink tracking-tight leading-[1.05] mb-4">
+            Farm shops worth the detour.
+          </h2>
+
+          <p className="text-body md:text-lg text-ink-muted leading-relaxed mb-6" suppressHydrationWarning>
+            {produceLine}. Across {countyCount} counties of Britain.
+          </p>
+
+          <form onSubmit={handleSearch} className="relative">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-ink-subtle pointer-events-none" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Postcode, town, or farm name"
+              aria-label="Search farm shops by postcode, town, or farm name"
+              className="w-full h-14 pl-12 pr-28 rounded-full bg-paper border border-ink/20 text-ink placeholder:text-ink-subtle outline-none transition-colors focus-visible:ring-2 focus-visible:ring-brand focus-visible:border-brand"
+            />
+            <button
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 inline-flex items-center h-10 px-5 rounded-full bg-brand text-brand-text text-sm font-semibold transition-colors hover:bg-brand-hover active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
             >
-              <MapPin className="w-5 h-5" />
-              <span className="text-caption sm:text-body">Explore Farm Map</span>
-            </Link>
-            <Link
-              href="/seasonal"
-              className="bg-white/10 backdrop-blur-sm border border-white/20 text-white h-12 sm:h-14 px-6 sm:px-8 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:scale-105 transform active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            >
-              <span className="text-caption sm:text-body">What&apos;s in Season</span>
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
+              Search
+            </button>
+          </form>
         </div>
       </div>
 
-      {/* Subtle Scroll Indicator (hidden on mobile to save space) */}
-      <div
-        className="hero-scroll-indicator hidden sm:block absolute bottom-4 md:bottom-8 left-1/2"
-      >
-        <div className="animate-bounce">
-          <div className="w-6 h-10 border-2 border-white/30 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse"></div>
-          </div>
-        </div>
-      </div>
+      {/* Illustration credit, bottom-right (brief §5.2) */}
+      <p className="absolute bottom-3 right-4 text-[11px] tracking-wide text-paper/70 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] pointer-events-none">
+        Illustration · Pitti Press for Farm Companion
+      </p>
     </section>
   )
 }
