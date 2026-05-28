@@ -24,16 +24,16 @@ function getSeasonalProduce(): Produce[] {
  * generous whitespace, and minimal UI.
  */
 export function SeasonalShowcase({ className = '' }: SeasonalShowcaseProps) {
-  const [seasonalItems, setSeasonalItems] = useState<Produce[]>([])
+  // Deterministic (month-based) and pure, so seed once on render — this also
+  // lets the section render server-side instead of popping in after hydration.
+  const [seasonalItems] = useState<Produce[]>(() => {
+    const items = getSeasonalProduce()
+    return items.length > 0 ? items : PRODUCE.slice(0, 6)
+  })
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isHovering, setIsHovering] = useState(false)
   const [direction, setDirection] = useState(0)
   const autoPlayRef = useRef<NodeJS.Timeout | null>(null)
-
-  useEffect(() => {
-    const items = getSeasonalProduce()
-    setSeasonalItems(items.length > 0 ? items : PRODUCE.slice(0, 6))
-  }, [])
 
   // Auto-play carousel
   useEffect(() => {
@@ -59,12 +59,8 @@ export function SeasonalShowcase({ className = '' }: SeasonalShowcaseProps) {
     setCurrentIndex(prev => (prev + 1) % seasonalItems.length)
   }
 
-  // Get current month name - client-side only to avoid hydration mismatch
-  const [currentMonth, setCurrentMonth] = useState('January')
-
-  useEffect(() => {
-    setCurrentMonth(new Date().toLocaleString('en-GB', { month: 'long' }))
-  }, [])
+  // Month name, seeded once on render (deterministic).
+  const [currentMonth] = useState(() => new Date().toLocaleString('en-GB', { month: 'long' }))
 
   if (seasonalItems.length === 0) return null
 
@@ -87,7 +83,7 @@ export function SeasonalShowcase({ className = '' }: SeasonalShowcaseProps) {
         <p className="text-xs tracking-[0.2em] uppercase text-foreground-muted mb-6">
           In Season
         </p>
-        <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl font-normal leading-tight text-foreground">
+        <h2 className="font-clash text-3xl md:text-4xl lg:text-5xl font-normal leading-tight text-foreground">
           Fresh This {currentMonth}
         </h2>
         <div className="w-px h-12 bg-border mx-auto mt-8" aria-hidden="true" />
@@ -128,7 +124,7 @@ export function SeasonalShowcase({ className = '' }: SeasonalShowcaseProps) {
 
                 {/* Season badge - minimal editorial style */}
                 <div className="absolute top-6 left-6">
-                  <span className="inline-block px-4 py-2 text-xs tracking-[0.15em] uppercase bg-white/90 text-foreground backdrop-blur-sm">
+                  <span className="inline-block px-4 py-2 text-xs tracking-[0.15em] uppercase bg-paper/90 text-ink backdrop-blur-sm">
                     {seasonLabel}
                   </span>
                 </div>
@@ -142,7 +138,7 @@ export function SeasonalShowcase({ className = '' }: SeasonalShowcaseProps) {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2, duration: 0.5 }}
                 >
-                  <h3 className="font-serif text-4xl md:text-5xl lg:text-6xl font-normal leading-none text-foreground mb-6">
+                  <h3 className="font-clash text-4xl md:text-5xl lg:text-6xl font-normal leading-none text-foreground mb-6">
                     {currentProduce.name}
                   </h3>
                   <div className="flex flex-wrap gap-3">
@@ -174,19 +170,19 @@ export function SeasonalShowcase({ className = '' }: SeasonalShowcaseProps) {
                     </p>
                     <div className="grid grid-cols-3 gap-6">
                       <div>
-                        <div className="font-serif text-2xl font-normal text-foreground">
+                        <div className="font-clash text-2xl font-normal text-foreground">
                           {currentProduce.nutritionPer100g.kcal}
                         </div>
                         <div className="text-xs text-foreground-muted mt-1">Calories</div>
                       </div>
                       <div>
-                        <div className="font-serif text-2xl font-normal text-foreground">
+                        <div className="font-clash text-2xl font-normal text-foreground">
                           {currentProduce.nutritionPer100g.protein}g
                         </div>
                         <div className="text-xs text-foreground-muted mt-1">Protein</div>
                       </div>
                       <div>
-                        <div className="font-serif text-2xl font-normal text-foreground">
+                        <div className="font-clash text-2xl font-normal text-foreground">
                           {currentProduce.nutritionPer100g.fiber || 0}g
                         </div>
                         <div className="text-xs text-foreground-muted mt-1">Fibre</div>
