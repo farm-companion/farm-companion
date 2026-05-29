@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-29",
+  "title": "Design System: Farm Companion",
+  "extensions": {
+    "colorMeta": {
+      "vermilion": {
+        "role": "primary",
+        "displayName": "Vermilion",
+        "canonical": "#D33A2C",
+        "dark": "#FF6B5B",
+        "tonalRamp": ["#3B0F0A", "#5E1810", "#822016", "#A62A1E", "#C8362A", "#D33A2C", "#E36A5E", "#F4B3AC"]
+      },
+      "sea-ink": {
+        "role": "secondary",
+        "displayName": "Sea Ink",
+        "canonical": "#1F3A5F",
+        "dark": "#6FA0D9",
+        "tonalRamp": ["#0B1622", "#122236", "#1A2F4A", "#1F3A5F", "#33547E", "#52739B", "#88A6C4", "#C3D4E5"]
+      },
+      "loam-ink": {
+        "role": "neutral",
+        "displayName": "Loam Ink",
+        "canonical": "#0F0E0C",
+        "dark": "#F4F1EA",
+        "tonalRamp": ["#0C0A09", "#1C1917", "#292524", "#44403C", "#57534E", "#78716C", "#A8A29E", "#D6D3D1"]
+      },
+      "cream-paper": {
+        "role": "neutral",
+        "displayName": "Cream Paper",
+        "canonical": "#F2EBDA",
+        "dark": "#15120D",
+        "tonalRamp": ["#5C5238", "#7A6E4C", "#9A8C66", "#BCAE85", "#D8CBA8", "#F2EBDA", "#F8F3E6", "#FDFBF4"]
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Clash Display, page headlines and hero anchor lines. Tight tracking (-0.02em)." },
+      "body": { "displayName": "Body", "purpose": "Manrope, running text. 65 to 75ch line length, 1.6 line-height." },
+      "label": { "displayName": "Label", "purpose": "IBM Plex Sans Condensed, uppercase tracked +0.04em. Buttons, filters, eyebrows, badges only." },
+      "mono": { "displayName": "Mono", "purpose": "IBM Plex Mono, coordinates, distances, and sequence numerals." }
+    },
+    "shadows": [
+      { "name": "resting", "value": "none, 1px solid #E7E5E4 hairline", "purpose": "Default for cards and panels. Hairline, not shadow." },
+      { "name": "floating", "value": "0 4px 20px rgba(0,0,0,0.12)", "purpose": "Map preview cards and bottom sheets that genuinely hover over the map." },
+      { "name": "modal", "value": "0 20px 25px -5px rgb(0 0 0 / 0.1)", "purpose": "Dialogs and the marker action sheet." },
+      { "name": "dark-mode", "value": "none (--shadow-strength: 0)", "purpose": "Dark mode has no shadows. Elevation by luminance and rgba(255,255,255,0.08) borders." }
+    ],
+    "motion": [
+      { "name": "ease-out-strong", "value": "cubic-bezier(0.23, 1, 0.32, 1)", "purpose": "UI default. Enters and presses. Native ease-in is banned for UI." },
+      { "name": "ease-in-out-strong", "value": "cubic-bezier(0.77, 0, 0.175, 1)", "purpose": "On-screen movement." },
+      { "name": "ease-drawer", "value": "cubic-bezier(0.32, 0.72, 0, 1)", "purpose": "iOS-like sheets and the map bottom sheet." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Micro-feedback and indicator slides." },
+      { "name": "duration-base", "value": "200ms", "purpose": "Default state transitions. Page transitions never exceed 200ms." },
+      { "name": "duration-drawer", "value": "300ms", "purpose": "Sheets and theme transitions." }
+    ],
+    "breakpoints": [
+      { "name": "xs", "value": "480px" },
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one Vermilion stamp per screen. Primary CTA.",
+      "html": "<button class=\"ds-btn-primary\">VIEW FARM</button>",
+      "css": ".ds-btn-primary { background:#D33A2C; color:#fff; font-family:'IBM Plex Sans Condensed',system-ui,sans-serif; font-weight:600; font-size:0.875rem; text-transform:uppercase; letter-spacing:0.04em; padding:12px 24px; border:none; border-radius:12px; cursor:pointer; transition:background 0.2s cubic-bezier(0.23,1,0.32,1), transform 0.2s cubic-bezier(0.23,1,0.32,1); } .ds-btn-primary:hover { background:#B82E22; transform:translateY(-1px); } .ds-btn-primary:focus-visible { outline:2px solid #D33A2C; outline-offset:2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Sea Ink second action when one is needed.",
+      "html": "<button class=\"ds-btn-secondary\">GET DIRECTIONS</button>",
+      "css": ".ds-btn-secondary { background:#1F3A5F; color:#fff; font-family:'IBM Plex Sans Condensed',system-ui,sans-serif; font-weight:600; font-size:0.875rem; text-transform:uppercase; letter-spacing:0.04em; padding:12px 24px; border:none; border-radius:12px; cursor:pointer; transition:background 0.2s cubic-bezier(0.23,1,0.32,1); } .ds-btn-secondary:hover { background:#15293F; } .ds-btn-secondary:focus-visible { outline:2px solid #1F3A5F; outline-offset:2px; }"
+    },
+    {
+      "name": "Open Now Badge",
+      "kind": "chip",
+      "refersTo": "badge-open",
+      "description": "Vermilion status stamp. Rare chromatic moment in a list.",
+      "html": "<span class=\"ds-badge-open\">Open Now</span>",
+      "css": ".ds-badge-open { display:inline-block; background:#D33A2C; color:#fff; font-family:'IBM Plex Sans Condensed',system-ui,sans-serif; font-weight:600; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.04em; padding:2px 8px; border-radius:4px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "White card lifted above the Cream page with a Stone hairline. Flat by default.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Daylesford Organic</h3><p class=\"ds-card-body\">Gloucestershire farm shop, butchery and cafe.</p></div>",
+      "css": ".ds-card { background:#fff; border:1px solid #E7E5E4; border-radius:12px; padding:24px; } .ds-card-title { font-family:'Clash Display',system-ui,sans-serif; font-weight:600; letter-spacing:-0.02em; color:#0F0E0C; margin:0 0 8px; } .ds-card-body { font-family:'Manrope',system-ui,sans-serif; color:#0F0E0C; line-height:1.6; margin:0; }"
+    },
+    {
+      "name": "Search Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "White field, Stone hairline, Vermilion focus ring. 44px target, 16px text to block iOS zoom.",
+      "html": "<input class=\"ds-input\" placeholder=\"Search farms near you\" />",
+      "css": ".ds-input { background:#fff; color:#0F0E0C; border:1px solid #E7E5E4; border-radius:12px; height:44px; padding:0 12px; font-family:'Manrope',system-ui,sans-serif; font-size:16px; } .ds-input::placeholder { color:#78716C; } .ds-input:focus-visible { outline:none; border-color:#D33A2C; box-shadow:0 0 0 2px rgba(211,58,44,0.3); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Pitti Press, the 1962 Italian Railway Poster",
+    "overview": "Farm Companion is a UK farm shop directory designed as if Massimo Vignelli set it for a 1962 Italian railway-poster series. Confident slab typography, four flat colours laid down like ink ribbons, no gradients, a printed-map cartography. The product reads as a designed object, something a person screenshots and pins to a moodboard, not 'another directory.' Vibrancy comes from one source, Vermilion, used like an editor's red pencil. Freshness comes from editorial restraint on warm Cream paper, not from clutter or novelty. Seasonality is real to this product, but it lives in the content and in the linocut imagery, never in the chrome. The /best top-picks pages are the canonical reference surface.",
+    "keyCharacteristics": [
+      "Four flat colours, no gradients. Depth is a hairline rule, never a soft shadow.",
+      "One Vermilion stamp per screen, under 8% coverage. Rarity is the point.",
+      "Type carries hierarchy. Weight, size, and tracking do the work chrome does elsewhere.",
+      "The map is a printed map: cream land, sea-ink water, hairline Loam roads, one red pin.",
+      "Imagery is a single linocut style across every surface. The style is the brand."
+    ],
+    "rules": [
+      { "name": "The One Vermilion Stamp Rule", "body": "Vermilion covers under 8% of any screen. One stamp: a primary CTA, or the map pin, or an Open Now badge, or a hero anchor word. If two things both want to be Vermilion, one of them is wrong.", "section": "colors" },
+      { "name": "The No-Gradient Rule", "body": "Four flat colours. No gradients, no 3-stop blends, no glass. If a surface needs depth it gets a hairline rule, not a shadow.", "section": "colors" },
+      { "name": "The Seasonal-Is-Content Rule", "body": "Season changes the imagery and the produce content, never the palette. Never re-theme the chrome green or honey for harvest. That is the twee trap this system was built to escape.", "section": "colors" },
+      { "name": "The Two-Chromatic Rule", "body": "Feedback states collapse to two hues. Vermilion carries attention, warning, and error. Sea Ink carries info and success.", "section": "colors" },
+      { "name": "The Type-Does-The-Work Rule", "body": "Hierarchy comes from weight, size, and tracking, not from boxes, shadows, or coloured chrome.", "section": "typography" },
+      { "name": "The Uppercase-Labels-Only Rule", "body": "ALL CAPS is for short labels, eyebrows, and badges. Never set sentences or body copy in uppercase.", "section": "typography" },
+      { "name": "The Hairline-Not-Shadow Rule", "body": "Reach for a 1px Stone-200 hairline before reaching for a shadow. Shadows are reserved for elements that literally float above the map.", "section": "elevation" },
+      { "name": "The Border-Luminance Rule", "body": "In dark mode there are no shadows. Separation comes from rgba(255,255,255,0.08) borders and a faint top-edge highlight.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do treat Vermilion as a rare stamp, under 8% of any screen. One stamp per view.",
+      "Do convey depth with a 1px Stone-200 hairline first; reserve shadows for elements floating over the map.",
+      "Do let type weight, size, and tracking carry hierarchy.",
+      "Do keep the map a printed map: Cream land, Sea-Ink water, Loam roads, no green parks, one red pin.",
+      "Do express season through imagery and produce content, not through the palette.",
+      "Do use literal hex for load-bearing colour fills that take an opacity. Production breaks oklch/var()-with-opacity in some fills.",
+      "Do generate all product imagery in the single Runware linocut style, seeded by hash(slug + version).",
+      "Do give every animation a prefers-reduced-motion alternative and a visible Vermilion focus ring."
+    ],
+    "donts": [
+      "Don't build a generic SaaS dashboard: cards everywhere, the big-number hero-metric template, corporate navy-and-teal.",
+      "Don't make it a cluttered Yelp or aggregator directory.",
+      "Don't go twee rustic-farm: chalkboard scripts, kraft-paper or barnwood textures, folksy badges, or a green-and-honey harvest re-theme.",
+      "Don't go cold sterile minimal: gray-on-white, clinical, no personality.",
+      "Don't use gradients, glass or blur, Lottie, 3D illustrations, hero video, custom cursors, scroll-driven typography, or page transitions longer than 200ms.",
+      "Don't set Vermilion as body text on Cream; it only clears AA-large.",
+      "Don't use stock photography or commissioned illustration. The single linocut style is the brand.",
+      "Don't add a second chromatic for success or info; Sea Ink carries both. Vermilion is the error red."
+    ]
+  }
+}

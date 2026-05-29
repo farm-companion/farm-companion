@@ -143,25 +143,28 @@ This workspace layers five plugin/skill sources. Treat them as one system with e
 ### Layer map
 1. Memory: claude-mem (cross-session observation capture + auto-injection at SessionStart).
 2. Discipline: superpowers/* (brainstorm, plan, TDD, debug, verify, review).
-3. Domain UI: emil-design-eng (project-local at .claude/skills/emil-design-eng) and frontend-design.
+3. Domain UI: impeccable (project-local at .claude/skills/impeccable, design execution + slop-detection gate), emil-design-eng (project-local at .claude/skills/emil-design-eng, taste arbiter), and frontend-design (net-new interfaces).
 4. Workflows and learning: ecc:* (plan-orchestrate, team-builder, learn, learn-eval, evolve, instinct-*, santa-loop, gan-build, harness-audit, agent-introspection-debugging).
 5. Project-local utilities: audit-website, handover, simplify, update-config.
 
 ### Precedence when skill names overlap
 1. Project-local SKILL.md in .claude/skills/ wins for this project only.
 2. superpowers/* wins for engineering process (brainstorm, plan, TDD, debug, verify, code-review).
-3. emil-design-eng wins for UI polish, animation choices, and interaction details.
-4. claude-mem:mem-search wins for "did we solve this before" or "how did we do X last time".
-5. ecc:* wins for multi-step workflows, cross-model loops, persistent rule capture, and stack-specific depth (Prisma, Next.js, Python, Rust, etc.).
-6. Built-in /review, /init, /security-review remain as quick-fire commands.
+3. impeccable is the design execution and enforcement layer. It owns the PRODUCT.md brief, runs deterministic slop detection as a merge gate (npx impeccable detect src/), and is the default for typography, color, motion, layout, and audit. It inherits existing tokens and components rather than inventing new ones. Invoke as /impeccable <command> [target].
+4. emil-design-eng is the final taste arbiter on interaction and animation polish where it and impeccable disagree.
+5. frontend-design wins for net-new distinctive interfaces and creative direction (greenfield pages, not refining existing ones).
+6. claude-mem:mem-search wins for "did we solve this before" or "how did we do X last time".
+7. ecc:* wins for multi-step workflows, cross-model loops, persistent rule capture, and stack-specific depth (Prisma, Next.js, Python, Rust, etc.).
+8. Built-in /review, /init, /security-review remain as quick-fire commands.
 
 ### Mandatory workflow per meaningful change
 1. brainstorming before any creative work (superpowers:brainstorming).
 2. writing-plans for multi-step tasks (superpowers:writing-plans); use ecc:plan-orchestrate for cross-model or multi-team planning.
 3. test-driven-development for implementation (superpowers:test-driven-development).
 4. verification-before-completion before claiming done (superpowers:verification-before-completion).
-5. requesting-code-review before merge; escalate to ecc:santa-loop for adversarial dual review on high-stakes changes.
-6. On bugs: systematic-debugging (superpowers:systematic-debugging) before proposing any fix.
+5. On any UI or frontend change: drive design through impeccable (/impeccable craft|shape|audit|polish and the other sub-commands), and gate merge on npx impeccable detect src/ exiting 0 (deterministic slop check). emil-design-eng arbitrates taste conflicts; frontend-design handles net-new interfaces.
+6. requesting-code-review before merge; escalate to ecc:santa-loop for adversarial dual review on high-stakes changes.
+7. On bugs: systematic-debugging (superpowers:systematic-debugging) before proposing any fix.
 
 ### Self-learning cadence
 - Per tool call (automatic): claude-mem PostToolUse captures observations.
@@ -179,6 +182,8 @@ This workspace layers five plugin/skill sources. Treat them as one system with e
 
 ### Plugin state and rollback
 - Installed plugins: claude-mem (thedotmack v13.2.0), superpowers (claude-plugins-official v5.1.0 = obra/superpowers upstream), ecc (everything-claude-code), plus Anthropic plugins (frontend-design, code-review, context7, feature-dev, skill-creator).
+- Project skills (not marketplace plugins): impeccable (pbakaus/impeccable v3.5.0), installed via npx skills add into .claude/skills/impeccable; it shells out to npx impeccable for detect and live. Requires a PRODUCT.md at repo root: run /impeccable init once. emil-design-eng lives at .claude/skills/emil-design-eng (restored 2026-05-29 after the impeccable install renamed it to impemil-design-eng).
+- Do not re-add impeccable via /plugin marketplace add: the pbakaus/impeccable remote resolves over SSH and failed publickey auth here. The skills-route install is authoritative. Remove with rm -rf .claude/skills/impeccable.
 - Pre-ECC backup: ~/.claude-backup-20260516-211046.tgz.
 - Rollback: /plugin uninstall ecc@ecc then tar -xzf ~/.claude-backup-20260516-211046.tgz -C ~.
 - Update this section when adding or removing a plugin.
