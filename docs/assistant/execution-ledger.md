@@ -1,5 +1,17 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-29 — REGRESSION + FIX: literal-hex IS load-bearing (prod breaks semantic-token opacity)
+
+**What happened (operator-reported, screenshot):** the homepage hero copy box rendered TRANSPARENT on a Vercel build. Root cause was MY error: the "Tailwind v4 has no hex-opacity footgun" conclusion (entry below) was WRONG. It rested on a standalone `@tailwindcss/cli` compile that did NOT reproduce the real Next/Vercel production build. On that false basis I reverted the literal-hex to semantic tokens (`4c237a7`) and adopted master's `bg-paper/90` during the merge, which reintroduced the bug on the hero box, the credit, and both badges.
+
+**Empirical truth (verified on a real `next build` + `next start -p 3001`, computed styles via Playwright):** hero box with `bg-paper/90` (semantic) computed = transparent; with `bg-[#F2EBDA]/92` (literal) = `oklab(0.94098 … / 0.92)` (cream); credit `text-[#F2EBDA]/70` = `oklab(… / 0.7)`. So in the PRODUCTION build, `bg-{token}/NN` (v4 emits `color-mix(in oklab, var(--token) NN%, transparent)`) collapses to transparent, while literal-hex `bg-[#hex]/NN` compiles to a static oklab colour and renders. The prior sessions' literal-hex fixes were CORRECT and load-bearing, not cosmetic.
+
+**Fix (DONE, verified):** restored literal-hex on the translucent fills — `AnimatedHero` hero box `bg-[#F2EBDA]/92` + credit `text-[#F2EBDA]/70`; `FarmCard` badge `bg-[#F2EBDA]/90` + `border-[#1F3A5F]/20`; `SeasonalShowcase` badge `bg-[#F2EBDA]/90`. Verified: `next build` exit 0; computed hero-box bg = `oklab(… / 0.92)`; tsc 0, eslint 0.
+
+**Supersedes** the two entries below: "v4 has no footgun" (WRONG) and the revert slice (`4c237a7`, which caused this regression).
+
+**Still open (real, was wrongly dismissed):** other semantic-opacity usages likely also render transparent in prod (`bg-brand/10`, `bg-ink/10`, `ring-brand/30`, `border-ink/NN`) — subtle (faint tints / hairlines), not yet eyeballed. Proper systemic fix = root-cause why `color-mix(var(--token) …)` fails in the prod build (candidate: register tokens via `@property syntax:"<color>"`, or define them in a v4 `@theme` block as `--color-*`, instead of plain `@layer base :root` custom properties). Until then, literal-hex is the proven workaround for any VISIBLE translucent surface. LESSON: verify UI on a real `next build`/deploy, never a standalone CLI compile.
+
 ### 2026-05-29 — Council-decided convergence slice: revert no-op literal-hex to semantic tokens
 
 **Council (ecc:council):** convened on "which next slice." Verdict: the teal-strip was a TRAP (Pragmatist + Critic grep-verified `#00C2B2` is live in ~14 files, not a dead colour). Imagery + merge are not agent-now-ready. Consensus leaned "converge to merge, stop adding scope." Chosen slice: revert the wrong-premise literal-hex so the soon-to-be-shared baseline is clean (this IS convergence, not new scope).
