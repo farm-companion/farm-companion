@@ -105,7 +105,7 @@ export function FarmCard({
         {/* Verified Badge */}
         {isVerified && (
           <div className="absolute top-3 right-3">
-            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-[2px] bg-paper/90 text-accent border border-accent/20 backdrop-blur-sm">
+            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-[2px] bg-[#F2EBDA]/90 text-accent border border-[#1F3A5F]/20 backdrop-blur-sm">
               <CheckCircle className="h-3.5 w-3.5" />
               Verified
             </span>
