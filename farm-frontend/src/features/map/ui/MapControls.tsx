@@ -280,9 +280,9 @@ export default function MapControls({
                     className={`
                       w-full flex items-center gap-3 px-4 py-3
                       text-left text-sm
-                      hover:bg-zinc-50 dark:hover:bg-zinc-700
+                      hover:bg-surface-2
                       transition-colors
-                      ${currentStyle === style.id ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400' : 'text-zinc-700 dark:text-zinc-300'}
+                      ${currentStyle === style.id ? 'bg-surface-2 text-brand' : 'text-ink'}
                     `}
                     role="option"
                     aria-selected={currentStyle === style.id}

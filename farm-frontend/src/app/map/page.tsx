@@ -32,17 +32,17 @@ function useDebounced<T>(value: T, delay = 150) {
 const MapShellWithNoSSR = dynamic(() => import('@/features/map/ui/MapShellAuto'), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <div className="w-full h-full flex items-center justify-center bg-paper">
       <div className="text-center px-6">
         <div className="relative mb-4">
-          <div className="w-12 h-12 border-3 border-gray-200 dark:border-gray-600 rounded-full mx-auto"></div>
-          <div className="absolute inset-0 w-12 h-12 border-3 border-serum border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <div className="w-12 h-12 border-3 border-border rounded-full mx-auto"></div>
+          <div className="absolute inset-0 w-12 h-12 border-3 border-brand border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>
-        <h3 className="text-body font-semibold text-gray-800 dark:text-gray-200 mb-1">Charting the Farmland</h3>
-        <p className="text-caption text-gray-600 dark:text-gray-400">Harvesting latest updates...</p>
+        <h3 className="text-body font-semibold text-ink mb-1">Charting the Farmland</h3>
+        <p className="text-caption text-ink-muted">Harvesting latest updates...</p>
 
         {/* Map skeleton */}
-        <div className="mt-6 w-32 h-24 bg-gray-200 dark:bg-gray-700 rounded-lg mx-auto relative overflow-hidden">
+        <div className="mt-6 w-32 h-24 bg-surface-2 rounded-[2px] mx-auto relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
         </div>
       </div>
@@ -137,7 +137,7 @@ function MapPageContent() {
     }
 
     setIsLocationLoading(true)
-    
+
     try {
       // Check permission first (with Safari fallback)
       const canQuery = typeof navigator.permissions?.query === 'function'
@@ -168,7 +168,7 @@ function MapPageContent() {
         accuracy: position.coords.accuracy,
         timestamp: position.timestamp
       })
-      
+
     } catch (err) {
       console.error('Error getting location:', err)
       alert('Unable to get your location. Please check your browser settings.')
@@ -399,28 +399,28 @@ function MapPageContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 to-gray-100 p-4">
+      <div className="min-h-screen flex items-center justify-center bg-paper p-4">
         <div className="text-center max-w-sm mx-auto">
           <div className="relative mb-6">
-            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-10 h-10 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-20 h-20 bg-surface-2 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-10 h-10 text-brand" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
               </svg>
             </div>
           </div>
-          <h1 className="text-heading font-semibold text-gray-900 dark:text-white mb-3">Oops! Something went wrong</h1>
-          <p className="text-gray-600 dark:text-gray-300 mb-6 text-caption leading-relaxed">{error}</p>
-          
+          <h1 className="text-heading font-semibold text-ink mb-3">Oops! Something went wrong</h1>
+          <p className="text-ink-muted mb-6 text-caption leading-relaxed">{error}</p>
+
           <div className="space-y-3">
             <button
               onClick={() => window.location.reload()}
-              className="w-full px-6 py-3 bg-serum text-white font-medium rounded-xl hover:bg-serum/90 active:scale-95 transition-all duration-200 shadow-lg"
+              className="w-full px-6 py-3 bg-brand text-brand-text font-medium rounded-[2px] hover:bg-brand-hover active:scale-95 transition-colors duration-200"
             >
               Try Again
             </button>
             <button
               onClick={() => setError(null)}
-              className="w-full px-6 py-2.5 text-gray-600 dark:text-gray-300 font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="w-full px-6 py-2.5 text-ink-muted font-medium rounded-[2px] hover:bg-surface-2 transition-colors"
             >
               Go Back
             </button>
@@ -434,7 +434,7 @@ function MapPageContent() {
   const panelWidth = isDesktop ? (isPanelCollapsed ? 0 : 380) : 0
 
   return (
-    <div className="h-[calc(100svh-var(--header-h,64px))] relative overflow-hidden bg-gray-50 dark:bg-gray-900">
+    <div className="h-[calc(100svh-var(--header-h,64px))] relative overflow-hidden bg-paper">
       {/* Accessibility: Screen reader map fallback */}
       <MapAccessibilityFallback
         farms={filteredFarms}
@@ -472,31 +472,31 @@ function MapPageContent() {
         style={isDesktop ? { left: '24px', right: `${panelWidth + 24}px` } : undefined}
       >
         <div className="pointer-events-auto w-full md:w-auto md:min-w-[400px] md:max-w-[600px]">
-          <div className="relative flex items-center bg-white dark:bg-gray-900 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] transition-shadow duration-200">
-            <Search className="absolute left-4 w-5 h-5 text-[#8C8C8C]" />
+          <div className="relative flex items-center bg-surface rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.15)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.2)] transition-shadow duration-200">
+            <Search className="absolute left-4 w-5 h-5 text-ink-subtle" />
             <input
               ref={searchInputRef}
               type="text"
               placeholder="Search farms, produce, or places..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-2 py-3 bg-transparent border-none rounded-full text-[16px] text-[#1A1A1A] dark:text-white placeholder-[#8C8C8C] focus:outline-none focus:ring-2 focus:ring-[#2D5016]"
+              className="w-full pl-11 pr-2 py-3 bg-transparent border-none rounded-full text-[16px] text-ink placeholder-ink-subtle focus:outline-none focus:ring-2 focus:ring-brand"
               aria-label="Search farms, produce, or places"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="p-1.5 mr-1 text-[#8C8C8C] hover:text-[#1A1A1A] transition-colors"
+                className="p-1.5 mr-1 text-ink-subtle hover:text-ink transition-colors"
                 aria-label="Clear search"
               >
                 <X className="w-4 h-4" />
               </button>
             )}
-            <div className="w-px h-6 bg-[#E0E0E0] mr-2" />
+            <div className="w-px h-6 bg-border mr-2" />
             <button
               onClick={() => { getCurrentLocation(); }}
               disabled={isLocationLoading}
-              className="flex items-center gap-1.5 mr-2 px-3 py-1.5 bg-[#2D5016] text-white text-sm font-semibold rounded-full hover:bg-[#234012] disabled:opacity-50 transition-colors whitespace-nowrap"
+              className="flex items-center gap-1.5 mr-2 px-3 py-1.5 bg-brand text-brand-text text-sm font-semibold rounded-full hover:bg-brand-hover disabled:opacity-50 transition-colors whitespace-nowrap"
               aria-label="Find farms near me"
             >
               {isLocationLoading ? (
@@ -576,17 +576,17 @@ function MapPageContent() {
           nonBlocking
         >
           {/* Bottom Sheet Header */}
-          <div className="px-4 pt-2 pb-3 border-b border-[#EDEDED] dark:border-gray-700 bg-white dark:bg-gray-900">
+          <div className="px-4 pt-2 pb-3 border-b border-border bg-surface">
             <div className="flex items-center justify-between">
-              <span className="text-[16px] font-medium text-[#1A1A1A] dark:text-white">
+              <span className="text-[16px] font-medium text-ink">
                 {filteredFarms.length} farms nearby
               </span>
-              <label className="flex items-center gap-2 text-sm text-[#5C5C5C]">
+              <label className="flex items-center gap-2 text-sm text-ink-muted">
                 <input
                   type="checkbox"
                   checked={searchAsIMove}
                   onChange={handleToggleSearchAsIMove}
-                  className="rounded border-gray-300 text-[#2D5016] focus:ring-[#2D5016]"
+                  className="rounded border-border text-brand focus:ring-brand"
                 />
                 Update as I move
               </label>
@@ -620,27 +620,27 @@ function MapPageContent() {
           transform: isPanelCollapsed ? 'translateX(100%)' : 'translateX(0)',
         }}
       >
-        <div className="flex flex-col w-full bg-white dark:bg-gray-900 shadow-lg border-l border-[#EDEDED] dark:border-gray-700">
+        <div className="flex flex-col w-full bg-surface border-l border-border">
           {/* Panel Header */}
-          <div className="px-5 py-4 border-b border-[#EDEDED] dark:border-gray-700">
+          <div className="px-5 py-4 border-b border-border">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[16px] font-medium text-[#1A1A1A] dark:text-white">
+              <span className="text-[16px] font-medium text-ink">
                 {filteredFarms.length} farms in view
               </span>
               <button
                 onClick={() => setIsPanelCollapsed(true)}
-                className="text-sm text-[#8C8C8C] hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
+                className="text-sm text-ink-subtle hover:text-ink transition-colors"
                 aria-label="Hide farm list"
               >
                 Hide <ChevronRight className="w-3.5 h-3.5 inline" />
               </button>
             </div>
-            <label className="flex items-center gap-2 text-sm text-[#5C5C5C]">
+            <label className="flex items-center gap-2 text-sm text-ink-muted">
               <input
                 type="checkbox"
                 checked={searchAsIMove}
                 onChange={handleToggleSearchAsIMove}
-                className="rounded border-gray-300 text-[#2D5016] focus:ring-[#2D5016]"
+                className="rounded border-border text-brand focus:ring-brand"
               />
               Update as I move
             </label>
@@ -666,7 +666,7 @@ function MapPageContent() {
       {isPanelCollapsed && (
         <button
           onClick={() => setIsPanelCollapsed(false)}
-          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 items-center gap-1 pl-2 pr-1 py-3 bg-white dark:bg-gray-900 border border-r-0 border-[#EDEDED] dark:border-gray-700 rounded-l-lg shadow-lg text-sm text-[#5C5C5C] hover:text-[#1A1A1A] dark:hover:text-white transition-colors"
+          className="hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 z-20 items-center gap-1 pl-2 pr-1 py-3 bg-surface border border-r-0 border-border rounded-l-[2px] text-sm text-ink-muted hover:text-ink transition-colors"
           aria-label="Show farm list"
         >
           <ChevronLeft className="w-4 h-4" />
@@ -677,15 +677,15 @@ function MapPageContent() {
       {/* ========== LOADING OVERLAY ========== */}
       {isLoading && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 text-center shadow-2xl mx-4 max-w-sm w-full">
+          <div className="bg-surface rounded-[2px] border border-border p-8 text-center mx-4 max-w-sm w-full">
             <div className="relative mb-6">
-              <div className="w-16 h-16 border-4 border-gray-100 dark:border-gray-600 rounded-full mx-auto"></div>
-              <div className="absolute inset-0 w-16 h-16 border-4 border-[#2D5016] border-t-transparent rounded-full animate-spin mx-auto"></div>
+              <div className="w-16 h-16 border-4 border-border rounded-full mx-auto"></div>
+              <div className="absolute inset-0 w-16 h-16 border-4 border-brand border-t-transparent rounded-full animate-spin mx-auto"></div>
             </div>
-            <h3 className="text-body font-semibold text-gray-900 dark:text-white mb-2">Loading Farms</h3>
-            <p className="text-gray-600 dark:text-gray-300 text-caption">Finding local farm shops near you...</p>
-            <div className="mt-6 w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2">
-              <div className="bg-[#2D5016] h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
+            <h3 className="text-body font-semibold text-ink mb-2">Loading Farms</h3>
+            <p className="text-ink-muted text-caption">Finding local farm shops near you...</p>
+            <div className="mt-6 w-full bg-surface-2 rounded-full h-2">
+              <div className="bg-brand h-2 rounded-full animate-pulse" style={{width: '60%'}}></div>
             </div>
           </div>
         </div>

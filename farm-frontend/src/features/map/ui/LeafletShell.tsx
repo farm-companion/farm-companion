@@ -474,10 +474,10 @@ export default function LeafletShell({
   return (
     <div className={`${className} relative`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background-surface dark:bg-background z-10 pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center bg-surface z-10 pointer-events-none">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
-            <p className="text-sm text-foreground-muted">Loading map...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand border-t-transparent mx-auto mb-2" />
+            <p className="text-sm text-ink-muted">Loading map...</p>
           </div>
         </div>
       )}

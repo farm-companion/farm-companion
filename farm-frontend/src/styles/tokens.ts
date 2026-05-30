@@ -195,7 +195,6 @@ export const tokens = {
       sharp: 'cubic-bezier(0.4, 0.0, 0.6, 1)',
       // Custom easings
       smooth: 'cubic-bezier(0.25, 0.1, 0.25, 1)',
-      bounce: 'cubic-bezier(0.68, -0.55, 0.265, 1.55)',
     },
   },
 

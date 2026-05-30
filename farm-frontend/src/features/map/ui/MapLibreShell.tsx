@@ -590,10 +590,10 @@ export default function MapLibreShell({
   return (
     <div className={`${className} relative map-container`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center bg-surface-2 z-10 pointer-events-none">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Harvesting latest updates...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand border-t-transparent mx-auto mb-2" />
+            <p className="text-sm text-ink-muted">Harvesting latest updates...</p>
           </div>
         </div>
       )}

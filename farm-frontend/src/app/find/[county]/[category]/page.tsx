@@ -87,25 +87,25 @@ export default async function FindPage({ params }: FindPageProps) {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
 
-      <main className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+      <main className="min-h-screen bg-paper">
         {/* Breadcrumbs */}
         <nav
           aria-label="Breadcrumb"
-          className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900"
+          className="border-b border-border bg-surface"
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-3">
-            <ol className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+            <ol className="flex items-center gap-2 text-sm text-ink-muted">
               {breadcrumbs.map((crumb, index) => (
                 <li key={crumb.href} className="flex items-center gap-2">
                   {index > 0 && <ChevronRight className="w-4 h-4" />}
                   {index === breadcrumbs.length - 1 ? (
-                    <span className="text-zinc-900 dark:text-white font-medium">
+                    <span className="text-ink font-medium">
                       {crumb.name}
                     </span>
                   ) : (
                     <Link
                       href={crumb.href}
-                      className="hover:text-zinc-900 dark:hover:text-white transition-colors"
+                      className="hover:text-ink transition-colors"
                     >
                       {crumb.name}
                     </Link>
@@ -117,15 +117,15 @@ export default async function FindPage({ params }: FindPageProps) {
         </nav>
 
         {/* Hero Section */}
-        <section className="bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800">
+        <section className="bg-surface border-b border-border">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
             <div className="flex items-start gap-4">
               <CategoryIcon slug={data.category.slug} size="lg" />
               <div>
-                <h1 className="text-3xl sm:text-4xl font-bold text-zinc-900 dark:text-white">
+                <h1 className="text-3xl sm:text-4xl font-bold text-ink">
                   {data.category.name} in {data.county.name}
                 </h1>
-                <p className="mt-2 text-lg text-zinc-600 dark:text-zinc-400">
+                <p className="mt-2 text-lg text-ink-muted">
                   {total === 0
                     ? `No farm shops found selling ${data.category.name.toLowerCase()} in ${data.county.name} yet.`
                     : `Discover ${total} farm shop${total === 1 ? '' : 's'} selling ${data.category.name.toLowerCase()} in ${data.county.name}.`}
@@ -169,19 +169,19 @@ export default async function FindPage({ params }: FindPageProps) {
             </div>
           ) : (
             <div className="text-center py-16">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                <Store className="w-8 h-8 text-zinc-400" />
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-2 flex items-center justify-center">
+                <Store className="w-8 h-8 text-ink-subtle" />
               </div>
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">
+              <h2 className="text-xl font-semibold text-ink mb-2">
                 No shops found yet
               </h2>
-              <p className="text-zinc-600 dark:text-zinc-400 max-w-md mx-auto">
-                We haven't found any farm shops selling {data.category.name.toLowerCase()} in{' '}
+              <p className="text-ink-muted max-w-md mx-auto">
+                We haven&apos;t found any farm shops selling {data.category.name.toLowerCase()} in{' '}
                 {data.county.name} yet. Check back soon or explore other counties.
               </p>
               <Link
                 href={`/counties/${data.county.slug}`}
-                className="inline-flex items-center gap-2 mt-6 px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg font-medium hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
+                className="inline-flex items-center gap-2 mt-6 px-4 py-2 bg-brand text-brand-text rounded-[2px] font-medium hover:bg-brand-hover transition-colors"
               >
                 View all shops in {data.county.name}
                 <ArrowRight className="w-4 h-4" />
@@ -192,9 +192,9 @@ export default async function FindPage({ params }: FindPageProps) {
 
         {/* Related Pages */}
         {relatedPages.length > 0 && (
-          <section className="bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800">
+          <section className="bg-surface border-t border-border">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mb-6">
+              <h2 className="text-xl font-semibold text-ink mb-6">
                 {data.category.name} in other counties
               </h2>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -202,12 +202,12 @@ export default async function FindPage({ params }: FindPageProps) {
                   <Link
                     key={page.href}
                     href={page.href}
-                    className="group p-4 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-brand-primary dark:hover:border-brand-primary transition-colors"
+                    className="group p-4 rounded-[2px] border border-border hover:border-brand transition-colors"
                   >
-                    <p className="font-medium text-zinc-900 dark:text-white group-hover:text-brand-primary transition-colors line-clamp-2">
+                    <p className="font-medium text-ink group-hover:text-brand transition-colors line-clamp-2">
                       {page.title.replace(` in ${data.county.name}`, '').replace(data.category.name + ' in ', '')}
                     </p>
-                    <p className="text-sm text-zinc-500 mt-1">
+                    <p className="text-sm text-ink-muted mt-1">
                       {page.count} shop{page.count === 1 ? '' : 's'}
                     </p>
                   </Link>
@@ -219,12 +219,12 @@ export default async function FindPage({ params }: FindPageProps) {
 
         {/* SEO Content */}
         {data.category.description && (
-          <section className="border-t border-zinc-200 dark:border-zinc-800">
+          <section className="border-t border-border">
             <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-              <h2 className="text-xl font-semibold text-zinc-900 dark:text-white mb-4">
+              <h2 className="text-xl font-semibold text-ink mb-4">
                 About {data.category.name}
               </h2>
-              <p className="text-zinc-600 dark:text-zinc-400 max-w-3xl">
+              <p className="text-ink-muted max-w-3xl">
                 {data.category.description}
               </p>
             </div>

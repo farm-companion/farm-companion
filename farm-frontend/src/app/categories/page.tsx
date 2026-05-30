@@ -32,7 +32,7 @@ export default async function CategoriesPage() {
   const otherCategories = categories.filter((cat) => cat.displayOrder > 20)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-paper">
       {/* Structured Data - CollectionPage */}
       <script
         type="application/ld+json"
@@ -49,26 +49,26 @@ export default async function CategoriesPage() {
       />
 
       {/* Breadcrumbs */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
+      <div className="border-b border-border">
         <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
-            <Link href="/" className="hover:text-brand-primary transition-colors">
+          <nav className="flex items-center gap-2 text-caption text-ink-muted">
+            <Link href="/" className="hover:text-brand transition-colors">
               Home
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-900 dark:text-slate-100">Categories</span>
+            <span className="font-medium text-ink">Categories</span>
           </nav>
         </div>
       </div>
 
       {/* Hero Section */}
-      <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <section className="border-b border-border bg-surface">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-ink mb-4">
               Farm Categories
             </h1>
-            <p className="text-body md:text-heading text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-body md:text-heading text-ink-muted mb-6">
               Explore {categories.length} categories of farms, producers, and agricultural
               businesses across the UK
             </p>
@@ -83,7 +83,7 @@ export default async function CategoriesPage() {
         {/* Primary Categories */}
         {primaryCategories.length > 0 && (
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            <h2 className="text-2xl font-bold text-ink mb-6">
               Popular Categories
             </h2>
             <CategoryCardGrid categories={primaryCategories} />
@@ -93,7 +93,7 @@ export default async function CategoriesPage() {
         {/* Specialized Categories */}
         {specializedCategories.length > 0 && (
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            <h2 className="text-2xl font-bold text-ink mb-6">
               Specialized & Seasonal
             </h2>
             <CategoryCardGrid categories={specializedCategories} />
@@ -103,7 +103,7 @@ export default async function CategoriesPage() {
         {/* Other Categories */}
         {otherCategories.length > 0 && (
           <section>
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">
+            <h2 className="text-2xl font-bold text-ink mb-6">
               Products & Practices
             </h2>
             <CategoryCardGrid categories={otherCategories} />
@@ -136,7 +136,7 @@ function CategoryCard({ category, fixedWidth = false }: { category: Awaited<Retu
     <Link
       href={`/categories/${category.slug}`}
       className={
-        'group relative bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-brand-primary dark:hover:border-brand-primary ' +
+        'group relative bg-surface rounded-[2px] border border-border p-6 transition-colors duration-200 hover:border-brand ' +
         (fixedWidth ? 'w-44 sm:w-56 md:w-64' : '')
       }
     >
@@ -146,13 +146,13 @@ function CategoryCard({ category, fixedWidth = false }: { category: Awaited<Retu
       </div>
 
       {/* Category Name */}
-      <h3 className="font-semibold text-slate-900 dark:text-white mb-2 text-caption md:text-body">
+      <h3 className="font-semibold text-ink mb-2 text-caption md:text-body">
         {category.name}
       </h3>
 
       {/* Description */}
       {category.description && (
-        <p className="text-small md:text-caption text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
+        <p className="text-small md:text-caption text-ink-muted mb-3 line-clamp-2">
           {category.description}
         </p>
       )}
@@ -165,7 +165,7 @@ function CategoryCard({ category, fixedWidth = false }: { category: Awaited<Retu
       {/* Hover Arrow */}
       <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
         <svg
-          className="w-5 h-5 text-brand-primary"
+          className="w-5 h-5 text-brand"
           fill="none"
           viewBox="0 0 24 24"
           stroke="currentColor"

@@ -1094,6 +1094,72 @@ body {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
+/* ==========================================================================
+   PITTI PRESS CANONICAL UTILITIES (added 2026-05-30)
+   Tailwind v4 + JS config in this repo does NOT auto-emit utilities for
+   the brand/ink/paper/accent colour tokens declared in tailwind.config.js.
+   Empirically: only `border-border` and `text-accent` were emitted; the
+   footer's `bg-ink text-paper` was rendering cream-on-cream (invisible),
+   and primary CTAs lost their `bg-brand` fills site-wide.
+   Hand-rolling the canonical utilities here is the proven workaround.
+   Light/dark theme flip is preserved automatically via the underlying
+   CSS variables defined in styles/harvest-theme.css.
+   ========================================================================== */
+
+/* Backgrounds */
+.bg-paper       { background-color: var(--paper); }
+.bg-ink         { background-color: var(--ink); }
+.bg-brand       { background-color: var(--brand); }
+.bg-brand-hover { background-color: var(--brand-hover); }
+.bg-accent      { background-color: var(--accent); }
+.bg-surface     { background-color: var(--surface); }
+.bg-surface-2   { background-color: var(--surface-2); }
+
+/* Text */
+.text-paper       { color: var(--paper); }
+.text-ink         { color: var(--ink); }
+.text-ink-muted   { color: var(--ink-muted); }
+.text-ink-subtle  { color: var(--ink-subtle); }
+.text-brand       { color: var(--brand); }
+.text-brand-hover { color: var(--brand-hover); }
+.text-brand-text  { color: var(--brand-text); }
+.text-accent-text { color: var(--accent-text); }
+
+/* Borders */
+.border-ink    { border-color: var(--ink); }
+.border-paper  { border-color: var(--paper); }
+.border-brand  { border-color: var(--brand); }
+.border-accent { border-color: var(--accent); }
+
+/* Decoration (for underline accents) */
+.decoration-brand  { text-decoration-color: var(--brand); }
+.decoration-accent { text-decoration-color: var(--accent); }
+
+/* Rings */
+.ring-brand        { --tw-ring-color: var(--brand); }
+.ring-ink          { --tw-ring-color: var(--ink); }
+.ring-paper        { --tw-ring-color: var(--paper); }
+.ring-offset-ink   { --tw-ring-offset-color: var(--ink); }
+.ring-offset-paper { --tw-ring-offset-color: var(--paper); }
+
+/* Hover variants */
+.hover\:bg-brand:hover         { background-color: var(--brand); }
+.hover\:bg-brand-hover:hover   { background-color: var(--brand-hover); }
+.hover\:text-paper:hover       { color: var(--paper); }
+.hover\:text-ink:hover         { color: var(--ink); }
+.hover\:text-brand:hover       { color: var(--brand); }
+.hover\:text-brand-hover:hover { color: var(--brand-hover); }
+.hover\:border-brand:hover     { border-color: var(--brand); }
+
+/* Group-hover variants (Tailwind `group` parent + `group-hover:` child) */
+.group:hover .group-hover\:text-brand { color: var(--brand); }
+.group:hover .group-hover\:bg-brand   { background-color: var(--brand); }
+
+/* Focus-visible variants */
+.focus-visible\:ring-brand:focus-visible        { --tw-ring-color: var(--brand); }
+.focus-visible\:ring-offset-ink:focus-visible   { --tw-ring-offset-color: var(--ink); }
+.focus-visible\:ring-offset-paper:focus-visible { --tw-ring-offset-color: var(--paper); }
+
 /* Focus styles for accessibility */
 .focus-visible {
   outline: 2px solid var(--brand-primary);
@@ -1497,7 +1563,7 @@ html {
 
 /* Favorite button animation */
 .favorite-btn {
-  transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .favorite-btn:hover {
@@ -1523,8 +1589,8 @@ html {
   height: 0;
   border-radius: 50%;
   background: rgba(0, 194, 178, 0.3);
-  transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.6s, opacity 0.6s;
 }
 
 .share-btn:active::after {
@@ -2355,11 +2421,11 @@ html {
 
 /* Mobile menu icon bounce animation */
 .mobile-menu-icon {
-  transition: transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  transition: transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
   /* Cross-browser animation support */
-  -webkit-transition: -webkit-transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  -moz-transition: -moz-transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-  -ms-transition: -ms-transform 0.2s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  -webkit-transition: -webkit-transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  -moz-transition: -moz-transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  -ms-transition: -ms-transform 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .mobile-menu-item:hover .mobile-menu-icon {
@@ -2928,22 +2994,22 @@ html {
 
 /* Spring Physics Timing Functions */
 :root {
-  /* Bouncy: Modals, CMD+K, high-energy alerts (stiffness: 400, damping: 15) */
-  --spring-bouncy: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  /* Emphasized ease-out: modals, CMD+K, high-energy alerts (no overshoot) */
+  --ease-emphasized: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* Fluid: Page transitions, sidebar toggles (stiffness: 200, damping: 25) */
-  --spring-fluid: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-fluid: cubic-bezier(0.23, 1, 0.32, 1);
 
   /* Snappy: Hover states, active scale, radio buttons (stiffness: 500, damping: 35) */
-  --spring-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
 
   /* Gentle: Subtle movements, opacity changes */
-  --spring-gentle: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-gentle: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Kinetic Interaction - The "Press" Logic */
 .kinetic-interaction {
-  transition: transform 0.2s var(--spring-snappy);
+  transition: transform 0.2s var(--ease-snappy);
   will-change: transform; /* GPU acceleration - no ghosting */
 }
 
@@ -2958,8 +3024,8 @@ html {
 
 /* Kinetic Button - Full interaction cycle */
 .kinetic-button {
-  transition: transform 0.2s var(--spring-snappy),
-              box-shadow 0.2s var(--spring-gentle);
+  transition: transform 0.2s var(--ease-snappy),
+              box-shadow 0.2s var(--ease-gentle);
   will-change: transform;
 }
 
@@ -2987,13 +3053,13 @@ html {
 }
 
 .irradiance-entry {
-  animation: irradiance-entry 0.6s var(--spring-fluid) forwards;
+  animation: irradiance-entry 0.6s var(--ease-fluid) forwards;
 }
 
 /* Staggered Entry - 40ms delay between children */
 .stagger-entry > * {
   opacity: 0;
-  animation: irradiance-entry 0.5s var(--spring-fluid) forwards;
+  animation: irradiance-entry 0.5s var(--ease-fluid) forwards;
 }
 
 .stagger-entry > *:nth-child(1) { animation-delay: 0ms; }
@@ -3034,7 +3100,7 @@ html {
 }
 
 /* Bouncy Modal Entry */
-@keyframes bouncy-entry {
+@keyframes emphasized-entry {
   from {
     opacity: 0;
     transform: scale(0.9) translateY(-20px);
@@ -3045,8 +3111,8 @@ html {
   }
 }
 
-.bouncy-entry {
-  animation: bouncy-entry 0.4s var(--spring-bouncy) forwards;
+.emphasized-entry {
+  animation: emphasized-entry 0.4s var(--ease-emphasized) forwards;
 }
 
 /* Slide-up Entry (for lists, cards) */
@@ -3062,7 +3128,7 @@ html {
 }
 
 .slide-up-entry {
-  animation: slide-up-entry 0.3s var(--spring-snappy) forwards;
+  animation: slide-up-entry 0.3s var(--ease-snappy) forwards;
 }
 
 /* Fade Scale Entry (subtle) */
@@ -3078,7 +3144,7 @@ html {
 }
 
 .fade-scale-entry {
-  animation: fade-scale-entry 0.25s var(--spring-gentle) forwards;
+  animation: fade-scale-entry 0.25s var(--ease-gentle) forwards;
 }
 
 /* Exit Animations */
@@ -3090,7 +3156,7 @@ html {
 }
 
 .kinetic-exit {
-  animation: kinetic-exit 0.15s var(--spring-snappy) forwards;
+  animation: kinetic-exit 0.15s var(--ease-snappy) forwards;
 }
 
 /* Reduced Motion: Graceful degradation to opacity-only */
@@ -3109,7 +3175,7 @@ html {
 
   .irradiance-entry,
   .stagger-entry > *,
-  .bouncy-entry,
+  .emphasized-entry,
   .slide-up-entry,
   .fade-scale-entry {
     animation: none;
@@ -3173,13 +3239,7 @@ html {
   border-radius: 8px;
 }
 
-/* Premium gradient text */
-.gradient-text {
-  background: linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-accent) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+/* (removed) legacy .gradient-text utility — gradient text banned by design law, unused */
 
 /* Subtle shine animation */
 @keyframes shine {
@@ -3223,12 +3283,7 @@ html {
   box-shadow: 0 0 15px var(--kinetic-glow);
 }
 
-/* Kinetic Active State - God-tier selection */
-.kinetic-active {
-  background: linear-gradient(90deg, rgba(6, 182, 212, 0.1) 0%, transparent 100%);
-  border-left: 3px solid var(--kinetic);
-  box-shadow: 0 0 15px var(--kinetic-glow);
-}
+/* (removed) legacy .kinetic-active utility — cyan/side-tab, unused */
 
 .dark .kinetic-active {
   background: linear-gradient(90deg, rgba(34, 211, 238, 0.15) 0%, transparent 100%);
@@ -3279,13 +3334,7 @@ html {
   box-shadow: var(--shadow-lg);
 }
 
-/* Kinetic Text Gradient */
-.kinetic-text {
-  background: linear-gradient(135deg, var(--kinetic) 0%, var(--iris) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
+/* (removed) legacy .kinetic-text utility — gradient text banned by design law, unused */
 
 /* Kinetic Button - Primary action */
 .btn-kinetic {
@@ -3426,14 +3475,14 @@ html {
   border-radius: 50%;
 }
 
-/* Selected marker bounce animation */
-@keyframes marker-bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
+/* Selected marker — gentle scale-up settle (no bounce) */
+@keyframes marker-select {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.08); }
 }
 
 .farm-marker[data-selected="true"] {
-  animation: marker-bounce 0.6s ease-in-out;
+  animation: marker-select 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
 /* Cluster marker styles */

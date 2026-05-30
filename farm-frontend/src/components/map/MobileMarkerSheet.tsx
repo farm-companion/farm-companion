@@ -187,7 +187,7 @@ export function MobileMarkerSheet({
               </div>
               <button
                 onClick={handleFavorite}
-                className="p-2 -mt-1 rounded-full text-slate-600 dark:text-slate-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                className="p-2 -mt-1 rounded-full text-ink-muted hover:text-brand hover:bg-surface-2 transition-colors"
                 aria-label="Add to favorites"
               >
                 <Heart className="w-5 h-5" />
@@ -268,7 +268,7 @@ export function MobileMarkerSheet({
             <div className="mb-4">
               <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 mb-2">
                 <Clock className="w-4 h-4 text-slate-600 dark:text-slate-300" />
-                <span className="font-medium">Today's hours</span>
+                <span className="font-medium">Today&apos;s hours</span>
               </div>
               <p className="text-sm text-slate-700 dark:text-slate-300 pl-6">
                 {todayHours}
