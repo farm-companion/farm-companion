@@ -163,3 +163,12 @@ farm-frontend/security-test-report.json
 # 14 pre-2026-05-19 handovers remain tracked as historical decision records
 # (one is referenced from line 154 above); new ones are local-only.
 /context/handover-*.md
+
+# Design-QA artefacts (local-only; never source of truth).
+# Playwright MCP scratch dir + root-level screenshots from live UI iteration.
+# /*.png anchors to repo root only — farm-frontend/** images stay tracked.
+.playwright-mcp/
+/*.png
+
+# Per-subdir Claude tooling state (impeccable skill install lives here locally).
+farm-frontend/.claude/
