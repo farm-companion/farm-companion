@@ -1,5 +1,19 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-31 — Map redesign Slice M0: expose image provenance + attribution in /api/farms
+
+**Goal:** Unblock confidence-based card imagery by surfacing per-image `uploadedBy` + CC BY attribution to the client (first slice of the approved Komoot-class map redesign; spec at `docs/superpowers/specs/2026-05-31-map-komoot-redesign.md`).
+
+**Slice (DONE, TDD via agent, independently re-verified):** Extracted the route's inline image mapping into a pure `mapFarmImages`/`toClientImage` in `src/app/api/farms/_image.ts`; extended the client payload from `{url, alt}` to `{url, alt, uploadedBy, attribution, sourceUrl, license}` with CC keys omitted when null/empty (owner photos stay clean, fully backward-compatible). Extended `FarmImage` type with four optional fields. No Prisma query change needed (the `images` relation has no explicit `select`, so all scalars already load). The existing 72px thumbnail is unaffected.
+
+**Verified:** `npm run test:unit` 273/273 pass (269 prior + 4 new node:test cases for owner-photo, CC-image, and alt-fallback paths); `npx tsc --noEmit` zero errors; test confirmed red before implementation. Full `next build` deferred to bundle with Slice M2 (the visual slice) since M0 is a type-safe pure-function change already gated green by tsc.
+
+**Files:** `src/app/api/farms/_image.ts` (new), `src/app/api/farms/_image.test.ts` (new), `src/app/api/farms/route.ts`, `src/types/farm.ts`.
+
+**Risk/rollback:** Additive payload + optional type fields; no route/SEO/data-shape break. Rollback = revert the 4 files.
+
+**Next slice:** M2 — editorial `FarmList` cards with the hybrid-by-confidence imagery hierarchy from M0.
+
 ### 2026-05-30 — Build verification + commit of the Pitti Press design rollout
 
 **Mandate (operator):** "run the build commit and push triage any failures." Closes the recurring "verify on real `next build` before merge" follow-up that every design slice this session had deferred.

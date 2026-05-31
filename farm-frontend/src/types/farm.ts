@@ -4,6 +4,14 @@ export type { FarmHeroImage }
 export interface FarmImage {
   url: string
   alt?: string
+  /** Provenance: owner/admin/user = real submitted photo; pipeline/other = CC/illustration. */
+  uploadedBy?: string
+  /** CC BY attribution string (CC images only). */
+  attribution?: string
+  /** Original source URL for the CC image (Geograph/Wikimedia). */
+  sourceUrl?: string
+  /** License identifier, e.g. "CC BY-SA 2.0" (CC images only). */
+  license?: string
 }
 
 export interface FarmShop {
