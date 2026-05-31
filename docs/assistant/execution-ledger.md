@@ -1,5 +1,21 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-31 — Map redesign Slice M2: editorial FarmList cards (agent-built, brand fallback fixed)
+
+**Goal:** Replace the off-brand green/gray map result card with a Pitti Press editorial card using the M0 hybrid-by-confidence imagery hierarchy.
+
+**Slice (DONE, agent-first then operator-reviewed via live screenshots):** Rewrote `FarmList.tsx` (182 -> 88 lines) to delegate to a new sibling `FarmListCard.tsx` (named to avoid the pre-existing `FarmCard.tsx`); preserved the full props API, react-virtuoso virtualization, keyboard a11y, and hover/selected wiring. Card is image-forward (104px left block) with Clash title + Vermilion hover underline, mono county/stat row, IBM Plex Condensed offering tags, sharp `rounded-sm` edges, hairline borders, one elevation tier on hover/selected only (motion-reduce guarded). Imagery hierarchy: owner/admin/user photo (documentary) -> CC photo (locale, with an unobtrusive `Nearby · © {source}` attribution strip derived from sourceUrl host) -> brand monogram tile. Replaced hardcoded `#2D5016`/`#EDEDED`/`#8C8C8C` with canonical brand utilities only.
+
+**Operator-caught fix (this slice):** the first agent pass reused `FarmFallbackHero` for the no-photo case, which rendered off-brand green/olive tiles with the farm name repeated. Replaced with a brand cream monogram tile (`bg-surface-2`, Clash `text-ink-subtle`, hairline border, `aria-hidden`, initials via `farmMonogram()` e.g. "5F"/"AA"/"WF"). Since most farms lack owner photos, this fallback is the dominant visual; keeping it on-brand was load-bearing.
+
+**Verified:** `detect.mjs` -> `[]` on both files; `tsc --noEmit` clean; `eslint` exit 0; `next build` 919/919 green; live Playwright QA on localhost:3001 desktop confirmed cream monogram tiles, Clash titles, mono county, condensed tags, sharp edges (screenshot `m2-cards-fallback-fixed.png`). Owner/CC photo paths are coded + gate-green but not yet visually confirmed (default alphabetical view has no photo'd farms); to be spot-checked when M4 surfaces detail.
+
+**Files:** `src/components/FarmList.tsx`, `src/components/FarmListCard.tsx` (new).
+
+**Risk/rollback:** Single presentation component; no route/data/SEO change. Rollback = revert FarmList.tsx + delete FarmListCard.tsx.
+
+**Next slice:** M1 — brand base map (OpenFreeMap Positron + runtime recolor). The generic gray base behind these cards is the next biggest feel gap.
+
 ### 2026-05-31 — Map redesign Slice M0: expose image provenance + attribution in /api/farms
 
 **Goal:** Unblock confidence-based card imagery by surfacing per-image `uploadedBy` + CC BY attribution to the client (first slice of the approved Komoot-class map redesign; spec at `docs/superpowers/specs/2026-05-31-map-komoot-redesign.md`).
