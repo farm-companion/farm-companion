@@ -284,6 +284,39 @@ export const STATUS_COLORS = {
 export const SELECTED_COLOR = '#D33A2C' // Vermilion (--brand)
 
 /**
+ * Two-tier pin behaviour: below this zoom the map shows calm status dots,
+ * at/above it the full branded category icons. Town-level (~12); selecting a
+ * farm flies to zoom 14, so the selected pin always blooms to a full icon.
+ */
+export const FULL_ICON_ZOOM = 12
+
+/**
+ * Generate a small status dot for the zoomed-out tier. The dot is painted
+ * small inside the SAME size-px viewport as the full icon, so the marker's
+ * hit area (and thus the mobile tap target) is unchanged — only the visual
+ * shrinks. Open state rides the fill (Sea Ink / Stone / muted Sea Ink); a
+ * selected dot turns Vermilion, matching the full-icon selected stamp.
+ */
+export function generateDotMarkerSVG(
+  isOpen: boolean | null,
+  size: number = 32,
+  selected: boolean = false
+): string {
+  const center = size / 2
+  const radius = Math.max(5, Math.round(size * 0.16)) // ~6 at 36px
+
+  const body = selected
+    ? SELECTED_COLOR
+    : isOpen === null
+      ? STATUS_COLORS.unknown
+      : isOpen
+        ? STATUS_COLORS.open
+        : STATUS_COLORS.closed
+
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><circle cx="${center}" cy="${center}" r="${radius}" fill="${body}" stroke="#FFFFFF" stroke-width="2"/></svg>`
+}
+
+/**
  * Generate a flat brand SVG marker. Open state is carried by the body colour
  * (Sea Ink open, Stone closed, muted Sea Ink unknown); the category silhouette
  * sits in paper-white inside a white hairline ring. No gradient and no coloured

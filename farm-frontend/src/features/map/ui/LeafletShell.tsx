@@ -6,7 +6,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { FarmShop } from '@/types/farm'
-import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG } from '../lib/pin-icons'
+import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG, generateDotMarkerSVG, FULL_ICON_ZOOM } from '../lib/pin-icons'
 import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } from '../lib/accessibility'
 import { getClusterBrandStyle } from '../lib/cluster-config'
 
@@ -72,9 +72,12 @@ const createStatusIcon = (
   config: ReturnType<typeof getPinForFarm>,
   isOpen: boolean | null,
   size: number = 36,
-  selected: boolean = false
+  selected: boolean = false,
+  fullIcon: boolean = true
 ) => {
-  const svg = generateStatusMarkerSVG(config, isOpen, size, selected)
+  const svg = fullIcon
+    ? generateStatusMarkerSVG(config, isOpen, size, selected)
+    : generateDotMarkerSVG(isOpen, size, selected)
   return L.divIcon({
     html: svg,
     className: `leaflet-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`,
@@ -169,6 +172,9 @@ export default function LeafletShell({
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [mapInstance, setMapInstance] = useState<L.Map | null>(null)
+  // Two-tier pins: dots when zoomed out, full branded icons at/above
+  // FULL_ICON_ZOOM. Flips on zoomend so markers recreate only at the threshold.
+  const [showFullIcons, setShowFullIcons] = useState(false)
 
   // Haptic feedback
   const triggerHaptic = useCallback((type: 'light' | 'medium' | 'heavy' = 'light') => {
@@ -276,9 +282,11 @@ export default function LeafletShell({
 
       map.on('zoomend', () => {
         onZoomChange?.(map.getZoom())
+        setShowFullIcons(map.getZoom() >= FULL_ICON_ZOOM)
       })
 
       mapRef.current = map
+      setShowFullIcons(map.getZoom() >= FULL_ICON_ZOOM)
       setMapInstance(map)
       setIsLoading(false)
       onMapLoad?.(map)
@@ -315,8 +323,9 @@ export default function LeafletShell({
       const size = isHighlighted ? 44 : 36
       // Selected pin gets the Vermilion body (single chromatic stamp); a plain
       // hover stays Sea Ink + larger size only. Leaflet recreates markers on
-      // selection change, so the flag flows straight through.
-      const icon = createStatusIcon(pinConfig, isOpen, size, isSelected)
+      // selection change, so the flag flows straight through. Two-tier: dot
+      // when zoomed out, full branded icon at/above FULL_ICON_ZOOM.
+      const icon = createStatusIcon(pinConfig, isOpen, size, isSelected, showFullIcons)
 
       const marker = L.marker([farm.location.lat, farm.location.lng], { icon })
 
@@ -389,7 +398,7 @@ export default function LeafletShell({
     }
     const rafId = requestAnimationFrame(decorateClusters)
     return () => cancelAnimationFrame(rafId)
-  }, [farms, selectedFarmId, hoveredFarmId, handleMarkerClick, onFarmHover])
+  }, [farms, selectedFarmId, hoveredFarmId, handleMarkerClick, onFarmHover, showFullIcons])
 
   // Pan to selected farm
   useEffect(() => {

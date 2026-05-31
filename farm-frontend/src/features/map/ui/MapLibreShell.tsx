@@ -10,7 +10,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FarmShop } from '@/types/farm'
 import { useClusteredMarkers, type ClusterOrPoint } from '../hooks/useClusteredMarkers'
 import { useMapLocation } from '../hooks/useMapLocation'
-import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, type CategoryPinConfig } from '../lib/pin-icons'
+import { getPinForFarm, generateStatusMarkerSVG, generateDotMarkerSVG, isFarmOpen, FULL_ICON_ZOOM, type CategoryPinConfig } from '../lib/pin-icons'
 import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } from '../lib/accessibility'
 import { CLUSTER_ZOOM_THRESHOLDS, getClusterBrandStyle } from '../lib/cluster-config'
 import { getMapStyle, getMapAttribution } from '@/lib/map-config'
@@ -102,7 +102,7 @@ export default function MapLibreShell({
   const clusterMarkersRef = useRef<Map<string, maplibregl.Marker>>(new Map())
   // Per-farm marker inputs kept so the highlight effect can re-render the
   // selected pin's SVG body (Vermilion) without recreating every marker.
-  const markerMetaRef = useRef<Map<string, { config: CategoryPinConfig; isOpen: boolean | null }>>(new Map())
+  const markerMetaRef = useRef<Map<string, { config: CategoryPinConfig; isOpen: boolean | null; tier: 'icon' | 'dot' }>>(new Map())
   // Read selection inside the marker-creation loop without adding it to deps
   // (which would recreate all markers on every selection change).
   const selectedFarmIdRef = useRef<string | null | undefined>(selectedFarmId)
@@ -341,6 +341,10 @@ export default function MapLibreShell({
     onFarmSelect?.(farm.id)
   }, [triggerHaptic, isDesktop, onFarmSelect])
 
+  // Two-tier pins flip at FULL_ICON_ZOOM; derived here so the marker effect
+  // recreates markers only when the tier actually crosses the threshold.
+  const showFullIcons = currentZoom >= FULL_ICON_ZOOM
+
   // Create/update markers when clusters change
   useEffect(() => {
     const map = mapRef.current
@@ -445,8 +449,12 @@ export default function MapLibreShell({
         // Render the Vermilion body up-front if this farm is already selected
         // (markers can be recreated on zoom/pan while selection is unchanged).
         const isSelected = farm.id === selectedFarmIdRef.current
-        const svg = generateStatusMarkerSVG(pinConfig, isOpen, markerSize, isSelected)
-        markerMetaRef.current.set(farm.id, { config: pinConfig, isOpen })
+        // Two-tier: full branded icon when zoomed in, calm dot when zoomed out.
+        const tier: 'icon' | 'dot' = showFullIcons ? 'icon' : 'dot'
+        const svg = tier === 'icon'
+          ? generateStatusMarkerSVG(pinConfig, isOpen, markerSize, isSelected)
+          : generateDotMarkerSVG(isOpen, markerSize, isSelected)
+        markerMetaRef.current.set(farm.id, { config: pinConfig, isOpen, tier })
 
         // Create marker element with precise sizing
         const el = document.createElement('div')
@@ -514,7 +522,7 @@ export default function MapLibreShell({
         markersRef.current.set(farm.id, marker)
       }
     })
-  }, [clusters, isCluster, handleClusterClick, handleMarkerClick, onFarmHover])
+  }, [clusters, isCluster, handleClusterClick, handleMarkerClick, onFarmHover, showFullIcons])
 
   // Keep the creation-loop ref current so freshly-recreated markers know if
   // their farm is the selected one.
@@ -534,11 +542,14 @@ export default function MapLibreShell({
       const isHighlighted = isSelected || hoveredFarmId === farmId
       el.dataset.highlighted = isHighlighted ? 'true' : 'false'
 
-      // Swap the body colour only when selection actually flips for this pin.
+      // Swap the body colour only when selection actually flips for this pin,
+      // re-rendering in the marker's current tier (dot stays a dot).
       if (el.dataset.selected !== (isSelected ? 'true' : 'false')) {
         const meta = markerMetaRef.current.get(farmId)
         if (meta) {
-          el.innerHTML = generateStatusMarkerSVG(meta.config, meta.isOpen, 36, isSelected)
+          el.innerHTML = meta.tier === 'icon'
+            ? generateStatusMarkerSVG(meta.config, meta.isOpen, 36, isSelected)
+            : generateDotMarkerSVG(meta.isOpen, 36, isSelected)
         }
         el.dataset.selected = isSelected ? 'true' : 'false'
       }

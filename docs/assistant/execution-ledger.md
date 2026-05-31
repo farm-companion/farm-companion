@@ -1,5 +1,21 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-31 — Map redesign Slice M3 (two-tier pins): dots when zoomed out, branded icons when zoomed in
+
+**Goal:** Cut icon clutter on the wide view by rendering individual (declustered) pins as calm status dots below town zoom and full branded category icons at/above it, while keeping mobile tap targets intact.
+
+**Slice (DONE, TDD red->green):**
+- `pin-icons.ts`: added `FULL_ICON_ZOOM = 12` and `generateDotMarkerSVG(isOpen, size, selected)` — a small status dot (r ~= size*0.16, ~6px at 36) painted inside the SAME size-px viewport as the full icon, so the marker hit area is unchanged (mobile tap target preserved). Dot fill carries open state (Sea Ink/Stone/muted) and turns Vermilion when selected, matching the full-icon stamp.
+- `pin-icons.test.ts`: +5 node:test cases (FULL_ICON_ZOOM value; dot carries open state + has no silhouette path; closed/unknown colours; selected dot Vermilion; viewport stays full size).
+- `MapLibreShell.tsx`: `markerMetaRef` gains `tier: 'icon'|'dot'`; derived `showFullIcons = currentZoom >= FULL_ICON_ZOOM` added to the marker-effect deps so markers recreate only when crossing the threshold; creation + the M3b highlight body-swap both branch on tier (a dot stays a dot when selected, just Vermilion).
+- `LeafletShell.tsx`: `createStatusIcon` gains a `fullIcon` flag (dot vs icon); new `showFullIcons` state set on `zoomend` + at load; marker loop passes it and the flag is in the effect deps. Leaflet recreates markers on zoom-tier change.
+
+**Verified (ran, passed):** `npm run test:unit` 313/313 (+5); `tsc --noEmit` exit 0; `eslint` 0 errors (pre-existing warnings only); `npx impeccable detect` map scope exit 0; `next build` exit 0. Live Playwright on :3001 — DESKTOP: at UK zoom 5 all 3 individual pins are dots (`hasPath:false`, `circleR:6`, Stone `#78716C`); selecting one flies to zoom 14 and it blooms to a full icon (`circleR:16`, `<path>`) AND Vermilion `#D33A2C` (`data-selected="true"`); screenshot `m3-icon-tier-selected.png`. MOBILE (390x844): dot tier renders with a 36x36 hit area (`getBoundingClientRect`) while the painted dot is ~14px — tap target preserved.
+
+**Risk/rollback:** Presentation only; no route/data/SEO change; both new pin-icons exports are additive and the shell flags default to the prior behaviour. Rollback = revert the 4 source files + ledger. Note: selected/hovered glow filter is re-applied only by the highlight effect (not the creation loop), so a marker recreated by a tier flip keeps its Vermilion body but may momentarily lack the glow until the next hover/selection change — pre-existing behaviour, body colour (the primary signal) persists.
+
+**Next slice:** M4 — consolidate `FarmPreviewCard`/`FarmPopup`/`FarmDetailSheet` into one branded inline detail reusing the M2 editorial card.
+
 ### 2026-05-31 — Map redesign Slice M3b: Vermilion selected pin + map-hover list-scroll sync
 
 **Goal:** Make the selected pin the single chromatic stamp by re-rendering its marker body Vermilion (--brand, #D33A2C) on selection, and sync the map to the list so hovering/selecting a pin scrolls its card into view — off-screen only, so a visible card never yanks the scroll. Mobile-aware throughout (shared list serves bottom sheet + desktop panel). Two-tier behavioural pins deferred to a later M3 slice.
