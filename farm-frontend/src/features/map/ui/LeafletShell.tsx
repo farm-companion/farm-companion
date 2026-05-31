@@ -71,9 +71,10 @@ const fixLeafletIcons = () => {
 const createStatusIcon = (
   config: ReturnType<typeof getPinForFarm>,
   isOpen: boolean | null,
-  size: number = 36
+  size: number = 36,
+  selected: boolean = false
 ) => {
-  const svg = generateStatusMarkerSVG(config, isOpen, size)
+  const svg = generateStatusMarkerSVG(config, isOpen, size, selected)
   return L.divIcon({
     html: svg,
     className: `leaflet-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`,
@@ -309,9 +310,13 @@ export default function LeafletShell({
     farms.forEach(farm => {
       const pinConfig = getPinForFarm(farm.offerings)
       const isOpen = farm.hours ? isFarmOpen(farm.hours) : null
-      const isHighlighted = selectedFarmId === farm.id || hoveredFarmId === farm.id
+      const isSelected = selectedFarmId === farm.id
+      const isHighlighted = isSelected || hoveredFarmId === farm.id
       const size = isHighlighted ? 44 : 36
-      const icon = createStatusIcon(pinConfig, isOpen, size)
+      // Selected pin gets the Vermilion body (single chromatic stamp); a plain
+      // hover stays Sea Ink + larger size only. Leaflet recreates markers on
+      // selection change, so the flag flows straight through.
+      const icon = createStatusIcon(pinConfig, isOpen, size, isSelected)
 
       const marker = L.marker([farm.location.lat, farm.location.lng], { icon })
 

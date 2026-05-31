@@ -10,7 +10,7 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FarmShop } from '@/types/farm'
 import { useClusteredMarkers, type ClusterOrPoint } from '../hooks/useClusteredMarkers'
 import { useMapLocation } from '../hooks/useMapLocation'
-import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen } from '../lib/pin-icons'
+import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen, type CategoryPinConfig } from '../lib/pin-icons'
 import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } from '../lib/accessibility'
 import { CLUSTER_ZOOM_THRESHOLDS, getClusterBrandStyle } from '../lib/cluster-config'
 import { getMapStyle, getMapAttribution } from '@/lib/map-config'
@@ -100,6 +100,12 @@ export default function MapLibreShell({
   const mapRef = useRef<maplibregl.Map | null>(null)
   const markersRef = useRef<Map<string, maplibregl.Marker>>(new Map())
   const clusterMarkersRef = useRef<Map<string, maplibregl.Marker>>(new Map())
+  // Per-farm marker inputs kept so the highlight effect can re-render the
+  // selected pin's SVG body (Vermilion) without recreating every marker.
+  const markerMetaRef = useRef<Map<string, { config: CategoryPinConfig; isOpen: boolean | null }>>(new Map())
+  // Read selection inside the marker-creation loop without adding it to deps
+  // (which would recreate all markers on every selection change).
+  const selectedFarmIdRef = useRef<string | null | undefined>(selectedFarmId)
 
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -343,6 +349,7 @@ export default function MapLibreShell({
     // Always clear old markers first - even when clusters is empty
     markersRef.current.forEach(marker => marker.remove())
     markersRef.current.clear()
+    markerMetaRef.current.clear()
     clusterMarkersRef.current.forEach(marker => marker.remove())
     clusterMarkersRef.current.clear()
 
@@ -435,13 +442,18 @@ export default function MapLibreShell({
         const pinConfig = getPinForFarm(farm.offerings)
         const isOpen = farm.hours ? isFarmOpen(farm.hours) : null
         const markerSize = 36
-        const svg = generateStatusMarkerSVG(pinConfig, isOpen, markerSize)
+        // Render the Vermilion body up-front if this farm is already selected
+        // (markers can be recreated on zoom/pan while selection is unchanged).
+        const isSelected = farm.id === selectedFarmIdRef.current
+        const svg = generateStatusMarkerSVG(pinConfig, isOpen, markerSize, isSelected)
+        markerMetaRef.current.set(farm.id, { config: pinConfig, isOpen })
 
         // Create marker element with precise sizing
         const el = document.createElement('div')
         el.className = `maplibre-farm-marker ${isOpen ? 'is-open' : isOpen === false ? 'is-closed' : ''}`
         el.dataset.farmId = farm.id
         el.dataset.open = isOpen === true ? 'true' : isOpen === false ? 'false' : 'unknown'
+        el.dataset.selected = isSelected ? 'true' : 'false'
         el.setAttribute('role', 'button')
         el.setAttribute('tabindex', '0')
         el.setAttribute('aria-label', getFarmMarkerLabel({
@@ -504,14 +516,32 @@ export default function MapLibreShell({
     })
   }, [clusters, isCluster, handleClusterClick, handleMarkerClick, onFarmHover])
 
-  // Update marker highlight styles WITHOUT recreating markers - NO transforms
+  // Keep the creation-loop ref current so freshly-recreated markers know if
+  // their farm is the selected one.
+  useEffect(() => {
+    selectedFarmIdRef.current = selectedFarmId
+  }, [selectedFarmId])
+
+  // Update marker highlight styles WITHOUT recreating markers - NO transforms.
+  // The selected pin also re-renders its SVG body to Vermilion (the single
+  // chromatic stamp); hover stays a glow only, so one loud pin reads at a time.
   useEffect(() => {
     markersRef.current.forEach((marker, farmId) => {
       const el = marker.getElement() as HTMLElement
       if (!el || !el.classList.contains('maplibre-farm-marker')) return
 
-      const isHighlighted = selectedFarmId === farmId || hoveredFarmId === farmId
+      const isSelected = selectedFarmId === farmId
+      const isHighlighted = isSelected || hoveredFarmId === farmId
       el.dataset.highlighted = isHighlighted ? 'true' : 'false'
+
+      // Swap the body colour only when selection actually flips for this pin.
+      if (el.dataset.selected !== (isSelected ? 'true' : 'false')) {
+        const meta = markerMetaRef.current.get(farmId)
+        if (meta) {
+          el.innerHTML = generateStatusMarkerSVG(meta.config, meta.isOpen, 36, isSelected)
+        }
+        el.dataset.selected = isSelected ? 'true' : 'false'
+      }
 
       if (isHighlighted) {
         el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(211, 58, 44, 0.5))'

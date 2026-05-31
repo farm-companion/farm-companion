@@ -1,5 +1,25 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-31 — Map redesign Slice M3b: Vermilion selected pin + map-hover list-scroll sync
+
+**Goal:** Make the selected pin the single chromatic stamp by re-rendering its marker body Vermilion (--brand, #D33A2C) on selection, and sync the map to the list so hovering/selecting a pin scrolls its card into view — off-screen only, so a visible card never yanks the scroll. Mobile-aware throughout (shared list serves bottom sheet + desktop panel). Two-tier behavioural pins deferred to a later M3 slice.
+
+**Slice (DONE, TDD red->green):**
+- `pin-icons.ts`: added `SELECTED_COLOR = '#D33A2C'` (Vermilion --brand) and an optional 4th `selected` param to `generateStatusMarkerSVG` (Vermilion body overrides open/closed/unknown when selected). Back-compatible — existing 3-arg callers untouched.
+- `pin-icons.test.ts` (new): 4 node:test cases (SELECTED_COLOR value; selected overrides open; unselected keeps Sea Ink; selected defaults false).
+- `MapLibreShell.tsx`: highlight effect now re-renders the selected pin's SVG body to Vermilion without recreating markers — via a `markerMetaRef` (per-farm config+isOpen) and a `selectedFarmIdRef` (so markers recreated on zoom/pan while selection is unchanged still paint selected up-front). Body swaps only when selection flips for that pin (`dataset.selected`); hover stays a glow only.
+- `LeafletShell.tsx`: `createStatusIcon` gains a `selected` flag; the marker loop computes `isSelected` and passes it (Leaflet already recreates markers on selection change, so it flows straight through).
+- `FarmList.tsx`: added a Virtuoso `ref` + `rangeChanged` range tracker; an effect scrolls `hoveredFarmId ?? selectedFarmId` into view via `scrollToIndex({align:'center',behavior:'smooth'})` ONLY when the index is outside the rendered range (no feedback loop). Because the list is virtualised, a DOM scrollIntoView would miss off-screen cards.
+- `map/page.tsx`: removed the now-redundant mobile `document.querySelector('[data-farm-id]').scrollIntoView` in `handleFarmSelect` — the FarmList Virtuoso path supersedes it and fixes the mobile bug where tapping a pin for an off-screen (unrendered) farm never scrolled.
+
+**Verified (ran, passed):** `npm run test:unit` 308/308 (+4 new); `tsc --noEmit` exit 0; `eslint` 0 errors (pre-existing warnings only; `markerMetaRef`/`selectedFarmIdRef`/`virtuosoRef` all used); `npx impeccable detect` on the map scope (`src/features/map src/components/FarmList.tsx src/app/map`) exit 0 (clean) — full `src/` exits 2 from 14 PRE-EXISTING anti-patterns in unrelated files (admin/produce/stats, lib/email.ts, services/email.service.ts, accessibility-middleware.ts; `git diff --name-only HEAD` confirms those files are untouched this slice); `next build` exit 0. Live Playwright QA on :3001 — DESKTOP: selecting a farm renders its marker body `#D33A2C` (DOM-confirmed `data-selected="true"`, fill `#D33A2C`); map-hover on an off-screen pin scrolled the 1997-item list `scrollTop` 0 -> 74530 and mounted the target card (end-to-end). MOBILE (390x844): tapping a pin renders body `#D33A2C`; bottom sheet renders (the MarkerPreview card covers the pin visually, as the M3a handover noted). Screenshots `m3b-selected-vermilion-desktop.png`, `m3b-selected-vermilion-mobile.png`.
+
+**File sizes:** MapLibreShell.tsx 687 lines (over hard 500; pre-existing `// rationale:` header at top — provider-cohesion; +30 this slice, under forbidden 800). map/page.tsx 699 lines (pre-existing over-hard; this slice REDUCED it by 5). Both flagged future-split candidates.
+
+**Risk/rollback:** Presentation + client interaction only; no route/data/SEO change; `generateStatusMarkerSVG` 4th param is optional so all callers stay valid. Rollback = revert the 5 edited files and delete `pin-icons.test.ts`.
+
+**Next slice:** M3 two-tier behavioural pins (branded icon vs plain dot by zoom/density), then M4 (consolidate FarmPreviewCard/FarmPopup/FarmDetailSheet into one branded inline detail reusing the M2 card). Also pending from M3a: prod basemap (no Stadia key) + dark-mode palette verification; 2 moderate Dependabot vulns (Queue 1).
+
 ### 2026-05-31 — Map redesign Slice M3a: brand pins + clusters (kill the rainbow)
 
 **Goal:** Replace the 5-hue rainbow clusters and the 17-colour pin palette with one calm Pitti Press system so the selected Vermilion pin is the only chromatic moment (M1 palette law). Colour/state rebrand only; behavioural two-tier pins + hover-scroll sync deferred to M3b.

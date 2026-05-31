@@ -276,26 +276,38 @@ export const STATUS_COLORS = {
 }
 
 /**
+ * The single chromatic stamp on the map: the selected pin's body turns
+ * Vermilion (--brand). Matches the selected/hover glow rgba(211,58,44) and the
+ * --brand token in harvest-theme.css. Only selection (not hover) uses it, so
+ * one Vermilion pin is the sole loud moment on the calm Sea Ink map.
+ */
+export const SELECTED_COLOR = '#D33A2C' // Vermilion (--brand)
+
+/**
  * Generate a flat brand SVG marker. Open state is carried by the body colour
  * (Sea Ink open, Stone closed, muted Sea Ink unknown); the category silhouette
  * sits in paper-white inside a white hairline ring. No gradient and no coloured
  * status ring keeps the map calm so the selected Vermilion pin stands alone.
+ * When `selected` is true the body becomes Vermilion, overriding open state.
  * NOTE: shadow is applied via CSS, not in the SVG, so the touch bounds match
  * the visual (filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3))).
  */
 export function generateStatusMarkerSVG(
   config: CategoryPinConfig,
   isOpen: boolean | null,
-  size: number = 32
+  size: number = 32,
+  selected: boolean = false
 ): string {
   const innerSize = size * 0.5
   const centerOffset = (size - innerSize) / 2
 
-  const body = isOpen === null
-    ? STATUS_COLORS.unknown
-    : isOpen
-      ? STATUS_COLORS.open
-      : STATUS_COLORS.closed
+  const body = selected
+    ? SELECTED_COLOR
+    : isOpen === null
+      ? STATUS_COLORS.unknown
+      : isOpen
+        ? STATUS_COLORS.open
+        : STATUS_COLORS.closed
 
   return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="${body}" stroke="#FFFFFF" stroke-width="2"/><g transform="translate(${centerOffset},${centerOffset}) scale(${innerSize / 16})" fill="#F4F1EA"><path d="${config.iconPath}"/></g></svg>`
 }

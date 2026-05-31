@@ -319,14 +319,10 @@ function MapPageContent() {
     // marker click, keyboard activation, and list selection alike). Routed
     // through the canonical map live region shared with cluster announcements.
     announce(ANNOUNCEMENTS.markerSelected(farm.name, farm.location.county))
-    // Mobile: also scroll the bottom-sheet list to the tapped farm
-    // so the user sees their selection in the list panel.
-    if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      const farmElement = document.querySelector(`[data-farm-id="${farmId}"]`)
-      if (farmElement) {
-        farmElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
-    }
+    // Scrolling the selected card into view (mobile bottom sheet + desktop
+    // panel) is handled inside FarmList via Virtuoso's scrollToIndex, which —
+    // unlike a DOM scrollIntoView — also reaches cards not yet rendered by the
+    // virtualiser. See FarmList map->list sync effect.
   }, [farms])
 
   // Navigate to farm detail page

@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { MapPin } from 'lucide-react'
-import { Virtuoso } from 'react-virtuoso'
+import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso'
 import type { FarmShop } from '@/types/farm'
 import FarmListCard from '@/components/FarmListCard'
 
@@ -45,6 +45,26 @@ export default function FarmList({
   className = '',
   formatDistance,
 }: FarmListProps) {
+  const virtuosoRef = useRef<VirtuosoHandle>(null)
+  const rangeRef = useRef<ListRange>({ startIndex: 0, endIndex: 0 })
+
+  // Map -> list sync: when a farm is hovered or selected on the map, bring its
+  // card into view. Only scroll when the card is OUTSIDE the rendered range, so
+  // hovering a card already on screen never yanks the scroll position (no
+  // feedback loop). Shared by desktop panel and mobile bottom sheet alike;
+  // because the list is virtualised, a DOM scrollIntoView would miss off-screen
+  // cards, so we drive Virtuoso's scrollToIndex instead.
+  useEffect(() => {
+    const targetId = hoveredFarmId ?? selectedFarmId
+    if (!targetId) return
+    const index = farms.findIndex((f) => f.id === targetId)
+    if (index < 0) return
+    const { startIndex, endIndex } = rangeRef.current
+    if (index < startIndex || index > endIndex) {
+      virtuosoRef.current?.scrollToIndex({ index, align: 'center', behavior: 'smooth' })
+    }
+  }, [hoveredFarmId, selectedFarmId, farms])
+
   const handleFarmClick = useCallback(
     (farmId: string) => {
       onFarmSelect(farmId)
@@ -73,9 +93,13 @@ export default function FarmList({
           <EmptyState />
         ) : (
           <Virtuoso
+            ref={virtuosoRef}
             data={farms}
             itemContent={renderCard}
             overscan={5}
+            rangeChanged={(range) => {
+              rangeRef.current = range
+            }}
             className="h-full"
             components={{
               Footer: () => <div className="h-4" />,
