@@ -56,6 +56,41 @@ export function getClusterTier(count: number): ClusterTier {
   return CLUSTER_TIERS[CLUSTER_TIERS.length - 1]
 }
 
+export interface ClusterBrandStyle {
+  size: number
+  fill: string
+  textColor: string
+  borderColor: string
+}
+
+// Sea Ink density ramp: denser clusters are larger and deeper. Monochrome by
+// design (replaces the old 5-hue rainbow) so the map stays calm and the
+// selected Vermilion pin remains the only chromatic accent (M1 palette law).
+// Paper-white text clears AA-large on every navy here.
+const CLUSTER_BRAND_RAMP: Array<{ minCount: number } & ClusterBrandStyle> = [
+  { minCount: 50, size: 56, fill: '#162E47', textColor: '#F4F1EA', borderColor: '#FFFFFF' },
+  { minCount: 20, size: 50, fill: '#213F5C', textColor: '#F4F1EA', borderColor: '#FFFFFF' },
+  { minCount: 10, size: 44, fill: '#2E4D6C', textColor: '#F4F1EA', borderColor: '#FFFFFF' },
+  { minCount: 5, size: 38, fill: '#3D5C7E', textColor: '#F4F1EA', borderColor: '#FFFFFF' },
+  { minCount: 0, size: 34, fill: '#4F6E90', textColor: '#F4F1EA', borderColor: '#FFFFFF' },
+]
+
+/**
+ * Brand cluster style (size + Sea Ink fill + text/border) for a farm count.
+ * Shared by MapLibreShell and LeafletShell so the two providers stay identical.
+ */
+export function getClusterBrandStyle(count: number): ClusterBrandStyle {
+  const tier =
+    CLUSTER_BRAND_RAMP.find((t) => count >= t.minCount) ??
+    CLUSTER_BRAND_RAMP[CLUSTER_BRAND_RAMP.length - 1]
+  return {
+    size: tier.size,
+    fill: tier.fill,
+    textColor: tier.textColor,
+    borderColor: tier.borderColor,
+  }
+}
+
 /**
  * Calculate zoom-aware cluster size
  * Clusters shrink slightly at higher zoom levels for better marker visibility

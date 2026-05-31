@@ -6,8 +6,9 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { FarmShop } from '@/types/farm'
-import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS } from '../lib/pin-icons'
+import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG } from '../lib/pin-icons'
 import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } from '../lib/accessibility'
+import { getClusterBrandStyle } from '../lib/cluster-config'
 
 
 // Leaflet imports - client-side only
@@ -105,33 +106,17 @@ function decorateMarkerForA11y(
   })
 }
 
-// Create cluster icon
+// Create cluster icon — brand Sea Ink density ramp, shared with MapLibreShell
+// via getClusterBrandStyle (replaces the old red/orange/yellow/green/cyan set).
 const createClusterIcon = (count: number) => {
-  let size = 32
-  let color = '#06b6d4' // cyan
-
-  if (count >= 50) {
-    size = 56
-    color = '#ef4444' // red
-  } else if (count >= 20) {
-    size = 48
-    color = '#f97316' // orange
-  } else if (count >= 10) {
-    size = 40
-    color = '#eab308' // yellow
-  } else if (count >= 5) {
-    size = 36
-    color = '#22c55e' // green
-  }
-
+  const { size, fill, textColor, borderColor } = getClusterBrandStyle(count)
   const displayCount = count > 99 ? '99+' : String(count)
-  const textColor = count >= 10 && count < 20 ? 'black' : 'white'
 
   return L.divIcon({
     html: `<div style="
       width: ${size}px;
       height: ${size}px;
-      background: ${color};
+      background: ${fill};
       border-radius: 50%;
       display: flex;
       align-items: center;
@@ -139,8 +124,8 @@ const createClusterIcon = (count: number) => {
       color: ${textColor};
       font-weight: 600;
       font-size: ${Math.max(12, size / 3)}px;
-      border: 3px solid white;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      border: 2px solid ${borderColor};
+      box-shadow: 0 2px 8px rgba(0,0,0,0.22);
     ">${displayCount}</div>`,
     className: 'leaflet-cluster-marker',
     iconSize: [size, size],

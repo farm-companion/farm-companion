@@ -1,5 +1,19 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-31 — Map redesign Slice M3a: brand pins + clusters (kill the rainbow)
+
+**Goal:** Replace the 5-hue rainbow clusters and the 17-colour pin palette with one calm Pitti Press system so the selected Vermilion pin is the only chromatic moment (M1 palette law). Colour/state rebrand only; behavioural two-tier pins + hover-scroll sync deferred to M3b.
+
+**Slice (DONE):** Diagnosis first: `cluster-config.ts` already held a brand opacity-ladder generator (`generateClusterSVG`) but only the unused `components/map/*` tree consumed it; the LIVE rainbow lived inline in `MapLibreShell.getClusterStyle` (red/orange/yellow/green/cyan) and `LeafletShell.createClusterIcon` (same). Added one shared `getClusterBrandStyle(count)` to `cluster-config.ts` (monochrome Sea Ink density ramp: deeper + larger = denser, paper-white text, white hairline) and wired both shells to it, deleting both inline rainbows. `pin-icons.ts`: rebranded `STATUS_COLORS` to brand body tones (Sea Ink open / Stone closed / muted Sea Ink unknown) and flattened `generateStatusMarkerSVG` to a single flat body + paper-white icon + white ring (dropped the gradient, the green/grey status ring, and the now-unused `desaturateColor`). `MapLibreShell`: selected/hover glow recoloured cyan `rgba(6,182,212,*)` -> Vermilion `rgba(211,58,44,*)`; dropped the now-unused `getContrastTextColor` import. `LeafletShell`: dropped the unused `STATUS_COLORS` import (clears an eslint warning).
+
+**Verified (ran, passed):** `npm run test:unit` 304/304 (12 new node:test cases for `getClusterBrandStyle` tier boundaries); `tsc --noEmit` exit 0; `eslint` exit 0 (warnings only, pre-existing); `npx impeccable detect` clean (0) on all four changed files; `next build` exit 0. Live Playwright QA on localhost:3001: 37 clusters render in the Sea Ink ramp (sampled computed bg `rgb(22,46,71)` = `#162E47` mega tier, white border), individual pins render dark Sea Ink, base recolour holds at street zoom (screenshots `m3a-clusters-brand.png`, `m3a-pins-selected.png`). Note: a brief HMR remount showed 0 markers; a clean reload restored them (dev-only fast-refresh timing, not a code defect).
+
+**Files:** `src/features/map/lib/pin-icons.ts`, `src/features/map/lib/cluster-config.ts`, `src/features/map/lib/cluster-config.test.ts` (new), `src/features/map/ui/MapLibreShell.tsx`, `src/features/map/ui/LeafletShell.tsx`.
+
+**Risk/rollback:** Presentation-only; no route/data/SEO change. Both shells now share one cluster style source (less drift). Rollback = revert the four edited files and delete the new test.
+
+**Next slice:** M3b — behavioural pins (two-tier branded-vs-dot by zoom/density, full Vermilion-bodied selected pin) + bi-directional list/map hover-scroll sync. Then M4 (consolidate FarmPreviewCard/FarmPopup/FarmDetailSheet into one branded inline detail).
+
 ### 2026-05-31 — Map redesign Slice M1: brand base map (vector recolor + brand attribution)
 
 **Goal:** Turn the generic gray basemap into a Pitti Press artifact (Cream land, Loam labels, muted Sea Ink water) with no API key, no caps, no SEO/route change.

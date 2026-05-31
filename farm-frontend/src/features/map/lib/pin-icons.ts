@@ -264,18 +264,24 @@ export function isFarmOpen(hours?: Array<{ day: string; open: string; close: str
 }
 
 /**
- * Status colors for open/closed state
+ * Brand pin body colours by open state. Sea Ink reads as a present marker on
+ * the Cream map; Stone greys out closed shops; muted Sea Ink covers unknown
+ * hours. State is carried by the body fill, not a coloured ring, so the map
+ * stays calm and the selected Vermilion pin is the only chromatic moment.
  */
 export const STATUS_COLORS = {
-  open: '#16A34A',    // Leaf Green (Green-600)
-  closed: '#A1A1AA',  // Stone Gray (Zinc-400)
-  unknown: '#71717A', // Muted Gray (Zinc-500)
+  open: '#1F3A5F',    // Sea Ink (accent token)
+  closed: '#78716C',  // Stone (ink-subtle token)
+  unknown: '#3D5C7E', // Muted Sea Ink
 }
 
 /**
- * Generate an SVG marker with open/closed status indicator
- * NOTE: Shadow is NOT included in SVG to prevent bounds mismatch on touch.
- * Apply shadow via CSS: filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3))
+ * Generate a flat brand SVG marker. Open state is carried by the body colour
+ * (Sea Ink open, Stone closed, muted Sea Ink unknown); the category silhouette
+ * sits in paper-white inside a white hairline ring. No gradient and no coloured
+ * status ring keeps the map calm so the selected Vermilion pin stands alone.
+ * NOTE: shadow is applied via CSS, not in the SVG, so the touch bounds match
+ * the visual (filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3))).
  */
 export function generateStatusMarkerSVG(
   config: CategoryPinConfig,
@@ -285,38 +291,11 @@ export function generateStatusMarkerSVG(
   const innerSize = size * 0.5
   const centerOffset = (size - innerSize) / 2
 
-  // Determine ring color based on status
-  const ringColor = isOpen === null
+  const body = isOpen === null
     ? STATUS_COLORS.unknown
     : isOpen
       ? STATUS_COLORS.open
       : STATUS_COLORS.closed
 
-  // Desaturate the main color if closed
-  const mainColor = isOpen === false
-    ? desaturateColor(config.color, 0.5)
-    : config.color
-
-  // SVG without filter - shadow applied via CSS to prevent touch bounds mismatch
-  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="pg${isOpen}" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="${mainColor}"/><stop offset="100%" stop-color="${adjustColor(mainColor, -30)}"/></linearGradient></defs><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 1}" fill="none" stroke="${ringColor}" stroke-width="3"/><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 4}" fill="url(#pg${isOpen})" stroke="white" stroke-width="2"/><g transform="translate(${centerOffset},${centerOffset}) scale(${innerSize / 16})" fill="white"><path d="${config.iconPath}"/></g></svg>`
-}
-
-/**
- * Desaturate a hex color
- */
-function desaturateColor(hex: string, amount: number): string {
-  const num = parseInt(hex.replace('#', ''), 16)
-  const r = (num >> 16) & 0xff
-  const g = (num >> 8) & 0xff
-  const b = num & 0xff
-
-  // Calculate grayscale value
-  const gray = Math.round(r * 0.299 + g * 0.587 + b * 0.114)
-
-  // Blend with grayscale
-  const newR = Math.round(r + (gray - r) * amount)
-  const newG = Math.round(g + (gray - g) * amount)
-  const newB = Math.round(b + (gray - b) * amount)
-
-  return `#${((newR << 16) | (newG << 8) | newB).toString(16).padStart(6, '0')}`
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg"><circle cx="${size / 2}" cy="${size / 2}" r="${size / 2 - 2}" fill="${body}" stroke="#FFFFFF" stroke-width="2"/><g transform="translate(${centerOffset},${centerOffset}) scale(${innerSize / 16})" fill="#F4F1EA"><path d="${config.iconPath}"/></g></svg>`
 }

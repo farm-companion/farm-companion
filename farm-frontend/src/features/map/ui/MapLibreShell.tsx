@@ -10,10 +10,9 @@ import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FarmShop } from '@/types/farm'
 import { useClusteredMarkers, type ClusterOrPoint } from '../hooks/useClusteredMarkers'
 import { useMapLocation } from '../hooks/useMapLocation'
-import { getContrastTextColor } from '@/lib/contrast'
 import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen } from '../lib/pin-icons'
 import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } from '../lib/accessibility'
-import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
+import { CLUSTER_ZOOM_THRESHOLDS, getClusterBrandStyle } from '../lib/cluster-config'
 import { getMapStyle, getMapAttribution } from '@/lib/map-config'
 import { recolorMap, isDarkTheme } from '@/lib/map-theme'
 import LocationControl from './LocationControl'
@@ -259,27 +258,11 @@ export default function MapLibreShell({
     }
   }, [])
 
-  // Cluster style helper with WCAG AA compliant contrast (uses shared utility)
+  // Brand cluster style: monochrome Sea Ink density ramp (shared with Leaflet
+  // via getClusterBrandStyle). Replaces the old 5-hue rainbow; denser = deeper.
   const getClusterStyle = (count: number) => {
-    // Harvest design system colors with enforced contrast
-    if (count >= 50) {
-      const bg = '#dc2626' // Red-600 (darker for better contrast)
-      return { size: 56, color: bg, textColor: getContrastTextColor(bg) }
-    }
-    if (count >= 20) {
-      const bg = '#c2410c' // Orange-700 (darkened from #f97316 for white text)
-      return { size: 48, color: bg, textColor: getContrastTextColor(bg) }
-    }
-    if (count >= 10) {
-      const bg = '#ca8a04' // Yellow-600 (amber tone, needs dark text)
-      return { size: 40, color: bg, textColor: getContrastTextColor(bg) }
-    }
-    if (count >= 5) {
-      const bg = '#16a34a' // Green-600
-      return { size: 36, color: bg, textColor: getContrastTextColor(bg) }
-    }
-    const bg = '#0891b2' // Cyan-600
-    return { size: 32, color: bg, textColor: getContrastTextColor(bg) }
+    const { size, fill, textColor, borderColor } = getClusterBrandStyle(count)
+    return { size, color: fill, textColor, borderColor }
   }
 
   // Handle cluster click
@@ -386,7 +369,7 @@ export default function MapLibreShell({
         // Stable selector so ClusterPreview can return focus here on close.
         el.dataset.clusterId = String(clusterId)
 
-        const { size, color, textColor } = getClusterStyle(count)
+        const { size, color, textColor, borderColor } = getClusterStyle(count)
         // NO transforms - just basic styling
         el.style.cssText = `
           width: ${size}px;
@@ -399,8 +382,8 @@ export default function MapLibreShell({
           color: ${textColor};
           font-weight: 600;
           font-size: ${Math.max(12, size / 3)}px;
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+          border: 2px solid ${borderColor};
+          box-shadow: 0 2px 8px rgba(0,0,0,0.22);
           cursor: pointer;
           pointer-events: auto;
         `
@@ -477,12 +460,12 @@ export default function MapLibreShell({
 
         // Event handlers - NO transform manipulation to test positioning
         el.addEventListener('mouseenter', () => {
-          el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
+          el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(211, 58, 44, 0.5))'
           onFarmHover?.(farm.id)
         })
         el.addEventListener('mouseleave', () => {
           const isHighlighted = el.dataset.highlighted === 'true'
-          el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))' : ''
+          el.style.filter = isHighlighted ? 'drop-shadow(0 0 8px rgba(211, 58, 44, 0.6))' : ''
           onFarmHover?.(null)
         })
         el.addEventListener('click', (e) => {
@@ -531,7 +514,7 @@ export default function MapLibreShell({
       el.dataset.highlighted = isHighlighted ? 'true' : 'false'
 
       if (isHighlighted) {
-        el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(6, 182, 212, 0.5))'
+        el.style.filter = 'drop-shadow(0 2px 4px rgba(0,0,0,0.3)) drop-shadow(0 0 8px rgba(211, 58, 44, 0.5))'
         el.style.zIndex = '1000'
       } else {
         el.style.filter = ''
