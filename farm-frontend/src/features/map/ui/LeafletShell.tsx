@@ -1,5 +1,9 @@
 'use client'
 
+// rationale: Cohesive Leaflet provider shell (map lifecycle, marker clustering,
+// a11y wiring, brand tint) at parity with MapLibreShell; splitting risks
+// duplicating provider lifecycle. Layer extraction tracked as a future slice.
+
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { FarmShop } from '@/types/farm'
 import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS } from '../lib/pin-icons'
@@ -215,6 +219,14 @@ export default function LeafletShell({
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
       }).addTo(map)
+
+      // Brand tint: warm the raster tiles toward Cream paper so the Leaflet
+      // fallback reads in the Pitti Press palette, not stock OSM. MapLibre gets
+      // a true vector recolor; raster can only be filtered, so keep it subtle.
+      const tilePane = map.getPane('tilePane')
+      if (tilePane) {
+        tilePane.style.filter = 'sepia(0.12) saturate(0.82) brightness(1.03) hue-rotate(-6deg)'
+      }
 
       // Add zoom control to top-right
       L.control.zoom({ position: 'topright' }).addTo(map)

@@ -1,5 +1,19 @@
 # FarmCompanion Execution Ledger
 
+### 2026-05-31 — Map redesign Slice M1: brand base map (vector recolor + brand attribution)
+
+**Goal:** Turn the generic gray basemap into a Pitti Press artifact (Cream land, Loam labels, muted Sea Ink water) with no API key, no caps, no SEO/route change.
+
+**Slice (DONE):** New `lib/map-theme.ts` exports a pure `classifyLayer` (OpenMapTiles role mapping: land/water/park/building/major+minor road/boundary/label), light+dark `MAP_PALETTE_*` mirroring harvest-theme tokens, `isDarkTheme`, and `recolorMap(map, isDark)` that walks `getStyle().layers` and repaints by role. `text-color` is guarded behind a `getLayoutProperty(id,'text-field')` probe; every paint set is per-layer try/catch so one unsupported layer never aborts the pass. `map-config.ts` adds `OPENFREEMAP_STYLES` and switches the keyless `getMapStyle` default from OSM raster to OpenFreeMap Positron (raster object preserved as `getOsmRasterStyle`); new provider-aware `getMapAttribution()` returns undefined under a Stadia key (Stadia embeds its own credit) and the OpenFreeMap courtesy line otherwise. `MapLibreShell.tsx` calls `recolorMap` on `load`, uses `getMapAttribution()`, and warms the pre-tile flash from gray `#e5e7eb` to Cream `#F2EBDA`. `LeafletShell.tsx` warms the raster fallback via a tilePane CSS filter.
+
+**Verified (ran, passed):** `npm run test:unit` 292/292 (19 new node:test cases for `classifyLayer` against real Positron layer ids); `tsc --noEmit` exit 0; `eslint` exit 0 (warnings only, pre-existing); `npx impeccable detect` clean (0) on all changed files; `next build` exit 0, `/map` still `○ (Static)`. Live Playwright QA on localhost:3001 desktop: land renders Cream/warm-stone, sea muted blue, roads dark engraved hairlines, labels Loam ink with paper halos (screenshot `m1-basemap-light-clean.png`). Attribution confirmed correct: `© Stadia Maps © OpenMapTiles © OpenStreetMap` (local has a Stadia key, so Positron path runs in prod-without-key; both share the OpenMapTiles schema the recolor targets).
+
+**Files:** `src/lib/map-theme.ts` (new), `src/lib/map-theme.test.ts` (new), `src/lib/map-config.ts`, `src/features/map/ui/MapLibreShell.tsx`, `src/features/map/ui/LeafletShell.tsx` (added a `// rationale:` header; edit pushed it to 504 lines, past the hard-500 limit).
+
+**Risk/rollback:** Recolor is non-destructive (guards + try/catch); if OpenFreeMap degrades the OSM raster fallback remains. Rollback = revert the four edited files and delete the two new ones.
+
+**Next slice:** M3 — pins + clusters + hover choreography (rebrand `pin-icons.ts`, replace the 17-color cluster palette still visible in this screenshot with brand density tiers, two-tier pin/dot logic, bi-directional list/map hover sync).
+
 ### 2026-05-31 — Map redesign Slice M2: editorial FarmList cards (agent-built, brand fallback fixed)
 
 **Goal:** Replace the off-brand green/gray map result card with a Pitti Press editorial card using the M0 hybrid-by-confidence imagery hierarchy.

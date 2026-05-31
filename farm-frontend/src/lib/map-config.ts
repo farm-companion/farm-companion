@@ -43,6 +43,18 @@ export const MAPTILER_STYLES = {
 } as const
 
 /**
+ * OpenFreeMap - Primary vector provider (default, keyless)
+ * No API key, no request caps. OpenMapTiles schema, recolored at runtime to
+ * the Pitti Press brand by `recolorMap` in lib/map-theme.ts. Attribution is
+ * added explicitly on the AttributionControl (OSM + OpenMapTiles + OpenFreeMap).
+ * https://openfreemap.org/
+ */
+export const OPENFREEMAP_STYLES = {
+  positron: 'https://tiles.openfreemap.org/styles/positron',
+  liberty: 'https://tiles.openfreemap.org/styles/liberty',
+} as const
+
+/**
  * OpenStreetMap Raster - Emergency fallback
  * Unlimited, but raster (not vector) so less performant
  */
@@ -130,10 +142,12 @@ const STADIA_API_KEY = process.env.NEXT_PUBLIC_STADIA_API_KEY
 /**
  * Get map style based on theme
  *
- * Uses Stadia Maps if API key is configured, otherwise falls back to OSM raster tiles.
+ * Prefers OpenFreeMap (keyless vector, recolored to brand at runtime). Uses
+ * Stadia Maps if its API key is configured. OSM raster is the last-resort
+ * object kept for callers that need an inline style.
  */
 export function getMapStyle(isDarkMode: boolean): StyleSpecification | string {
-  // If Stadia API key is available, use Stadia vector tiles (much nicer)
+  // If Stadia API key is available, use Stadia vector tiles
   if (STADIA_API_KEY) {
     const style = isDarkMode
       ? STADIA_STYLES.alidadeSmoothDark
@@ -141,7 +155,30 @@ export function getMapStyle(isDarkMode: boolean): StyleSpecification | string {
     return `${style}?api_key=${STADIA_API_KEY}`
   }
 
-  // Fallback to OSM raster tiles (no API key needed)
+  // Default: OpenFreeMap Positron vector (no key, no caps). Recolored to the
+  // Pitti Press palette by recolorMap once the style loads.
+  return OPENFREEMAP_STYLES.positron
+}
+
+/**
+ * Courtesy attribution to append on the map control.
+ *
+ * Returns undefined when a keyed provider (Stadia) is active, because that
+ * style embeds its own full credit and appending here would duplicate it and
+ * mis-credit OpenFreeMap. When keyless, we serve OpenFreeMap, whose vector
+ * source already supplies OpenMapTiles + OSM credit, so we add only the
+ * provider courtesy line.
+ */
+export function getMapAttribution(): string | undefined {
+  if (STADIA_API_KEY) return undefined
+  return '<a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a>'
+}
+
+/**
+ * OSM raster style object: emergency inline fallback for callers that cannot
+ * use a remote vector style URL.
+ */
+export function getOsmRasterStyle(): StyleSpecification {
   return {
     version: 8,
     name: 'OSM Raster',
