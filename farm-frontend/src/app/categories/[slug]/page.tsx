@@ -1,7 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Suspense } from 'react'
 import {
   getCachedCategoryBySlug,
   getCachedFarmsByCategory,
@@ -12,7 +11,6 @@ import {
 import { FarmCard } from '@/components/FarmCard'
 import { CategoryIcon } from '@/components/CategoryIcon'
 import { Badge } from '@/components/ui/Badge'
-import { Skeleton } from '@/components/ui/Skeleton'
 import { categoryFAQs, genericCategoryFAQs } from '@/data/category-faqs'
 
 interface CategoryPageProps {
@@ -108,7 +106,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const faqs = categoryFAQs[slug] || genericCategoryFAQs
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-paper">
       {/* Structured Data - CollectionPage */}
       <script
         type="application/ld+json"
@@ -181,37 +179,37 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       )}
 
       {/* Breadcrumbs */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
+      <div className="border-b border-border">
         <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
-            <Link href="/" className="hover:text-brand-primary transition-colors">
+          <nav className="flex items-center gap-2 text-caption text-ink-muted">
+            <Link href="/" className="hover:text-brand transition-colors">
               Home
             </Link>
             <span>/</span>
-            <Link href="/categories" className="hover:text-brand-primary transition-colors">
+            <Link href="/categories" className="hover:text-brand transition-colors">
               Categories
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-900 dark:text-slate-100">{category.name}</span>
+            <span className="font-medium text-ink">{category.name}</span>
           </nav>
         </div>
       </div>
 
       {/* Hero Section */}
-      <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+      <section className="border-b border-border bg-surface">
         <div className="container mx-auto px-4 py-12 md:py-16">
           <div className="max-w-3xl">
             {/* Category Icon & Name */}
             <div className="flex items-center gap-4 mb-4">
               <CategoryIcon slug={category.slug} size="lg" />
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-ink">
                 {category.name}
               </h1>
             </div>
 
             {/* Description */}
             {category.description && (
-              <p className="text-body md:text-heading text-slate-600 dark:text-slate-400 mb-6">
+              <p className="text-body md:text-heading text-ink-muted mb-6">
                 {category.description}
               </p>
             )}
@@ -243,17 +241,17 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             <div className="sticky top-4 space-y-6">
               {/* Top Counties Filter */}
               {stats.topCounties.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
-                  <h2 className="font-semibold text-slate-900 dark:text-white mb-3">
+                <div className="bg-surface rounded-[2px] border border-border p-4">
+                  <h2 className="font-semibold text-ink mb-3">
                     Filter by County
                   </h2>
                   <div className="space-y-2">
                     <Link
                       href={`/categories/${slug}`}
-                      className={`block px-3 py-2 rounded-md text-caption transition-colors ${
+                      className={`block px-3 py-2 rounded-[2px] text-caption transition-colors ${
                         !county
-                          ? 'bg-brand-primary text-white'
-                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-brand text-brand-text'
+                          : 'text-ink hover:bg-surface-2'
                       }`}
                     >
                       All Counties ({farmCount})
@@ -262,10 +260,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       <Link
                         key={countyData.county}
                         href={`/categories/${slug}?county=${encodeURIComponent(countyData.county)}`}
-                        className={`block px-3 py-2 rounded-md text-caption transition-colors ${
+                        className={`block px-3 py-2 rounded-[2px] text-caption transition-colors ${
                           county === countyData.county
-                            ? 'bg-brand-primary text-white'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                            ? 'bg-brand text-brand-text'
+                            : 'text-ink hover:bg-surface-2'
                         }`}
                       >
                         {countyData.county} ({countyData.count})
@@ -277,8 +275,8 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
               {/* Related Categories */}
               {relatedCategories.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
-                  <h2 className="font-semibold text-slate-900 dark:text-white mb-3">
+                <div className="bg-surface rounded-[2px] border border-border p-4">
+                  <h2 className="font-semibold text-ink mb-3">
                     Related Categories
                   </h2>
                   <div className="space-y-2">
@@ -286,7 +284,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                       <Link
                         key={relatedCat.id}
                         href={`/categories/${relatedCat.slug}`}
-                        className="flex items-center gap-2 px-3 py-2 rounded-md text-caption text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="flex items-center gap-2 px-3 py-2 rounded-[2px] text-caption text-ink hover:bg-surface-2 transition-colors"
                       >
                         <CategoryIcon slug={relatedCat.slug} size="sm" />
                         <span>{relatedCat.name}</span>
@@ -302,10 +300,10 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
           <main className="lg:col-span-3">
             {/* Results Header */}
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-ink mb-2">
                 {county ? `${category.name} in ${county}` : `All ${category.name}`}
               </h2>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-ink-muted">
                 Showing {farms.length} of {total} {total === 1 ? 'result' : 'results'}
                 {county && (
                   <>
@@ -313,7 +311,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                     in {county}{' '}
                     <Link
                       href={`/categories/${slug}`}
-                      className="text-brand-primary hover:underline"
+                      className="text-brand hover:underline"
                     >
                       (Clear filter)
                     </Link>
@@ -337,20 +335,20 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                     {currentPage > 1 && (
                       <Link
                         href={`/categories/${slug}?page=${currentPage - 1}${county ? `&county=${encodeURIComponent(county)}` : ''}`}
-                        className="px-4 py-2 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        className="px-4 py-2 rounded-[2px] bg-surface border border-border text-ink hover:bg-surface-2 transition-colors"
                       >
                         Previous
                       </Link>
                     )}
 
-                    <span className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                    <span className="px-4 py-2 text-ink-muted">
                       Page {currentPage} of {totalPages}
                     </span>
 
                     {hasMore && (
                       <Link
                         href={`/categories/${slug}?page=${currentPage + 1}${county ? `&county=${encodeURIComponent(county)}` : ''}`}
-                        className="px-4 py-2 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        className="px-4 py-2 rounded-[2px] bg-surface border border-border text-ink hover:bg-surface-2 transition-colors"
                       >
                         Next
                       </Link>
@@ -360,14 +358,14 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-body text-slate-600 dark:text-slate-400 mb-4">
+                <p className="text-body text-ink-muted mb-4">
                   No farms found in this category
                   {county && ` in ${county}`}.
                 </p>
                 {county && (
                   <Link
                     href={`/categories/${slug}`}
-                    className="text-brand-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
                     View all {category.name}
                   </Link>
@@ -380,19 +378,19 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
         {/* FAQ Section */}
         {faqs.length > 0 && (
           <section className="mt-12 max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-8 text-center">
+            <h2 className="text-3xl font-bold text-ink mb-8 text-center">
               Frequently Asked Questions
             </h2>
             <div className="space-y-6">
               {faqs.map((faq: { question: string; answer: string }, index: number) => (
                 <div
                   key={index}
-                  className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6"
+                  className="bg-surface rounded-[2px] border border-border p-6"
                 >
-                  <h3 className="text-body font-semibold text-slate-900 dark:text-white mb-3">
+                  <h3 className="text-body font-semibold text-ink mb-3">
                     {faq.question}
                   </h3>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-ink-muted leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>

@@ -68,8 +68,8 @@ function ComparePageContent() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-serum mx-auto mb-4"></div>
-          <p className="text-text-muted">Loading farms...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-brand border-t-transparent mx-auto mb-4"></div>
+          <p className="text-ink-muted">Loading farms...</p>
         </div>
       </div>
     )
@@ -85,7 +85,7 @@ function ComparePageContent() {
           className="text-center max-w-md"
         >
           <h1 className="text-4xl font-bold mb-4">Compare Farm Shops</h1>
-          <p className="text-text-muted mb-6">
+          <p className="text-ink-muted mb-6">
             Select farms from the map or shop listing to compare them side-by-side.
           </p>
           <div className="flex gap-4 justify-center">
@@ -102,7 +102,7 @@ function ComparePageContent() {
   }
 
   return (
-    <div className="min-h-screen bg-background-canvas py-12 px-4">
+    <div className="min-h-screen bg-paper py-12 px-4">
       <div className="max-w-7xl mx-auto">
         <motion.div
           variants={fadeInUp}
@@ -111,7 +111,7 @@ function ComparePageContent() {
           className="mb-8"
         >
           <h1 className="text-4xl font-bold mb-2">Compare Farm Shops</h1>
-          <p className="text-text-muted">Side-by-side comparison of {farms.length} farm shops</p>
+          <p className="text-ink-muted">Side-by-side comparison of {farms.length} farm shops</p>
         </motion.div>
 
         <motion.div
@@ -124,11 +124,11 @@ function ComparePageContent() {
             <motion.div
               key={farm.id}
               variants={staggerItem}
-              className="bg-white rounded-lg shadow-premium overflow-hidden"
+              className="bg-surface rounded-[2px] border border-border overflow-hidden"
             >
               {/* Image */}
               {farm.images && farm.images.length > 0 && (
-                <div className="relative h-48 bg-slate-200">
+                <div className="relative h-48 bg-surface-2">
                   <img
                     src={farm.images[0].url}
                     alt={farm.images[0].altText || farm.name}
@@ -142,10 +142,10 @@ function ComparePageContent() {
                 <div className="flex items-start justify-between mb-3">
                   <div>
                     <h2 className="text-heading font-semibold mb-1">{farm.name}</h2>
-                    <p className="text-caption text-text-muted">{farm.location.city}, {farm.location.county}</p>
+                    <p className="text-caption text-ink-muted">{farm.location.city}, {farm.location.county}</p>
                   </div>
                   {farm.verified && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-small bg-success-light text-success-dark font-medium">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-small bg-accent text-accent-text font-medium">
                       ✓ Verified
                     </span>
                   )}
@@ -221,8 +221,8 @@ function ComparePageContent() {
 
 function ComparisonMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between items-center py-2 border-b border-slate-100">
-      <span className="text-caption font-medium text-text-muted">{label}</span>
+    <div className="flex justify-between items-center py-2 border-b border-border">
+      <span className="text-caption font-medium text-ink-muted">{label}</span>
       <span className="text-caption font-semibold">{value}</span>
     </div>
   )
@@ -233,8 +233,8 @@ export default function ComparePage() {
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-serum mx-auto mb-4"></div>
-          <p className="text-text-muted">Loading comparison...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-2 border-brand border-t-transparent mx-auto mb-4"></div>
+          <p className="text-ink-muted">Loading comparison...</p>
         </div>
       </div>
     }>

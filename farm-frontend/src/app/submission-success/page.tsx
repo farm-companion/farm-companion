@@ -62,18 +62,18 @@ We will review your submission within 2-3 business days.
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+    <main className="min-h-screen bg-paper">
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Success Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 rounded-full mb-6">
-            <CheckCircle className="w-10 h-10 text-green-600" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-surface-2 rounded-full mb-6">
+            <CheckCircle className="w-10 h-10 text-brand" />
           </div>
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-white font-heading mb-4">
+          <h1 className="text-4xl font-bold text-ink font-heading mb-4">
             Submission Successful!
           </h1>
-          <p className="text-body text-slate-700 dark:text-slate-300 max-w-2xl mx-auto">
-            Thank you for submitting your farm shop to Farm Companion. 
+          <p className="text-body text-ink-muted max-w-2xl mx-auto">
+            Thank you for submitting your farm shop to Farm Companion.
             We&apos;ve received your information and will review it within 2-3 business days.
           </p>
         </div>
@@ -82,57 +82,57 @@ We will review your submission within 2-3 business days.
         <div className="grid lg:grid-cols-3 gap-8 mb-12">
           <div className="lg:col-span-2 space-y-6">
             {/* Farm Details Card */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-              <h2 className="text-heading font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
-                <MapPin className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+            <div className="bg-surface rounded-[2px] p-6 border border-border">
+              <h2 className="text-heading font-semibold text-ink mb-4 flex items-center space-x-2">
+                <MapPin className="w-5 h-5 text-accent" />
                 <span>Farm Details</span>
               </h2>
-              
+
               <div className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-caption font-medium text-slate-600 dark:text-slate-400 mb-1">Farm ID</label>
-                    <p className="text-caption font-mono text-slate-900 dark:text-white bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 px-3 py-2 rounded border">
+                    <label className="block text-caption font-medium text-ink-muted mb-1">Farm ID</label>
+                    <p className="text-caption font-mono text-ink bg-surface-2 px-3 py-2 rounded-[2px] border border-border">
                       {farmId}
                     </p>
                   </div>
                   <div>
-                    <label className="block text-caption font-medium text-slate-600 dark:text-slate-400 mb-1">Farm Name</label>
-                    <p className="text-caption text-slate-900 dark:text-white">{farmName}</p>
+                    <label className="block text-caption font-medium text-ink-muted mb-1">Farm Name</label>
+                    <p className="text-caption text-ink">{farmName}</p>
                   </div>
                 </div>
-                
+
                 <div>
-                  <label className="block text-caption font-medium text-slate-600 dark:text-slate-400 mb-1">Address</label>
-                  <p className="text-caption text-slate-900 dark:text-white">{farmAddress}</p>
+                  <label className="block text-caption font-medium text-ink-muted mb-1">Address</label>
+                  <p className="text-caption text-ink">{farmAddress}</p>
                 </div>
-                
+
                 <div>
-                  <label className="block text-caption font-medium text-slate-600 dark:text-slate-400 mb-1">County</label>
-                  <p className="text-caption text-slate-900 dark:text-white">{farmCounty}</p>
+                  <label className="block text-caption font-medium text-ink-muted mb-1">County</label>
+                  <p className="text-caption text-ink">{farmCounty}</p>
                 </div>
               </div>
             </div>
 
             {/* Contact Information */}
             {(contactEmail || contactPhone) && (
-              <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-                <h2 className="text-heading font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
-                  <Phone className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <div className="bg-surface rounded-[2px] p-6 border border-border">
+                <h2 className="text-heading font-semibold text-ink mb-4 flex items-center space-x-2">
+                  <Phone className="w-5 h-5 text-accent" />
                   <span>Contact Information</span>
                 </h2>
-                
+
                 <div className="space-y-3">
                   {contactEmail && (
                     <div className="flex items-center space-x-3">
-                      <Mail className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                      <span className="text-caption text-slate-900 dark:text-white">{contactEmail}</span>
+                      <Mail className="w-4 h-4 text-ink-muted" />
+                      <span className="text-caption text-ink">{contactEmail}</span>
                     </div>
                   )}
                   {contactPhone && (
                     <div className="flex items-center space-x-3">
-                      <Phone className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-                      <span className="text-caption text-slate-900 dark:text-white">{contactPhone}</span>
+                      <Phone className="w-4 h-4 text-ink-muted" />
+                      <span className="text-caption text-ink">{contactPhone}</span>
                     </div>
                   )}
                 </div>
@@ -140,21 +140,21 @@ We will review your submission within 2-3 business days.
             )}
 
             {/* Images Submitted */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-              <h2 className="text-heading font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
-                <ImageIcon className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+            <div className="bg-surface rounded-[2px] p-6 border border-border">
+              <h2 className="text-heading font-semibold text-ink mb-4 flex items-center space-x-2">
+                <ImageIcon className="w-5 h-5 text-accent" />
                 <span>Images Submitted</span>
               </h2>
-              
+
               <div className="flex items-center space-x-3">
-                <div className="w-12 h-12 bg-primary-100 dark:bg-primary-900/20 rounded-lg flex items-center justify-center">
-                  <ImageIcon className="w-6 h-6 text-primary-600 dark:text-primary-400" />
+                <div className="w-12 h-12 bg-surface-2 rounded-[2px] flex items-center justify-center">
+                  <ImageIcon className="w-6 h-6 text-accent" />
                 </div>
                 <div>
-                  <p className="text-caption font-medium text-slate-900 dark:text-white">
+                  <p className="text-caption font-medium text-ink">
                     {imagesCount} image{imagesCount !== '1' ? 's' : ''} uploaded
                   </p>
-                  <p className="text-small text-slate-600 dark:text-slate-400">
+                  <p className="text-small text-ink-muted">
                     Images will be reviewed for quality and appropriateness
                   </p>
                 </div>
@@ -166,49 +166,49 @@ We will review your submission within 2-3 business days.
           <div className="lg:col-span-1">
             <div className="sticky top-8 space-y-6">
               {/* Next Steps */}
-              <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-                <h3 className="text-body font-semibold text-slate-900 dark:text-white mb-4 flex items-center space-x-2">
-                  <Clock className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+              <div className="bg-surface rounded-[2px] p-6 border border-border">
+                <h3 className="text-body font-semibold text-ink mb-4 flex items-center space-x-2">
+                  <Clock className="w-5 h-5 text-accent" />
                   <span>What Happens Next?</span>
                 </h3>
-                
+
                 <div className="space-y-4">
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-small font-bold text-primary-600 dark:text-primary-400">1</span>
+                    <div className="w-6 h-6 bg-surface-2 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-small font-bold text-accent">1</span>
                     </div>
                     <div>
-                      <p className="text-caption font-medium text-slate-900 dark:text-white">Review Process</p>
-                      <p className="text-small text-slate-600 dark:text-slate-400">We&apos;ll review your submission within 2-3 business days</p>
+                      <p className="text-caption font-medium text-ink">Review Process</p>
+                      <p className="text-small text-ink-muted">We&apos;ll review your submission within 2-3 business days</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-small font-bold text-primary-600 dark:text-primary-400">2</span>
+                    <div className="w-6 h-6 bg-surface-2 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-small font-bold text-accent">2</span>
                     </div>
                     <div>
-                      <p className="text-caption font-medium text-slate-900 dark:text-white">Quality Check</p>
-                      <p className="text-small text-slate-600 dark:text-slate-400">Verify information accuracy and image quality</p>
+                      <p className="text-caption font-medium text-ink">Quality Check</p>
+                      <p className="text-small text-ink-muted">Verify information accuracy and image quality</p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-start space-x-3">
-                    <div className="w-6 h-6 bg-primary-100 dark:bg-primary-900/30 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <span className="text-small font-bold text-primary-600 dark:text-primary-400">3</span>
+                    <div className="w-6 h-6 bg-surface-2 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-small font-bold text-accent">3</span>
                     </div>
                     <div>
-                      <p className="text-caption font-medium text-slate-900 dark:text-white">Go Live</p>
-                      <p className="text-small text-slate-600 dark:text-slate-400">Your farm will appear on our map and directory</p>
+                      <p className="text-caption font-medium text-ink">Go Live</p>
+                      <p className="text-small text-ink-muted">Your farm will appear on our map and directory</p>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Actions */}
-              <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-                <h3 className="text-body font-semibold text-slate-900 dark:text-white mb-4">Quick Actions</h3>
-                
+              <div className="bg-surface rounded-[2px] p-6 border border-border">
+                <h3 className="text-body font-semibold text-ink mb-4">Quick Actions</h3>
+
                 <div className="space-y-3">
                   <Button
                     onClick={handleDownloadPDF}
@@ -219,13 +219,13 @@ We will review your submission within 2-3 business days.
                     <Download className="w-4 h-4 mr-2 group-hover:scale-110 transition-transform" />
                     Download Submission
                   </Button>
-                  
+
                   <Link href="/map">
                     <Button variant="secondary" size="sm" className="w-full">
                       View Farm Map
                     </Button>
                   </Link>
-                  
+
                   <Link href="/contact">
                     <Button variant="secondary" size="sm" className="w-full">
                       Contact Support
@@ -235,27 +235,27 @@ We will review your submission within 2-3 business days.
               </div>
 
               {/* Status Tracking */}
-              <div className="bg-white dark:bg-slate-900 rounded-xl p-6 border border-slate-200 dark:border-slate-800">
-                <h3 className="text-body font-semibold text-slate-900 dark:text-white mb-4">Track Your Submission</h3>
-                
+              <div className="bg-surface rounded-[2px] p-6 border border-border">
+                <h3 className="text-body font-semibold text-ink mb-4">Track Your Submission</h3>
+
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-caption text-slate-900 dark:text-white">Status</span>
-                    <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-small rounded-full font-medium">
+                    <span className="text-caption text-ink">Status</span>
+                    <span className="px-2 py-1 bg-surface-2 text-ink-muted text-small rounded-full font-medium border border-border">
                       Pending Review
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
-                    <span className="text-caption text-slate-900 dark:text-white">Submitted</span>
-                    <span className="text-caption text-slate-600 dark:text-slate-400">
+                    <span className="text-caption text-ink">Submitted</span>
+                    <span className="text-caption text-ink-muted">
                       {new Date().toLocaleDateString()}
                     </span>
                   </div>
-                  
+
                   <div className="flex items-center justify-between">
-                    <span className="text-caption text-slate-900 dark:text-white">Expected Review</span>
-                    <span className="text-caption text-slate-600 dark:text-slate-400">
+                    <span className="text-caption text-ink">Expected Review</span>
+                    <span className="text-caption text-ink-muted">
                       {new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toLocaleDateString()}
                     </span>
                   </div>
@@ -273,17 +273,17 @@ We will review your submission within 2-3 business days.
                 Return to Homepage
               </Button>
             </Link>
-            
+
             <Link href="/map">
               <Button variant="secondary" size="lg">
                 Explore Farm Map
               </Button>
             </Link>
           </div>
-          
-          <p className="text-caption text-slate-600 dark:text-slate-400">
+
+          <p className="text-caption text-ink-muted">
             Need help? Contact us at{' '}
-            <a href="mailto:hello@farmcompanion.co.uk" className="text-primary-600 dark:text-primary-400 hover:underline">
+            <a href="mailto:hello@farmcompanion.co.uk" className="text-brand hover:underline">
               hello@farmcompanion.co.uk
             </a>
           </p>

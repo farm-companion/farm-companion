@@ -9,7 +9,7 @@
  * Design System Compliance:
  * - Spacing: 8px baseline grid
  * - Typography: text-heading, text-body, text-caption
- * - Colors: primary-500, success, warning semantic colors
+ * - Colors: Pitti Press semantic tokens (brand, accent, ink, surface)
  * - Animation: Only fade-in (purposeful motion)
  * - Touch targets: 44px minimum
  */
@@ -52,17 +52,17 @@ export function InSeasonNow({ limit = 4, month }: InSeasonNowProps) {
       {/* Section Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary-100 dark:bg-primary-900/30">
-            <Leaf className="w-5 h-5 text-primary-600 dark:text-primary-400" />
+          <div className="flex items-center justify-center w-10 h-10 rounded-[2px] bg-surface-2">
+            <Leaf className="w-5 h-5 text-brand" />
           </div>
           <div>
             <h2
               id="in-season-heading"
-              className="text-heading font-semibold text-slate-900 dark:text-slate-50"
+              className="text-heading font-semibold text-ink"
             >
               In Season Now
             </h2>
-            <p className="text-caption text-slate-600 dark:text-slate-300">
+            <p className="text-caption text-ink-muted">
               Fresh picks for {monthName}
             </p>
           </div>
@@ -70,7 +70,7 @@ export function InSeasonNow({ limit = 4, month }: InSeasonNowProps) {
 
         <Link
           href="/seasonal"
-          className="inline-flex items-center gap-1 text-caption font-medium text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 transition-colors min-h-[44px] px-3"
+          className="inline-flex items-center gap-1 text-caption font-medium text-brand hover:text-brand-hover transition-colors min-h-[44px] px-3"
         >
           View all
           <ChevronRight className="w-4 h-4" />
@@ -96,10 +96,10 @@ function ProduceCard({ produce }: { produce: SeasonalProduce }) {
   return (
     <Link
       href={`/seasonal/${produce.slug}`}
-      className="group block rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 hover:border-primary-300 dark:hover:border-primary-600 transition-colors"
+      className="group block rounded-[2px] overflow-hidden bg-surface border border-border hover:border-brand transition-colors"
     >
       {/* Image */}
-      <div className="relative aspect-square bg-slate-100 dark:bg-slate-800">
+      <div className="relative aspect-square bg-surface-2">
         {firstImage ? (
           <Image
             src={firstImage.src}
@@ -110,7 +110,7 @@ function ProduceCard({ produce }: { produce: SeasonalProduce }) {
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center">
-            <Leaf className="w-8 h-8 text-slate-500 dark:text-slate-400" />
+            <Leaf className="w-8 h-8 text-ink-subtle" />
           </div>
         )}
 
@@ -122,10 +122,10 @@ function ProduceCard({ produce }: { produce: SeasonalProduce }) {
 
       {/* Content */}
       <div className="p-3">
-        <h3 className="text-body font-semibold text-slate-900 dark:text-slate-50 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors truncate">
+        <h3 className="text-body font-semibold text-ink group-hover:text-brand transition-colors truncate">
           {produce.name}
         </h3>
-        <p className="text-small text-slate-600 dark:text-slate-300 mt-1">
+        <p className="text-small text-ink-muted mt-1">
           {formatSeasonMonths(produce.monthsInSeason)}
         </p>
       </div>
@@ -134,30 +134,29 @@ function ProduceCard({ produce }: { produce: SeasonalProduce }) {
 }
 
 /**
- * Season status badge with appropriate colors.
+ * Season status badge — Pitti Press palette, all solid for legibility over photography.
  */
 function SeasonStatusBadge({ status }: { status: SeasonalProduce['seasonStatus'] }) {
-  // WCAG AA compliant color combinations
   const config = {
     peak: {
       icon: Sparkles,
       label: 'Peak',
-      className: 'bg-status-open text-status-open-contrast' // Green with white
+      className: 'bg-brand text-brand-text'
     },
     starting: {
       icon: Sunrise,
       label: 'Just Started',
-      className: 'bg-sky-600 text-white' // Darkened for contrast
+      className: 'bg-surface text-ink border border-border'
     },
     'in-season': {
       icon: Leaf,
       label: 'In Season',
-      className: 'bg-primary-600 text-white' // Darkened for contrast
+      className: 'bg-accent text-accent-text'
     },
     ending: {
       icon: Clock,
       label: 'Ending Soon',
-      className: 'bg-amber-600 text-slate-900' // Dark text on amber for AA compliance
+      className: 'bg-ink text-paper'
     }
   }
 
@@ -167,7 +166,7 @@ function SeasonStatusBadge({ status }: { status: SeasonalProduce['seasonStatus']
     <span
       className={`
         inline-flex items-center gap-1 px-2 py-1 rounded-full
-        text-small font-semibold backdrop-blur-sm shadow-sm
+        text-small font-semibold shadow-sm
         ${className}
       `}
     >

@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma'
 import { Prisma } from '@prisma/client'
 import { createRouteLogger } from '@/lib/logger'
 import { handleApiError } from '@/lib/errors'
+import { mapFarmImages } from './_image'
 
 // Prisma query result type with all relations
 type FarmWithRelations = Prisma.FarmGetPayload<{
@@ -167,10 +168,7 @@ async function farmsHandler(request: NextRequest) {
       },
       hours: farm.openingHours || [],
       offerings: farm.categories.map(fc => fc.category.name),
-      images: farm.images.map(img => ({
-        url: img.url,
-        alt: img.altText || farm.name
-      })),
+      images: mapFarmImages(farm.images, farm.name),
       verified: farm.verified,
       rating: farm.googleRating ? Number(farm.googleRating) : null,
       user_ratings_total: farm.googleReviewsCount || 0,

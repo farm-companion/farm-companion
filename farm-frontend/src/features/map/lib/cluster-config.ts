@@ -11,7 +11,7 @@
  */
 export const CLUSTER_EASING = {
   // Smooth ease-out for appearing clusters
-  APPEAR: 'cubic-bezier(0.34, 1.56, 0.64, 1)', // Slightly bouncy
+  APPEAR: 'cubic-bezier(0.22, 1, 0.36, 1)', // ease-out-quint
   // Gentle ease for zoom transitions
   ZOOM: 'cubic-bezier(0.4, 0, 0.2, 1)', // Material Design standard
   // Snappy ease for hover states

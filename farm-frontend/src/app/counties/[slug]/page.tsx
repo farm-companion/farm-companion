@@ -104,7 +104,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
   const totalPages = Math.ceil(total / limit)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+    <div className="min-h-screen bg-paper">
       {/* Structured Data - CollectionPage */}
       <script
         type="application/ld+json"
@@ -178,18 +178,18 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
       )}
 
       {/* Breadcrumbs */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
+      <div className="border-b border-border">
         <div className="container mx-auto px-4 py-4">
-          <nav className="flex items-center gap-2 text-caption text-slate-600 dark:text-slate-400">
-            <Link href="/" className="hover:text-brand-primary transition-colors">
+          <nav className="flex items-center gap-2 text-caption text-ink-muted">
+            <Link href="/" className="hover:text-brand transition-colors">
               Home
             </Link>
             <span>/</span>
-            <Link href="/counties" className="hover:text-brand-primary transition-colors">
+            <Link href="/counties" className="hover:text-brand transition-colors">
               Counties
             </Link>
             <span>/</span>
-            <span className="font-medium text-slate-900 dark:text-slate-100">{countyName}</span>
+            <span className="font-medium text-ink">{countyName}</span>
           </nav>
         </div>
       </div>
@@ -214,8 +214,8 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
 
               {/* Related Counties */}
               {relatedCounties.length > 0 && (
-                <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
-                  <h2 className="font-semibold text-slate-900 dark:text-white mb-3">
+                <div className="bg-surface rounded-[2px] border border-border p-4">
+                  <h2 className="font-semibold text-ink mb-3">
                     Nearby Counties
                   </h2>
                   <div className="space-y-2">
@@ -223,18 +223,18 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
                       <Link
                         key={county.slug}
                         href={`/counties/${county.slug}`}
-                        className="block px-3 py-2 rounded-md text-caption text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                        className="block px-3 py-2 rounded-[2px] text-caption text-ink hover:bg-surface-2 transition-colors"
                       >
                         <div className="flex items-center justify-between">
                           <span>{county.name}</span>
-                          <span className="text-small text-slate-600 dark:text-slate-400">({county.farmCount})</span>
+                          <span className="text-small text-ink-muted">({county.farmCount})</span>
                         </div>
                       </Link>
                     ))}
                   </div>
                   <Link
                     href="/counties"
-                    className="block mt-4 text-caption text-brand-primary hover:underline text-center"
+                    className="block mt-4 text-caption text-brand hover:underline text-center"
                   >
                     View all counties →
                   </Link>
@@ -247,10 +247,10 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
           <main className="lg:col-span-3">
             {/* Results Header */}
             <div className="mb-6">
-              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-bold text-ink mb-2">
                 {category ? `Farms in ${countyName}` : `All Farms in ${countyName}`}
               </h2>
-              <p className="text-slate-600 dark:text-slate-400">
+              <p className="text-ink-muted">
                 Showing {farms.length} of {total} {total === 1 ? 'result' : 'results'}
                 {category && (
                   <>
@@ -258,7 +258,7 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
                     in selected category{' '}
                     <Link
                       href={`/counties/${slug}`}
-                      className="text-brand-primary hover:underline"
+                      className="text-brand hover:underline"
                     >
                       (Clear filter)
                     </Link>
@@ -282,20 +282,20 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
                     {currentPage > 1 && (
                       <Link
                         href={`/counties/${slug}?page=${currentPage - 1}${category ? `&category=${category}` : ''}`}
-                        className="px-4 py-2 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        className="px-4 py-2 rounded-[2px] bg-surface border border-border text-ink hover:bg-surface-2 transition-colors"
                       >
                         Previous
                       </Link>
                     )}
 
-                    <span className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                    <span className="px-4 py-2 text-ink-muted">
                       Page {currentPage} of {totalPages}
                     </span>
 
                     {hasMore && (
                       <Link
                         href={`/counties/${slug}?page=${currentPage + 1}${category ? `&category=${category}` : ''}`}
-                        className="px-4 py-2 rounded-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                        className="px-4 py-2 rounded-[2px] bg-surface border border-border text-ink hover:bg-surface-2 transition-colors"
                       >
                         Next
                       </Link>
@@ -305,14 +305,14 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
               </>
             ) : (
               <div className="text-center py-12">
-                <p className="text-body text-slate-600 dark:text-slate-400 mb-4">
+                <p className="text-body text-ink-muted mb-4">
                   No farms found in {countyName}
                   {category && ' with the selected category'}.
                 </p>
                 {category && (
                   <Link
                     href={`/counties/${slug}`}
-                    className="text-brand-primary hover:underline"
+                    className="text-brand hover:underline"
                   >
                     View all farms in {countyName}
                   </Link>
@@ -325,19 +325,19 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
         {/* FAQ Section */}
         {countyFAQs.length > 0 && (
           <section className="mt-12 max-w-4xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-slate-900 dark:text-white mb-8 text-center">
+            <h2 className="text-3xl font-bold text-ink mb-8 text-center">
               Frequently Asked Questions
             </h2>
             <div className="space-y-6">
               {countyFAQs.map((faq: { question: string; answer: string }, index: number) => (
                 <div
                   key={index}
-                  className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6"
+                  className="bg-surface rounded-[2px] border border-border p-6"
                 >
-                  <h3 className="text-body font-semibold text-slate-900 dark:text-white mb-3">
+                  <h3 className="text-body font-semibold text-ink mb-3">
                     {faq.question}
                   </h3>
-                  <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <p className="text-ink-muted leading-relaxed">
                     {faq.answer}
                   </p>
                 </div>

@@ -14,7 +14,8 @@ import { getContrastTextColor } from '@/lib/contrast'
 import { getPinForFarm, generateStatusMarkerSVG, isFarmOpen } from '../lib/pin-icons'
 import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } from '../lib/accessibility'
 import { CLUSTER_ZOOM_THRESHOLDS } from '../lib/cluster-config'
-import { getMapStyle } from '@/lib/map-config'
+import { getMapStyle, getMapAttribution } from '@/lib/map-config'
+import { recolorMap, isDarkTheme } from '@/lib/map-theme'
 import LocationControl from './LocationControl'
 import MapControls from './MapControls'
 import ClusterPreview from './ClusterPreview'
@@ -172,10 +173,24 @@ export default function MapLibreShell({
       pitchWithRotate: false,
     })
 
-    // Add attribution control separately
-    map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right')
+    // Add attribution control separately. customAttribution is provider-aware:
+    // the keyed Stadia style embeds its own credit (so we add nothing), the
+    // keyless OpenFreeMap path adds only the provider courtesy line on top of
+    // the source's own OpenMapTiles + OSM credit.
+    map.addControl(
+      new maplibregl.AttributionControl({
+        compact: true,
+        customAttribution: getMapAttribution(),
+      }),
+      'bottom-right'
+    )
 
     map.on('load', () => {
+      // Repaint the neutral vector basemap to the Pitti Press brand palette.
+      // Runs once the style is loaded; re-applied on theme flip is unnecessary
+      // today (ThemeProvider forces light), but isDarkTheme keeps it correct.
+      recolorMap(map, isDarkTheme())
+
       setIsLoading(false)
       setMapInstance(map)
       mapRef.current = map
@@ -590,10 +605,10 @@ export default function MapLibreShell({
   return (
     <div className={`${className} relative map-container`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 z-10 pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center bg-surface-2 z-10 pointer-events-none">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-serum mx-auto mb-2" />
-            <p className="text-sm text-gray-600">Harvesting latest updates...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand border-t-transparent mx-auto mb-2" />
+            <p className="text-sm text-ink-muted">Harvesting latest updates...</p>
           </div>
         </div>
       )}
@@ -608,7 +623,7 @@ export default function MapLibreShell({
           width: '100%',
           height: '100%',
           minHeight: '300px',
-          background: '#e5e7eb' // Light gray fallback while loading
+          background: '#F2EBDA' // Cream (--paper) so the pre-tile flash is on-brand
         }}
       />
 

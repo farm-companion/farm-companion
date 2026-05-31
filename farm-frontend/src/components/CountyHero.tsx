@@ -29,7 +29,7 @@ interface CountyHeroProps {
 
 function CountyDescription({ countyName, total }: { countyName: string; total: number }) {
   return (
-    <p className="text-body md:text-heading text-slate-600 dark:text-slate-400 mb-6">
+    <p className="text-body md:text-heading text-ink-muted mb-6">
       Discover {total} local farm shops, pick your own farms, organic producers, and
       agricultural businesses in {countyName}. Support local farmers and enjoy fresh,
       locally-sourced produce.
@@ -82,7 +82,7 @@ export function CountyHero({ countyName, total, stats, imageUrl }: CountyHeroPro
           </div>
         </section>
         {/* Details bar: description and badges live here so the hero stays clean. */}
-        <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+        <section className="border-b border-border bg-surface">
           <div className="container mx-auto px-4 py-6 md:py-8">
             <div className="max-w-3xl">
               <CountyDescription countyName={countyName} total={total} />
@@ -96,10 +96,10 @@ export function CountyHero({ countyName, total, stats, imageUrl }: CountyHeroPro
 
   // Fallback: typography-led hero, visually identical to pre-1.1.3d-2.
   return (
-    <section className="border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <section className="border-b border-border bg-surface">
       <div className="container mx-auto px-4 py-12 md:py-16">
         <div className="max-w-3xl">
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 dark:text-white mb-4">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-ink mb-4">
             Farms &amp; Producers in {countyName}
           </h1>
           <CountyDescription countyName={countyName} total={total} />

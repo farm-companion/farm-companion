@@ -76,7 +76,7 @@ export default async function CountiesPage() {
   const farmsByCounty = groupFarmsByCounty(farms)
 
   return (
-    <main className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
+    <main className="bg-paper">
       {/* Professional Hero Section with Counties Page Image */}
       <section data-immersive-hero="dark" className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
         {/* Background Image with Professional Handling */}
@@ -100,7 +100,7 @@ export default async function CountiesPage() {
           {/* Subtle texture overlay for depth */}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
         </div>
-        
+
         {/* Content Overlay */}
         <div className="relative h-full flex items-center justify-center">
           <div className="text-center max-w-4xl mx-auto px-6">
@@ -109,7 +109,7 @@ export default async function CountiesPage() {
             </div>
             <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
               Farm Shops by
-              <span className="block text-primary-400 drop-shadow-lg">County</span>
+              <span className="block text-brand drop-shadow-lg">County</span>
             </h1>
             <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
               Discover authentic farm shops organized by county across the UK.
@@ -120,14 +120,14 @@ export default async function CountiesPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link
                 href="#counties-content"
-                className="bg-slate-900 text-white px-8 py-4 rounded-lg font-semibold hover:bg-slate-800 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl backdrop-blur-sm"
+                className="bg-brand text-brand-text px-8 py-4 rounded-[2px] font-semibold hover:bg-brand-hover transition-colors duration-200 inline-flex items-center justify-center gap-2"
               >
                 <MapPin className="w-5 h-5" />
                 Browse Counties
               </Link>
               <Link
                 href="/map"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-lg font-semibold hover:bg-white/20 transition-all duration-200 inline-flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl"
+                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-[2px] font-semibold hover:bg-white/20 transition-colors duration-200 inline-flex items-center justify-center gap-2"
               >
                 View Map
                 <ArrowRight className="w-5 h-5" />
@@ -145,7 +145,7 @@ export default async function CountiesPage() {
           {/* Interactive Map */}
           <div className="lg:col-span-1">
             <div className="sticky top-24">
-              <h2 className="text-heading font-semibold text-slate-900 dark:text-white mb-4 text-center lg:text-left">
+              <h2 className="text-heading font-semibold text-ink mb-4 text-center lg:text-left">
                 Explore by Region
               </h2>
               <UKCountyMap
@@ -155,7 +155,7 @@ export default async function CountiesPage() {
                   farmCount: farms.length,
                 }))}
               />
-              <p className="mt-4 text-small text-slate-600 dark:text-slate-400 text-center">
+              <p className="mt-4 text-small text-ink-muted text-center">
                 Click a region to explore
               </p>
             </div>
@@ -179,38 +179,38 @@ export default async function CountiesPage() {
                 <Link
                   key={county}
                   href={`/counties/${county.toLowerCase().replace(/\s+/g, '-')}`}
-                  className="group block bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 hover:border-slate-300 dark:hover:border-slate-700 transition-all duration-200"
+                  className="group block bg-surface rounded-[2px] border border-border p-4 sm:p-5 hover:border-border-strong transition-colors duration-200"
                 >
                   {/* Mobile: Stacked | Desktop: Horizontal */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
                     {/* County Name + Badge */}
                     <div className="flex items-center gap-3 sm:min-w-[280px]">
-                      <h2 className="text-body font-semibold text-slate-900 dark:text-white group-hover:text-brand-primary transition-colors">
+                      <h2 className="text-body font-semibold text-ink group-hover:text-brand transition-colors">
                         {county}
                       </h2>
                       <CountyDensityBadge count={countyFarms.length} />
                     </div>
 
                     {/* Farm Names - Hidden on mobile, shown on tablet+ */}
-                    <div className="hidden sm:flex flex-1 items-center gap-2 text-caption text-slate-600 dark:text-slate-400 overflow-hidden">
+                    <div className="hidden sm:flex flex-1 items-center gap-2 text-caption text-ink-muted overflow-hidden">
                       {countyFarms.slice(0, 3).map((farm: { id: string; slug: string; name: string }, idx: number) => (
                         <span key={farm.id} className="flex items-center">
-                          {idx > 0 && <span className="mx-2 text-slate-300 dark:text-slate-600">&middot;</span>}
+                          {idx > 0 && <span className="mx-2 text-ink-subtle">&middot;</span>}
                           <span className="truncate max-w-[150px]">{farm.name}</span>
                         </span>
                       ))}
                       {countyFarms.length > 3 && (
-                        <span className="text-slate-500 dark:text-slate-500 ml-1">+{countyFarms.length - 3} more</span>
+                        <span className="text-ink-muted ml-1">+{countyFarms.length - 3} more</span>
                       )}
                     </div>
 
                     {/* Mobile: Show farm count */}
-                    <div className="sm:hidden text-small text-slate-600 dark:text-slate-400">
+                    <div className="sm:hidden text-small text-ink-muted">
                       {countyFarms.length} farm {countyFarms.length === 1 ? 'shop' : 'shops'}
                     </div>
 
                     {/* Arrow indicator */}
-                    <div className="hidden sm:flex items-center text-slate-600 dark:text-slate-400 group-hover:text-brand-primary transition-colors">
+                    <div className="hidden sm:flex items-center text-ink-muted group-hover:text-brand transition-colors">
                       <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>
@@ -222,7 +222,7 @@ export default async function CountiesPage() {
 
         {/* Summary */}
         <div className="mt-12 text-center">
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-ink-muted">
             Found {Object.keys(farmsByCounty).length} counties with {farms.length} farm shops across the UK.
           </p>
         </div>

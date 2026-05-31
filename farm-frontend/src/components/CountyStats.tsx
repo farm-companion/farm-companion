@@ -20,35 +20,35 @@ export function CountyStats({ stats, countyName }: CountyStatsProps) {
   return (
     <div className="space-y-6">
       {/* Overview Stats */}
-      <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
-        <h2 className="font-semibold text-slate-900 dark:text-white mb-4">Quick Stats</h2>
+      <div className="bg-surface rounded-[2px] border border-border p-6">
+        <h2 className="font-semibold text-ink mb-4">Quick Stats</h2>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="text-2xl font-bold text-brand-primary">{stats.total}</div>
-            <div className="text-caption text-slate-600 dark:text-slate-400">Total Farms</div>
+            <div className="text-2xl font-bold text-brand">{stats.total}</div>
+            <div className="text-caption text-ink-muted">Total Farms</div>
           </div>
           {stats.verified > 0 && (
             <div>
-              <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+              <div className="text-2xl font-bold text-accent">
                 {stats.verified}
               </div>
-              <div className="text-caption text-slate-600 dark:text-slate-400">Verified</div>
+              <div className="text-caption text-ink-muted">Verified</div>
             </div>
           )}
           {stats.featured > 0 && (
             <div>
-              <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
+              <div className="text-2xl font-bold text-ink">
                 {stats.featured}
               </div>
-              <div className="text-caption text-slate-600 dark:text-slate-400">Featured</div>
+              <div className="text-caption text-ink-muted">Featured</div>
             </div>
           )}
           {stats.averageRating > 0 && (
             <div>
-              <div className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+              <div className="text-2xl font-bold text-ink">
                 {stats.averageRating.toFixed(1)}
               </div>
-              <div className="text-caption text-slate-600 dark:text-slate-400">Avg Rating</div>
+              <div className="text-caption text-ink-muted">Avg Rating</div>
             </div>
           )}
         </div>
@@ -56,8 +56,8 @@ export function CountyStats({ stats, countyName }: CountyStatsProps) {
 
       {/* Top Categories */}
       {stats.topCategories.length > 0 && (
-        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 p-6">
-          <h2 className="font-semibold text-slate-900 dark:text-white mb-4">
+        <div className="bg-surface rounded-[2px] border border-border p-6">
+          <h2 className="font-semibold text-ink mb-4">
             Popular Categories in {countyName}
           </h2>
           <div className="space-y-3">
@@ -65,9 +65,9 @@ export function CountyStats({ stats, countyName }: CountyStatsProps) {
               <Link
                 key={category.slug}
                 href={`/categories/${category.slug}?county=${countyName}`}
-                className="flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group"
+                className="flex items-center justify-between p-3 rounded-[2px] hover:bg-surface-2 transition-colors group"
               >
-                <span className="text-slate-700 dark:text-slate-300 group-hover:text-brand-primary transition-colors">
+                <span className="text-ink group-hover:text-brand transition-colors">
                   {category.name}
                 </span>
                 <Badge variant="outline" size="sm">
@@ -78,7 +78,7 @@ export function CountyStats({ stats, countyName }: CountyStatsProps) {
           </div>
           <Link
             href="/categories"
-            className="block mt-4 text-caption text-brand-primary hover:underline text-center"
+            className="block mt-4 text-caption text-brand hover:underline text-center"
           >
             View all categories →
           </Link>

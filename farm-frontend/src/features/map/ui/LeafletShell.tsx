@@ -1,5 +1,9 @@
 'use client'
 
+// rationale: Cohesive Leaflet provider shell (map lifecycle, marker clustering,
+// a11y wiring, brand tint) at parity with MapLibreShell; splitting risks
+// duplicating provider lifecycle. Layer extraction tracked as a future slice.
+
 import { useEffect, useRef, useState, useCallback } from 'react'
 import type { FarmShop } from '@/types/farm'
 import { getPinForFarm, isFarmOpen, generateStatusMarkerSVG, STATUS_COLORS } from '../lib/pin-icons'
@@ -215,6 +219,14 @@ export default function LeafletShell({
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         maxZoom: 19
       }).addTo(map)
+
+      // Brand tint: warm the raster tiles toward Cream paper so the Leaflet
+      // fallback reads in the Pitti Press palette, not stock OSM. MapLibre gets
+      // a true vector recolor; raster can only be filtered, so keep it subtle.
+      const tilePane = map.getPane('tilePane')
+      if (tilePane) {
+        tilePane.style.filter = 'sepia(0.12) saturate(0.82) brightness(1.03) hue-rotate(-6deg)'
+      }
 
       // Add zoom control to top-right
       L.control.zoom({ position: 'topright' }).addTo(map)
@@ -474,10 +486,10 @@ export default function LeafletShell({
   return (
     <div className={`${className} relative`}>
       {isLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-background-surface dark:bg-background z-10 pointer-events-none">
+        <div className="absolute inset-0 flex items-center justify-center bg-surface z-10 pointer-events-none">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2" />
-            <p className="text-sm text-foreground-muted">Loading map...</p>
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-brand border-t-transparent mx-auto mb-2" />
+            <p className="text-sm text-ink-muted">Loading map...</p>
           </div>
         </div>
       )}
