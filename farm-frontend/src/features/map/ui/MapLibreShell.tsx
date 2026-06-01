@@ -15,6 +15,7 @@ import { getFarmMarkerLabel, getClusterMarkerLabel, announce, ANNOUNCEMENTS } fr
 import { CLUSTER_ZOOM_THRESHOLDS, getClusterBrandStyle } from '../lib/cluster-config'
 import { getMapStyle, getMapAttribution } from '@/lib/map-config'
 import { recolorMap, isDarkTheme } from '@/lib/map-theme'
+import { declutterMap } from '@/lib/map-declutter'
 import LocationControl from './LocationControl'
 import MapControls from './MapControls'
 import ClusterPreview from './ClusterPreview'
@@ -195,6 +196,8 @@ export default function MapLibreShell({
       // Runs once the style is loaded; re-applied on theme flip is unnecessary
       // today (ThemeProvider forces light), but isDarkTheme keeps it correct.
       recolorMap(map, isDarkTheme())
+      // Then quiet the basemap: suppress labels, thin minor roads (calm canvas).
+      declutterMap(map)
 
       setIsLoading(false)
       setMapInstance(map)

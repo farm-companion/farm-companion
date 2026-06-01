@@ -1,5 +1,22 @@
 # FarmCompanion Execution Ledger
 
+### 2026-06-01 — Komoot Slice 1: calm canvas (basemap declutter)
+
+**Goal:** Stop `/map` reading as a recolored default basemap. The recolor in `lib/map-theme.ts` only repaints layers; it never reduces label density or thins roads, so the map stayed as busy as the OSM/Stadia default. Make it a calm canvas like Komoot.
+
+**Slice (DONE, TDD red->green):**
+- `lib/map-declutter.ts` (new): `classifyDeclutter` (pure, OpenMapTiles id/source-layer based, mirrors `classifyLayer`) returns hide | demote | thin | thinMajor | null. `declutterMap(map)` applies on load after `recolorMap`: hides POIs + housenumbers, demotes hamlet/suburb/place_other + road-name labels to higher min-zoom, thins minor/secondary/tertiary roads to hairlines (line-width interp + 0.55 opacity), and scales major roads (motorway/trunk/primary) from a hairline at the overview to normal when zoomed so the motorway web no longer dominates the UK view. Rail, water, towns/cities/regions/countries untouched. Swallows per-layer errors.
+- `lib/map-declutter.test.ts` (new): 23 node:test fixtures using real Positron layer ids (poi/housenumber -> hide; place_village/_suburb/_other + road labels -> demote; minor/secondary/service/path -> thin; motorway/trunk/primary -> thinMajor; rail/water/town/city/country -> keep). Caught and fixed a regex bug where `/poi/` matched "water_point".
+- `MapLibreShell.tsx`: calls `declutterMap(map)` immediately after `recolorMap` in the load handler.
+
+**Verified (ran, passed):** `tsx --test` 23/23; `tsc --noEmit` 0 errors (the earlier "86 errors" report was phantom output during a tool-transport glitch — there are none); `next build` exit 0. Live Playwright on :3001 — DESKTOP: at UK overview the motorway network rendered as faint hairlines (was thick dark) and at z7-8 over Northumberland the hamlet labels + minor-road web are gone vs the original complaint screenshot; screenshots `map-slice1b-overview.png`, `map-slice1-z10.png`.
+
+**Reverted / corrected:** Edited `FarmListRow.tsx` first but it is dead code (imported nowhere); the live desktop panel is `FarmListCard.tsx`, which is already photo-forward with intentional editorial monograms. Reverted `FarmListRow.tsx`; no list change shipped.
+
+**Risk/rollback:** Presentation only; no route/data/SEO change. `declutterMap` only sets layout/paint and swallows per-layer errors, so an unmatched style cannot break the map. Rollback = remove the one `declutterMap` call + delete the two new files.
+
+**Next slice:** Slice 2 — demote the multilingual ocean/sea label at the overview, then marker selected/hover craft.
+
 ### 2026-05-31 — Map redesign Slice M3 (two-tier pins): dots when zoomed out, branded icons when zoomed in
 
 **Goal:** Cut icon clutter on the wide view by rendering individual (declustered) pins as calm status dots below town zoom and full branded category icons at/above it, while keeping mobile tap targets intact.
