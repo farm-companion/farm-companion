@@ -2,11 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
-import { X, Phone, Navigation, Share2, Circle, ChevronRight, Leaf } from 'lucide-react'
+import { X, Phone, Navigation, Share2, Circle, ChevronRight } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
-import { getImageUrl } from '@/types/farm'
 import { formatOpeningStatus } from '@/lib/opening-hours'
 import { pittiFarmImageUrl } from '@/data/pitti-farms'
+import { farmMonogram, resolveFarmImagery, shortSource } from '@/lib/farm-imagery'
 import {
   truncateHook,
   getOpeningTone,
@@ -101,14 +101,14 @@ export default function FarmPreviewCard({
     return () => el.removeEventListener('keydown', handleKeyDown)
   }, [])
 
-  // Image resolution: admin/Apothecary (already filtered by upstream
-  // queries to exclude ai_pitti/ai_generator) wins; per-farm Pitti
-  // illustration (Slice 1.1.3d-3 manifest) is the next fallback. Pitti
-  // is reserved for PLACE surfaces, and the map popover is a PLACE
-  // context. Manifest is empty at slice merge so behaviour is unchanged
-  // until a slug is enrolled.
-  const farmImage = farm.images?.[0] ? getImageUrl(farm.images[0]) : null
-  const heroImage = farmImage ?? pittiFarmImageUrl(farm.slug) ?? undefined
+  // Image resolution (Komoot S2: same confidence hierarchy as FarmListCard):
+  // owner/admin/user photo wins, then a CC photo with its attribution cue,
+  // then the per-farm Pitti illustration (Slice 1.1.3d-3 manifest, empty
+  // until a slug is enrolled), then the branded monogram tile. The map
+  // popover is a PLACE surface, so Pitti is allowed here.
+  const imagery = resolveFarmImagery(farm)
+  const heroImage = imagery.url ?? pittiFarmImageUrl(farm.slug) ?? undefined
+  const isCcPhoto = imagery.kind === 'cc'
   const hasHours = farm.hours && farm.hours.length > 0
   const openingStatus = hasHours ? formatOpeningStatus(farm.hours!) : null
   const tone = getOpeningTone(openingStatus?.isOpen)
@@ -170,9 +170,23 @@ export default function FarmPreviewCard({
             loading="lazy"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Leaf className="w-12 h-12 text-ink-subtle" />
+          <div
+            aria-hidden
+            className="flex h-full w-full items-center justify-center bg-surface-2"
+          >
+            <span className="font-clash text-5xl font-semibold tracking-tight text-ink-subtle">
+              {farmMonogram(farm.name)}
+            </span>
           </div>
+        )}
+        {isCcPhoto && imagery.image && (
+          <span
+            className="absolute inset-x-0 bottom-0 truncate bg-ink px-1.5 py-0.5 font-mono text-[9px]
+              uppercase tracking-[0.12em] text-paper"
+            title={imagery.image.attribution ? `Nearby · ${imagery.image.attribution}` : 'Nearby image'}
+          >
+            Nearby · &copy; {shortSource(imagery.image)}
+          </span>
         )}
       </div>
 

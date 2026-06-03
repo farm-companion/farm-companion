@@ -1,9 +1,9 @@
 'use client'
 
 import Image from 'next/image'
-import type { FarmShop, FarmImage } from '@/types/farm'
-import { getImageUrl } from '@/types/farm'
+import type { FarmShop } from '@/types/farm'
 import { formatOpeningStatus } from '@/lib/opening-hours'
+import { farmMonogram, resolveFarmImagery, shortSource } from '@/lib/farm-imagery'
 
 interface FarmListCardProps {
   farm: FarmShop
@@ -12,46 +12,6 @@ interface FarmListCardProps {
   onSelect: (farmId: string) => void
   onHover?: (farmId: string | null) => void
   formatDistance?: (distance: number) => string
-}
-
-/** Owner-grade provenance: a real submitted photo ("this is the farm"). */
-const OWNER_PROVENANCE = new Set(['owner', 'admin', 'user'])
-
-/** Coerce the legacy string-or-FarmImage first image into a FarmImage shape. */
-function firstImage(farm: FarmShop): FarmImage | undefined {
-  const raw = farm.images?.[0]
-  if (!raw) return undefined
-  return typeof raw === 'string' ? { url: raw } : raw
-}
-
-/** Short, human source label for a CC attribution affordance. */
-function shortSource(img: FarmImage): string {
-  if (img.sourceUrl) {
-    try {
-      return new URL(img.sourceUrl).hostname.replace(/^www\./, '')
-    } catch {
-      // fall through to the attribution string
-    }
-  }
-  return (img.attribution ?? 'source').split(/[,(]/)[0].trim().slice(0, 24)
-}
-
-/**
- * Editorial monogram for the no-photo fallback tile: up to two initials drawn
- * from the leading significant words. A standalone "&" connector is ignored, a
- * leading digit is kept, and odd/empty names degrade to the first character or
- * a neutral mark so the tile is never blank.
- */
-function farmMonogram(name: string): string {
-  const words = (name ?? '')
-    .trim()
-    .split(/\s+/)
-    .filter((w) => w && w !== '&')
-  if (words.length === 0) return '·'
-  if (words.length === 1) {
-    return words[0].slice(0, 2).toUpperCase()
-  }
-  return (words[0][0] + words[1][0]).toUpperCase()
 }
 
 /**
@@ -81,11 +41,11 @@ export default function FarmListCard({
   const openingStatus = hasHours ? formatOpeningStatus(farm.hours!) : null
   const isOpen = openingStatus?.isOpen === true
 
-  const img = firstImage(farm)
-  const imgUrl = img ? getImageUrl(img) : undefined
-  const isOwnerPhoto = !!img?.uploadedBy && OWNER_PROVENANCE.has(img.uploadedBy)
-  const isCcPhoto = !!imgUrl && !isOwnerPhoto && !!img?.attribution
-  const showPhoto = !!imgUrl && (isOwnerPhoto || isCcPhoto)
+  const imagery = resolveFarmImagery(farm)
+  const img = imagery.image
+  const imgUrl = imagery.url
+  const isCcPhoto = imagery.kind === 'cc'
+  const showPhoto = imagery.kind !== 'none'
 
   const distanceLabel =
     farm.distance !== undefined && formatDistance

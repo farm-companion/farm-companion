@@ -1,7 +1,10 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
+import Image from 'next/image'
+import { X } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
+import { farmMonogram, resolveFarmImagery } from '@/lib/farm-imagery'
 
 interface ClusterPreviewProps {
   /** Supercluster id of the originating cluster, for return-focus targeting. */
@@ -83,39 +86,75 @@ export default function ClusterPreview({
       ref={containerRef}
       role="region"
       aria-label={`${count} farms nearby`}
-      className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-white dark:bg-zinc-900 rounded-xl shadow-xl border border-zinc-200 dark:border-zinc-700 p-4 z-50"
+      className="absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-80 bg-paper text-ink rounded-2xl
+        shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.10)] border border-border p-4 z-50"
     >
       <div className="flex items-center justify-between mb-3">
-        <h3 className="font-semibold text-zinc-900 dark:text-white">
+        <h3 className="font-clash text-base font-semibold tracking-tight text-ink">
           {count} farms nearby
         </h3>
         <button
           ref={closeButtonRef}
           onClick={onClose}
           aria-label="Close cluster preview"
-          className="p-1 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
+          className="p-1.5 rounded-full hover:bg-surface-2 transition-colors duration-150
+            focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <X className="w-4 h-4" aria-hidden />
         </button>
       </div>
-      <div className="space-y-2 max-h-48 overflow-y-auto">
-        {farms.slice(0, 5).map(farm => (
-          <button
-            key={farm.id}
-            onClick={() => onSelectFarm(farm)}
-            className="w-full text-left p-2 rounded-lg hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors"
-          >
-            <div className="font-medium text-sm text-zinc-900 dark:text-white">{farm.name}</div>
-            <div className="text-xs text-zinc-500 dark:text-zinc-400">{farm.location.city || farm.location.county}</div>
-          </button>
-        ))}
+      <div className="space-y-1 max-h-56 overflow-y-auto">
+        {farms.slice(0, 5).map(farm => {
+          const imagery = resolveFarmImagery(farm)
+          return (
+            <button
+              key={farm.id}
+              onClick={() => onSelectFarm(farm)}
+              className="w-full flex items-center gap-3 text-left p-2 rounded-lg hover:bg-surface-2
+                transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              {/* Thumbnail — same photo-or-monogram hierarchy as the list card. */}
+              <span className="relative h-10 w-10 shrink-0 overflow-hidden rounded-sm bg-surface-2">
+                {imagery.url ? (
+                  <Image
+                    src={imagery.url}
+                    alt=""
+                    fill
+                    sizes="40px"
+                    loading="lazy"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    className="flex h-full w-full items-center justify-center font-clash text-xs
+                      font-semibold tracking-tight text-ink-subtle"
+                  >
+                    {farmMonogram(farm.name)}
+                  </span>
+                )}
+              </span>
+              {/* Farm names are content, not labels: undo the global
+                  button label treatment (accent font, uppercase) per span,
+                  since the unlayered button rule outranks utilities on the
+                  button element itself under Tailwind v4 layering. */}
+              <span className="min-w-0">
+                <span className="block truncate font-body normal-case tracking-normal font-medium text-sm text-ink">
+                  {farm.name}
+                </span>
+                <span className="block truncate font-mono text-[11px] uppercase tracking-[0.1em] text-ink-subtle">
+                  {farm.location.city || farm.location.county}
+                </span>
+              </span>
+            </button>
+          )
+        })}
       </div>
       {farms.length > 5 && (
         <button
           onClick={onViewAll}
-          className="w-full mt-3 py-2 text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:text-cyan-700"
+          className="w-full mt-3 py-2 text-sm font-semibold text-brand hover:text-brand-hover
+            transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand rounded-lg"
         >
           View all {count} farms
         </button>

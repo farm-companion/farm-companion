@@ -1,5 +1,25 @@
 # FarmCompanion Execution Ledger
 
+### 2026-06-03 — Komoot Slice 2: imagery carry-through + English-only sea/country labels
+
+**Goal:** Spec Slice 2 ("Imagery and marker craft"; marker selected/hover already shipped in M3b). Map half: the North Sea label rendered as a six-language slash-pile ("North Sea / Nordsee / Noordzee / Nordsoen / Nordsjoen / Mer du Nord", live prod screenshot) and "BELGIE / BELGIQUE / BELGIEN" likewise. UI half: FarmPreviewCard fell back to a generic Leaf icon, ClusterPreview was off-brand zinc/cyan with no imagery, and FarmListCard kept its photo/monogram logic private.
+
+**Slice (DONE, TDD red->green):**
+- `lib/farm-imagery.ts` (new) + `lib/farm-imagery.test.ts` (new, 17 tests): extracted `farmMonogram`/`shortSource`/`firstImage`/`OWNER_PROVENANCE` from FarmListCard and added `resolveFarmImagery` -> { kind: owner | cc | none, url, image }, the single confidence hierarchy for all map surfaces.
+- `lib/map-declutter.ts` + test (26 tests): new `rename` action (text-field -> coalesce(name:en, name:latin, name)) for `water_name` + country symbol layers. Sea labels are several duplicate points per sea whose tall multilingual piles used to collide each other away; short names no longer do, so point labels get `text-padding: 48` (re-suppresses duplicates) and the line twin gets minzoom 9. Diagnosed against the live style via fiber-walked map instance: both "North Sea" labels were Point features of `water_name_nonocean`.
+- `FarmListCard.tsx`: imports the shared lib, local copies deleted (~40 lines). Render contract unchanged.
+- `FarmPreviewCard.tsx`: provenance-aware hero (owner -> CC -> Pitti manifest -> branded Clash monogram tile, replacing the Leaf icon); CC photos get the same "Nearby (c) source" strip as the list card.
+- `ClusterPreview.tsx`: per-row 40px thumbnail (photo or monogram via the shared lib) + Pitti re-skin: paper/ink/border tokens, Clash heading, mono county line, lucide X, brand "View all" (was zinc/cyan + raw inline SVG). Focus/Escape/return-focus a11y contract untouched. Farm names carry `font-body normal-case tracking-normal` on the span because the unlayered global `button` label rule (globals.css ~408) outranks utilities on the button element itself under Tailwind v4 layering.
+- `FarmListRow.tsx` DELETED: dead code (imported nowhere, verified by grep twice; flagged dead in the 2026-06-01 entry); its uncommitted whitespace residue discarded first.
+
+**Verified (ran, passed):** `pnpm test:unit` 356 pass / 0 fail; `tsc --noEmit` clean; eslint clean on touched files; `npx impeccable detect` on the five touched source files: 0 findings, exit 0 (full `src/` sweep has 14 pre-existing findings, all in untouched admin/email legacy files); `next build` exit 0; live Playwright QA on :3001 desktop + 390px mobile — single English "North Sea" label at the UK overview, English country labels, on-brand cluster card with thumbnails/monograms and mixed-case names, preview card rendering the Pitti tier with on-brand chrome. Preview-card CC-strip and monogram tiers not visually sighted (no such farm in the tested viewport); both are the same unit-tested code path proven visually in FarmListCard.
+
+**Known pre-existing (not this slice):** `react-hooks/set-state-in-effect` eslint error at FarmPreviewCard.tsx:57 (`setMounted` entry-animation effect; present on HEAD, confirmed via stash). Clicking a marker while a ClusterPreview is open leaves both popovers up (panel-language consolidation is spec Slice 3). The mobile compass control overlaps the bottom sheet (Slice 3 chrome work).
+
+**Risk/rollback:** Presentation only; no route/data/SEO change. `rename` swaps a label expression inside the per-layer try/catch, so an unmatched style cannot break the map. Rollback = revert the commit (restores FarmListRow.tsx too).
+
+**Next slice:** Komoot Slice 3 — cohesive chrome: one bottom-right control cluster (zoom, locate, compass, scale) + consistent "Search this area" pill; collapse the scattered farms-in-view/manual-search/nearby cards into one system.
+
 ### 2026-06-01 — Komoot Slice 1: calm canvas (basemap declutter)
 
 **Goal:** Stop `/map` reading as a recolored default basemap. The recolor in `lib/map-theme.ts` only repaints layers; it never reduces label density or thins roads, so the map stayed as busy as the OSM/Stadia default. Make it a calm canvas like Komoot.

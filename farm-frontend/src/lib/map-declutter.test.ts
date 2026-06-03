@@ -20,8 +20,18 @@ const cases: Array<[string, { id: string; type: string; 'source-layer'?: string 
   ['place_town -> keep', { id: 'place_town', type: 'symbol', 'source-layer': 'place' }, null],
   ['place_city -> keep', { id: 'place_city', type: 'symbol', 'source-layer': 'place' }, null],
   ['place_state -> keep', { id: 'place_state', type: 'symbol', 'source-layer': 'place' }, null],
-  ['place_country -> keep', { id: 'place_country_other', type: 'symbol', 'source-layer': 'place' }, null],
-  ['water name -> keep', { id: 'water_name_point', type: 'symbol', 'source-layer': 'water_name' }, null],
+  // Multilingual slash-piles ("North Sea / Nordsee / Noordzee / ...",
+  // "België / Belgique / Belgien") collapse to the English name.
+  ['place_country -> rename', { id: 'place_country_other', type: 'symbol', 'source-layer': 'place' }, { kind: 'rename' }],
+  ['place_country_2 -> rename', { id: 'place_country_2', type: 'symbol', 'source-layer': 'place' }, { kind: 'rename' }],
+  // Sea labels come as several duplicate points per sea; once renamed to a
+  // short single language they stop colliding, so an inflated collision box
+  // (text-padding) re-suppresses the duplicates.
+  ['water name point -> rename + pad', { id: 'water_name_nonocean', type: 'symbol', 'source-layer': 'water_name' }, { kind: 'rename', padding: 48 }],
+  ['water name ocean -> rename + pad', { id: 'water_name_ocean', type: 'symbol', 'source-layer': 'water_name' }, { kind: 'rename', padding: 48 }],
+  // The line-geometry twin of the point label would double-label the sea at
+  // the overview now that both labels are short, so it waits for detail zoom.
+  ['water name line -> rename + demote', { id: 'water_name_line_label', type: 'symbol', 'source-layer': 'water_name' }, { kind: 'rename', minzoom: 9 }],
   ['road_minor -> thin', { id: 'road_minor', type: 'line', 'source-layer': 'transportation' }, { kind: 'thin' }],
   ['road_secondary_tertiary -> thin', { id: 'road_secondary_tertiary', type: 'line', 'source-layer': 'transportation' }, { kind: 'thin' }],
   ['road_service_track -> thin', { id: 'road_service_track', type: 'line', 'source-layer': 'transportation' }, { kind: 'thin' }],

@@ -23,6 +23,7 @@ export type DeclutterAction =
   | { kind: 'demote'; minzoom: number }
   | { kind: 'thin' }
   | { kind: 'thinMajor' }
+  | { kind: 'rename'; minzoom?: number; padding?: number }
   | null
 
 interface MinimalLayer {
@@ -63,6 +64,21 @@ const MAJOR_WIDTH: ExpressionSpecification = [
 const PLACE_MIN_ZOOM = 9
 const ROAD_LABEL_MIN_ZOOM = 11
 
+// Sea and country names arrive as multilingual slash-piles ("North Sea /
+// Nordsee / Noordzee / ..."). Collapse to the English name, falling back to
+// the latin transliteration, then the raw name.
+const ENGLISH_NAME: ExpressionSpecification = [
+  'coalesce',
+  ['get', 'name:en'],
+  ['get', 'name:latin'],
+  ['get', 'name'],
+]
+
+// Collision-box inflation for sea point labels: large enough that the two
+// duplicate "North Sea" points (~45px apart at the UK overview) suppress each
+// other, like the tall multilingual labels used to do by accident.
+const WATER_LABEL_PADDING = 48
+
 /**
  * Decide how to quiet an OpenMapTiles layer, or null to leave it alone. The
  * action expresses intent; declutterMap maps it to the concrete GL call.
@@ -82,6 +98,17 @@ export function classifyDeclutter(layer: MinimalLayer): DeclutterAction {
     if (/place_other|village|hamlet|suburb|neighbourhood|neighborhood|isolated|locality|\bisland\b|allotments|quarter/.test(hay)) {
       return { kind: 'demote', minzoom: PLACE_MIN_ZOOM }
     }
+    // Sea and country labels stay, but in one language instead of six. Seas
+    // carry several duplicate label points (and a line twin), and the tall
+    // multilingual piles used to collide each other away; short names no
+    // longer do, so the line twin waits for detail zoom and point labels get
+    // an inflated collision box to re-suppress their duplicates.
+    if (/water_name/.test(hay)) {
+      return /line/.test(hay)
+        ? { kind: 'rename', minzoom: PLACE_MIN_ZOOM }
+        : { kind: 'rename', padding: WATER_LABEL_PADDING }
+    }
+    if (/country/.test(hay)) return { kind: 'rename' }
     return null
   }
 
@@ -125,6 +152,15 @@ export function declutterMap(map: MapLibreMap): void {
           break
         case 'thinMajor':
           map.setPaintProperty(layer.id, 'line-width', MAJOR_WIDTH)
+          break
+        case 'rename':
+          map.setLayoutProperty(layer.id, 'text-field', ENGLISH_NAME)
+          if (action.minzoom !== undefined) {
+            map.setLayerZoomRange(layer.id, action.minzoom, 24)
+          }
+          if (action.padding !== undefined) {
+            map.setLayoutProperty(layer.id, 'text-padding', action.padding)
+          }
           break
       }
     } catch {
