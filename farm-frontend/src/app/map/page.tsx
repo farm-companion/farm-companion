@@ -1,5 +1,9 @@
 'use client'
 
+// rationale: Map page orchestrator (URL state, farm fetch, filter pipeline,
+// map/list/sheet wiring); splitting the state graph risks desync bugs.
+// Panel/sheet extraction tracked as a future slice.
+
 import { Suspense, useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import dynamic from 'next/dynamic'
@@ -333,18 +337,27 @@ function MapPageContent() {
     }
   }, [farms, router])
 
-  // Handle map bounds change - receives normalized bounds object
+  // Handle map bounds change - receives normalized bounds object.
+  // MapLibreShell registers its moveend listener once (empty-dep init effect),
+  // so this callback must stay stable; read the live toggle through a ref or
+  // the first render's searchAsIMove=true is baked in forever and the
+  // "Search this area" pill can never appear (pre-existing stale closure,
+  // surfaced and fixed in S3b).
+  const searchAsIMoveRef = useRef(searchAsIMove)
+  useEffect(() => {
+    searchAsIMoveRef.current = searchAsIMove
+  }, [searchAsIMove])
   const handleBoundsChange = useCallback((bounds: unknown) => {
     // Normalize bounds to simple object format (works with both Google Maps and MapLibre)
     const normalizedBounds = bounds as { north: number; south: number; east: number; west: number } | null
     if (normalizedBounds) {
       setMapBounds(normalizedBounds)
       // Auto-update active bounds if search-as-I-move is enabled
-      if (searchAsIMove) {
+      if (searchAsIMoveRef.current) {
         setActiveBounds(normalizedBounds)
       }
     }
-  }, [searchAsIMove])
+  }, [])
 
   // Handle manual search this area
   const handleSearchThisArea = useCallback(() => {
@@ -521,17 +534,16 @@ function MapPageContent() {
         </div>
       </div>
 
-      {/* ========== SEARCH AS I MOVE (top right, below search) ========== */}
-      <div className="absolute top-16 md:top-[68px] z-20"
-        style={isDesktop ? { right: `${panelWidth + 24}px` } : { right: '12px' }}
+      {/* ========== SEARCH THIS AREA (top center, below filter pills) ========== */}
+      <div className="absolute top-28 md:top-[120px] left-3 right-3 z-20 pointer-events-none flex justify-center"
+        style={isDesktop ? { left: '24px', right: `${panelWidth + 24}px` } : undefined}
       >
-        <SearchAreaControl
-          searchAsIMove={searchAsIMove}
-          onToggle={handleToggleSearchAsIMove}
-          onSearchThisArea={handleSearchThisArea}
-          hasPendingSearch={!searchAsIMove && mapBounds !== activeBounds}
-          farmCount={filteredFarms.length}
-        />
+        <div className="pointer-events-auto">
+          <SearchAreaControl
+            visible={!searchAsIMove && mapBounds !== activeBounds}
+            onSearchThisArea={handleSearchThisArea}
+          />
+        </div>
       </div>
 
       {/* ========== MARKER PREVIEW (mobile + desktop) ========== */}

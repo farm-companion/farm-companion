@@ -12,9 +12,7 @@ export { default as LocationTracker } from './ui/LocationTracker'
 export { default as LiveLocationTracker } from './ui/LiveLocationTracker'
 export { default as SearchAreaControl } from './ui/SearchAreaControl'
 export { default as FilterOverlayPanel } from './ui/FilterOverlayPanel'
-export { default as LocationControl } from './ui/LocationControl'
-export { default as MapControls } from './ui/MapControls'
-export { default as ScaleBar } from './ui/ScaleBar'
+export { default as MapControlCluster } from './ui/MapControlCluster'
 
 // Hooks
 export { useClusteredMarkers } from './hooks/useClusteredMarkers'

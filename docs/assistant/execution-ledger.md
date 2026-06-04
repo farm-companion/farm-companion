@@ -1,5 +1,24 @@
 # FarmCompanion Execution Ledger
 
+### 2026-06-04 — Komoot Slice 3b: one "Search this area" pill + dead chrome deleted
+
+**Goal:** Spec Slice 3 UI half (child spec 2026-06-04). The top bar carried an off-palette cyan "SEARCH AS I MOVE" toggle pill plus a floating "N farms in view" count pill, duplicating the "Update as I move" checkboxes and counts already in both list headers; on 390px mobile they collided with the filter-pills row.
+
+**Slice (DONE):**
+- `SearchAreaControl.tsx`: collapsed from toggle + cyan button + count pill (71 lines) to one brand pill (44 lines): surface/border/ink tokens, Vermilion RefreshCw, min-h 44px, focus-visible brand ring. Props now { visible, onSearchThisArea }.
+- `page.tsx`: pill repositioned top-right -> top-center below the filter pills (centers over the visible map area, panel-width aware); `visible = !searchAsIMove && mapBounds !== activeBounds`; added the file's missing over-500-lines rationale header.
+- **BUG FIX (pre-existing, surfaced by this slice):** manual search mode never worked. MapLibreShell registers moveend once in its empty-dep init effect, so it forever called the first-render `handleBoundsChange` with `searchAsIMove=true` baked in — activeBounds tracked every move and `hasPendingSearch` could never go true, so the old cyan "Search this area" button was unreachable dead UI. Fixed by making `handleBoundsChange` stable (deps []) and reading the toggle through `searchAsIMoveRef`. The long-standing eslint exhaustive-deps warning on that shell effect was pointing at exactly this.
+- `index.ts`: dropped LocationControl/MapControls/ScaleBar exports, added MapControlCluster.
+- DELETED: `MapControls.tsx`, `LocationControl.tsx`, `ScaleBar.tsx` (grep-proven dead: only barrel exports + self-references remained after S3a).
+
+**Verified (ran, passed):** `tsc --noEmit` clean; eslint 0 errors (9 pre-existing warnings); `npm run test:unit` 369/0; `npx impeccable detect` exit 0 on touched files; `next build` exit 0. Live Playwright on :3001 — DESKTOP 1440px: cyan pills gone; uncheck "Update as I move" + pan -> pill appears centered over the map area (x=530 = exact midpoint), click -> pill disappears and the list re-filters 1997 -> 1154 farms (first time manual search has ever functioned); MOBILE 390px: top bar is just search + filter pills, pill centered, sheet header checkbox intact.
+
+**Known pre-existing (not this slice):** `next build` static generation floods prisma:error connection-pool timeouts (limit 2, 11 workers, 919 pages) yet exits 0 — belongs to Queue 5 connection pooling. Build-time only, runtime unaffected.
+
+**Risk/rollback:** Presentation + one stale-closure fix; no route/data/SEO change. Rollback = revert the commit (restores the three deleted components).
+
+**Next slice:** Spec Slice 4 — preview card polish: photo hero, Open Now + category badges, one clear primary CTA. Slice 3 chrome threads to fold in: marker click while ClusterPreview open leaves both popovers up.
+
 ### 2026-06-04 — Komoot Slice 3a: one bottom-right control cluster
 
 **Goal:** Spec Slice 3 map half (child spec `docs/superpowers/specs/2026-06-04-komoot-s3-cohesive-chrome-design.md`). Chrome was scattered and off-brand: MapControls top-right (zinc/blue), LocationControl bottom-right (four-pill stack, blue/amber), ScaleBar bottom-left (zinc). Two positioning bugs: mobile compass overlapped the bottom sheet; desktop bottom-right controls sat UNDER the 380px list panel (z-20 panel vs z-10 controls at right-4).
