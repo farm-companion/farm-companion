@@ -459,6 +459,7 @@ function MapPageContent() {
           bottomSheetHeight={bottomSheetHeight}
           isDesktop={isDesktop}
           onMapReady={setMapInstance}
+          rightOffset={panelWidth}
           className="w-full h-full"
         />
       </div>

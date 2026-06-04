@@ -1,5 +1,24 @@
 # FarmCompanion Execution Ledger
 
+### 2026-06-04 — Komoot Slice 3a: one bottom-right control cluster
+
+**Goal:** Spec Slice 3 map half (child spec `docs/superpowers/specs/2026-06-04-komoot-s3-cohesive-chrome-design.md`). Chrome was scattered and off-brand: MapControls top-right (zinc/blue), LocationControl bottom-right (four-pill stack, blue/amber), ScaleBar bottom-left (zinc). Two positioning bugs: mobile compass overlapped the bottom sheet; desktop bottom-right controls sat UNDER the 380px list panel (z-20 panel vs z-10 controls at right-4).
+
+**Slice (DONE, TDD red->green):**
+- `lib/scale.ts` (new) + `lib/scale.test.ts` (new, 13 tests): `computeScaleBar(lat, zoom, maxWidth)` extracted pure from ScaleBar (metric only; imperial/nautical paths were dead). Fixtures hand-computed via node before writing the test. Caught the cos(90deg) ~6e-17 float case: poles return null via an explicit |lat| >= 90 guard.
+- `ui/MapControlCluster.tsx` (new): single bottom-right stack — compass (only when bearing != 0, icon counter-rotates, easeTo north), locate (reuses the shell's useMapLocation result: spinner/located-brand/denied-error states, lucide Locate/LocateFixed/LocateOff), zoom +/- segment, quiet open-bracket scale bar. Pitti tokens (bg-surface, border-border, text-ink, brand focus-visible ring). 44px touch targets in explicit px: the 14px root font shrinks rem-based w-11 to 38.5px (measured live). Honors prefers-reduced-motion via getAnimationDuration.
+- `MapLibreShell.tsx`: renders the cluster instead of MapControls + LocationControl + ScaleBar; captures the previously-discarded useMapLocation result (drops LocationControl's duplicate hook instance); attribution control moved bottom-right -> bottom-left (freed by the old ScaleBar, clears the cluster); new `rightOffset` prop; destructures `bottomSheetHeight`. Cluster offsets: bottom = isDesktop ? 24 : sheetHeight + 16; right = isDesktop ? rightOffset + 24 : 16.
+- `MapShellAuto.tsx`: `rightOffset` pass-through. `page.tsx`: passes `rightOffset={panelWidth}` (380 open, 0 collapsed).
+- Fullscreen toggle, tracking toggle, accuracy pill, approximate-location pill CUT (user-approved; map is already full-viewport).
+
+**Verified (ran, passed):** `npm run test:unit` 369/0 (356 + 13 new); `tsc --noEmit` clean; eslint clean on touched files (0 errors; 13 warnings all pre-existing on HEAD); `npx impeccable detect` on touched UI files exit 0; `next build` compiled clean. Live Playwright on :3001 — DESKTOP 1440px: cluster sits left of the open panel (was hidden under it), slides to right edge (1415px) when panel collapses, compass appears on rotate and disappears after reset-north click; MOBILE 390px: cluster floats above the sheet (scale bottom 757 vs sheet ~764) and its offset provably tracks the live sheet height (default 200 -> measured 71+16 after mount); zoom buttons measure 44x44. Initial-load zero-marker scare investigated via stash-swap: HEAD and S3a behave identically (cold-compile artifact, not a regression).
+
+**Known pre-existing (not this slice):** Mouse-drag does not move the BottomSheet (touch-driven), so snap-point lift was verified through the height-binding chain, not a drag. SearchAreaControl's toggle/count pills still crowd the mobile top bar — that is S3b.
+
+**Risk/rollback:** Presentation only; no route/data/SEO change. Old control components untouched on disk (deleted only in S3b), so rollback = revert the commit.
+
+**Next slice:** S3b — SearchAreaControl collapses to one top-center "Search this area" pill; page.tsx repositioning; delete MapControls/LocationControl/ScaleBar + barrel exports.
+
 ### 2026-06-03 — Komoot Slice 2: imagery carry-through + English-only sea/country labels
 
 **Goal:** Spec Slice 2 ("Imagery and marker craft"; marker selected/hover already shipped in M3b). Map half: the North Sea label rendered as a six-language slash-pile ("North Sea / Nordsee / Noordzee / Nordsoen / Nordsjoen / Mer du Nord", live prod screenshot) and "BELGIE / BELGIQUE / BELGIEN" likewise. UI half: FarmPreviewCard fell back to a generic Leaf icon, ClusterPreview was off-brand zinc/cyan with no imagery, and FarmListCard kept its photo/monogram logic private.

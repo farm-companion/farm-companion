@@ -16,10 +16,8 @@ import { CLUSTER_ZOOM_THRESHOLDS, getClusterBrandStyle } from '../lib/cluster-co
 import { getMapStyle, getMapAttribution } from '@/lib/map-config'
 import { recolorMap, isDarkTheme } from '@/lib/map-theme'
 import { declutterMap } from '@/lib/map-declutter'
-import LocationControl from './LocationControl'
-import MapControls from './MapControls'
+import MapControlCluster from './MapControlCluster'
 import ClusterPreview from './ClusterPreview'
-import ScaleBar from './ScaleBar'
 
 interface UserLocation {
   latitude: number
@@ -50,6 +48,8 @@ interface MapLibreShellProps {
   bottomSheetHeight?: number
   isDesktop?: boolean
   onMapReady?: (map: maplibregl.Map) => void
+  /** Width of page chrome overlapping the right edge (desktop list panel) */
+  rightOffset?: number
 }
 
 // UK bounds - tighter focus on mainland Britain and Ireland
@@ -94,8 +94,10 @@ export default function MapLibreShell({
   onZoomChange,
   zoom = 5,
   className = 'w-full h-full',
+  bottomSheetHeight = 0,
   isDesktop = false,
-  onMapReady
+  onMapReady,
+  rightOffset = 0
 }: MapLibreShellProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -135,9 +137,9 @@ export default function MapLibreShell({
     { radius: 50, maxZoom: 18 }  // Smaller radius + higher maxZoom for better expansion
   )
 
-  // User-location hook: manages its own map marker/accuracy circle as a side
-  // effect (showMarker/showAccuracyCircle); no return value is consumed here.
-  useMapLocation({
+  // User-location hook: manages the map marker/accuracy circle as a side
+  // effect; state + actions also drive the control cluster's locate button.
+  const location = useMapLocation({
     map: mapInstance,
     showMarker: true,
     showAccuracyCircle: true,
@@ -183,12 +185,14 @@ export default function MapLibreShell({
     // the keyed Stadia style embeds its own credit (so we add nothing), the
     // keyless OpenFreeMap path adds only the provider courtesy line on top of
     // the source's own OpenMapTiles + OSM credit.
+    // Bottom-left: bottom-right belongs to the control cluster, and the old
+    // bottom-left scale bar moved into the cluster (Komoot S3).
     map.addControl(
       new maplibregl.AttributionControl({
         compact: true,
         customAttribution: getMapAttribution(),
       }),
-      'bottom-right'
+      'bottom-left'
     )
 
     map.on('load', () => {
@@ -654,30 +658,15 @@ export default function MapLibreShell({
         }}
       />
 
-      {/* Map Controls */}
+      {/* One bottom-right control surface: compass, locate, zoom, scale
+          (Komoot S3). Lifts above the mobile sheet, clears the desktop panel. */}
       {mapInstance && (
-        <>
-          <MapControls
-            map={mapInstance}
-            position="top-right"
-            showZoom={true}
-            showFullscreen={true}
-            showStyleSwitcher={false}
-            showCompass={true}
-          />
-
-          <LocationControl
-            map={mapInstance}
-            position="bottom-right"
-            showAccuracy={true}
-          />
-
-          <ScaleBar
-            map={mapInstance}
-            position="bottom-left"
-            unit="metric"
-          />
-        </>
+        <MapControlCluster
+          map={mapInstance}
+          location={location}
+          bottomOffset={isDesktop ? 24 : bottomSheetHeight + 16}
+          rightOffset={isDesktop ? rightOffset + 24 : 16}
+        />
       )}
 
       {/* Marker preview handled by MarkerPreview in map/page.tsx (mobile + desktop). */}

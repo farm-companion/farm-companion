@@ -45,6 +45,8 @@ interface MapShellAutoProps {
   bottomSheetHeight?: number
   isDesktop?: boolean
   onMapReady?: (map: unknown) => void
+  /** Width of page chrome overlapping the right edge (desktop list panel) */
+  rightOffset?: number
   /** Force a specific provider (overrides env config) */
   forceProvider?: 'leaflet' | 'maplibre'
 }
