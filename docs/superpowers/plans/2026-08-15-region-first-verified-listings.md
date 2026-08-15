@@ -474,7 +474,7 @@ git commit -m "feat(pipeline): evidence-graph venue classifier with FSA-alone in
 
 ```ts
 test('normalize converts a parseable OSM opening_hours into structured hours', () => {
-  const [c] = normalizeCandidates([{
+  const [c] = normalize([{
     source: 'osm', sourceId: 'node:9', name: 'Test Farm Shop',
     latitude: 51, longitude: -1, openingHoursRaw: 'Mo-Fr 09:00-17:00', raw: {},
   }])
@@ -489,7 +489,7 @@ test('normalize converts a parseable OSM opening_hours into structured hours', (
 })
 
 test('normalize omits openingHours entirely when the raw value cannot be parsed', () => {
-  const [c] = normalizeCandidates([{
+  const [c] = normalize([{
     source: 'osm', sourceId: 'node:10', name: 'Test Farm Shop',
     latitude: 51, longitude: -1, openingHoursRaw: 'by appointment', raw: {},
   }])
@@ -497,7 +497,7 @@ test('normalize omits openingHours entirely when the raw value cannot be parsed'
 })
 ```
 
-If the exported normalize function is not named `normalizeCandidates`, use the name the file already exports and keep it consistent in both tests.
+The exported function is `normalize(raw: RawFarmCandidate[]): NormalizedCandidate[]` at `02-normalize.ts:90`. Import it if the test file does not already.
 
 - [ ] **Step 2: Run test to verify it fails**
 
@@ -512,14 +512,18 @@ In `02-normalize.ts`, add the import at the top:
 import { parseOsmHours } from '../lib/parse-osm-hours'
 ```
 
-Then, where the function builds the candidate's `fields` map, add:
+Then in `toNormalized`, alongside the existing `set(...)` calls (after `set('website', raw.website)`), add:
 
 ```ts
   // Structured hours only when the OSM string parses cleanly. An unparseable
   // value is dropped rather than guessed: a wrong "Open now" is worse than none.
-  const hours = parseOsmHours(raw.openingHoursRaw)
-  if (hours) fields.openingHours = { value: hours, source: raw.source }
+  // `set` already skips undefined via its tag() guard.
+  set('openingHours', parseOsmHours(raw.openingHoursRaw) ?? undefined)
 ```
+
+`toNormalized` is a module-private function in the same file; `set` is its
+local helper `(f: FarmFieldName, v: unknown) => void` which tags the value with
+the candidate's source. Do not hand-build the `TaggedValue`.
 
 - [ ] **Step 4: Run test to verify it passes**
 
@@ -616,11 +620,17 @@ In `buildChangeSet`, immediately after the existing `const change = mergeFarm(ma
       placesRetailWithHours: false,
     })
     if (venueType !== 'unknown') {
-      change.fields.push({ field: 'venueType', from: null, to: venueType })
+      change.fields.push({
+        field: 'venueType',
+        from: match?.fields.venueType ?? null,
+        to: venueType,
+        reason: 'classified from source evidence',
+      })
     }
 ```
 
-Match the exact property names the project's field-diff objects already use. If they are not `field`/`from`/`to`, use the real ones and update this task's tests to match.
+`FieldDiff` is `{ field: FarmFieldName; from: unknown; to: unknown; reason: string }`
+(`types.ts`). The `reason` string is required; omitting it is a type error.
 
 - [ ] **Step 4: Run test to verify it passes**
 
