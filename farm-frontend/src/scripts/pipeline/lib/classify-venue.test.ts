@@ -39,18 +39,29 @@ test('INVARIANT: FSA evidence alone never admits a listing', () => {
   }
 })
 
-test('INVARIANT holds across every evidence combination without OSM or Places', () => {
-  for (const fsaFarmType of [true, false]) {
-    for (const retailLexeme of [true, false]) {
-      for (const websiteRetailSignal of [true, false]) {
-        const r = classifyVenue(ev({ fsaFarmType, retailLexeme, websiteRetailSignal }))
-        assert.equal(
-          r.venueType, 'unknown',
-          `admitted without OSM/Places: ${JSON.stringify({ fsaFarmType, retailLexeme, websiteRetailSignal })}`,
-        )
+test('INVARIANT: no admission without OSM shop=farm or Places retail with hours', () => {
+  let iterations = 0
+  for (const osmShopFarm of [true, false]) {
+    for (const osmOpeningHours of [true, false]) {
+      for (const fsaFarmType of [true, false]) {
+        for (const retailLexeme of [true, false]) {
+          for (const websiteRetailSignal of [true, false]) {
+            for (const placesRetailWithHours of [true, false]) {
+              iterations++
+              const r = classifyVenue(ev({ osmShopFarm, osmOpeningHours, fsaFarmType, retailLexeme, websiteRetailSignal, placesRetailWithHours }))
+              if (r.venueType !== 'unknown') {
+                assert(
+                  osmShopFarm && (osmOpeningHours || placesRetailWithHours),
+                  `admission gated incorrectly: ${JSON.stringify({ osmShopFarm, osmOpeningHours, fsaFarmType, retailLexeme, websiteRetailSignal, placesRetailWithHours })}`,
+                )
+              }
+            }
+          }
+        }
       }
     }
   }
+  assert.equal(iterations, 64, `expected 64 combinations, got ${iterations}`)
 })
 
 test('retail lexeme detection is case-insensitive and word-bounded', () => {
