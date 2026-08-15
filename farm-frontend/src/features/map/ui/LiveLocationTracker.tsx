@@ -28,6 +28,14 @@ interface NearbyFarm {
   isNewlyDiscovered: boolean
 }
 
+// Pure, so it lives at module scope rather than being re-created per render.
+// It was previously declared below its caller (checkNearbyFarms), which is a
+// const TDZ hazard the moment anything moves it into a dependency array.
+function calculateETA(distance: number, speed?: number): number {
+  if (!speed || speed === 0) return Math.round(distance * 20)
+  return Math.round((distance / speed) * 60)
+}
+
 export default function LiveLocationTracker({
   userLocation,
   farms,
@@ -59,6 +67,50 @@ export default function LiveLocationTracker({
     }, 5000)
   }, [])
 
+  const checkNearbyFarms = useCallback((location: LocationData) => {
+    const nearby: NearbyFarm[] = []
+    farms.forEach(farm => {
+      if (farm.location) {
+        const distance = calculateDistance(
+          location.latitude,
+          location.longitude,
+          farm.location.lat,
+          farm.location.lng
+        )
+        if (distance <= 2) {
+          const eta = calculateETA(distance, location.speed)
+          const isNewlyDiscovered = !nearbyFarmsCache.current.has(farm.id)
+          nearby.push({
+            farm,
+            distance,
+            eta,
+            isNewlyDiscovered
+          })
+          if (isNewlyDiscovered) {
+            nearbyFarmsCache.current.add(farm.id)
+            onFarmNearby(farm, distance)
+            addNotification(`🌾 Discovered nearby farm: ${farm.name} (${distance.toFixed(1)}km away)`)
+          }
+        }
+      }
+    })
+    nearby.sort((a, b) => a.distance - b.distance)
+    setNearbyFarms(nearby.slice(0, 10))
+  }, [farms, onFarmNearby, addNotification])
+
+  const updatePredictiveLocation = useCallback((location: LocationData) => {
+    if (location.speed && location.heading && locationHistory.length >= 2) {
+      const timeAhead = 5 * 60 * 1000
+      const distanceAhead = (location.speed * timeAhead) / 1000
+      const latOffset = (distanceAhead * Math.cos(location.heading * Math.PI / 180)) / 111.32
+      const lonOffset = (distanceAhead * Math.sin(location.heading * Math.PI / 180)) / (111.32 * Math.cos(location.latitude * Math.PI / 180))
+      setPredictiveLocation({
+        latitude: location.latitude + latOffset,
+        longitude: location.longitude + lonOffset
+      })
+    }
+  }, [locationHistory])
+
   const handleLocationUpdate = useCallback((position: GeolocationPosition) => {
     const locationData: LocationData = {
       latitude: position.coords.latitude,
@@ -87,7 +139,11 @@ export default function LiveLocationTracker({
     }
     checkNearbyFarms(locationData)
     updatePredictiveLocation(locationData)
-  }, [onLocationUpdate])
+    // These two were missing from the deps while being declared further down
+    // the component, so this callback captured the very first version of each
+    // and never saw a later `farms` or `locationHistory`. Declaring them above
+    // and listing them here is what makes the dependency honest.
+  }, [onLocationUpdate, checkNearbyFarms, updatePredictiveLocation])
 
   const startTracking = useCallback(async () => {
     if (!navigator.geolocation) {
@@ -140,54 +196,13 @@ export default function LiveLocationTracker({
     addNotification('⏹️ Location tracking stopped')
   }, [addNotification])
 
-  const checkNearbyFarms = useCallback((location: LocationData) => {
-    const nearby: NearbyFarm[] = []
-    farms.forEach(farm => {
-      if (farm.location) {
-        const distance = calculateDistance(
-          location.latitude,
-          location.longitude,
-          farm.location.lat,
-          farm.location.lng
-        )
-        if (distance <= 2) {
-          const eta = calculateETA(distance, location.speed)
-          const isNewlyDiscovered = !nearbyFarmsCache.current.has(farm.id)
-          nearby.push({
-            farm,
-            distance,
-            eta,
-            isNewlyDiscovered
-          })
-          if (isNewlyDiscovered) {
-            nearbyFarmsCache.current.add(farm.id)
-            onFarmNearby(farm, distance)
-            addNotification(`🌾 Discovered nearby farm: ${farm.name} (${distance.toFixed(1)}km away)`)
-          }
-        }
-      }
-    })
-    nearby.sort((a, b) => a.distance - b.distance)
-    setNearbyFarms(nearby.slice(0, 10))
-  }, [farms, onFarmNearby, addNotification])
-
-  const calculateETA = (distance: number, speed?: number): number => {
-    if (!speed || speed === 0) return Math.round(distance * 20)
-    return Math.round((distance / speed) * 60)
-  }
-
-  const updatePredictiveLocation = useCallback((location: LocationData) => {
-    if (location.speed && location.heading && locationHistory.length >= 2) {
-      const timeAhead = 5 * 60 * 1000
-      const distanceAhead = (location.speed * timeAhead) / 1000
-      const latOffset = (distanceAhead * Math.cos(location.heading * Math.PI / 180)) / 111.32
-      const lonOffset = (distanceAhead * Math.sin(location.heading * Math.PI / 180)) / (111.32 * Math.cos(location.latitude * Math.PI / 180))
-      setPredictiveLocation({
-        latitude: location.latitude + latOffset,
-        longitude: location.longitude + lonOffset
-      })
-    }
-  }, [locationHistory])
+  // Render reads the newest history entry, not `lastLocation.current`. A ref
+  // write does not schedule a render, so the old markup only refreshed because
+  // setLocationHistory happened to fire alongside it; this reads the state
+  // that actually drives the update, and holds the identical value.
+  const latestLocation = locationHistory.length > 0
+    ? locationHistory[locationHistory.length - 1]
+    : null
 
   const getMovementDirection = (heading?: number): string => {
     if (!heading) return '📍'
@@ -270,14 +285,14 @@ export default function LiveLocationTracker({
                   </div>
                 )}
 
-                {lastLocation.current && (
+                {latestLocation && (
                   <div className="movement-info">
                     <div className="movement-item">
                       <span className="movement-icon">
-                        {getMovementDirection(lastLocation.current.heading)}
+                        {getMovementDirection(latestLocation.heading)}
                       </span>
                       <span className="movement-text">
-                        {getSpeedDescription(lastLocation.current.speed)}
+                        {getSpeedDescription(latestLocation.speed)}
                       </span>
                     </div>
                     <div className="movement-item">

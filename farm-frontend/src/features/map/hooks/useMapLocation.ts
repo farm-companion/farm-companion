@@ -13,7 +13,12 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import type { Map as MapLibreMap, Marker } from 'maplibre-gl'
+// Marker is imported as a value, not lazily require()d inside the callback.
+// This adds no server-side surface: the hook's only consumer, MapLibreShell,
+// already imports maplibre-gl at module scope, and is itself loaded through a
+// dynamic import with ssr:false.
+import { Marker } from 'maplibre-gl'
+import type { Map as MapLibreMap } from 'maplibre-gl'
 import { getApproximateLocation } from '@/lib/geocoding'
 
 export interface MapLocationState {
@@ -162,7 +167,6 @@ export function useMapLocation(
           document.head.appendChild(style)
         }
 
-        const { Marker } = require('maplibre-gl')
         markerRef.current = new Marker({ element: el }).setLngLat([lng, lat]).addTo(map)
       } else {
         markerRef.current.setLngLat([lng, lat])

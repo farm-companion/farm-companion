@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useCallback, useRef, useEffect, useState } from 'react'
+import { useMemo, useCallback } from 'react'
 import Supercluster, { ClusterFeature, PointFeature, ClusterProperties as SuperclusterClusterProps } from 'supercluster'
 import { FarmShop } from '@/types/farm'
 
@@ -97,9 +97,6 @@ export function useClusteredMarkers(
     nodeSize = 64,
   } = options
 
-  const indexRef = useRef<Supercluster<FarmPointProperties, ClusterProperties> | null>(null)
-  const [isReady, setIsReady] = useState(false)
-
   // Convert farms to GeoJSON points
   const points = useMemo((): FarmPoint[] => {
     return farms
@@ -117,29 +114,35 @@ export function useClusteredMarkers(
       }))
   }, [farms])
 
-  // Create and load Supercluster index
-  useEffect(() => {
-    // Using any for Supercluster generic since ClusterProperties are auto-generated
-    const index = new Supercluster<FarmPointProperties>({
+  // Build the Supercluster index as derived state.
+  //
+  // This was previously built inside an effect and stashed in a ref, which
+  // made it invisible to the memos below: `clusters` could not list the index
+  // as a dependency, so it keyed off `isReady` instead. That flag is already
+  // true by the time `points` changes, and the cleanup/setup pair
+  // (setIsReady(false) then setIsReady(true)) batches back to true without a
+  // re-render. Net effect: changing the farms array rebuilt the index but
+  // never recomputed `clusters`, so applying a filter without panning the map
+  // left the previous markers on screen. Depending on the index value fixes
+  // that at the root, and also removes the extra empty-then-populated render
+  // the effect version needed on mount.
+  //
+  // Construction is pure (no subscription, nothing to tear down), so useMemo
+  // is the correct home for it rather than an effect.
+  const index = useMemo(() => {
+    const built = new Supercluster<FarmPointProperties>({
       radius,
       maxZoom,
       minPoints,
       nodeSize,
     })
-
-    index.load(points)
-    indexRef.current = index as Supercluster<FarmPointProperties, ClusterProperties>
-    setIsReady(true)
-
-    return () => {
-      indexRef.current = null
-      setIsReady(false)
-    }
+    built.load(points)
+    return built as Supercluster<FarmPointProperties, ClusterProperties>
   }, [points, radius, maxZoom, minPoints, nodeSize])
 
   // Get clusters for current viewport
   const clusters = useMemo((): ClusterOrPoint[] => {
-    if (!indexRef.current || !bounds) return []
+    if (!bounds) return []
 
     const bbox: [number, number, number, number] = [
       bounds.west,
@@ -152,43 +155,39 @@ export function useClusteredMarkers(
     const clampedZoom = Math.max(0, Math.min(Math.floor(zoom), maxZoom))
 
     try {
-      return indexRef.current.getClusters(bbox, clampedZoom)
+      return index.getClusters(bbox, clampedZoom)
     } catch (error) {
       console.warn('[useClusteredMarkers] Error getting clusters:', error)
       return []
     }
-  }, [bounds, zoom, maxZoom, isReady])
+  }, [index, bounds, zoom, maxZoom])
 
   // Get farms in a cluster
   const getClusterLeaves = useCallback(
     (clusterId: number, limit = 100, offset = 0): FarmShop[] => {
-      if (!indexRef.current) return []
-
       try {
-        const leaves = indexRef.current.getLeaves(clusterId, limit, offset)
+        const leaves = index.getLeaves(clusterId, limit, offset)
         return leaves.map((leaf) => leaf.properties.farm)
       } catch (error) {
         console.warn('[useClusteredMarkers] Error getting cluster leaves:', error)
         return []
       }
     },
-    [isReady]
+    [index]
   )
 
   // Get optimal zoom level to expand cluster
   const getClusterExpansionZoom = useCallback(
     (clusterId: number): number => {
-      if (!indexRef.current) return maxZoom
-
       try {
-        const zoom = indexRef.current.getClusterExpansionZoom(clusterId)
+        const zoom = index.getClusterExpansionZoom(clusterId)
         return Math.min(zoom, maxZoom)
       } catch (error) {
         console.warn('[useClusteredMarkers] Error getting expansion zoom:', error)
         return maxZoom
       }
     },
-    [maxZoom, isReady]
+    [index, maxZoom]
   )
 
   // Type guard for clusters
@@ -205,7 +204,10 @@ export function useClusteredMarkers(
     getClusterExpansionZoom,
     isCluster,
     totalFarms: farms.length,
-    isReady,
+    // The index is now built synchronously during render, so there is no
+    // not-ready window to report. Kept in the return shape so existing
+    // consumers that gate on it keep compiling and behave the same.
+    isReady: true,
   }
 }
 
