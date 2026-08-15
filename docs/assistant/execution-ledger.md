@@ -1,5 +1,30 @@
 # FarmCompanion Execution Ledger
 
+### 2026-08-15 - Komoot Slice 4b: delete the unreachable components/map subgraph
+
+**Goal:** Remove `src/components/map/`, proven by the Slice 4 graph pass to have zero inbound edges from anywhere in `src`.
+
+**Reachability re-proven immediately before deletion (all three checks empty):**
+- No `import` / `require` / dynamic `import()` matching `components/map` anywhere under `src` or `app`.
+- No bare string `components/map` in any `.ts/.tsx/.js/.mjs/.json/.md/.css` in the repo outside the directory itself. The single outside mention is `security-audit-report.json`, a record of a past scan run, not a dependency.
+- Nothing imported the barrel `@/components/map` either, so the barrel's pass-through re-exports (`useClusteredMarkers`, `lib/map-config`, `lib/cluster-config`) were dead links to live modules. Those source modules are untouched and still reached through `@/features/map`.
+
+**DELETED (10 files, 2,586 lines):** `ClusterMarker.tsx` (241), `ClusteredFarmMarkerLayer.tsx` (226), `FarmDetailSheet.tsx` (277), `FarmMarker.tsx` (354), `FarmPopup.tsx` (323), `MapLibreMap.tsx` (341), `MapLibreProvider.tsx` (125), `MobileMarkerSheet.tsx` (293), `index.ts` (74), `useMarkerKeyboardNav.tsx` (332).
+
+**Also removed:** the bare `.cluster-marker` interaction rules in `app/map/map.css`. Grep proved that class was set only by the deleted `ClusterMarker.tsx:95`; its own block comment named that file as the emitter. The live `.maplibre-cluster-marker` / `.maplibre-farm-marker` rules (MapLibreShell.tsx:382,467) and `.leaflet-cluster-marker` / `.leaflet-farm-marker` rules (LeafletShell.tsx:83,134) are untouched.
+
+**Note on duplication this resolves:** `components/map/useMarkerKeyboardNav.tsx` (332 lines) was a stale fork of the live `features/map/hooks/useMarkerKeyboardNav.ts` (268 lines). Only the features version survives.
+
+**Verified (ran, passed):** `tsc --noEmit` exit 0; `npm run test:unit` 369 pass / 0 fail; `next build` exit 0 (full route compile with the files gone, which is the real proof nothing resolved to them); `npx impeccable detect` exit 0. Live on :3001 the map page mounts with zero module-resolution errors, list renders 2,000 farms, chrome and preview path intact.
+
+**Pre-existing lint errors, NOT from this slice (surfaced by widening lint to whole directories):** 10 errors in three untouched files, confirmed unmodified via `git status`: `hooks/useClusteredMarkers.ts` (6x "Cannot access refs during render"), `hooks/useMapLocation.ts` (1x no-require-imports), `ui/LiveLocationTracker.tsx` (3x "Cannot access variable before it is declared", the same const-TDZ class of bug avoided in MapLibreShell during Slice 4). Worth their own slice.
+
+**Work-unit exception (logged per CLAUDE.md):** 12 files touched vs the 8-file cap. Ten are pure deletions of one cohesive dead subgraph; splitting them across slices would leave a barrel exporting removed modules in the intermediate state, which is strictly worse to review and to roll back. Changed-line budget is unaffected (deletions excluded).
+
+**Risk/rollback:** Zero runtime surface: nothing referenced these modules. Rollback = `git checkout HEAD -- farm-frontend/src/components/map/` plus revert the map.css hunk.
+
+**Next slice:** the two Slice 4 invariant click paths still want a real click on a working basemap, then the three pre-existing lint-error files above.
+
 ### 2026-08-15 - Komoot Slice 4: preview card action hierarchy + one-popover invariant
 
 **Goal:** Implement spec `2026-06-04-komoot-s4-preview-card-design.md`, corrected against a dependency/state graph of the map subsystem rather than against the spec's own claims.
