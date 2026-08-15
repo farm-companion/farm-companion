@@ -37,7 +37,10 @@ export default function MarkerPreview({
         className="absolute z-30 bottom-6 pointer-events-none flex justify-center"
         style={{ left: '24px', right: `${panelWidth + 24}px` }}
       >
-        <div className="pointer-events-auto">
+        {/* Width is owned here, not in the card: the card used to hard-set
+            `style={{width:320}}`, which inline-beats the `w-full` the mobile
+            branch passes, so the mobile card never filled its gutter box. */}
+        <div className="pointer-events-auto w-80">
           <FarmPreviewCard
             farm={farm}
             onClose={onClose}

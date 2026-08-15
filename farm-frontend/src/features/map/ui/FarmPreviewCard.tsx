@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import Image from 'next/image'
-import { X, Phone, Navigation, Share2, Circle, ChevronRight } from 'lucide-react'
+import { X, Phone, Navigation, Share2, Circle } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { formatOpeningStatus } from '@/lib/opening-hours'
 import { pittiFarmImageUrl } from '@/data/pitti-farms'
@@ -24,9 +24,18 @@ interface FarmPreviewCardProps {
 
 /**
  * FarmPreviewCard — shown when a map marker is tapped.
- * Presentational only; layout (positioning) is owned by MarkerPreview.
- * Polish per Emil's framework (custom easing, scale-from-0.97 entry,
- * tactile :active, tabular-nums on changing digits).
+ * Presentational only; layout (positioning AND width) is owned by
+ * MarkerPreview. Polish per Emil's framework (custom easing, scale-from-0.97
+ * entry, tactile :active, tabular-nums on changing digits).
+ *
+ * Action hierarchy (Komoot S4): Directions is the single primary CTA — the
+ * map surface's job is getting you there. Everything else drops to one quiet
+ * row so exactly one control is loud.
+ *
+ * The primary CTA and the details link are anchors, not buttons, on purpose:
+ * the unlayered `button` rule in globals.css (accent font, uppercase, clamped
+ * size) outranks Tailwind utilities on button elements, so a <button> here
+ * would silently render uppercase-condensed regardless of its classes.
  */
 export default function FarmPreviewCard({
   farm,
@@ -35,7 +44,6 @@ export default function FarmPreviewCard({
   formatDistance,
   className = '',
 }: FarmPreviewCardProps) {
-  const [mounted, setMounted] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const closeButtonRef = useRef<HTMLButtonElement>(null)
   // Stable refs so the focus-management effects can keep empty deps. The
@@ -50,12 +58,9 @@ export default function FarmPreviewCard({
     farmIdRef.current = farm.id
   })
 
-  useEffect(() => {
-    // Trigger entry animation after the first paint:
-    // initial render → opacity-0 + translateY + scale(0.97), then this effect
-    // adds data-mounted on the next tick, CSS transitions to neutral.
-    setMounted(true)
-  }, [])
+  // Entry animation is CSS-only (`.fc-preview-enter` in app/map/map.css).
+  // The previous setMounted-in-effect version tripped react-hooks/
+  // set-state-in-effect and cost an extra render for a purely visual cue.
 
   // Focus management (Slice 2.3).
   //   - On open: move focus to the Close button. The :focus-visible heuristic
@@ -131,20 +136,24 @@ export default function FarmPreviewCard({
     }
   }, [farm])
 
+  // County · distance · next-opening read as one metadata line; filtering
+  // before the join keeps the separators correct when parts are absent.
+  const metaLine = [
+    farm.location.county,
+    hasDistance ? formatDistance!(farm.distance!) : null,
+    openingStatus?.nextOpening ?? null,
+  ]
+    .filter(Boolean)
+    .join(' · ')
+
   return (
     <div
       ref={containerRef}
-      data-mounted={mounted ? '' : undefined}
       className={[
-        'relative bg-paper text-ink rounded-2xl overflow-hidden',
+        'fc-preview-enter relative bg-paper text-ink rounded-2xl overflow-hidden',
         'shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_12px_rgba(0,0,0,0.10)]',
-        'transition-[transform,opacity] duration-200',
-        '[transition-timing-function:cubic-bezier(0.23,1,0.32,1)]',
-        'data-[mounted]:opacity-100 data-[mounted]:translate-y-0 data-[mounted]:scale-100',
-        'opacity-0 translate-y-2 scale-[0.97]',
         className,
       ].join(' ')}
-      style={{ width: 320 }}
       role="region"
       aria-label={`Preview of ${farm.name}`}
     >
@@ -188,6 +197,33 @@ export default function FarmPreviewCard({
             Nearby · &copy; {shortSource(imagery.image)}
           </span>
         )}
+
+        {/* Open/Closed status rides the hero (Komoot S4) so the body below is
+            pure identity → action. Sea ink (--accent) for open, not Vermilion:
+            Vermilion is reserved for the single primary CTA, so exactly one
+            thing on the card is loud. Closed gets an ink scrim chip, which
+            stays legible over arbitrary photography where a pale surface
+            token would not. Lifts clear of the CC strip when one is present. */}
+        {openingStatus && tone !== 'unknown' && (
+          <span
+            className={[
+              'absolute left-3 inline-flex items-center gap-1.5 h-7 px-2.5 rounded-full',
+              'text-[11px] font-semibold uppercase tracking-wide',
+              'shadow-[0_1px_3px_rgba(0,0,0,0.28)]',
+              isCcPhoto && imagery.image ? 'bottom-8' : 'bottom-3',
+              // Solid fills only: a `/opacity` modifier on these tokens
+              // resolves to rgba(0,0,0,0) because they are not registered
+              // under Tailwind's --color-* convention, so `bg-ink/85` would
+              // silently render an invisible chip.
+              tone === 'open'
+                ? 'bg-accent text-accent-text'
+                : 'bg-ink text-paper',
+            ].join(' ')}
+          >
+            <Circle className="w-2 h-2 fill-current" aria-hidden />
+            {openingStatus.status}
+          </span>
+        )}
       </div>
 
       {/* Content */}
@@ -195,9 +231,8 @@ export default function FarmPreviewCard({
         <h3 className="text-xl font-medium text-ink [text-wrap:balance]">
           {farm.name}
         </h3>
-        <p className="text-sm text-ink-muted mt-0.5 [font-variant-numeric:tabular-nums]">
-          {farm.location.county}
-          {hasDistance && ` · ${formatDistance!(farm.distance!)}`}
+        <p className="text-sm text-ink-muted mt-0.5 [font-variant-numeric:tabular-nums] [text-wrap:pretty]">
+          {metaLine}
         </p>
 
         {/* Hairline — separates identity from interaction (spec §5.1) */}
@@ -210,25 +245,7 @@ export default function FarmPreviewCard({
           </p>
         )}
 
-        {/* Status — Rapeseed accent pill for Open Now, neutral pill for Closed (spec §5.3) */}
-        {openingStatus && tone !== 'unknown' && (
-          <div className={[hook ? 'mt-3' : '', 'flex items-center gap-2 [font-variant-numeric:tabular-nums]'].join(' ')}>
-            <span
-              className={[
-                'inline-flex items-center gap-1 px-2 h-6 rounded text-[11px] font-semibold uppercase tracking-wide',
-                tone === 'open'
-                  ? 'bg-accent text-accent-text'
-                  : 'bg-surface-2 text-ink-muted',
-              ].join(' ')}
-            >
-              <Circle className="w-2 h-2 fill-current" aria-hidden />
-              {openingStatus.status}
-            </span>
-            {openingStatus.nextOpening && (
-              <span className="text-sm text-ink-subtle">{openingStatus.nextOpening}</span>
-            )}
-          </div>
-        )}
+        {/* Status pill lives on the hero now; nextOpening rides the meta line. */}
 
         {/* Tags */}
         {farm.offerings && farm.offerings.length > 0 && (
@@ -236,7 +253,11 @@ export default function FarmPreviewCard({
             {farm.offerings.slice(0, 3).map((offering) => (
               <span
                 key={offering}
-                className="inline-block px-2 py-0.5 bg-brand/10 text-brand text-[11px] font-semibold rounded-full uppercase tracking-wide"
+                // color-mix, not `bg-brand/10`: the opacity modifier yields a
+                // transparent fill on these tokens, so the badges have been
+                // shipping as bare text with no tint behind them.
+                className="inline-block px-2 py-0.5 bg-[color-mix(in_srgb,var(--brand)_12%,transparent)]
+                  text-brand text-[11px] font-semibold rounded-full uppercase tracking-wide"
               >
                 {offering}
               </span>
@@ -244,44 +265,62 @@ export default function FarmPreviewCard({
           </div>
         )}
 
-        {/* View details CTA — Emil: tactile :active, custom easing, durations ≤200ms */}
-        <button
-          onClick={() => onViewDetails(farm.id)}
-          className="w-full mt-4 py-2.5 bg-brand hover:bg-brand-hover active:scale-[0.98] text-brand-text text-[15px] font-medium rounded-lg transition-[transform,background-color] duration-150 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] flex items-center justify-center gap-1"
+        {/* PRIMARY — Directions. The one loud control on the card (Komoot S4).
+            Emil: tactile :active, custom easing, durations ≤200ms. */}
+        <a
+          href={directionsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="w-full mt-4 h-11 bg-brand hover:bg-brand-hover active:scale-[0.98] text-brand-text
+            text-[15px] font-semibold rounded-lg transition-[transform,background-color] duration-150
+            [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] flex items-center justify-center gap-2"
         >
-          View Full Details
-          <ChevronRight className="w-4 h-4" />
-        </button>
+          <Navigation className="w-4 h-4" aria-hidden />
+          Directions
+        </a>
 
-        {/* Action buttons row */}
-        <div className="grid grid-cols-3 gap-2 mt-3">
-          {phoneUrl ? (
-            <a
-              href={phoneUrl}
-              className="flex items-center justify-center gap-1 py-2.5 bg-surface text-ink text-[13px] font-medium rounded-lg hover:bg-surface-2 active:scale-[0.98] transition-[background-color,transform] duration-150"
-            >
-              <Phone className="w-3.5 h-3.5" />
-              Call
-            </a>
-          ) : (
-            <div aria-hidden />
-          )}
+        {/* SECONDARY — one quiet row. The details link keeps the /shop SEO path
+            a real anchor (middle-click / open-in-new-tab work) while still
+            routing client-side; Call and Share are 44px icon targets. */}
+        <div className="flex items-center justify-between gap-2 mt-1">
           <a
-            href={directionsUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="flex items-center justify-center gap-1 py-2.5 bg-surface text-ink text-[13px] font-medium rounded-lg hover:bg-surface-2 active:scale-[0.98] transition-[background-color,transform] duration-150"
+            href={`/shop/${farm.slug}`}
+            onClick={(e) => {
+              if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return
+              e.preventDefault()
+              onViewDetails(farm.id)
+            }}
+            className="inline-flex items-center h-11 text-sm font-medium text-ink-muted hover:text-ink
+              underline-offset-4 hover:underline transition-colors duration-150 rounded
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
           >
-            <Navigation className="w-3.5 h-3.5" />
-            Directions
+            View full details
           </a>
-          <button
-            onClick={handleShare}
-            className="flex items-center justify-center gap-1 py-2.5 bg-surface text-ink text-[13px] font-medium rounded-lg hover:bg-surface-2 active:scale-[0.98] transition-[background-color,transform] duration-150"
-          >
-            <Share2 className="w-3.5 h-3.5" />
-            Share
-          </button>
+
+          <div className="flex items-center gap-1">
+            {phoneUrl && (
+              <a
+                href={phoneUrl}
+                aria-label={`Call ${farm.name}`}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-muted
+                  hover:text-ink hover:bg-surface-2 active:scale-[0.97]
+                  transition-[background-color,transform,color] duration-150
+                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+              >
+                <Phone className="w-[18px] h-[18px]" aria-hidden />
+              </a>
+            )}
+            <button
+              onClick={handleShare}
+              aria-label={`Share ${farm.name}`}
+              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-ink-muted
+                hover:text-ink hover:bg-surface-2 active:scale-[0.97]
+                transition-[background-color,transform,color] duration-150
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand"
+            >
+              <Share2 className="w-[18px] h-[18px]" aria-hidden />
+            </button>
+          </div>
         </div>
       </div>
     </div>
