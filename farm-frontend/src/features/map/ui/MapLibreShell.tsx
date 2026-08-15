@@ -50,6 +50,13 @@ interface MapLibreShellProps {
   onMapReady?: (map: maplibregl.Map) => void
   /** Width of page chrome overlapping the right edge (desktop list panel) */
   rightOffset?: number
+  /**
+   * Fired when this shell opens its cluster preview. The farm preview is owned
+   * by map/page.tsx, so the one-popover-at-a-time invariant needs a callback
+   * out; the matching direction (marker click closing the cluster preview) is
+   * handled internally in handleMarkerClick.
+   */
+  onClusterPreviewOpen?: () => void
 }
 
 // UK bounds - tighter focus on mainland Britain and Ireland
@@ -58,11 +65,6 @@ const UK_BOUNDS = {
   south: 50.0,   // English Channel
   east: 1.8,     // East Anglia coast
   west: -8.5     // West Ireland
-}
-
-interface MarkerState {
-  selected: FarmShop | null
-  showActions: boolean
 }
 
 interface ClusterData {
@@ -97,7 +99,8 @@ export default function MapLibreShell({
   bottomSheetHeight = 0,
   isDesktop = false,
   onMapReady,
-  rightOffset = 0
+  rightOffset = 0,
+  onClusterPreviewOpen
 }: MapLibreShellProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null)
   const mapRef = useRef<maplibregl.Map | null>(null)
@@ -121,13 +124,8 @@ export default function MapLibreShell({
   } | null>(null)
   const [currentZoom, setCurrentZoom] = useState(zoom)
 
-  const [markerState, setMarkerState] = useState<MarkerState>({
-    selected: null,
-    showActions: false
-  })
   const [selectedCluster, setSelectedCluster] = useState<ClusterData | null>(null)
   const [showClusterPreview, setShowClusterPreview] = useState(false)
-  const [popoverPosition, setPopoverPosition] = useState({ x: 0, y: 0 })
 
   // Use our clustering hook with correct signature
   const { clusters, getClusterLeaves, getClusterExpansionZoom, isCluster } = useClusteredMarkers(
@@ -278,6 +276,13 @@ export default function MapLibreShell({
     return { size, color: fill, textColor, borderColor }
   }
 
+  // Declared before the click handlers so both can list it as a dependency
+  // without hitting the const TDZ when their dep arrays are built.
+  const handleCloseClusterPreview = useCallback(() => {
+    setShowClusterPreview(false)
+    setSelectedCluster(null)
+  }, [])
+
   // Handle cluster click
   const handleClusterClick = useCallback((clusterId: number, count: number, lng: number, lat: number) => {
     triggerHaptic('medium')
@@ -296,6 +301,9 @@ export default function MapLibreShell({
           count: clusterFarms.length
         })
         setShowClusterPreview(true)
+        // One popover at a time: the farm preview is owned upstream, so tell
+        // the page to drop it rather than stacking two cards over the map.
+        onClusterPreviewOpen?.()
         // Keyboard/SR users get no visual cue that the preview opened, so
         // announce the cluster's farm count via the polite live region.
         announce(ANNOUNCEMENTS.clusterExpanded(clusterFarms.length))
@@ -328,25 +336,16 @@ export default function MapLibreShell({
     // Activating a cluster destroys the focused element (focus falls to body)
     // and the zoom is invisible to SR users, so announce what was expanded.
     announce(ANNOUNCEMENTS.clusterExpanded(count))
-  }, [getClusterLeaves, getClusterExpansionZoom, triggerHaptic])
+  }, [getClusterLeaves, getClusterExpansionZoom, triggerHaptic, onClusterPreviewOpen])
 
   // Handle marker click
   const handleMarkerClick = useCallback((farm: FarmShop) => {
     triggerHaptic('light')
-
-    if (isDesktop && mapRef.current) {
-      const map = mapRef.current
-      const point = map.project([farm.location.lng, farm.location.lat])
-      setPopoverPosition({ x: point.x, y: point.y })
-    }
-
-    setMarkerState({
-      selected: farm,
-      showActions: true
-    })
-
+    // Other half of the one-popover invariant: a marker beats an open cluster
+    // preview. Safe to call unconditionally — it is a no-op when none is open.
+    handleCloseClusterPreview()
     onFarmSelect?.(farm.id)
-  }, [triggerHaptic, isDesktop, onFarmSelect])
+  }, [triggerHaptic, onFarmSelect, handleCloseClusterPreview])
 
   // Two-tier pins flip at FULL_ICON_ZOOM; derived here so the marker effect
   // recreates markers only when the tier actually crosses the threshold.
@@ -586,11 +585,6 @@ export default function MapLibreShell({
     }
   }, [selectedFarmId, farms])
 
-  const handleCloseClusterPreview = useCallback(() => {
-    setShowClusterPreview(false)
-    setSelectedCluster(null)
-  }, [])
-
   const handleZoomToCluster = useCallback((cluster: ClusterData) => {
     const map = mapRef.current
     if (!map) return
@@ -678,10 +672,7 @@ export default function MapLibreShell({
           count={selectedCluster.count}
           farms={selectedCluster.farms}
           onClose={handleCloseClusterPreview}
-          onSelectFarm={(farm) => {
-            handleMarkerClick(farm)
-            handleCloseClusterPreview()
-          }}
+          onSelectFarm={handleMarkerClick}
           onViewAll={() => handleZoomToCluster(selectedCluster)}
         />
       )}

@@ -96,34 +96,35 @@
   touch-action: none !important;
 }
 
+/* The bare `.cluster-marker` interaction rules that sat here were emitted only
+   by components/map/ClusterMarker.tsx, deleted with the rest of that
+   unreachable subgraph. The live shells use .maplibre-cluster-marker and
+   .leaflet-cluster-marker, whose rules are above. */
+
 /* ============================================================================
-   CLUSTER MARKER — Field Edition interaction states (Slice 1.1.2b)
-   Hover and press feedback are CSS-driven so the SVG itself stays stable.
-   Transform composes with the inline `transition: transform` set by
-   ClusterMarker.tsx on element creation.
+   FARM PREVIEW CARD — entry animation (Komoot S4)
+   CSS-only so FarmPreviewCard needs no mount state. The old setMounted-in-
+   effect version cost an extra render and tripped react-hooks/
+   set-state-in-effect. Same feel: 200ms, rise 8px, scale from 0.97.
    ============================================================================ */
 
-.cluster-marker {
-  transform-origin: center;
-  will-change: transform;
+@keyframes fc-preview-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
-.cluster-marker:hover,
-.cluster-marker[data-hovered="true"] {
-  transform: scale(1.08);
-}
-
-.cluster-marker:active {
-  transform: scale(0.96);
-  transition: transform 80ms cubic-bezier(0.23, 1, 0.32, 1);
+.fc-preview-enter {
+  animation: fc-preview-in 200ms cubic-bezier(0.23, 1, 0.32, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .cluster-marker,
-  .cluster-marker:hover,
-  .cluster-marker[data-hovered="true"],
-  .cluster-marker:active {
-    transform: none;
-    transition: none;
+  .fc-preview-enter {
+    animation: none;
   }
 }

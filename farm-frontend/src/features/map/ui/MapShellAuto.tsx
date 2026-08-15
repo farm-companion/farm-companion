@@ -47,6 +47,12 @@ interface MapShellAutoProps {
   onMapReady?: (map: unknown) => void
   /** Width of page chrome overlapping the right edge (desktop list panel) */
   rightOffset?: number
+  /**
+   * Fired when the underlying shell opens a cluster preview, so the page can
+   * dismiss its own farm preview (one popover at a time). MapLibre-only today:
+   * LeafletShell has no cluster preview, and harmlessly ignores the prop.
+   */
+  onClusterPreviewOpen?: () => void
   /** Force a specific provider (overrides env config) */
   forceProvider?: 'leaflet' | 'maplibre'
 }
