@@ -23,6 +23,23 @@ export const CURATED_SOURCES: ReadonlySet<SourceName> = new Set([
 ])
 
 /**
+ * What a listing physically is, from the visitor's point of view.
+ * The inclusion rule admits 'shop' | 'pyo' | 'market_stall'.
+ * 'unknown' is the honest default and never makes a visitability claim.
+ */
+export type VenueType =
+  | 'shop'
+  | 'pyo'
+  | 'market_stall'
+  | 'producer_no_public_access'
+  | 'unknown'
+
+/** The venue types a listing may claim public access for. */
+export const ADMITTED_VENUE_TYPES: ReadonlySet<VenueType> = new Set<VenueType>([
+  'shop', 'pyo', 'market_stall',
+])
+
+/**
  * Field-level farm attributes the merge policy reasons about (each carries
  * its own provenance). Row-level markers (osmId, fsaId, dataSource) are NOT
  * here: they identify the row, not a mergeable field, so they are matched on
@@ -31,7 +48,7 @@ export const CURATED_SOURCES: ReadonlySet<SourceName> = new Set([
 export type FarmFieldName =
   | 'name' | 'description' | 'address' | 'city' | 'county' | 'postcode'
   | 'latitude' | 'longitude' | 'phone' | 'email' | 'website'
-  | 'openingHours' | 'status' | 'verified'
+  | 'openingHours' | 'status' | 'verified' | 'venueType'
 
 export interface FieldProvenance {
   source: SourceName

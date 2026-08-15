@@ -70,6 +70,14 @@ model Farm {
   // Opening Hours (stored as JSON)
   openingHours Json?
 
+  // Venue classification (2026-08-15). FSA's "Farmers/growers" category
+  // identifies producers, not premises the public can enter, so venue type is
+  // tracked separately and defaults to unknown. Only venueVerifiedAt gates a
+  // visitability claim; the older `verified` flag is reserved for owner
+  // confirmation and is not read by the claim gate.
+  venueType       String?   @db.VarChar(32)
+  venueVerifiedAt DateTime?
+
   // Facilities (stored as JSON)
   facilities Json?
 
@@ -117,6 +125,7 @@ model Farm {
   @@index([featured, verified, status]) // Featured verified active farms
   @@index([osmId])
   @@index([fsaId])
+  @@index([venueType])
   @@map("farms")
 }
 
