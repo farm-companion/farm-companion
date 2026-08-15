@@ -1,5 +1,29 @@
 # FarmCompanion Execution Ledger
 
+### 2026-08-15 - Map hooks: clear the 10 lint errors in the three flagged files
+
+**Goal:** Fix the pre-existing lint errors surfaced (not caused) by Slice 4b, on a branch off master so it stays independent of PR #220.
+
+**Slice (DONE), branch `fix/map-hook-lint-errors`:**
+
+- `hooks/useClusteredMarkers.ts` (6 errors, `react-hooks/refs`): the Supercluster index was built in an effect and stashed in a ref, so the `clusters` memo could not list it as a dependency and keyed off `isReady` instead. `isReady` is already true by the time `points` changes, and the cleanup/setup pair batches back to true without a re-render, so a farms change rebuilt the index while `clusters` returned its cached value. Rebuilt as `useMemo` derived state; construction is pure, so an effect was the wrong home. `clusters`, `getClusterLeaves` and `getClusterExpansionZoom` now depend on the index value. Return shape preserved; `isReady` is now a literal `true` since the index exists from first render.
+- `hooks/useMapLocation.ts` (1 error, `no-require-imports`): `require('maplibre-gl')` inside a callback replaced with a value import. Adds no server-side surface: the only consumer, MapLibreShell, already imports maplibre-gl at module scope and is itself dynamically imported with `ssr:false`.
+- `ui/LiveLocationTracker.tsx` (3 errors, const TDZ): `handleLocationUpdate` called `checkNearbyFarms` and `updatePredictiveLocation`, both declared below it and both absent from its dep array, so it captured the first version of each and never saw a later `farms` or `locationHistory`. Reordered dependency-first, hoisted the pure `calculateETA` to module scope, and made the deps honest.
+- Reordering unmasked 4 further `react-hooks/refs` errors in the same file (the rule stops analysing after a TDZ hit). Render read `lastLocation.current` for display; a ref write schedules no render, so that markup only refreshed because `setLocationHistory` happened to fire alongside. Render now reads the newest `locationHistory` entry, which holds the identical value.
+
+**Verified (ran, passed):** eslint on the three files 10 errors -> **0 errors**; across `features/map` + `app/map`, 34 problems (10 errors, 24 warnings) -> 23 problems (1 error, 22 warnings). The single remaining error is FarmPreviewCard's set-state-in-effect, already fixed by PR #220, which this branch is not based on. `tsc --noEmit` exit 0; `npm run test:unit` 369 pass / 0 fail; `next build` exit 0; `npx impeccable detect` exit 0.
+
+**Live (one clean observation):** with the fix applied, the map rendered 37 clusters / 4 markers over 1,997 farms; clicking the Cafe filter with no farm selected and no map movement recomputed to 7 clusters / 5 markers / 30 farms. That is the case the ref-held index could not serve.
+
+**Correction, recorded honestly:** I attempted an A/B against master's version and initially read it as demonstrating the bug (0 markers on a loaded map). That comparison was **not controlled** and does not support the claim. On a later load the fixed code also showed 0 markers, correlating with `farms in view` reading 2,000 rather than a bounds-filtered 1,997 — i.e. map bounds had not been applied, which gates both versions identically via the `if (!bounds) return []` guard. This dev environment initialises the basemap too unreliably for a clean A/B. **The staleness defect in the old code is established by inspection, not by demonstration.** A reviewer should treat the root-cause narrative as reasoned, and the passing checks plus the single filter observation as the measured part.
+
+**Left alone deliberately:** 1 warning in `useMapLocation.ts:180` (`updateAccuracyCircle` missing from deps). Confirmed pre-existing and structural on master (declared at :180, called at :173), merely masked by the error. The fix is the same reorder pattern, but it moves code inside a live hook, so it is the operator's call rather than something to bundle in silently. `createCircle` in the same file has the same shape and would come with it.
+
+**Finding:** `LiveLocationTracker.tsx` has no consumer. Its only reference is the barrel re-export at `features/map/index.ts:12`. Same category as the components/map subgraph deleted in Slice 4b, so the work above is polish on code nothing renders. Also spotted while in there, NOT fixed (out of scope): `handleLocationUpdate` assigns `lastLocation.current = locationData` and then measures the distance from `lastLocation.current` to `locationData`, so the delta is always 0 and `totalDistance` can never accumulate.
+
+**Risk/rollback:** `useClusteredMarkers` is live and its change is behavioural (correctly recomputing on a farms change); the other two are a mechanical import swap and a reorder in unreferenced code. Rollback = revert the commit.
+
+**Next:** merge PR #220 to clear the last error in the map feature, then decide on the `useMapLocation` warning and whether LiveLocationTracker should be deleted rather than maintained.
 ### 2026-08-15 - Komoot Slice 4b: delete the unreachable components/map subgraph
 
 **Goal:** Remove `src/components/map/`, proven by the Slice 4 graph pass to have zero inbound edges from anywhere in `src`.
