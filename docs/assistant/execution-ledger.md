@@ -1,5 +1,57 @@
 # FarmCompanion Execution Ledger
 
+### 2026-08-15 - Komoot Slice 4b: delete the unreachable components/map subgraph
+
+**Goal:** Remove `src/components/map/`, proven by the Slice 4 graph pass to have zero inbound edges from anywhere in `src`.
+
+**Reachability re-proven immediately before deletion (all three checks empty):**
+- No `import` / `require` / dynamic `import()` matching `components/map` anywhere under `src` or `app`.
+- No bare string `components/map` in any `.ts/.tsx/.js/.mjs/.json/.md/.css` in the repo outside the directory itself. The single outside mention is `security-audit-report.json`, a record of a past scan run, not a dependency.
+- Nothing imported the barrel `@/components/map` either, so the barrel's pass-through re-exports (`useClusteredMarkers`, `lib/map-config`, `lib/cluster-config`) were dead links to live modules. Those source modules are untouched and still reached through `@/features/map`.
+
+**DELETED (10 files, 2,586 lines):** `ClusterMarker.tsx` (241), `ClusteredFarmMarkerLayer.tsx` (226), `FarmDetailSheet.tsx` (277), `FarmMarker.tsx` (354), `FarmPopup.tsx` (323), `MapLibreMap.tsx` (341), `MapLibreProvider.tsx` (125), `MobileMarkerSheet.tsx` (293), `index.ts` (74), `useMarkerKeyboardNav.tsx` (332).
+
+**Also removed:** the bare `.cluster-marker` interaction rules in `app/map/map.css`. Grep proved that class was set only by the deleted `ClusterMarker.tsx:95`; its own block comment named that file as the emitter. The live `.maplibre-cluster-marker` / `.maplibre-farm-marker` rules (MapLibreShell.tsx:382,467) and `.leaflet-cluster-marker` / `.leaflet-farm-marker` rules (LeafletShell.tsx:83,134) are untouched.
+
+**Note on duplication this resolves:** `components/map/useMarkerKeyboardNav.tsx` (332 lines) was a stale fork of the live `features/map/hooks/useMarkerKeyboardNav.ts` (268 lines). Only the features version survives.
+
+**Verified (ran, passed):** `tsc --noEmit` exit 0; `npm run test:unit` 369 pass / 0 fail; `next build` exit 0 (full route compile with the files gone, which is the real proof nothing resolved to them); `npx impeccable detect` exit 0. Live on :3001 the map page mounts with zero module-resolution errors, list renders 2,000 farms, chrome and preview path intact.
+
+**Pre-existing lint errors, NOT from this slice (surfaced by widening lint to whole directories):** 10 errors in three untouched files, confirmed unmodified via `git status`: `hooks/useClusteredMarkers.ts` (6x "Cannot access refs during render"), `hooks/useMapLocation.ts` (1x no-require-imports), `ui/LiveLocationTracker.tsx` (3x "Cannot access variable before it is declared", the same const-TDZ class of bug avoided in MapLibreShell during Slice 4). Worth their own slice.
+
+**Work-unit exception (logged per CLAUDE.md):** 12 files touched vs the 8-file cap. Ten are pure deletions of one cohesive dead subgraph; splitting them across slices would leave a barrel exporting removed modules in the intermediate state, which is strictly worse to review and to roll back. Changed-line budget is unaffected (deletions excluded).
+
+**Risk/rollback:** Zero runtime surface: nothing referenced these modules. Rollback = `git checkout HEAD -- farm-frontend/src/components/map/` plus revert the map.css hunk.
+
+**Next slice:** the two Slice 4 invariant click paths still want a real click on a working basemap, then the three pre-existing lint-error files above.
+
+### 2026-08-15 - Komoot Slice 4: preview card action hierarchy + one-popover invariant
+
+**Goal:** Implement spec `2026-06-04-komoot-s4-preview-card-design.md`, corrected against a dependency/state graph of the map subsystem rather than against the spec's own claims.
+
+**Graph evaluation found three spec errors (all corrected before coding):**
+1. Spec said wire `onClusterPreviewOpen` to `setSelectedFarmId(null)`. Wrong: the preview card is driven by `previewFarm` (page.tsx:96), not `selectedFarmId`. That wiring would have cleared the marker highlight and left the card open, silently failing the invariant. Wired to `setPreviewFarm(null)`.
+2. Spec said the Open Now pill uses "Rapeseed accent". Rapeseed is Field Edition, superseded by Pitti Press (harvest-theme.css:79). Live `--accent` is Sea Ink `#1F3A5F`. Used `bg-accent`, which also keeps Vermilion exclusive to the single primary CTA.
+3. Spec scoped dead code to three files. Graph shows the ENTIRE `src/components/map/` directory (10 files, ~2,586 lines) has zero inbound edges from anywhere in `src`. Deferred to its own slice, not mixed into a design change.
+
+**Slice (DONE):**
+- `FarmPreviewCard.tsx`: four competing CTAs collapsed to one. Directions is now the single brand-filled primary; below it one quiet row (View full details text link left, Call and Share as 44px icon buttons right, Call omitted when phone-less). Status pill moved onto the hero (lifts to `bottom-8` when a CC attribution strip is present); `nextOpening` folded into the county/distance meta line. Entry animation moved to CSS (`.fc-preview-enter`), deleting the `setMounted` state and its lint error.
+- Primary CTA and details link are now anchors, not buttons. The unlayered `button` rule (globals.css:409) forces accent font + uppercase + clamped size and outranks Tailwind utilities, so the old `<button>` CTA was rendering uppercase-condensed regardless of its `text-[15px] font-medium` classes.
+- **BUG FIX (pre-existing, found live):** `/opacity` modifiers on these design tokens resolve to `rgba(0,0,0,0)` because the tokens are not registered under Tailwind's `--color-*` convention. `bg-brand/10` on the offerings badges has been shipping as no background at all. Replaced with `color-mix(in srgb, var(--brand) 12%, transparent)`. Same trap caught my own first draft (`bg-ink/85` rendered an invisible CLOSED chip); now solid `bg-ink`.
+- **BUG FIX (pre-existing):** the card hard-set `style={{width:320}}`, which inline-beats the `w-full` the mobile branch passes, so the mobile card never filled its gutter box. Width ownership moved to `MarkerPreview` (`w-80` desktop, `w-full` mobile).
+- `MapLibreShell.tsx`: one-popover invariant, approach A. `handleMarkerClick` closes the cluster preview; `onClusterPreviewOpen` fires when the cluster preview opens. `handleCloseClusterPreview` hoisted above both click handlers (const TDZ in the dep array). Deleted write-only `markerState`, `popoverPosition`, and the `MarkerState` interface.
+- `MapShellAuto.tsx` / `page.tsx`: prop pass-through and wiring. LeafletShell has no cluster preview and ignores the prop.
+
+**Verified (ran, passed):** `tsc --noEmit` exit 0; eslint on touched files 1 error -> **0 errors** (set-state-in-effect deleted at the root), warnings 14 -> 11; `npm run test:unit` 369 pass / 0 fail; `next build` exit 0; `npx impeccable detect` exit 0. Live on :3001, desktop 1440: real card renders with Pitti hero, one Vermilion Directions CTA, quiet secondary row, Call correctly absent for a phone-less farm. Computed styles confirm OPEN NOW `rgb(31,58,95)` on white, CLOSED `rgb(15,14,12)` on cream, badge tint `srgb(.83 .23 .17 / .12)`. Mobile 390: card computed width 334px == container (inline 320 gone).
+
+**Not verified live:** the two invariant click paths (marker-click-closes-cluster, cluster-click-closes-farm). The sandboxed browser throttles the basemap tile provider, so clusters would not render reliably. Both directions are covered by build/type/lint and by reading the state graph, but they want a real click before merge.
+
+**Finding for the queue (not this slice):** **zero of 2,000 farms have opening hours** (`hours: []` across the board). The status pill, the `nextOpening` line, and the OPEN NOW filter pill are all dead surfaces against live data.
+
+**Risk/rollback:** Presentation plus one state-coordination callback; no route, data, or SEO change. Rollback = revert the commit.
+
+**Next slice:** delete the unreachable `src/components/map/` subgraph (10 files, ~2,586 lines, zero inbound edges) plus the orphaned `.cluster-marker` rules in `map.css` that only the dead `ClusterMarker.tsx` emitted.
+
 ### 2026-06-04 — Komoot Slice 3b: one "Search this area" pill + dead chrome deleted
 
 **Goal:** Spec Slice 3 UI half (child spec 2026-06-04). The top bar carried an off-palette cyan "SEARCH AS I MOVE" toggle pill plus a floating "N farms in view" count pill, duplicating the "Update as I move" checkboxes and counts already in both list headers; on 390px mobile they collided with the filter-pills row.

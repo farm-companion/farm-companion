@@ -473,6 +473,7 @@ function MapPageContent() {
           isDesktop={isDesktop}
           onMapReady={setMapInstance}
           rightOffset={panelWidth}
+          onClusterPreviewOpen={() => setPreviewFarm(null)}
           className="w-full h-full"
         />
       </div>
