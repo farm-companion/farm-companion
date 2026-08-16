@@ -49,6 +49,8 @@ export interface FarmShop {
   venueType?: string | null
   /** Human verification timestamp gating visitability claims; null means unverified. */
   venueVerifiedAt?: Date | string | null
+  /** Raw OSM-parsed opening hours JSON (Task 7 gate input); parsed shape is OpeningHours[] when present, distinct from the legacy `hours` field above. */
+  openingHours?: unknown
   updatedAt?: string
   distance?: number // Distance in kilometers from user location
   rating?: number | null

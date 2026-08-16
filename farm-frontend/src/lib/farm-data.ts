@@ -170,6 +170,7 @@ export async function getFarmBySlug(slug: string): Promise<FarmShop | null> {
       verified: farm.verified,
       venueType: farm.venueType,
       venueVerifiedAt: farm.venueVerifiedAt,
+      openingHours: farm.openingHours,
     }
   } catch (error) {
     console.warn(`[farm-data] getFarmBySlug failed (expected during build without DB): ${error}`)

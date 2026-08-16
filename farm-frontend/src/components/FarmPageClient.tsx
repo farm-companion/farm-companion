@@ -24,15 +24,18 @@ interface FarmPageClientProps {
   cleanDescription: string
   directionsUrl: string
   issueUrl: string
+  /** Task 7 gate result, computed server-side from farm-claims.ts; not the legacy shop.verified field. */
+  canClaim: boolean
 }
 
 export function FarmPageClient({
   shop,
   cleanDescription,
   directionsUrl,
-  issueUrl
+  issueUrl,
+  canClaim
 }: FarmPageClientProps) {
-  const { name, location, contact, offerings, verified, hours } = shop
+  const { name, location, contact, offerings, hours } = shop
 
   // Imagery law (design-law-reconciliation 2026-05-27, DESIGN_BRIEF §2): only a
   // real submitted photograph heroes the page. No AI illustration stands in for
@@ -118,7 +121,7 @@ export function FarmPageClient({
         <div className="container mx-auto px-4 py-5 md:py-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              {verified && (
+              {canClaim && (
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-accent text-accent text-[13px] font-semibold">
                   <Shield className="h-4 w-4" />
                   Verified

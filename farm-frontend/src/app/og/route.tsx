@@ -11,6 +11,13 @@ export async function GET(request: NextRequest) {
     const type = searchParams.get('type') || 'default'
     const farmName = searchParams.get('farmName')
     const county = searchParams.get('county')
+    // Task 7 (region-first-verified-listings): this route is shared by every
+    // og:image caller (shop listing, map, individual farm pages). Only the
+    // farm-detail page ever sends farmName, and only it may also send
+    // canClaim=1, which it does only once a human has verified the venue.
+    // Absent or unrecognised, canClaim defaults to false, so the "Farm Shop"
+    // label never renders unless the caller explicitly earns it.
+    const canClaim = searchParams.get('canClaim') === '1'
 
 
 
@@ -164,18 +171,21 @@ export async function GET(request: NextRequest) {
                   </p>
                 )}
 
-                {/* Farm shop indicator */}
-                <p
-                  style={{
-                    fontSize: '24px',
-                    color: 'rgba(255,255,255,0.8)',
-                    margin: '0',
-                    lineHeight: '1.3',
-                    textShadow: '0 2px 4px rgba(0,0,0,0.2)',
-                  }}
-                >
-                  Farm Shop
-                </p>
+                {/* Farm shop indicator: only when the caller has verified
+                    public access (canClaim=1); see note above. */}
+                {canClaim && (
+                  <p
+                    style={{
+                      fontSize: '24px',
+                      color: 'rgba(255,255,255,0.8)',
+                      margin: '0',
+                      lineHeight: '1.3',
+                      textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    }}
+                  >
+                    Farm Shop
+                  </p>
+                )}
               </div>
             ) : (
               <div
