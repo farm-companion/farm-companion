@@ -42,7 +42,8 @@ function substanceCount(f: ClaimInput): number {
   let n = 0
   if (f.phone) n++
   if (f.website) n++
-  if (f.description && !TEMPLATE_DESCRIPTION.test(f.description.trim())) n++
+  const description = f.description?.trim() ?? ''
+  if (description && !TEMPLATE_DESCRIPTION.test(description)) n++
   if (f.offerings.some((o) => o !== DEFAULT_OFFERING)) n++
   if (f.hasRealImage) n++
   return n

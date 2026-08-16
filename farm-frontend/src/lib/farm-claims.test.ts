@@ -43,6 +43,56 @@ test('a verified listing needs two substantive fields without hours', () => {
   assert.equal(isIndexable(base({ ...verified, phone: '01803 000000', website: 'https://x.co.uk' })), true)
 })
 
+test('template description alone does not count as substance', () => {
+  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
+  assert.equal(isIndexable(base({
+    ...verified,
+    phone: '01803 000000',
+    description: 'Hallgate Farm is a farm shop in Lincolnshire.',
+  })), false)
+})
+
+test('default offering alone does not count as substance', () => {
+  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
+  assert.equal(isIndexable(base({
+    ...verified,
+    phone: '01803 000000',
+    offerings: ['Farm Shops'],
+  })), false)
+})
+
+test('whitespace-only description is ignored', () => {
+  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
+  assert.equal(isIndexable(base({
+    ...verified,
+    phone: '01803 000000',
+    description: '   ',
+  })), false)
+})
+
+test('unknown venue type cannot claim visitability', () => {
+  assert.equal(canClaimVisitable(base({
+    venueType: 'unknown', venueVerifiedAt: new Date(),
+  })), false)
+})
+
+test('empty opening hours array is not treated as parsed hours', () => {
+  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
+  assert.equal(isIndexable(base({
+    ...verified,
+    openingHours: [],
+    phone: '01803 000000',
+  })), false)
+})
+
+test('real image alone is not enough substance', () => {
+  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
+  assert.equal(isIndexable(base({
+    ...verified,
+    hasRealImage: true,
+  })), false)
+})
+
 test('the template description and the default offering do not count as substance', () => {
   const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
   assert.equal(isIndexable(base({
