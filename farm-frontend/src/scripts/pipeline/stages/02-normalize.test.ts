@@ -51,3 +51,26 @@ test('fsa name wins over osm name when both present', () => {
   assert.equal(out.length, 1)
   assert.equal(out[0].fields.name?.source, 'fsa')
 })
+
+test('normalize converts a parseable OSM opening_hours into structured hours', () => {
+  const [c] = normalize([{
+    source: 'osm', sourceId: 'node:9', name: 'Test Farm Shop',
+    latitude: 51, longitude: -1, openingHoursRaw: 'Mo-Fr 09:00-17:00', raw: {},
+  }])
+  assert.deepEqual(c.fields.openingHours?.value, [
+    { day: 'Monday', open: '09:00', close: '17:00' },
+    { day: 'Tuesday', open: '09:00', close: '17:00' },
+    { day: 'Wednesday', open: '09:00', close: '17:00' },
+    { day: 'Thursday', open: '09:00', close: '17:00' },
+    { day: 'Friday', open: '09:00', close: '17:00' },
+  ])
+  assert.equal(c.fields.openingHours?.source, 'osm')
+})
+
+test('normalize omits openingHours entirely when the raw value cannot be parsed', () => {
+  const [c] = normalize([{
+    source: 'osm', sourceId: 'node:10', name: 'Test Farm Shop',
+    latitude: 51, longitude: -1, openingHoursRaw: 'by appointment', raw: {},
+  }])
+  assert.equal(c.fields.openingHours, undefined)
+})
