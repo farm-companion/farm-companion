@@ -45,6 +45,10 @@ export interface FarmShop {
   }
   verified?: boolean | string // Allow both boolean and string
   description?: string
+  /** Venue classification (2026-08-15): admitted values are 'shop' | 'pyo' | 'market_stall'; null/unset means unknown. */
+  venueType?: string | null
+  /** Human verification timestamp gating visitability claims; null means unverified. */
+  venueVerifiedAt?: Date | string | null
   updatedAt?: string
   distance?: number // Distance in kilometers from user location
   rating?: number | null

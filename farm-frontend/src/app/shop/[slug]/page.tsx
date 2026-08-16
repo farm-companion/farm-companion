@@ -5,9 +5,35 @@ import { processFarmDescription } from '@/lib/seo-utils'
 import FarmAnalytics from '@/components/FarmAnalytics'
 import { FarmPageClient } from '@/components/FarmPageClient'
 import { getFarmBySlug } from '@/lib/farm-data'
+import { canClaimVisitable, isIndexable, type ClaimInput } from '@/lib/farm-claims'
 
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
+
+// Task 7 (region-first-verified-listings): gate input shared by
+// generateMetadata and the page body so both agree on whether this page may
+// claim visitability. Real-photo provenance is already resolved upstream:
+// getFarmBySlug's hero selector returns only owner/admin/user photos and its
+// gallery mapping excludes every ai_* row, so a present heroImage or
+// gallery image here is never AI-generated.
+function buildClaimInput(farm: FarmShop): ClaimInput {
+  return {
+    venueType: farm.venueType ?? null,
+    venueVerifiedAt: farm.venueVerifiedAt ?? null,
+    openingHours: farm.hours ?? null,
+    phone: farm.contact?.phone ?? null,
+    website: farm.contact?.website ?? null,
+    description: farm.description ?? null,
+    offerings: farm.offerings ?? [],
+    hasRealImage: Boolean(farm.heroImage) || Boolean(farm.images?.length),
+  }
+}
+
+// The only sentence an unverified page may say about visitability: it exists
+// as a food producer, and access is unconfirmed.
+function unverifiedDescription(county: string): string {
+  return `A registered food producer in ${county || 'the UK'}. We have not confirmed whether it is open to visitors.`
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -15,16 +41,26 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!shop) return { title: 'Farm shop not found' }
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
   const url = `/shop/${encodeURIComponent(shop.slug)}`
+  const claimInput = buildClaimInput(shop)
+  const canClaim = canClaimVisitable(claimInput)
   // Process farm description to extract keywords and clean for SEO
   const { cleanDescription, seoDescription } = processFarmDescription(shop.description || '')
-  const description = cleanDescription 
-    ? `${seoDescription.substring(0, 160)}...` 
-    : `${shop.location.address}, ${shop.location.county} ${shop.location.postcode}`
+  const description = !canClaim
+    ? unverifiedDescription(shop.location.county)
+    : cleanDescription
+      ? `${seoDescription.substring(0, 160)}...`
+      : `${shop.location.address}, ${shop.location.county} ${shop.location.postcode}`
+  const imageAlt = canClaim
+    ? `${shop.name} - Farm shop in ${shop.location.county}`
+    : `${shop.name} in ${shop.location.county}`
 
   return {
     title: `${shop.name} · Farm Companion`,
     description: description,
     alternates: { canonical: url },
+    robots: isIndexable(claimInput)
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
     openGraph: {
       type: 'website',
       url: `${base}${url}`,
@@ -35,7 +71,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
           url: `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county)}&type=farm`,
           width: 1200,
           height: 630,
-          alt: `${shop.name} - Farm shop in ${shop.location.county}`,
+          alt: imageAlt,
           type: 'image/png',
         },
       ],
@@ -55,7 +91,13 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   if (!shop) notFound()
 
   const { name, location, contact, offerings, verified, hours } = shop
-  const { cleanDescription, keywords } = processFarmDescription(shop.description || '')
+  const { cleanDescription: rawDescription, keywords } = processFarmDescription(shop.description || '')
+  // Gate: an unverified page renders only the producer sentence, never the
+  // raw description or any "farm shop" claim derived from it (JSON-LD
+  // description and the on-page About section below both read this).
+  const cleanDescription = canClaimVisitable(buildClaimInput(shop))
+    ? rawDescription
+    : unverifiedDescription(location.county)
   const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
   const ghOwner = process.env.NEXT_PUBLIC_GH_OWNER || 'farm-companion'

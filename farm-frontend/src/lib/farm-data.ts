@@ -168,6 +168,8 @@ export async function getFarmBySlug(slug: string): Promise<FarmShop | null> {
       images: galleryImages.length > 0 ? galleryImages : undefined,
       heroImage,
       verified: farm.verified,
+      venueType: farm.venueType,
+      venueVerifiedAt: farm.venueVerifiedAt,
     }
   } catch (error) {
     console.warn(`[farm-data] getFarmBySlug failed (expected during build without DB): ${error}`)
