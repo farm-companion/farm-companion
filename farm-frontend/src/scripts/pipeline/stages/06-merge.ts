@@ -31,13 +31,18 @@ export function buildChangeSet(
       websiteRetailSignal: false,
       placesRetailWithHours: false,
     })
-    if (venueType !== 'unknown') {
+    const priorVenueType = (match?.fields.venueType as string | undefined) ?? null
+    if (venueType !== 'unknown' && venueType !== priorVenueType) {
       change.fields.push({
         field: 'venueType',
-        from: match?.fields.venueType ?? null,
+        from: priorVenueType,
         to: venueType,
         reason: 'classified from source evidence',
       })
+      // mergeFarm froze change.action from its own diff count before this block
+      // ran, so a venueType-only change on a matched row would still say 'noop'
+      // and 07-load skips noop unconditionally. Promote it or the write is lost.
+      if (change.action === 'noop') change.action = 'update'
     }
     if (matchKey === 'fuzzy') change.matchKey = 'fuzzy'
     if (c.categories.length > 0) change.categories = c.categories

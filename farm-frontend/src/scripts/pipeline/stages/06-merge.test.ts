@@ -69,5 +69,48 @@ test('merge leaves venueType unknown for an FSA-only candidate', () => {
     [], '2026-08-15T00:00:00.000Z',
   )
   const venue = cs[0].fields.find((f) => f.field === 'venueType')
-  assert.equal(venue?.to ?? 'unknown', 'unknown')
+  assert.equal(venue, undefined)
+})
+
+test('matched row: venueType-only change promotes noop to update', () => {
+  const rows: DbFarm[] = [{
+    id: 'x', slug: 'a', osmId: null, fsaId: null, googlePlaceId: null,
+    postcode: 'TQ11 0JU', latitude: 50.5, longitude: -3.7,
+    provenance: { name: { source: 'osm', at: '2026-01-01T00:00:00Z' } },
+    fields: { name: 'A Farm Shop' },
+  }]
+  const cs = buildChangeSet(
+    [cand({
+      osmId: 'node:1', slug: 'a',
+      fields: {
+        name: { value: 'A Farm Shop', source: 'osm' },
+        openingHours: { value: [{ day: 'Monday', open: '09:00', close: '17:00' }], source: 'osm' },
+      },
+    })],
+    rows, '2026-08-15T00:00:00.000Z',
+  )
+  const venue = cs[0].fields.find((f) => f.field === 'venueType')
+  assert.equal(venue?.to, 'shop')
+  assert.equal(cs[0].action, 'update')
+})
+
+test('matched row: venueType unchanged when already classified as shop', () => {
+  const rows: DbFarm[] = [{
+    id: 'x', slug: 'a', osmId: 'node:1', fsaId: null, googlePlaceId: null,
+    postcode: 'TQ11 0JU', latitude: 50.5, longitude: -3.7,
+    provenance: { name: { source: 'osm', at: '2026-01-01T00:00:00Z' } },
+    fields: { name: 'A Farm Shop', venueType: 'shop' },
+  }]
+  const cs = buildChangeSet(
+    [cand({
+      osmId: 'node:1', slug: 'a',
+      fields: {
+        name: { value: 'A Farm Shop', source: 'osm' },
+      },
+    })],
+    rows, '2026-08-15T00:00:00.000Z',
+  )
+  const venue = cs[0].fields.find((f) => f.field === 'venueType')
+  assert.equal(venue, undefined)
+  assert.equal(cs[0].action, 'noop')
 })
