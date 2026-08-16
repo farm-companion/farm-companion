@@ -127,21 +127,30 @@ export function FarmPageClient({
                   Verified
                 </div>
               )}
-              <StatusBadge openingHours={hours} className="text-[13px] px-3 py-1.5" />
+              {/* StatusBadge reads shop.hours, a dead field today. Gated on
+                  canClaim so the moment that mapping is wired up it does
+                  not start showing open/closed states for unverified
+                  venues (Task 7 fix round 2). */}
+              {canClaim && <StatusBadge openingHours={hours} className="text-[13px] px-3 py-1.5" />}
               <div className="flex items-center gap-2 text-caption text-ink-muted">
                 <MapPin className="h-4 w-4 flex-shrink-0" />
                 <span>{location.address}, {location.county} {location.postcode}</span>
               </div>
             </div>
-            <a
-              href={directionsUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-none bg-brand text-brand-text text-sm font-semibold transition-colors duration-200 hover:bg-brand-hover active:scale-[0.98] flex-shrink-0"
-            >
-              <Navigation className="h-4 w-4" />
-              Get Directions
-            </a>
+            {/* The address above is factual and stays visible; the
+                invitation to travel there is a visitability claim and is
+                gated (Task 7 fix round 2). */}
+            {canClaim && (
+              <a
+                href={directionsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-none bg-brand text-brand-text text-sm font-semibold transition-colors duration-200 hover:bg-brand-hover active:scale-[0.98] flex-shrink-0"
+              >
+                <Navigation className="h-4 w-4" />
+                Get Directions
+              </a>
+            )}
           </div>
         </div>
       </section>
@@ -214,8 +223,11 @@ export function FarmPageClient({
               </section>
             )}
 
-            {/* Offerings */}
-            {offerings && offerings.length > 0 && (
+            {/* Offerings: each tag (Farm Shops, PYO, Butcher...) asserts
+                public retail access, exactly what an unverified page may
+                not claim, so the whole section is gated, not just the
+                default tag (Task 7 fix round 2). */}
+            {canClaim && offerings && offerings.length > 0 && (
               <section className="bg-surface rounded-[2px] border border-border p-6 md:p-8">
                 <h2 className="font-clash text-2xl font-semibold text-ink mb-6">
                   What We Offer
@@ -267,8 +279,11 @@ export function FarmPageClient({
                 </div>
               </div>
 
-              {/* Opening Hours */}
-              {hours && hours.length > 0 && (
+              {/* Opening Hours: reads shop.hours, a dead field today, but
+                  gated on canClaim so it cannot start rendering hour
+                  ranges for unverified venues the moment that mapping is
+                  wired up (Task 7 fix round 2). */}
+              {canClaim && hours && hours.length > 0 && (
                 <div className="bg-surface rounded-[2px] border border-border p-6">
                   <h3 className="font-semibold text-ink mb-4 flex items-center gap-2">
                     <Clock className="h-5 w-5 text-ink-muted" />

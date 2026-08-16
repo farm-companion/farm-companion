@@ -155,9 +155,15 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
       telephone: contact?.phone || undefined,
       email: contact?.email || undefined,
       sameAs: contact?.website ? [contact.website] : undefined,
-      // Opening hours, if provided
+      // Opening hours, if provided. Gated on canClaim: shop.hours is a dead
+      // field today (getFarmBySlug never populates it), but this stays
+      // gated so the moment that mapping is wired up, unverified pages do
+      // not start rendering real hour ranges (Task 7 fix round 2). Follow-up:
+      // this reads the legacy `hours` field, not the newly-wired
+      // `openingHours`; switching which field it reads is a separate,
+      // out-of-scope change.
       openingHoursSpecification:
-        Array.isArray(shop.hours) && shop.hours.length
+        canClaim && Array.isArray(shop.hours) && shop.hours.length
           ? shop.hours
               .filter(h => h.open && h.close && h.day)
               .map(h => ({
@@ -167,8 +173,9 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
                 closes: h.close
               }))
           : undefined,
-      // What they offer (keywords help discovery)
-      keywords: Array.isArray(offerings) && offerings.length ? offerings.join(', ') : undefined,
+      // What they offer (keywords help discovery). Gated: PYO/Butcher/etc
+      // are themselves assertions of public retail access.
+      keywords: canClaim && Array.isArray(offerings) && offerings.length ? offerings.join(', ') : undefined,
       // Additional keywords from description. processFarmDescription always
       // appends 13 hardcoded "farm shop near me" style phrases whenever the
       // raw description is non-empty, so this is gated here rather than in
