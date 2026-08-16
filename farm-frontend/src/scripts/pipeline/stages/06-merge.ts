@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import { PIPELINE_CONFIG } from '../config'
 import { log } from '../lib/log'
 import { matchExisting, mergeFarm } from '../policy/merge-policy'
+import { classifyVenue, hasRetailLexeme } from '../lib/classify-venue'
 import type { ChangeSet, DbFarm, FarmFieldName, NormalizedCandidate } from '../types'
 
 /** Pure: build the change set from candidates + a DB snapshot. */
@@ -16,6 +17,28 @@ export function buildChangeSet(
   return candidates.map((c) => {
     const { match, matchKey } = matchExisting(c, rows)
     const change = mergeFarm(match, c, now)
+    // Venue classification. Only Tier A writes an admitted type; everything else
+    // stays unknown so no page can claim visitability without a human.
+    //
+    // osmShopFarm infers from osmId because parseOverpass already rejects any
+    // element without shop=farm, so an osmId implies the tag. If OSM discovery
+    // ever widens beyond shop=farm, this inference breaks silently.
+    const { venueType } = classifyVenue({
+      osmShopFarm: Boolean(c.osmId),
+      osmOpeningHours: Boolean(c.fields.openingHours),
+      fsaFarmType: Boolean(c.fsaId),
+      retailLexeme: hasRetailLexeme(c.fields.name?.value as string | undefined),
+      websiteRetailSignal: false,
+      placesRetailWithHours: false,
+    })
+    if (venueType !== 'unknown') {
+      change.fields.push({
+        field: 'venueType',
+        from: match?.fields.venueType ?? null,
+        to: venueType,
+        reason: 'classified from source evidence',
+      })
+    }
     if (matchKey === 'fuzzy') change.matchKey = 'fuzzy'
     if (c.categories.length > 0) change.categories = c.categories
     if (c.images.length > 0) change.images = c.images
@@ -26,6 +49,7 @@ export function buildChangeSet(
 const FIELD_NAMES: FarmFieldName[] = [
   'name', 'description', 'address', 'city', 'county', 'postcode',
   'latitude', 'longitude', 'phone', 'email', 'website', 'openingHours', 'status', 'verified',
+  'venueType',
 ]
 
 /** Load a minimal read-only DB snapshot via Prisma. */
@@ -37,6 +61,7 @@ export async function loadDbSnapshot(prisma: {
     postcode: true, latitude: true, longitude: true, provenance: true,
     name: true, description: true, address: true, city: true, county: true,
     phone: true, email: true, website: true, openingHours: true, status: true, verified: true,
+    venueType: true, venueVerifiedAt: true,
   } }) as Record<string, unknown>[]
 
   return rows.map((r) => {

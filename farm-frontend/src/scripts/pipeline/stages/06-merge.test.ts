@@ -47,3 +47,27 @@ test('fuzzy match sets matchKey to "fuzzy"', () => {
   assert.equal(cs[0].matchKey, 'fuzzy')
   assert.equal(cs[0].slug, 'riverford-farm-shop')
 })
+
+test('merge assigns venueType shop when OSM tag and hours agree', () => {
+  const cs = buildChangeSet(
+    [cand({
+      osmId: 'node:1', slug: 'a',
+      fields: {
+        name: { value: 'A Farm Shop', source: 'osm' },
+        openingHours: { value: [{ day: 'Monday', open: '09:00', close: '17:00' }], source: 'osm' },
+      },
+    })],
+    [], '2026-08-15T00:00:00.000Z',
+  )
+  const venue = cs[0].fields.find((f) => f.field === 'venueType')
+  assert.equal(venue?.to, 'shop')
+})
+
+test('merge leaves venueType unknown for an FSA-only candidate', () => {
+  const cs = buildChangeSet(
+    [cand({ fsaId: '123', slug: 'b', fields: { name: { value: 'Mr D & Mrs H Harries', source: 'fsa' } } })],
+    [], '2026-08-15T00:00:00.000Z',
+  )
+  const venue = cs[0].fields.find((f) => f.field === 'venueType')
+  assert.equal(venue?.to ?? 'unknown', 'unknown')
+})
