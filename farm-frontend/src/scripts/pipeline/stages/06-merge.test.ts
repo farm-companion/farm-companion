@@ -72,12 +72,15 @@ test('merge leaves venueType unknown for an FSA-only candidate', () => {
   assert.equal(venue, undefined)
 })
 
-test('matched row: venueType-only change promotes noop to update', () => {
+test('matched row: venueType-only change promotes noop to update (curated hours protected)', () => {
   const rows: DbFarm[] = [{
-    id: 'x', slug: 'a', osmId: null, fsaId: null, googlePlaceId: null,
+    id: 'x', slug: 'a', osmId: 'node:1', fsaId: null, googlePlaceId: null,
     postcode: 'TQ11 0JU', latitude: 50.5, longitude: -3.7,
-    provenance: { name: { source: 'osm', at: '2026-01-01T00:00:00Z' } },
-    fields: { name: 'A Farm Shop' },
+    provenance: {
+      name: { source: 'osm', at: '2026-01-01T00:00:00Z' },
+      openingHours: { source: 'admin', at: '2026-01-01T00:00:00Z' },
+    },
+    fields: { name: 'A Farm Shop', openingHours: [{ day: 'Monday', open: '09:00', close: '17:00' }] },
   }]
   const cs = buildChangeSet(
     [cand({
@@ -90,8 +93,9 @@ test('matched row: venueType-only change promotes noop to update', () => {
     rows, '2026-08-15T00:00:00.000Z',
   )
   const venue = cs[0].fields.find((f) => f.field === 'venueType')
-  assert.equal(venue?.to, 'shop')
-  assert.equal(cs[0].action, 'update')
+  assert.equal(venue?.to, 'shop', 'venueType should be classified as shop')
+  assert.equal(cs[0].action, 'update', 'action should be promoted to update from noop by venueType-only change')
+  assert.equal(cs[0].fields.length, 1, 'venueType should be the only field diff')
 })
 
 test('matched row: venueType unchanged when already classified as shop', () => {
