@@ -8,7 +8,13 @@
 // Index gate: layered above the claim gate. A page Google should rank has to say
 // something, not merely exist.
 
-const ADMITTED = new Set(['shop', 'pyo', 'market_stall'])
+/**
+ * Venue types that may make a visitability claim. Exported so the verification
+ * importer validates against the same set the gate reads: a row given an
+ * unadmitted type would get a venueVerifiedAt that canClaimVisitable still
+ * refuses, which is a verification that silently does nothing.
+ */
+export const ADMITTED_VENUE_TYPES: ReadonlySet<string> = new Set(['shop', 'pyo', 'market_stall'])
 
 /** The LLM fallback sentence, which asserts a farm shop without evidence. */
 const TEMPLATE_DESCRIPTION = /^(.+?) is a farm shop in (.+?)\.$/
@@ -48,7 +54,7 @@ export function unverifiedDescription(county: string): string {
 
 /** True when the page may state the visitor can go there and buy something. */
 export function canClaimVisitable(f: VenueVerification): boolean {
-  if (!f.venueType || !ADMITTED.has(f.venueType)) return false
+  if (!f.venueType || !ADMITTED_VENUE_TYPES.has(f.venueType)) return false
   return f.venueVerifiedAt != null
 }
 

@@ -180,3 +180,31 @@ test('loadDbSnapshot carries venueVerifiedAt into fields', async () => {
     'FIELD_NAMES must include venueVerifiedAt or the guard reads undefined forever',
   )
 })
+
+test('a merge preserves the admin provenance that makes a verification auditable', () => {
+  // The verification importer tags venueType and venueVerifiedAt as source
+  // admin. If a merge dropped provenance keys it does not know about, the row
+  // would stay verified but lose the record of who verified it, and the audit
+  // trail is the entire reason that column is trustworthy.
+  const verifiedAt = '2026-10-31T00:00:00.000Z'
+  const rows: DbFarm[] = [{
+    id: 'x', slug: 'a', osmId: 'node:1', fsaId: null, googlePlaceId: null,
+    postcode: 'TR11 1AA', latitude: 50.1, longitude: -5.1,
+    provenance: {
+      venueType: { source: 'admin', at: verifiedAt },
+      venueVerifiedAt: { source: 'admin', at: verifiedAt },
+      name: { source: 'osm', at: 'earlier' },
+    },
+    fields: { name: 'A Farm', venueType: 'shop', venueVerifiedAt: verifiedAt },
+  }]
+  // A candidate that legitimately updates an unrelated field.
+  const cs = buildChangeSet(
+    [cand({ osmId: 'node:1', fields: { phone: { value: '01326 000000', source: 'osm' } } })],
+    rows, 'now',
+  )
+  assert.equal(cs[0].action, 'update')
+  assert.deepEqual(cs[0].provenanceNext.venueType, { source: 'admin', at: verifiedAt })
+  assert.deepEqual(cs[0].provenanceNext.venueVerifiedAt, { source: 'admin', at: verifiedAt })
+  // And the verification itself is untouched by the unrelated update.
+  assert.deepEqual(cs[0].fields.filter((f) => f.field === 'venueType'), [])
+})
