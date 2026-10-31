@@ -1,5 +1,35 @@
 # FarmCompanion Execution Ledger
 
+### 2026-10-31 - E5 implemented by reading the farms' own websites
+
+**Goal:** stop handing the research to a person. Commits `fcad55d`, `3fca60b`.
+
+**The spec was wrong about E5.** It recorded E5 and E6 as needing "a Google Maps Platform API key and billing, an operator dependency this plan cannot satisfy". E5 needs neither. A farm shop publishes its opening hours and its "come and visit" language for customers, because that is what customers need. It is a fetch, not a billing relationship.
+
+**What was fetched:** 46 homepages (40 static, 5 through the JS engine, 1 dead) plus 44 ranked opening-hours, visit and contact subpages, through the Scrapling CLI to files rather than into context. `src/lib/website-signals.ts` extracts the evidence. It is deliberately **not** a classifier: it reports what a page says and leaves the judgement to a person, because a page can be stale, a shop can close, and "Farm Shop" in a navigation menu may be an online product category rather than a building.
+
+**Result: 24 of 63 rows now have opening hours quoted from the business's own site**, against 0 parsed hours across all 3,504 rows in the database.
+
+**My judgement pass, written as proposals with the signature left to a person:** 22 proposed `shop` (14 of them with hours published on their own site), 6 proposed not visitable with the reason, 13 flagged ambiguous rather than guessed, and 22 that still need a call, each saying why.
+
+**Findings a call list would never have surfaced:**
+
+- `cornhill-farm` opens the farm "on the last Sunday of every June". An annual open day, not a shop. It would have passed any name-and-Places-type heuristic unchallenged.
+- `trevaskis-farm` and `the-farm-shop-and-restaurant` are two rows for one business, sharing `trevaskisfarm.co.uk`. Dedupe before verifying either.
+- Three rows store a third-party directory as their website: `farm-fort` (ukmapi), `pentruse-farm-shop` (edan.io) and `chypraze-farm-butchery-and-shop` (bigbarn.co.uk). A directory's page about a farm is not evidence about that farm, so the extractor now reports these as blocked rather than letting them read as retail confirmation. That is a data bug in those rows.
+- `seven-acre-farm` says collections are by appointment, so it is not a walk-in shop.
+- The three Mole Valley Farmers rows are an agricultural supply chain. Whether they belong in a farm shop directory is a scope question for a person, not a classification.
+- Four Facebook URLs hit a login wall, `tregullasfarm.co.uk` serves a persistent 503, and `theshoptrevonefarm.com` does not resolve.
+
+**A bug the test caught and the prototype did not.** The hours pattern let a lazy gap quantifier swallow the closing time, truncating every row to "Sunday: 9am". The scratch prototype I ran first had the same bug and would have produced 46 sites' hours silently halved. The closing time is now an explicit optional range.
+
+**Importer change so a proposal is not an error.** A `venue_type` with no signature is counted as PROPOSED and writes nothing. A `verified_by` or `basis` without the flag is still an error, because that is a row someone started and left. I do not fill `verified`, `verified_by` or `basis`; my reasoning goes in its own `proposal` column, so the audit trail records who actually decided.
+
+**THE GATE:** `npx tsc --noEmit` exit 0. `pnpm test:unit` **442 pass, 0 fail**, up from 433. `npx impeccable detect` exit 0 on every new file.
+
+**New work this opens, not done:** the 24 sets of extracted hours are free text ("Mon-Sat 9:30am-5.00pm"), and `parseOsmHours` parses OSM syntax rather than prose. Converting them into the structured `openingHours` shape is a separate piece of work, and would take hours coverage in Cornwall from 0% to roughly 38%.
+
+
 ### 2026-10-31 - E7 built as data operations, after the judgement that this had got too complicated
 
 **Goal:** give the claim gate a writer. Commits `8d4ef9c`, `d672455`, `df7bfd6`, `fd3db31`.
