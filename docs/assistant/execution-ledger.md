@@ -1,5 +1,38 @@
 # FarmCompanion Execution Ledger
 
+### 2026-10-31 - E7 built as data operations, after the judgement that this had got too complicated
+
+**Goal:** give the claim gate a writer. Commits `8d4ef9c`, `d672455`, `df7bfd6`, `fd3db31`.
+
+**The measurement that governs it, and it vindicates the judgement.** `classifyVenue` reaches Tier A only on `osmShopFarm AND (osmOpeningHours OR placesRetailWithHours)`. The second disjunct is hardcoded `false` at the call site in `06-merge`. Parsed opening hours exist on **0 of 3,504 rows**. Therefore the classifier returns `unknown` for every row in the database, always. Cornwall has **2 rows with an `osmId` out of 63**, so even a complete OSM hours backfill could admit two of them.
+
+E7 is not one edge among seven. **It is the only edge that can ever fire.** The 64-combination invariant sweep now guards a function whose answer is constant, and Tier B, whose documented purpose is to order the human review backlog, is discarded by its only caller and could rank two of Cornwall's rows regardless. The proposer was over-built. The gates and the surface work were not, and were left alone.
+
+**What was built: export, human, import.** Three files, no admin UI, no API, no review queue, no new evidence edge, because N is 63 and at that size you do the work and record it.
+
+`src/lib/csv.ts`, 65 lines plus 8 tests. Minimal RFC 4180. No CSV dependency is installed and none was added. It handles quoted commas, escaped quotes, embedded newlines and the UTF-8 BOM that Excel and Numbers both write, which would otherwise become part of the first header name and make every lookup by that key silently fail.
+
+`src/scripts/export-venue-candidates.ts`, 159 lines, read-only. Writes `docs/verification/<county>.csv` and refuses to overwrite, because that file is the audit trail and may already hold a human's work. It ranks contactable and retail-typed rows first so the call list front-loads the likely passes. Places types are matched by slug **and** `googlePlaceId`: slug alone found 46 of Cornwall's rows, both found 49, which is the figure previously reported. `would_index` calls the production `isIndexable` predicate rather than reimplementing its scoring, so the export cannot drift from the gate.
+
+`src/scripts/import-venue-verification.ts`, 200 lines plus 10 tests. Dry-run by default, `--apply` writes, `--revert` undoes only rows whose provenance says this script set them.
+
+**Cornwall's call list is exported and committed empty:** 63 rows, 56 contactable, 49 retail-typed, 50 that would be indexable once verified. **The honest ceiling is 50 pages, not 63:** thirteen rows have substance under two and will be correctly verified-but-unindexed. The bottom of the list is the clearest statement of why this branch exists: `Delta Dawn PW788 - Padstow` (a fishing boat), `TC Game`, `Trewithen Shoot` and `Mushlove Cornwall`, none of them contactable, every one of them previously described to the public as a farm shop.
+
+**Because this is the only writer of a visitability claim on the site, it refuses the whole file on any inconsistency** rather than importing the rows it happens to understand. Refused: a `venue_type` the gate would not admit; a `verified` flag that is neither `y` nor blank; a `venue_type` set without a verification, because a half-filled row is not a decision; a duplicate or missing slug; and a slug absent from the database, which would otherwise be a silent no-op. `ADMITTED_VENUE_TYPES` is now exported from `farm-claims` so the importer and the gate cannot disagree: a `cafe` row would otherwise receive a `venueVerifiedAt` that `canClaimVisitable` still refuses, which is a verification that silently does nothing.
+
+**`verified_by` and `basis` are required on a pass.** A verification nobody signed cannot answer "who said my farm is open to the public?", and that is the question the column has to survive. The CSV is committed empty so that filling it produces a diff showing exactly what was decided and by whom.
+
+**The audit trail needed no migration.** `provenance` already exists per-field, `FarmFieldName` already covers both venue fields after `116f15f`, and `admin` is already in `CURATED_SOURCES`. The importer writes `provenance {venueType, venueVerifiedAt: {source: admin, at}}` merged into whatever is there, and a new merge test asserts that survives an unrelated field update.
+
+**One constraint to carry forward:** the venue block in `06-merge` sits outside `merge-policy`, so `CURATED_SOURCES` does **not** protect `venueType`. The `humanVerified` guard added in `116f15f` is the only thing standing between a pipeline run and a destroyed verification.
+
+**Verified end to end against the live database in dry-run only; no write occurred.** A valid file reports "2 row(s) will change" with each before and after and the verifier's stated basis. A file with one bad row imports nothing and names the spreadsheet line: `line 4 (bosavern-community-farm): venue_type must be one of shop | pyo | market_stall, got "cafe"`. A second export refuses, naming the audit trail.
+
+**THE GATE:** `npx tsc --noEmit` exit 0. `pnpm test:unit` **433 pass, 0 fail**, up from 414. `npx impeccable detect` exit 0 on every new file. Slice `fd3db31` is 302 insertions against the 300-line cap; splitting a script from its own test was the worse trade.
+
+**Still open:** the human pass itself, with `docs/verification/cornwall.csv` empty and waiting and `venueVerifiedAt` still null on all 3,504 rows; the backfill `--apply`, deferred, with its backup already taken; `connection_limit=2`; and four dead modules still holding claim literals.
+
+
 ### 2026-10-31 - Region-first verified listings: remediating the final review findings
 
 **Goal:** close the two Criticals and the structural finding from the whole-branch review, which returned SAFE AFTER NAMED FIXES. Six commits on top of `3246044`: `ff22b1b`, `f450eba`, `f38b974`, `116f15f`, `9392c35`, `20e0a4e`.
