@@ -45,11 +45,23 @@ test('a blank row is a decline, not an error', () => {
   assert.equal(passes.length, 0)
 })
 
-test('a venue_type without a verification is a half-filled row, not a decision', () => {
-  const { passes, declined, errors } = parseVerification([row({ venue_type: 'shop' })])
+test('a venue_type with no signature is an unsigned proposal, and writes nothing', () => {
+  // The enrichment script pre-fills venue_type from the farm's own website.
+  // Unsigned it must do nothing, and be counted so a part-done file is obvious.
+  const { passes, unsigned, declined, errors } = parseVerification([row({ venue_type: 'shop' })])
+  assert.deepEqual(errors, [])
   assert.equal(passes.length, 0)
+  assert.deepEqual(unsigned, ['argal-farm-shop'])
   assert.deepEqual(declined, [])
-  assert.match(errors[0], /venue_type "shop" but verified is blank/)
+})
+
+test('a name or basis without the flag is a row someone abandoned, so it errors', () => {
+  const byOnly = parseVerification([row({ venue_type: 'shop', verified_by: 'Abu Aaliyah' })])
+  assert.equal(byOnly.unsigned.length, 0)
+  assert.match(byOnly.errors[0], /verified_by or basis is filled but verified is blank/)
+
+  const basisOnly = parseVerification([row({ basis: 'phoned' })])
+  assert.match(basisOnly.errors[0], /verified_by or basis is filled but verified is blank/)
 })
 
 test('an unsigned verification is refused', () => {

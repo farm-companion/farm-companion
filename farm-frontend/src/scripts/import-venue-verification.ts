@@ -30,6 +30,8 @@ interface Pass {
 
 export interface Parsed {
   passes: Pass[]
+  /** Rows carrying a proposed venue_type that nobody has signed yet. */
+  unsigned: string[]
   declined: string[]
   errors: string[]
 }
@@ -42,6 +44,7 @@ export interface Parsed {
  */
 export function parseVerification(records: Record<string, string>[]): Parsed {
   const passes: Pass[] = []
+  const unsigned: string[] = []
   const declined: string[] = []
   const errors: string[] = []
   const seen = new Set<string>()
@@ -59,10 +62,20 @@ export function parseVerification(records: Record<string, string>[]): Parsed {
     const basis = (r.basis ?? '').trim()
 
     if (NO.has(verified)) {
-      // Not verified. A venue_type without a verification is a half-filled row,
-      // not a decision, so say so rather than silently ignoring it.
-      if (venueType) errors.push(`line ${line} (${slug}): venue_type "${venueType}" but verified is blank`)
-      else declined.push(slug)
+      // A venue_type with no verification is a PROPOSAL: the enrichment script
+      // pre-fills it from the farm's own website so a person reviews a finding
+      // instead of doing the research. Unsigned, it does nothing, and the count
+      // is reported so a part-done file is obvious.
+      //
+      // A verifier's name or basis without the flag is different: that is a row
+      // someone started and left, and it is an error rather than a proposal.
+      if (verifiedBy || basis) {
+        errors.push(`line ${line} (${slug}): verified_by or basis is filled but verified is blank`)
+      } else if (venueType) {
+        unsigned.push(slug)
+      } else {
+        declined.push(slug)
+      }
       return
     }
     if (!YES.has(verified)) {
@@ -84,7 +97,7 @@ export function parseVerification(records: Record<string, string>[]): Parsed {
     passes.push({ slug, venueType, verifiedBy, basis })
   })
 
-  return { passes, declined, errors }
+  return { passes, unsigned, declined, errors }
 }
 
 type ProvenanceMap = Record<string, { source: string; at: string }>
@@ -99,10 +112,11 @@ async function main(): Promise<void> {
   }
 
   const records = parseCsvRecords(readFileSync(resolve(path), 'utf8'))
-  const { passes, declined, errors } = parseVerification(records)
+  const { passes, unsigned, declined, errors } = parseVerification(records)
 
   console.log(`${records.length} rows in ${path}`)
   console.log(`  ${passes.length} verified as visitable`)
+  console.log(`  ${unsigned.length} PROPOSED but not signed yet (nothing will be written for these)`)
   console.log(`  ${declined.length} left blank (not visitable, or not yet checked)`)
 
   if (errors.length > 0) {

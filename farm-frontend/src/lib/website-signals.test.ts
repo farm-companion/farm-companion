@@ -57,10 +57,17 @@ test('a blocked fetch is reported as blocked, never as absence of evidence', () 
   const down = extractWebsiteSignals('503 Service Temporarily Unavailable\nnginx')
   assert.equal(down.blocked, true)
 
-  // farm-fort's stored URL points at a scraper directory, not the business.
-  const scraper = extractWebsiteSignals('[ukmapi.com](/) Discover Categories Countries')
-  assert.equal(scraper.blocked, true)
-  assert.ok(scraper.negative.includes('BLOCKED: directory scraper'))
+  // Three Cornwall rows store a directory URL as their website. A directory's
+  // page about a farm is not evidence about that farm.
+  for (const page of [
+    '[ukmapi.com](/) Discover Categories Countries',          // farm-fort
+    '![](//edan.io/images/category/farm_shop_768_2.jpg) Farm shop',  // pentruse-farm-shop
+    '[![BigBarn](https://www.bigbarn.co.uk/images/logo.png)] Discover local food', // chypraze
+  ]) {
+    const d = extractWebsiteSignals(page)
+    assert.equal(d.blocked, true, page.slice(0, 30))
+    assert.ok(d.negative.includes('BLOCKED: third-party directory'))
+  }
 })
 
 test('an empty or silent page yields nothing rather than a guess', () => {

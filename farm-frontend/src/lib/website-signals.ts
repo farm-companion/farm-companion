@@ -58,7 +58,10 @@ const NEGATIVE: ReadonlyArray<readonly [string, RegExp]> = [
   ['closed', /\b(?:permanently closed|now closed|ceased trading)\b/i],
   ['BLOCKED: login wall', /\b(?:Forgotten account|Log in to Facebook|login_attempt)\b/i],
   ['BLOCKED: server error', /\b(?:50[0-9] (?:Service|Internal)|Service Temporarily Unavailable)\b/i],
-  ['BLOCKED: directory scraper', /\bukmapi\b/i],
+  // Not the business's own site. A directory's page about a farm says nothing
+  // about whether that farm lets the public in, and three Cornwall rows store
+  // one of these as their website, which is a data bug in the row.
+  ['BLOCKED: third-party directory', /\b(?:ukmapi|ukcomapi|edan\.io|bigbarn)\b/i],
 ]
 
 export interface WebsiteSignals {
