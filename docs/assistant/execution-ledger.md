@@ -43,7 +43,7 @@ The rule now tests only the place clause after "in ", never the whole sentence. 
 3. `npx impeccable detect` on all 17 changed files — **exit 0**. Widened to `src/app` it reports exit 2 with 9 findings, all pre-existing in `src/app/admin/produce/*` and `src/lib/email.ts`, none in a touched file.
 4. `npx next build` — exit 0. "column does not exist" errors: **1,353 to zero**.
 
-**Pre-existing issue found, not fixed, needs the operator:** four build-time failures remain, all "Timed out fetching a new connection from the connection pool (timeout: 10, connection limit: 2)" against 11 build workers. Four category pages silently build with empty data on every build. The log line calls this "expected during build without DB" when there was a database, which is why it went unnoticed. One-line fix: raise `connection_limit` in `DATABASE_URL`.
+**Pre-existing issue found, not fixed, needs the operator:** one of two builds today produced four failures, all "Timed out fetching a new connection from the connection pool (timeout: 10, connection limit: 2)" against 11 build workers; the second build produced none. So it is an intermittent race under load, not a deterministic failure, which makes it worse rather than better: four category pages build with empty data on an unpredictable subset of builds and nothing alarms, because the log line calls it "expected during build without DB" when there was a database. One-line fix: raise `connection_limit` in `DATABASE_URL`.
 
 **STILL BLOCKING CORNWALL:** E7 has no writer. Nothing can set `venueVerifiedAt` — no admin UI, no script, no API. The gate now correctly silences 3,504 pages and there is still no committed way to unsilence one. That is a separate plan and this branch does not contain it.
 
