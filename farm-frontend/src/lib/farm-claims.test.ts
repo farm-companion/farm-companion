@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { canClaimVisitable, isIndexable, type ClaimInput } from './farm-claims'
+import { canClaimVisitable, isIndexable, unverifiedDescription, type ClaimInput } from './farm-claims'
 
 const base = (o: Partial<ClaimInput> = {}): ClaimInput => ({
   venueType: null, venueVerifiedAt: null, openingHours: null,
@@ -105,4 +105,38 @@ test('the template description and the default offering do not count as substanc
     description: 'A family-run holding selling day-picked veg and raw milk.',
     offerings: ['Farm Shops', 'PYO'],
   })), true)
+})
+
+// The gate now takes a verification-only shape so list surfaces can call it
+// without assembling a full ClaimInput. These three cases exist because
+// getFarmData shipped without mapping the venue fields at all, so every list
+// surface was passing undefined for both.
+
+test('the gate accepts a verification-only object', () => {
+  assert.equal(canClaimVisitable({ venueType: 'shop', venueVerifiedAt: new Date() }), true)
+  assert.equal(canClaimVisitable({ venueType: 'shop', venueVerifiedAt: null }), false)
+})
+
+test('absent venue fields fail closed, not open', () => {
+  assert.equal(canClaimVisitable({}), false)
+  assert.equal(canClaimVisitable({ venueType: undefined, venueVerifiedAt: undefined }), false)
+  assert.equal(canClaimVisitable({ venueType: 'shop' }), false)
+  assert.equal(canClaimVisitable({ venueVerifiedAt: new Date() }), false)
+})
+
+test('the unverified sentence makes no visitability claim', () => {
+  const sentence = unverifiedDescription('Cornwall')
+  assert.match(sentence, /Cornwall/)
+  // The whole point of the sentence: it must never reintroduce the claim the
+  // gate exists to suppress, in any casing.
+  assert.doesNotMatch(sentence, /farm ?shop/i)
+  assert.doesNotMatch(sentence, /\bvisit(?!ors)/i)
+  assert.match(sentence, /not confirmed/i)
+})
+
+test('the unverified sentence degrades without a county', () => {
+  assert.equal(
+    unverifiedDescription(''),
+    'A registered food producer in the UK. We have not confirmed whether it is open to visitors.',
+  )
 })

@@ -4,6 +4,7 @@
 import { SITE_URL } from './site'
 import { PRODUCE } from '@/data/produce'
 import { getFarmData } from '@/lib/farm-data'
+import { canClaimVisitable } from '@/lib/farm-claims'
 import { getImageUrl } from '@/types/farm'
 import { logger } from '@/lib/logger'
 
@@ -146,8 +147,10 @@ export async function generateFarmShopsSitemap(): Promise<SitemapEntry[]> {
         .filter((url): url is string => !!url)
         .map((url) => ({
           url,
-          caption: `${farm.name} - Farm Shop`,
-          title: `${farm.name} - Farm Shop in ${farm.location.county}`,
+          caption: canClaimVisitable(farm) ? `${farm.name} - Farm Shop` : farm.name,
+          title: canClaimVisitable(farm)
+            ? `${farm.name} - Farm Shop in ${farm.location.county}`
+            : `${farm.name} in ${farm.location.county}`,
           geoLocation: `${farm.location.lat}, ${farm.location.lng}`
         })) || []
     }))

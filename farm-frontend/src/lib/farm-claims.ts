@@ -27,8 +27,27 @@ export interface ClaimInput {
   hasRealImage: boolean
 }
 
+/**
+ * The two fields the claim gate actually reads. A list surface that holds only
+ * a row can gate on this without assembling a full ClaimInput. Both are
+ * optional so a FarmShop (where they are optional) satisfies it directly.
+ */
+export interface VenueVerification {
+  venueType?: string | null
+  venueVerifiedAt?: Date | string | null
+}
+
+/**
+ * The only sentence an unverified surface may say about visitability: the
+ * business is on a food register, and public access is unconfirmed. Lives here
+ * rather than in a page so every surface makes the identical statement.
+ */
+export function unverifiedDescription(county: string): string {
+  return `A registered food producer in ${county || 'the UK'}. We have not confirmed whether it is open to visitors.`
+}
+
 /** True when the page may state the visitor can go there and buy something. */
-export function canClaimVisitable(f: ClaimInput): boolean {
+export function canClaimVisitable(f: VenueVerification): boolean {
   if (!f.venueType || !ADMITTED.has(f.venueType)) return false
   return f.venueVerifiedAt != null
 }

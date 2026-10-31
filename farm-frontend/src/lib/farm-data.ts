@@ -69,6 +69,11 @@ export async function getFarmData(): Promise<FarmShop[]> {
           ? [farm.images[0].url]
           : undefined,
         verified: farm.verified,
+        // Without these two the claim gate reads undefined on every list
+        // surface, which fails closed today but would silently keep failing
+        // closed after a venue is verified.
+        venueType: farm.venueType,
+        venueVerifiedAt: farm.venueVerifiedAt,
       }))
 
     return validFarms

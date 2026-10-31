@@ -5,7 +5,7 @@ import { processFarmDescription } from '@/lib/seo-utils'
 import FarmAnalytics from '@/components/FarmAnalytics'
 import { FarmPageClient } from '@/components/FarmPageClient'
 import { getFarmBySlug } from '@/lib/farm-data'
-import { canClaimVisitable, isIndexable, type ClaimInput } from '@/lib/farm-claims'
+import { canClaimVisitable, isIndexable, unverifiedDescription, type ClaimInput } from '@/lib/farm-claims'
 
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
@@ -27,12 +27,6 @@ function buildClaimInput(farm: FarmShop): ClaimInput {
     offerings: farm.offerings ?? [],
     hasRealImage: Boolean(farm.heroImage) || Boolean(farm.images?.length),
   }
-}
-
-// The only sentence an unverified page may say about visitability: it exists
-// as a food producer, and access is unconfirmed.
-function unverifiedDescription(county: string): string {
-  return `A registered food producer in ${county || 'the UK'}. We have not confirmed whether it is open to visitors.`
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
