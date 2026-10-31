@@ -1,7 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import type { DbFarm, NormalizedCandidate } from '../types'
-import { buildChangeSet } from './06-merge'
+import { buildChangeSet, loadDbSnapshot } from './06-merge'
 
 const cand = (o: Partial<NormalizedCandidate>): NormalizedCandidate => ({
   fields: {}, categories: [], images: [], aiFallbackEligible: false, ...o,
@@ -117,4 +117,66 @@ test('matched row: venueType unchanged when already classified as shop', () => {
   const venue = cs[0].fields.find((f) => f.field === 'venueType')
   assert.equal(venue, undefined)
   assert.equal(cs[0].action, 'noop')
+})
+
+// Two halves of the same defect, plus a guard against over-gating.
+//
+// classifyVenue reaches Tier A only on osmShopFarm AND hours, and the only
+// admitted type it can return is 'shop'. So the case that matters is a human
+// who inspected a row and recorded something else: without the guard the
+// pipeline overwrites their 'market_stall' with its own 'shop', and since
+// nothing can write venueVerifiedAt yet, that verification is unrecoverable.
+
+const tierACandidate = () => cand({
+  osmId: 'node:1',
+  fields: {
+    name: { value: 'A Farm', source: 'osm' },
+    openingHours: { value: [{ day: 'monday', open: '09:00', close: '17:00' }], source: 'osm' },
+  },
+})
+
+const row = (venueType: string | null, venueVerifiedAt: string | null): DbFarm => ({
+  id: 'x', slug: 'a', osmId: 'node:1', fsaId: null, googlePlaceId: null,
+  postcode: 'TR11 1AA', latitude: 50.1, longitude: -5.1,
+  provenance: { venueType: { source: 'admin', at: 'x' } },
+  fields: { name: 'A Farm', venueType, venueVerifiedAt },
+})
+
+test('the pipeline does not reclassify a human-verified row', () => {
+  const cs = buildChangeSet([tierACandidate()], [row('market_stall', '2026-10-01T00:00:00.000Z')], 'now')
+  assert.equal(cs.length, 1)
+  assert.deepEqual(
+    cs[0].fields.filter((f) => f.field === 'venueType'),
+    [],
+    'a verified market_stall must not be overwritten with the classifier\'s shop',
+  )
+})
+
+test('an unverified row is still classified from source evidence', () => {
+  const cs = buildChangeSet([tierACandidate()], [row('market_stall', null)], 'now')
+  const venueDiffs = cs[0].fields.filter((f) => f.field === 'venueType')
+  assert.equal(venueDiffs.length, 1, 'the guard must key on verification, not on being matched')
+  assert.equal(venueDiffs[0].from, 'market_stall')
+  assert.equal(venueDiffs[0].to, 'shop')
+  assert.equal(cs[0].action, 'update')
+})
+
+test('loadDbSnapshot carries venueVerifiedAt into fields', async () => {
+  const fake = {
+    farm: {
+      findMany: async () => [{
+        id: 'x', slug: 'a', osmId: null, fsaId: null, googlePlaceId: null,
+        postcode: null, latitude: 50.1, longitude: -5.1, provenance: null,
+        name: 'A Farm', venueType: 'shop',
+        venueVerifiedAt: '2026-10-01T00:00:00.000Z',
+      }],
+    },
+  }
+  const snapshot = await loadDbSnapshot(fake)
+  assert.equal(snapshot.length, 1)
+  assert.equal(
+    snapshot[0].fields.venueVerifiedAt,
+    '2026-10-01T00:00:00.000Z',
+    'FIELD_NAMES must include venueVerifiedAt or the guard reads undefined forever',
+  )
 })

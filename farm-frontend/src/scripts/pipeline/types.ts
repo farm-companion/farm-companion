@@ -48,7 +48,7 @@ export const ADMITTED_VENUE_TYPES: ReadonlySet<VenueType> = new Set<VenueType>([
 export type FarmFieldName =
   | 'name' | 'description' | 'address' | 'city' | 'county' | 'postcode'
   | 'latitude' | 'longitude' | 'phone' | 'email' | 'website'
-  | 'openingHours' | 'status' | 'verified' | 'venueType'
+  | 'openingHours' | 'status' | 'verified' | 'venueType' | 'venueVerifiedAt'
 
 export interface FieldProvenance {
   source: SourceName

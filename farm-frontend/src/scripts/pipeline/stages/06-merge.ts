@@ -32,7 +32,12 @@ export function buildChangeSet(
       placesRetailWithHours: false,
     })
     const priorVenueType = (match?.fields.venueType as string | undefined) ?? null
-    if (venueType !== 'unknown' && venueType !== priorVenueType) {
+    // A human set venueVerifiedAt after checking this row's venueType, and
+    // source evidence is exactly what they were checking. Reclassifying under
+    // them would silently void a verification nothing else can restore: there
+    // is no writer for venueVerifiedAt yet, so a lost one is lost for good.
+    const humanVerified = match?.fields.venueVerifiedAt != null
+    if (!humanVerified && venueType !== 'unknown' && venueType !== priorVenueType) {
       change.fields.push({
         field: 'venueType',
         from: priorVenueType,
@@ -54,7 +59,12 @@ export function buildChangeSet(
 const FIELD_NAMES: FarmFieldName[] = [
   'name', 'description', 'address', 'city', 'county', 'postcode',
   'latitude', 'longitude', 'phone', 'email', 'website', 'openingHours', 'status', 'verified',
-  'venueType',
+  // venueVerifiedAt is read-only to the pipeline: the select already fetched
+  // it, but omitting it here meant this loop discarded it, so the merge stage
+  // could not see human verification at all. No source produces it and
+  // mergeFarm only diffs candidate-present fields, so listing it cannot
+  // cause a write.
+  'venueType', 'venueVerifiedAt',
 ]
 
 /** Load a minimal read-only DB snapshot via Prisma. */
