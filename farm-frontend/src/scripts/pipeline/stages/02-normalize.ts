@@ -55,6 +55,8 @@ function toNormalized(raw: RawFarmCandidate): NormalizedCandidate {
     latitude: raw.latitude,
     longitude: raw.longitude,
     fields,
+    fsaBusinessType: raw.fsaBusinessType,
+    fsaRatingDate: raw.fsaRatingDate,
     categories: [],
     images: [],
     aiFallbackEligible: false,

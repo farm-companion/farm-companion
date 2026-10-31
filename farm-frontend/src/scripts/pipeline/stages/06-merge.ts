@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 import { PIPELINE_CONFIG } from '../config'
 import { log } from '../lib/log'
 import { matchExisting, mergeFarm } from '../policy/merge-policy'
-import { classifyVenue, hasRetailLexeme } from '../lib/classify-venue'
+import { classifyVenue, hasRetailLexeme, isFsaRetailRecent } from '../lib/classify-venue'
 import type { ChangeSet, DbFarm, FarmFieldName, NormalizedCandidate } from '../types'
 
 /** Pure: build the change set from candidates + a DB snapshot. */
@@ -30,6 +30,9 @@ export function buildChangeSet(
       retailLexeme: hasRetailLexeme(c.fields.name?.value as string | undefined),
       websiteRetailSignal: false,
       placesRetailWithHours: false,
+      // E8: the FSA says this is a public-facing premises and names when it was
+      // last inspected. Admits only alongside the name signal (E4), never alone.
+      fsaRetailRecent: isFsaRetailRecent(c.fsaBusinessType, c.fsaRatingDate),
     })
     const priorVenueType = (match?.fields.venueType as string | undefined) ?? null
     // A human set venueVerifiedAt after checking this row's venueType, and

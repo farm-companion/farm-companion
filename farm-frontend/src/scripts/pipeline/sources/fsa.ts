@@ -2,6 +2,7 @@ import type { RawFarmCandidate } from '../types'
 import { fetchWithRetry } from '../lib/http'
 import { PIPELINE_CONFIG } from '../config'
 import { isNonFarmChain } from './non-farm-chains'
+import { FSA_PUBLIC_RETAIL_TYPES } from '../lib/classify-venue'
 
 interface FsaEstablishment {
   FHRSID: number
@@ -31,15 +32,13 @@ const FARM_TYPES = new Set([
 // all: these categories hold the farm shops that 7838 does not. They also hold
 // the entire high street, 120,983 "Retailers - other" and 141,317 restaurants
 // nationally, so a record here is a candidate only when its NAME carries a farm
-// signal. The queries below are name-filtered too; this is the second gate, so
-// that an accidentally broad query cannot flood the directory.
-const PUBLIC_TYPES = new Set([
-  'Retailers - other',
-  'Retailers - supermarkets/hypermarkets',
-  'Restaurant/Cafe/Canteen',
-  'Takeaway/sandwich shop',
-  'Other catering premises',
-])
+// signal. The queries are name-filtered too; this is the second gate, so that
+// an accidentally broad query cannot flood the directory.
+//
+// The set itself is classification policy, so it lives in classify-venue and is
+// imported here rather than duplicated: evidence edge E8 must mean the same
+// thing in both places.
+const PUBLIC_TYPES = FSA_PUBLIC_RETAIL_TYPES
 
 const FARM_NAME_SIGNAL = /\bfarm/i
 
@@ -95,6 +94,8 @@ export function parseFsa(res: FsaResponse): RawFarmCandidate[] {
       county: e.LocalAuthorityName,
       latitude: num(e.geocode?.latitude),
       longitude: num(e.geocode?.longitude),
+      fsaBusinessType: type,
+      fsaRatingDate: e.RatingDate,
       raw: e,
     })
   }

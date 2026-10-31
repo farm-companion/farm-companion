@@ -208,3 +208,53 @@ test('a merge preserves the admin provenance that makes a verification auditable
   // And the verification itself is untouched by the unrelated update.
   assert.deepEqual(cs[0].fields.filter((f) => f.field === 'venueType'), [])
 })
+
+test('E8 reaches the merge stage: an FSA retail record with a retail name admits', () => {
+  // End to end through buildChangeSet, not just the pure classifier. Before E8
+  // this row had no admitting path at all: no osmId, so no OSM hours either.
+  const recent = new Date()
+  recent.setMonth(recent.getMonth() - 3)
+  const cs = buildChangeSet(
+    [cand({
+      fsaId: '12345',
+      fsaBusinessType: 'Retailers - other',
+      fsaRatingDate: recent.toISOString(),
+      fields: { name: { value: 'Lobbs Farm Shop', source: 'fsa' } },
+    })],
+    [], 'now',
+  )
+  assert.equal(cs.length, 1)
+  const venue = cs[0].fields.find((f) => f.field === 'venueType')
+  assert.ok(venue, 'expected a venueType diff')
+  assert.equal(venue?.to, 'shop')
+})
+
+test('E8 does not admit on a stale inspection, nor on a name without retail', () => {
+  const stale = cand({
+    fsaId: '1', fsaBusinessType: 'Retailers - other', fsaRatingDate: '2017-11-06',
+    fields: { name: { value: 'Lobbs Farm Shop', source: 'fsa' } },
+  })
+  assert.deepEqual(
+    buildChangeSet([stale], [], 'now')[0].fields.filter((f) => f.field === 'venueType'), [],
+    'a 2017 inspection is not evidence about today',
+  )
+
+  const recent = new Date(); recent.setMonth(recent.getMonth() - 3)
+  const noRetailName = cand({
+    fsaId: '2', fsaBusinessType: 'Retailers - other', fsaRatingDate: recent.toISOString(),
+    fields: { name: { value: 'Higher Barn', source: 'fsa' } },
+  })
+  assert.deepEqual(
+    buildChangeSet([noRetailName], [], 'now')[0].fields.filter((f) => f.field === 'venueType'), [],
+    'the regulator alone must not admit',
+  )
+
+  const producer = cand({
+    fsaId: '3', fsaBusinessType: 'Farmers/growers', fsaRatingDate: recent.toISOString(),
+    fields: { name: { value: 'Lobbs Farm Shop', source: 'fsa' } },
+  })
+  assert.deepEqual(
+    buildChangeSet([producer], [], 'now')[0].fields.filter((f) => f.field === 'venueType'), [],
+    'the producer category must still never admit, however fresh',
+  )
+})

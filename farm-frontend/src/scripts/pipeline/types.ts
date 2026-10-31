@@ -79,6 +79,10 @@ export interface RawFarmCandidate {
   website?: string
   openingHoursRaw?: string // OSM opening_hours string
   tags?: Record<string, string>
+  /** FSA only: hygiene register business type, e.g. "Retailers - other". */
+  fsaBusinessType?: string
+  /** FSA only: ISO date of the last hygiene inspection. */
+  fsaRatingDate?: string
   raw: unknown // original payload, for debugging
 }
 
@@ -105,6 +109,10 @@ export interface NormalizedCandidate {
   images: ImageCandidate[]
   aiFallbackEligible: boolean
   tags?: Record<string, string> // OSM tags carried forward for enrich (stage 04)
+  /** FSA hygiene register business type, carried for evidence edge E8. */
+  fsaBusinessType?: string
+  /** FSA last inspection date, carried for evidence edge E8. */
+  fsaRatingDate?: string
   /** recorded reasons when duplicates were collapsed (stage 02). */
   mergedFrom?: string[]
 }
