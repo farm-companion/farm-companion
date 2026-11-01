@@ -4003,3 +4003,52 @@ major upgrade 5 -> 6 of the map library in a map-first product, with public API 
 unilaterally. Mitigation until then: maplibre's `DOM.sanitize()` is used for popup/marker HTML, so the
 exposure is bounded by whether any untrusted string reaches popup HTML; farm data is pipeline-controlled
 rather than user-submitted, which lowers but does not eliminate the risk.
+
+---
+
+### 2026-11-01 — Slice 1.7: every farm-frontend high with an in-major fix, cleared
+
+Catalogued all 23 high-severity packages by installed version, patched floor, dependency depth and
+whether the fix needs a major. Everything with a fix inside its current major was taken in one batch.
+
+**Four direct dependencies were themselves on vulnerable versions** (not transitive noise):
+`axios ^1.16.1 -> ^1.20.0`, `form-data ^4.0.5 -> ^4.0.6`, `sharp ^0.34.5 -> ^0.35.5`,
+`zod ^4.3.6 -> ^4.6.6`, plus devDependency `postcss ^8.5.6 -> ^8.5.18`. Worth noting the zod case:
+the *direct* dep was already on major 4 and still vulnerable (needed >=4.6.6) — the separate zod
+3.25.76 in the tree is a dev-only transitive copy via chromium-bidi, a different problem.
+
+**Thirteen transitive highs fixed by override** (all `^<minimum patched>`, all inside the installed
+major): @tiptap/core ^3.30.5, browserslist ^4.28.7, flatted ^3.4.2, follow-redirects ^1.16.2,
+ip-address ^10.3.1, linkify-it ^5.0.2, lodash-es ^4.18.0, markdown-it ^14.3.3, nanoid ^3.3.18,
+postcss ^8.5.18, prosemirror-view ^1.42.3, source-map-js ^1.2.2, tmp ^0.2.6. Three of these replaced
+loose `>=` entries that were resolving to vulnerable versions, same failure pattern as Slice 1.6.
+
+**farm-frontend now: 1 critical, 24 high, 21 moderate, 2 low** (from 8 / 71 / 62 / 10 at the start).
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean. `pnpm test:unit` **369 pass / 0 fail**.
+`pnpm build` `✓ Compiled successfully`. sharp was the one bump with real breakage risk (native binary,
+0.x minor), so it was smoke-tested directly beyond the suite: encode -> metadata roundtrip ->
+resize+webp all OK on 0.35.5. The `WARN Issues with peer dependencies` line seen during install is
+transient to the resolve step and does not reproduce on a settled tree.
+
+**Remaining highs (7 packages, 24 advisories) — all dev-only, none shipped to users:**
+| package | installed | needs | reachable via | why not fixed |
+|---|---|---|---|---|
+| basic-ftp | 5.3.1 | >=6.2.1 | lighthouse (depth 7) | needs major 6; dev-only |
+| brace-expansion | 1.1.12 | >=2.1.6 | eslint-config-next, @eslint/eslintrc | needs major 2; eslint chain pins ^1 |
+| extract-zip | 2.0.1 | *no patch exists* | lighthouse (depth 4) | **unfixable** — advisory has no patched version |
+| minimatch | 3.1.2 | >=9.0.7 | eslint-config-next, @eslint/eslintrc | needs major 9; eslint chain pins ^3 |
+| picomatch | 2.3.1 | >=4.0.4 | eslint-config-next | needs major 4; consumer pins ^2 |
+| ws | 7.5.10 | >=8.21.0 | @next/bundle-analyzer, lighthouse | needs major 8; dev-only |
+| zod | 3.25.76 | >=4.6.6 | chromium-bidi (puppeteer/lighthouse) | needs major 4; dev-only transitive |
+
+**Mitigation for all seven:** they are reachable only from `lighthouse`, `eslint`/`eslint-config-next`,
+`@next/bundle-analyzer` and `patch-package` — devDependencies that never enter a Vercel runtime bundle,
+so none is attacker-reachable in production. All are DoS/ReDoS or path-traversal classes that need
+hostile *local* input (a crafted glob, zip or lint config) to trigger. Forcing the majors would break
+the eslint and lighthouse chains that pin the old majors, for no production gain. Recommended real fix
+is upstream: move off `lighthouse` as a devDependency (it drags basic-ftp, extract-zip, ws, zod 3 and
+ip-address in at depth 4-7) and let `eslint-config-next` catch up on minimatch/brace-expansion/picomatch.
+
+**Risk/rollback:** All bumps stayed inside their current majors; typecheck, 369 tests, build and a sharp
+smoke test all pass. Rollback: revert package.json + pnpm-lock.yaml, `pnpm install`.
