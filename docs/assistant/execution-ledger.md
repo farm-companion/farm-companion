@@ -3975,3 +3975,27 @@ The first live runs surfaced real-API issues the fixture tests could not (each f
 **Operator step still owed:** the live site reflects the new descriptions/categories only after ISR expiry (homepage 1h, /shop + county 6h) or a fresh Vercel redeploy. DB (prod Hetzner) is already updated.
 
 **Follow-ups (not blockers):** ~97 good product-list descriptions remain fallbacks (validator strictness — could rescue with a food-noun lexicon or single extract+phrase call); 59 scrape fetch_errors could be retried; consider deleting the stray `farm-frontend/docs/assistant/execution-ledger.md`.
+
+---
+
+### 2026-11-01 — Phase 0 measurement, and the canonical host fix
+
+**Why:** before shipping `spec/region-first-verified-listings` (48 commits, never pushed), measure whether the claim gate costs traffic or recovers it. Search Console on 1 Nov: 1,233 indexed, 3,000 not, 431 clicks / 93 days.
+
+**Measured (Search Console exports plus the live DB and the dry-run changeset):**
+- Not-indexed reasons: `Crawled - currently not indexed` 1606, `Discovered - currently not indexed` 1016, `Alternative page with proper canonical` 283, redirect 37, robots 35, 404 18, noindex 5. 87% is Google's own quality verdict.
+- Index trend 5 Aug to 23 Oct: indexed **2603 to 1233**, a 53% loss, accelerating from 22 Sep. Impressions over the same window 307.2/day to 226.9/day, a 26% loss.
+- Clicks by route: `shop/[slug]` 374 (87%, on 211 pages), `best/*` 26, `counties/[slug]` 17, `/` 11, `categories/*` 3, `seasonal/*` 0, `find/*` **0 and absent from the export**.
+- **Shipping the gate today would cost 373 of 431 clicks.** Of the 211 earning shop pages, 1 survives the gate and 210 go noindex. `morfa-farm-shop` alone is 67 clicks, 16% of all traffic.
+- Post-ship ceiling: the changeset holds 198 unique existing-row ids gaining an admitted `venueType` plus `venueVerifiedAt`; **183 distinct existing shop pages** pass `isIndexable`. Ceiling if every row were verified: 1,645 of 3,504.
+- Evidence census: 1,543 rows have an `fsaId`, 1,250 a website, 861 an `osmId`, and **0 rows have parsed opening hours**. Of the 211 earners: 166 fsaId, 17 website, 24 phone, 72 retail lexeme in name.
+- `find/[county]/[category]` is an orphan route: declared in no sitemap, linked from no page outside `seo-pages.ts`. All 285 x 35 = 9,975 URLs return 200 `index, follow` with "0 Local Shops" and the word "verified" in the description. A truth defect, not the index problem.
+- Production sitemap declares 3,824 URLs: 3,504 shop, 285 counties, 26 seasonal, 9 statics.
+
+**Slice shipped:** `src/app/{page,counties/[slug],categories,categories/[slug],best,best/[slug]}` hardcoded the apex host `https://farmcompanion.co.uk` in canonical, og:url and JSON-LD `url`/`@id`/`item`. The apex 308-redirects to www, so all 285 county pages declared a canonical on a redirecting host; GSC reports 283 "Alternative page with proper canonical". Replaced with `SITE_URL`. New `src/lib/canonical-host.test.ts` locks the inventory (failed pre-fix naming all 6 files; `geocoding.ts` user-agent and `email.service.ts` mail links stay, with reasons recorded).
+
+**Verified:** `npx tsc --noEmit` exit 0. `pnpm test:unit` 464 pass, 0 fail (463 before).
+
+**Risk/rollback:** metadata-only; revert the commit to restore the apex strings. No DB or route change.
+
+**Next:** the gate cannot ship until the earning pages are verifiable. FSA category and inspection-date lookup running against the 166 earners that carry an `fsaId`.

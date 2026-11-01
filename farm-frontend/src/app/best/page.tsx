@@ -9,6 +9,7 @@
  */
 
 import { Metadata } from 'next'
+import { SITE_URL } from '@/lib/site'
 import Link from 'next/link'
 import Image from 'next/image'
 import { bestLists } from '@/data/best-lists'
@@ -27,10 +28,10 @@ export const metadata: Metadata = {
     title: 'Best Farm Guides | Farm Companion',
     description: 'Expertly curated guides to the finest farms across the UK.',
     type: 'website',
-    url: 'https://farmcompanion.co.uk/best',
+    url: `${SITE_URL}/best`,
   },
   alternates: {
-    canonical: 'https://farmcompanion.co.uk/best',
+    canonical: `${SITE_URL}/best`,
   },
 }
 
@@ -135,7 +136,7 @@ export default function BestGuidesPage() {
             '@type': 'CollectionPage',
             name: 'Best Farm Guides',
             description: 'Curated guides to the finest farms across the UK',
-            url: 'https://farmcompanion.co.uk/best',
+            url: `${SITE_URL}/best`,
             numberOfItems: bestLists.length,
           }),
         }}

@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { SITE_URL } from '@/lib/site'
 import Link from 'next/link'
 import { getCachedAllCategories } from '@/lib/server-cache-categories'
 import { Badge } from '@/components/ui/Badge'
@@ -13,10 +14,10 @@ export const metadata: Metadata = {
     description:
       'Browse farms by category. Find organic farms, pick your own, farm shops, dairy producers, and more across the UK.',
     type: 'website',
-    url: 'https://farmcompanion.co.uk/categories',
+    url: `${SITE_URL}/categories`,
   },
   alternates: {
-    canonical: 'https://farmcompanion.co.uk/categories',
+    canonical: `${SITE_URL}/categories`,
   },
 }
 
@@ -42,7 +43,7 @@ export default async function CategoriesPage() {
             '@type': 'CollectionPage',
             name: 'Farm Categories',
             description: 'Browse farms by category across the UK',
-            url: 'https://farmcompanion.co.uk/categories',
+            url: `${SITE_URL}/categories`,
             numberOfItems: categories.length,
           }),
         }}
