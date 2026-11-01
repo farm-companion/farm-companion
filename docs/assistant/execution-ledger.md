@@ -3851,3 +3851,38 @@ in, so it is left for the operator to approve rather than widened into a Queue 1
 `farm-produce-images/package.json` + `pnpm-lock.yaml`, re-run `pnpm install`.
 
 **Next:** Slice 1.3 — js-yaml 4.1.1 -> 4.3.2 across the three JS packages.
+
+---
+
+### 2026-11-01 — Queue 1 Slice 1.3: js-yaml 4.1.1 -> 4.3.2 in all three JS packages
+
+**Outcome:** js-yaml was 4.1.1 everywhere (vulnerable range 4.0.0-4.3.1, four high advisories: quadratic
+merge-key DoS x2, `!!omap` quadratic CPU, `maxTotalMergeKeys` bypass). It is transitive in every package,
+so it is fixed by override, not a direct bump: `js-yaml: "^4.3.2"` added to `pnpm.overrides` in
+farm-frontend and farm-produce-images, and to top-level `overrides` in twitter-workflow (npm).
+**js-yaml advisories now 0 / 0 / 0.**
+
+**Trap worth remembering:** the first attempt used `>=4.3.2`, which pnpm happily resolved to **js-yaml
+5.5.0** - a silent major jump that would have broken the 4.x consumers (cosmiconfig, configstore,
+@eslint/eslintrc all request ^4). Pinned to `^4.3.2` instead, which resolves to exactly 4.3.2. Use a
+caret-in-major range for override pins, never a bare `>=`.
+
+**Also noted while in these files (not changed in this slice):** farm-frontend's existing overrides
+contain `dompurify: ">=3.4.0"`, too loose to clear its own critical (needs >=3.4.17), and an
+`undici: ">=6.23.0"` entry that is a no-op because undici is not in that package's tree at all.
+farm-produce-images has `undici: ">=7.24.0"`, satisfied by the installed 8.3.0 yet still vulnerable
+(needs >=8.12.2).
+
+**Verification (ran, passed):** farm-frontend `npx tsc --noEmit` clean, `pnpm test:unit` 369 pass / 0
+fail, `pnpm build` `✓ Compiled successfully`. twitter-workflow `npm test` **8 pass / 0 fail**.
+js-yaml advisory count 0 in all three.
+
+**Pre-existing failure confirmed not caused here:** `npm run lint` in twitter-workflow fails with
+"ESLint couldn't find an eslint.config.(js|mjs|cjs) file" - the package has no flat config at all under
+ESLint 9. Reproduced identically with HEAD's package.json restored, so it pre-dates this slice. Left for
+Queue 2/6.
+
+**Risk/rollback:** Patch-level pin inside js-yaml 4.x; all consumers requested ^4 already. Rollback:
+drop the three `js-yaml` override entries and reinstall.
+
+**Next:** Slice 1.4 — undici confirmation and fix (Queue 1 item 3).

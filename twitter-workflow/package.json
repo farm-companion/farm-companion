@@ -46,5 +46,8 @@
     "cron"
   ],
   "author": "Farm Companion Team",
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "js-yaml": "^4.3.2"
+  }
 }
