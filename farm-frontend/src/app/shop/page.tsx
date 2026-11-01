@@ -36,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: `UK Farm Shops Directory - ${stats.farmCount}+ Farm Shops`,
       description: `Find trusted farm shops near you with the freshest local produce. Browse our comprehensive directory.`,
-      images: [`${SITE_URL}/og-farm-shops.jpg`]
+      images: [`${SITE_URL}/og?title=UK Farm Shops Directory&subtitle=Find Farm Shops Near You&type=shop`]
     },
     alternates: {
       canonical: `${SITE_URL}/shop`

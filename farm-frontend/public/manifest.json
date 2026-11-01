@@ -4,24 +4,41 @@
   "description": "Discover farm shops selling fresh, seasonal food across the UK. Find local produce, organic vegetables, free-range eggs, and more.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#10b981",
+  "background_color": "#F2EBDA",
+  "theme_color": "#D33A2C",
   "orientation": "portrait-primary",
   "scope": "/",
   "lang": "en-GB",
-  "categories": ["food", "shopping", "lifestyle", "utilities"],
+  "categories": [
+    "food",
+    "shopping",
+    "lifestyle",
+    "utilities"
+  ],
   "icons": [
     {
-      "src": "/android-chrome-192x192.png",
-      "sizes": "192x192",
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-512.png",
+      "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "maskable"
     },
     {
       "src": "/android-chrome-512x512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "maskable any"
+      "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/apple-touch-icon.png",

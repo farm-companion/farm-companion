@@ -4201,3 +4201,152 @@ targets under 48px, mobile       / -10, /counties/devon -10
 **Verified:** `npx tsc --noEmit` exit 0; `pnpm test:unit` **485 pass, 0 fail** (476 before); `/`, `/shop/morfa-farm-shop` and `/map?q=morfa` all 200 against the running server; before and after screenshots in `.audit/` (gitignored).
 
 **Next slice, already named in the test:** `--color-*` tokens in `@theme`, and moving the 68 hand-written colour classes into a cascade layer. Both are needed together, because unlayered CSS beats `@layer utilities`, so generating `hover:text-brand` while `.text-brand` stays unlayered would leave hover still broken. 33 uses of `bg-border` and 22 of `hover:bg-surface-2` are the markers.
+
+---
+
+## Slice BRAND-A2 — Public credit renamed to Rotocalco Press
+
+**Why.** A trademark and provenance check cleared "Pitti Press" of any collision: no company, no
+registered mark, no UK print studio of that name. The reason to change it anyway is narrower and
+cheaper. `Pitti Press` had never appeared in rendered user-facing output, only in code comments,
+so there was no sunk cost; and Pitti Immagine Srl holds UK rights on PITTI IMMAGINE composites in
+classes 35 and 41, whose specs cover online publishing and business information via a website.
+`DESIGN.md` naming "Pitti Uomo trade-fair signage" in its reference canon was documentary evidence
+that the name derived from their fair, which is the one thing a s.10(3) unfair-advantage argument
+needs and normally cannot get. Low probability, free to avoid now, expensive to avoid later.
+Secondary and arguably stronger: "Pitt Press" is Cambridge University Press's historic imprint, so
+the credit read as a misspelling of a scholarly imprint.
+
+**Scope of the rename, deliberately narrow.** Public credit only. The codebase keeps `PITTI_STYLE`,
+the `generate:pitti` script, the Hetzner blob prefix `pitti-farm-images/`, the path
+`/images/pitti/` and the database value `ai_pitti`. Measured first: 58 files and 70 commits carry
+the string, and three of those are production-coupled, so a full rename costs a storage migration
+plus a data migration to reduce a risk that only exists for public use.
+
+**Files:** `DESIGN.md` only. The canon sentence now describes the signage geometry wanted (tall
+condensed capitals, generous letter-spacing) rather than naming the fair that has it, which is
+better design writing regardless of the legal point.
+
+**Not legal advice.** The UK IPO's own search is not machine-reachable; register data came from
+TMview, the official EUIPO-operated aggregator. UK application numbers are recorded in the session
+transcript for manual confirmation.
+
+---
+
+## Slice BRAND-B — Device icons, and a reproducible build
+
+**Goal.** Ship the iOS home-screen tile and a correctly padded Android maskable icon, and make
+every raster icon regenerable from the vector master instead of hand-rolled.
+
+**`scripts/build-icons.py` is the new source of truth for rasters.** It reads `public/favicon.svg`
+and emits three framings, because the surfaces crop differently: the master framing at ~75% of
+canvas for favicons and `purpose: any`; the same flattened onto cream for iOS, which rejects alpha
+and would composite transparency onto black; and a 0.72 scale for Android maskable, since the
+mark's bounding-box corners sit 543 units from centre in the 1024 master and Android's safe circle
+has radius 410, so 543 x 0.72 = 391 clears it.
+
+**The manifest declared one file as both `maskable` and `any`**, which makes a maskable icon look
+over-padded wherever it is used as a plain icon. Split: `icon-maskable-512.png` is the only
+`maskable` entry, the android-chrome pair and apple-touch are `any`, and `favicon.svg` is now
+listed so installers can use the vector.
+
+**A bug this slice caused and caught.** The first version of the extractor pulled the mark nodes
+out of `favicon.svg` without the `<style>` block that carries the `.ink` and `.stamp` fill rules,
+so every generated device icon rendered the Vermilion sun as default black and still passed the
+geometry checks. Found by looking at the rendered crops, not by a test. The script now extracts
+the style block with the nodes and calls `assert_stamp_present()` on three outputs, which greps
+the histogram for `D33A2C` and exits non-zero if the colour is gone.
+
+**Files:** `scripts/build-icons.py` (new), `public/apple-touch-icon.png`,
+`public/android-chrome-192x192.png`, `public/android-chrome-512x512.png`,
+`public/icon-maskable-512.png` (new), `public/manifest.json`, plus the favicon ladder regenerated
+from the same source.
+
+**Verified, each with a negative control so the test is known to be capable of failing:**
+- Maskable safe zone: filling the 80% circle with cream leaves standard deviation **0**. The same
+  operation on `android-chrome-512x512.png` leaves **0.162**, proving the check detects overflow.
+- Vermilion present: histogram contains `D33A2C`. A greyscale render of the same file returns
+  False, proving the assertion detects loss.
+- Alpha: all four report `alpha=Undefined`, `opaque=True`.
+- `magick identify public/favicon.ico` reports 16, 32 and 48 frames.
+- `npx tsc --noEmit` exit 0. `pnpm test:unit` 485 pass, 0 fail.
+- Visual: rendered under Android's circle, squircle and teardrop masks and the iOS rounded tile.
+
+**Not done:** Lighthouse installability and the external card validators, both of which need a
+deployed preview rather than a local build.
+
+**Risk and rollback.** Six asset files plus one new script, all tracked. `git checkout -- public`
+restores the previous icons; deleting `scripts/build-icons.py` loses nothing else.
+
+---
+
+## Slice BRAND-C — Card engine repainted, and the share card that was never an image
+
+**Goal.** Make every social card look like the product, and stop `/shop` serving an HTML file to
+crawlers.
+
+**The route was worse than the gradient problem.** `src/app/og/route.tsx` built every card from
+`linear-gradient(135deg, #00C2B2 ...)` in four variants, over a radial-gradient wash, with
+`backdropFilter: blur(10px)` glassmorphism, four `textShadow` rules, centred type, and two emoji
+(a wheat sheaf and two seedlings). The spec forbids gradients outright and the project forbids
+emoji. Fully repainted: cream paper, Loam ink, one Vermilion stamp, Sea ink for the standfirst,
+flush-left editorial column, no shadows.
+
+**It now sets in the real display face.** `ClashDisplay-Semibold.ttf` is 45 KB, small enough to
+bundle beside the route and load with `fetch(new URL(..., import.meta.url))`, so the edge runtime
+is kept and the cards render in Clash Display rather than the satori default grotesk.
+
+**The registration offset is now a real brand constant**, `REGISTRATION_OFFSET = 7`. An ink
+half-disc sits 7px down-right behind the Vermilion one, so the sun carries the misregistration
+sliver a two-colour press leaves. This is the tell that reads as printed rather than digital at
+any size, and it is defined once for every surface to reuse.
+
+**Two faults found by rendering, not by reasoning.** The Vermilion `FARM SHOP` stamp stretched to
+the full column width, because a flex column defaults to `align-items: stretch`; fixed with
+`alignSelf: 'flex-start'`. And the first plate drew a full circle at radius 186, which is 14% of
+the canvas against the spec's 8% Vermilion cap; replaced with a half-disc at radius 150, about 5%,
+which is also the sunrise-over-field motif rather than a generic sun.
+
+**`/shop` had no share card at all.** `public/og-farm-shops.jpg` was a saved Next.js HTML page
+with a `.jpg` extension, declared as the twitter image at `shop/page.tsx:39`. Repointed to the
+dynamic route and the file deleted. `public/share.jpg`, a 6.3 MB 5824x3264 camera original with
+EXIF intact and no references anywhere, also deleted.
+
+**`og.jpg` regenerated rather than repointed.** Ten places across `privacy`, `terms`, the
+homepage, `seo-middleware.ts` and `seo-optimizer.ts` reference `/og.jpg`. Rewriting all ten was
+more churn and more risk than rendering the new card once and overwriting the file, which fixes
+every caller with no code change. 50 KB, 1200x630.
+
+**New permanent guard: `src/lib/og-image-assets.test.ts`.** Walks every `.ts`/`.tsx` under `src`,
+collects string literals resolving to a real file in `public/`, and asserts four things: every
+referenced image decodes via sharp, none exceeds the 5 MB crawler ceiling, the extension matches
+the encoded format, and no *new* social card deviates from 1.91:1.
+
+**The aspect check found five more defects**, and they are real, not false positives: `about.jpg`
+is 2.28:1, `counties.jpg` 1.50:1, `add.jpg` 1.78:1, `feedback.jpg` 1.78:1, `seasonal-header.jpg`
+2.96:1, each declared as the og:image for its page. Fixing them means repointing five more page
+files, so they are enumerated in `KNOWN_WRONG_ASPECT`, which the test asserts may shrink but never
+grow, and which fails if an entry is fixed and left in the list. Slice BRAND-C2 empties it.
+
+**Verified:**
+- `npx tsc --noEmit` exit 0; `npx eslint` exit 0 on all three changed source files.
+- `pnpm test:unit` **490 pass, 0 fail** (485 before; the five new ones are this guard).
+- Negative control on the guard: temporarily restoring the `og-farm-shops.jpg` reference turns it
+  red with `og-farm-shops.jpg: not decodable (starts "<!DOCTYPE html><!--Vpv_t")`, naming the
+  referencing file. Restored, green again.
+- Rendered against the running dev server at three variants: a claimed farm with county, a
+  generic titled card, and a 44-character farm name that wraps to three lines without clipping.
+- `magick identify public/og.jpg` reports JPEG 1200x630, 50 KB.
+- `route.tsx` 201 lines, test 161, build script 102, all inside the soft limit.
+
+**Not done:** the external validators (X Card Validator, LinkedIn Post Inspector, opengraph.xyz,
+Facebook Sharing Debugger) need a deployed preview, not localhost. They remain the real proof and
+should run against the first Vercel preview of this branch.
+
+**Known trade-off, recorded honestly.** The layout is flush left, which is correct for the brand
+but means a hard centre-square crop (some chat thumbnails) clips the start of long names. The
+1.91:1 presentation that Facebook, WhatsApp, X and Slack use for link previews is unaffected.
+
+**Risk and rollback.** `git checkout -- farm-frontend/src/app/og farm-frontend/src/app/shop/page.tsx
+farm-frontend/public/og.jpg` restores the previous engine; the two deleted files are recoverable
+from git history.
