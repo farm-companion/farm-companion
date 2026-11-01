@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     siteName: 'Farm Companion',
     images: [
       {
-        url: `${SITE_URL}/feedback.jpg`,
+        url: `${SITE_URL}/og?title=Contact%20and%20Feedback&subtitle=Questions%20and%20corrections`,
         width: 1200,
         height: 630,
         alt: 'Contact Farm Companion - UK farm shops directory',
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Contact & Feedback | Farm Companion',
     description: 'Have a question, suggestion, or need help? Contact Farm Companion for support with our UK farm shops directory.',
-    images: [`${SITE_URL}/feedback.jpg`],
+    images: [`${SITE_URL}/og?title=Contact%20and%20Feedback&subtitle=Questions%20and%20corrections`],
   },
   robots: {
     index: true,

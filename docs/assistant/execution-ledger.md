@@ -4350,3 +4350,41 @@ but means a hard centre-square crop (some chat thumbnails) clips the start of lo
 **Risk and rollback.** `git checkout -- farm-frontend/src/app/og farm-frontend/src/app/shop/page.tsx
 farm-frontend/public/og.jpg` restores the previous engine; the two deleted files are recoverable
 from git history.
+
+---
+
+## Slice BRAND-C2 — The five wrong-shaped cards, cleared
+
+**Goal.** Empty `KNOWN_WRONG_ASPECT` by giving every remaining page a card the right shape.
+
+**What was wrong.** Five pages declared a static jpg as their `og:image`, none of them 1.91:1:
+`about.jpg` 5315x2331 (2.28:1), `counties.jpg` 1920x1277 (1.50:1), `add.jpg` 5460x3072 (1.78:1),
+`feedback.jpg` 1920x1076 (1.78:1), `seasonal-header.jpg` 1920x648 (2.96:1). A crawler letterboxes
+or centre-crops each one.
+
+**A second fault in the same blocks.** All five also declared `width: 1200, height: 630` in their
+openGraph metadata, which was simply untrue of every one of those files. The markup was telling
+crawlers a shape the asset did not have.
+
+**Fix.** Each now points at the dynamic `/og` route with its own title and standfirst, so the card
+is generated at exactly 1200x630 and in the house style. `seasonal/page.tsx` also had
+`type: 'image/jpeg'`, corrected to `image/png`, which is what the route actually returns.
+
+**Kept deliberately.** `counties.jpg` and `seasonal-header.jpg` remain in `public/` and remain in
+use as on-page hero images at `about/page.tsx:105`, `counties/page.tsx:90` and
+`SeasonalHero.tsx:38`. Only their social-card role was wrong, not the files.
+
+**Files:** `src/app/about/page.tsx`, `src/app/counties/page.tsx`, `src/app/add/layout.tsx`,
+`src/app/contact/layout.tsx`, `src/app/seasonal/page.tsx`, `src/lib/og-image-assets.test.ts`.
+
+**Verified:** `npx tsc --noEmit` exit 0; `npx eslint` exit 0 across all six files;
+`pnpm test:unit` **490 pass, 0 fail**. `KNOWN_WRONG_ASPECT` is now empty and the guard asserts it
+stays empty, failing both if a new bad card appears and if a fixed entry is left in the list. All
+five cards rendered against the dev server at 1200x630 PNG, 29 to 31 KB each.
+
+**Still not verified:** the external validators, which need a deployed preview. This branch is now
+pushed, so the first Vercel preview can be run through the X Card Validator, LinkedIn Post
+Inspector, opengraph.xyz and the Facebook Sharing Debugger.
+
+**Risk and rollback.** Six source files, metadata only, no runtime behaviour outside the card.
+`git revert` of this commit restores the static references.

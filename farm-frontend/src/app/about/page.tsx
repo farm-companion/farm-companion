@@ -26,7 +26,7 @@ export const metadata: Metadata = {
     siteName: 'Farm Companion',
     images: [
       {
-        url: `${SITE_URL}/about.jpg`,
+        url: `${SITE_URL}/og?title=About%20Farm%20Companion&subtitle=The%20guide%20we%20wished%20existed`,
         width: 1200,
         height: 630,
         alt: 'About Farm Companion - UK farm shops directory',
@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     title: 'About Farm Companion | UK Farm Shops Directory',
     description:
       'We built the farm shop guide we wished existed. 1,247 farms, every county, no sponsored rankings.',
-    images: [`${SITE_URL}/about.jpg`],
+    images: [`${SITE_URL}/og?title=About%20Farm%20Companion&subtitle=The%20guide%20we%20wished%20existed`],
   },
   robots: {
     index: true,

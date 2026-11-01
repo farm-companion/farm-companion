@@ -108,20 +108,15 @@ test('no referenced image exceeds the 5 MB crawler ceiling', () => {
 })
 
 /**
- * Static cards that are the wrong shape today. Each is a real defect: a crawler
- * letterboxes or centre-crops them. The fix is to point these pages at the
- * dynamic `/og` route, which always emits exactly 1200x630, and that is a
- * separate slice because it touches five more page files.
+ * Static cards that are the wrong shape. Empty, and it should stay empty: every
+ * page now points at the dynamic `/og` route, which always emits exactly
+ * 1200x630. Five entries lived here briefly (about, counties, add, feedback,
+ * seasonal-header), each a real defect a crawler letterboxed or centre-cropped.
  *
- * This list may shrink, never grow. A new wrong-shaped card fails immediately.
+ * This list may shrink, never grow. A new wrong-shaped card fails immediately,
+ * and so does leaving a fixed one in the list.
  */
-const KNOWN_WRONG_ASPECT = new Set([
-  'about.jpg',
-  'counties.jpg',
-  'add.jpg',
-  'feedback.jpg',
-  'seasonal-header.jpg',
-])
+const KNOWN_WRONG_ASPECT = new Set<string>([])
 
 test('no NEW social card is the wrong shape, and the known list is shrinking', async () => {
   const wrong: string[] = []

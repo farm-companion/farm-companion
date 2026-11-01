@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     siteName: 'Farm Companion',
     images: [
       {
-        url: `${SITE_URL}/counties.jpg`,
+        url: `${SITE_URL}/og?title=Farm%20Shops%20by%20County&subtitle=Every%20county%20in%20the%20UK`,
         width: 1200,
         height: 630,
         alt: 'Farm shops by county - UK farm directory',
@@ -44,7 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Farm Shops by County | Farm Companion',
     description: 'Browse farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
-    images: [`${SITE_URL}/counties.jpg`],
+    images: [`${SITE_URL}/og?title=Farm%20Shops%20by%20County&subtitle=Every%20county%20in%20the%20UK`],
   },
   robots: {
     index: true,
