@@ -3970,3 +3970,36 @@ re-expose secrets and is not advised; if the four extra keys are needed they are
 **Next:** Queue 1 is closed on its four named items. Remaining criticals in farm-frontend are
 `maplibre-gl` (needs a major, 5 -> 6.4.1, operator decision) and `dompurify` (override too loose);
 `basic-ftp` is dev-only under lighthouse.
+
+---
+
+### 2026-11-01 — Slice 1.6: remaining clearable criticals in farm-frontend (dompurify, basic-ftp)
+
+Both were already covered by existing `pnpm.overrides` entries that were simply too loose to reach the
+patched version — the overrides looked like protection while resolving to vulnerable builds.
+
+- **dompurify**: override said `">=3.4.0"`, resolving to **3.4.4**. The critical
+  (SAFE_FOR_TEMPLATES bypass: split template expressions survive in attached shadow roots) needs
+  **>=3.4.17**. Tightened to `^3.4.17`, resolving to 3.4.17 (the latest 3.4.x, same major).
+- **basic-ftp**: 5.1.0, path-traversal in `downloadToDir()`, needs **>=5.2.0**. Reached only at depth 7
+  under `lighthouse` (a devDependency), so never shipped to users — but 5.2.0+ exists inside major 5, so
+  it cost nothing to clear rather than argue about reachability. Override `^5.2.2` -> resolves 5.3.1.
+
+**farm-frontend criticals: 8 -> 1.** The one left is `maplibre-gl` (see below). Highs 71 -> 56,
+moderates 62 -> 45, lows 10 -> 3.
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean, `pnpm test:unit` **369 pass / 0 fail**,
+`pnpm build` `✓ Compiled successfully`.
+
+**Lesson for this repo:** four separate `>=`-style override entries across two packages
+(`dompurify >=3.4.0`, `undici >=6.23.0`, `undici >=7.24.0`, and the js-yaml attempt in Slice 1.3) were
+either no-ops or satisfied by still-vulnerable versions. A `>=` override pins nothing. Prefer
+`^<minimum patched>` and re-read the resolved version in the lockfile after every override change.
+
+**BLOCKED, needs an operator decision — maplibre-gl:** the remaining critical is an XSS sanitizer bypass
+in `DOM.sanitize()` via live NamedNodeMap removal, affecting **all of `<=6.4.0`**; patched only in
+**>=6.4.1**. farm-frontend is on `^5.16.0`, so there is **no fix inside major 5** — clearing it is a
+major upgrade 5 -> 6 of the map library in a map-first product, with public API changes. Not attempted
+unilaterally. Mitigation until then: maplibre's `DOM.sanitize()` is used for popup/marker HTML, so the
+exposure is bounded by whether any untrusted string reaches popup HTML; farm data is pipeline-controlled
+rather than user-submitted, which lowers but does not eliminate the risk.
