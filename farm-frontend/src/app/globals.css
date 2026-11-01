@@ -4,6 +4,20 @@
 /* Tailwind CSS v4 import - MUST come before MapLibre to allow overrides */
 @import "tailwindcss";
 
+/* `dark:` follows the class, not the OS.
+   ---------------------------------------
+   ThemeProvider runs next-themes with attribute="class", forcedTheme="light"
+   and enableSystem={false}, so <html> always carries `.light` and never
+   `.dark`: this site is light-only on purpose. Tailwind v4's default `dark:`
+   variant is the prefers-color-scheme media query, so all 1,387 `dark:`
+   utilities across 72 files were firing for every visitor whose OS is in dark
+   mode, painting dark-mode colours onto the forced-light theme. Measured on
+   /shop before this line existed: body cream #F2EBDA with a
+   `bg-gray-100 dark:bg-gray-700` pill computing to oklch(0.373 0.034 259.733),
+   a dark slate. The dead v3 config said `darkMode: 'class'` and was right;
+   this is that setting, in the form v4 reads. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ============================================================================
    @theme — the project's tokens, as Tailwind v4 actually reads them.
    ============================================================================
@@ -51,6 +65,89 @@
   --font-heading: 'Clash Display', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-body: 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-ui: 'IBM Plex Sans Condensed', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* ============================================================================
+   @theme inline — the colour tokens, so variants exist at all.
+   ============================================================================
+
+   These were 74 hand-written rules further down this file, added in May 2026
+   with the note that "Tailwind v4 + JS config in this repo does NOT auto-emit
+   utilities for the brand/ink/paper/accent colour tokens". That was true, and
+   the reason was the same one that killed the type scale: the tokens lived in
+   tailwind.config.js, which v4 never loads. Hand-writing them worked for the
+   base class and nothing else. A hand-written `.text-brand` is not a Tailwind
+   utility, so `hover:text-brand` generated no rule, and neither did
+   `dark:bg-card`, `focus:ring-brand` or `group-hover:text-brand-primary`.
+   155 uses of those variant forms were markup over nothing.
+
+   `inline` is deliberate: it substitutes the value into the utility, so
+   `bg-paper` emits `background-color: var(--paper)` exactly as the
+   hand-written rule did, and the var resolves at the element rather than at
+   :root. Without it the token would be flattened once at :root and a scoped
+   theme override would stop working.
+
+   Each name below is the one the markup already writes. The four `text-*`
+   entries map to `--ink-*` because the colour variables were renamed when the
+   type scale landed: `--text-body` is a font size now, so the colour it used
+   to name is `--ink-body`. `.text-brand-danger` is not ported: it was written
+   nowhere and pointed at `--brand-danger`, which no theme file defines. */
+@theme inline {
+  /* Field Edition core */
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-text: var(--brand-text);
+  --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+
+  /* Harvest theme surfaces */
+  --color-background: var(--background);
+  --color-background-secondary: var(--background-secondary);
+  --color-background-canvas: var(--background-canvas);
+  --color-background-surface: var(--background-surface);
+  --color-background-elevated: var(--background-elevated);
+  --color-background-hover: var(--background-hover);
+  /* `hover:bg-hover` is written in the source; this is the token it needs. */
+  --color-hover: var(--background-hover);
+  --color-card: var(--card);
+  --color-card-hover: var(--card-hover);
+  --color-popover: var(--popover);
+  --color-muted: var(--muted);
+
+  /* Harvest theme foreground */
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-subtle: var(--foreground-subtle);
+
+  /* Text hierarchy. `text-text-heading` is the class; `--ink-heading` is the
+     variable, renamed away from `--text-heading` when that became a size. */
+  --color-text-heading: var(--ink-heading);
+  --color-text-body: var(--ink-body);
+  --color-text-muted: var(--ink-text-muted);
+  --color-text-subtle: var(--ink-text-subtle);
+
+  /* Legacy palette, still written in the markup */
+  --color-brand-primary: var(--brand-primary);
+  --color-serum: var(--serum);
+  --color-solar: var(--solar);
+  --color-obsidian: var(--obsidian);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+
+  /* Lines and focus */
+  --color-border: var(--border);
+  --color-border-default: var(--border-default);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 }
 
 /* MapLibre CSS moved to src/app/map/map.css - only loaded on /map routes */
@@ -1054,67 +1151,13 @@ body {
   box-shadow: 0 0 0 2px var(--brand-primary);
 }
 
-/* ==========================================================================
-   SEMANTIC COLOR UTILITIES - Use these instead of raw Tailwind colors!
-   These automatically adapt to light/dark mode with proper contrast.
-   ========================================================================== */
-
-/* Text colors - Primary hierarchy */
-.text-text-heading { color: var(--ink-heading); }
-.text-text-body { color: var(--ink-body); }
-.text-text-muted { color: var(--ink-text-muted); }
-.text-text-subtle { color: var(--ink-text-subtle); }
-
-/* Text colors - Harvest theme semantic */
-.text-foreground { color: var(--foreground); }
-.text-foreground-secondary { color: var(--foreground-secondary); }
-.text-foreground-muted { color: var(--foreground-muted); }
-.text-foreground-subtle { color: var(--foreground-subtle); }
-
-/* Text colors - Brand */
-.text-brand-primary { color: var(--brand-primary); }
-.text-brand-danger { color: var(--brand-danger); }
-.text-serum { color: var(--serum); }
-.text-solar { color: var(--solar); }
-.text-obsidian { color: var(--obsidian); }
-.text-primary { color: var(--primary); }
-.text-secondary { color: var(--secondary); }
-.text-accent { color: var(--accent); }
-
-/* Background colors - Surface hierarchy */
-.bg-background { background-color: var(--background); }
-.bg-background-secondary { background-color: var(--background-secondary); }
-.bg-background-canvas { background-color: var(--background-canvas); }
-.bg-background-surface { background-color: var(--background-surface); }
-.bg-background-elevated { background-color: var(--background-elevated); }
-.bg-background-hover { background-color: var(--background-hover); }
-
-/* Background colors - Semantic */
-.bg-card { background-color: var(--card); }
-.bg-card-hover { background-color: var(--card-hover); }
-.bg-popover { background-color: var(--popover); }
-.bg-muted { background-color: var(--muted); }
-
-/* Background colors - Brand */
-.bg-brand-primary { background-color: var(--brand-primary); }
-.bg-serum { background-color: var(--serum); }
-.bg-solar { background-color: var(--solar); }
-.bg-primary { background-color: var(--primary); }
-.bg-secondary { background-color: var(--secondary); }
-
-/* Border colors - Semantic */
-.border-border { border-color: var(--border); }
-.border-border-default { border-color: var(--border-default); }
-.border-border-subtle { border-color: var(--border-subtle); }
-.border-border-strong { border-color: var(--border-strong); }
-.border-input { border-color: var(--input); }
-
-/* Ring/Focus colors */
-.ring-ring { --tw-ring-color: var(--ring); }
-
-/* Hover utilities that work in dark mode */
-.hover\:bg-hover:hover { background-color: var(--background-hover); }
-.hover\:bg-card-hover:hover { background-color: var(--card-hover); }
+/* The semantic colour utilities that used to sit here, and the "Pitti Press
+   canonical utilities" that used to sit below, are now generated from the
+   @theme inline block at the top of this file. They were unlayered, which
+   is why they could not simply be supplemented: unlayered CSS beats every
+   cascade layer, so a generated `.text-brand` in @layer utilities would have
+   lost to the hand-written one regardless of specificity. `.interactive-surface`
+   stays below because it is a component, not a colour utility. */
 
 /* Dark mode aware interactive states */
 .interactive-surface {
@@ -1130,71 +1173,6 @@ body {
   box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
-/* ==========================================================================
-   PITTI PRESS CANONICAL UTILITIES (added 2026-05-30)
-   Tailwind v4 + JS config in this repo does NOT auto-emit utilities for
-   the brand/ink/paper/accent colour tokens declared in tailwind.config.js.
-   Empirically: only `border-border` and `text-accent` were emitted; the
-   footer's `bg-ink text-paper` was rendering cream-on-cream (invisible),
-   and primary CTAs lost their `bg-brand` fills site-wide.
-   Hand-rolling the canonical utilities here is the proven workaround.
-   Light/dark theme flip is preserved automatically via the underlying
-   CSS variables defined in styles/harvest-theme.css.
-   ========================================================================== */
-
-/* Backgrounds */
-.bg-paper       { background-color: var(--paper); }
-.bg-ink         { background-color: var(--ink); }
-.bg-brand       { background-color: var(--brand); }
-.bg-brand-hover { background-color: var(--brand-hover); }
-.bg-accent      { background-color: var(--accent); }
-.bg-surface     { background-color: var(--surface); }
-.bg-surface-2   { background-color: var(--surface-2); }
-
-/* Text */
-.text-paper       { color: var(--paper); }
-.text-ink         { color: var(--ink); }
-.text-ink-muted   { color: var(--ink-muted); }
-.text-ink-subtle  { color: var(--ink-subtle); }
-.text-brand       { color: var(--brand); }
-.text-brand-hover { color: var(--brand-hover); }
-.text-brand-text  { color: var(--brand-text); }
-.text-accent-text { color: var(--accent-text); }
-
-/* Borders */
-.border-ink    { border-color: var(--ink); }
-.border-paper  { border-color: var(--paper); }
-.border-brand  { border-color: var(--brand); }
-.border-accent { border-color: var(--accent); }
-
-/* Decoration (for underline accents) */
-.decoration-brand  { text-decoration-color: var(--brand); }
-.decoration-accent { text-decoration-color: var(--accent); }
-
-/* Rings */
-.ring-brand        { --tw-ring-color: var(--brand); }
-.ring-ink          { --tw-ring-color: var(--ink); }
-.ring-paper        { --tw-ring-color: var(--paper); }
-.ring-offset-ink   { --tw-ring-offset-color: var(--ink); }
-.ring-offset-paper { --tw-ring-offset-color: var(--paper); }
-
-/* Hover variants */
-.hover\:bg-brand:hover         { background-color: var(--brand); }
-.hover\:bg-brand-hover:hover   { background-color: var(--brand-hover); }
-.hover\:text-paper:hover       { color: var(--paper); }
-.hover\:text-ink:hover         { color: var(--ink); }
-.hover\:text-brand:hover       { color: var(--brand); }
-.hover\:text-brand-hover:hover { color: var(--brand-hover); }
-.hover\:border-brand:hover     { border-color: var(--brand); }
-
-/* Group-hover variants (Tailwind `group` parent + `group-hover:` child) */
-.group:hover .group-hover\:text-brand { color: var(--brand); }
-.group:hover .group-hover\:bg-brand   { background-color: var(--brand); }
-
-/* Focus-visible variants */
-.focus-visible\:ring-brand:focus-visible        { --tw-ring-color: var(--brand); }
-.focus-visible\:ring-offset-ink:focus-visible   { --tw-ring-offset-color: var(--ink); }
-.focus-visible\:ring-offset-paper:focus-visible { --tw-ring-offset-color: var(--paper); }
 
 /* Focus styles for accessibility */
 .focus-visible {

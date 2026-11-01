@@ -14,19 +14,27 @@ const MUST_RESOLVE: readonly string[] = [
   'text-heading', 'text-body', 'text-caption', 'text-small',
   // Font families, same.
   'font-clash', 'font-heading', 'font-body',
+  // Colour tokens. A hand-written `.text-brand` gives you no
+  // `hover:text-brand`, so every variant form below was markup over nothing:
+  // hover feedback, focus rings and the dark-mode overrides all silently did
+  // not exist. Declaring the colours in @theme is what generates them.
+  'bg-border', 'hover:bg-surface-2', 'border-foreground', 'dark:text-foreground',
+  'focus:ring-serum', 'hover:bg-serum/90', 'group-hover:text-brand-primary',
+  'focus:ring-brand-primary', 'border-border-default/30', 'focus:ring-brand',
+  'dark:bg-card', 'dark:border-border', 'hover:text-text-heading',
+  'hover:bg-background-canvas', 'bg-brand-primary/10',
 ]
 
 /**
  * Known dead and not yet fixed, named so the next slice has a target rather
- * than a memory. These are variant forms of the hand-written colour classes:
- * a hand-written `.text-brand` gives you no `hover:text-brand`, so hover
- * feedback across the site is markup over nothing. Fixing them means adding
- * --color-* to @theme AND moving the 68 hand-written classes into a cascade
- * layer, because unlayered CSS beats @layer utilities and would keep winning
- * on the non-hover state.
+ * than a memory. These are the legacy numbered palettes (primary-600,
+ * primary-400) that predate the Field Edition colours, plus three one-off
+ * misses: `text-captionall` is a typo for `text-caption`, `duration-base` and
+ * `font-accent` name tokens that no longer exist.
  */
 const KNOWN_DEAD_NEXT_SLICE: readonly string[] = [
-  'hover:bg-surface-2', 'bg-border',
+  'text-primary-600', 'dark:text-primary-400', 'text-captionall',
+  'duration-base', 'font-accent',
 ]
 
 test('the classes named for the next slice are still the ones that are dead',
@@ -58,7 +66,7 @@ test('every class that sets something resolves to a rule', { timeout: TIMEOUT },
  * slice. This fails when the number grows, which is the only thing that
  * matters: a new dead class is a new silent no-op.
  */
-const DEAD_BUDGET = { distinct: 185, uses: 490 }
+const DEAD_BUDGET = { distinct: 95, uses: 218 }
 
 test('the inventory of dead classes does not grow', { timeout: TIMEOUT }, async () => {
   const { dead, deadUses } = await auditClassRules()

@@ -4456,3 +4456,56 @@ render the ODbL attribution on the card.
 
 **Risk and rollback.** Three new files, nothing wired into a page yet, so the running site is
 unaffected. Deleting the three files is a complete rollback.
+
+---
+
+## Slice: colour tokens generated, and `dark:` made to follow the class
+
+**Goal.** Declare the colour tokens in `@theme` and delete the 74 hand-written colour rules, so
+every variant form of them exists.
+
+**Why it was blocked on the layer.** The hand-written rules were unlayered. Unlayered CSS beats
+every cascade layer regardless of specificity, so a generated `.text-brand` in `@layer utilities`
+would have lost to the hand-written one. Adding the tokens without deleting the rules would have
+changed nothing. They had to move in the same change.
+
+**What the deletion exposed.** `ThemeProvider` runs next-themes with `forcedTheme="light"` and
+`enableSystem={false}`: the site is light-only on purpose and `<html>` never carries `.dark`. But
+Tailwind v4's `dark:` variant defaults to the `prefers-color-scheme` media query, so all 1,387
+`dark:` occurrences across 72 files were firing for every visitor whose OS is in dark mode. The
+hand-written rules had been masking some of that. Measured on `/shop` against the committed
+stylesheet, before any change: `html.light`, body cream `rgb(242,235,218)`, and a
+`bg-gray-100 dark:bg-gray-700` pill computing to `oklch(0.373 0.034 259.733)`, a dark slate.
+`@custom-variant dark (&:where(.dark, .dark *))` is the `darkMode: 'class'` the dead v3 config
+always declared, in the form v4 reads.
+
+**Files:** `src/app/globals.css` (+120 / -134), `src/scripts/audit/class-rules.test.ts`,
+`src/scripts/audit/colour-probe.mjs` (new).
+
+**Verified:**
+- Dead classes **185 distinct / 490 uses -> 95 / 218**. 90 classes and 272 uses now generate CSS.
+  Everything left is a different family: the legacy numbered `primary-*` palette, `animate-in` and
+  friends from an animation plugin that is not installed, v3-only `bg-opacity-*`, and the
+  `text-captionall` typo.
+- 15 named classes moved from dead to `MUST_RESOLVE`; the test failed on all 15 before the fix.
+- `pnpm test:unit` **503 pass, 0 fail**. `npx tsc --noEmit` exit 0.
+- `colour-probe.mjs` over 7 routes, 240 elements: **10 property changes, all intended**. Eight are
+  `bg-border` painting `rgb(231,229,228)` instead of transparent; two are `border-ink/20` finally
+  honouring its opacity modifier instead of falling back to `currentColor`.
+- Static scan for a ported class sharing a property with a plain Tailwind colour utility on the
+  same element: **0 unprefixed collisions**, so `dark:` was the only one.
+- Type floor unmoved: root 16px on all 8 routes x 2 viewports, `smallestText` identical. The
+  homepage's counts rose only because the brand commits added content (textNodes 106 -> 133,
+  ratio 73.6% -> 73.7%).
+- `/shop` and `/shop/morfa-farm-shop` inspected at 375x812 under dark colour-scheme emulation,
+  which is the condition that produced white-on-cream. Both read correctly.
+
+**Next.** The remaining 95 dead classes are the legacy numbered palette (`text-primary-600` and
+kin, 17 + 15 + 7 + 7 uses at the top) plus three one-off misses worth a line each:
+`text-captionall` is a typo for `text-caption`, `duration-base` and `font-accent` name tokens
+nothing defines.
+
+**Risk and rollback.** The `dark:` change is the wide one: it stops 1,387 utilities from firing on
+OS preference, which is what the theme configuration always intended but has never done, so
+dark-OS visitors will see the light theme properly for the first time. Reverting the commit
+restores both the old behaviour and the hand-written rules together.
