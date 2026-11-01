@@ -18,11 +18,12 @@ import type { FarmShop, FarmHeroImage } from '@/types/farm'
 import { getImageUrl } from '@/types/farm'
 import { ObfuscatedEmail, ObfuscatedPhone } from './ObfuscatedContact'
 import { StatusBadge } from './StatusBadge'
+import { hoursStatus, mapAction } from '@/lib/farm-page-actions'
+import { slugifyCounty } from '@/lib/county-slug'
 
 interface FarmPageClientProps {
   shop: FarmShop
   cleanDescription: string
-  directionsUrl: string
   issueUrl: string
   /** Task 7 gate result, computed server-side from farm-claims.ts; not the legacy shop.verified field. */
   canClaim: boolean
@@ -31,11 +32,12 @@ interface FarmPageClientProps {
 export function FarmPageClient({
   shop,
   cleanDescription,
-  directionsUrl,
   issueUrl,
   canClaim
 }: FarmPageClientProps) {
   const { name, location, contact, offerings, hours } = shop
+  const openingHours = hoursStatus({ canClaim, hours })
+  const map = mapAction({ canClaim, lat: location.lat, lng: location.lng })
 
   // Imagery law (design-law-reconciliation 2026-05-27, DESIGN_BRIEF §2): only a
   // real submitted photograph heroes the page. No AI illustration stands in for
@@ -48,13 +50,13 @@ export function FarmPageClient({
     <>
       {/* Breadcrumbs */}
       <div className="border-b border-border">
-        <div className="container mx-auto px-4 py-4">
+        <div className="container mx-auto px-4 py-1">
           <nav className="flex items-center gap-2 text-caption text-ink-muted">
-            <Link href="/" className="hover:text-brand transition-colors">
+            <Link href="/" className="inline-flex items-center min-h-[48px] hover:text-brand transition-colors">
               Home
             </Link>
             <span>/</span>
-            <Link href="/map" className="hover:text-brand transition-colors">
+            <Link href="/map" className="inline-flex items-center min-h-[48px] hover:text-brand transition-colors">
               Map
             </Link>
             <span>/</span>
@@ -71,7 +73,7 @@ export function FarmPageClient({
        * src/components/best/editorial/EditorialHero.tsx and the header
        * block of src/components/best/EditorialArticle.tsx. */}
       {heroImage ? (
-        <section className="relative h-[60vh] min-h-[420px] max-h-[720px] overflow-hidden bg-paper">
+        <section className="relative h-[34vh] min-h-[240px] md:h-[60vh] md:min-h-[420px] max-h-[720px] overflow-hidden bg-paper">
           <div className="absolute inset-0">
             <Image
               src={heroImage.url}
@@ -85,12 +87,12 @@ export function FarmPageClient({
               * gradient anchors the title against varied photography. */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-black/15 to-black/75" />
           </div>
-          <div className="relative h-full flex flex-col items-center justify-end pb-12 md:pb-20 text-center px-6">
-            <div className="w-px h-10 md:h-14 bg-white/80 mb-7" aria-hidden="true" />
-            <h1 className="font-clash text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-white tracking-tight leading-[1.05] max-w-5xl drop-shadow-[0_4px_28px_rgba(0,0,0,0.85)]">
+          <div className="relative h-full flex flex-col items-center justify-end pb-6 md:pb-20 text-center px-6">
+            <div className="hidden md:block w-px h-10 md:h-14 bg-white/80 mb-7" aria-hidden="true" />
+            <h1 className="font-clash text-3xl md:text-5xl lg:text-6xl xl:text-7xl font-semibold text-white tracking-tight leading-[1.05] text-balance max-w-5xl drop-shadow-[0_4px_28px_rgba(0,0,0,0.85)]">
               {name}
             </h1>
-            <p className="mt-5 text-sm md:text-base text-white tracking-[0.25em] uppercase font-semibold drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)]">
+            <p className="mt-2 md:mt-5 text-xs md:text-base text-white tracking-[0.25em] uppercase font-semibold drop-shadow-[0_2px_10px_rgba(0,0,0,0.75)]">
               {location.county}
             </p>
           </div>
@@ -99,56 +101,92 @@ export function FarmPageClient({
         /* Typographic default (DESIGN_BRIEF §6.1): the hero IS the name.
          * All-light Pitti Press — Clash Display ink on cream, sea-ink kicker,
          * hairline rules. This is the page, not a fallback. */
-        <section className="bg-paper py-24 md:py-32">
+        /* Mobile is a task surface, not an editorial spread: someone who
+         * typed this farm's name into Google already knows it, so the name
+         * states itself and gets out of the way. The railway-poster register
+         * (hairlines, display scale, generous air) stays from md up, where
+         * there is room for it above the facts. */
+        <section className="bg-paper py-8 md:py-32">
           <div className="container mx-auto px-6 text-center max-w-4xl">
-            <div className="w-px h-10 md:h-14 bg-[var(--border)] mx-auto mb-8" aria-hidden="true" />
-            <p className="text-sm tracking-[0.25em] uppercase text-accent font-semibold mb-7">
+            <div className="hidden md:block w-px h-10 md:h-14 bg-[var(--border)] mx-auto mb-8" aria-hidden="true" />
+            <p className="text-xs md:text-sm tracking-[0.25em] uppercase text-accent font-semibold mb-3 md:mb-7">
               {location.county}
             </p>
-            <h1 className="font-clash text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold text-ink tracking-tight leading-[1.0]">
+            <h1 className="font-clash text-4xl md:text-6xl lg:text-7xl xl:text-8xl font-semibold text-ink tracking-tight leading-[1.05] md:leading-[1.0] text-balance">
               {name}
             </h1>
-            <div className="w-px h-10 md:h-14 bg-[var(--border)] mx-auto mt-8" aria-hidden="true" />
+            <div className="hidden md:block w-px h-10 md:h-14 bg-[var(--border)] mx-auto mt-8" aria-hidden="true" />
           </div>
         </section>
       )}
 
-      {/* Details Bar (post-hero): badges, address, Get Directions.
-       * Replaces the badges/location/CTA block that used to live inside
-       * the hero. Keeps the operator-critical Get Directions above the
-       * fold on most viewports without competing with the hero title. */}
+      {/* Details bar: the three things a visitor who typed this farm's name
+       * arrived to find. Where it is, when it is open, and how to reach it.
+       * All of it sits inside the first screen at 375x812, because 374 of the
+       * site's 431 search clicks land on this page and the previous layout
+       * put the first action at 851px. */}
       <section className="border-b border-border bg-paper">
-        <div className="container mx-auto px-4 py-5 md:py-6">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-              {canClaim && (
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-accent text-accent text-[13px] font-semibold">
-                  <Shield className="h-4 w-4" />
-                  Verified
-                </div>
-              )}
-              {/* StatusBadge reads shop.hours, a dead field today. Gated on
-                  canClaim so the moment that mapping is wired up it does
-                  not start showing open/closed states for unverified
-                  venues (Task 7 fix round 2). */}
-              {canClaim && <StatusBadge openingHours={hours} className="text-[13px] px-3 py-1.5" />}
-              <div className="flex items-center gap-2 text-caption text-ink-muted">
-                <MapPin className="h-4 w-4 flex-shrink-0" />
-                <span>{location.address}, {location.county} {location.postcode}</span>
-              </div>
-            </div>
-            {/* The address above is factual and stays visible; the
-                invitation to travel there is a visitability claim and is
-                gated (Task 7 fix round 2). */}
+        <div className="container mx-auto px-4 py-5 md:py-6 space-y-4">
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
             {canClaim && (
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-accent text-accent text-[13px] font-semibold">
+                <Shield className="h-4 w-4" />
+                Verified
+              </div>
+            )}
+            {/* StatusBadge reads shop.hours, a dead field today. Gated on
+                canClaim so the moment that mapping is wired up it does
+                not start showing open/closed states for unverified
+                venues (Task 7 fix round 2). */}
+            {canClaim && <StatusBadge openingHours={hours} className="text-[13px] px-3 py-1.5" />}
+          </div>
+
+          <p className="flex items-start gap-2 text-body text-ink">
+            <MapPin className="h-5 w-5 flex-shrink-0 mt-0.5 text-ink-muted" aria-hidden="true" />
+            <span>{location.address}, {location.county} {location.postcode}</span>
+          </p>
+
+          {/* An absent opening-hours table used to render nothing at all, so a
+              reader could not tell a farm with no hours from a page that never
+              held them. No row in the database has parsed hours today, so this
+              is what every page says. */}
+          {openingHours.kind === 'unconfirmed' && (
+            <p className="flex items-start gap-2 text-caption text-ink-muted">
+              <Clock className="h-5 w-5 flex-shrink-0 mt-0.5" aria-hidden="true" />
+              <span>
+                {openingHours.label}.{' '}
+                {contact?.phone ? 'Ring ahead before travelling.' : null}
+              </span>
+            </p>
+          )}
+
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3">
+            {/* The address is printed in full directly above, so withholding a
+                map link protects nobody. The claim lives in the label: an
+                unverified farm is shown on a map, a verified one is a place
+                you are invited to travel to. */}
+            {map && (
               <a
-                href={directionsUrl}
+                href={map.href}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 h-11 px-6 rounded-none bg-brand text-brand-text text-sm font-semibold transition-colors duration-200 hover:bg-brand-hover active:scale-[0.98] flex-shrink-0"
+                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-[2px] bg-brand text-brand-text text-sm font-semibold transition-colors duration-200 hover:bg-brand-hover active:scale-[0.98]"
               >
-                <Navigation className="h-4 w-4" />
-                Get Directions
+                <Navigation className="h-4 w-4" aria-hidden="true" />
+                {map.label}
+              </a>
+            )}
+            {contact?.phone && <ObfuscatedPhone phone={contact.phone} />}
+            {contact?.website && (
+              <a
+                href={contact.website}
+                target="_blank"
+                rel="nofollow ugc noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-[2px] border border-border bg-surface text-sm font-medium text-ink hover:bg-surface-2 transition-colors duration-200"
+              >
+                <Globe className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+                Visit website
+                <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-ink-muted" aria-hidden="true" />
               </a>
             )}
           </div>
@@ -257,24 +295,21 @@ export function FarmPageClient({
                   <Phone className="h-5 w-5 text-ink-muted" />
                   Contact
                 </h3>
+                {/* Phone and website moved to the action row under the
+                    address, where someone standing outdoors reaches them
+                    without scrolling. Email stays here: it is not an
+                    outdoors action. */}
                 <div className="space-y-3">
-                  {contact?.phone && (
-                    <ObfuscatedPhone phone={contact.phone} />
-                  )}
-                  {contact?.email && (
+                  {contact?.email ? (
                     <ObfuscatedEmail email={contact.email} />
-                  )}
-                  {contact?.website && (
-                    <a
-                      href={contact.website}
-                      target="_blank"
-                      rel="nofollow ugc noopener noreferrer"
-                      className="flex items-center gap-3 px-3 py-2 rounded-[2px] text-caption text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
-                    >
-                      <Globe className="h-4 w-4 flex-shrink-0" />
-                      <span className="truncate">Visit Website</span>
-                      <ExternalLink className="h-3.5 w-3.5 ml-auto flex-shrink-0 text-ink-muted" />
-                    </a>
+                  ) : (
+                    <p className="text-caption text-ink-muted">
+                      No email address on file.{' '}
+                      <a className="inline-flex items-center min-h-[48px] underline hover:no-underline hover:text-brand" href={issueUrl} target="_blank" rel="nofollow ugc noopener noreferrer">
+                        Add one
+                      </a>
+                      .
+                    </p>
                   )}
                 </div>
               </div>
@@ -283,14 +318,14 @@ export function FarmPageClient({
                   gated on canClaim so it cannot start rendering hour
                   ranges for unverified venues the moment that mapping is
                   wired up (Task 7 fix round 2). */}
-              {canClaim && hours && hours.length > 0 && (
+              {openingHours.kind === 'known' && (
                 <div className="bg-surface rounded-[2px] border border-border p-6">
                   <h3 className="font-semibold text-ink mb-4 flex items-center gap-2">
                     <Clock className="h-5 w-5 text-ink-muted" />
                     Opening Hours
                   </h3>
                   <div className="space-y-2">
-                    {hours.map((hour) => (
+                    {openingHours.hours.map((hour) => (
                       <div key={hour.day} className="flex justify-between items-center py-2 border-b border-border last:border-b-0">
                         <span className="text-caption font-medium text-ink">{hour.day}</span>
                         <span className="text-caption text-ink-muted">
@@ -311,10 +346,10 @@ export function FarmPageClient({
                 <div className="space-y-2">
                   {location.county && (
                     <Link
-                      href={`/counties/${location.county.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}`}
-                      className="block px-3 py-2 rounded-[2px] text-caption text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
+                      href={`/counties/${slugifyCounty(location.county)}`}
+                      className="flex items-center min-h-[48px] px-3 rounded-[2px] text-caption text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
                     >
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between w-full">
                         <span>More in {location.county}</span>
                         <ArrowRight className="h-4 w-4 text-ink-muted" />
                       </div>
@@ -322,7 +357,7 @@ export function FarmPageClient({
                   )}
                   <Link
                     href={`/map?q=${encodeURIComponent(name)}`}
-                    className="block px-3 py-2 rounded-[2px] text-caption text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
+                    className="flex items-center min-h-[48px] px-3 rounded-[2px] text-caption text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <span>View on Map</span>
@@ -331,7 +366,7 @@ export function FarmPageClient({
                   </Link>
                   <Link
                     href={`/map?lat=${location.lat}&lng=${location.lng}&radius=10`}
-                    className="block px-3 py-2 rounded-[2px] text-caption text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
+                    className="flex items-center min-h-[48px] px-3 rounded-[2px] text-caption text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <span>Nearby Farms</span>
@@ -340,7 +375,7 @@ export function FarmPageClient({
                   </Link>
                   <Link
                     href="/seasonal"
-                    className="block px-3 py-2 rounded-[2px] text-caption text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
+                    className="flex items-center min-h-[48px] px-3 rounded-[2px] text-caption text-ink-muted hover:bg-surface-2 hover:text-ink transition-colors"
                   >
                     <div className="flex items-center justify-between">
                       <span>What&apos;s in Season</span>
@@ -360,7 +395,7 @@ export function FarmPageClient({
           <p className="text-caption text-ink-muted text-center">
             Spot an issue with this listing?{' '}
             <a
-              className="underline hover:no-underline hover:text-brand transition-colors font-medium"
+              className="inline-flex items-center min-h-[48px] underline hover:no-underline hover:text-brand transition-colors font-medium"
               href={issueUrl}
               target="_blank"
               rel="nofollow ugc noopener noreferrer"

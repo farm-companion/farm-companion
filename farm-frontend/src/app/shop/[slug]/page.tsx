@@ -82,7 +82,7 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   const shop = await getFarmBySlug(slug)
   if (!shop) notFound()
 
-  const { name, location, contact, offerings, hours } = shop
+  const { location, contact, offerings } = shop
   const claimInput = buildClaimInput(shop)
   const canClaim = canClaimVisitable(claimInput)
   const { cleanDescription: rawDescription, keywords } = processFarmDescription(shop.description || '')
@@ -90,7 +90,6 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   // raw description or any "farm shop" claim derived from it (JSON-LD
   // description and the on-page About section below both read this).
   const cleanDescription = canClaim ? rawDescription : unverifiedDescription(location.county)
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
   const ghOwner = process.env.NEXT_PUBLIC_GH_OWNER || 'farm-companion'
   const ghRepo  = process.env.NEXT_PUBLIC_GH_REPO  || 'farm-frontend'
@@ -229,7 +228,6 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
       <FarmPageClient
         shop={shop}
         cleanDescription={cleanDescription}
-        directionsUrl={directionsUrl}
         issueUrl={issueUrl}
         canClaim={canClaim}
       />

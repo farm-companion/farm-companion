@@ -1,6 +1,15 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { Mail, Phone } from 'lucide-react'
+
+// PRODUCT.md sets the floor at 48px interactive targets, which the previous
+// `px-4 py-2` control missed at 32px. The default below meets it and speaks
+// the paper/ink vocabulary rather than the generic bordered grey it had.
+const CONTROL =
+  'inline-flex items-center justify-center gap-2 min-h-[48px] px-4 ' +
+  'rounded-[2px] border border-border bg-surface text-caption font-medium ' +
+  'text-ink hover:bg-surface-2 transition-colors duration-200'
 
 function maskEmail(email: string) {
   const [user, domain] = email.split('@')
@@ -17,50 +26,38 @@ function maskPhone(phone: string) {
   return '•••• ••• •' + digits.slice(-3)
 }
 
-export function ObfuscatedEmail({ email }: { email?: string }) {
+export function ObfuscatedEmail({ email, className = CONTROL }: { email?: string; className?: string }) {
   const [revealed, setRevealed] = useState(false)
   const masked = useMemo(() => (email ? maskEmail(email) : ''), [email])
 
   if (!email) return null
   return revealed ? (
-    <a
-      className="rounded border px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#1E1F23]"
-      href={`mailto:${email}`}
-    >
-      ✉️ {email}
+    <a className={className} href={`mailto:${email}`}>
+      <Mail className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+      <span className="truncate">{email}</span>
     </a>
   ) : (
-    <button
-      type="button"
-      className="rounded border px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#1E1F23]"
-      onClick={() => setRevealed(true)}
-      aria-label="Reveal email"
-    >
-      ✉️ {masked}
+    <button type="button" className={className} onClick={() => setRevealed(true)} aria-label="Reveal email address">
+      <Mail className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+      <span className="truncate">{masked}</span>
     </button>
   )
 }
 
-export function ObfuscatedPhone({ phone }: { phone?: string }) {
+export function ObfuscatedPhone({ phone, className = CONTROL }: { phone?: string; className?: string }) {
   const [revealed, setRevealed] = useState(false)
   const masked = useMemo(() => (phone ? maskPhone(phone) : ''), [phone])
 
   if (!phone) return null
   return revealed ? (
-    <a
-      className="rounded border px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#1E1F23]"
-      href={`tel:${phone}`}
-    >
-      📞 {phone}
+    <a className={className} href={`tel:${phone}`}>
+      <Phone className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+      {phone}
     </a>
   ) : (
-    <button
-      type="button"
-      className="rounded border px-4 py-2 hover:bg-gray-50 dark:hover:bg-[#1E1F23]"
-      onClick={() => setRevealed(true)}
-      aria-label="Reveal phone"
-    >
-      📞 {masked}
+    <button type="button" className={className} onClick={() => setRevealed(true)} aria-label="Reveal phone number">
+      <Phone className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
+      {masked}
     </button>
   )
 }

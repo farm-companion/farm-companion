@@ -4034,3 +4034,35 @@ Affected: Newry Mourne and Down; Armagh City, Banbridge and Craigavon; Bournemou
 **Risk/rollback:** revert the commit. URL-building only, no DB or route change; the corrected URLs were confirmed to already resolve, so no redirects are needed.
 
 **Also found by the crawl, not yet fixed:** `/shop` serves **15,224 KB** of HTML in one response and `/counties` 1,341 KB. `/claim` 404s and is linked from every page footer ("Are you a farm shop?"). `/submission-success` returns 500. Two sitemap shop entries are website addresses rather than slugs: `/shop/www.applejackspets.co.uk` and `/shop/milletsfarmcentre.com/millets-farm-shop`. Every title tag doubles the brand, because the root layout sets `template: '%s · Farm Companion'` while pages append their own suffix.
+
+### 2026-11-01 — The farm page, rebuilt for the visitor who actually arrives
+
+**Why this page and not the navigation.** The Search Console pages export settles it: `shop/[slug]` takes 374 of 431 clicks across 211 pages, and every hub earns nothing (`/counties` 0 clicks on 332 impressions, `/map` 0 on 270, `/seasonal` 0 on 1,138, `/categories` 0 on 255, `/shop` absent, `/find/*` absent). The queries are navigational: "morfa farm shop", "unstone hill farm shop", "mayfield farm shop helston". Nobody browses this directory; they type one business name. So the farm page is the product and the navigation redesign was dropped from scope.
+
+**Register correction.** PRODUCT.md sets `register: product`, but the page was built in the brand register: a 60vh editorial hero, display type at `text-5xl`, two decorative hairlines, and the first action at 851px. The railway-poster treatment stays from `md` up, where there is room above the facts; mobile is now a task surface.
+
+**Changes:**
+- New `src/lib/farm-page-actions.ts`: `hoursStatus` and `mapAction`, the two decisions the page makes, pulled out of the component so they can be tested. 8 tests, failing before the module existed.
+- Hours are now a stated fact. No row in the database holds parsed hours, so the old `canClaim && hours.length > 0` block rendered nothing on all 3,504 pages and a reader could not tell a shop with no hours from a page that never had them. Every page now says "Opening hours not confirmed", and "Ring ahead before travelling" when a phone exists. The claim gate still governs: an unverified farm never shows hour ranges even once the mapping is wired.
+- The map link is no longer gated. The postal address is printed in full directly above it, so withholding the link protects nobody; the claim moved into the label, **Get directions** when verified and **Show on map** when not, with a test asserting no unverified label carries a visitability verb.
+- Phone and website moved from the sidebar into an action row under the address. The sidebar Contact card keeps email, and teaches rather than blanks when there is none.
+- `ObfuscatedContact` controls rebuilt to 48px in the paper/ink vocabulary; the two emoji removed for the lucide icons the rest of the page uses.
+- Footer social links, Sitemap, and the newsletter field and button brought to 48px.
+
+**Measured at 375x812, before and after:**
+
+| | before | after |
+|---|---|---|
+| first action | phone at 851px | Show on map at **374px** |
+| second, third | 894, 1073 | 433, 491 |
+| 1.2-screen floor (974px) | View on Map missed it | met with 483px to spare |
+| controls under 24x24 | 7 | **0** |
+| controls under 48px tall | 13 of 20 | 4, all in the shared header |
+
+**Verified:** `npx tsc --noEmit` exit 0, `npx eslint` clean on every touched file, `pnpm test:unit` **476 pass, 0 fail** (468 before). Measurements taken against the running dev server, not asserted.
+
+**Found while measuring, not yet acted on:** the newsletter button was written `h-12` and rendered **42px**. `tailwind.config.js:347` overrides Tailwind's spacing scale onto an 8px grid (`1`=8px, `6`=48px, `12`=96px), so numeric utilities do not mean what the Tailwind docs say, and no `.h-12` rule reaches that element. There are 42 further uses of `h-12`, 32 of `h-10`, 12 of `h-14` and 11 each of `h-9` and `h-11` across `src`, every one of them a size nobody has checked. That deserves its own audit.
+
+**Still outstanding on this page's shared chrome:** the site header's Search and Open menu controls are 39x39 and the wordmark is 28px tall.
+
+**Risk/rollback:** revert the commit. Presentation and two pure functions only; no DB, route or schema change. The one judgement call is the ungated map link, which is a single conditional in `farm-page-actions.ts`.
