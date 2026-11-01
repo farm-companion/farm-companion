@@ -4509,3 +4509,49 @@ nothing defines.
 OS preference, which is what the theme configuration always intended but has never done, so
 dark-OS visitors will see the light theme properly for the first time. Reverting the commit
 restores both the old behaviour and the hand-written rules together.
+
+---
+
+## Slice: finish the strip that left a 404 in the footer of every page
+
+**Goal.** `/claim` has never been a route. It sat in the footer of every page as "Update Your
+Details" and in the site map as "Claim or update your details", and returned 404 both times.
+
+**What it was.** `c1a6919 strip(phase-0): delete user farm-submission flow` removed the pages but
+not the things pointing at them. The tail it left: the two links above; `src/app/add/layout.tsx`,
+a route directory holding a layout and no page, so `/add` 404'd while still declaring a canonical
+URL and an OG card; `/submission-success`, which returned **500** because the page passes
+`onClick={handleDownloadPDF}` from a server component, and which was listed in the site map as a
+destination although it is a post-submission confirmation page for a flow that no longer exists;
+and `getClaimPageUrl()` in `bing-notifications.ts`, an exported helper with zero callers whose
+whole job was to build `/claim/<slug>` URLs.
+
+**Correction to an earlier reading.** `/claim` and `/submission-success` appear in
+`sitemap-generator.ts` and `enhanced-sitemap.ts` inside `EXCLUDED_PATHS`. They are excluded from
+the XML sitemap, not declared in it. The breakage was the rendered links, not the sitemap.
+
+**Where the intent goes.** `/contact` already opens with "Need to update your listing or claim
+ownership? Use the contact form below." The footer column is "For Farm Shops" and the header
+already carries Contact, so the column is now one link, "Update your details", to `/contact`,
+rather than two links to the same page.
+
+**Files:** `src/components/Footer.tsx`, `src/app/site-map/page.tsx`, `src/lib/bing-notifications.ts`,
+`src/scripts/audit/internal-links.test.ts` (new); deleted `src/app/add/layout.tsx`,
+`src/app/submission-success/layout.tsx`, `src/app/submission-success/page.tsx`.
+
+**Verified:**
+- The new test has two cases and both failed before the fix: the link check named `/claim` in
+  both files, the orphan check named `/add`. Both pass now.
+- `pnpm test:unit` **505 pass, 0 fail**. `npx tsc --noEmit` exit 0. `pnpm build` exit 0, with
+  `/add` and `/submission-success` gone from the route table.
+- Live on the dev server: `/submission-success` **500 -> 404**, which is the honest code for a
+  page that no longer exists; `/contact`, `/site-map` and `/` all 200; no `href="/claim"` renders
+  anywhere on the homepage.
+
+**Still orphaned, deliberately out of scope.** `src/app/api/add/selftest/route.ts` is a health
+check for the deleted add form, and `src/components/navigation/BottomNav.tsx:74` still hides
+itself on `/add` and `/claim`. Neither is reachable or harmful; both are cruft from the same
+commit.
+
+**Risk and rollback.** Three deletions and three small edits, none of them load-bearing: the
+deleted pages were a 404 and a 500. Reverting the commit restores them.

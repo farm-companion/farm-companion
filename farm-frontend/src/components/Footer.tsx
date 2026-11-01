@@ -19,9 +19,13 @@ const aboutLinks = [
   { href: '/data-attributions', label: 'Data & attributions' },
 ]
 
+// `/claim` has never been a route. This link sat in the footer of every page
+// and 404'd; the submission flow it belonged to was deleted in c1a6919. The
+// contact page is where the intent actually lands: it opens with "Need to
+// update your listing or claim ownership? Use the contact form below." One
+// entry rather than two, because the header already carries Contact.
 const farmShopLinks = [
-  { href: '/claim', label: 'Update Your Details' },
-  { href: '/contact', label: 'Contact Us' },
+  { href: '/contact', label: 'Update your details' },
 ]
 
 

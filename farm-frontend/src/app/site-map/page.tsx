@@ -22,9 +22,10 @@ const sections = [
   {
     heading: 'For farm shops',
     links: [
-      { href: '/claim', label: 'Claim or update your details' },
-      { href: '/contact', label: 'Contact the Farm Companion team' },
-      { href: '/submission-success', label: 'Submission success page' },
+      // `/claim` never existed and `/submission-success` was the confirmation
+      // page for a submission flow deleted in c1a6919, so it was never a
+      // destination a reader could usefully arrive at. Contact absorbs both.
+      { href: '/contact', label: 'Claim or update your details' },
     ],
   },
   {
