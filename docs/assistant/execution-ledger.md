@@ -4129,3 +4129,18 @@ network), so the evidence above is API-level and unit-level, not a live fetch.
 
 **Risk/rollback:** Minor-series bump of a 0.x library, mitigated by the defensive result handling and
 the API probe. Rollback: restore `crawl4ai==0.7.4` in requirements.txt and re-run `crawl4ai-setup`.
+
+---
+
+### 2026-11-01 — Slice 1.10: reverted an unrelated tsconfig rewrite that `next build` made on its own
+
+While verifying Slice 1.2/1.8, `pnpm build` in farm-produce-images **silently rewrote
+`farm-produce-images/tsconfig.json`** — Next 16's own automatic tsconfig migration. It reformatted the
+file and made two real changes: `"jsx": "preserve"` -> `"jsx": "react-jsx"`, and added
+`.next/dev/types/**/*.ts` to `include`.
+
+Reverted to master's version. It is not a security change, the `jsx` switch is semantically meaningful,
+and it has no business riding along inside a security PR. **Expect it to reappear:** any `next build`
+in that package will re-apply it, so it should be accepted deliberately in its own change rather than
+fought. Flagged for Queue 2 (deployment stability) alongside the missing `sharp` declaration in the
+same package.
