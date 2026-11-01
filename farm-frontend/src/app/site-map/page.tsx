@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Site map | Farm Companion',
+  title: 'Site map',
   description:
     'Explore every corner of Farm Companion in one place. Quickly jump to farm shop maps, seasonal guides, counties, and help pages.',
 }

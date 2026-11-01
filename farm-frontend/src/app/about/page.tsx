@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'About Farm Companion | UK Farm Shops Directory',
+  title: 'About',
   description:
     'We built the farm shop guide we wished existed. 1,247 farms across every county, no sponsored rankings, no clutter. Learn how Farm Companion helps you find farm shops worth the drive.',
   alternates: {

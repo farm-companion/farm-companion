@@ -27,16 +27,12 @@ const EXEMPT = new Set(['page.tsx'])
 
 /**
  * Still doubling, fixed in the next slice. Named rather than remembered, and
- * kept failing-if-stale so the list cannot quietly rot.
+ * kept failing-if-stale so the list cannot quietly rot. Both remaining pages
+ * are behind /admin, so no search engine sees either title.
  */
 const KNOWN_DOUBLED_NEXT_SLICE: readonly string[] = [
-  'about/page.tsx',
   'admin/documentation/layout.tsx',
   'admin/page.tsx',
-  'contact/layout.tsx',
-  'privacy/layout.tsx',
-  'site-map/page.tsx',
-  'terms/page.tsx',
 ]
 
 /**

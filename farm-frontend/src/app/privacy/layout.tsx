@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Farm Companion',
+  title: 'Privacy Policy',
   description: 'Privacy policy for Farm Companion. Learn how we collect, use, and protect your data when using our UK farm shops directory and seasonal produce guide.',
   alternates: {
     canonical: `${SITE_URL}/privacy`,

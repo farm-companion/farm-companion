@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Contact & Feedback | Farm Companion',
+  title: 'Contact & Feedback',
   description: 'Have a question, suggestion, or need help? Contact Farm Companion for support with our UK farm shops directory and seasonal produce guide.',
   alternates: {
     canonical: `${SITE_URL}/contact`,

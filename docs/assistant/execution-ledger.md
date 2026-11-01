@@ -4599,3 +4599,23 @@ not templated, so they are expected to carry the brand and are left alone; only 
 green and the list cannot rot: about, privacy, terms, contact, site-map and the two admin pages.
 
 **Risk and rollback.** Six one-line title changes. Reverting restores the doubled titles.
+
+---
+
+## Slice: title doubling, part 2 (the remaining public pages)
+
+**Files:** `about/page.tsx`, `privacy/layout.tsx`, `terms/page.tsx`, `contact/layout.tsx`,
+`site-map/page.tsx`, and `src/scripts/audit/page-titles.test.ts` (list shortened).
+
+**Verified.** Rendered `<title>` re-read on all five: `Privacy Policy · Farm Companion`,
+`Terms of Service · Farm Companion`, `Contact & Feedback · Farm Companion`,
+`Site map · Farm Companion`, `About · Farm Companion`. `pnpm test:unit` **507 pass, 0 fail**;
+`npx tsc --noEmit` exit 0.
+
+`about` was `About Farm Companion | UK Farm Shops Directory`, which carried the brand inside the
+phrase as well as after it. It is now `About`; the descriptive form survives on the openGraph and
+twitter titles, which are not templated.
+
+**Remaining.** `admin/page.tsx` and `admin/documentation/layout.tsx` still double and stay named
+in `KNOWN_DOUBLED_NEXT_SLICE`. Both sit behind `/admin`, so no search engine sees either title.
+They were left out only to keep this slice inside the 8-file rule.
