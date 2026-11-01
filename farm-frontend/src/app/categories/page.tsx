@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/Badge'
 import { CategoryIcon } from '@/components/CategoryIcon'
 
 export const metadata: Metadata = {
-  title: 'Farm Categories | Farm Companion',
+  title: 'Farm Categories',
   description:
     'Browse farms by category. Find organic farms, pick your own, farm shops, dairy producers, and more across the UK.',
   openGraph: {

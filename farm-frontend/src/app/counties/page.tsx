@@ -19,7 +19,7 @@ export const dynamic = 'force-dynamic'
 
 // Metadata for SEO and clarity
 export const metadata: Metadata = {
-  title: 'Farm Shops by County | Farm Companion',
+  title: 'Farm Shops by County',
   description: 'Browse farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
   alternates: {
     canonical: `${SITE_URL}/counties`,

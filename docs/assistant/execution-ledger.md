@@ -4555,3 +4555,47 @@ commit.
 
 **Risk and rollback.** Three deletions and three small edits, none of them load-bearing: the
 deleted pages were a 404 and a 500. Reverting the commit restores them.
+
+---
+
+## Slice: the brand was in every title twice (part 1, the pages with traffic)
+
+**Goal.** The root layout declares `title.template: '%s · Farm Companion'`, so Next appends the
+brand to every child segment's `metadata.title` itself. Thirteen pages also wrote it into their
+own title and got it twice.
+
+**Measured on the dev server before the fix:**
+
+```
+/shop/morfa-farm-shop   Morfa Farm Shop · Farm Companion · Farm Companion
+/counties               Farm Shops by County | Farm Companion · Farm Companion
+/seasonal               British Seasonal Produce Calendar | Farm Companion · Farm Companion
+```
+
+The first is 3,504 pages and they carry 374 of the site's 431 clicks, so it is the title Google
+shows for almost all our traffic.
+
+**Two things the measuring changed.** `src/app/page.tsx` renders `Farm Companion — UK Farm Shops
+Directory`, correctly, because it shares the root layout's segment where `title.default` applies
+and the template does not. It is exempt, not broken. And `openGraph.title` / `twitter.title` are
+not templated, so they are expected to carry the brand and are left alone; only the top-level
+`metadata.title` changed in each file.
+
+**Files:** `src/app/shop/[slug]/page.tsx`, `counties/page.tsx`, `best/page.tsx`,
+`categories/page.tsx`, `compare/layout.tsx`, `seasonal/page.tsx`,
+`src/scripts/audit/page-titles.test.ts` (new).
+
+**Verified:**
+- The test failed on all six before the fix. Its scanner tracks brace depth and quoting rather
+  than reading to the first `openGraph:`, which matters: a first-match reading missed
+  `shop/[slug]/page.tsx` entirely, because that file opens generateMetadata with
+  `if (!shop) return { title: 'Farm shop not found' }` and the first title in the file is already
+  correct. That was the page with 87% of the clicks.
+- Rendered `<title>` re-read on all six: now `Morfa Farm Shop · Farm Companion`,
+  `Farm Shops by County · Farm Companion`, and so on.
+- `pnpm test:unit` **507 pass, 0 fail**. `npx tsc --noEmit` exit 0.
+
+**Next (part 2).** Seven files still double, held in `KNOWN_DOUBLED_NEXT_SLICE` so the test stays
+green and the list cannot rot: about, privacy, terms, contact, site-map and the two admin pages.
+
+**Risk and rollback.** Six one-line title changes. Reverting restores the doubled titles.

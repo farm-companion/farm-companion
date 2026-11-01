@@ -22,7 +22,7 @@ import {
 } from '@/components/best/editorial'
 
 export const metadata: Metadata = {
-  title: 'Best Farm Guides | Farm Companion',
+  title: 'Best Farm Guides',
   description: 'Expertly curated guides to the finest farms across the UK. Handpicked recommendations for organic farms, pick your own, and farm cafes.',
   openGraph: {
     title: 'Best Farm Guides | Farm Companion',

@@ -47,7 +47,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const ogImageUrl = `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county ?? '')}&type=farm${canClaim ? '&canClaim=1' : ''}`
 
   return {
-    title: `${shop.name} · Farm Companion`,
+    // Just the name. The root layout's title.template appends
+    // ' · Farm Companion', so writing it here rendered
+    // "Morfa Farm Shop · Farm Companion · Farm Companion" on all 3,504 farm
+    // pages, which carry 374 of the site's 431 clicks.
+    title: shop.name,
     description: description,
     alternates: { canonical: url },
     robots: isIndexable(claimInput)

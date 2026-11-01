@@ -9,7 +9,7 @@ import { SeasonalPageClient } from '@/components/seasonal/SeasonalPageClient'
 export const revalidate = 43200
 
 export const metadata: Metadata = {
-  title: 'British Seasonal Produce Calendar | Farm Companion',
+  title: 'British Seasonal Produce Calendar',
   description: 'Explore all 12 months of British seasonal produce. Find the freshest local fruits and vegetables at farm shops near you, with detailed guides for every season.',
   alternates: {
     canonical: `${SITE_URL}/seasonal`,
