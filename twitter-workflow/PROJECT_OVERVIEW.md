@@ -30,7 +30,6 @@ twitter-workflow/
 ├── package.json                       # Dependencies and scripts
 ├── vercel.json                        # Vercel deployment configuration
 ├── env.example                        # Environment variables template
-├── env.production                     # Production environment config
 └── README.md                          # Comprehensive documentation
 ```
 

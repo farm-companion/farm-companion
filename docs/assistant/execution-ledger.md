@@ -3917,3 +3917,56 @@ the `">=7.24.0"` value and reinstall.
 
 **Next:** Slice 1.5 — the secret-removal half of Queue 1 (see the finding below; it is not where the
 queue says it is).
+
+---
+
+### 2026-11-01 — Queue 1 Slice 1.5: live committed credentials removed from the working tree (ROTATION OWED)
+
+**The queue's last item was aimed at the wrong place, and the real exposure is much larger.**
+Queue 1 says "Remove hardcoded API key in farm-pipeline and switch to env var with docs". The current
+farm-pipeline is two files (`scrape_sidecar.py`, its test) plus a pinned `crawl4ai==0.7.4`, and it holds
+**no key at all** — the legacy Python pipeline that had one was retired in 71d40af. There was also
+nothing to "switch to an env var": every consumer already reads `process.env`. The actual problem was
+real credential *values* committed in config and documentation files.
+
+**What was exposed, in three tracked files on the default branch:**
+- `twitter-workflow/env.production` — 22 assigned keys, only 2 of them placeholders. Twitter OAuth 1.0a
+  (API key + secret, access token + secret), OAuth 2.0 client id + secret, DeepSeek key, Slack webhook,
+  `CRON_SECRET`. **Not gitignored.**
+- `docs/archive/INTEGRATION_STATUS.md` — a Redis URL *with password*, a Vercel Blob **read-write** token,
+  the DeepSeek key, and a Resend API key.
+- `twitter-workflow/TEST_DEEPSEEK.md` — the DeepSeek key, as a copy-paste example.
+
+**Why `env.production` slipped past .gitignore:** the ignore rules are `.env`, `.env.*`, `*.env`,
+`*.env.*`. A bare `env.production` matches none of them — `*.env` needs the name to *end* in `.env`.
+Added explicit `env.production` / `env.local` / `env.development` / `env.test` entries, with a comment
+saying why; `env.example` is deliberately not matched and stays committed.
+
+**Changes:** `env.production` untracked and deleted (it was a credential file wearing a template's name,
+and `env.example` already documented every secret-bearing key it had). Its only four unique keys —
+`NODE_ENV`, `VERCEL_ENV`, `DEBUG`, `MAINTENANCE_MODE`, none of them secrets — were folded into
+`env.example` so nothing was lost. The other two files had their values replaced with named placeholders.
+`PROJECT_OVERVIEW.md` and `PHASE3_COMPLETION_SUMMARY.md` were pointed away from the deleted file.
+
+**Verification (ran):** repo-wide sweep over `git ls-files` for `sk-[a-f0-9]{32}`, `re_…`,
+`vercel_blob_rw_…` and `redis://default:…@` now returns only `farm-frontend/scripts/validate-env.js`,
+whose matches are that validator's own documented example strings (`re_1234567890abcdef…`), not secrets.
+`git check-ignore` confirms `env.production` is ignored and `env.example` is not. `npm test` in
+twitter-workflow 8 pass / 0 fail. No tracked file references `env.production` as a file any more.
+
+**OPERATOR STEP STILL OWED — ROTATION. Deleting these from the working tree does NOT unexpose them.**
+The DeepSeek key `sk-eeaef6be…` is in git history from the first commit (e29cab6) and appears in ~16
+commits across all branches — including, ironically, one titled "SECURITY: Remove exposed secrets from
+version control", which re-added it. Anyone with repo access, or any fork/clone, still has all of these.
+**Every credential listed above must be rotated at its provider**: Twitter/X app keys and tokens,
+DeepSeek, Slack webhook, `CRON_SECRET`, Redis password, Vercel Blob read-write token, Resend. Treat the
+Blob read-write token and the Redis password as the most urgent (direct data write/read access). Not
+rotated here — rotation is operator-only and is deliberately not attempted by the assistant.
+
+**Risk/rollback:** Documentation and ignore-rule changes plus one deleted credential file; no runtime
+code touched, and the file was never read at runtime (all consumers use `process.env`). Rollback would
+re-expose secrets and is not advised; if the four extra keys are needed they are now in `env.example`.
+
+**Next:** Queue 1 is closed on its four named items. Remaining criticals in farm-frontend are
+`maplibre-gl` (needs a major, 5 -> 6.4.1, operator decision) and `dompurify` (override too loose);
+`basic-ftp` is dev-only under lighthouse.
