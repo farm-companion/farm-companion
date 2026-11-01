@@ -6,6 +6,7 @@ import { PIPELINE_CONFIG } from '../config'
 import { log } from '../lib/log'
 import { matchExisting, mergeFarm } from '../policy/merge-policy'
 import { classifyVenue, hasRetailLexeme, isFsaRetailRecent } from '../lib/classify-venue'
+import { CURATED_SOURCES, type SourceName } from '../types'
 import type { ChangeSet, DbFarm, FarmFieldName, NormalizedCandidate } from '../types'
 
 /** Pure: build the change set from candidates + a DB snapshot. */
@@ -23,7 +24,7 @@ export function buildChangeSet(
     // osmShopFarm infers from osmId because parseOverpass already rejects any
     // element without shop=farm, so an osmId implies the tag. If OSM discovery
     // ever widens beyond shop=farm, this inference breaks silently.
-    const { venueType } = classifyVenue({
+    const { venueType, tier } = classifyVenue({
       osmShopFarm: Boolean(c.osmId),
       osmOpeningHours: Boolean(c.fields.openingHours),
       fsaFarmType: Boolean(c.fsaId),
@@ -35,11 +36,27 @@ export function buildChangeSet(
       fsaRetailRecent: isFsaRetailRecent(c.fsaBusinessType, c.fsaRatingDate),
     })
     const priorVenueType = (match?.fields.venueType as string | undefined) ?? null
-    // A human set venueVerifiedAt after checking this row's venueType, and
-    // source evidence is exactly what they were checking. Reclassifying under
-    // them would silently void a verification nothing else can restore: there
-    // is no writer for venueVerifiedAt yet, so a lost one is lost for good.
-    const humanVerified = match?.fields.venueVerifiedAt != null
+
+    // A HUMAN set venueVerifiedAt after checking this row, and source evidence
+    // is exactly what they were checking. Reclassifying under them would void a
+    // decision with their name on it.
+    //
+    // A row counts as a person's decision unless provenance POSITIVELY names a
+    // machine as the one who set it. That direction matters both ways: keying on
+    // the field alone would freeze every row the pipeline itself verified and
+    // treat its own write as a person's, while keying on provenance alone would
+    // expose a verification set by hand in SQL, or set before provenance was
+    // tracked, which carries no source at all. Wrongly freezing a row costs
+    // nothing. Wrongly overwriting a decision with someone's name on it is
+    // unrecoverable, so the unknown case fails safe.
+    const isMachine = (src: SourceName | undefined): boolean =>
+      src != null && !CURATED_SOURCES.has(src)
+    const verifiedBy = match?.provenance?.venueVerifiedAt?.source
+    const typedBy = match?.provenance?.venueType?.source
+    const humanVerified =
+      (match?.fields.venueVerifiedAt != null && !isMachine(verifiedBy)) ||
+      (typedBy != null && CURATED_SOURCES.has(typedBy))
+
     if (!humanVerified && venueType !== 'unknown' && venueType !== priorVenueType) {
       change.fields.push({
         field: 'venueType',
@@ -50,6 +67,29 @@ export function buildChangeSet(
       // mergeFarm froze change.action from its own diff count before this block
       // ran, so a venueType-only change on a matched row would still say 'noop'
       // and 07-load skips noop unconditionally. Promote it or the write is lost.
+      if (change.action === 'noop') change.action = 'update'
+    }
+
+    // E8 carries an inspection, which no other machine edge does: a regulator
+    // physically attended a public-facing premises on a known date. That is a
+    // verification event, so it sets venueVerifiedAt and the page may claim.
+    //
+    // The timestamp is the INSPECTION date, not now. A 23-month-old inspection
+    // should read as 23 months old, so any future freshness policy can act on
+    // it and so the audit trail does not overstate what was checked when. The
+    // OSM Tier A path deliberately does NOT do this: an OSM tag is something
+    // someone typed, with no inspection and no date behind it.
+    const fsaInspection = isFsaRetailRecent(c.fsaBusinessType, c.fsaRatingDate)
+      ? c.fsaRatingDate
+      : undefined
+    if (!humanVerified && tier === 'A' && fsaInspection && match?.fields.venueVerifiedAt == null) {
+      change.fields.push({
+        field: 'venueVerifiedAt',
+        from: null,
+        to: fsaInspection,
+        reason: `fsa ${c.fsaBusinessType} inspected ${fsaInspection.slice(0, 10)}`,
+      })
+      change.provenanceNext.venueVerifiedAt = { source: 'fsa', at: now }
       if (change.action === 'noop') change.action = 'update'
     }
     if (matchKey === 'fuzzy') change.matchKey = 'fuzzy'
