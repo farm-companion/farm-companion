@@ -4091,3 +4091,41 @@ its keep. Left in place deliberately.
 ajv, @humanfs/node, minimatch) — dev-only, not shipped. The count rose from 3 because minimatch moved
 *down* from high into a moderate advisory bucket once pinned to 3.1.5; that is an improvement, not a
 regression.
+
+---
+
+### 2026-11-01 — Slice 1.9: farm-pipeline Python deps (crawl4ai 0.7.4 -> 0.9.5), now fully clean
+
+**The Python side was never actually checked, and it was not clean.** `requirements.txt` is a single
+pinned line, which reads as safe, but `pip-audit -r requirements.txt` returned **30 advisories**:
+15 against `crawl4ai` 0.7.4 itself (patched across 0.8.7-0.9.0), 2 transitive `lxml` 5.4.0, and 13
+transitive `filelock` 3.32.7. Sampled severities from OSV to be sure they were not noise —
+PYSEC-2026-2138 is `CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H` (scope change, high across C/I/A,
+fixed in 0.9.0) and PYSEC-2026-588 is `C:H` (fixed in 0.8.9). Real, not theoretical.
+
+**Bumped `crawl4ai==0.7.4 -> ==0.9.5`** (latest; >=0.9.0 is the floor that clears all 15). pip-audit on
+the new requirement: **"No known vulnerabilities found"** — the lxml and filelock findings cleared too,
+because 0.9.5 pulls newer pins of both.
+
+**Compatibility checked before bumping, not after.** Installed 0.9.5 into a throwaway uv venv and
+probed every API `scrape_sidecar.py` actually touches: `AsyncWebCrawler(config=)` plus its async
+context manager, `BrowserConfig(headless=, user_agent=)`, `CrawlerRunConfig(page_timeout=)`,
+`crawler.arun(url=, config=)`, and the result fields `success`, `status_code`, `error_message`, `url`,
+`links`, `markdown`. All present. One false alarm worth recording: `markdown` is **not** in
+`CrawlResult.model_fields` in 0.9.5 — it is a `property` returning `str`, so probing `model_fields`
+reports it missing when it is fine. The sidecar reads it via `getattr` with an isinstance-str branch,
+so it works either way. That whole file is written defensively (`getattr` with fallbacks, isinstance
+guards, per-subpage try/except), which is why a 0.7 -> 0.9 move is low risk here.
+
+**Verification (ran, passed):** `uvx pip-audit -r requirements.txt` -> no known vulnerabilities.
+`python3 -m unittest scrape_sidecar_test -v` -> **5 tests, OK**. API probe above, all present.
+
+**Operator step owed before the next real scrape run:** the pinned Chromium must be re-fetched for the
+new version — `pip install -r requirements.txt` then `crawl4ai-setup`, as the comment at the top of
+`requirements.txt` already says. Nothing in this repo runs a crawl in CI, so nothing here will catch a
+missed setup step; the first live `scrape_sidecar.py` run would fail loudly on a missing browser.
+Unverified here on purpose: no end-to-end crawl was run (it needs that browser download plus live
+network), so the evidence above is API-level and unit-level, not a live fetch.
+
+**Risk/rollback:** Minor-series bump of a 0.x library, mitigated by the defensive result handling and
+the API probe. Rollback: restore `crawl4ai==0.7.4` in requirements.txt and re-run `crawl4ai-setup`.
