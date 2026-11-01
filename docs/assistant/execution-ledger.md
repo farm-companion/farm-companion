@@ -4018,3 +4018,19 @@ The first live runs surfaced real-API issues the fixture tests could not (each f
 **Risk/rollback:** revert the commit to restore the coupled gate. No DB or route change. The `would_index` column in `export-venue-candidates.ts` now means "has a findable place", not "would index once verified", so `docs/verification/cornwall.csv` carries the old meaning in that column.
 
 **Next:** every title tag doubles the brand ("Morfa Farm Shop · Farm Companion · Farm Companion") because the root layout sets `template: '%s · Farm Companion'` while pages append their own suffix. The root description also still claims "1,300+ authentic UK farm shops" and "verified farm information".
+
+### 2026-11-01 — One county slug, so the sitemap stops declaring 404s
+
+**Found by crawling all 3,873 reachable URLs against the dev server** (frontier exhausted, not truncated). Five county names carry punctuation, and four separate call sites had grown their own slug rule that replaced only whitespace. The sitemap therefore declared `/counties/newry%2C-mourne-and-down` while the route resolves through `slugifyCounty` and serves `/counties/newry-mourne-and-down`. The crawl found 9 county 404s; Search Console reports 18 under "Not found (404)".
+
+Affected: Newry Mourne and Down; Armagh City, Banbridge and Craigavon; Bournemouth, Christchurch and Poole; Comhairle nan Eilean Siar (Western Isles); King's Lynn and West Norfolk.
+
+**Change:** `slugifyCounty` and `deslugifyCounty` moved to a new `src/lib/county-slug.ts` with no data-layer imports, so a client component can use the same rule as the route and the sitemap; `seo-pages.ts` re-exports them for existing importers. Four live call sites now use it: `enhanced-sitemap.ts:187`, `app/counties/page.tsx` (the region map and the county cards), `CountiesSearch.tsx`, `SearchSuggestions.tsx`. The county index also stopped bucketing county-less farms under `'Unknown County'`, whose link `/counties/unknown-county` 404s; those farms are dropped from the grouping instead. `src/lib/county-slug.test.ts` adds an inventory lock: a file holding a `/counties/` reference may not also hold `replace(/\s+/g, '-')`.
+
+**Verified:** the lock failed before the fix, naming all four files. After: `pnpm test:unit` 468 pass, 0 fail; `npx tsc --noEmit` exit 0. The dev sitemap now declares 285 county URLs with no percent-encoding or punctuation and all five formerly broken slugs present in resolvable form; `/counties` emits 285 links, none punctuated, none `unknown-county`. All five slugs return 200 on the running server.
+
+**Still carrying the bug, deliberately untouched:** `src/lib/schema-generators.ts:346` and `src/lib/sitemap-generator.ts:167`. Neither has an importer; both are locked in the test and should be deleted on sight rather than edited blind.
+
+**Risk/rollback:** revert the commit. URL-building only, no DB or route change; the corrected URLs were confirmed to already resolve, so no redirects are needed.
+
+**Also found by the crawl, not yet fixed:** `/shop` serves **15,224 KB** of HTML in one response and `/counties` 1,341 KB. `/claim` 404s and is linked from every page footer ("Are you a farm shop?"). `/submission-success` returns 500. Two sitemap shop entries are website addresses rather than slugs: `/shop/www.applejackspets.co.uk` and `/shop/milletsfarmcentre.com/millets-farm-shop`. Every title tag doubles the brand, because the root layout sets `template: '%s · Farm Companion'` while pages append their own suffix.

@@ -2,6 +2,7 @@
 // PuredgeOS 3.0 Compliant Sitemap Management
 
 import { SITE_URL } from './site'
+import { slugifyCounty } from '@/lib/county-slug'
 import { PRODUCE } from '@/data/produce'
 import { getFarmData } from '@/lib/farm-data'
 import { canClaimVisitable } from '@/lib/farm-claims'
@@ -184,7 +185,7 @@ export async function generateCountyPagesSitemap(): Promise<SitemapEntry[]> {
     const counties = [...new Set(farms.map((farm) => farm.location.county).filter(Boolean))] as string[]
 
     return counties.map((county: string) => ({
-      url: `/counties/${encodeURIComponent(county.toLowerCase().replace(/\s+/g, '-'))}`,
+      url: `/counties/${slugifyCounty(county)}`,
       changeFrequency: 'weekly' as const,
       priority: 0.6,
       lastModified: new Date()

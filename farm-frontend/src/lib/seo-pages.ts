@@ -20,6 +20,7 @@
  */
 
 import { getAllCounties } from '@/lib/queries/counties'
+import { slugifyCounty } from '@/lib/county-slug'
 import { getAllCategories, getFarmsByCategory, getActiveCountyCategoryPairs } from '@/lib/queries/categories'
 import { SITE_URL } from '@/lib/site'
 
@@ -106,25 +107,9 @@ export interface SEOPageData {
 // URL GENERATION
 // =============================================================================
 
-/**
- * Slugify a county name for URLs
- */
-export function slugifyCounty(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-}
-
-/**
- * Deslugify a county slug back to display name
- */
-export function deslugifyCounty(slug: string): string {
-  return slug
-    .split('-')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ')
-}
+// Both live in county-slug.ts, which has no data-layer imports so a client
+// component can use the same rule. Re-exported here for existing importers.
+export { slugifyCounty, deslugifyCounty } from '@/lib/county-slug'
 
 /**
  * Generate the canonical URL for an SEO page

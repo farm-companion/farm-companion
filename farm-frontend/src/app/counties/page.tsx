@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { slugifyCounty } from '@/lib/county-slug'
 import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
@@ -54,7 +55,11 @@ export const metadata: Metadata = {
 // Group farms by county
 function groupFarmsByCounty(farms: FarmShop[]) {
   const grouped = farms.reduce((acc, farm) => {
-    const county = farm.location?.county || 'Unknown County'
+    // An absent county used to become 'Unknown County', whose link
+    // /counties/unknown-county 404s. Drop the farm from the grouping
+    // instead of inventing a destination for it.
+    const county = farm.location?.county
+    if (!county) return acc
     if (!acc[county]) {
       acc[county] = []
     }
@@ -151,7 +156,7 @@ export default async function CountiesPage() {
               <UKCountyMap
                 counties={Object.entries(farmsByCounty).map(([name, farms]) => ({
                   name,
-                  slug: name.toLowerCase().replace(/\s+/g, '-'),
+                  slug: slugifyCounty(name),
                   farmCount: farms.length,
                 }))}
               />
@@ -178,7 +183,7 @@ export default async function CountiesPage() {
               {Object.entries(farmsByCounty).map(([county, countyFarms]) => (
                 <Link
                   key={county}
-                  href={`/counties/${county.toLowerCase().replace(/\s+/g, '-')}`}
+                  href={`/counties/${slugifyCounty(county)}`}
                   className="group block bg-surface rounded-[2px] border border-border p-4 sm:p-5 hover:border-border-strong transition-colors duration-200"
                 >
                   {/* Mobile: Stacked | Desktop: Horizontal */}
