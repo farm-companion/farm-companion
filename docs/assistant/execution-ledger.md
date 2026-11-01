@@ -3828,3 +3828,26 @@ real baseline here). `pnpm build` -> `✓ Compiled successfully`, full route tab
 all pass. Rollback is reverting `farm-frontend/package.json` + `pnpm-lock.yaml` and re-running `pnpm install`.
 
 **Next:** Slice 1.2 — same `next` bump for farm-produce-images (its 5 criticals are all `next`).
+
+---
+
+### 2026-11-01 — Queue 1 Slice 1.2: Next.js criticals cleared in farm-produce-images (next 16.2.6 -> 16.4.1)
+
+**Outcome:** same minimum bump as Slice 1.1. farm-produce-images criticals **5 -> 0**; all `next`
+advisories gone (19 -> 0). Remaining there: 31 high, 23 moderate, 6 low, none of them `next`.
+
+**Verification (ran):** `pnpm audit` -> criticals NONE, next advisories 0. `pnpm build` ->
+`✓ Compiled successfully in 2.4s`.
+
+**Pre-existing blocker found, NOT introduced here and NOT fixed in this slice:** the build then fails
+type check with `src/lib/image-processing.ts(1,19): error TS2307: Cannot find module 'sharp'`. `sharp`
+is imported by that file but has never been declared in `farm-produce-images/package.json` — it is
+absent at HEAD too, so this pre-dates the bump and `next` has nothing to do with it. So this app's
+build is already broken on master. Declaring `sharp` is a one-line fix but it is Queue 2 work
+("Deployment stability / fix remaining build blockers") and it would pull sharp's own high advisories
+in, so it is left for the operator to approve rather than widened into a Queue 1 slice.
+
+**Risk/rollback:** Minor bump inside Next 16, no source changes. Rollback: revert
+`farm-produce-images/package.json` + `pnpm-lock.yaml`, re-run `pnpm install`.
+
+**Next:** Slice 1.3 — js-yaml 4.1.1 -> 4.3.2 across the three JS packages.
