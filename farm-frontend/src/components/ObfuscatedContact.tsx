@@ -4,11 +4,16 @@ import { useMemo, useState } from 'react'
 import { Mail, Phone } from 'lucide-react'
 
 // PRODUCT.md sets the floor at 48px interactive targets, which the previous
-// `px-4 py-2` control missed at 32px. The default below meets it and speaks
-// the paper/ink vocabulary rather than the generic bordered grey it had.
+// `px-4 py-2` control missed at 32px.
+//
+// The size is an explicit pixel value, not `text-caption`. The project runs
+// Tailwind v4 (`@import "tailwindcss"`), and `tailwind.config.js` is a v3
+// config with no `@config` directive loading it, so its semantic type scale
+// never reaches the build. `text-caption` rendered this phone number at
+// 10.5px. A number someone reads off a screen outdoors is not a caption.
 const CONTROL =
   'inline-flex items-center justify-center gap-2 min-h-[48px] px-4 ' +
-  'rounded-[2px] border border-border bg-surface text-caption font-medium ' +
+  'rounded-[2px] border border-border bg-surface text-[16px] font-medium ' +
   'text-ink hover:bg-surface-2 transition-colors duration-200'
 
 function maskEmail(email: string) {

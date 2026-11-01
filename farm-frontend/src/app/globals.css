@@ -405,13 +405,23 @@ p {
   margin-bottom: 1rem;
 }
 
-/* UI Labels / Buttons / Filters - IBM Plex Sans Condensed (tight, functional) */
-button, .filter, .ui-label, .cta, .btn, .button {
-  font-family: var(--font-accent);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: clamp(0.75rem, 1.5vw, 0.875rem); /* 12px to 14px - regular size */
+/* UI Labels / Buttons / Filters - IBM Plex Sans Condensed (tight, functional)
+ *
+ * Inside @layer base, because unlayered CSS beats every cascade layer no
+ * matter how low its specificity, and Tailwind v4 emits utilities into
+ * @layer utilities. Unlayered, this rule silently overrode the text size of
+ * every button on the site: a farm's phone number rendered at 10.5px
+ * whatever class was put on it. In the base layer it is a default a utility
+ * can override, which is what it was always meant to be. Buttons that set
+ * nothing are unchanged. */
+@layer base {
+  button, .filter, .ui-label, .cta, .btn, .button {
+    font-family: var(--font-accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: clamp(0.75rem, 1.5vw, 0.875rem); /* 12px to 14px */
+  }
 }
 
 /* Regular text sizes - comfortable reading */

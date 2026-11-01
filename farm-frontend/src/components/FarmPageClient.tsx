@@ -170,7 +170,7 @@ export function FarmPageClient({
                 href={map.href}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-[2px] bg-brand text-brand-text text-sm font-semibold transition-colors duration-200 hover:bg-brand-hover active:scale-[0.98]"
+                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-[2px] bg-brand text-brand-text text-[16px] font-semibold transition-colors duration-200 hover:bg-brand-hover active:scale-[0.98]"
               >
                 <Navigation className="h-4 w-4" aria-hidden="true" />
                 {map.label}
@@ -182,7 +182,7 @@ export function FarmPageClient({
                 href={contact.website}
                 target="_blank"
                 rel="nofollow ugc noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-[2px] border border-border bg-surface text-sm font-medium text-ink hover:bg-surface-2 transition-colors duration-200"
+                className="inline-flex items-center justify-center gap-2 min-h-[48px] px-6 rounded-[2px] border border-border bg-surface text-[16px] font-medium text-ink hover:bg-surface-2 transition-colors duration-200"
               >
                 <Globe className="h-4 w-4 flex-shrink-0" aria-hidden="true" />
                 Visit website

@@ -4066,3 +4066,26 @@ Affected: Newry Mourne and Down; Armagh City, Banbridge and Craigavon; Bournemou
 **Still outstanding on this page's shared chrome:** the site header's Search and Open menu controls are 39x39 and the wordmark is 28px tall.
 
 **Risk/rollback:** revert the commit. Presentation and two pure functions only; no DB, route or schema change. The one judgement call is the ungated map link, which is a single conditional in `farm-page-actions.ts`.
+
+### 2026-11-01 — A phone number nobody could read, and the rule that caused it
+
+**Reported by the operator:** the phone number on the farm page was unreadable. It was rendering at **10.5px**.
+
+**My error, then the real cause.** I had styled the contact controls `text-caption`, which I assumed was a semantic token. Two things were wrong underneath it:
+
+1. `tailwind.config.js` is a **Tailwind v3 config that is never loaded**. `globals.css` begins `@import "tailwindcss"` and the installed version is `^4.1.18`, which takes its theme from CSS and only reads a JS config given an explicit `@config` directive. There is none. So the whole file, 350 lines of 8px spacing grid, semantic type scale (`display`/`heading`/`body`/`caption`/`small`) and colour tokens, produces nothing. `text-caption` and `text-body` are dead classes; every use of them across the codebase sets no size at all.
+2. `globals.css` held an **unlayered** rule, `button, .filter, .ui-label, .cta, .btn, .button { font-size: clamp(0.75rem, 1.5vw, 0.875rem) }`. Tailwind v4 emits utilities into `@layer utilities`, and **unlayered CSS beats every cascade layer regardless of specificity**. So that rule silently overrode the text size of every button on the site, whatever class was put on it. Wrapping the selector in `:where()` did nothing, which is how the layer mechanism was identified: specificity was never the issue.
+
+**Fix:** the rule moved into `@layer base`, where it is a default a utility can override, which is what it was always meant to be. Buttons that set no size are unchanged. The farm page's three actions were then given explicit pixel sizes rather than dead tokens.
+
+**Verified on the running server:** the phone control renders 16px, reveals on tap to `+44 1554 890380` as a `tel:` link at 16px. Show on map and Visit website are 16px (were 12.25px). The footer newsletter button is 15px (was 10.5px, and it was written `h-12`, which is also how the 42px height arose). `tsc --noEmit` exit 0, eslint clean, `pnpm test:unit` 476 pass 0 fail.
+
+**What this says about the earlier measurement.** The 375x812 pass I reported measured positions and tap-target sizes and never measured a font size. That is how a 10.5px phone number got past me and was reported as meeting the conversion floor. The floor check needs a type-size column.
+
+**Open, and larger than this slice:**
+- `html { font-size: 14px }` under `@media (max-width: 480px)`, so every rem on a phone is 12.5% smaller than designed. Body copy on the farm page renders at **12.25px**.
+- `tailwind.config.js` is dead. Either load it with `@config` or port it to `@theme`, then re-measure the site, because nothing it declares is currently in effect.
+- The same typography block is declared twice, in `globals.css` and `src/styles/fonts.css:135`.
+- 42 uses of `h-12`, 32 of `h-10`, 12 of `h-14`, 11 each of `h-9` and `h-11`, all unverified sizes.
+
+**Risk/rollback:** revert the commit. The layer change affects precedence for six selectors site-wide; buttons that set no size keep the same rendering, and buttons that set one now get it, which is the intent.
