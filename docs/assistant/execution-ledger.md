@@ -1,5 +1,35 @@
 # FarmCompanion Execution Ledger
 
+### 2026-11-01 - E8: the FSA retail classification becomes an admitting, verifying evidence edge
+
+**Goal:** make the FSA hygiene register carry real weight. Commits `aed9e8d`, `c7d8f15`, `e6e1d58`, `60e79ac`.
+
+**The measurement that justified it**, live API, national, by name: `"farm shop"` returns **16** under `7838 Farmers/growers`, the only category `fsa.ts` queried, against **946** under `4613 Retailers - other`, **188** restaurants and cafes, and **9** takeaways. The category we queried holds 16 of the country's farm shops; the public-facing categories hold **1,143**. In Cornwall alone it is 14 against 826. `fsa.ts:83` had already recorded this as a follow-up.
+
+**The E8 rule:** an FSA public-facing category, **and** an inspection within 24 months, **and** a retail lexeme in the business's own name. Two independent signals, never one, because this entire area of work exists because one mis-filed category was treated as proof. Of 1,198 candidates, **842 are admitted**; the other 356 differ by nothing except a stale inspection date, so the 24-month threshold is load-bearing rather than decorative. It is chosen because FSA inspection intervals run from 6 months to 3 years.
+
+**The invariant was refined, not relaxed.** E3 — `7838`, the producer category, the one the FSA files commercial fishing vessels under — still never admits, with or without the name and a website signal. There are now three executable tests, including a 128-combination sweep which also asserts that admission happens at all, so it cannot pass vacuously. That last assertion exists because this branch shipped three tests that could not fail.
+
+**E8 also verifies.** It sets `venueVerifiedAt`, so an E8 page may state that a visitor can go there. Three deliberate choices: the timestamp is the **inspection date**, not now, so a 23-month-old check reads as 23 months old; provenance records `source: 'fsa'`, which is not curated, so a person can always overrule it and the two never blur; and the OSM Tier A path deliberately does **not** verify, because an OSM tag is something someone typed with no inspection, no date and nobody accountable. E8 is the only machine edge backed by a regulator attending a premises on a known date.
+
+To undo every FSA-sourced verification, scoped so human decisions are untouched:
+
+```sql
+UPDATE farms SET "venueType" = NULL, "venueVerifiedAt" = NULL
+WHERE provenance -> 'venueVerifiedAt' ->> 'source' = 'fsa';
+```
+
+**The human-override guard had to be rewritten, and both failure directions are real.** Keying on the field alone would freeze every row the pipeline itself verified and treat its own write as a person's. Keying on provenance alone would expose a verification set by hand in SQL, or set before provenance was tracked, which carries no source at all. The rule is now that a row counts as a person's **unless provenance positively names a machine**, so the unknown case fails safe: wrongly freezing a row costs nothing, wrongly overwriting a decision with someone's name on it is unrecoverable. One side effect is worth knowing, and is now asserted: an admin's `venueType` is protected even when nobody filled in the timestamp as well, which is stricter than the guard it replaces.
+
+**An error of mine, found because E8 disagreed with me.** Of the 14 Cornwall rows E8 would verify, 13 matched the proposal I had reached independently and one did not. I had ruled out `tremore-dairy-limited` on a web aggregator's claim that the FSA classed it `Manufacturers/packers`. The FSA API holds one record for it: Tremore Dairy Limited, `Retailers - other`, PL30 5JS at Rosewarrick, Lanivet, rating 5, inspected 2026-01-26, with the postcode matching our row exactly. I trusted a derived source over the primary one, which is the same mistake that put 3,504 producers on this site as farm shops. Corrected in `60e79ac`; agreement is now 14 of 14.
+
+**THE FINDING THAT REORDERS THE BACKLOG.** This branch is 48 commits and 66 files, **never pushed, with no pull request**. The migration is applied to production, but the code that reads those columns is not deployed. Production is therefore still serving the old code and still telling visitors "X is a farm shop in Y" across 3,504 pages today. Every gate, test and measurement in this branch protects nothing until it ships.
+
+**THE GATE:** `npx tsc --noEmit` exit 0. `pnpm test:unit` **463 pass, 0 fail**, up from 401 when this remediation began. `npx impeccable detect` exit 0 across the pipeline.
+
+**Running:** `pnpm pipeline --dry-run`, verified read-only — every Prisma write in `07-load` is guarded by `apply`, including the two inside `linkCategories` and `attachImages`. It answers the question that decides how to ship: how many of the 3,504 existing rows E8 would verify. Cornwall suggests roughly 22%.
+
+
 ### 2026-10-31 - E5 implemented by reading the farms' own websites
 
 **Goal:** stop handing the research to a person. Commits `fcad55d`, `3fca60b`.
