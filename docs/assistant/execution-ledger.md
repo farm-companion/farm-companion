@@ -4052,3 +4052,42 @@ ip-address in at depth 4-7) and let `eslint-config-next` catch up on minimatch/b
 
 **Risk/rollback:** All bumps stayed inside their current majors; typecheck, 369 tests, build and a sharp
 smoke test all pass. Rollback: revert package.json + pnpm-lock.yaml, `pnpm install`.
+
+---
+
+### 2026-11-01 — Slice 1.8: in-major highs cleared in farm-produce-images and twitter-workflow
+
+**farm-produce-images** — direct `zod ^4.1.0 -> ^4.6.6`, plus overrides `browserslist ^4.28.7`,
+`nanoid ^3.3.18`, `postcss ^8.5.18` (replacing another loose `>=8.5.10`), `source-map-js ^1.2.2`.
+Result: **0 critical, 10 high, 6 moderate, 1 low** (from 5 / 40 / 33 / 7 at the start). The only
+remaining high package is `brace-expansion` via `@eslint/eslintrc` / `eslint-config-next`, dev-only.
+Verified: `pnpm build` `✓ Compiled successfully` (then the same pre-existing `sharp` type-check failure
+from Slice 1.2, still untouched and still a Queue 2 item).
+
+**twitter-workflow** — direct `axios ^1.6.2 -> ^1.20.0` (resolves 1.21.0) and
+`form-data ^4.0.4 -> ^4.0.6`, plus overrides `flatted ^3.4.2` and two *range-scoped* pins,
+`brace-expansion@^1.0.0 -> ^1.1.14` and `minimatch@^3.0.0 -> ^3.1.4`. The range-scoped form matters:
+the eslint chain pins those packages to majors 1 and 3, so a plain `^2`/`^9` override would break it —
+but backports exist inside the old majors (resolved 1.1.21 and 3.1.5), which took brace-expansion out
+of high entirely and minimatch down to moderate. Highs **11 -> 5**.
+Verified: `npm test` **8 pass / 0 fail**; axios and form-data smoke-tested directly (client creation,
+`isAxiosError`, multipart header generation) since both are direct runtime deps.
+
+**twitter-workflow's 5 remaining highs are one root cause, and they are UNFIXABLE as things stand:**
+`zod`, and the four `@atproto/*` packages that depend on it. The zod advisory (memory exhaustion
+validating oversized constrained collections) is patched only in **>=4.6.6**, and **every** published
+`@atproto/api` — including the latest, 0.30.0, checked directly — pins `zod ^3.23.8`. So there is no
+version of this dependency tree that satisfies the advisory.
+**Note that `npm audit`'s own suggestion here is wrong:** it offers `@atproto/api@0.13.6` as the fix,
+which is a *downgrade* from the installed 0.16.7 and still on zod 3. Do not run `npm audit fix --force`
+in this package.
+**Mitigation:** zod is reached only through @atproto's lexicon validation of Bluesky API responses, so
+the hostile input would have to come from the Bluesky PDS the workflow talks to, not from user input;
+the workflow posts outbound and does not parse third-party-submitted payloads. Real fixes are to wait
+for @atproto to move to zod 4, or drop the Bluesky posting path (`@atproto/api`) if it is not earning
+its keep. Left in place deliberately.
+
+**twitter-workflow's 7 moderates** are entirely the eslint devDependency chain (eslint, @eslint/*,
+ajv, @humanfs/node, minimatch) — dev-only, not shipped. The count rose from 3 because minimatch moved
+*down* from high into a moderate advisory bucket once pinned to 3.1.5; that is an improvement, not a
+regression.
