@@ -4111,3 +4111,93 @@ The nulls are correct. Commit `9497627` (24 May 2026) made address, postcode and
 **Exceeds the 8-file slice guideline at 10 files, deliberately:** a type correction is atomic, since leaving any call site unfixed leaves `tsc` red. The diff is 24 insertions and 21 deletions plus the new module and its test.
 
 **Found alongside, not fixed:** `/map` requests `/_next/image?url=%2Fmain_header.jpg` and gets a 400, and the map tiles do not render in dev. Both pre-date this change.
+
+---
+
+## Slice BRAND-A — Identity core: the mark, the favicon ladder, and one theme colour
+
+**Goal.** Give the product a vector mark in the Pitti Press canon and make the browser tab, the
+install prompt and the tile agree with the design spec for the first time.
+
+**The mark.** A Loam-ink arch with a Vermilion sun inside it. Drawn as a single filled path plus
+one circle on a 1024 canvas snapped to 64-unit steps, so every edge lands on a pixel boundary at
+16px. Chosen over two rejected candidates after rendering all of them at 16px first: a converging
+"furrow F" lost its entire perspective idea at small size and read as an anonymous letter, and a
+plain arch had the best form but carried no meaning. A fourth candidate, a sunrise over a field
+line, tested strongest at 16px but is a generic shape; it is retained as the plate motif for
+social cards rather than discarded. The arch was verified under the conditions that actually kill
+marks: circle crop at 160px and 32px, inverted dark palette, and the Android 80% maskable circle.
+
+**The Vermilion disc is the mark's single chromatic moment**, which satisfies the spec's
+one-stamp-per-screen law (spec section 2.1) rather than fighting it.
+
+**Three palettes were shipping at once.** The CSS tokens were Pitti Press, `manifest.json` declared
+`theme_color: #10b981` (emerald, the rejected harvest theme), and `layout.tsx` declared
+`#00C2B2` (teal) in three separate places: the metadata export, a hardcoded `<meta>` tag in the
+JSX that silently overrode it, and the inlined critical CSS for the skip link. All now resolve to
+Vermilion `#D33A2C`. The duplicate `<meta name="theme-color">` was deleted rather than updated.
+
+**Skip-link contrast checked, not assumed.** White on Vermilion is 4.76:1, which passes WCAG AA
+for normal text. Cream on Vermilion would have been 4.01:1 and was rejected for that reason.
+
+**Files:** `public/favicon.svg` (new, 643 bytes, carries its own `prefers-color-scheme` block so
+the tab icon inverts in dark mode), `public/favicon.ico` (rebuilt with real 16/32/48 frames; the
+previous file carried only 16 and 32), `public/favicon-16x16.png`, `public/favicon-32x32.png`,
+`public/manifest.json`, `public/browserconfig.xml`, `src/app/layout.tsx`.
+
+**Verified:** `npx tsc --noEmit` exit 0. `npx eslint src/app/layout.tsx` exit 0.
+`pnpm test:unit` 482 pass, 0 fail. `magick identify public/favicon.ico` reports three frames at
+16x16, 32x32 and 48x48. The SVG's mean pixel density is within 0.15% across 16, 32 and 48 px
+renders, which is evidence the mark is not collapsing at small sizes. `python3 -c json.load`
+confirms `manifest.json` still parses.
+
+**Not done in this slice:** external card validators, which need a deployed preview, and
+Lighthouse installability, which needs the maskable pair from Slice B.
+
+**Found, not yet fixed (Slice C owns these):** `public/og-farm-shops.jpg` is an HTML document with
+a `.jpg` extension and is declared as the `og:image` for `/shop` at `shop/page.tsx:39`, so that
+page has had no share card since 1 Feb 2026. `public/share.jpg` is a 6.3 MB 5824x3264 camera
+original with EXIF intact, over X's 5 MB ceiling. `src/app/og/route.tsx` builds every card from
+teal-to-lime gradients, which the spec forbids outright.
+
+**Platform shortlist settled** (Herald): Pinterest, Instagram, Facebook, X. LinkedIn killed, no
+consumer intent. Four crops to draw, not seven platforms: 2:3, 4:5, 1.91:1, 9:16. The variable
+element in the plate system becomes the **map fragment**, not the produce illustration, which
+turns several hundred farms into several hundred compositions from one template.
+
+**Risk and rollback.** The change is six asset files and one source file, all tracked, so
+`git checkout -- farm-frontend/public farm-frontend/src/app/layout.tsx` restores the previous
+identity exactly. The only behavioural risk is cached favicons in browsers that already visited
+the site, which resolve on their own.
+
+### 2026-11-01 — The token system was never loaded. Now it is, and a test says so.
+
+**The finding that reframed it.** The design system is not "Tailwind with a custom config". `tailwind.config.js` was 467 lines of **v3** configuration and the project runs **v4**, which takes its theme from CSS and reads a JS config only given an explicit `@config` directive. There has never been one. There was also no `@theme` block anywhere, so Tailwind ran on its stock default theme and the project's colours came from **68 hand-written CSS classes** in `globals.css:1118-1145`. Loading the old config would not have restored anything; it would have started a system the codebase has never run under.
+
+**The instrument, which is the real deliverable.** `src/scripts/audit/class-rules.ts` compiles the actual stylesheet through the actual PostCSS plugin and reports every class the source writes that produces no rule. It found **229 distinct classes over 1,116 uses** generating nothing. Its first extractor read only plain string literals, so it missed `cn(...)` and template chunks and reported `hover:text-brand` as unused while the source writes it 37 times; widened, and with template-literal prose filtered out, the honest figure was 185 distinct over 490 uses after the port. `class-rules.test.ts` holds three lines: the classes that must resolve, a named list for the next slice, and a ratchet that fails when the dead inventory grows.
+
+**What was dead:** `text-caption` 311 uses, `text-small` 120, `text-body` 74, `text-heading` 18, `font-clash` 34, `font-heading` 14, `font-body` 8. `text-body` and `text-heading` were worse than dead: `--text-body` was declared as a **colour** alias, and v4 reads `--text-*` as a font size, so those classes emitted an invalid size and silently applied a colour instead. Those four aliases are renamed to the `--ink-*` family.
+
+**The root font size.** `html` carried `clamp(14px, 2vw, 16px)` plus four media queries pinning it to 14px under 480px. Removed, for two reasons: a px root discards the reader's own browser font-size preference, which PRODUCT.md's commitment to WCAG 2.2 AA and 200% zoom does not permit; and it made every rem 12.5% smaller on a phone, which is why body copy rendered at 12.25px on the page taking 87% of the site's search traffic.
+
+**Measured, 8 routes at two widths, consent dismissed so the banner is not counted** (`src/scripts/audit/style-audit.mjs`, Puppeteer's cached Chrome, no new dependency):
+
+```
+mobile root                      14px -> 16px on every route
+text nodes under 16px, mobile
+  /                              115 -> 78      (-37)
+  /shop                       10,820 -> 7,310   (-3,510)
+  /counties/devon                143 -> 106     (-37)
+  /seasonal                      110 -> 95      (-15)
+  /shop/morfa-farm-shop           32 -> 31
+smallest text on a page          9.8px -> 11.2px, 10.5px -> 12px
+targets under 48px, mobile       / -10, /counties/devon -10
+```
+
+**The one regression, understood rather than explained away:** `/counties` at desktop gained 292 text nodes under 16px. Cause: `text-small` now applies where it previously did nothing, so secondary labels dropped from an inherited 16px to the 12px the design system always specified for them. The class is doing its job for the first time. Whether `text-small` should be 12px is now a visible design question rather than an invisible accident.
+
+**`tailwind.config.js` reduced from 467 lines to a 24-line signpost** explaining what happened and where the tokens live. Nothing loads it; leaving it in place was the trap that produced this whole class of bug. Original content is in git history.
+
+**Verified:** `npx tsc --noEmit` exit 0; `pnpm test:unit` **485 pass, 0 fail** (476 before); `/`, `/shop/morfa-farm-shop` and `/map?q=morfa` all 200 against the running server; before and after screenshots in `.audit/` (gitignored).
+
+**Next slice, already named in the test:** `--color-*` tokens in `@theme`, and moving the 68 hand-written colour classes into a cascade layer. Both are needed together, because unlayered CSS beats `@layer utilities`, so generating `hover:text-brand` while `.text-brand` stays unlayered would leave hover still broken. 33 uses of `bg-border` and 22 of `hover:bg-surface-2` are the markers.

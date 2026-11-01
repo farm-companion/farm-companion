@@ -49,3 +49,4 @@ next-env.d.ts
 
 # local data-cleanup row backups (recovery only, never commit)
 .cleanup-backups/
+.audit/
