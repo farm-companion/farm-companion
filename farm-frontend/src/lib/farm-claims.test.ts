@@ -3,10 +3,13 @@ import assert from 'node:assert/strict'
 import { canClaimVisitable, isIndexable, unverifiedDescription, type ClaimInput } from './farm-claims'
 
 const base = (o: Partial<ClaimInput> = {}): ClaimInput => ({
-  venueType: null, venueVerifiedAt: null, openingHours: null,
-  phone: null, website: null, description: null, offerings: [],
-  hasRealImage: false, ...o,
+  venueType: null, venueVerifiedAt: null,
+  postcode: null, address: null, county: null, ...o,
 })
+
+// ---------------------------------------------------------------------------
+// The claim gate. Unchanged: it decides what a page may SAY.
+// ---------------------------------------------------------------------------
 
 test('an unverified listing may never claim visitability', () => {
   assert.equal(canClaimVisitable(base()), false)
@@ -26,91 +29,9 @@ test('each admitted venue type may claim once verified', () => {
   }
 })
 
-test('indexable requires the claim gate first', () => {
-  assert.equal(isIndexable(base({ phone: '01803 000000', website: 'https://x.co.uk' })), false)
-})
-
-test('a verified listing with hours is indexable', () => {
-  assert.equal(isIndexable(base({
-    venueType: 'shop', venueVerifiedAt: new Date(),
-    openingHours: [{ day: 'Monday', open: '09:00', close: '17:00' }],
-  })), true)
-})
-
-test('a verified listing needs two substantive fields without hours', () => {
-  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
-  assert.equal(isIndexable(base({ ...verified, phone: '01803 000000' })), false)
-  assert.equal(isIndexable(base({ ...verified, phone: '01803 000000', website: 'https://x.co.uk' })), true)
-})
-
-test('template description alone does not count as substance', () => {
-  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
-  assert.equal(isIndexable(base({
-    ...verified,
-    phone: '01803 000000',
-    description: 'Hallgate Farm is a farm shop in Lincolnshire.',
-  })), false)
-})
-
-test('default offering alone does not count as substance', () => {
-  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
-  assert.equal(isIndexable(base({
-    ...verified,
-    phone: '01803 000000',
-    offerings: ['Farm Shops'],
-  })), false)
-})
-
-test('whitespace-only description is ignored', () => {
-  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
-  assert.equal(isIndexable(base({
-    ...verified,
-    phone: '01803 000000',
-    description: '   ',
-  })), false)
-})
-
 test('unknown venue type cannot claim visitability', () => {
-  assert.equal(canClaimVisitable(base({
-    venueType: 'unknown', venueVerifiedAt: new Date(),
-  })), false)
+  assert.equal(canClaimVisitable(base({ venueType: 'unknown', venueVerifiedAt: new Date() })), false)
 })
-
-test('empty opening hours array is not treated as parsed hours', () => {
-  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
-  assert.equal(isIndexable(base({
-    ...verified,
-    openingHours: [],
-    phone: '01803 000000',
-  })), false)
-})
-
-test('real image alone is not enough substance', () => {
-  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
-  assert.equal(isIndexable(base({
-    ...verified,
-    hasRealImage: true,
-  })), false)
-})
-
-test('the template description and the default offering do not count as substance', () => {
-  const verified = { venueType: 'shop', venueVerifiedAt: new Date() }
-  assert.equal(isIndexable(base({
-    ...verified,
-    description: 'Hallgate Farm is a farm shop in Lincolnshire.',
-    offerings: ['Farm Shops'],
-  })), false)
-  assert.equal(isIndexable(base({
-    ...verified,
-    description: 'A family-run holding selling day-picked veg and raw milk.',
-    offerings: ['Farm Shops', 'PYO'],
-  })), true)
-})
-
-// The gate now takes a verification-only shape so list surfaces can call it
-// without assembling a full ClaimInput. These three cases exist because
-// getFarmData shipped without mapping the venue fields at all, so every list
-// surface was passing undefined for both.
 
 test('the gate accepts a verification-only object', () => {
   assert.equal(canClaimVisitable({ venueType: 'shop', venueVerifiedAt: new Date() }), true)
@@ -123,6 +44,63 @@ test('absent venue fields fail closed, not open', () => {
   assert.equal(canClaimVisitable({ venueType: 'shop' }), false)
   assert.equal(canClaimVisitable({ venueVerifiedAt: new Date() }), false)
 })
+
+// ---------------------------------------------------------------------------
+// The index gate. Deliberately independent of the claim gate.
+//
+// It used to begin `if (!canClaimVisitable(f)) return false`, which meant an
+// unverified page was not merely silenced but removed from Google. Measured
+// against Search Console on 1 Nov 2026 that cost 373 of the site's 431 clicks:
+// 210 of the 211 pages earning anything would have gone noindex, and none of
+// them can be verified (151 of the 166 with an FSA record are registered
+// Farmers/growers, which never admits). Telling the truth about a page does
+// not require hiding it, so the two gates are now separate concerns.
+// ---------------------------------------------------------------------------
+
+test('an unverified page is still indexable when a reader could find it', () => {
+  // The decoupling, stated as a test. This was false before.
+  assert.equal(isIndexable(base({ postcode: 'TQ9 6JE' })), true)
+  assert.equal(canClaimVisitable(base({ postcode: 'TQ9 6JE' })), false)
+})
+
+test('a page with no findable place is not indexable', () => {
+  assert.equal(isIndexable(base()), false)
+  assert.equal(isIndexable(base({ venueType: 'shop', venueVerifiedAt: new Date() })), false)
+})
+
+test('a valid UK postcode is a findable place on its own', () => {
+  for (const postcode of ['TQ9 6JE', 'tq9 6je', 'TQ96JE', 'W1A 1AA', 'PL30 5JS']) {
+    assert.equal(isIndexable(base({ postcode })), true, postcode)
+  }
+})
+
+test('an address with a county is a findable place without a postcode', () => {
+  assert.equal(isIndexable(base({ address: 'Week Farm, Dartington', county: 'Devon' })), true)
+  assert.equal(isIndexable(base({ address: 'Week Farm, Dartington' })), false)
+  assert.equal(isIndexable(base({ county: 'Devon' })), false)
+})
+
+test('the literal UK is not a postcode', () => {
+  // 254 active rows store exactly this. A page that can only say "UK" tells a
+  // reader nothing about where to go.
+  assert.equal(isIndexable(base({ postcode: 'UK' })), false)
+  assert.equal(isIndexable(base({ postcode: ' uk ' })), false)
+})
+
+test('a malformed postcode does not pass, and does not rescue a bare address', () => {
+  assert.equal(isIndexable(base({ postcode: 'TQ9' })), false)
+  assert.equal(isIndexable(base({ postcode: '12345' })), false)
+  assert.equal(isIndexable(base({ postcode: 'TQ9', address: 'Week Farm' })), false)
+})
+
+test('whitespace is not a place', () => {
+  assert.equal(isIndexable(base({ postcode: '   ' })), false)
+  assert.equal(isIndexable(base({ address: '  ', county: '  ' })), false)
+})
+
+// ---------------------------------------------------------------------------
+// The sentence an ungated page says instead.
+// ---------------------------------------------------------------------------
 
 test('the unverified sentence makes no visitability claim', () => {
   const sentence = unverifiedDescription('Cornwall')

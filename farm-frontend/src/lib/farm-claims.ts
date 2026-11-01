@@ -1,12 +1,22 @@
-// Two gates, both pure.
+// Two gates, both pure, and deliberately independent of one another.
 //
-// Claim gate: may this page tell a visitor they can go there? Only when a human
-// has confirmed the venue is one you can buy from. Because venueType defaults to
-// unknown across every existing row, shipping this silences every unverified
-// page immediately.
+// Claim gate: may this page tell a visitor they can go there? Only when a
+// human, or an evidence edge standing in for one, has confirmed the venue is
+// one you can buy from. Because venueType defaults to unknown across every
+// existing row, shipping this silences every unverified page immediately.
 //
-// Index gate: layered above the claim gate. A page Google should rank has to say
-// something, not merely exist.
+// Index gate: is this a directory entry a reader could actually use? It asks
+// one thing only, whether the page can say where the business is.
+//
+// The index gate used to begin `if (!canClaimVisitable(f)) return false`, so an
+// unverified page was not merely silenced but withdrawn from Google. Measured
+// against Search Console on 1 Nov 2026 that would have cost 373 of the site's
+// 431 clicks: 210 of the 211 pages earning anything would have gone noindex,
+// and none of those can be verified, since 151 of the 166 holding an FSA record
+// are registered Farmers/growers, which never admits. Telling the truth about a
+// page is not a reason to hide it, so the gates were separated. Google is left
+// to judge thinness itself, which it is already doing at roughly 150 pages a
+// week.
 
 /**
  * Venue types that may make a visitability claim. Exported so the verification
@@ -16,23 +26,6 @@
  */
 export const ADMITTED_VENUE_TYPES: ReadonlySet<string> = new Set(['shop', 'pyo', 'market_stall'])
 
-/** The LLM fallback sentence, which asserts a farm shop without evidence. */
-const TEMPLATE_DESCRIPTION = /^(.+?) is a farm shop in (.+?)\.$/
-
-/** The default offering tag carries no information; 99.3% of rows have it. */
-const DEFAULT_OFFERING = 'Farm Shops'
-
-export interface ClaimInput {
-  venueType: string | null
-  venueVerifiedAt: Date | string | null
-  openingHours: unknown
-  phone: string | null
-  website: string | null
-  description: string | null
-  offerings: string[]
-  hasRealImage: boolean
-}
-
 /**
  * The two fields the claim gate actually reads. A list surface that holds only
  * a row can gate on this without assembling a full ClaimInput. Both are
@@ -41,6 +34,13 @@ export interface ClaimInput {
 export interface VenueVerification {
   venueType?: string | null
   venueVerifiedAt?: Date | string | null
+}
+
+/** Everything both gates read: the verification, plus where the business is. */
+export interface ClaimInput extends VenueVerification {
+  postcode: string | null
+  address: string | null
+  county: string | null
 }
 
 /**
@@ -58,25 +58,26 @@ export function canClaimVisitable(f: VenueVerification): boolean {
   return f.venueVerifiedAt != null
 }
 
-function hasParsedHours(v: unknown): boolean {
-  return Array.isArray(v) && v.length > 0
+// Outward code, inward district. Deliberately strict: 254 active rows store the
+// literal string "UK" in the postcode column and 9 more hold other junk, all of
+// which would otherwise read as a location.
+const UK_POSTCODE = /^[A-Z]{1,2}[0-9][A-Z0-9]? [0-9][A-Z]{2}$/
+
+function present(v: string | null | undefined): boolean {
+  return (v ?? '').trim().length > 0
 }
 
-/** Count of substantive fields, over a closed list. Nothing else qualifies. */
-function substanceCount(f: ClaimInput): number {
-  let n = 0
-  if (f.phone) n++
-  if (f.website) n++
-  const description = f.description?.trim() ?? ''
-  if (description && !TEMPLATE_DESCRIPTION.test(description)) n++
-  if (f.offerings.some((o) => o !== DEFAULT_OFFERING)) n++
-  if (f.hasRealImage) n++
-  return n
+/** True when the page can tell a reader where to go and look for the business. */
+function hasFindablePlace(f: ClaimInput): boolean {
+  const postcode = (f.postcode ?? '').trim().toUpperCase().replace(/\s+/g, ' ')
+  // A space is optional in the stored value but required by the pattern, so
+  // insert one before the inward code when it is missing.
+  const spaced = postcode.includes(' ') ? postcode : postcode.replace(/(.{3})$/, ' $1')
+  if (UK_POSTCODE.test(spaced)) return true
+  return present(f.address) && present(f.county)
 }
 
-/** True when the page carries enough to deserve a place in the index. */
+/** True when the page is a directory entry worth offering to a search engine. */
 export function isIndexable(f: ClaimInput): boolean {
-  if (!canClaimVisitable(f)) return false
-  if (hasParsedHours(f.openingHours)) return true
-  return substanceCount(f) >= 2
+  return hasFindablePlace(f)
 }

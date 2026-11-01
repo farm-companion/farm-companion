@@ -12,20 +12,14 @@ export const revalidate = 21600
 
 // Task 7 (region-first-verified-listings): gate input shared by
 // generateMetadata and the page body so both agree on whether this page may
-// claim visitability. Real-photo provenance is already resolved upstream:
-// getFarmBySlug's hero selector returns only owner/admin/user photos and its
-// gallery mapping excludes every ai_* row, so a present heroImage or
-// gallery image here is never AI-generated.
+// claim visitability, and on whether it is a usable directory entry.
 function buildClaimInput(farm: FarmShop): ClaimInput {
   return {
     venueType: farm.venueType ?? null,
     venueVerifiedAt: farm.venueVerifiedAt ?? null,
-    openingHours: farm.openingHours ?? null,
-    phone: farm.contact?.phone ?? null,
-    website: farm.contact?.website ?? null,
-    description: farm.description ?? null,
-    offerings: farm.offerings ?? [],
-    hasRealImage: Boolean(farm.heroImage) || Boolean(farm.images?.length),
+    postcode: farm.location?.postcode ?? null,
+    address: farm.location?.address ?? null,
+    county: farm.location?.county ?? null,
   }
 }
 

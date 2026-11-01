@@ -3999,3 +3999,22 @@ The first live runs surfaced real-API issues the fixture tests could not (each f
 **Risk/rollback:** metadata-only; revert the commit to restore the apex strings. No DB or route change.
 
 **Next:** the gate cannot ship until the earning pages are verifiable. FSA category and inspection-date lookup running against the 166 earners that carry an `fsaId`.
+
+### 2026-11-01 — Separate the index gate from the claim gate (operator decision: option C)
+
+**Decision (operator, given the Phase 0 numbers):** ship the claim gate absolute, and stop the index gate depending on it. Rejected: shipping as designed (keeps 58 of 431 clicks) and a substance threshold of two real fields (keeps 173), because 199 of the 211 earning pages hold only a generic Geograph/Wikimedia area photo as "substance" and 165 hold no evidence of any kind.
+
+**Change:** `isIndexable` no longer begins `if (!canClaimVisitable(f)) return false`. It now asks one question, whether the page can tell a reader where to go: a valid UK postcode, or an address together with a county. `substanceCount`, `hasParsedHours`, `TEMPLATE_DESCRIPTION` and `DEFAULT_OFFERING` are deleted with it, and `ClaimInput` shrinks from eight fields to five. The claim gate is untouched, so no unverified page claims to be a farm shop, on any surface.
+
+**Effect, measured against the live DB:** 3,158 of 3,504 active pages stay indexable; 346 are excluded for having no usable location. Of the 211 pages earning clicks, 209 stay indexed, retaining 372 of 374 shop clicks. The 254 rows storing the literal string "UK" as a postcode pass only because each also has an address and a county.
+
+**Verified live on the dev server:**
+- `/shop/morfa-farm-shop` (67 clicks, the single biggest earner): `index, follow`, description "A registered food producer in Carmarthenshire. We have not confirmed whether it is open to visitors." No farm-shop claim anywhere in the rendered body except the business's own registered name.
+- `/shop/les-halles-aux-poissons` (no postcode, address or county): `noindex, follow`.
+- `npx tsc --noEmit` exit 0. `pnpm test:unit` 462 pass, 0 fail. Four tests in `farm-claims.test.ts` failed before the change and pass after; three others (`the literal UK is not a postcode`, malformed postcodes, whitespace) only became meaningful after it, since the old gate returned false for every unverified input.
+
+**Consequence worth noting:** the pipeline's 155 rows gaining parsed opening hours no longer affect indexability. Hours still render on the page; they are no longer a gate input.
+
+**Risk/rollback:** revert the commit to restore the coupled gate. No DB or route change. The `would_index` column in `export-venue-candidates.ts` now means "has a findable place", not "would index once verified", so `docs/verification/cornwall.csv` carries the old meaning in that column.
+
+**Next:** every title tag doubles the brand ("Morfa Farm Shop · Farm Companion · Farm Companion") because the root layout sets `template: '%s · Farm Companion'` while pages append their own suffix. The root description also still claims "1,300+ authentic UK farm shops" and "verified farm information".

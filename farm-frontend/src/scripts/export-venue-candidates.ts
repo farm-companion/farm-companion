@@ -64,13 +64,8 @@ async function main(): Promise<void> {
     where: { status: 'active', county },
     select: {
       slug: true, name: true, phone: true, website: true, address: true, postcode: true,
-      googlePlaceId: true,
-      description: true, openingHours: true, venueType: true, venueVerifiedAt: true,
+      googlePlaceId: true, venueType: true, venueVerifiedAt: true,
       categories: { select: { category: { select: { name: true } } } },
-      images: {
-        where: { status: 'approved', uploadedBy: { notIn: ['ai_generator', 'ai_pitti'] } },
-        select: { id: true },
-      },
     },
     orderBy: { name: 'asc' },
   })
@@ -85,17 +80,15 @@ async function main(): Promise<void> {
     const claim: ClaimInput = {
       venueType: r.venueType,
       venueVerifiedAt: r.venueVerifiedAt,
-      openingHours: r.openingHours,
-      phone: r.phone,
-      website: r.website,
-      description: r.description,
-      offerings: r.categories.map((c) => c.category.name),
-      hasRealImage: r.images.length > 0,
+      postcode: r.postcode,
+      address: r.address,
+      county,
     }
-    // Ask the production gate, rather than reimplementing its scoring: would
-    // this page be indexable once a human verifies it? 13 of Cornwall's 63
-    // answer no, and those are correctly verified-but-unindexed.
-    const wouldIndex = isIndexable({ ...claim, venueType: 'shop', venueVerifiedAt: new Date() })
+    // Ask the production gate rather than reimplementing it. Since the gates
+    // were separated this answers only "can the page say where to go", so a
+    // blank here is a data-quality flag, not a verification verdict: 254 active
+    // rows store the literal string "UK" as their postcode.
+    const wouldIndex = isIndexable(claim)
     const types = places.get(r.slug) ?? (r.googlePlaceId ? places.get(r.googlePlaceId) : undefined) ?? []
     const retailTyped = types.some((t) => RETAIL_PLACES_TYPES.has(t))
     return {
@@ -119,7 +112,7 @@ async function main(): Promise<void> {
       contactable: Boolean(r.phone || r.website),
       retailTyped,
       wouldIndex,
-      offeringCount: claim.offerings.filter((o) => o !== DEFAULT_OFFERING).length,
+      offeringCount: r.categories.filter((c) => c.category.name !== DEFAULT_OFFERING).length,
     }
   })
 
