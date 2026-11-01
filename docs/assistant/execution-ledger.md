@@ -4388,3 +4388,71 @@ Inspector, opengraph.xyz and the Facebook Sharing Debugger.
 
 **Risk and rollback.** Six source files, metadata only, no runtime behaviour outside the card.
 `git revert` of this commit restores the static references.
+
+---
+
+## Slice BRAND-D — Map plates: the variable element, rendered from OSM
+
+**Goal.** Build and prove the renderer that gives every farm its own card background, without a
+bespoke illustration per farm and without a third-party static-map API.
+
+**Why a map fragment rather than a produce illustration.** A mid-century poster house printed one
+background plate and overprinted different type per city. Several hundred farms means several
+hundred coastlines, lanes and field patterns, so one template yields hundreds of compositions
+that are unmistakably one press. A produce illustration would have to be generated per farm and
+would look like a stock library.
+
+**Rendered from OpenStreetMap ourselves, not bought.** `src/lib/map-provider.ts` records a
+deliberate decision to use only free providers, and generating several hundred derived images for
+social distribution is a different use from rendering an interactive map, which the tile
+providers' terms treat differently. Rendering from OSM via Overpass sidesteps that, and suits
+two-ink output better than restyling someone else's raster.
+
+**ODbL is handled, not assumed.** OSM data is ODbL, so a rendered plate is a Produced Work and
+must carry attribution. `PLATE_ATTRIBUTION` is exported, written into every SVG's `<title>` and
+as a file comment. The site already attributes OSM at `/data-attributions`; **any surface that
+displays a plate must also show the attribution visibly**, which is a requirement on Slice D2 when
+plates reach the card.
+
+**The module is pure and the network is the caller's problem.** `buildOverpassQuery` makes the
+request text and `renderPlate` turns a response into SVG; neither does I/O, so the whole thing is
+testable without a network. Overpass is a shared free service under a fair-use policy, so this is
+explicitly a pre-generation tool, never a per-request call. That constraint is written into both
+the module and the script header.
+
+**The fault that would have shipped, found by measuring rather than reasoning.** The first version
+drew every road class. At 430x630 it looked excellent. At 108px wide, the width of a feed
+thumbnail, St Ives at 345 ways and Ely at 679 both collapsed into grey noise while only the
+vermilion marker survived. Added density-aware detail: above 240 drawable ways the minor lanes
+(`residential`, `unclassified`) are dropped, which is also truer to the idiom, since a poster
+house would not engrave every cul-de-sac. St Ives fell to 46 features, Ely to 172, Bourton was
+below the threshold and unchanged at 208. File sizes fell with it, Ely from 131 KB to 45 KB.
+`detail: 'full' | 'spare'` overrides the automatic choice.
+
+**Stroke weights now scale with the frame** against a 630-unit reference, so a 1000x1500 Pinterest
+plate is not drawn in hairlines.
+
+**Files:** `src/lib/map-plate.ts` (new, 220 lines), `src/lib/map-plate.test.ts` (new, 13 tests),
+`scripts/generate-map-plate.ts` (new, 73 lines).
+
+**Verified:**
+- `pnpm test:unit` **503 pass, 0 fail** (490 before; 13 new).
+- Tests cover the bbox widening with latitude (a UK plate must not stretch east to west), north
+  being up and east right, the centre projecting to the centre, water painted under roads, the
+  marker on its paper halo, attribution present, open country rendering a valid empty plate, the
+  density threshold in both directions, forced detail both ways, and weight scaling.
+- `npx tsc --noEmit` exit 0; `npx eslint` exit 0 on all three files.
+- Rendered against live Overpass for three contrasting places: St Ives (coastal estuary),
+  Bourton-on-the-Water (river and open fields), Ely (radial fen roads). Inspected at both 430x630
+  and 108px.
+
+**Demo output deliberately not committed.** The three plates were written to
+`public/images/plates/` and removed: they are non-farm coordinates, and shipping unused public
+assets is the same cruft Slice C cleaned out. The script regenerates them on demand.
+
+**Next (Slice D2):** pull real farm coordinates, pre-generate plates in polite batches, store them
+the way the Pitti images are stored, swap the OG route's fixed sunrise for the farm's plate, and
+render the ODbL attribution on the card.
+
+**Risk and rollback.** Three new files, nothing wired into a page yet, so the running site is
+unaffected. Deleting the three files is a complete rollback.
