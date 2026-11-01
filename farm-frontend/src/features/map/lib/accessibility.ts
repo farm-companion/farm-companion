@@ -205,7 +205,7 @@ export function createSkipLink(targetId: string, label = 'Skip to content'): HTM
  */
 export function getFarmMarkerLabel(farm: {
   name: string
-  location: { city?: string; county: string }
+  location: { city?: string; county: string | null }
   isOpen?: boolean
 }): string {
   const parts = [farm.name]

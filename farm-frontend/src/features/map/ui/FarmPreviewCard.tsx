@@ -255,7 +255,7 @@ export default function FarmPreviewCard({
           </p>
         ) : !canClaim ? (
           <p className="text-sm text-ink-muted line-clamp-2 [text-wrap:pretty]">
-            {unverifiedDescription(farm.location.county)}
+            {unverifiedDescription(farm.location.county ?? '')}
           </p>
         ) : null}
 

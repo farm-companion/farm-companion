@@ -29,10 +29,16 @@ export interface FarmShop {
   location: {
     lat: number
     lng: number
-    address: string
+    // Nullable because the database is. Commit 9497627 made address,
+    // postcode and county optional in the pipeline, since FSA data
+    // legitimately has sparse rows: 1,381 creates lacked an address, 544 a
+    // postcode, 666 a county. Declaring them `string` here made every
+    // consumer assume a string it would not always get, and /map crashed on
+    // every search for nine months as a result.
+    address: string | null
     city?: string
-    county: string
-    postcode: string
+    county: string | null
+    postcode: string | null
   }
   hours?: any[] // Allow any hours format
   offerings?: string[]

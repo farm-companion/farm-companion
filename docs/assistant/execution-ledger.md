@@ -4089,3 +4089,25 @@ Affected: Newry Mourne and Down; Armagh City, Banbridge and Craigavon; Bournemou
 - 42 uses of `h-12`, 32 of `h-10`, 12 of `h-14`, 11 each of `h-9` and `h-11`, all unverified sizes.
 
 **Risk/rollback:** revert the commit. The layer change affects precedence for six selectors site-wide; buttons that set no size keep the same rendering, and buttons that set one now get it, which is the intent.
+
+### 2026-11-01 — /map crashed on every search for nine months
+
+**Symptom:** `/map?q=<anything>` threw `Cannot read properties of null (reading 'toLowerCase')` at `map/page.tsx:228` inside the `farmsForMap` useMemo, and the page rendered nothing. `/map` with no query was fine, which is why it looked healthy: an empty query skips the filter entirely.
+
+**Root cause, with its history.** The filter read `name`, `address`, `postcode` and `county` as strings. Three of those are nullable in the database and `/api/farms` passes them through raw: the live payload holds 287 null addresses, 457 null counties and 316 null postcodes per 2,000 rows, so the first sparse row ended the render.
+
+The nulls are correct. Commit `9497627` (24 May 2026) made address, postcode and county optional in the pipeline because "FSA data legitimately has sparse rows": 1,381 creates lacked an address, 544 a postcode, 666 a county. That commit patched the one consumer that broke immediately (`counties: countyFacets.map(...).filter(c => c !== null)`) and left every other consumer asserting non-null. The map filter was written on 1 September 2025 (`ea69aa8`) against data that had no nulls, and has been crashing since the day the nulls arrived.
+
+`tsc --noEmit` could not see it. `map/page.tsx:124` does `setFarms(data.farms || [])` from an untyped `response.json()`, so the type stops being checked exactly where the data stops being trustworthy. It exited 0 on every commit today while this was broken.
+
+**Which was wrong, the column or the type:** the type. The data is a faithful record of sparse FSA rows. `FarmShop.location.address`, `county` and `postcode` are now `string | null`, and the compiler enumerated 11 call sites across 8 files, each fixed at its own site rather than coerced centrally. `getFarmMarkerLabel` took the honest shape directly rather than being coerced at both its callers; the county filter list now drops farms with no county rather than offering a blank entry.
+
+**The search predicate is now `src/lib/farm-search.ts`**, extracted from the useMemo so it can be tested, with a missing field treated as not-searchable rather than as matching nothing: a farm with no address still matches on its name.
+
+**The failing test, and a trap inside it.** Six tests were written against the original logic before it changed. The first version of the headline test asserted `matchesQuery(farm, 'morfa')` on a farm whose name is "Morfa Farm Shop", which **passed against the broken code**: `||` short-circuits on the name and never reaches the null. It was rewritten to query a term the name does not contain. Five of six then failed with the production error, and all six pass after.
+
+**Verified:** `npx tsc --noEmit` exit 0; eslint clean on the changed files (map/page.tsx carries five pre-existing unused-variable warnings, untouched); `pnpm test:unit` **482 pass, 0 fail** (476 before). On the running server, `/map?q=morfa` returns 2 farms, `/map?q=cornwall` 3, `/map?q=a` 2,000, with no exception in the console.
+
+**Exceeds the 8-file slice guideline at 10 files, deliberately:** a type correction is atomic, since leaving any call site unfixed leaves `tsc` red. The diff is 24 insertions and 21 deletions plus the new module and its test.
+
+**Found alongside, not fixed:** `/map` requests `/_next/image?url=%2Fmain_header.jpg` and gets a 400, and the map tiles do not render in dev. Both pre-date this change.

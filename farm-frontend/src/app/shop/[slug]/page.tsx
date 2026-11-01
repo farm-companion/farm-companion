@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // Process farm description to extract keywords and clean for SEO
   const { cleanDescription, seoDescription } = processFarmDescription(shop.description || '')
   const description = !canClaim
-    ? unverifiedDescription(shop.location.county)
+    ? unverifiedDescription(shop.location.county ?? '')
     : cleanDescription
       ? `${seoDescription.substring(0, 160)}...`
       : `${shop.location.address}, ${shop.location.county} ${shop.location.postcode}`
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // canClaim=1 is the only thing that unlocks the "Farm Shop" label on the
   // shared /og card (see og/route.tsx); absent, the card names the farm and
   // county only.
-  const ogImageUrl = `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county)}&type=farm${canClaim ? '&canClaim=1' : ''}`
+  const ogImageUrl = `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county ?? '')}&type=farm${canClaim ? '&canClaim=1' : ''}`
 
   return {
     title: `${shop.name} · Farm Companion`,
@@ -89,7 +89,7 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   // Gate: an unverified page renders only the producer sentence, never the
   // raw description or any "farm shop" claim derived from it (JSON-LD
   // description and the on-page About section below both read this).
-  const cleanDescription = canClaim ? rawDescription : unverifiedDescription(location.county)
+  const cleanDescription = canClaim ? rawDescription : unverifiedDescription(location.county ?? '')
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
   const ghOwner = process.env.NEXT_PUBLIC_GH_OWNER || 'farm-companion'
   const ghRepo  = process.env.NEXT_PUBLIC_GH_REPO  || 'farm-frontend'
