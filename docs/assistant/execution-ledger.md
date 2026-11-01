@@ -3886,3 +3886,34 @@ Queue 2/6.
 drop the three `js-yaml` override entries and reinstall.
 
 **Next:** Slice 1.4 — undici confirmation and fix (Queue 1 item 3).
+
+---
+
+### 2026-11-01 — Queue 1 Slice 1.4: undici confirmed, and fixed where it actually exists
+
+**Confirmation asked for by Queue 1 item 3 — the honest answer:**
+- **farm-frontend: undici is NOT present.** The thing that looks like it in the lockfile is
+  `@opentelemetry/instrumentation-undici@0.10.1`, a different package that merely instruments undici.
+  farm-frontend's existing `pnpm.overrides` even carries `undici: ">=6.23.0"`, which is a **no-op**
+  against an empty match set. That stale override is very likely what made undici look like a
+  farm-frontend problem in the first place. Left in place (removing it changes nothing) but recorded
+  here so it is not re-chased.
+- **twitter-workflow: undici is NOT present.** No entry in package-lock.json at all.
+- **farm-produce-images: undici IS present and WAS vulnerable** at 8.3.0, with ~30 advisories across
+  four patch floors (>=8.5.0, >=8.9.0, >=8.10.2, >=8.12.2). The existing override `undici: ">=7.24.0"`
+  was satisfied by 8.3.0 and therefore did nothing useful.
+
+**Fix:** tightened farm-produce-images' override to `undici: "^8.12.2"`, resolving to **8.12.3** (the
+highest patch floor is >=8.12.2; stayed inside major 8, which the installed tree already used).
+**undici advisories 0.** Knock-on: that package's totals fell from 31 high / 23 moderate / 6 low to
+**18 high / 7 moderate / 1 low**.
+
+**Verification (ran):** `pnpm audit` undici advisories 0; `pnpm build` `✓ Compiled successfully`. The
+same pre-existing `sharp` type-check failure from Slice 1.2 still terminates that build and is still
+unrelated to this change.
+
+**Risk/rollback:** Patch-range move inside undici 8, which the tree was already on. Rollback: restore
+the `">=7.24.0"` value and reinstall.
+
+**Next:** Slice 1.5 — the secret-removal half of Queue 1 (see the finding below; it is not where the
+queue says it is).
