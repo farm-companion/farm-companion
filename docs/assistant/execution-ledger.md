@@ -3795,3 +3795,36 @@ The first live runs surfaced real-API issues the fixture tests could not (each f
 **Operator step still owed:** the live site reflects the new descriptions/categories only after ISR expiry (homepage 1h, /shop + county 6h) or a fresh Vercel redeploy. DB (prod Hetzner) is already updated.
 
 **Follow-ups (not blockers):** ~97 good product-list descriptions remain fallbacks (validator strictness — could rescue with a food-noun lexicon or single extract+phrase call); 59 scrape fetch_errors could be retried; consider deleting the stray `farm-frontend/docs/assistant/execution-ledger.md`.
+
+---
+
+### 2026-11-01 — Queue 1 Slice 1.1: Next.js RCE criticals cleared in farm-frontend (next 16.2.6 -> 16.4.1)
+
+**Audit first (the queue's premises were partly wrong).** Ran the real audits before touching anything:
+farm-frontend (pnpm) 151 vulns / 8 critical / 71 high; farm-produce-images (pnpm) 85 / 5 critical / 40
+high; twitter-workflow (npm) 14 / 0 critical / 11 high; farm-pipeline is a single pinned
+`crawl4ai==0.7.4`. Three corrections to CLAUDE.md Queue 1, recorded so nobody re-chases them:
+- **twitter-workflow has no `next` dependency at all** — the "critical Next.js vulnerabilities in
+  twitter-workflow" item cannot be actioned there. The Next.js criticals are in **farm-frontend** and
+  **farm-produce-images** (both were on 16.2.6).
+- **`undici` is not present in farm-frontend** (the lockfile hit is `@opentelemetry/instrumentation-undici@0.10.1`,
+  a different package) **nor in twitter-workflow**. Real undici exists only in farm-produce-images at 8.3.0.
+- **`farmcompanion-social` does not exist** on any branch; `farm-produce-images` is a 4th Next.js app the
+  queue never lists, and it carries 5 criticals of its own.
+
+**Slice outcome:** `next` 16.2.6 -> **16.4.1** in farm-frontend. 16.4.1 is the minimum version that clears
+*every* Next.js advisory at all severities (highest patched floor was `>=16.4.1`), so no major bump and no
+over-shooting to 16.4.3. Cleared 5 criticals (4x unauthenticated RCE: windows host, image-opt AVIF,
+image-opt SVG, `use cache`; plus RCE in next/og), 6 highs, 7 moderates, 1 low.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0, clean. `pnpm test:unit` **369 pass / 0 fail**
+(note: the 490 figure in the task brief does not match this branch's `src/**/*.test.ts` glob; 369 is the
+real baseline here). `pnpm build` -> `✓ Compiled successfully`, full route table emitted; the Prisma
+`DATABASE_URL` lines are the app's own expected no-DB build path, already handled in code.
+`pnpm audit` after: **next advisories 0** (was 19); package criticals 8 -> 3, remaining are `basic-ftp`
+(depth 7 under lighthouse, devDependency, not shipped), `dompurify`, `maplibre-gl`.
+
+**Risk/rollback:** Minor-version bump inside Next 16 with no source changes; typecheck, tests and build
+all pass. Rollback is reverting `farm-frontend/package.json` + `pnpm-lock.yaml` and re-running `pnpm install`.
+
+**Next:** Slice 1.2 — same `next` bump for farm-produce-images (its 5 criticals are all `next`).
