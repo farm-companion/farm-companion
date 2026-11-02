@@ -1,74 +1,51 @@
 'use client'
 
-import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { MapPin, Map, Calendar } from 'lucide-react'
-import type { FarmShop } from '@/types/farm'
-import { FarmCard } from './FarmCard'
+import { MapPin, Map, Calendar, ChevronRight } from 'lucide-react'
+import type { CountySummary } from '@/lib/county-summary'
 import { fadeInUp, staggerContainer, staggerItem } from '@/lib/animations'
 import BackToTop from './BackToTop'
 
 interface ShopPageClientProps {
-  farms: FarmShop[]
+  counties: CountySummary[]
+  /** Farms no county row can hold; they are on the map. */
+  withoutCounty: number
   stats: any
 }
 
-// County section component with animations
-function CountySection({ county, farms }: { county: string; farms: FarmShop[] }) {
+/**
+ * One row per county, linking to the page that lists its farms.
+ *
+ * This used to render a FarmCard for every farm in the county, which across
+ * all counties meant all 3,504 of them in one document: 15.59 MB, 12.00 MB of
+ * it markup. The farms are not lost, they are one click away at
+ * /counties/[slug], which already lists them.
+ */
+function CountyRow({ county, slug, count }: CountySummary) {
   return (
-    <motion.div
-      initial="initial"
-      whileInView="animate"
-      viewport={{ once: true, margin: "-50px" }}
-      variants={staggerContainer}
-      className="border-b border-border-default pb-8 last:border-b-0"
+    <Link
+      href={`/counties/${slug}`}
+      className="group flex items-center justify-between gap-4 rounded-lg border border-border-default p-4 transition-colors hover:border-brand hover:bg-surface-2"
     >
-      <motion.div
-        variants={fadeInUp}
-        className="flex items-center justify-between mb-6"
-      >
-        <h3 className="text-2xl font-heading font-semibold text-text-heading dark:text-white">
-          {county}
-        </h3>
-        <span className="text-caption text-text-muted dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-          {farms.length} farm{farms.length !== 1 ? 's' : ''}
+      <span className="text-[16px] font-heading font-semibold text-text-heading">
+        {county}
+      </span>
+      <span className="flex shrink-0 items-center gap-2">
+        <span className="text-[16px] text-text-muted">
+          {count} farm{count !== 1 ? 's' : ''}
         </span>
-      </motion.div>
-      <motion.div
-        variants={staggerContainer}
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-      >
-        {farms.map((farm, index) => (
-          <motion.div key={`${farm.id}-${county}-${index}`} variants={staggerItem}>
-            <FarmCard
-              farm={farm}
-              showCompare={true}
-            />
-          </motion.div>
-        ))}
-      </motion.div>
-    </motion.div>
+        <ChevronRight className="h-4 w-4 text-text-muted transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+      </span>
+    </Link>
   )
 }
 
-export default function ShopPageClient({ farms, stats }: ShopPageClientProps) {
-  const [filteredFarms, setFilteredFarms] = useState<FarmShop[]>(farms)
-
-  // Group filtered farms by county for better organization
-  const farmsByCounty = useMemo(() => {
-    return filteredFarms.reduce((acc, farm) => {
-      const county = farm.location.county || 'Other'
-      if (!acc[county]) {
-        acc[county] = []
-      }
-      acc[county].push(farm)
-      return acc
-    }, {} as Record<string, FarmShop[]>)
-  }, [filteredFarms])
-
-  const counties = Object.keys(farmsByCounty).sort()
-
+export default function ShopPageClient({ counties, withoutCounty, stats }: ShopPageClientProps) {
+  // The grouping and the `filteredFarms` state that used to live here are
+  // gone. The state's setter was never called, so the whole 3,504-farm array
+  // was serialised into the RSC payload to feed a filter that did not exist.
+  // Grouping now happens on the server, in summariseByCounty.
   return (
     <>
       <BackToTop />
@@ -184,17 +161,35 @@ export default function ShopPageClient({ farms, stats }: ShopPageClientProps) {
               </p>
             </motion.div>
 
+            {/* Deliberately not animated. staggerChildren is 0.1s and there
+                are 285 rows, so a stagger here would leave the last county
+                invisible for 28 seconds, and every row starts at opacity 0.
+                A navigation index has to be readable on arrival, JavaScript
+                or no JavaScript. */}
             {counties.length > 0 ? (
-              <div className="space-y-12">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
                 {counties.map((county) => (
-                  <CountySection
-                    key={county}
-                    county={county}
-                    farms={farmsByCounty[county]}
-                  />
+                  <CountyRow key={county.slug} {...county} />
                 ))}
               </div>
-            ) : (
+            ) : null}
+
+            {/* The county rows cover 2,985 of 3,504 farms. Saying so, and
+                saying where the rest are, beats letting the counts quietly
+                disagree with the stat line above. All of them have
+                coordinates, so the map holds every one. */}
+            {withoutCounty > 0 ? (
+              <p className="mt-8 text-center text-[16px] text-text-muted">
+                {withoutCounty} more farm{withoutCounty !== 1 ? 's have' : ' has'} no county
+                recorded yet.{' '}
+                <Link href="/map" className="underline decoration-brand underline-offset-4 hover:text-brand">
+                  Find {withoutCounty !== 1 ? 'them' : 'it'} on the map
+                </Link>
+                .
+              </p>
+            ) : null}
+
+            {counties.length === 0 ? (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -207,10 +202,10 @@ export default function ShopPageClient({ farms, stats }: ShopPageClientProps) {
                   No farm shops found
                 </h3>
                 <p className="text-text-muted dark:text-gray-400">
-                  Try adjusting your search criteria or browse all farm shops.
+                  The directory could not be loaded. Try again shortly.
                 </p>
               </motion.div>
-            )}
+            ) : null}
           </div>
         </section>
       </main>
