@@ -5099,3 +5099,62 @@ production deploy without `STADIA` credentials gets a blank map on any maplibre 
 appear in dev. Left for the operator: either add `https://tiles.openfreemap.org` to `connect-src` (and
 `img-src`), or require a Stadia key in production. Because of this, the production check above proves
 the **worker** loads, not a full tile render; the full render is proven in dev.
+
+
+---
+
+## Slice: /shop shipped 15.59 MB to render a list nobody could filter
+
+**Measured before.** `/shop` returned **15,589,735 bytes**:
+
+| part | bytes | share |
+|---|---|---|
+| rendered markup (3,504 FarmCards) | 12,000,980 | 77.0% |
+| RSC flight payload | 3,563,060 | 22.9% |
+| JSON-LD | 25,695 | 0.2% |
+
+That is 3,424 bytes of markup and 1,016 bytes of flight payload per farm. The JSON-LD was never
+the problem: `generateStructuredData` already caps at 50 items.
+
+**The part that made the decision.** `ShopPageClient` held
+`const [filteredFarms, setFilteredFarms] = useState(farms)` and **never called the setter** — one
+occurrence in the whole file. There was no search and no filter on the page. The entire
+3,504-farm array crossed to the client to feed a filter that did not exist. The page has zero
+Search Console impressions.
+
+**What it is now.** A county index: one row per county with its farm count, linking to
+`/counties/[slug]`, which already lists that county's farms. The section was already headed
+"Browse by County" with the copy "our comprehensive county-by-county directory", so this is what
+the page said it was; it had simply inlined every card. No URL changed and no farm became
+unreachable: every one is two clicks away.
+
+**15,589,735 -> 359,480 bytes, a 97.7% reduction.**
+
+**What measuring caught, twice:**
+1. **519 farms have no county.** The rows summed to 2,985 while the page's own stat line said
+   3,504. `/counties/unknown-county` 404s so they cannot have a row, but dropping them silently
+   would have made the page lie. `summariseByCounty` now returns `withoutCounty` alongside the
+   rows, the sum is a tested invariant, and the page says so with a link to the map. All 519
+   carry coordinates, so the map does hold every one. Only 173 of them are indexable, which is
+   the other side of the 346 the index gate excludes.
+2. **The county grid must not animate.** `staggerChildren` is 0.1s and there are 285 rows, so a
+   stagger would have left the last county invisible for **28 seconds**, every row starting at
+   `opacity: 0`. Caught in the browser, not by reading. The rows are plain links now, readable on
+   arrival with or without JavaScript.
+
+**Files:** `src/lib/county-summary.ts` (new), `src/lib/county-summary.test.ts` (new),
+`src/app/shop/page.tsx`, `src/components/ShopPageClient.tsx`.
+
+**Verified:**
+- `/shop` 200, **359,480 bytes**, 285 county rows, all 285 links present.
+- A random 25-link sample of the county URLs: all 200.
+- Rows are 60px tall, 0 below the 48px target floor.
+- The slug comes from the shared `slugifyCounty`. One test expectation of mine was wrong and the
+  live route settled it: `/counties/king-s-lynn-and-west-norfolk` is 200 and
+  `/counties/kings-lynn-and-west-norfolk` is 404. Hand-rolling a prettier slug here is exactly
+  the bug that test now prevents.
+- `pnpm test:unit` **516 pass, 0 fail**; `npx tsc --noEmit` exit 0; `pnpm build` exit 0 with
+  `/shop` still prerendered on a 6h revalidate.
+
+**Noted, not fixed.** The data holds both "Argyll and Bute" (2 farms) and "Argyll and Bute
+Council" (3), so at least one pair of counties is duplicated under two names.

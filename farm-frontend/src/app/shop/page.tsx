@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { getFarmData, getFarmStats } from '@/lib/farm-data'
 import { canClaimVisitable, unverifiedDescription } from '@/lib/farm-claims'
+import { summariseByCounty } from '@/lib/county-summary'
 import ShopPageClient from '@/components/ShopPageClient'
 import { SITE_URL } from '@/lib/site'
 
@@ -140,8 +141,14 @@ async function ShopPageContent() {
     getFarmStats()
   ])
   
-  // Generate structured data for SEO
+  // Generate structured data for SEO. Stays server-side and already caps at
+  // 50 items, so it is 26 KB of the response rather than a per-farm cost.
   const structuredData = generateStructuredData(farms, stats)
+
+  // Only the county index crosses to the client. Passing `farms` put all
+  // 3,504 of them into the RSC payload (3.56 MB) to feed a filter whose
+  // setter was never called, on top of 12.00 MB of rendered cards.
+  const { counties, withoutCounty } = summariseByCounty(farms)
 
   return (
     <>
@@ -150,7 +157,7 @@ async function ShopPageContent() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
       />
-      <ShopPageClient farms={farms} stats={stats} />
+      <ShopPageClient counties={counties} withoutCounty={withoutCounty} stats={stats} />
     </>
   )
 }
