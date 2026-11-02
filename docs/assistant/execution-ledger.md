@@ -5236,3 +5236,36 @@ above.
 
 **Next:** Slice 2.2 — twitter-workflow has ESLint 9 and `@eslint/js` installed but no flat config, so
 `npm run lint` fails before linting anything.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.2: twitter-workflow had ESLint 9 installed and no config, so lint never ran
+
+**The blocker:** `npm run lint` failed with
+`ESLint couldn't find an eslint.config.(js|mjs|cjs) file` — it never linted a single line. The package
+already had `eslint ^9.39.2` and `@eslint/js ^9.0.0` as devDependencies and is `"type": "module"`;
+somebody installed for flat config and never wrote the config. Flagged in Slice 1.3 and left for Queue 2.
+
+**Added `eslint.config.js`** (flat, ESM, `js.configs.recommended`, `ecmaVersion: 2024`,
+`sourceType: 'module'`, Node globals).
+
+**Declared `globals` as a devDependency rather than importing the phantom one.** `globals` was already
+resolvable from disk, but only as a transitive dependency of eslint — importing it in the config without
+declaring it would have worked today and broken silently whenever eslint's dependency tree shifted.
+This is the slice's one new dependency and it is the canonical companion to a flat config; the
+alternative was hand-maintaining ~82 Node global names inline, which drifts.
+
+**Also fixed the lint script**: `eslint src/**/*.js` -> `eslint src`. The old glob relies on shell
+globstar, which is off by default in bash, so it would have matched only one directory level even once
+a config existed. `eslint src` lets ESLint walk the tree and honour the config's own `files`.
+
+**Verification (ran):** `npm run lint` now **executes and reports 12 errors across 7 files**. That is
+the correct outcome for this slice, not a failure — the command went from "cannot run at all" to
+"runs and finds real defects". Two of the twelve are genuine bugs, not style noise; they are fixed in
+Slice 2.3 immediately following.
+
+**Risk/rollback:** Adds a config file and one devDependency; no source behaviour changes. Rollback:
+delete `eslint.config.js` and revert the two package.json edits.
+
+**Next:** Slice 2.3 — fix what the lint now reports, starting with the const reassignment that breaks
+the duplicate-post guard.
