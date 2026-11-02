@@ -48,6 +48,35 @@ const RETAIL_WORDS = [
   'butcher', 'deli', 'cafe', 'café', 'tea room', 'tearoom', 'food hall',
   'foodhall', 'farmers market', "farmers' market", 'creamery', 'dairy',
   'winery', 'brewery', 'nurseries', 'nursery', 'pick your own',
+  // Added after sample three, which rejected "Usk Boarding Kennels &
+  // Cattery" against the business of that exact name because the list had
+  // no word for it.
+  'kennels', 'cattery', 'bakery', 'butchery', 'delicatessen', 'distillery',
+]
+
+/**
+ * Geograph's subject: tag names what the photograph is primarily of, and is
+ * used here only to rule a candidate OUT. That asymmetry is deliberate and
+ * was learned the hard way: using tags as positive evidence dropped precision
+ * from 100% to 82%, because "subject:shop" says a shop is in the frame, not
+ * that it is this farm's shop. It admitted a pub called the Royal Oak for
+ * Bishopstone Stores and a Frankie & Benny's for Trentham Farm Shop, both on
+ * the strength of a village name.
+ *
+ * Used negatively it cannot make that mistake. If the photographer says the
+ * subject is a field of saplings, it is not a shop, whoever owns it. This is
+ * what separates "Gates Nurseries" (subject:garden centre, a real shop) from
+ * "Nursery - Vine House Farm" (subject:nursery (plants), a field), which no
+ * amount of word-list tuning could tell apart.
+ *
+ * subject:farm is deliberately absent: it is too common and would cost
+ * genuine matches such as McCarthys Market Garden.
+ */
+const LAND_SUBJECTS = [
+  'subject:nursery (plants)', 'subject:field', 'subject:wood',
+  'subject:woodland', 'subject:plantation', 'subject:orchard',
+  'subject:vineyard', 'subject:pasture', 'subject:meadow', 'subject:crop',
+  'subject:hedge', 'subject:moor', 'subject:heath',
 ]
 
 /**
@@ -147,6 +176,13 @@ function findRetailWord(normalisedTitle: string): string | null {
  * are written subject-first, so "Car Park, at Ben's Farmshop" is a car park
  * and "Ben's Farmshop" is the shop.
  */
+/** Geograph's own word for what the photograph is of, when that is land. */
+function findLandSubject(tags: string | undefined): string | null {
+  const lower = (tags ?? '').toLowerCase()
+  if (!lower) return null
+  return LAND_SUBJECTS.find((subject) => lower.includes(subject)) ?? null
+}
+
 function findAppurtenance(normalisedTitle: string): string | null {
   // Whole-word, anywhere in the title. An earlier version only looked before
   // the business name and then tried to split on a comma, which never fired:
@@ -184,6 +220,9 @@ function findDistancing(normalisedTitle: string, firstTokenAt: number): string |
  * retail requirement when the title's wording does not.
  */
 export function matchPhoto(businessName: string, candidate: PhotoCandidate): MatchResult {
+  const land = findLandSubject(candidate.tags)
+  if (land) return NO_MATCH(`the photographer's subject is ${land}: land, not premises`)
+
   const tokens = distinctiveTokens(businessName)
   if (tokens.length === 0) {
     // "Farm Shop" as a business name has nothing to match on. Admitting these
