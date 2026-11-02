@@ -5509,3 +5509,33 @@ Rollback: revert the commit.
 
 **Queue 3 is therefore closed.** The remaining Track 0 value is not in this list; if more map work is
 wanted it needs a fresh survey rather than these six items.
+
+---
+
+### 2026-11-02 — Queue 4 Slice 4.1: the impeccable merge gate was failing; now exits 0
+
+CLAUDE.md gates merge on `npx impeccable detect src/` exiting 0. It was exiting **2** with **11
+anti-patterns** across 5 files. Fixed; it now exits **0**.
+
+**What the 11 were, and why each fix is what it is:**
+- **8 x `ai-color-palette`** — indigo/purple stat-tile numbers on three admin pages
+  (`admin/produce`, `admin/produce/stats`, `admin/documentation`). Replaced with `text-brand`, the
+  project's own documented primary. Also dropped the paired `dark:` variants: `globals.css` line 11
+  states *"this site is light-only on purpose"* and redefines the dark variant to a `.dark` class that
+  is never set, so those were dead classes.
+- **2 x `side-tab`** — `border-left: 4px solid #00C2B2` in `email.service.ts`. The rule's own advice is
+  a subtler accent or none, and the colour was off-brand anyway (Serum Teal, the *previous* brand), so
+  the bar is gone and the panel background stays.
+- **1 x `overused-font`** — `font-family: Arial` in one `email.ts` template. **Not** replaced with a
+  distinctive face: this is transactional email HTML, where webfonts do not render and web-safe stacks
+  are correct. Aligned it instead with the stack the other three templates already use
+  (`-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`), which satisfies the rule and
+  removes a one-off inconsistency. A suppression comment was the alternative; consistency was better.
+
+**Verification (ran, passed):** `npx impeccable detect src/` **exit 0** (was 2);
+`npx tsc --noEmit` clean; `pnpm test:unit` **545 pass / 0 fail**.
+
+**The static gate is an undercount — the tool says so itself:** *"459 files scanned with regex matching
+only... Rules that need a parsed page (tiny-text, low-contrast and other element rules) did not run."*
+So a live scan was run against the dev server at **375x812**, the conversion-floor viewport. It found
+**9 more** on the homepage alone, recorded in the next slice.

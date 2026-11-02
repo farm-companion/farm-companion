@@ -1,0 +1,7 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    { "name": "farm-frontend-dev", "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "farm-frontend", "dev", "--port", "3200"], "port": 3200 }
+  ]
+}

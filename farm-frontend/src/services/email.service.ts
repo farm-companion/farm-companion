@@ -76,7 +76,7 @@ export async function sendContactConfirmation(params: {
         .message-item { margin: 16px 0; }
         .message-label { color: #1E1F23; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
         .message-value { color: #6F6F6F; font-size: 16px; margin-top: 4px; }
-        .message-content { color: #1E1F23; font-size: 16px; line-height: 1.6; white-space: pre-wrap; margin-top: 8px; background: #f8f9fa; padding: 16px; border-radius: 8px; border-left: 4px solid #00C2B2; }
+        .message-content { color: #1E1F23; font-size: 16px; line-height: 1.6; white-space: pre-wrap; margin-top: 8px; background: #f8f9fa; padding: 16px; border-radius: 8px; }
         .response-time { background: #D4FF4F; color: #1E1F23; padding: 16px; border-radius: 8px; margin: 24px 0; }
         .response-time h3 { margin: 0 0 8px 0; font-size: 16px; font-weight: 600; }
         .response-time p { margin: 0; font-size: 14px; opacity: 0.9; }
@@ -248,7 +248,7 @@ export async function sendNewsletterWelcome(params: { email: string; name: strin
         .header { background: linear-gradient(135deg, #00C2B2 0%, #00A896 100%); padding: 40px 30px; text-align: center; }
         .header h1 { color: white; margin: 0; font-size: 28px; font-weight: 700; }
         .content { padding: 40px 30px; }
-        .features { background: #f8f9fa; padding: 24px; border-radius: 12px; margin: 32px 0; border-left: 4px solid #00C2B2; }
+        .features { background: #f8f9fa; padding: 24px; border-radius: 12px; margin: 32px 0; }
         .feature-item { margin: 16px 0; display: flex; align-items: center; }
         .feature-icon { color: #00C2B2; margin-right: 12px; font-size: 20px; }
         .cta-button { display: inline-block; background: #00C2B2; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 24px 0; }

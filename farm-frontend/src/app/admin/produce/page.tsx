@@ -97,7 +97,7 @@ export default async function AdminProducePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
               <h3 className="text-body font-semibold text-gray-900 dark:text-white">Total Produce</h3>
-              <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{produce.length}</p>
+              <p className="text-2xl font-bold text-brand">{produce.length}</p>
             </div>
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
               <h3 className="text-body font-semibold text-gray-900 dark:text-white">Total Images</h3>
@@ -113,7 +113,7 @@ export default async function AdminProducePage() {
             </div>
             <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
               <h3 className="text-body font-semibold text-gray-900 dark:text-white">Current Month</h3>
-              <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{currentMonthName}</p>
+              <p className="text-2xl font-bold text-brand">{currentMonthName}</p>
             </div>
           </div>
 
