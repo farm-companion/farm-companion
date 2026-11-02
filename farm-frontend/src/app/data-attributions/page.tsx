@@ -30,15 +30,16 @@ export default function DataAttributionsPage() {
           (ONS/OS OpenData, OGL).
         </li>
       </ul>
-      <h2>Photography</h2>
-      <ul>
-        <li>
-          Some photographs are sourced from{' '}
-          <a href="https://commons.wikimedia.org/">Wikimedia Commons</a> under
-          their respective Creative Commons or public-domain licences, credited
-          per image.
-        </li>
-      </ul>
+      <h2>Imagery</h2>
+      <p>
+        Farm and county artwork is our own illustration, drawn to a house style
+        by a text-to-image model and served from our own storage, so it carries
+        no third-party licence.
+      </p>
+      <p>
+        Where a photograph is used instead, the photographer&apos;s name and its
+        licence are kept with the image and used for its credit.
+      </p>
     </main>
   )
 }

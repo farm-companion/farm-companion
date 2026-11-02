@@ -5539,3 +5539,49 @@ in `src/app`, `src/components`, `src/lib` and `src/data` — the other `geograph
 "geography" in `best-lists.ts` curriculum prose and `geographic` in query code.
 
 **Risk/rollback:** One `<li>` deleted from a static page; revert the commit to restore it.
+
+---
+
+## 2026-11-02 — Slice 1.14c: the attributions page says what is actually on the site
+
+**Operator decision: rewrite it.** The Photography section is now Imagery, and it describes the
+illustrations rather than crediting two photo sources the database does not hold.
+
+New copy, scored 5/5 CLEAN on `deslop.py` before it went in:
+
+> Farm and county artwork is our own illustration, drawn to a house style by a text-to-image model
+> and served from our own storage, so it carries no third-party licence.
+>
+> Where a photograph is used instead, the photographer's name and its licence are kept with the
+> image and used for its credit.
+
+Both claims are checkable. `ai_apothecary` and Pitti artwork comes from Runware FLUX-dev
+(`src/lib/apothecary-style.ts`, `src/scripts/generate-apothecary-batch.ts`), lands on our own
+object storage, and the Apothecary negative prompt bans photorealism outright. The credit path is
+real but dormant: `farm-imagery.ts` classifies a row with an `attribution` value as `kind: 'cc'`
+and `FarmListCard` renders the cue.
+
+**The draft said "no third-party photographs are on the site" and that was false.** Caught it before
+committing, by checking `public/` instead of trusting the database:
+
+- **`public/counties.jpg` carries an EXIF copyright field reading `Michel PERES`.** It is rendered
+  full-bleed as the hero of `/about` and `/counties` (`about/page.tsx:105`, `counties/page.tsx:90`),
+  1920x1277, Photoshop-processed at 300dpi. No licence record exists anywhere in the repository and
+  the photographer is credited nowhere on the site. Added in `8f6054b3 fix: resolve missing image
+  400 errors`, so it looks like a gap-filler nobody licensed. **This is the real finding of the
+  slice and it needs an operator decision: licence it, replace it, or remove it.**
+- Ten more unprovenanced rasters sit in `public/` (`main_header.jpg`, `about.jpg`,
+  `overlay-banner.jpg`, `produce-secondary-image.jpg`, `seasonal-header.jpg`, `add.jpg`,
+  `feedback.jpg`, `oranges-background.jpg`, `og.jpg`, `about-header.jpg`). Only `counties.jpg`
+  names a copyright holder in EXIF; the rest carry none, which is not the same as being ours.
+- Unrelated but found on the way: `layout.tsx:171` preloads `main_header.jpg` at
+  `fetchPriority="high"` on every page, and nothing renders it any more. The homepage hero is
+  `/images/pitti/hero-homepage-dev-seed50920962-v2.webp`. That is a 4096x1376 JPEG fetched at high
+  priority for nothing, on every route.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0, zero `error TS`; `npx eslint` on the page
+exit 0; `deslop.py --text` 5/5 CLEAN on the new copy. Cleanse and judge were not run: both ship the
+draft to OpenAI through the codex CLI, which needs the operator's say-so each time.
+
+**Risk/rollback:** One static page's copy. Revert the commit to restore the old section. No claim in
+the new copy depends on the unresolved `counties.jpg` question.
