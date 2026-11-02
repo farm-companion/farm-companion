@@ -4792,3 +4792,64 @@ this branch's own lockfile.
 **Risk and rollback.** The social route is additive and nothing links to it. Reverting the commit
 removes the kit; `route.tsx`'s refactor is a pure substitution of imported constants for local
 ones, with no behavioural change, proven by the card rendering identically.
+
+---
+
+## Slice BRAND-F — The posting daemon, wired to the card instead of an image model
+
+**Goal.** Make `farmcompanion-social` produce a real post, using the card the site already draws.
+
+**The Runware step was deleted, not implemented.** The skeleton planned to generate a fresh
+illustration per post. The site already renders exactly the right picture at `/og`: the farm's own
+map plate behind its name, in the house palette and display face. Generating an image per post
+would cost money per post, vary in quality, and make the feed look like a stock library rather
+than one press. `services/runware.ts` is gone, `RUNWARE_API_KEY` is no longer required, and
+`services/card.ts` just builds the URL.
+
+**`card.ts` validates the slug before it reaches a URL**, with the same
+`^[a-z0-9][a-z0-9-]{0,99}$` the card route enforces. A malformed slug is dropped rather than
+sent, so the daemon can never be the thing that feeds a traversal attempt to the route. Belt and
+braces: the route refuses it too.
+
+**Publishing is off by default and says so loudly.** `SOCIAL_PUBLISH` must be exactly `"true"`.
+This runs on a cron against live accounts, and the failure mode of a default-on misconfiguration
+is a public post that cannot be unsent. A dry run prints the exact payload instead, and
+`publishPost` returns it either way so it can be asserted.
+
+**An empty caption is refused** with `EmptyPostError` rather than posting a bare image. An empty
+caption means the copy step failed, not that there was nothing to say.
+
+**Platforms are `twitter` and `facebook` only, deliberately.** The 1.91:1 link card suits both.
+Pinterest wants 2:3 and Instagram 4:5, and posting a landscape card to either gets it letterboxed
+or cropped, so they stay off the list until the card route grows those formats. Overridable with
+`SOCIAL_PLATFORMS`.
+
+**A design fault found by the first test run.** `config.ts` called `env()` at module scope, so
+importing anything that touched config threw `Missing env: ANTHROPIC_API_KEY` before a line ran:
+the package was untestable without live secrets, and one missing variable crashed on import
+rather than erroring at the point of use. Converted to getters, which left every call site
+unchanged. The test count went from 7 to 10 purely because `ayrshare.test.ts` could finally be
+imported.
+
+**Files:** `src/services/card.ts` and `card.test.ts` (new), `src/services/ayrshare.ts` rewritten
+with `ayrshare.test.ts` (new), `src/config.ts`, `src/types.ts`, `src/index.ts`,
+`src/services/runware.ts` deleted, and a `test` script added. The package is committed to the
+repository for the first time; `node_modules`, `dist` and `.env*` are already ignored.
+
+**Verified:** `npx tsc --noEmit` exit 0. `npm test` **10 pass, 0 fail**. A dry run with dummy keys
+printed the full payload and posted nothing, and the empty-caption guard refused as expected. The
+exact URL the daemon builds was fetched and returned a 1200x630 card.
+
+**Deliberately still a stub: `getFarm`.** It returns null, so the pipeline exits early and the
+daemon cannot yet run end to end. Implementing it means giving this package database access,
+which is its own decision, and this slice was about the image and publish path. Said plainly
+rather than half-done.
+
+**Note on where this was committed from.** The shared checkout was on another session's branch
+with six files mid-edit, and switching it once already pulled that session's commit onto a brand
+branch. This slice was therefore committed from a throwaway `git worktree` on `brand/social-kit`,
+leaving the checkout untouched.
+
+**Risk and rollback.** Nothing posts without `SOCIAL_PUBLISH=true`, and the daemon cannot reach a
+farm yet, so this cannot act on its own. Reverting the commit removes the package from the
+repository and leaves it untracked as before.
