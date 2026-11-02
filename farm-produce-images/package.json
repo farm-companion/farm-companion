@@ -11,12 +11,12 @@
   "dependencies": {
     "@vercel/blob": "^2.0.1",
     "@vercel/kv": "^3.0.0",
-    "next": "16.2.6",
+    "next": "16.4.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "redis": "^5.8.2",
     "resend": "^6.0.1",
-    "zod": "^4.1.0"
+    "zod": "^4.6.6"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -31,8 +31,8 @@
   },
   "pnpm": {
     "overrides": {
-      "undici": ">=7.24.0",
-      "postcss": ">=8.5.10",
+      "undici": "^8.12.2",
+      "postcss": "^8.5.18",
       "minimatch@^3.0.0": "^3.1.4",
       "minimatch@^9.0.0 || ^10.0.0": "^9.0.7",
       "flatted": ">=3.4.2",
@@ -40,7 +40,11 @@
       "picomatch@^4.0.0": "^4.0.4",
       "brace-expansion@^1.0.0": "^1.1.13",
       "brace-expansion@^2.0.0": "^2.0.3",
-      "ajv@^6.0.0": "^6.14.0"
+      "ajv@^6.0.0": "^6.14.0",
+      "js-yaml": "^4.3.2",
+      "browserslist": "^4.28.7",
+      "nanoid": "^3.3.18",
+      "source-map-js": "^1.2.2"
     }
   }
 }

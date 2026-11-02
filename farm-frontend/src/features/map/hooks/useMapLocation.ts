@@ -18,7 +18,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 // already imports maplibre-gl at module scope, and is itself loaded through a
 // dynamic import with ssr:false.
 import { Marker } from 'maplibre-gl'
-import type { Map as MapLibreMap } from 'maplibre-gl'
+import type { GeoJSONSource, Map as MapLibreMap } from 'maplibre-gl'
 import { getApproximateLocation } from '@/lib/geocoding'
 
 export interface MapLocationState {
@@ -193,7 +193,7 @@ export function useMapLocation(
 
       if (map.getSource(sourceId)) {
         // Update existing source
-        const source = map.getSource(sourceId) as maplibregl.GeoJSONSource
+        const source = map.getSource(sourceId) as GeoJSONSource
         source.setData(circle)
       } else {
         // Add new source and layer

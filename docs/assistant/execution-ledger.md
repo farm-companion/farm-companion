@@ -4619,6 +4619,487 @@ twitter titles, which are not templated.
 **Remaining.** `admin/page.tsx` and `admin/documentation/layout.tsx` still double and stay named
 in `KNOWN_DOUBLED_NEXT_SLICE`. Both sit behind `/admin`, so no search engine sees either title.
 They were left out only to keep this slice inside the 8-file rule.
+### 2026-11-01 — Queue 1 Slice 1.1: Next.js RCE criticals cleared in farm-frontend (next 16.2.6 -> 16.4.1)
+
+**Audit first (the queue's premises were partly wrong).** Ran the real audits before touching anything:
+farm-frontend (pnpm) 151 vulns / 8 critical / 71 high; farm-produce-images (pnpm) 85 / 5 critical / 40
+high; twitter-workflow (npm) 14 / 0 critical / 11 high; farm-pipeline is a single pinned
+`crawl4ai==0.7.4`. Three corrections to CLAUDE.md Queue 1, recorded so nobody re-chases them:
+- **twitter-workflow has no `next` dependency at all** — the "critical Next.js vulnerabilities in
+  twitter-workflow" item cannot be actioned there. The Next.js criticals are in **farm-frontend** and
+  **farm-produce-images** (both were on 16.2.6).
+- **`undici` is not present in farm-frontend** (the lockfile hit is `@opentelemetry/instrumentation-undici@0.10.1`,
+  a different package) **nor in twitter-workflow**. Real undici exists only in farm-produce-images at 8.3.0.
+- **`farmcompanion-social` does not exist** on any branch; `farm-produce-images` is a 4th Next.js app the
+  queue never lists, and it carries 5 criticals of its own.
+
+**Slice outcome:** `next` 16.2.6 -> **16.4.1** in farm-frontend. 16.4.1 is the minimum version that clears
+*every* Next.js advisory at all severities (highest patched floor was `>=16.4.1`), so no major bump and no
+over-shooting to 16.4.3. Cleared 5 criticals (4x unauthenticated RCE: windows host, image-opt AVIF,
+image-opt SVG, `use cache`; plus RCE in next/og), 6 highs, 7 moderates, 1 low.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0, clean. `pnpm test:unit` **369 pass / 0 fail**
+(note: the 490 figure in the task brief does not match this branch's `src/**/*.test.ts` glob; 369 is the
+real baseline here). `pnpm build` -> `✓ Compiled successfully`, full route table emitted; the Prisma
+`DATABASE_URL` lines are the app's own expected no-DB build path, already handled in code.
+`pnpm audit` after: **next advisories 0** (was 19); package criticals 8 -> 3, remaining are `basic-ftp`
+(depth 7 under lighthouse, devDependency, not shipped), `dompurify`, `maplibre-gl`.
+
+**Risk/rollback:** Minor-version bump inside Next 16 with no source changes; typecheck, tests and build
+all pass. Rollback is reverting `farm-frontend/package.json` + `pnpm-lock.yaml` and re-running `pnpm install`.
+
+**Next:** Slice 1.2 — same `next` bump for farm-produce-images (its 5 criticals are all `next`).
+
+---
+
+### 2026-11-01 — Queue 1 Slice 1.2: Next.js criticals cleared in farm-produce-images (next 16.2.6 -> 16.4.1)
+
+**Outcome:** same minimum bump as Slice 1.1. farm-produce-images criticals **5 -> 0**; all `next`
+advisories gone (19 -> 0). Remaining there: 31 high, 23 moderate, 6 low, none of them `next`.
+
+**Verification (ran):** `pnpm audit` -> criticals NONE, next advisories 0. `pnpm build` ->
+`✓ Compiled successfully in 2.4s`.
+
+**Pre-existing blocker found, NOT introduced here and NOT fixed in this slice:** the build then fails
+type check with `src/lib/image-processing.ts(1,19): error TS2307: Cannot find module 'sharp'`. `sharp`
+is imported by that file but has never been declared in `farm-produce-images/package.json` — it is
+absent at HEAD too, so this pre-dates the bump and `next` has nothing to do with it. So this app's
+build is already broken on master. Declaring `sharp` is a one-line fix but it is Queue 2 work
+("Deployment stability / fix remaining build blockers") and it would pull sharp's own high advisories
+in, so it is left for the operator to approve rather than widened into a Queue 1 slice.
+
+**Risk/rollback:** Minor bump inside Next 16, no source changes. Rollback: revert
+`farm-produce-images/package.json` + `pnpm-lock.yaml`, re-run `pnpm install`.
+
+**Next:** Slice 1.3 — js-yaml 4.1.1 -> 4.3.2 across the three JS packages.
+
+---
+
+### 2026-11-01 — Queue 1 Slice 1.3: js-yaml 4.1.1 -> 4.3.2 in all three JS packages
+
+**Outcome:** js-yaml was 4.1.1 everywhere (vulnerable range 4.0.0-4.3.1, four high advisories: quadratic
+merge-key DoS x2, `!!omap` quadratic CPU, `maxTotalMergeKeys` bypass). It is transitive in every package,
+so it is fixed by override, not a direct bump: `js-yaml: "^4.3.2"` added to `pnpm.overrides` in
+farm-frontend and farm-produce-images, and to top-level `overrides` in twitter-workflow (npm).
+**js-yaml advisories now 0 / 0 / 0.**
+
+**Trap worth remembering:** the first attempt used `>=4.3.2`, which pnpm happily resolved to **js-yaml
+5.5.0** - a silent major jump that would have broken the 4.x consumers (cosmiconfig, configstore,
+@eslint/eslintrc all request ^4). Pinned to `^4.3.2` instead, which resolves to exactly 4.3.2. Use a
+caret-in-major range for override pins, never a bare `>=`.
+
+**Also noted while in these files (not changed in this slice):** farm-frontend's existing overrides
+contain `dompurify: ">=3.4.0"`, too loose to clear its own critical (needs >=3.4.17), and an
+`undici: ">=6.23.0"` entry that is a no-op because undici is not in that package's tree at all.
+farm-produce-images has `undici: ">=7.24.0"`, satisfied by the installed 8.3.0 yet still vulnerable
+(needs >=8.12.2).
+
+**Verification (ran, passed):** farm-frontend `npx tsc --noEmit` clean, `pnpm test:unit` 369 pass / 0
+fail, `pnpm build` `✓ Compiled successfully`. twitter-workflow `npm test` **8 pass / 0 fail**.
+js-yaml advisory count 0 in all three.
+
+**Pre-existing failure confirmed not caused here:** `npm run lint` in twitter-workflow fails with
+"ESLint couldn't find an eslint.config.(js|mjs|cjs) file" - the package has no flat config at all under
+ESLint 9. Reproduced identically with HEAD's package.json restored, so it pre-dates this slice. Left for
+Queue 2/6.
+
+**Risk/rollback:** Patch-level pin inside js-yaml 4.x; all consumers requested ^4 already. Rollback:
+drop the three `js-yaml` override entries and reinstall.
+
+**Next:** Slice 1.4 — undici confirmation and fix (Queue 1 item 3).
+
+---
+
+### 2026-11-01 — Queue 1 Slice 1.4: undici confirmed, and fixed where it actually exists
+
+**Confirmation asked for by Queue 1 item 3 — the honest answer:**
+- **farm-frontend: undici is NOT present.** The thing that looks like it in the lockfile is
+  `@opentelemetry/instrumentation-undici@0.10.1`, a different package that merely instruments undici.
+  farm-frontend's existing `pnpm.overrides` even carries `undici: ">=6.23.0"`, which is a **no-op**
+  against an empty match set. That stale override is very likely what made undici look like a
+  farm-frontend problem in the first place. Left in place (removing it changes nothing) but recorded
+  here so it is not re-chased.
+- **twitter-workflow: undici is NOT present.** No entry in package-lock.json at all.
+- **farm-produce-images: undici IS present and WAS vulnerable** at 8.3.0, with ~30 advisories across
+  four patch floors (>=8.5.0, >=8.9.0, >=8.10.2, >=8.12.2). The existing override `undici: ">=7.24.0"`
+  was satisfied by 8.3.0 and therefore did nothing useful.
+
+**Fix:** tightened farm-produce-images' override to `undici: "^8.12.2"`, resolving to **8.12.3** (the
+highest patch floor is >=8.12.2; stayed inside major 8, which the installed tree already used).
+**undici advisories 0.** Knock-on: that package's totals fell from 31 high / 23 moderate / 6 low to
+**18 high / 7 moderate / 1 low**.
+
+**Verification (ran):** `pnpm audit` undici advisories 0; `pnpm build` `✓ Compiled successfully`. The
+same pre-existing `sharp` type-check failure from Slice 1.2 still terminates that build and is still
+unrelated to this change.
+
+**Risk/rollback:** Patch-range move inside undici 8, which the tree was already on. Rollback: restore
+the `">=7.24.0"` value and reinstall.
+
+**Next:** Slice 1.5 — the secret-removal half of Queue 1 (see the finding below; it is not where the
+queue says it is).
+
+---
+
+### 2026-11-01 — Queue 1 Slice 1.5: live committed credentials removed from the working tree (ROTATION OWED)
+
+**The queue's last item was aimed at the wrong place, and the real exposure is much larger.**
+Queue 1 says "Remove hardcoded API key in farm-pipeline and switch to env var with docs". The current
+farm-pipeline is two files (`scrape_sidecar.py`, its test) plus a pinned `crawl4ai==0.7.4`, and it holds
+**no key at all** — the legacy Python pipeline that had one was retired in 71d40af. There was also
+nothing to "switch to an env var": every consumer already reads `process.env`. The actual problem was
+real credential *values* committed in config and documentation files.
+
+**What was exposed, in three tracked files on the default branch:**
+- `twitter-workflow/env.production` — 22 assigned keys, only 2 of them placeholders. Twitter OAuth 1.0a
+  (API key + secret, access token + secret), OAuth 2.0 client id + secret, DeepSeek key, Slack webhook,
+  `CRON_SECRET`. **Not gitignored.**
+- `docs/archive/INTEGRATION_STATUS.md` — a Redis URL *with password*, a Vercel Blob **read-write** token,
+  the DeepSeek key, and a Resend API key.
+- `twitter-workflow/TEST_DEEPSEEK.md` — the DeepSeek key, as a copy-paste example.
+
+**Why `env.production` slipped past .gitignore:** the ignore rules are `.env`, `.env.*`, `*.env`,
+`*.env.*`. A bare `env.production` matches none of them — `*.env` needs the name to *end* in `.env`.
+Added explicit `env.production` / `env.local` / `env.development` / `env.test` entries, with a comment
+saying why; `env.example` is deliberately not matched and stays committed.
+
+**Changes:** `env.production` untracked and deleted (it was a credential file wearing a template's name,
+and `env.example` already documented every secret-bearing key it had). Its only four unique keys —
+`NODE_ENV`, `VERCEL_ENV`, `DEBUG`, `MAINTENANCE_MODE`, none of them secrets — were folded into
+`env.example` so nothing was lost. The other two files had their values replaced with named placeholders.
+`PROJECT_OVERVIEW.md` and `PHASE3_COMPLETION_SUMMARY.md` were pointed away from the deleted file.
+
+**Verification (ran):** repo-wide sweep over `git ls-files` for `sk-[a-f0-9]{32}`, `re_…`,
+`vercel_blob_rw_…` and `redis://default:…@` now returns only `farm-frontend/scripts/validate-env.js`,
+whose matches are that validator's own documented example strings (`re_1234567890abcdef…`), not secrets.
+`git check-ignore` confirms `env.production` is ignored and `env.example` is not. `npm test` in
+twitter-workflow 8 pass / 0 fail. No tracked file references `env.production` as a file any more.
+
+**OPERATOR STEP STILL OWED — ROTATION. Deleting these from the working tree does NOT unexpose them.**
+The DeepSeek key `sk-eeaef6be…` is in git history from the first commit (e29cab6) and appears in ~16
+commits across all branches — including, ironically, one titled "SECURITY: Remove exposed secrets from
+version control", which re-added it. Anyone with repo access, or any fork/clone, still has all of these.
+**Every credential listed above must be rotated at its provider**: Twitter/X app keys and tokens,
+DeepSeek, Slack webhook, `CRON_SECRET`, Redis password, Vercel Blob read-write token, Resend. Treat the
+Blob read-write token and the Redis password as the most urgent (direct data write/read access). Not
+rotated here — rotation is operator-only and is deliberately not attempted by the assistant.
+
+**Risk/rollback:** Documentation and ignore-rule changes plus one deleted credential file; no runtime
+code touched, and the file was never read at runtime (all consumers use `process.env`). Rollback would
+re-expose secrets and is not advised; if the four extra keys are needed they are now in `env.example`.
+
+**Next:** Queue 1 is closed on its four named items. Remaining criticals in farm-frontend are
+`maplibre-gl` (needs a major, 5 -> 6.4.1, operator decision) and `dompurify` (override too loose);
+`basic-ftp` is dev-only under lighthouse.
+
+---
+
+### 2026-11-01 — Slice 1.6: remaining clearable criticals in farm-frontend (dompurify, basic-ftp)
+
+Both were already covered by existing `pnpm.overrides` entries that were simply too loose to reach the
+patched version — the overrides looked like protection while resolving to vulnerable builds.
+
+- **dompurify**: override said `">=3.4.0"`, resolving to **3.4.4**. The critical
+  (SAFE_FOR_TEMPLATES bypass: split template expressions survive in attached shadow roots) needs
+  **>=3.4.17**. Tightened to `^3.4.17`, resolving to 3.4.17 (the latest 3.4.x, same major).
+- **basic-ftp**: 5.1.0, path-traversal in `downloadToDir()`, needs **>=5.2.0**. Reached only at depth 7
+  under `lighthouse` (a devDependency), so never shipped to users — but 5.2.0+ exists inside major 5, so
+  it cost nothing to clear rather than argue about reachability. Override `^5.2.2` -> resolves 5.3.1.
+
+**farm-frontend criticals: 8 -> 1.** The one left is `maplibre-gl` (see below). Highs 71 -> 56,
+moderates 62 -> 45, lows 10 -> 3.
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean, `pnpm test:unit` **369 pass / 0 fail**,
+`pnpm build` `✓ Compiled successfully`.
+
+**Lesson for this repo:** four separate `>=`-style override entries across two packages
+(`dompurify >=3.4.0`, `undici >=6.23.0`, `undici >=7.24.0`, and the js-yaml attempt in Slice 1.3) were
+either no-ops or satisfied by still-vulnerable versions. A `>=` override pins nothing. Prefer
+`^<minimum patched>` and re-read the resolved version in the lockfile after every override change.
+
+**BLOCKED, needs an operator decision — maplibre-gl:** the remaining critical is an XSS sanitizer bypass
+in `DOM.sanitize()` via live NamedNodeMap removal, affecting **all of `<=6.4.0`**; patched only in
+**>=6.4.1**. farm-frontend is on `^5.16.0`, so there is **no fix inside major 5** — clearing it is a
+major upgrade 5 -> 6 of the map library in a map-first product, with public API changes. Not attempted
+unilaterally. Mitigation until then: maplibre's `DOM.sanitize()` is used for popup/marker HTML, so the
+exposure is bounded by whether any untrusted string reaches popup HTML; farm data is pipeline-controlled
+rather than user-submitted, which lowers but does not eliminate the risk.
+
+---
+
+### 2026-11-01 — Slice 1.7: every farm-frontend high with an in-major fix, cleared
+
+Catalogued all 23 high-severity packages by installed version, patched floor, dependency depth and
+whether the fix needs a major. Everything with a fix inside its current major was taken in one batch.
+
+**Four direct dependencies were themselves on vulnerable versions** (not transitive noise):
+`axios ^1.16.1 -> ^1.20.0`, `form-data ^4.0.5 -> ^4.0.6`, `sharp ^0.34.5 -> ^0.35.5`,
+`zod ^4.3.6 -> ^4.6.6`, plus devDependency `postcss ^8.5.6 -> ^8.5.18`. Worth noting the zod case:
+the *direct* dep was already on major 4 and still vulnerable (needed >=4.6.6) — the separate zod
+3.25.76 in the tree is a dev-only transitive copy via chromium-bidi, a different problem.
+
+**Thirteen transitive highs fixed by override** (all `^<minimum patched>`, all inside the installed
+major): @tiptap/core ^3.30.5, browserslist ^4.28.7, flatted ^3.4.2, follow-redirects ^1.16.2,
+ip-address ^10.3.1, linkify-it ^5.0.2, lodash-es ^4.18.0, markdown-it ^14.3.3, nanoid ^3.3.18,
+postcss ^8.5.18, prosemirror-view ^1.42.3, source-map-js ^1.2.2, tmp ^0.2.6. Three of these replaced
+loose `>=` entries that were resolving to vulnerable versions, same failure pattern as Slice 1.6.
+
+**farm-frontend now: 1 critical, 24 high, 21 moderate, 2 low** (from 8 / 71 / 62 / 10 at the start).
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean. `pnpm test:unit` **369 pass / 0 fail**.
+`pnpm build` `✓ Compiled successfully`. sharp was the one bump with real breakage risk (native binary,
+0.x minor), so it was smoke-tested directly beyond the suite: encode -> metadata roundtrip ->
+resize+webp all OK on 0.35.5. The `WARN Issues with peer dependencies` line seen during install is
+transient to the resolve step and does not reproduce on a settled tree.
+
+**Remaining highs (7 packages, 24 advisories) — all dev-only, none shipped to users:**
+| package | installed | needs | reachable via | why not fixed |
+|---|---|---|---|---|
+| basic-ftp | 5.3.1 | >=6.2.1 | lighthouse (depth 7) | needs major 6; dev-only |
+| brace-expansion | 1.1.12 | >=2.1.6 | eslint-config-next, @eslint/eslintrc | needs major 2; eslint chain pins ^1 |
+| extract-zip | 2.0.1 | *no patch exists* | lighthouse (depth 4) | **unfixable** — advisory has no patched version |
+| minimatch | 3.1.2 | >=9.0.7 | eslint-config-next, @eslint/eslintrc | needs major 9; eslint chain pins ^3 |
+| picomatch | 2.3.1 | >=4.0.4 | eslint-config-next | needs major 4; consumer pins ^2 |
+| ws | 7.5.10 | >=8.21.0 | @next/bundle-analyzer, lighthouse | needs major 8; dev-only |
+| zod | 3.25.76 | >=4.6.6 | chromium-bidi (puppeteer/lighthouse) | needs major 4; dev-only transitive |
+
+**Mitigation for all seven:** they are reachable only from `lighthouse`, `eslint`/`eslint-config-next`,
+`@next/bundle-analyzer` and `patch-package` — devDependencies that never enter a Vercel runtime bundle,
+so none is attacker-reachable in production. All are DoS/ReDoS or path-traversal classes that need
+hostile *local* input (a crafted glob, zip or lint config) to trigger. Forcing the majors would break
+the eslint and lighthouse chains that pin the old majors, for no production gain. Recommended real fix
+is upstream: move off `lighthouse` as a devDependency (it drags basic-ftp, extract-zip, ws, zod 3 and
+ip-address in at depth 4-7) and let `eslint-config-next` catch up on minimatch/brace-expansion/picomatch.
+
+**Risk/rollback:** All bumps stayed inside their current majors; typecheck, 369 tests, build and a sharp
+smoke test all pass. Rollback: revert package.json + pnpm-lock.yaml, `pnpm install`.
+
+---
+
+### 2026-11-01 — Slice 1.8: in-major highs cleared in farm-produce-images and twitter-workflow
+
+**farm-produce-images** — direct `zod ^4.1.0 -> ^4.6.6`, plus overrides `browserslist ^4.28.7`,
+`nanoid ^3.3.18`, `postcss ^8.5.18` (replacing another loose `>=8.5.10`), `source-map-js ^1.2.2`.
+Result: **0 critical, 10 high, 6 moderate, 1 low** (from 5 / 40 / 33 / 7 at the start). The only
+remaining high package is `brace-expansion` via `@eslint/eslintrc` / `eslint-config-next`, dev-only.
+Verified: `pnpm build` `✓ Compiled successfully` (then the same pre-existing `sharp` type-check failure
+from Slice 1.2, still untouched and still a Queue 2 item).
+
+**twitter-workflow** — direct `axios ^1.6.2 -> ^1.20.0` (resolves 1.21.0) and
+`form-data ^4.0.4 -> ^4.0.6`, plus overrides `flatted ^3.4.2` and two *range-scoped* pins,
+`brace-expansion@^1.0.0 -> ^1.1.14` and `minimatch@^3.0.0 -> ^3.1.4`. The range-scoped form matters:
+the eslint chain pins those packages to majors 1 and 3, so a plain `^2`/`^9` override would break it —
+but backports exist inside the old majors (resolved 1.1.21 and 3.1.5), which took brace-expansion out
+of high entirely and minimatch down to moderate. Highs **11 -> 5**.
+Verified: `npm test` **8 pass / 0 fail**; axios and form-data smoke-tested directly (client creation,
+`isAxiosError`, multipart header generation) since both are direct runtime deps.
+
+**twitter-workflow's 5 remaining highs are one root cause, and they are UNFIXABLE as things stand:**
+`zod`, and the four `@atproto/*` packages that depend on it. The zod advisory (memory exhaustion
+validating oversized constrained collections) is patched only in **>=4.6.6**, and **every** published
+`@atproto/api` — including the latest, 0.30.0, checked directly — pins `zod ^3.23.8`. So there is no
+version of this dependency tree that satisfies the advisory.
+**Note that `npm audit`'s own suggestion here is wrong:** it offers `@atproto/api@0.13.6` as the fix,
+which is a *downgrade* from the installed 0.16.7 and still on zod 3. Do not run `npm audit fix --force`
+in this package.
+**Mitigation:** zod is reached only through @atproto's lexicon validation of Bluesky API responses, so
+the hostile input would have to come from the Bluesky PDS the workflow talks to, not from user input;
+the workflow posts outbound and does not parse third-party-submitted payloads. Real fixes are to wait
+for @atproto to move to zod 4, or drop the Bluesky posting path (`@atproto/api`) if it is not earning
+its keep. Left in place deliberately.
+
+**twitter-workflow's 7 moderates** are entirely the eslint devDependency chain (eslint, @eslint/*,
+ajv, @humanfs/node, minimatch) — dev-only, not shipped. The count rose from 3 because minimatch moved
+*down* from high into a moderate advisory bucket once pinned to 3.1.5; that is an improvement, not a
+regression.
+
+---
+
+### 2026-11-01 — Slice 1.9: farm-pipeline Python deps (crawl4ai 0.7.4 -> 0.9.5), now fully clean
+
+**The Python side was never actually checked, and it was not clean.** `requirements.txt` is a single
+pinned line, which reads as safe, but `pip-audit -r requirements.txt` returned **30 advisories**:
+15 against `crawl4ai` 0.7.4 itself (patched across 0.8.7-0.9.0), 2 transitive `lxml` 5.4.0, and 13
+transitive `filelock` 3.32.7. Sampled severities from OSV to be sure they were not noise —
+PYSEC-2026-2138 is `CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H` (scope change, high across C/I/A,
+fixed in 0.9.0) and PYSEC-2026-588 is `C:H` (fixed in 0.8.9). Real, not theoretical.
+
+**Bumped `crawl4ai==0.7.4 -> ==0.9.5`** (latest; >=0.9.0 is the floor that clears all 15). pip-audit on
+the new requirement: **"No known vulnerabilities found"** — the lxml and filelock findings cleared too,
+because 0.9.5 pulls newer pins of both.
+
+**Compatibility checked before bumping, not after.** Installed 0.9.5 into a throwaway uv venv and
+probed every API `scrape_sidecar.py` actually touches: `AsyncWebCrawler(config=)` plus its async
+context manager, `BrowserConfig(headless=, user_agent=)`, `CrawlerRunConfig(page_timeout=)`,
+`crawler.arun(url=, config=)`, and the result fields `success`, `status_code`, `error_message`, `url`,
+`links`, `markdown`. All present. One false alarm worth recording: `markdown` is **not** in
+`CrawlResult.model_fields` in 0.9.5 — it is a `property` returning `str`, so probing `model_fields`
+reports it missing when it is fine. The sidecar reads it via `getattr` with an isinstance-str branch,
+so it works either way. That whole file is written defensively (`getattr` with fallbacks, isinstance
+guards, per-subpage try/except), which is why a 0.7 -> 0.9 move is low risk here.
+
+**Verification (ran, passed):** `uvx pip-audit -r requirements.txt` -> no known vulnerabilities.
+`python3 -m unittest scrape_sidecar_test -v` -> **5 tests, OK**. API probe above, all present.
+
+**Operator step owed before the next real scrape run:** the pinned Chromium must be re-fetched for the
+new version — `pip install -r requirements.txt` then `crawl4ai-setup`, as the comment at the top of
+`requirements.txt` already says. Nothing in this repo runs a crawl in CI, so nothing here will catch a
+missed setup step; the first live `scrape_sidecar.py` run would fail loudly on a missing browser.
+Unverified here on purpose: no end-to-end crawl was run (it needs that browser download plus live
+network), so the evidence above is API-level and unit-level, not a live fetch.
+
+**Risk/rollback:** Minor-series bump of a 0.x library, mitigated by the defensive result handling and
+the API probe. Rollback: restore `crawl4ai==0.7.4` in requirements.txt and re-run `crawl4ai-setup`.
+
+---
+
+### 2026-11-01 — Slice 1.10: reverted an unrelated tsconfig rewrite that `next build` made on its own
+
+While verifying Slice 1.2/1.8, `pnpm build` in farm-produce-images **silently rewrote
+`farm-produce-images/tsconfig.json`** — Next 16's own automatic tsconfig migration. It reformatted the
+file and made two real changes: `"jsx": "preserve"` -> `"jsx": "react-jsx"`, and added
+`.next/dev/types/**/*.ts` to `include`.
+
+Reverted to master's version. It is not a security change, the `jsx` switch is semantically meaningful,
+and it has no business riding along inside a security PR. **Expect it to reappear:** any `next build`
+in that package will re-apply it, so it should be accepted deliberately in its own change rather than
+fought. Flagged for Queue 2 (deployment stability) alongside the missing `sharp` declaration in the
+same package.
+
+---
+
+### 2026-11-02 — Slice 1.11: maplibre-gl v6 upgrade ATTEMPTED AND REVERTED (v6 breaks the map under Next 16)
+
+Operator approved the 5 -> 6 major to clear the last critical (XSS sanitizer bypass in `DOM.sanitize()`,
+`<=6.4.0`, patched >=6.4.1). **Attempted, proven broken at runtime, reverted.** farm-frontend stays on
+`maplibre-gl ^5.16.0`. The critical remains open with the mitigation already recorded in Slice 1.6.
+
+**The code changes themselves were trivial — only two lines.** Catalogued the whole API surface across
+the 8 files that import maplibre-gl (Map, Marker, AttributionControl, LngLatBounds, GeoJSONSource,
+StyleSpecification, ExpressionSpecification; no react-map-gl wrapper in between):
+1. `MapLibreShell.tsx:8` — v6 is ESM-only with no default export, so
+   `import maplibregl from 'maplibre-gl'` had to become `import * as maplibregl from 'maplibre-gl'`.
+   That one namespace import covers all 11 `maplibregl.X` usages, as both types and values.
+2. `useMapLocation.ts:196` — referenced `maplibregl.GeoJSONSource` **without importing `maplibregl` at
+   all**. It resolved only because v5's `maplibre-gl.d.ts` ends with `export as namespace maplibregl`,
+   a UMD global declaration. v6 drops the UMD build and that line with it, so the type needed a real
+   import. Worth knowing: any other file leaning on that implicit global would break the same way.
+
+With those two edits, `tsc --noEmit` was clean (4 errors -> 0; the two extra implicit-`any` errors were
+downstream of the broken import and resolved themselves), `pnpm test:unit` 369 pass, `pnpm build`
+compiled, and **farm-frontend criticals went to 0**.
+
+**And none of that caught the real problem.** v6 fails at runtime:
+`Worker failed to load. Check that the worker URL is correct.` plus
+`Failed to load module script: ...non-JavaScript MIME type of "text/html"`. v6 spawns its worker as an
+**ES module** resolved from `import.meta.url`, which Next 16 / Turbopack does not rewrite or emit, so
+the worker URL 404s to an HTML page. Typecheck and build cannot see this; only loading the map does.
+
+**How it was proven, since the first two attempts were worthless:**
+- A probe page rendering the real `MapShellAuto` with three hard-coded farms, so no DATABASE_URL was
+  needed (the live `/map` page bails to an error state without a DB and never mounts the map).
+- First tried `next start`, which **silently served stale output** — `next.config.ts` sets
+  `output: 'standalone'`, and `next start` warns it does not work with that. Both v5 and v6 produced
+  identical chunk hashes and identical errors there. **Those results were artefacts; disregard them.**
+  A CSP error about `tiles.openfreemap.org` seen in that run was part of the same artefact.
+- Redone properly on the dev server, same page, same server, one variable changed:
+  **v5.24.0 renders the map correctly** (vector tiles, labels, attribution, controls, zero worker
+  errors). **v6.16.0 throws "Worker failed to load" and the map does not render.** That is the control.
+
+**Workaround investigated and rejected for now.** The known community fix is to copy
+`maplibre-gl-worker.mjs` out of node_modules into `public/` and call `setWorkerUrl()` before the first
+Map. Tried both in-effect and at module scope: inconsistent — one arrangement rendered the map but
+still threw worker errors, the other stopped rendering entirely. (A red herring on the way: several
+write-ups say to copy `maplibre-gl-shared.mjs` too; in 6.16.0 that file is **0 bytes** and the worker
+is self-contained, so it is not the missing piece.) Not landed, because it is not a dependency bump at
+all — it means shipping a 519 KB vendored copy of a library internal into `public/`, plus a
+predev/prebuild step to keep it byte-identical to the installed version, with nothing to catch drift.
+It also touches `farm-frontend/public`, which is reserved right now for the in-flight brand work on
+`spec/region-first-verified-listings`.
+
+**Recommendation:** keep v5 until MapLibre or Next ships a clean resolution. The risk trade is poor —
+the advisory needs untrusted strings to reach popup/marker HTML, and farm data is pipeline-controlled,
+whereas the workaround risks a silently broken map on the product's core page. Re-test v6 after the
+next Next.js minor, or when `maplibre-gl` documents a supported Next/Turbopack worker setup.
+
+**Verification of the revert (ran, passed):** working tree byte-identical to HEAD (`git status` empty);
+`pnpm install --frozen-lockfile` restores maplibre-gl 5.16.0; `pnpm build` `✓ Compiled successfully`;
+`npx tsc --noEmit` clean; `pnpm test:unit` **369 pass / 0 fail**. One trap hit during this check: the
+first post-revert `tsc` failed on `.next/types/validator.ts` still referencing the deleted probe page —
+stale generated output, cleared with `rm -rf .next`, not a real failure.
+
+---
+
+### 2026-11-02 — Slice 1.12: maplibre-gl 5 -> 6 landed, last critical cleared (supersedes Slice 1.11)
+
+Slice 1.11 reverted this upgrade after the vendored-worker workaround behaved inconsistently. Operator
+asked for it to be done properly. **It is now in, verified in dev and in a standalone production build.
+farm-frontend criticals: 1 -> 0.** `maplibre-gl ^5.16.0 -> ^6.4.1` (resolves 6.16.0).
+
+**Slice 1.11 guessed; this slice read the code.** The decisive step was reading v6's own worker
+resolution out of `dist/maplibre-gl.mjs`:
+```js
+function el(){ let e=import.meta.url; if(!/^https?:/.test(e)) return ``;
+               return new URL(`./maplibre-gl-worker.mjs`, e).href }   // default
+async function al(){ let e = kn.WORKER_URL || el(); ... }             // WORKER_URL = setWorkerUrl()
+```
+So v6 resolves the worker **next to its own emitted chunk**, where Turbopack never writes it — the URL
+404s to HTML, hence `Worker failed to load` and `non-JavaScript MIME type of "text/html"`.
+`config.WORKER_URL` is checked first, so `setWorkerUrl()` is the supported override, not a hack.
+
+**Why 1.11's attempt looked flaky — a race, not a dead end.** It called `setWorkerUrl` from a `useEffect`
+on the probe page, which races the `dynamic()` import of MapLibreShell: sometimes the Map was built
+first with WORKER_URL still empty. Measured directly with the exported `getWorkerUrl()`:
+`before=[] after=[/maplibre-gl-worker.mjs]` — the call always worked, it just sometimes ran too late.
+The fix is ordering, so the call now lives in a side-effect module
+(`src/features/map/lib/maplibre-worker.ts`) that MapLibreShell imports **above** its own maplibre
+import, guaranteeing it runs at module-evaluation time, before any Map is constructed.
+
+**Two hypotheses checked and eliminated first, rather than assumed:**
+- **MIME type:** served the worker from `public/` as both `.mjs` and `.js` and curled them. Both come
+  back `application/javascript; charset=UTF-8`. Next serves `.mjs` correctly; not the problem.
+- **CSP:** `middleware.ts` already sets `worker-src 'self' blob:`. Same-origin workers were always
+  allowed; not the problem.
+
+**Code changes (2 lines, same as 1.11) plus the worker plumbing:**
+- `MapLibreShell.tsx` — v6 is ESM-only with no default export: `import * as maplibregl`.
+- `useMapLocation.ts` — referenced `maplibregl.GeoJSONSource` with **no import of `maplibregl`**; it
+  resolved only through `export as namespace maplibregl`, the UMD global in v5's d.ts that v6 drops.
+  Now a real `import type { GeoJSONSource }`.
+- `scripts/sync-maplibre-worker.mjs` — copies the worker out of node_modules into `public/` and writes a
+  `.version` stamp, resolving the path via `require.resolve('maplibre-gl/package.json')` rather than a
+  hard-coded node_modules path (pnpm's layout is not flat).
+- The sync is wired **into `dev` and `build` directly**, not as `predev`/`prebuild`: pnpm's
+  `enable-pre-post-scripts` default has moved between versions, and a missing worker fails at runtime
+  only, on the map only. Explicit `&&` removes that whole class of failure.
+- The copy is **gitignored, not committed** — it must track the installed version, and every dev/build
+  regenerates it. Verified by deleting it and building from clean: regenerated byte-identical
+  (`cmp` against node_modules). This also keeps a 519 KB generated file out of `farm-frontend/public`,
+  which the brand work owns.
+
+**Both deploy paths already carry it:** the Dockerfile copies `/app/public` wholesale (line 83) after
+building, and Vercel runs `pnpm build` (which now syncs) and serves `public/` natively.
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean; `pnpm test:unit` **507 pass / 0 fail**;
+`pnpm build` compiles from a clean `.next`; `pnpm audit` **criticals NONE** (was 1).
+*Dev:* map renders — vector tiles, labels, attribution, controls — **zero worker console messages**,
+matching the v5 baseline screenshot exactly; network shows `GET /maplibre-gl-worker.mjs`.
+*Production:* built standalone and ran `node .next/standalone/server.js` with the Dockerfile's own
+layout (`public/` and `.next/static` copied alongside, per its lines 83-85) — **no worker errors**, and
+the network log confirms `:3201/maplibre-gl-worker.mjs` served as `application/javascript`.
+Note `next start` still cannot be used to verify this repo (`output: 'standalone'`); use the standalone
+server, as here.
+
+**Pre-existing production bug found while verifying, NOT fixed here and NOT maplibre-related.** In the
+standalone run the map style request was blocked:
+`Connecting to 'https://tiles.openfreemap.org/styles/positron' violates ... connect-src`. The CSP in
+`middleware.ts` lists `tile.openstreetmap.org` and `*.stadiamaps.com` but **never
+`tiles.openfreemap.org`**, which is the keyless fallback the app uses when no Stadia key is set. So a
+production deploy without `STADIA` credentials gets a blank map on any maplibre version. It did not
+appear in dev. Left for the operator: either add `https://tiles.openfreemap.org` to `connect-src` (and
+`img-src`), or require a Stadia key in production. Because of this, the production check above proves
+the **worker** loads, not a full tile render; the full render is proven in dev.
+
 
 ---
 

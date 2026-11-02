@@ -26,11 +26,11 @@
   },
   "dependencies": {
     "@atproto/api": "^0.16.7",
-    "axios": "^1.6.2",
+    "axios": "^1.20.0",
     "date-fns": "^2.30.0",
     "date-fns-tz": "^2.0.0",
     "dotenv": "^16.3.1",
-    "form-data": "^4.0.4",
+    "form-data": "^4.0.6",
     "twitter-api-v2": "^1.15.2",
     "twitter-text": "^3.1.0"
   },
@@ -46,5 +46,11 @@
     "cron"
   ],
   "author": "Farm Companion Team",
-  "license": "MIT"
+  "license": "MIT",
+  "overrides": {
+    "js-yaml": "^4.3.2",
+    "flatted": "^3.4.2",
+    "brace-expansion@^1.0.0": "^1.1.14",
+    "minimatch@^3.0.0": "^3.1.4"
+  }
 }

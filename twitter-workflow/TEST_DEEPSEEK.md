@@ -10,7 +10,7 @@ cp env.example .env
 
 2. **Edit .env and add your DeepSeek API key**:
 ```bash
-DEEPSEEK_API_KEY=sk-eeaef6be7d6b45318b0c849beb9c4ebb
+DEEPSEEK_API_KEY=sk-your-deepseek-key-here
 ```
 
 3. **Run the DeepSeek test**:

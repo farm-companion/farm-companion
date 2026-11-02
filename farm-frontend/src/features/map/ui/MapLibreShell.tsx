@@ -5,7 +5,10 @@
 // lifecycle. Extraction of cluster + marker layers tracked as future slice.
 
 import { useEffect, useRef, useState, useCallback } from 'react'
-import maplibregl from 'maplibre-gl'
+// Side-effect import: points maplibre v6 at the worker we serve ourselves.
+// Must precede any Map construction. See that module for why.
+import '../lib/maplibre-worker'
+import * as maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import type { FarmShop } from '@/types/farm'
 import { useClusteredMarkers, type ClusterOrPoint } from '../hooks/useClusteredMarkers'
