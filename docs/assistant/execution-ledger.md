@@ -5250,3 +5250,51 @@ only meaningful next to the sweep it describes.
 **Risk/rollback:** The only production change is 86 rows' `uploadedBy` and `status`. Reversal SQL with
 the exact ids and prior values was captured before the UPDATE. Rolling back restores 86 approved heroes
 pointing at URLs that 404, so there is no reason to.
+
+---
+
+### 2026-11-02 — Geograph rows: the source was fine, the ranking key was wrong
+
+Revisits the "delete all 11,727" recommendation from the image estate audit. Full measurement:
+`docs/assistant/geograph-match-2026-11-02.md`.
+
+**The bug:** `src/scripts/pipeline/sources/geograph.ts` ranks Geograph candidates by metres from the
+farm coordinate. The syndicator response carries a photographer-written `title` and a `tags`
+taxonomy with a literal "Farm shop" category; `SyndicatorItem` declares `title` and `parseGeograph`
+reads neither. Friday Street Farm Shop therefore stored "Retro emporium" while "Friday Street Farm
+Shop" sat in the same response, two metres further away.
+
+**Gold set, committed:** 200 farms sampled by `md5(id)` in two halves of 100, 4,000 candidates, at
+`src/scripts/pipeline/fixtures/geograph-gold.json`. Labelled by viewing full-size photographs on
+contact sheets, not by reading titles. 19 of 200 farms (9.5%) have a photo that genuinely depicts
+the business.
+
+**Measured, and the held-out half earned its keep.** Naive token overlap matched 40% of farms and
+was wrong about 60% of those, attaching a police station to a chip shop. Matcher v1 scored 100% on
+the half it was written from and **71% on the held-out half**. Those four failures all had one
+shape, the title naming the business while the subject was an appurtenance, and produced two fixes:
+whole-word retail matching (substring had let "shop" match inside "Shopping Village") and an
+appurtenance rule. One label was corrected after viewing the photograph: Allington Farm Shop was
+marked negative from the picnic-shelter candidate when a photo of the shop itself existed.
+
+**Both halves are now tuned against, so the resulting 100% is not unbiased.** A third sample of 100
+is the first step of any follow-up, stated as such in the document.
+
+**Verification (ran, passed):** `npm run test:unit` **540 pass / 0 fail**, including 18 in
+`geograph-match.test.ts` which print per-sample precision and recall; `npx tsc --noEmit` clean;
+eslint clean. Files 258 and 249 lines, both under the soft limit. The fixture is 584K, which is
+large for the repo but is the evidence the numbers rest on.
+
+**Recommendation, not executed:** delete the 11,727 and re-run with `bestMatch` deciding admission.
+2,367 farms hold these rows, so 9.5% is roughly 225 farms gaining a genuine photograph. For scale,
+all 1,018 currently approved images are AI illustrations and the site has no real photography. Each
+candidate carries its own reason string, so review is under an hour for the whole directory, which
+is why the existing 11,727 were never reviewed and these could be.
+
+**Licence:** Geograph's own page confirms CC BY-SA 2.0 Generic. Our cc rows already populate
+attribution, sourceUrl and license, which the approved AI rows do not. ShareAlike needs a human
+decision: resizing to webp plausibly creates an Adaptation, which must then be offered under the
+same licence.
+
+**Risk/rollback:** Nothing written to the database and nothing wired into the pipeline. The matcher
+is a pure function; deleting the three new files reverts it entirely.
