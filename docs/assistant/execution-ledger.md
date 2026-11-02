@@ -5269,3 +5269,54 @@ delete `eslint.config.js` and revert the two package.json edits.
 
 **Next:** Slice 2.3 — fix what the lint now reports, starting with the const reassignment that breaks
 the duplicate-post guard.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.3: the two real bugs the broken lint had been hiding
+
+Slice 2.2 made `npm run lint` run for the first time. Two of its twelve findings were genuine defects,
+not style noise. Both are fixed here; the remaining ten are cosmetic and go in Slice 2.4.
+
+**Bug 1 — the duplicate-post guard threw on every call.** `src/lib/workflow-orchestrator.js`:
+```js
+const namespaced = `fc:tweeted:${today}`;
+if (key) namespaced += `:${key}`;   // TypeError: Assignment to constant variable
+```
+Both call sites pass a truthy key (`setWithLimitToday('post-${postNumber}', 1)` at line ~172 and
+`setWithLimitToday('daily', 2)` at line ~283), so the reassignment was unconditional. Fixed
+`const` -> `let`.
+
+**Why nobody noticed, precisely.** The function opens with
+`if (!KV_URL || !KV_TOKEN) return { enforced: false };`, and `UPSTASH_REDIS_REST_URL` /
+`UPSTASH_REDIS_REST_TOKEN` are **not set** in twitter-workflow's Vercel env (checked). So it returns
+early and never reaches the bug. Both call sites are also wrapped in `if (!isDryRun)`, so dry runs skip
+it entirely. The bug was therefore **latent**: it would have fired the first time anyone configured KV
+— that is, the moment they switched on duplicate-post protection, the code implementing it would have
+thrown. **Worth noting separately: because `enforced` is false today, the duplicate-post guard is
+currently inactive altogether** (`if (lock.enforced && !lock.created)` can never be true).
+
+**Bug 2 — a module that could not be parsed.** `src/scripts/test-deepseek-ogilvy.js:66` had
+`/[😀-🙏🌀-🗿]/` with no `u` flag. Without it the emojis are surrogate pairs, so the class forms an
+out-of-order implicit range and the file is a **SyntaxError at load**, breaking `npm run test:deepseek`
+outright. Rewritten as `/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}]/u`.
+
+**Also in workflow-orchestrator.js:** removed an unused `import axios` (axios is genuinely used in
+farm-selector, content-generator and monitoring, just not here, so the dependency stays), and dropped
+the unused `const expireResp =` binding while keeping the `await fetch(...)` for its side effect.
+
+**Verification (ran, passed) — each defect proved real before and fixed after, not just lint-silenced:**
+- Old regex in `node`: `SyntaxError: Invalid regular expression ... Range out of order`. New one
+  compiles and behaves: matches `'nice 😀'` -> true, `'no emoji here'` -> false.
+- `node --check src/scripts/test-deepseek-ogilvy.js` passes (it could not parse before).
+- Old const pattern reproduced in isolation: `TypeError: Assignment to constant variable.`
+  Fixed version returns `fc:tweeted:2026-11-02:daily`.
+- `npm test` **8 pass / 0 fail**. Lint findings **12 -> 8**.
+
+**Two checks that prevented bad fixes.** `getAltTextPrompt(farm)` and `generateFallbackAltText(farm)`
+both looked like bugs (take a farm, ignore it) but are correct by design — one returns a static prompt
+template, the other a deliberately generic fallback. They are renamed, not rewritten, in Slice 2.4.
+
+**Risk/rollback:** Three small edits in one file plus one regex literal; tests pass. Rollback: revert
+this commit.
+
+**Next:** Slice 2.4 — the eight remaining cosmetic unused-variable findings.
