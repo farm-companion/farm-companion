@@ -5099,3 +5099,44 @@ production deploy without `STADIA` credentials gets a blank map on any maplibre 
 appear in dev. Left for the operator: either add `https://tiles.openfreemap.org` to `connect-src` (and
 `img-src`), or require a Stadia key in production. Because of this, the production check above proves
 the **worker** loads, not a full tile render; the full render is proven in dev.
+
+---
+
+### 2026-11-02 — Slice 1.13: CSP allowed every tile host except the one the map actually falls back to
+
+Found while verifying Slice 1.12 in a standalone production build, fixed here on operator approval.
+**This was a live production bug, not a maplibre one, and it predates all of Queue 1.**
+
+**The bug:** `middleware.ts` builds `img-src` and `connect-src` with `tile.openstreetmap.org` and
+`*.stadiamaps.com`, but never `tiles.openfreemap.org` — which is the **keyless fallback style** the app
+uses whenever no Stadia key is configured. The style fetch itself is therefore blocked:
+`Connecting to 'https://tiles.openfreemap.org/styles/positron' violates ... connect-src`, and the map
+renders blank. Any deploy without Stadia credentials has a blank map, on any maplibre version. It never
+shows in `next dev`, which is why it survived.
+
+**Scoped from the style, not guessed.** Fetched `https://tiles.openfreemap.org/styles/positron` and read
+what it actually references: `glyphs` (`/fonts/{fontstack}/{range}.pbf`), `sprite`
+(`/sprites/ofm_f384/ofm`), a natural-earth raster source (`/natural_earth/ne2sr/{z}/{x}/{y}.png`) and the
+vector source (`/planet`). All four are on the **same single host**, so one exact entry in each list
+covers everything — `https://tiles.openfreemap.org` added to `img-src` (raster + sprite images) and
+`connect-src` (style JSON, vector tiles, glyphs, sprite JSON). No wildcard, no second host, nothing
+widened beyond the one origin that was already being requested and refused.
+
+**Verification (ran, passed):** rebuilt and ran the standalone server the Dockerfile's way. The served
+header now ends `connect-src ... https://api.stadiamaps.com https://tiles.openfreemap.org`, and the map
+**renders fully in the production build** — vector tiles, country labels, the three fixture markers over
+the UK, OpenFreeMap attribution, zoom/locate controls — with **no CSP console messages at all**. This is
+the first time the full tile render has been proven outside dev; Slice 1.12 could only prove the worker.
+Also `npx tsc --noEmit` clean, `pnpm test:unit` **507 pass / 0 fail**, `pnpm build` compiles.
+
+**Trap that nearly produced a false pass:** the standalone server from the earlier slice was still bound
+to :3201 two hours later, and `pkill -f "standalone/server.js"` does not match it because the process
+renames itself to `next-server (v16.4.1)`. The new server died with `EADDRINUSE` while the **old** one
+kept serving, so the first check showed the old CSP header and a 404 on the new route — which would have
+read as "the fix did nothing". Kill it by port (`lsof -ti tcp:3201 | xargs kill -9`) and confirm zero
+listeners before trusting any result from that port.
+
+**Risk/rollback:** Widens CSP by exactly one origin the app already requests; nothing else changes.
+Rollback: drop the two `tiles.openfreemap.org` lines. If the operator would rather tighten than widen,
+the alternative is to require a Stadia key in production and drop the keyless fallback — that is a
+product decision, not a security one, and is left open.
