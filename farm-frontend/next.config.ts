@@ -26,6 +26,30 @@ const headersCommon = [
 
 // Note: Geolocation is now allowed site-wide in headersCommon for map functionality
 
+// County slugs retired by scripts/normalise-county-names.sql, which merged the
+// five county names the directory held twice (a council's corporate name and
+// the county's own name counted as two counties) and dropped the council
+// suffix from three more. Permanent, because the old slug will never come
+// back: the name it came from no longer exists in the data.
+const countyMergeRedirects = [
+  ['argyll-and-bute-council', 'argyll-and-bute'],
+  ['bridgend-county-borough', 'bridgend'],
+  ['caerphilly-county-borough', 'caerphilly'],
+  ['durham', 'county-durham'],
+  ['east-ayrshire-council', 'east-ayrshire'],
+  ['east-dunbartonshire-council', 'east-dunbartonshire'],
+  ['merthyr-tydfil-county-borough', 'merthyr-tydfil'],
+  ['north-ayrshire-council', 'north-ayrshire'],
+  // Not a renaming like the rest: this borough held one farm while 15 other
+  // London farms sat under Greater London, so it is rolled up rather than
+  // kept as a county of its own.
+  ['richmond-upon-thames', 'greater-london'],
+].map(([from, to]) => ({
+  source: `/counties/${from}`,
+  destination: `/counties/${to}`,
+  permanent: true,
+}))
+
 const nextConfig: NextConfig = {
   // Dev-only: disable React Strict Mode's double-invoke, which trips
   // framer-motion's useScroll "target ref not hydrated" error and blanks
@@ -81,6 +105,7 @@ const nextConfig: NextConfig = {
         destination: 'https://www.farmcompanion.co.uk/:path*',
         permanent: true,
       },
+      ...countyMergeRedirects,
     ]
   },
   // Environment variables
@@ -93,7 +118,14 @@ const nextConfig: NextConfig = {
   },
   // Performance optimizations
   experimental: {
-    inlineCss: true,
+    // inlineCss shipped the whole Tailwind bundle in the document THREE times:
+    // once as a <style> in markup (267,105 B) and twice as byte-identical RSC
+    // flight rows (249,889 B each). 766,883 B per page, on every page, for one
+    // stylesheet. Brotli collapsed the duplicates so the transfer looked fine,
+    // which is why it hid: /counties was 2,002,148 B uncompressed but 198,736 B
+    // on the wire. Off, the CSS is one <link> the browser caches across
+    // navigations instead of re-parsing per page.
+    inlineCss: false,
     optimizePackageImports: [
       'lucide-react',
       'framer-motion',

@@ -7,6 +7,7 @@
 import { cache } from 'react'
 import {
   getAllCounties,
+  getCountyIndex,
   getFarmsByCounty,
   getCountyStats,
   getCountyHeroImageUrl,
@@ -17,6 +18,10 @@ import {
 
 export const getCachedAllCounties = cache(async () => {
   return getAllCounties()
+})
+
+export const getCachedCountyIndex = cache(async () => {
+  return getCountyIndex()
 })
 
 export const getCachedFarmsByCounty = cache(

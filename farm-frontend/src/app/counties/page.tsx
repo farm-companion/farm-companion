@@ -1,13 +1,11 @@
 import Link from 'next/link'
-import { slugifyCounty } from '@/lib/county-slug'
 import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
-import type { FarmShop } from '@/types/farm'
 import { SITE_URL } from '@/lib/site'
 import CountiesSearch from '@/components/CountiesSearch'
 import BackToTop from '@/components/BackToTop'
 import { CountyDensityBadge, CountyDensityLegend, UKCountyMap } from '@/components/counties'
-import { getFarmData } from '@/lib/farm-data'
+import { getCachedCountyIndex } from '@/lib/server-cache-counties'
 
 import type { Metadata } from 'next'
 
@@ -52,33 +50,9 @@ export const metadata: Metadata = {
   },
 }
 
-// Group farms by county
-function groupFarmsByCounty(farms: FarmShop[]) {
-  const grouped = farms.reduce((acc, farm) => {
-    // An absent county used to become 'Unknown County', whose link
-    // /counties/unknown-county 404s. Drop the farm from the grouping
-    // instead of inventing a destination for it.
-    const county = farm.location?.county
-    if (!county) return acc
-    if (!acc[county]) {
-      acc[county] = []
-    }
-    acc[county].push(farm)
-    return acc
-  }, {} as Record<string, FarmShop[]>)
-
-  // Sort counties alphabetically
-  return Object.keys(grouped)
-    .sort()
-    .reduce((acc, county) => {
-      acc[county] = grouped[county]
-      return acc
-    }, {} as Record<string, FarmShop[]>)
-}
-
 export default async function CountiesPage() {
-  const farms = await getFarmData()
-  const farmsByCounty = groupFarmsByCounty(farms)
+  const { counties, withoutCounty } = await getCachedCountyIndex()
+  const totalWithCounty = counties.reduce((sum, county) => sum + county.farmCount, 0)
 
   return (
     <main className="bg-paper">
@@ -153,13 +127,7 @@ export default async function CountiesPage() {
               <h2 className="text-heading font-semibold text-ink mb-4 text-center lg:text-left">
                 Explore by Region
               </h2>
-              <UKCountyMap
-                counties={Object.entries(farmsByCounty).map(([name, farms]) => ({
-                  name,
-                  slug: slugifyCounty(name),
-                  farmCount: farms.length,
-                }))}
-              />
+              <UKCountyMap counties={counties} />
               <p className="mt-4 text-small text-ink-muted text-center">
                 Click a region to explore
               </p>
@@ -170,7 +138,7 @@ export default async function CountiesPage() {
           <div className="lg:col-span-2">
             {/* Search Bar */}
             <div className="mb-6">
-              <CountiesSearch counties={Object.keys(farmsByCounty)} />
+              <CountiesSearch counties={counties.map((county) => county.name)} />
             </div>
 
             {/* Density Legend */}
@@ -178,45 +146,53 @@ export default async function CountiesPage() {
               <CountyDensityLegend />
             </div>
 
+            {/* One arrow for all 285 rows. A lucide <ArrowRight /> per row wrote
+                the whole 450-byte SVG out 285 times, in the markup and again in
+                the RSC payload. */}
+            <svg width="0" height="0" className="absolute" aria-hidden="true">
+              <symbol
+                id="county-row-arrow"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="M5 12h14" />
+                <path d="m12 5 7 7-7 7" />
+              </symbol>
+            </svg>
+
             {/* Counties List - Horizontal Cards for Readability */}
             <div className="space-y-3">
-              {Object.entries(farmsByCounty).map(([county, countyFarms]) => (
+              {counties.map((county) => (
                 <Link
-                  key={county}
-                  href={`/counties/${slugifyCounty(county)}`}
+                  key={county.slug}
+                  href={`/counties/${county.slug}`}
                   className="group block bg-surface rounded-[2px] border border-border p-4 sm:p-5 hover:border-border-strong transition-colors duration-200"
                 >
-                  {/* Mobile: Stacked | Desktop: Horizontal */}
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6">
-                    {/* County Name + Badge */}
-                    <div className="flex items-center gap-3 sm:min-w-[280px]">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Wraps rather than truncates: at 375px a single line
+                          cut "Comhairle nan Eilean Siar (Western Isles)" and
+                          four other counties off mid-name. */}
                       <h2 className="text-body font-semibold text-ink group-hover:text-brand transition-colors">
-                        {county}
+                        {county.name}
                       </h2>
-                      <CountyDensityBadge count={countyFarms.length} />
+                      <CountyDensityBadge count={county.farmCount} />
                     </div>
 
-                    {/* Farm Names - Hidden on mobile, shown on tablet+ */}
-                    <div className="hidden sm:flex flex-1 items-center gap-2 text-caption text-ink-muted overflow-hidden">
-                      {countyFarms.slice(0, 3).map((farm: { id: string; slug: string; name: string }, idx: number) => (
-                        <span key={farm.id} className="flex items-center">
-                          {idx > 0 && <span className="mx-2 text-ink-subtle">&middot;</span>}
-                          <span className="truncate max-w-[150px]">{farm.name}</span>
-                        </span>
-                      ))}
-                      {countyFarms.length > 3 && (
-                        <span className="text-ink-muted ml-1">+{countyFarms.length - 3} more</span>
-                      )}
-                    </div>
-
-                    {/* Mobile: Show farm count */}
-                    <div className="sm:hidden text-small text-ink-muted">
-                      {countyFarms.length} farm {countyFarms.length === 1 ? 'shop' : 'shops'}
-                    </div>
-
-                    {/* Arrow indicator */}
-                    <div className="hidden sm:flex items-center text-ink-muted group-hover:text-brand transition-colors">
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="text-small text-ink-muted">
+                        {county.farmCount} farm {county.farmCount === 1 ? 'shop' : 'shops'}
+                      </span>
+                      <svg
+                        className="w-4 h-4 text-ink-muted group-hover:text-brand group-hover:translate-x-1 transition-all"
+                        aria-hidden="true"
+                      >
+                        <use href="#county-row-arrow" />
+                      </svg>
                     </div>
                   </div>
                 </Link>
@@ -228,7 +204,16 @@ export default async function CountiesPage() {
         {/* Summary */}
         <div className="mt-12 text-center">
           <p className="text-ink-muted">
-            Found {Object.keys(farmsByCounty).length} counties with {farms.length} farm shops across the UK.
+            Found {counties.length} counties with {totalWithCounty} farm shops across the UK.
+            {withoutCounty > 0 && (
+              <>
+                {' '}
+                <Link href="/map" className="text-brand hover:underline">
+                  {withoutCounty} more
+                </Link>{' '}
+                have no county recorded and can only be found on the map.
+              </>
+            )}
           </p>
         </div>
       </div>

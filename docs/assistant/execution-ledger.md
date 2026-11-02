@@ -5158,3 +5158,146 @@ unreachable: every one is two clicks away.
 
 **Noted, not fixed.** The data holds both "Argyll and Bute" (2 farms) and "Argyll and Bute
 Council" (3), so at least one pair of counties is duplicated under two names.
+
+## Slice: the CSS was in every document three times, and 519 farms had no county
+
+**What was wrong, and why nobody saw it.** `/counties` was 2,002,148 bytes. `/shop`, fixed last
+slice to 1,140,866, still felt heavy, and the homepage was 901,008 bytes to render a hero and a
+few sections. The number that hid all of it is the transfer size: `/counties` went over the wire
+in 198,736 bytes. Brotli was collapsing the duplication, so every dashboard looked healthy.
+
+`experimental.inlineCss: true` in `next.config.ts` wrote each CSS chunk into the document **three
+times**:
+
+| copy | where | bytes |
+|---|---|---|
+| 1 | `<style>` in the markup | 267,105 |
+| 2 | RSC flight row `2` | 249,889 |
+| 3 | RSC flight row `2e`/`31`, byte-identical to row 2 | 249,889 |
+
+plus the `@font-face` block twice at 2,796 bytes each. **766,883 bytes per page, on every page,
+for one stylesheet.** There was no `<link rel="stylesheet">` at all, so the browser re-parsed the
+whole bundle on every navigation instead of reading it from cache once.
+
+This is the "drawn twice" that was noticed on `/shop`. It was not the page content: `Aberdeen
+City` appears exactly once in the markup and once in the flight payload, before and after. It
+was the stylesheet, and the font block, duplicated inside the RSC payload. Diagnosis was decoding
+the `self.__next_f.push([1,"..."])` chunks and looking for byte-identical rows; `/shop` had two
+such pairs, and now has none.
+
+**`inlineCss: false`. One line.**
+
+| page | before | after | document | wire |
+|---|---|---|---|---|
+| `/` | 901,008 | 91,059 | **-89.9%** | 139,855 -> 16,418 |
+| `/map` | 984,565 | 28,852 | **-97.1%** | 150,927 -> 6,267 |
+| `/shop` | 1,140,866 | 331,591 | **-70.9%** | 151,538 -> 28,225 |
+| `/counties/devon` | 1,036,115 | 228,486 | **-77.9%** | 153,935 -> 45,631 |
+| `/counties` | 2,002,148 | 724,650 | **-63.8%** | 198,736 -> 83,922 |
+
+**`/counties` needed three more things.** It called `getFarmData()` — all 3,504 farms with their
+images, descriptions and categories — to render 285 counts and 855 decorative farm names. It now
+calls `getCountyIndex()`, one `GROUP BY` returning `{name, slug, farmCount}` plus the count of
+farms no row can hold, the same contract `summariseByCounty` gives `/shop`. Then, per row:
+
+- the three-farm-name preview went (`hidden sm:flex`, so mobile never saw it anyway);
+- `CountyDensityBadge` was marked `'use client'` with no hooks and no handlers, making each of
+  the 285 rows its own flight boundary to render a span whose text is `count`;
+- its `className` was a multi-line template literal, shipping ~160 bytes of newlines and
+  indentation per badge, twice;
+- a lucide `<ArrowRight />` per row wrote the full 450-byte SVG 285 times, twice. One `<symbol>`
+  and 285 `<use href>` now.
+
+**Row markup: 3,424 -> 1,665 -> 929 bytes.**
+
+**Caught in the browser, not by reading.** The new single-line row truncated five county names at
+375px, "Comhairle nan Eilean Siar (Western Isles)" among them, because the old layout was stacked
+on mobile and gave the name the full width. The name wraps now. Rows are 60px tall at 375px, and
+the page has no horizontal scroll.
+
+**The county data itself.** Measured against production, not guessed:
+
+- **Five** county names were one place recorded twice, not the one that was noted last slice:
+  Argyll and Bute + Argyll and Bute Council, Bridgend + Bridgend County Borough, Caerphilly +
+  Caerphilly County Borough, County Durham + Durham, East Ayrshire + East Ayrshire Council. Each
+  pair split one county across two pages so both undercounted. Three more carried a council
+  suffix with no twin to merge with.
+- **519 farms had no county.** Only 174 carried a postcode, but all 519 carried coordinates, so
+  county came from a bulk reverse lookup against ONS data (api.postcodes.io, 2 km radius), taking
+  `admin_county` where there is one and `admin_district` where there is not — the rule that
+  produces the vocabulary already in the column. **496 of 519 resolved.** Accuracy, against the
+  171 farms that had both a postcode of their own and a lookup hit: **170/171 (99.4%)** agreed on
+  the postcode district, 111/171 on the full postcode. The one disagreement is Carmarthenshire
+  either way.
+- **Two of the leftovers were in the UK after all.** The first pass left 25. Rural Northern
+  Ireland has sparse postcode centroids, so two farms had nothing within the 2 km radius; a 20 km
+  search found them at 4.0 km and 4.4 km with the three nearest postcodes agreeing on the county
+  both times (Newry, Mourne and Down; Mid Ulster — both counties the data already holds). Worth
+  the second pass: the first pass would have filed two Northern Irish farms as foreign.
+- **The 23 that remain are not in the UK.** Coordinates put 7 on the Isle of Man (its own
+  postcode range, but outside ONS county data), 7 in the Republic of Ireland (one carries the
+  Eircode K67 HN70), and 9 in France, at positive longitudes between 1.03 and 1.78. That is a
+  data-quality question, not a backfill, so they were left alone and listed at the foot of the
+  backfill file.
+- **Raw ONS district names could not be imported as-is.** Doing so would have recreated the exact
+  duplication being cleaned: 10 London boroughs beside an existing "Greater London" (15 farms),
+  Bury and Wigan beside "Greater Manchester", "Herefordshire, County of" beside "Herefordshire",
+  "Isle of Anglesey" beside "Anglesey". They are rolled up in `scripts/county-rollup.json`.
+
+Net, once both files run: **285 distinct counties becomes 280**, farms indexed by county
+**2,985 -> 3,481**, farms visible only on the map **519 -> 23**.
+
+**Files:** `next.config.ts`, `src/app/counties/page.tsx`,
+`src/components/counties/CountyDensityBadge.tsx`, `src/lib/queries/counties.ts`,
+`src/lib/server-cache-counties.ts`, and four new files under `scripts/`:
+`normalise-county-names.sql`, `backfill-farm-counties.sql`, `rollback-farm-counties.sql`,
+`county-rollup.json`.
+
+**Verified:**
+- `pnpm build` exit 0; `npx tsc --noEmit` exit 0; `npm run test:unit` **513 pass, 0 fail**.
+- Byte counts above measured on a local production build against the same database, compared with
+  live production responses.
+- `/counties` serves 285 rows, 285 `<use>` references to one `<symbol>`, zero remaining full
+  lucide arrows in the list, zero whitespace runs left in a `className`.
+- At 375px: 285 rows, minimum row height 60.2px, zero truncated county names, `document.
+  documentElement.scrollWidth` 375 against a 375px viewport.
+- All three SQL files were run against production inside a transaction and **rolled back**:
+  normalise 9 rows -> 279 distinct counties, backfill 496 rows -> 280 distinct, 3,481 with a
+  county, 23 without, no row left ending in a council suffix; rollback 537 rows -> 519 without a
+  county and 285 distinct again.
+- Nine permanent redirects added for the retired county slugs, each checked against the slug
+  `slugifyCounty` actually produces for the name being retired.
+
+**Blocked on the operator.** The three SQL files are written, dry-run and reversible, but nothing
+has been committed to the database. `normalise-county-names.sql` must run before
+`backfill-farm-counties.sql`.
+
+**Noted, not fixed.** The data still holds "Manchester" (1 farm) beside "Greater Manchester" (14),
+"Newcastle Upon Tyne" (1) and "South Tyneside" (1) beside "Tyne and Wear" (8). Same class of
+problem as the five pairs above, but these are not exact duplicates and rolling them up is a
+vocabulary decision rather than a correction. 79 counties hold exactly one farm.
+
+### Both SQL files committed to production, 2026-11-02
+
+Run in order against the managed Postgres, each inside its own transaction, after confirming the
+live state still matched the snapshot `rollback-farm-counties.sql` was generated from (519 without
+a county, 285 distinct, 537 rows covered).
+
+- `normalise-county-names.sql`: **18 rows** across 9 statements. 285 -> **279** distinct counties,
+  no row left ending in a council suffix.
+- `backfill-farm-counties.sql`: **496 rows**. **3,481** farms with a county, **23** without,
+  **280** distinct. 3,481 + 23 = 3,504, the full active set.
+
+The five merged pairs, after: Argyll and Bute 5, Bridgend 5, Caerphilly 6, County Durham 25,
+East Ayrshire 9. All nine retired names return no rows. Greater London 15 -> 31, Anglesey 13 -> 17,
+Greater Manchester 14 -> 16, Herefordshire 10 -> 15, Newry Mourne and Down 17 -> 21.
+
+**Live on production already**, because `/counties` is `force-dynamic` and reads the database per
+request: it now lists 280 counties with no council-suffixed names.
+
+**Open, and it is a regression.** The nine permanent redirects are in `next.config.ts`, which is
+not deployed. The retired slugs — `/counties/durham`, `/counties/east-ayrshire-council`,
+`/counties/argyll-and-bute-council`, `/counties/richmond-upon-thames` and five more — now return
+**404** on production, where before they served a page. Running the data change ahead of the
+deploy is what opened the gap; deploying the branch closes it. Until then those nine URLs are
+dead rather than redirected.

@@ -19,6 +19,52 @@ import { pittiFarmImageUrl } from '@/data/pitti-farms'
 /**
  * Get all unique counties with farm counts
  */
+export interface CountyIndex {
+  counties: { name: string; slug: string; farmCount: number }[]
+  /**
+   * Active farms with no county recorded. They get no row, because
+   * /counties/unknown-county 404s and a row would be a link to nothing, but a
+   * page that indexes 2,985 farms while its stat line claims 3,504 is lying to
+   * the reader. All of them carry coordinates, so /map is where they can be
+   * found. Same contract as summariseByCounty on /shop, so the two agree.
+   */
+  withoutCounty: number
+}
+
+/**
+ * One row per county plus the count of farms no row can hold, from a single
+ * GROUP BY.
+ *
+ * /counties used to call getFarmData() and group in JS: 3,504 farms with their
+ * images, descriptions and categories loaded to render 285 counts. The counts
+ * are what the page shows, so the database does the counting.
+ */
+export async function getCountyIndex(): Promise<CountyIndex> {
+  try {
+    const groups = await prisma.farm.groupBy({
+      by: ['county'],
+      where: { status: 'active' },
+      _count: { id: true },
+      orderBy: { county: 'asc' },
+    })
+
+    const counties: CountyIndex['counties'] = []
+    let withoutCounty = 0
+    for (const group of groups) {
+      const name = group.county?.trim()
+      if (!name) {
+        withoutCounty += group._count.id
+        continue
+      }
+      counties.push({ name, slug: slugifyCounty(name), farmCount: group._count.id })
+    }
+    return { counties, withoutCounty }
+  } catch (error) {
+    console.warn(`[counties] getCountyIndex failed (expected during build without DB): ${error}`)
+    return { counties: [], withoutCounty: 0 }
+  }
+}
+
 export async function getAllCounties() {
   try {
     const counties = await prisma.farm.groupBy({

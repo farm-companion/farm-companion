@@ -1,10 +1,12 @@
-'use client'
-
 /**
  * CountyDensityBadge Component
  *
  * Shows shop count with visual weight based on density.
  * Higher counts get more prominent, vibrant styling.
+ *
+ * Server component: no hooks, no handlers. It was marked 'use client',
+ * which made each of the 285 rows on /counties its own flight row and
+ * shipped its JS, to render a span whose text is a function of `count`.
  *
  * Design System Compliance:
  * - Spacing: 8px grid (px-2 = 8px, px-3 = 12px)
@@ -101,12 +103,19 @@ export function CountyDensityBadge({
   // Compact variant: just the count with visual weight
   return (
     <span
-      className={`
-        inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-full
-        text-small font-semibold transition-all
-        ${config.bgClass} ${config.textClass} ${config.ringClass}
-        ${className}
-      `}
+      // Joined rather than a multi-line template literal: the template shipped
+      // its newlines and indentation verbatim, ~160 bytes of whitespace per
+      // badge, and /counties renders 285 of them in markup and again in the
+      // RSC payload.
+      className={[
+        'inline-flex items-center justify-center min-w-[2rem] px-2 py-1 rounded-full text-small font-semibold transition-all',
+        config.bgClass,
+        config.textClass,
+        config.ringClass,
+        className,
+      ]
+        .filter(Boolean)
+        .join(' ')}
       title={`${count} farm ${count === 1 ? 'shop' : 'shops'} - ${config.label}`}
     >
       {count}
