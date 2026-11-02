@@ -5512,3 +5512,30 @@ for the matcher to be wired; that is an operator call, not a silent edit.
 **Risk/rollback:** The rows are not backed up and do not need to be, being reconstructible by
 re-running stages 05 and 07 against the syndicator. Do not re-run before `geograph-match.ts` is
 wired into `sources/geograph.ts`, or the same distance-ranked rows come straight back.
+
+---
+
+## 2026-11-02 — Slice 1.14b: the attributions page no longer credits Geograph
+
+**Operator decision: remove it.** The Geograph bullet under Photography is gone from
+`src/app/data-attributions/page.tsx`. With zero Geograph rows in the database the sentence had
+become false, and it sat on a licensing page.
+
+**What the check turned up next, which is worse than the sentence.** The surviving 1,104 image rows
+break down as 1,018 `ai_apothecary` approved and 86 `ai_generator` rejected, all `source = 'upload'`,
+and **not one row carries an attribution value**. So the directory currently holds no photographs at
+all. Two consequences:
+
+1. The remaining Photography bullet, crediting Wikimedia Commons, is unbacked for the same reason
+   the Geograph one was. `fetchWikimedia` is still wired into stage 05, so it is forward-looking
+   rather than wrong, but nothing it claims is on the site today. Left in place pending a decision.
+2. The page says "photographs" throughout while every approved image is an Apothecary illustration.
+   Whether an attributions page should disclose that is a policy question, not a typo, so it is
+   recorded here rather than silently rewritten.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0, zero `error TS`; `npx eslint` on the
+edited file exit 0. Grep confirms this page was the only reader-facing Geograph or Wikimedia credit
+in `src/app`, `src/components`, `src/lib` and `src/data` — the other `geograph` hits are the word
+"geography" in `best-lists.ts` curriculum prose and `geographic` in query code.
+
+**Risk/rollback:** One `<li>` deleted from a static page; revert the commit to restore it.

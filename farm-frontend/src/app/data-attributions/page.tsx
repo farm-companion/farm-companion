@@ -33,11 +33,6 @@ export default function DataAttributionsPage() {
       <h2>Photography</h2>
       <ul>
         <li>
-          Some place photographs are sourced from{' '}
-          <a href="https://www.geograph.org.uk/">Geograph Britain and Ireland</a>{' '}
-          under CC BY-SA 2.0; the photographer is credited on each image.
-        </li>
-        <li>
           Some photographs are sourced from{' '}
           <a href="https://commons.wikimedia.org/">Wikimedia Commons</a> under
           their respective Creative Commons or public-domain licences, credited
