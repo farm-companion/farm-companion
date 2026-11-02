@@ -5198,3 +5198,55 @@ listeners before trusting any result from that port.
 Rollback: drop the two `tiles.openfreemap.org` lines. If the operator would rather tighten than widen,
 the alternative is to require a Stadia key in production and drop the keyless fallback — that is a
 product decision, not a security one, and is left open.
+
+---
+
+### 2026-11-02 — Image estate: 86 farm pages were serving 404 heroes, and the fix was data
+
+Found by measuring the estate rather than reading the schema. Full findings and the two open
+operator decisions: `docs/assistant/image-estate-audit-2026-11-02.md`.
+
+**The bug:** `scripts/generate-farm-images-direct.ts` generated 86 farm images through the Runware
+API on 2026-02-01, labelled them `uploadedBy: 'admin'` and kept the generator's own CDN URL as the
+permanent `url`. The bytes were never downloaded. Two defects from one mistake: `'admin'` is a
+real-photograph label, so `selectFarmHeroImage` promoted all 86 to the `/shop/[slug]` hero as
+`style: 'photo'` (the imagery law exists to forbid exactly that claim about an AI illustration), and
+Runware later evicted the files, so every one of those heroes returned 404. Verified live on
+`/shop/cw-shenton-farm-shop` and `/shop/honeydale-farm-tea-rooms` before the fix.
+
+**No application code changed.** The ponytail ladder removed the code fix entirely: the imagery law
+already excludes AI labels, the typographic hero already exists, and `ai_generator` is already tested
+as ignored. The rows were simply mislabelled. `scripts/backfill-runware-uploaded-by.ts` relabels them
+`ai_generator` and rejects them, matching on the CDN host rather than on `uploadedBy` so a re-run
+cannot touch a genuine admin photograph.
+
+**Verification (ran, passed):** liveness sweep before, 1,104 approved, 1,018 ok, 86 dead, all 86 the
+only hot-linked approved rows in the table. After, 1,018 approved, 1,018 ok, zero hot-linked, exit 0.
+Both live pages now render the typographic hero with no image host referenced. `npx tsc --noEmit`
+clean, `npm run test:unit` **532 pass / 0 fail**, eslint clean on all four files.
+
+**Instrument added:** `scripts/audit-image-liveness.ts`, which probes every row and exits 1 when an
+approved row fails, so it can gate a deploy. Its host rule lives in `src/lib/image-host.ts` with 10
+unit tests, including lookalike domains. Scopes other than `approved` hit geograph.org.uk, a free
+community service, so they require `--i-mean-it` and are rate limited.
+
+**A gate that cried wolf, fixed:** the first clean run reported 2 dead rows on our own object store.
+Both were transient 504s and answered 200 on retry. The sweep now retries 5xx and socket errors three
+times before calling a row dead. A gate that fires on a blip gets ignored, which is how the 86 went
+unnoticed for nine months.
+
+**Open for the operator, not executed:** delete the 11,727 pending Geograph rows (a 40-row sample
+found 1 that depicts its business, and several that depict a *different named business*, for example
+"Torvaig House Hotel" attached to Cnoc Deer Larder), and delete the `farm-photos` Vercel project (no
+source anywhere, still publicly serving a 431-day-old build with the leaked credentials compiled in).
+
+**Follow-up noted, not actioned:** no public photo submission route exists and
+`sendPhotoSubmissionReceipt` has no callers, so the pending/approved/rejected workflow has no way in.
+
+**File size:** `scripts/audit-image-liveness.ts` is 340 lines, past the 300 soft limit. Advisory only
+under the file size rules; noted here rather than split, since the reporting block it would shed is
+only meaningful next to the sweep it describes.
+
+**Risk/rollback:** The only production change is 86 rows' `uploadedBy` and `status`. Reversal SQL with
+the exact ids and prior values was captured before the UPDATE. Rolling back restores 86 approved heroes
+pointing at URLs that 404, so there is no reason to.
