@@ -69,12 +69,57 @@ the shop, with its barrel roof, signage and car park. The label was wrong, not
 the matcher, and it was changed on the evidence of the photograph.
 
 **Both halves have now been tuned against, so the 100% is not an unbiased
-estimate.** A third sample of 100 is needed before this is trusted at full
-scale. That is the first task in the recommendation below, not an afterthought.
+estimate.** A third sample was therefore run, below.
 
 A second limit worth stating: farms whose candidates carried no title signal
 were labelled negative without viewing the images. A photograph that depicts a
 shop without naming it would be missed, and the measurement cannot see it.
+
+## Sample three: the unbiased number
+
+100 further farms, sampled at offset 200 by the same `md5(id)` ordering, with
+zero overlap against the first two. The matcher was frozen before the sample
+was drawn and **has not been changed since**, which is the only thing that
+makes the result worth anything.
+
+- **4 hits in 100 farms.** Samples one and two gave 8 and 14.
+- **3 of the 4 are genuine**, verified by viewing the photographs: Cassie's
+  Bakes (shopfront with signage), Chadbury Farm Shop (the building), Lower
+  Clopton Farm Shop (the building and its courtyard).
+- **Precision 75%.** With four hits the confidence interval is very wide;
+  treat this as "somewhere well short of perfect", not as 75% exactly.
+
+The failure is instructive and is mine. "Nursery - Vine House Farm" is a field
+of young trees, a growing nursery rather than a retail one. When the held-out
+sample showed "vineyard" naming a field I removed that one word instead of
+recognising the class, and "nursery" has exactly the same ambiguity.
+
+### Recall
+
+23 farms had every distinctive name token present in some candidate and were
+still rejected. Most are correct: roads, gatehouses, a water tower, a
+plantation. Two look like real recall losses:
+
+- **Usk Boarding Kennels and Cattery** matched "Usk Boarding Kennels &
+  Cattery, Lla..." exactly and was rejected because "kennels" and "cattery"
+  are not in the retail list.
+- **Carmichael Farm Shop** matched "Carmichael Visitor Centre", which may well
+  be the premises.
+
+So the retail list is too short at one end and too loose at the other.
+
+### What this does to the estimate
+
+Across all 300 farms the match rate is 7.7%, not 9.5%, and it varies a lot by
+sample (4%, 8%, 14%). Against 2,367 farms holding Geograph rows that is about
+**180 candidates, of which roughly 135 would be genuine** at the measured
+precision. Lower than the 225 estimated from the first two samples.
+
+That is still worth having. It reduces 2,367 farms to 180 rows a human can
+clear in well under an hour, and it would give the site its first real
+photographs. But the matcher needs at least one more iteration, and the rule
+that matters is that **every iteration costs a fresh sample**. Tuning on
+sample three and then quoting sample three is how the 100% above happened.
 
 ## Recommendation: option (b), delete and re-run
 
@@ -97,7 +142,10 @@ reviewing them was never under an hour, and never worth it.
 
 Steps, in order:
 
-1. Validate on a fresh third sample of 100 farms before anything is written.
+1. Fix the two faults sample three exposed: generalise the "names a field,
+   not a shop" class beyond vineyard and nursery, and extend the retail list
+   to cover kennels, cattery, visitor centre and similar. Then validate on a
+   fourth sample. Do not quote a number from a sample you tuned on.
 2. Delete the 11,727 existing rows. They are 120x120 thumbnails chosen by
    proximity and none of them should survive.
 3. Re-run with `bestMatch` deciding admission, storing the Geograph title in

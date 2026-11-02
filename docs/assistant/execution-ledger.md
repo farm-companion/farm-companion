@@ -5278,7 +5278,18 @@ appurtenance rule. One label was corrected after viewing the photograph: Allingt
 marked negative from the picnic-shelter candidate when a photo of the shop itself existed.
 
 **Both halves are now tuned against, so the resulting 100% is not unbiased.** A third sample of 100
-is the first step of any follow-up, stated as such in the document.
+was therefore run, at offset 200 with zero overlap, with the matcher frozen beforehand and unchanged
+since. Result: **4 hits in 100 farms, 3 of them genuine, precision 75%** on a sample small enough
+that the interval is very wide. The one failure is mine: "Nursery - Vine House Farm" is a field of
+young trees. When the held-out sample showed "vineyard" naming a field I removed that single word
+instead of recognising the class, and "nursery" carries the same ambiguity. Recall also has a hole:
+"Usk Boarding Kennels and Cattery" matched its own name exactly and was rejected because kennels and
+cattery are not retail words.
+
+**Revised estimate.** Match rate across all 300 farms is 7.7%, not 9.5%, and varies by sample (4%,
+8%, 14%). Against 2,367 farms that is roughly 180 candidates and about 135 genuine, down from the
+225 estimated on two samples. Still worth doing, and still under an hour of review, but the matcher
+needs another iteration and every iteration costs a fresh sample.
 
 **Verification (ran, passed):** `npm run test:unit` **540 pass / 0 fail**, including 18 in
 `geograph-match.test.ts` which print per-sample precision and recall; `npx tsc --noEmit` clean;
