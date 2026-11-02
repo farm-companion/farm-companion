@@ -24,6 +24,10 @@ function cspFor(req: NextRequest) {
     'https://*.tile.openstreetmap.org',
     'https://tiles.stadiamaps.com',
     'https://*.stadiamaps.com',
+    // OpenFreeMap: the keyless fallback style used when no Stadia key is set.
+    // Serves vector tiles, natural-earth raster, glyph .pbf fonts and sprites,
+    // all from this one host.
+    'https://tiles.openfreemap.org',
     // Leaflet marker icons CDN
     'https://unpkg.com',
     // Runware AI-generated images
@@ -40,6 +44,9 @@ function cspFor(req: NextRequest) {
     'https://tiles.stadiamaps.com',
     'https://*.stadiamaps.com',
     'https://api.stadiamaps.com',
+    // OpenFreeMap: keyless fallback. Without this the map is blank in any
+    // deploy that has no Stadia key, because the style fetch itself is blocked.
+    'https://tiles.openfreemap.org',
   ]
   const frame = ["'self'", 'https://vercel.live']
   const script = ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://vercel.live']

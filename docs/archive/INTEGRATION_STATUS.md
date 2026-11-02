@@ -83,10 +83,10 @@ Database Keys:
 
 ### **farm-produce-images (.env.local):**
 ```bash
-REDIS_URL="redis://default:1wt4B87s2SI1kAwF3QeRGgVYFMvk2pxT@redis-18188.c59.eu-west-1-2.ec2.redns.redis-cloud.com:18188"
-BLOB_READ_WRITE_TOKEN="vercel_blob_rw_nIvsGpGSWQew7kXf_33CTSOguQZ4xKute4l3gV7f03JUgcn"
-DEEPSEEK_API_KEY="sk-eeaef6be7d6b45318b0c849beb9c4ebb"
-RESEND_API_KEY="re_XbnEdfAK_HfYi1iWJyZ4ywvrzP59SjFfj"
+REDIS_URL="redis://default:<REDIS_PASSWORD>@<REDIS_HOST>:<PORT>"
+BLOB_READ_WRITE_TOKEN="<BLOB_READ_WRITE_TOKEN>"
+DEEPSEEK_API_KEY="<DEEPSEEK_API_KEY>"
+RESEND_API_KEY="<RESEND_API_KEY>"
 ```
 
 ### **farm-frontend Integration:**
