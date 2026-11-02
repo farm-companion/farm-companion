@@ -5250,3 +5250,39 @@ only meaningful next to the sweep it describes.
 **Risk/rollback:** The only production change is 86 rows' `uploadedBy` and `status`. Reversal SQL with
 the exact ids and prior values was captured before the UPDATE. Rolling back restores 86 approved heroes
 pointing at URLs that 404, so there is no reason to.
+
+---
+
+### 2026-11-02 — Retired the `farm-photos` Vercel project
+
+Operator approved the deletion recommended in `docs/assistant/image-estate-audit-2026-11-02.md`.
+The project had no source anywhere (not in the GitHub org, and both local directories empty), was
+still publicly serving a 431-day-old build with leaked credentials compiled into it, and could not
+be redeployed because Vercel blocks it for a vulnerable Next.js. Deletion was the only action that
+could retire it.
+
+**Read off before deleting.** Its six variables were pulled and fingerprinted. Four were duplicates
+of farm-frontend's: `BLOB_READ_WRITE_TOKEN` (`dfd35736`, the *new* rotated token, so nothing was
+pinned to the expired one in config), `DEEPSEEK_API_KEY` (`d9b6d16f`, identical, still needs
+rotating), `REDIS_URL` (`b2fc41f0`, a Redis Cloud DB deleted in June 2026). Only `RESEND_API_KEY`
+(`29ba5078`) was unique to it. No custom domain, no alias, no integration resources.
+
+**What this did not do.** It retired a publicly reachable zombie service and one stored copy of the
+old Resend key. It retired no credential outright: the DeepSeek key still lives in farm-frontend, and
+the old Resend key still works until it is removed in the Resend dashboard, which remains the open
+step. The `farm-photos-kv` Redis marketplace resource is linked to **farm-frontend**, not to this
+project, so it survived and is still to be cleaned up.
+
+**Verification (ran, passed):** `vercel project ls` no longer lists farm-photos;
+`farm-photos-abdur-rahman-morris-projects.vercel.app` returns 404 where it returned 200;
+`www.farmcompanion.co.uk` and a shop page both still return 200.
+
+**Handling note.** The pulled env files were shredded from the scratchpad afterwards, and the
+scratchpad was grepped to confirm no plaintext credential remained. One slip worth recording: a
+redaction pattern failed and printed the old Resend key in full to the session transcript. It was
+already a publicly leaked key pending deletion, so nothing new was exposed, but it raises the
+priority of removing it in Resend.
+
+**Risk/rollback:** Not reversible. A Vercel project delete is permanent, including its deployments
+and build logs. Nothing depended on them: no source, no custom domain, and the live frontend has not
+referenced the service since photos moved to the Prisma `Image` model and `blob-adapter.ts`.

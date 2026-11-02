@@ -89,9 +89,11 @@ proximity signal that should not admit anything.
 
 Not executed. Deleting 11,727 production rows is the operator's call.
 
-## Decision 2: delete the `farm-photos` Vercel project
+## Decision 2: delete the `farm-photos` Vercel project — DONE 2026-11-02
 
-**Recommendation: delete it.** It cannot be fixed, only removed.
+**Recommendation was: delete it.** It could not be fixed, only removed. The operator
+approved and the project was deleted the same day. See the closing note below
+for what it did and did not retire.
 
 - No source exists. The GitHub org holds six repositories and none is
   `farm-photos`. Both local copies, `farm-photos/` and
@@ -107,11 +109,30 @@ Nothing in the live frontend references it: the photo feature moved to the
 Prisma `Image` model and `blob-adapter.ts`. Deleting the project is the only
 action that actually retires those credentials.
 
-What would be lost: the 431-day-old deployment and its build logs. The Vercel
-project also holds environment variables, which should be read off before
-deletion in case any value is not recorded elsewhere.
+### What it actually retired
 
-Not executed. Deleting a Vercel project is the operator's call.
+Its six variables were read off and fingerprinted before deletion. Most were
+duplicates, so the deletion retires less than it appears to:
+
+| Variable | Fingerprint | Also held by | Retired? |
+|---|---|---|---|
+| `BLOB_READ_WRITE_TOKEN` | `dfd35736` | farm-frontend | no, and this is the *new* rotated token |
+| `DEEPSEEK_API_KEY` | `d9b6d16f` | farm-frontend | no, identical key, still needs rotating |
+| `REDIS_URL` | `b2fc41f0` | farm-frontend | no, and the Redis Cloud DB was deleted in June 2026 |
+| `RESEND_API_KEY` | `29ba5078` | nowhere else | one copy gone, but the key still works until it is deleted in Resend |
+| `FARM_PHOTOS_API_URL`, `NEXT_PUBLIC_SITE_URL` | n/a | n/a | not credentials |
+
+So the deletion removes a publicly reachable 431-day-old service and one stored
+copy of the old Resend key. It does **not** retire any credential on its own:
+the DeepSeek key still lives in farm-frontend, and the old Resend key is still
+live in Resend until it is removed there.
+
+The `farm-photos-kv` Redis marketplace resource is linked to **farm-frontend**,
+not to this project, so it survived the deletion and remains a separate cleanup.
+
+The project had no custom domain, no alias and no integration resources of its
+own. Lost: the 431-day-old deployment and its build logs, which nothing
+depended on.
 
 ## Still open, not addressed here
 
