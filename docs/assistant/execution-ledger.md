@@ -5567,3 +5567,45 @@ edited script, and a final grep confirming nothing in `src` or `public` names an
 `/images/map-placeholder.svg`, which does not exist. Nothing calls it, so it is dead code rather
 than a live 404, and it was left for a decision: delete the function, or generate the placeholder
 from the plate renderer.
+
+---
+
+## Slice BRAND-G3 — The missing map placeholder, generated from the press
+
+**Goal.** Make `getPlaceholderMapUrl`'s promise true: it returned
+`/images/map-placeholder.svg` for a file that had never existed.
+
+**Generated, not drawn, and from invented geography.** `scripts/build-map-placeholder.ts` calls
+the same `renderPlate` as every real plate, so the inks, stroke weights and the vermilion marker
+match. The geometry is hand-written rather than fetched: a placeholder must not quietly show a
+real place's coastline, and a build step should not depend on Overpass. 2:1 to match the
+function's 400x200 default, and the viewBox scales, so one file serves every call site.
+
+**A false attribution, caught before it shipped.** `renderPlate` wrote the ODbL credit into every
+plate's `<title>`, so the first placeholder claimed "© OpenStreetMap contributors" while
+containing no OpenStreetMap data at all. That is a false provenance claim, and false credit
+devalues the real one everywhere else. `PlateOptions` now takes `attribution`, defaulting to the
+ODbL line so a genuine plate cannot lose it by accident, and accepting `null` for invented
+geometry, which titles the file "Illustrative map, not a real location" instead. Verified both
+ways: the Boscastle plate still credits OSM, the placeholder does not.
+
+**A guard so it cannot rot again**, asserting the file exists, parses into at least five shapes,
+carries the vermilion marker, and does *not* claim OSM.
+
+**Why not a blanket "every /images/ path resolves" test.** It would fail on two honest cases:
+`pitti-counties.ts:35` builds `/images/pitti/county-<slug>.webp` for per-county art not yet
+generated, and `HeroVideoBackground.tsx:159` names `/images/farm-hero-poster.jpg` inside a JSDoc
+example. A test that cries wolf on both gets disabled, so the guard is scoped to the one contract
+that was actually broken.
+
+**Note on the dead function.** `getPlaceholderMapUrl` is still uncalled: `LocationCard.tsx` is
+the only importer of `static-map.ts` and imports three other exports. The asset now exists so
+whoever wires it up gets a real map rather than a 404; the function was left in place rather than
+deleted, on the user's instruction to generate the placeholder.
+
+**`src/lib/map-plate.ts` is now 308 lines**, past the 300 soft limit. Still well inside the 500
+hard limit, but the next addition should extract a sibling module rather than grow it further.
+
+**Verified:** `npx tsc --noEmit` exit 0, `pnpm test:unit` 520 pass 0 fail (518 before; the two
+new ones are the attribution choice and the placeholder guard), and the placeholder rendered at
+400x200 and 800x400.

@@ -77,6 +77,15 @@ export interface PlateOptions {
    * everything, 'spare' always drops them. Default 'auto'.
    */
   detail?: 'auto' | 'full' | 'spare'
+  /**
+   * Credit written into the SVG's `<title>`. Defaults to the ODbL attribution,
+   * because a plate is normally rendered from OpenStreetMap and must carry it.
+   *
+   * Pass `null` ONLY for invented geometry holding no OSM data, such as the
+   * map placeholder: claiming the attribution there would be a false
+   * provenance claim, and false credit devalues the real one everywhere else.
+   */
+  attribution?: string | null
 }
 
 export function buildOverpassQuery(lat: number, lon: number, radiusM = 1200): string {
@@ -208,9 +217,11 @@ export function renderPlate(ways: OverpassWay[], opts: PlateOptions): RenderedPl
     `<circle cx="${opts.width / 2}" cy="${opts.height / 2}" r="${markerR + 4}" fill="${PAPER}"/>` +
     `<circle cx="${opts.width / 2}" cy="${opts.height / 2}" r="${markerR}" fill="${VERMILION}"/>`
 
+  const credit = opts.attribution === undefined ? PLATE_ATTRIBUTION : opts.attribution
+
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${opts.width} ${opts.height}" width="${opts.width}" height="${opts.height}">` +
-    `<title>${escapeXml(PLATE_ATTRIBUTION)}</title>` +
+    `<title>${escapeXml(credit ?? 'Illustrative map, not a real location')}</title>` +
     `<rect width="${opts.width}" height="${opts.height}" fill="${PAPER}"/>` +
     body +
     marker +

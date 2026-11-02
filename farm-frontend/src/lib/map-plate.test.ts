@@ -1,5 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   buildOverpassQuery,
   makeProjector,
@@ -96,9 +98,16 @@ test('the farm is marked in vermilion at the centre, on a paper halo', () => {
   assert.ok(halo < marker, 'the paper halo must sit under the marker')
 })
 
-test('every plate carries its ODbL attribution', () => {
+test('every plate carries its ODbL attribution by default', () => {
   const { svg } = renderPlate(FIXTURE, PLATE)
   assert.ok(svg.includes(PLATE_ATTRIBUTION), 'OSM attribution is required on a Produced Work')
+})
+
+test('invented geometry can refuse the attribution rather than claim it falsely', () => {
+  const { svg } = renderPlate(FIXTURE, { ...PLATE, attribution: null })
+  assert.ok(!svg.includes(PLATE_ATTRIBUTION), 'a synthetic plate must not credit OSM')
+  assert.ok(svg.includes('<title>'), 'it still needs an accessible title')
+  assert.ok(svg.includes('not a real location'))
 })
 
 test('open country renders a valid, empty plate rather than throwing', () => {
@@ -226,4 +235,24 @@ test('anything that could escape the plates directory is refused', () => {
   for (const attack of attacks) {
     assert.equal(isPlateSlug(attack), false, `${JSON.stringify(attack)} should be refused`)
   }
+})
+
+test('the placeholder getPlaceholderMapUrl promises is actually there', () => {
+  // lib/static-map.ts returns '/images/map-placeholder.svg'. It returned that
+  // for a file that had never existed; nothing called the function, so nothing
+  // caught it. Built now by scripts/build-map-placeholder.ts.
+  const path = join(process.cwd(), 'public', 'images', 'map-placeholder.svg')
+  assert.ok(existsSync(path), `missing: ${path}`)
+
+  const svg = readFileSync(path, 'utf8')
+  const shapes = parsePlate(svg)
+  assert.ok(shapes.length >= 5, `expected a drawn map, got ${shapes.length} shapes`)
+  assert.ok(
+    shapes.some((s) => s.kind === 'circle' && s.fill === '#D33A2C'),
+    'the vermilion marker should be present, so it reads as a map',
+  )
+  assert.ok(
+    !svg.includes(PLATE_ATTRIBUTION),
+    'invented geometry must not claim OpenStreetMap as its source',
+  )
 })
