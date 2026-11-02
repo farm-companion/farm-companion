@@ -59,8 +59,7 @@ async function testMapEndpoints() {
   console.log('\n4️⃣ Testing static assets...');
   
   const assets = [
-    '/favicon.ico',
-    '/overlay-banner.jpg'
+    '/favicon.ico'
   ];
   
   for (const asset of assets) {

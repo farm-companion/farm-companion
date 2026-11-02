@@ -5525,3 +5525,45 @@ or generate the placeholder; the plate renderer could produce one on brand.
 **Verified:** `npx tsc --noEmit` exit 0, `pnpm test:unit` 518 pass 0 fail, and the
 `og-image-assets` guard still green, which matters because it is the test that would catch a
 deletion breaking a card.
+
+---
+
+## Slice BRAND-G2 — The remaining orphans cleared
+
+**Goal.** Remove the 12.4 MB of pre-existing unreferenced assets that BRAND-G recorded but left.
+
+**Checked three ways before deleting, because none of these were this work's files.**
+1. Repo-wide grep, not just `src`, excluding the ledger's own descriptions of them.
+2. `FC1/` hits were discounted: it is a tracked submodule, a separate repository whose source
+   references its own `public/`, not ours.
+3. **The database.** `backfill-pitti-uploaded-by.ts` treats `/images/pitti/` as a stored image
+   URL fragment, so an `Image` row could have pointed at one of the two superseded hero takes.
+   Queried directly: zero rows for any of the seven names, and **zero rows anywhere under
+   `/images/pitti/`**. Without that check, deleting the heroes would have been a guess.
+
+**One real reference found and handled.** `farm-frontend/test-map-simple.js` is tracked and smoke
+tests that `/overlay-banner.jpg` returns a status code. Deleting the image would have left a
+tracked script asserting against a 404, so the asset was removed from its list; `/favicon.ico`
+remains. The script still parses.
+
+**Removed:** `oranges-background.jpg` (7.4 MB), `produce-secondary-image.jpg` (3.4 MB),
+`about-header.jpg` (0.6 MB), `overlay-banner.jpg` (0.3 MB), both superseded Pitti hero takes
+(the unsuffixed one and `-v1`; `AnimatedHero.tsx` uses `-v2`), and the `curl -o` accident that
+created a directory literally named `https:` under `public/`.
+
+**Left alone deliberately:** `farm-frontend/PERFORMANCE_OPTIMIZATION_SUMMARY.md` quotes
+`overlay-banner.jpg` in a code sample. It is a historical record of an optimisation that was done
+at the time, and rewriting history docs to match today's tree makes them worth less, not more.
+
+**`public/` is now 33 MB, down from 54 MB** at the start of the audit: 9.5 MB in BRAND-G and
+12 MB here. Everything that remains is referenced: the icon set, `og.jpg`, the eight plates
+resolved at runtime by slug, and the three heroes actually rendered (`main_header.jpg`,
+`counties.jpg`, `seasonal-header.jpg`, plus the `-v2` Pitti hero).
+
+**Verified:** `npx tsc --noEmit` exit 0, `pnpm test:unit` 518 pass 0 fail, `node --check` on the
+edited script, and a final grep confirming nothing in `src` or `public` names any deleted file.
+
+**Still open from BRAND-G:** `getPlaceholderMapUrl` in `lib/static-map.ts` returns
+`/images/map-placeholder.svg`, which does not exist. Nothing calls it, so it is dead code rather
+than a live 404, and it was left for a decision: delete the function, or generate the placeholder
+from the plate renderer.
