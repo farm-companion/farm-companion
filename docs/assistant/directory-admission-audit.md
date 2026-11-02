@@ -200,10 +200,52 @@ Scotland 38%, southern Scotland 14%. A mild northward tilt but no cliff, and sou
 the lowest of all, so the result is not simply a coverage artefact. Northern Ireland shows 50% on
 4 rows, too few to read.
 
-**What the number means.** This is a *removal* rule, not an admission rule. It confidently
-identifies roughly 1,000 rows that cannot plausibly be farms. It does not certify the remaining
-2,500: sitting beside a field is consistent with being a farm, not proof of one, and none of
-those 2,500 is verified as open to visitors.
+**What the number means.** This is a *removal* rule, not an admission rule. It identifies roughly
+1,000 rows with no mapped agriculture nearby. It does not certify the remaining 2,500: sitting
+beside a field is consistent with being a farm, not proof of one, and none of those 2,500 is
+verified as open to visitors.
+
+### 6b. The farmland rule was then tested properly, and it does not hold
+
+Cross-referencing the removal candidates against Search Console before acting on them found that
+22 of the 224 rows probed would be cut. Only 7 clicks were at stake, but the names were the
+problem:
+
+```
+foxes-croft              acheilidh-heritage-croft      no-4-croft-strathnaver
+elrig-eggs-ltd           stockhill-honey               home-pastured-meats
+inchnacardoch-deer-larder                              josh-horse-pet-supplies
+```
+
+**Three are crofts.** A croft is a Scottish smallholding and is a farm by definition. Also an egg
+producer, a beekeeper, a pastured-meat producer and a deer larder. One row, a horse and pet
+supplies shop, is a correct removal.
+
+The error was in the control set, not the query. All five controls used in 6a were conventional
+farm shops in lowland England, so "5 out of 5" measured the sampling, not the rule. The regional
+breakdown had already shown northern Scotland with the highest zero rate at 38% and that was read
+as a mild tilt rather than as the signal failing on crofts.
+
+Widening the tags (`grass`, `grassland`, `pasture`, `heath`, `moor`, `scrub`, `place=farm`, farm
+buildings) and the radius was then tested against both kinds of control:
+
+| control | truth | narrow 250m | wide 250m | wide 1000m |
+|---|---|---:|---:|---:|
+| foxes-croft | farm | query failed | 1 | **16** |
+| acheilidh-heritage-croft | farm | 0 | 0 | **8** |
+| no-4-croft-strathnaver | farm | query failed | 1 | 1 |
+| Barleylands | farm | 3 | — | 19 |
+| **APNA Local (Acton)** | **not a farm** | **0** | — | **11** |
+
+At 250m the rule rejects real crofts. At 1km it accepts a convenience shop in west London,
+because a kilometre around anywhere in Acton contains parks, grassland and allotments.
+
+**Conclusion: no fixed radius separates a farm from a shop.** The signal fails in both directions
+depending on where the threshold is set, so it cannot be used as an absolute test. A usable
+version would have to be *relative* — agricultural density around the point compared with the
+local baseline — or combined with a second independent signal. Neither is built.
+
+**Nothing was removed.** The cut was not run.
 
 Total cost of all three signals: **£0**. Companies House bulk data (`BasicCompanyData`, 5.7m
 companies) and Overpass are both free, and `farmretail.co.uk`, the one source that required
