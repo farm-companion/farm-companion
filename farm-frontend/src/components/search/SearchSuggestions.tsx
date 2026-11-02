@@ -14,6 +14,7 @@
  */
 
 import { useMemo } from 'react'
+import { slugifyCounty } from '@/lib/county-slug'
 import { Leaf, MapPin, Sparkles, Clock, TrendingUp } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { PRODUCE } from '@/data/produce'
@@ -222,7 +223,7 @@ function getSuggestions(query: string, limit: number): Suggestion[] {
         id: `county-${county.toLowerCase()}`,
         text: `Farms in ${county}`,
         type: 'county',
-        href: `/counties/${county.toLowerCase().replace(/\s+/g, '-')}`,
+        href: `/counties/${slugifyCounty(county)}`,
         icon: MapPin,
         iconColor: 'text-blue-500',
       })

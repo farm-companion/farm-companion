@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { getFarmData, getFarmStats } from '@/lib/farm-data'
+import { canClaimVisitable, unverifiedDescription } from '@/lib/farm-claims'
 import ShopPageClient from '@/components/ShopPageClient'
 import { SITE_URL } from '@/lib/site'
 
@@ -35,7 +36,7 @@ export async function generateMetadata(): Promise<Metadata> {
       card: 'summary_large_image',
       title: `UK Farm Shops Directory - ${stats.farmCount}+ Farm Shops`,
       description: `Find trusted farm shops near you with the freshest local produce. Browse our comprehensive directory.`,
-      images: [`${SITE_URL}/og-farm-shops.jpg`]
+      images: [`${SITE_URL}/og?title=UK Farm Shops Directory&subtitle=Find Farm Shops Near You&type=shop`]
     },
     alternates: {
       canonical: `${SITE_URL}/shop`
@@ -66,9 +67,13 @@ function generateStructuredData(farms: any[], stats: any) {
       "@type": "ListItem",
       "position": index + 1,
       "item": {
-        "@type": "LocalBusiness",
+        // The directory asserts what its shop pages assert, so it passes the
+        // same gate: LocalBusiness names a place the public can walk into.
+        "@type": canClaimVisitable(farm) ? "LocalBusiness" : "Organization",
         "name": farm.name,
-        "description": farm.description || `${farm.name} - Farm shop in ${farm.location.county}`,
+        "description": canClaimVisitable(farm)
+          ? farm.description || `${farm.name} - Farm shop in ${farm.location.county}`
+          : unverifiedDescription(farm.location.county),
         "address": {
           "@type": "PostalAddress",
           "streetAddress": farm.location.address,

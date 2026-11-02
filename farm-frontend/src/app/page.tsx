@@ -80,8 +80,8 @@ export default async function HomePage() {
             '@context': 'https://schema.org',
             '@type': 'Organization',
             name: 'Farm Companion',
-            url: 'https://farmcompanion.co.uk',
-            logo: 'https://farmcompanion.co.uk/logo.png',
+            url: SITE_URL,
+            logo: `${SITE_URL}/logo.png`,
             description: 'UK farm shops directory helping you find fresh local produce, farm shops, and agricultural businesses across the UK.',
             sameAs: [
               // Add social media URLs when available
@@ -103,13 +103,13 @@ export default async function HomePage() {
             '@context': 'https://schema.org',
             '@type': 'WebSite',
             name: 'Farm Companion',
-            url: 'https://farmcompanion.co.uk',
+            url: SITE_URL,
             description: 'Discover authentic UK farm shops with fresh local produce, seasonal guides, and verified farm information.',
             potentialAction: {
               '@type': 'SearchAction',
               target: {
                 '@type': 'EntryPoint',
-                urlTemplate: 'https://farmcompanion.co.uk/shop?q={search_term_string}',
+                urlTemplate: `${SITE_URL}/shop?q={search_term_string}`,
               },
               'query-input': 'required name=search_term_string',
             },

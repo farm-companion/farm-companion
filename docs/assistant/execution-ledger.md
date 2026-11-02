@@ -1,5 +1,185 @@
 # FarmCompanion Execution Ledger
 
+### 2026-11-01 - E8: the FSA retail classification becomes an admitting, verifying evidence edge
+
+**Goal:** make the FSA hygiene register carry real weight. Commits `aed9e8d`, `c7d8f15`, `e6e1d58`, `60e79ac`.
+
+**The measurement that justified it**, live API, national, by name: `"farm shop"` returns **16** under `7838 Farmers/growers`, the only category `fsa.ts` queried, against **946** under `4613 Retailers - other`, **188** restaurants and cafes, and **9** takeaways. The category we queried holds 16 of the country's farm shops; the public-facing categories hold **1,143**. In Cornwall alone it is 14 against 826. `fsa.ts:83` had already recorded this as a follow-up.
+
+**The E8 rule:** an FSA public-facing category, **and** an inspection within 24 months, **and** a retail lexeme in the business's own name. Two independent signals, never one, because this entire area of work exists because one mis-filed category was treated as proof. Of 1,198 candidates, **842 are admitted**; the other 356 differ by nothing except a stale inspection date, so the 24-month threshold is load-bearing rather than decorative. It is chosen because FSA inspection intervals run from 6 months to 3 years.
+
+**The invariant was refined, not relaxed.** E3 — `7838`, the producer category, the one the FSA files commercial fishing vessels under — still never admits, with or without the name and a website signal. There are now three executable tests, including a 128-combination sweep which also asserts that admission happens at all, so it cannot pass vacuously. That last assertion exists because this branch shipped three tests that could not fail.
+
+**E8 also verifies.** It sets `venueVerifiedAt`, so an E8 page may state that a visitor can go there. Three deliberate choices: the timestamp is the **inspection date**, not now, so a 23-month-old check reads as 23 months old; provenance records `source: 'fsa'`, which is not curated, so a person can always overrule it and the two never blur; and the OSM Tier A path deliberately does **not** verify, because an OSM tag is something someone typed with no inspection, no date and nobody accountable. E8 is the only machine edge backed by a regulator attending a premises on a known date.
+
+To undo every FSA-sourced verification, scoped so human decisions are untouched:
+
+```sql
+UPDATE farms SET "venueType" = NULL, "venueVerifiedAt" = NULL
+WHERE provenance -> 'venueVerifiedAt' ->> 'source' = 'fsa';
+```
+
+**The human-override guard had to be rewritten, and both failure directions are real.** Keying on the field alone would freeze every row the pipeline itself verified and treat its own write as a person's. Keying on provenance alone would expose a verification set by hand in SQL, or set before provenance was tracked, which carries no source at all. The rule is now that a row counts as a person's **unless provenance positively names a machine**, so the unknown case fails safe: wrongly freezing a row costs nothing, wrongly overwriting a decision with someone's name on it is unrecoverable. One side effect is worth knowing, and is now asserted: an admin's `venueType` is protected even when nobody filled in the timestamp as well, which is stricter than the guard it replaces.
+
+**An error of mine, found because E8 disagreed with me.** Of the 14 Cornwall rows E8 would verify, 13 matched the proposal I had reached independently and one did not. I had ruled out `tremore-dairy-limited` on a web aggregator's claim that the FSA classed it `Manufacturers/packers`. The FSA API holds one record for it: Tremore Dairy Limited, `Retailers - other`, PL30 5JS at Rosewarrick, Lanivet, rating 5, inspected 2026-01-26, with the postcode matching our row exactly. I trusted a derived source over the primary one, which is the same mistake that put 3,504 producers on this site as farm shops. Corrected in `60e79ac`; agreement is now 14 of 14.
+
+**THE FINDING THAT REORDERS THE BACKLOG.** This branch is 48 commits and 66 files, **never pushed, with no pull request**. The migration is applied to production, but the code that reads those columns is not deployed. Production is therefore still serving the old code and still telling visitors "X is a farm shop in Y" across 3,504 pages today. Every gate, test and measurement in this branch protects nothing until it ships.
+
+**THE GATE:** `npx tsc --noEmit` exit 0. `pnpm test:unit` **463 pass, 0 fail**, up from 401 when this remediation began. `npx impeccable detect` exit 0 across the pipeline.
+
+**Running:** `pnpm pipeline --dry-run`, verified read-only — every Prisma write in `07-load` is guarded by `apply`, including the two inside `linkCategories` and `attachImages`. It answers the question that decides how to ship: how many of the 3,504 existing rows E8 would verify. Cornwall suggests roughly 22%.
+
+
+### 2026-10-31 - E5 implemented by reading the farms' own websites
+
+**Goal:** stop handing the research to a person. Commits `fcad55d`, `3fca60b`.
+
+**The spec was wrong about E5.** It recorded E5 and E6 as needing "a Google Maps Platform API key and billing, an operator dependency this plan cannot satisfy". E5 needs neither. A farm shop publishes its opening hours and its "come and visit" language for customers, because that is what customers need. It is a fetch, not a billing relationship.
+
+**What was fetched:** 46 homepages (40 static, 5 through the JS engine, 1 dead) plus 44 ranked opening-hours, visit and contact subpages, through the Scrapling CLI to files rather than into context. `src/lib/website-signals.ts` extracts the evidence. It is deliberately **not** a classifier: it reports what a page says and leaves the judgement to a person, because a page can be stale, a shop can close, and "Farm Shop" in a navigation menu may be an online product category rather than a building.
+
+**Result: 24 of 63 rows now have opening hours quoted from the business's own site**, against 0 parsed hours across all 3,504 rows in the database.
+
+**My judgement pass, written as proposals with the signature left to a person:** 22 proposed `shop` (14 of them with hours published on their own site), 6 proposed not visitable with the reason, 13 flagged ambiguous rather than guessed, and 22 that still need a call, each saying why.
+
+**Findings a call list would never have surfaced:**
+
+- `cornhill-farm` opens the farm "on the last Sunday of every June". An annual open day, not a shop. It would have passed any name-and-Places-type heuristic unchallenged.
+- `trevaskis-farm` and `the-farm-shop-and-restaurant` are two rows for one business, sharing `trevaskisfarm.co.uk`. Dedupe before verifying either.
+- Three rows store a third-party directory as their website: `farm-fort` (ukmapi), `pentruse-farm-shop` (edan.io) and `chypraze-farm-butchery-and-shop` (bigbarn.co.uk). A directory's page about a farm is not evidence about that farm, so the extractor now reports these as blocked rather than letting them read as retail confirmation. That is a data bug in those rows.
+- `seven-acre-farm` says collections are by appointment, so it is not a walk-in shop.
+- The three Mole Valley Farmers rows are an agricultural supply chain. Whether they belong in a farm shop directory is a scope question for a person, not a classification.
+- Four Facebook URLs hit a login wall, `tregullasfarm.co.uk` serves a persistent 503, and `theshoptrevonefarm.com` does not resolve.
+
+**A bug the test caught and the prototype did not.** The hours pattern let a lazy gap quantifier swallow the closing time, truncating every row to "Sunday: 9am". The scratch prototype I ran first had the same bug and would have produced 46 sites' hours silently halved. The closing time is now an explicit optional range.
+
+**Importer change so a proposal is not an error.** A `venue_type` with no signature is counted as PROPOSED and writes nothing. A `verified_by` or `basis` without the flag is still an error, because that is a row someone started and left. I do not fill `verified`, `verified_by` or `basis`; my reasoning goes in its own `proposal` column, so the audit trail records who actually decided.
+
+**THE GATE:** `npx tsc --noEmit` exit 0. `pnpm test:unit` **442 pass, 0 fail**, up from 433. `npx impeccable detect` exit 0 on every new file.
+
+**New work this opens, not done:** the 24 sets of extracted hours are free text ("Mon-Sat 9:30am-5.00pm"), and `parseOsmHours` parses OSM syntax rather than prose. Converting them into the structured `openingHours` shape is a separate piece of work, and would take hours coverage in Cornwall from 0% to roughly 38%.
+
+
+### 2026-10-31 - E7 built as data operations, after the judgement that this had got too complicated
+
+**Goal:** give the claim gate a writer. Commits `8d4ef9c`, `d672455`, `df7bfd6`, `fd3db31`.
+
+**The measurement that governs it, and it vindicates the judgement.** `classifyVenue` reaches Tier A only on `osmShopFarm AND (osmOpeningHours OR placesRetailWithHours)`. The second disjunct is hardcoded `false` at the call site in `06-merge`. Parsed opening hours exist on **0 of 3,504 rows**. Therefore the classifier returns `unknown` for every row in the database, always. Cornwall has **2 rows with an `osmId` out of 63**, so even a complete OSM hours backfill could admit two of them.
+
+E7 is not one edge among seven. **It is the only edge that can ever fire.** The 64-combination invariant sweep now guards a function whose answer is constant, and Tier B, whose documented purpose is to order the human review backlog, is discarded by its only caller and could rank two of Cornwall's rows regardless. The proposer was over-built. The gates and the surface work were not, and were left alone.
+
+**What was built: export, human, import.** Three files, no admin UI, no API, no review queue, no new evidence edge, because N is 63 and at that size you do the work and record it.
+
+`src/lib/csv.ts`, 65 lines plus 8 tests. Minimal RFC 4180. No CSV dependency is installed and none was added. It handles quoted commas, escaped quotes, embedded newlines and the UTF-8 BOM that Excel and Numbers both write, which would otherwise become part of the first header name and make every lookup by that key silently fail.
+
+`src/scripts/export-venue-candidates.ts`, 159 lines, read-only. Writes `docs/verification/<county>.csv` and refuses to overwrite, because that file is the audit trail and may already hold a human's work. It ranks contactable and retail-typed rows first so the call list front-loads the likely passes. Places types are matched by slug **and** `googlePlaceId`: slug alone found 46 of Cornwall's rows, both found 49, which is the figure previously reported. `would_index` calls the production `isIndexable` predicate rather than reimplementing its scoring, so the export cannot drift from the gate.
+
+`src/scripts/import-venue-verification.ts`, 200 lines plus 10 tests. Dry-run by default, `--apply` writes, `--revert` undoes only rows whose provenance says this script set them.
+
+**Cornwall's call list is exported and committed empty:** 63 rows, 56 contactable, 49 retail-typed, 50 that would be indexable once verified. **The honest ceiling is 50 pages, not 63:** thirteen rows have substance under two and will be correctly verified-but-unindexed. The bottom of the list is the clearest statement of why this branch exists: `Delta Dawn PW788 - Padstow` (a fishing boat), `TC Game`, `Trewithen Shoot` and `Mushlove Cornwall`, none of them contactable, every one of them previously described to the public as a farm shop.
+
+**Because this is the only writer of a visitability claim on the site, it refuses the whole file on any inconsistency** rather than importing the rows it happens to understand. Refused: a `venue_type` the gate would not admit; a `verified` flag that is neither `y` nor blank; a `venue_type` set without a verification, because a half-filled row is not a decision; a duplicate or missing slug; and a slug absent from the database, which would otherwise be a silent no-op. `ADMITTED_VENUE_TYPES` is now exported from `farm-claims` so the importer and the gate cannot disagree: a `cafe` row would otherwise receive a `venueVerifiedAt` that `canClaimVisitable` still refuses, which is a verification that silently does nothing.
+
+**`verified_by` and `basis` are required on a pass.** A verification nobody signed cannot answer "who said my farm is open to the public?", and that is the question the column has to survive. The CSV is committed empty so that filling it produces a diff showing exactly what was decided and by whom.
+
+**The audit trail needed no migration.** `provenance` already exists per-field, `FarmFieldName` already covers both venue fields after `116f15f`, and `admin` is already in `CURATED_SOURCES`. The importer writes `provenance {venueType, venueVerifiedAt: {source: admin, at}}` merged into whatever is there, and a new merge test asserts that survives an unrelated field update.
+
+**One constraint to carry forward:** the venue block in `06-merge` sits outside `merge-policy`, so `CURATED_SOURCES` does **not** protect `venueType`. The `humanVerified` guard added in `116f15f` is the only thing standing between a pipeline run and a destroyed verification.
+
+**Verified end to end against the live database in dry-run only; no write occurred.** A valid file reports "2 row(s) will change" with each before and after and the verifier's stated basis. A file with one bad row imports nothing and names the spreadsheet line: `line 4 (bosavern-community-farm): venue_type must be one of shop | pyo | market_stall, got "cafe"`. A second export refuses, naming the audit trail.
+
+**THE GATE:** `npx tsc --noEmit` exit 0. `pnpm test:unit` **433 pass, 0 fail**, up from 414. `npx impeccable detect` exit 0 on every new file. Slice `fd3db31` is 302 insertions against the 300-line cap; splitting a script from its own test was the worse trade.
+
+**Still open:** the human pass itself, with `docs/verification/cornwall.csv` empty and waiting and `venueVerifiedAt` still null on all 3,504 rows; the backfill `--apply`, deferred, with its backup already taken; `connection_limit=2`; and four dead modules still holding claim literals.
+
+
+### 2026-10-31 - Region-first verified listings: remediating the final review findings
+
+**Goal:** close the two Criticals and the structural finding from the whole-branch review, which returned SAFE AFTER NAMED FIXES. Six commits on top of `3246044`: `ff22b1b`, `f450eba`, `f38b974`, `116f15f`, `9392c35`, `20e0a4e`.
+
+**C2, the migration, done differently than planned.** The ledger called for running the eleven lines of SQL by hand. That treats the symptom: `farms` had no `_prisma_migrations` table, no migration had ever been applied, and `package.json` had no migrate script, so nothing in the deploy path applied migrations at all. Instead the live schema was baselined. `prisma/migrations/0_init/migration.sql` was generated with `migrate diff --from-empty --to-url` against the live database, deliberately not `--to-schema-datamodel`: from the datamodel the baseline would have included the venue columns and asserted production already had them. 335 lines, 8 tables, 53 indexes, no venue columns. `migration_lock.toml` created; `migrate` and `migrate:status` scripts added.
+
+The pre-flight drift check was the most useful command of the whole remediation. `migrate diff --from-url $DATABASE_URL --to-schema-datamodel` returned **exactly the 7 lines of the venue migration and nothing else**, proving there was no other drift, the committed migration was correct, and baseline plus migration equals the schema. The operator then ran `migrate resolve --applied 0_init && migrate deploy`. Post-state verified: `migrate status` reports "Database schema is up to date!", the drift diff is empty, 3,504 active rows, `venueType` NULL on all of them, `venueVerifiedAt` set on zero, Cornwall 63 rows. The `?pgbouncer=true` advisory-lock worry came to nothing.
+
+**First build after the migration: "column does not exist" errors went from 1,353 to zero.**
+
+**C1, the pipeline overwriting human verification, done.** The snapshot select fetched `venueVerifiedAt` but `FIELD_NAMES` omitted it, so the loop building `DbFarm.fields` discarded the column and the merge stage could not see human verification at all; the guard it needed had nothing to read. Added to `FarmFieldName` and `FIELD_NAMES`, with a guard refusing to push a `venueType` diff on a verified row. Listing the field cannot cause a write: `mergeFarm` iterates only candidate-present fields and no source produces it.
+
+**The structural finding, "the gate is installed on one door of eight."** Tracing importers across the 11 claim sites split them in a way the review had not. Live and now gated: the `/shop` directory asserted `"@type": "LocalBusiness"` plus "Farm shop in X" for its first fifty rows; `enhanced-sitemap.ts` put "Farm Shop" in image captions and titles on both live sitemap routes; `FarmCard.tsx` alt text across six surfaces; `FarmPreviewCard.tsx` on three surfaces (the quoted hook, the share sentence, and Directions as the single loud control). Dead and left alone: four sites in `schema-generators.ts`, `QuickActions.tsx`, `generate-farm-images.ts` and `seo-optimizer.ts`, none with an importer.
+
+**The enabling defect, which was on nobody's list:** `getFarmData()` never mapped `venueType` or `venueVerifiedAt`, so every list surface fed by it had no gate input whatsoever. It failed closed, which is why nobody noticed, and would have kept failing closed after a venue was verified. The same defect sat in `/api/farms`, where the ledger's claim that a restrictive `select` needed widening was wrong: the route uses `include`, so every column was already fetched and only the response mapping dropped them.
+
+**`unverifiedDescription` moved** from a private function in `shop/[slug]` into `farm-claims.ts`, so every surface makes the identical statement, and `canClaimVisitable` now takes a verification-only shape so a list row can gate without assembling a full `ClaimInput`.
+
+**The structural half: `src/lib/claim-sites.test.ts`.** The review found the gate on one door because nothing made the eighth door fail. This pins the per-file count of lines putting a claim literal beside an interpolated farm field (10 lines across 8 files, each entry carrying its justification). A new site fails CI. It cannot tell gated from ungated, which is the point: it makes the question unskippable. Both failure modes were proven, not assumed: a planted claim component fails naming the file, and an extra claim in a locked file fails naming the counts.
+
+**The backfill hard stop fired, and it was right to.** The dry run could run for the first time today because its `where` clause queries a column that did not exist until the migration. 2,228 of 3,504 described unverified rows match the template, but the shape is not what the spec assumed: 1,575 are exact rebuilds of `{name} is a farm shop in {county}.`; 653 differ only because the sentence names a town while the `county` column holds the administrative county (`Ardrossan` vs `North Ayrshire Council`, `Liskeard` vs `Cornwall`); and **8 carry real content the old rule would have deleted** — Great Park Farm's 379-character produce list, Tyddyn Teg's bakery and campsite, Dowstall Farm's walk-in fridge and collection hours, Greenfields' spice range. Cause: the template regex anchors on `\.$` with a lazy group, so any longer description containing that phrase matched.
+
+The rule now tests only the place clause after "in ", never the whole sentence. Whole-string checking spares 36 rows of which only 8 hold content, because business names are arbitrary: "With The Wild CIC", "Hi Sell Direct", "The Curry Pincher Also Trading As CJW Catering", and any name ending in an initial all trip it. Tail-only spares exactly the 8. "and" is deliberately not a prose word, because real counties contain it. Result: 2,220 nulled, 8 spared, verified by inspecting both extremes. Every string in the test file is a real description read from the live database.
+
+**`restore-false-descriptions.ts` added**, because it did not exist and backups go to a gitignored directory, making the backfill effectively one-way. It refuses to clobber a row that has since gained a description, and its counts partition the backup with an assertion that they sum, because a recovery tool whose numbers overlap cannot be read under pressure. Verified against a synthetic backup: 0 restorable, 2 occupied, 1 missing.
+
+**A guard bug found in both scripts:** `process.argv[1]?.includes('backfill-false-descriptions')` is true for the test file path, so a unit test would have opened the live database and run the script for real. Changed to an ends-with regex.
+
+**`select-region.ts` is no longer folklore.** It ranked by row count alone and printed Somerset first, while the query that actually chose Cornwall was a deleted temp file nothing in the repo could reproduce. It now ranks by contactable share (phone or website), ties broken by non-template descriptions, and reproduces the original measurement exactly: Cornwall 63 rows, 83% phone, 73% website, 89% contactable, 63% real descriptions, ahead of Somerset's 64/66/61/69/53. It prints the five largest counties alongside so the argument is visible rather than asserted: Highland 387 rows at 0% phone and 0% website, Dumfries and Galloway 274 at 1% each.
+
+**Two things that run surfaced:** hours are 0% in every county, so the Task 2 OSM parser has never been fed by a pipeline run; and only 2,985 of 3,504 active rows carry a county at all.
+
+**The measurement that changes the E5/E6 story.** `dist/farms.uk.json` (gitignored, 49,178 lines, 1,218 records, dated 2025-09-02) holds a `place_id` for all 1,218 and a Places `types` array, 1,173 of which carry a retail type. Matched against live rows: 1,081 of 3,504 overlap by slug or `googlePlaceId` (30.9%), 1,045 of those retail-typed, and **Cornwall matches 53 of 63 with 49 retail-typed**. So the plan's self-review claim that E5/E6 "need a Google Maps Platform API key and billing" is wrong for roughly a third of all rows and 78% of the launch region; that evidence is already on disk, unspent. Three caveats stay attached: the file is fourteen months old, a Places `store` type is no more proof of public access than FSA `businessTypeId=7838` was, and the gate reads `venueVerifiedAt`, a human timestamp, so Places types cannot open it alone. What it buys is a far cheaper human pass: 49 of Cornwall's 63 arrive pre-classified rather than blank.
+
+**My own correction, recorded because the branch's recurring defect is tests that cannot fail.** I reported `shop/[slug]/page.tsx:128` as a defect the review missed. It is not: `cleanDescription` is gated four lines above and `unverifiedDescription` always returns a non-empty string, so that `||` fallback can only fire when the farm is verified, where the claim is true. Dead defensive code. The review was right. Separately, my first version of the step 5 tests was vacuous in exactly the branch's established way — the fixture had no opening hours, so `classifyVenue` returned `unknown` and no diff appeared with or without the guard, and the guard test passed pre-fix. Rewritten with a Tier A candidate and a prior type the classifier disagrees with; pre-fix it now fails with "a verified market_stall must not be overwritten with the classifier's shop".
+
+**THE GATE — actual results:**
+
+1. `npx tsc --noEmit` — **exit 0**.
+2. `pnpm test:unit` — **414 pass, 0 fail**, up from 401. Thirteen new tests across four groups, each shown failing before its fix.
+3. `npx impeccable detect` on all 17 changed files — **exit 0**. Widened to `src/app` it reports exit 2 with 9 findings, all pre-existing in `src/app/admin/produce/*` and `src/lib/email.ts`, none in a touched file.
+4. `npx next build` — exit 0. "column does not exist" errors: **1,353 to zero**.
+
+**Pre-existing issue found, not fixed, needs the operator:** one of two builds today produced four failures, all "Timed out fetching a new connection from the connection pool (timeout: 10, connection limit: 2)" against 11 build workers; the second build produced none. So it is an intermittent race under load, not a deterministic failure, which makes it worse rather than better: four category pages build with empty data on an unpredictable subset of builds and nothing alarms, because the log line calls it "expected during build without DB" when there was a database. One-line fix: raise `connection_limit` in `DATABASE_URL`.
+
+**STILL BLOCKING CORNWALL:** E7 has no writer. Nothing can set `venueVerifiedAt` — no admin UI, no script, no API. The gate now correctly silences 3,504 pages and there is still no committed way to unsilence one. That is a separate plan and this branch does not contain it.
+
+**Still open:** the backfill `--apply` (operator step, gated on `pg_dump` of `farms(id, description)`, the dump copied off the laptop, and a restore dry run against the real backup; low urgency because the render gate already suppresses those sentences); wiring the on-disk Places evidence as a pre-classifier; `connection_limit`; and deleting the four dead modules that still contain claim literals.
+
+
+### 2026-08-16 - Region-first verified listings: full verification and closing ledger
+
+**Goal:** Task 10 of the region-first-verified-listings plan. Run the full local gate on the finished nine-task branch and record an honest, permanent account of what shipped, what is measured, and what is still blocked. No code touched.
+
+**Root cause the whole branch exists to fix:** the pipeline discovers farm shops via FSA `businessTypeId=7838`, FSA's own "Farmers/growers" category. That is a PRODUCER classification: it certifies that a business grows or farms things, it says nothing about premises the public can enter. 65.2% of live names contain no retail word at all (no "shop", "farm shop", "store", etc.), yet every page on the site rendered the sentence "X is a farm shop in Y" regardless. The branch's job was to stop asserting visitability the data never supported.
+
+**The invariant:** no path to an admitted `venueType` may consist solely of FSA evidence. `classifyVenue` (`farm-frontend/src/scripts/pipeline/lib/classify-venue.ts`) requires `osmShopFarm` for both Tier A and Tier B; FSA's `fsaFarmType` (E3) never admits alone. This is encoded as an executable test, "INVARIANT: no admission without OSM shop=farm or Places retail with hours" in `classify-venue.test.ts`, which sweeps all 64 combinations of the six `VenueEvidence` booleans and asserts, for every one, that `venueType !== 'unknown'` implies `osmShopFarm === true` AND (`osmOpeningHours === true` OR `placesRetailWithHours === true`). The first draft of this test swept only 3 of 6 booleans (8/64 combinations); the reviewer caught the overclaim by hand-verifying all 64, the code was already correct, and the test was rewritten to genuinely cover all 64 before the task closed.
+
+**The schema:** `venueType String? @db.VarChar(32)` and `venueVerifiedAt DateTime?`, both nullable, added to `model Farm` with `@@index([venueType])`. Both default to null (unknown/unverified) on every existing row. That default is why shipping the claim gate silences every unverified page immediately, with zero per-row work: a row with no classification yet reads as unverified, not as verified.
+
+**The parser:** `parseOsmHours` (`farm-frontend/src/scripts/pipeline/lib/parse-osm-hours.ts`) returns `null` for any unsupported OSM `opening_hours` syntax (seasonal ranges, public holidays, open-ended times, variable times, free text) rather than guessing a partial parse. A wrong "Open now" badge sends someone on a wasted drive; a missing one costs nothing but a click.
+
+**The gates:** `farm-frontend/src/lib/farm-claims.ts` exports `canClaimVisitable` (the claim gate: true only for a verified row whose `venueType` is in `ADMITTED_VENUE_TYPES`) and `isIndexable` (the index gate: claim gate plus substantive content — two of {real description, real hours, offerings} or one plus parsed hours). The index gate is layered strictly above the claim gate, not beside it: `isIndexable` calls `canClaimVisitable` first and short-circuits false if that fails, proven by the test "indexable requires the claim gate first."
+
+**The seven claim surfaces gated on the shop page** (`app/shop/[slug]/page.tsx` and `components/FarmPageClient.tsx`): the prose description; metadata plus Open Graph and Twitter descriptions; JSON-LD `@type` and commerce fields (GroceryStore, servesCuisine, priceRange, paymentAccepted); JSON-LD `keywords` and the `additionalKeywords` that `processFarmDescription` appends; `hasCredential`; the Verified badge; the offerings ("What We Offer") section; the Get Directions call to action; the opening-hours widgets (JSON-LD `openingHoursSpecification`, the StatusBadge, and the sidebar); the share-card image label; and the hero image alt text. Three of these were not in the page at all and were found only by walking shared helpers by name, not by reading the page: `processFarmDescription` in `seo-utils.ts` unconditionally appended 13 hardcoded "farm shop" phrases into `additionalKeywords`; `app/og/route.tsx` baked the literal text "Farm Shop" under the farm name on every share-card image; and `farm-hero-image.ts` fell back to `${farmName} farm shop` as alt text when no admin alt text was set. All three were gated at their call sites; none of the three shared files themselves assert farm-shop-ness anymore.
+
+**The backfill:** `farm-frontend/src/scripts/backfill-false-descriptions.ts` is written, reviewed, and committed. It has **NOT been run**, in either dry-run or `--apply` form, by anyone on this branch or by this verification pass — no write of any kind has touched the database. A read-only measurement (temporary query, not committed) found 2,228 of 3,504 described, unverified rows match the LLM-fallback template `^(.+?) is a farm shop in (.+?)\.$` — **63.6%**, not the 83.8% the spec estimated from an unrepresentative alphabetical `/api/farms?limit=2000` slice.
+
+**The launch region: Cornwall**, chosen on measured verifiability, not row count. Cornwall has 63 rows in the target 60-150 band with 83% phone coverage, 73% website coverage, and 63% genuine (non-template) descriptions. Somerset led the committed `select-region.ts` script's row-count ranking by a single row (64 vs 63) but placed second on every quality axis measured (66% / 61% / 53%). The two largest counties in the database, Highland (387 rows) and Dumfries and Galloway (274 rows), hold two phone numbers and two websites BETWEEN THEM — 661 rows that are almost pure FSA producer dump, confirming the producer-contamination thesis with hard numbers rather than a sample.
+
+**The known blocker:** the migration adding `venueType` and `venueVerifiedAt` (`prisma/migrations/20260815000000_add_venue_classification/`) has not been applied to the live database. `getFarmBySlug` (`farm-data.ts`) uses `findFirst` with a bare `include` and no `select`, so Prisma requests every column declared in the schema, including the two new ones. Against the unmigrated live database this makes every farm-row query throw; the surrounding catch blocks swallow it and return null/empty. This is a PREREQUISITE FOR MERGE, not merely for verification: shipping this branch without the migration silences every shop page. No migration was applied and no database write of any kind occurred during this task, per the operating rules for this verification pass.
+
+**The deliberate gap:** the spec's `sources/places.ts` and the `E5`/`E6` Google Places evidence edges are not implemented. Both need a Google Maps Platform API key and billing, which this plan cannot provision. `classifyVenue` already accepts `websiteRetailSignal` and `placesRetailWithHours` as parameters; the pipeline's merge stage (Task 5) passes `false` for both today, so no classifier code changes when the key arrives — only the caller needs to change.
+
+**THE GATE — verification commands and actual results, run separately so one failure could not hide another (all from `farm-frontend/`):**
+
+1. `npx tsc --noEmit` — **exit 0**, no output. Clean.
+2. `pnpm test:unit` (repo's actual unit-test runner; there is no separate `test:unit` ambiguity — it resolves to `tsx --test "src/**/*.test.ts"`) — **exit 1**. `1..383` suites reporting `# tests 401`, `# pass 400`, `# fail 1`. The one failure is `farm-hero-image.test.ts`, test "falls back to \"{farm} farm shop\" alt for photo with no altText": expected `'Cherry Hinton farm shop'`, actual `'Cherry Hinton'`. This is not a regression introduced by this verification pass; it is a stale test left behind by this branch's own Task 7 fix-round-2 commit (`111e467`), which correctly changed `farm-hero-image.ts`'s fallback alt text from `` `${farmName} farm shop` `` to bare `farmName` (so the alt text stops asserting shop-ness) but never updated the test asserting the old string. All 401 tests including every new test added by this branch (the 64-combination invariant sweep, the OSM hours parser suite, the merge-stage venueType tests, the claim/index gate suite) pass; this single pre-existing-on-branch test is the only failure. Needs a follow-up fix (update the one assertion) before merge; not attempted here as it is outside this task's scope of verify-and-record.
+3. `npx next build` — **exit 0**. `/shop/[slug]` has no `generateStaticParams` and is fully dynamic (`ƒ`, server-rendered on demand), so the build does not prerender any individual farm page and no shop-page `notFound` was observed during the build itself — that failure mode occurs at request time against the live, unmigrated database, not at build time. What the build did surface: bulk data-fetch functions that share the same unmigrated-column exposure — `getFarmsByCategory` (1,060 occurrences), `getFarmsByCounty` (285 occurrences), and `getFarmData` (8 occurrences) — each logged `The column farms.venueType does not exist in the current database`, caught by existing try/catch blocks with a `(expected during build without DB)` fallback message, and the build still completed and exited 0 with all 919 pages generated.
+4. `npx impeccable detect src/lib src/scripts` — **exit 2**, 2 anti-patterns found: `src/lib/accessibility-middleware.ts:57` (`broken-image`, an `<img>` pattern) and `src/lib/email.ts:261` (`overused-font`, `font-family: Arial`). Both files are confirmed pre-existing and untouched by this branch (`git diff --stat master...HEAD` shows neither file; `git log master..HEAD` for either path is empty). Neither finding is new.
+
+**Files changed on the branch (`master...HEAD`, 43 files, +2484/-2856):** schema and pipeline (`prisma/schema.prisma`, one new migration, `types.ts`, `classify-venue.ts`(+test), `parse-osm-hours.ts`(+test), `02-normalize.ts`(+test), `06-merge.ts`(+test)); gates (`farm-claims.ts`(+test)); shop-page wiring (`farm-data.ts`, `types/farm.ts`, `app/shop/[slug]/page.tsx`, `components/FarmPageClient.tsx`, `app/og/route.tsx`, `farm-hero-image.ts`); operator scripts (`backfill-false-descriptions.ts`, `select-region.ts`); plus unrelated map-shell edits already covered by prior ledger entries.
+
+**Risk/rollback:** documentation only, zero code touched, zero database writes. Rollback = revert this commit.
+
+**Next:** before merge — apply the migration (prerequisite, not optional), fix the one stale assertion in `farm-hero-image.test.ts`, run the backfill dry run and inspect it, then decide `--apply`; Places E5/E6 restoration is its own future plan once a Google Maps Platform key and billing exist.
+
 ### 2026-08-15 - Map hooks: clear the 10 lint errors in the three flagged files
 
 **Goal:** Fix the pre-existing lint errors surfaced (not caused) by Slice 4b, on a branch off master so it stays independent of PR #220.
@@ -3798,6 +3978,647 @@ The first live runs surfaced real-API issues the fixture tests could not (each f
 
 ---
 
+### 2026-11-01 — Phase 0 measurement, and the canonical host fix
+
+**Why:** before shipping `spec/region-first-verified-listings` (48 commits, never pushed), measure whether the claim gate costs traffic or recovers it. Search Console on 1 Nov: 1,233 indexed, 3,000 not, 431 clicks / 93 days.
+
+**Measured (Search Console exports plus the live DB and the dry-run changeset):**
+- Not-indexed reasons: `Crawled - currently not indexed` 1606, `Discovered - currently not indexed` 1016, `Alternative page with proper canonical` 283, redirect 37, robots 35, 404 18, noindex 5. 87% is Google's own quality verdict.
+- Index trend 5 Aug to 23 Oct: indexed **2603 to 1233**, a 53% loss, accelerating from 22 Sep. Impressions over the same window 307.2/day to 226.9/day, a 26% loss.
+- Clicks by route: `shop/[slug]` 374 (87%, on 211 pages), `best/*` 26, `counties/[slug]` 17, `/` 11, `categories/*` 3, `seasonal/*` 0, `find/*` **0 and absent from the export**.
+- **Shipping the gate today would cost 373 of 431 clicks.** Of the 211 earning shop pages, 1 survives the gate and 210 go noindex. `morfa-farm-shop` alone is 67 clicks, 16% of all traffic.
+- Post-ship ceiling: the changeset holds 198 unique existing-row ids gaining an admitted `venueType` plus `venueVerifiedAt`; **183 distinct existing shop pages** pass `isIndexable`. Ceiling if every row were verified: 1,645 of 3,504.
+- Evidence census: 1,543 rows have an `fsaId`, 1,250 a website, 861 an `osmId`, and **0 rows have parsed opening hours**. Of the 211 earners: 166 fsaId, 17 website, 24 phone, 72 retail lexeme in name.
+- `find/[county]/[category]` is an orphan route: declared in no sitemap, linked from no page outside `seo-pages.ts`. All 285 x 35 = 9,975 URLs return 200 `index, follow` with "0 Local Shops" and the word "verified" in the description. A truth defect, not the index problem.
+- Production sitemap declares 3,824 URLs: 3,504 shop, 285 counties, 26 seasonal, 9 statics.
+
+**Slice shipped:** `src/app/{page,counties/[slug],categories,categories/[slug],best,best/[slug]}` hardcoded the apex host `https://farmcompanion.co.uk` in canonical, og:url and JSON-LD `url`/`@id`/`item`. The apex 308-redirects to www, so all 285 county pages declared a canonical on a redirecting host; GSC reports 283 "Alternative page with proper canonical". Replaced with `SITE_URL`. New `src/lib/canonical-host.test.ts` locks the inventory (failed pre-fix naming all 6 files; `geocoding.ts` user-agent and `email.service.ts` mail links stay, with reasons recorded).
+
+**Verified:** `npx tsc --noEmit` exit 0. `pnpm test:unit` 464 pass, 0 fail (463 before).
+
+**Risk/rollback:** metadata-only; revert the commit to restore the apex strings. No DB or route change.
+
+**Next:** the gate cannot ship until the earning pages are verifiable. FSA category and inspection-date lookup running against the 166 earners that carry an `fsaId`.
+
+### 2026-11-01 — Separate the index gate from the claim gate (operator decision: option C)
+
+**Decision (operator, given the Phase 0 numbers):** ship the claim gate absolute, and stop the index gate depending on it. Rejected: shipping as designed (keeps 58 of 431 clicks) and a substance threshold of two real fields (keeps 173), because 199 of the 211 earning pages hold only a generic Geograph/Wikimedia area photo as "substance" and 165 hold no evidence of any kind.
+
+**Change:** `isIndexable` no longer begins `if (!canClaimVisitable(f)) return false`. It now asks one question, whether the page can tell a reader where to go: a valid UK postcode, or an address together with a county. `substanceCount`, `hasParsedHours`, `TEMPLATE_DESCRIPTION` and `DEFAULT_OFFERING` are deleted with it, and `ClaimInput` shrinks from eight fields to five. The claim gate is untouched, so no unverified page claims to be a farm shop, on any surface.
+
+**Effect, measured against the live DB:** 3,158 of 3,504 active pages stay indexable; 346 are excluded for having no usable location. Of the 211 pages earning clicks, 209 stay indexed, retaining 372 of 374 shop clicks. The 254 rows storing the literal string "UK" as a postcode pass only because each also has an address and a county.
+
+**Verified live on the dev server:**
+- `/shop/morfa-farm-shop` (67 clicks, the single biggest earner): `index, follow`, description "A registered food producer in Carmarthenshire. We have not confirmed whether it is open to visitors." No farm-shop claim anywhere in the rendered body except the business's own registered name.
+- `/shop/les-halles-aux-poissons` (no postcode, address or county): `noindex, follow`.
+- `npx tsc --noEmit` exit 0. `pnpm test:unit` 462 pass, 0 fail. Four tests in `farm-claims.test.ts` failed before the change and pass after; three others (`the literal UK is not a postcode`, malformed postcodes, whitespace) only became meaningful after it, since the old gate returned false for every unverified input.
+
+**Consequence worth noting:** the pipeline's 155 rows gaining parsed opening hours no longer affect indexability. Hours still render on the page; they are no longer a gate input.
+
+**Risk/rollback:** revert the commit to restore the coupled gate. No DB or route change. The `would_index` column in `export-venue-candidates.ts` now means "has a findable place", not "would index once verified", so `docs/verification/cornwall.csv` carries the old meaning in that column.
+
+**Next:** every title tag doubles the brand ("Morfa Farm Shop · Farm Companion · Farm Companion") because the root layout sets `template: '%s · Farm Companion'` while pages append their own suffix. The root description also still claims "1,300+ authentic UK farm shops" and "verified farm information".
+
+### 2026-11-01 — One county slug, so the sitemap stops declaring 404s
+
+**Found by crawling all 3,873 reachable URLs against the dev server** (frontier exhausted, not truncated). Five county names carry punctuation, and four separate call sites had grown their own slug rule that replaced only whitespace. The sitemap therefore declared `/counties/newry%2C-mourne-and-down` while the route resolves through `slugifyCounty` and serves `/counties/newry-mourne-and-down`. The crawl found 9 county 404s; Search Console reports 18 under "Not found (404)".
+
+Affected: Newry Mourne and Down; Armagh City, Banbridge and Craigavon; Bournemouth, Christchurch and Poole; Comhairle nan Eilean Siar (Western Isles); King's Lynn and West Norfolk.
+
+**Change:** `slugifyCounty` and `deslugifyCounty` moved to a new `src/lib/county-slug.ts` with no data-layer imports, so a client component can use the same rule as the route and the sitemap; `seo-pages.ts` re-exports them for existing importers. Four live call sites now use it: `enhanced-sitemap.ts:187`, `app/counties/page.tsx` (the region map and the county cards), `CountiesSearch.tsx`, `SearchSuggestions.tsx`. The county index also stopped bucketing county-less farms under `'Unknown County'`, whose link `/counties/unknown-county` 404s; those farms are dropped from the grouping instead. `src/lib/county-slug.test.ts` adds an inventory lock: a file holding a `/counties/` reference may not also hold `replace(/\s+/g, '-')`.
+
+**Verified:** the lock failed before the fix, naming all four files. After: `pnpm test:unit` 468 pass, 0 fail; `npx tsc --noEmit` exit 0. The dev sitemap now declares 285 county URLs with no percent-encoding or punctuation and all five formerly broken slugs present in resolvable form; `/counties` emits 285 links, none punctuated, none `unknown-county`. All five slugs return 200 on the running server.
+
+**Still carrying the bug, deliberately untouched:** `src/lib/schema-generators.ts:346` and `src/lib/sitemap-generator.ts:167`. Neither has an importer; both are locked in the test and should be deleted on sight rather than edited blind.
+
+**Risk/rollback:** revert the commit. URL-building only, no DB or route change; the corrected URLs were confirmed to already resolve, so no redirects are needed.
+
+**Also found by the crawl, not yet fixed:** `/shop` serves **15,224 KB** of HTML in one response and `/counties` 1,341 KB. `/claim` 404s and is linked from every page footer ("Are you a farm shop?"). `/submission-success` returns 500. Two sitemap shop entries are website addresses rather than slugs: `/shop/www.applejackspets.co.uk` and `/shop/milletsfarmcentre.com/millets-farm-shop`. Every title tag doubles the brand, because the root layout sets `template: '%s · Farm Companion'` while pages append their own suffix.
+
+### 2026-11-01 — The farm page, rebuilt for the visitor who actually arrives
+
+**Why this page and not the navigation.** The Search Console pages export settles it: `shop/[slug]` takes 374 of 431 clicks across 211 pages, and every hub earns nothing (`/counties` 0 clicks on 332 impressions, `/map` 0 on 270, `/seasonal` 0 on 1,138, `/categories` 0 on 255, `/shop` absent, `/find/*` absent). The queries are navigational: "morfa farm shop", "unstone hill farm shop", "mayfield farm shop helston". Nobody browses this directory; they type one business name. So the farm page is the product and the navigation redesign was dropped from scope.
+
+**Register correction.** PRODUCT.md sets `register: product`, but the page was built in the brand register: a 60vh editorial hero, display type at `text-5xl`, two decorative hairlines, and the first action at 851px. The railway-poster treatment stays from `md` up, where there is room above the facts; mobile is now a task surface.
+
+**Changes:**
+- New `src/lib/farm-page-actions.ts`: `hoursStatus` and `mapAction`, the two decisions the page makes, pulled out of the component so they can be tested. 8 tests, failing before the module existed.
+- Hours are now a stated fact. No row in the database holds parsed hours, so the old `canClaim && hours.length > 0` block rendered nothing on all 3,504 pages and a reader could not tell a shop with no hours from a page that never had them. Every page now says "Opening hours not confirmed", and "Ring ahead before travelling" when a phone exists. The claim gate still governs: an unverified farm never shows hour ranges even once the mapping is wired.
+- The map link is no longer gated. The postal address is printed in full directly above it, so withholding the link protects nobody; the claim moved into the label, **Get directions** when verified and **Show on map** when not, with a test asserting no unverified label carries a visitability verb.
+- Phone and website moved from the sidebar into an action row under the address. The sidebar Contact card keeps email, and teaches rather than blanks when there is none.
+- `ObfuscatedContact` controls rebuilt to 48px in the paper/ink vocabulary; the two emoji removed for the lucide icons the rest of the page uses.
+- Footer social links, Sitemap, and the newsletter field and button brought to 48px.
+
+**Measured at 375x812, before and after:**
+
+| | before | after |
+|---|---|---|
+| first action | phone at 851px | Show on map at **374px** |
+| second, third | 894, 1073 | 433, 491 |
+| 1.2-screen floor (974px) | View on Map missed it | met with 483px to spare |
+| controls under 24x24 | 7 | **0** |
+| controls under 48px tall | 13 of 20 | 4, all in the shared header |
+
+**Verified:** `npx tsc --noEmit` exit 0, `npx eslint` clean on every touched file, `pnpm test:unit` **476 pass, 0 fail** (468 before). Measurements taken against the running dev server, not asserted.
+
+**Found while measuring, not yet acted on:** the newsletter button was written `h-12` and rendered **42px**. `tailwind.config.js:347` overrides Tailwind's spacing scale onto an 8px grid (`1`=8px, `6`=48px, `12`=96px), so numeric utilities do not mean what the Tailwind docs say, and no `.h-12` rule reaches that element. There are 42 further uses of `h-12`, 32 of `h-10`, 12 of `h-14` and 11 each of `h-9` and `h-11` across `src`, every one of them a size nobody has checked. That deserves its own audit.
+
+**Still outstanding on this page's shared chrome:** the site header's Search and Open menu controls are 39x39 and the wordmark is 28px tall.
+
+**Risk/rollback:** revert the commit. Presentation and two pure functions only; no DB, route or schema change. The one judgement call is the ungated map link, which is a single conditional in `farm-page-actions.ts`.
+
+### 2026-11-01 — A phone number nobody could read, and the rule that caused it
+
+**Reported by the operator:** the phone number on the farm page was unreadable. It was rendering at **10.5px**.
+
+**My error, then the real cause.** I had styled the contact controls `text-caption`, which I assumed was a semantic token. Two things were wrong underneath it:
+
+1. `tailwind.config.js` is a **Tailwind v3 config that is never loaded**. `globals.css` begins `@import "tailwindcss"` and the installed version is `^4.1.18`, which takes its theme from CSS and only reads a JS config given an explicit `@config` directive. There is none. So the whole file, 350 lines of 8px spacing grid, semantic type scale (`display`/`heading`/`body`/`caption`/`small`) and colour tokens, produces nothing. `text-caption` and `text-body` are dead classes; every use of them across the codebase sets no size at all.
+2. `globals.css` held an **unlayered** rule, `button, .filter, .ui-label, .cta, .btn, .button { font-size: clamp(0.75rem, 1.5vw, 0.875rem) }`. Tailwind v4 emits utilities into `@layer utilities`, and **unlayered CSS beats every cascade layer regardless of specificity**. So that rule silently overrode the text size of every button on the site, whatever class was put on it. Wrapping the selector in `:where()` did nothing, which is how the layer mechanism was identified: specificity was never the issue.
+
+**Fix:** the rule moved into `@layer base`, where it is a default a utility can override, which is what it was always meant to be. Buttons that set no size are unchanged. The farm page's three actions were then given explicit pixel sizes rather than dead tokens.
+
+**Verified on the running server:** the phone control renders 16px, reveals on tap to `+44 1554 890380` as a `tel:` link at 16px. Show on map and Visit website are 16px (were 12.25px). The footer newsletter button is 15px (was 10.5px, and it was written `h-12`, which is also how the 42px height arose). `tsc --noEmit` exit 0, eslint clean, `pnpm test:unit` 476 pass 0 fail.
+
+**What this says about the earlier measurement.** The 375x812 pass I reported measured positions and tap-target sizes and never measured a font size. That is how a 10.5px phone number got past me and was reported as meeting the conversion floor. The floor check needs a type-size column.
+
+**Open, and larger than this slice:**
+- `html { font-size: 14px }` under `@media (max-width: 480px)`, so every rem on a phone is 12.5% smaller than designed. Body copy on the farm page renders at **12.25px**.
+- `tailwind.config.js` is dead. Either load it with `@config` or port it to `@theme`, then re-measure the site, because nothing it declares is currently in effect.
+- The same typography block is declared twice, in `globals.css` and `src/styles/fonts.css:135`.
+- 42 uses of `h-12`, 32 of `h-10`, 12 of `h-14`, 11 each of `h-9` and `h-11`, all unverified sizes.
+
+**Risk/rollback:** revert the commit. The layer change affects precedence for six selectors site-wide; buttons that set no size keep the same rendering, and buttons that set one now get it, which is the intent.
+
+### 2026-11-01 — /map crashed on every search for nine months
+
+**Symptom:** `/map?q=<anything>` threw `Cannot read properties of null (reading 'toLowerCase')` at `map/page.tsx:228` inside the `farmsForMap` useMemo, and the page rendered nothing. `/map` with no query was fine, which is why it looked healthy: an empty query skips the filter entirely.
+
+**Root cause, with its history.** The filter read `name`, `address`, `postcode` and `county` as strings. Three of those are nullable in the database and `/api/farms` passes them through raw: the live payload holds 287 null addresses, 457 null counties and 316 null postcodes per 2,000 rows, so the first sparse row ended the render.
+
+The nulls are correct. Commit `9497627` (24 May 2026) made address, postcode and county optional in the pipeline because "FSA data legitimately has sparse rows": 1,381 creates lacked an address, 544 a postcode, 666 a county. That commit patched the one consumer that broke immediately (`counties: countyFacets.map(...).filter(c => c !== null)`) and left every other consumer asserting non-null. The map filter was written on 1 September 2025 (`ea69aa8`) against data that had no nulls, and has been crashing since the day the nulls arrived.
+
+`tsc --noEmit` could not see it. `map/page.tsx:124` does `setFarms(data.farms || [])` from an untyped `response.json()`, so the type stops being checked exactly where the data stops being trustworthy. It exited 0 on every commit today while this was broken.
+
+**Which was wrong, the column or the type:** the type. The data is a faithful record of sparse FSA rows. `FarmShop.location.address`, `county` and `postcode` are now `string | null`, and the compiler enumerated 11 call sites across 8 files, each fixed at its own site rather than coerced centrally. `getFarmMarkerLabel` took the honest shape directly rather than being coerced at both its callers; the county filter list now drops farms with no county rather than offering a blank entry.
+
+**The search predicate is now `src/lib/farm-search.ts`**, extracted from the useMemo so it can be tested, with a missing field treated as not-searchable rather than as matching nothing: a farm with no address still matches on its name.
+
+**The failing test, and a trap inside it.** Six tests were written against the original logic before it changed. The first version of the headline test asserted `matchesQuery(farm, 'morfa')` on a farm whose name is "Morfa Farm Shop", which **passed against the broken code**: `||` short-circuits on the name and never reaches the null. It was rewritten to query a term the name does not contain. Five of six then failed with the production error, and all six pass after.
+
+**Verified:** `npx tsc --noEmit` exit 0; eslint clean on the changed files (map/page.tsx carries five pre-existing unused-variable warnings, untouched); `pnpm test:unit` **482 pass, 0 fail** (476 before). On the running server, `/map?q=morfa` returns 2 farms, `/map?q=cornwall` 3, `/map?q=a` 2,000, with no exception in the console.
+
+**Exceeds the 8-file slice guideline at 10 files, deliberately:** a type correction is atomic, since leaving any call site unfixed leaves `tsc` red. The diff is 24 insertions and 21 deletions plus the new module and its test.
+
+**Found alongside, not fixed:** `/map` requests `/_next/image?url=%2Fmain_header.jpg` and gets a 400, and the map tiles do not render in dev. Both pre-date this change.
+
+---
+
+## Slice BRAND-A — Identity core: the mark, the favicon ladder, and one theme colour
+
+**Goal.** Give the product a vector mark in the Pitti Press canon and make the browser tab, the
+install prompt and the tile agree with the design spec for the first time.
+
+**The mark.** A Loam-ink arch with a Vermilion sun inside it. Drawn as a single filled path plus
+one circle on a 1024 canvas snapped to 64-unit steps, so every edge lands on a pixel boundary at
+16px. Chosen over two rejected candidates after rendering all of them at 16px first: a converging
+"furrow F" lost its entire perspective idea at small size and read as an anonymous letter, and a
+plain arch had the best form but carried no meaning. A fourth candidate, a sunrise over a field
+line, tested strongest at 16px but is a generic shape; it is retained as the plate motif for
+social cards rather than discarded. The arch was verified under the conditions that actually kill
+marks: circle crop at 160px and 32px, inverted dark palette, and the Android 80% maskable circle.
+
+**The Vermilion disc is the mark's single chromatic moment**, which satisfies the spec's
+one-stamp-per-screen law (spec section 2.1) rather than fighting it.
+
+**Three palettes were shipping at once.** The CSS tokens were Pitti Press, `manifest.json` declared
+`theme_color: #10b981` (emerald, the rejected harvest theme), and `layout.tsx` declared
+`#00C2B2` (teal) in three separate places: the metadata export, a hardcoded `<meta>` tag in the
+JSX that silently overrode it, and the inlined critical CSS for the skip link. All now resolve to
+Vermilion `#D33A2C`. The duplicate `<meta name="theme-color">` was deleted rather than updated.
+
+**Skip-link contrast checked, not assumed.** White on Vermilion is 4.76:1, which passes WCAG AA
+for normal text. Cream on Vermilion would have been 4.01:1 and was rejected for that reason.
+
+**Files:** `public/favicon.svg` (new, 643 bytes, carries its own `prefers-color-scheme` block so
+the tab icon inverts in dark mode), `public/favicon.ico` (rebuilt with real 16/32/48 frames; the
+previous file carried only 16 and 32), `public/favicon-16x16.png`, `public/favicon-32x32.png`,
+`public/manifest.json`, `public/browserconfig.xml`, `src/app/layout.tsx`.
+
+**Verified:** `npx tsc --noEmit` exit 0. `npx eslint src/app/layout.tsx` exit 0.
+`pnpm test:unit` 482 pass, 0 fail. `magick identify public/favicon.ico` reports three frames at
+16x16, 32x32 and 48x48. The SVG's mean pixel density is within 0.15% across 16, 32 and 48 px
+renders, which is evidence the mark is not collapsing at small sizes. `python3 -c json.load`
+confirms `manifest.json` still parses.
+
+**Not done in this slice:** external card validators, which need a deployed preview, and
+Lighthouse installability, which needs the maskable pair from Slice B.
+
+**Found, not yet fixed (Slice C owns these):** `public/og-farm-shops.jpg` is an HTML document with
+a `.jpg` extension and is declared as the `og:image` for `/shop` at `shop/page.tsx:39`, so that
+page has had no share card since 1 Feb 2026. `public/share.jpg` is a 6.3 MB 5824x3264 camera
+original with EXIF intact, over X's 5 MB ceiling. `src/app/og/route.tsx` builds every card from
+teal-to-lime gradients, which the spec forbids outright.
+
+**Platform shortlist settled** (Herald): Pinterest, Instagram, Facebook, X. LinkedIn killed, no
+consumer intent. Four crops to draw, not seven platforms: 2:3, 4:5, 1.91:1, 9:16. The variable
+element in the plate system becomes the **map fragment**, not the produce illustration, which
+turns several hundred farms into several hundred compositions from one template.
+
+**Risk and rollback.** The change is six asset files and one source file, all tracked, so
+`git checkout -- farm-frontend/public farm-frontend/src/app/layout.tsx` restores the previous
+identity exactly. The only behavioural risk is cached favicons in browsers that already visited
+the site, which resolve on their own.
+
+### 2026-11-01 — The token system was never loaded. Now it is, and a test says so.
+
+**The finding that reframed it.** The design system is not "Tailwind with a custom config". `tailwind.config.js` was 467 lines of **v3** configuration and the project runs **v4**, which takes its theme from CSS and reads a JS config only given an explicit `@config` directive. There has never been one. There was also no `@theme` block anywhere, so Tailwind ran on its stock default theme and the project's colours came from **68 hand-written CSS classes** in `globals.css:1118-1145`. Loading the old config would not have restored anything; it would have started a system the codebase has never run under.
+
+**The instrument, which is the real deliverable.** `src/scripts/audit/class-rules.ts` compiles the actual stylesheet through the actual PostCSS plugin and reports every class the source writes that produces no rule. It found **229 distinct classes over 1,116 uses** generating nothing. Its first extractor read only plain string literals, so it missed `cn(...)` and template chunks and reported `hover:text-brand` as unused while the source writes it 37 times; widened, and with template-literal prose filtered out, the honest figure was 185 distinct over 490 uses after the port. `class-rules.test.ts` holds three lines: the classes that must resolve, a named list for the next slice, and a ratchet that fails when the dead inventory grows.
+
+**What was dead:** `text-caption` 311 uses, `text-small` 120, `text-body` 74, `text-heading` 18, `font-clash` 34, `font-heading` 14, `font-body` 8. `text-body` and `text-heading` were worse than dead: `--text-body` was declared as a **colour** alias, and v4 reads `--text-*` as a font size, so those classes emitted an invalid size and silently applied a colour instead. Those four aliases are renamed to the `--ink-*` family.
+
+**The root font size.** `html` carried `clamp(14px, 2vw, 16px)` plus four media queries pinning it to 14px under 480px. Removed, for two reasons: a px root discards the reader's own browser font-size preference, which PRODUCT.md's commitment to WCAG 2.2 AA and 200% zoom does not permit; and it made every rem 12.5% smaller on a phone, which is why body copy rendered at 12.25px on the page taking 87% of the site's search traffic.
+
+**Measured, 8 routes at two widths, consent dismissed so the banner is not counted** (`src/scripts/audit/style-audit.mjs`, Puppeteer's cached Chrome, no new dependency):
+
+```
+mobile root                      14px -> 16px on every route
+text nodes under 16px, mobile
+  /                              115 -> 78      (-37)
+  /shop                       10,820 -> 7,310   (-3,510)
+  /counties/devon                143 -> 106     (-37)
+  /seasonal                      110 -> 95      (-15)
+  /shop/morfa-farm-shop           32 -> 31
+smallest text on a page          9.8px -> 11.2px, 10.5px -> 12px
+targets under 48px, mobile       / -10, /counties/devon -10
+```
+
+**The one regression, understood rather than explained away:** `/counties` at desktop gained 292 text nodes under 16px. Cause: `text-small` now applies where it previously did nothing, so secondary labels dropped from an inherited 16px to the 12px the design system always specified for them. The class is doing its job for the first time. Whether `text-small` should be 12px is now a visible design question rather than an invisible accident.
+
+**`tailwind.config.js` reduced from 467 lines to a 24-line signpost** explaining what happened and where the tokens live. Nothing loads it; leaving it in place was the trap that produced this whole class of bug. Original content is in git history.
+
+**Verified:** `npx tsc --noEmit` exit 0; `pnpm test:unit` **485 pass, 0 fail** (476 before); `/`, `/shop/morfa-farm-shop` and `/map?q=morfa` all 200 against the running server; before and after screenshots in `.audit/` (gitignored).
+
+**Next slice, already named in the test:** `--color-*` tokens in `@theme`, and moving the 68 hand-written colour classes into a cascade layer. Both are needed together, because unlayered CSS beats `@layer utilities`, so generating `hover:text-brand` while `.text-brand` stays unlayered would leave hover still broken. 33 uses of `bg-border` and 22 of `hover:bg-surface-2` are the markers.
+
+---
+
+## Slice BRAND-A2 — Public credit renamed to Rotocalco Press
+
+**Why.** A trademark and provenance check cleared "Pitti Press" of any collision: no company, no
+registered mark, no UK print studio of that name. The reason to change it anyway is narrower and
+cheaper. `Pitti Press` had never appeared in rendered user-facing output, only in code comments,
+so there was no sunk cost; and Pitti Immagine Srl holds UK rights on PITTI IMMAGINE composites in
+classes 35 and 41, whose specs cover online publishing and business information via a website.
+`DESIGN.md` naming "Pitti Uomo trade-fair signage" in its reference canon was documentary evidence
+that the name derived from their fair, which is the one thing a s.10(3) unfair-advantage argument
+needs and normally cannot get. Low probability, free to avoid now, expensive to avoid later.
+Secondary and arguably stronger: "Pitt Press" is Cambridge University Press's historic imprint, so
+the credit read as a misspelling of a scholarly imprint.
+
+**Scope of the rename, deliberately narrow.** Public credit only. The codebase keeps `PITTI_STYLE`,
+the `generate:pitti` script, the Hetzner blob prefix `pitti-farm-images/`, the path
+`/images/pitti/` and the database value `ai_pitti`. Measured first: 58 files and 70 commits carry
+the string, and three of those are production-coupled, so a full rename costs a storage migration
+plus a data migration to reduce a risk that only exists for public use.
+
+**Files:** `DESIGN.md` only. The canon sentence now describes the signage geometry wanted (tall
+condensed capitals, generous letter-spacing) rather than naming the fair that has it, which is
+better design writing regardless of the legal point.
+
+**Not legal advice.** The UK IPO's own search is not machine-reachable; register data came from
+TMview, the official EUIPO-operated aggregator. UK application numbers are recorded in the session
+transcript for manual confirmation.
+
+---
+
+## Slice BRAND-B — Device icons, and a reproducible build
+
+**Goal.** Ship the iOS home-screen tile and a correctly padded Android maskable icon, and make
+every raster icon regenerable from the vector master instead of hand-rolled.
+
+**`scripts/build-icons.py` is the new source of truth for rasters.** It reads `public/favicon.svg`
+and emits three framings, because the surfaces crop differently: the master framing at ~75% of
+canvas for favicons and `purpose: any`; the same flattened onto cream for iOS, which rejects alpha
+and would composite transparency onto black; and a 0.72 scale for Android maskable, since the
+mark's bounding-box corners sit 543 units from centre in the 1024 master and Android's safe circle
+has radius 410, so 543 x 0.72 = 391 clears it.
+
+**The manifest declared one file as both `maskable` and `any`**, which makes a maskable icon look
+over-padded wherever it is used as a plain icon. Split: `icon-maskable-512.png` is the only
+`maskable` entry, the android-chrome pair and apple-touch are `any`, and `favicon.svg` is now
+listed so installers can use the vector.
+
+**A bug this slice caused and caught.** The first version of the extractor pulled the mark nodes
+out of `favicon.svg` without the `<style>` block that carries the `.ink` and `.stamp` fill rules,
+so every generated device icon rendered the Vermilion sun as default black and still passed the
+geometry checks. Found by looking at the rendered crops, not by a test. The script now extracts
+the style block with the nodes and calls `assert_stamp_present()` on three outputs, which greps
+the histogram for `D33A2C` and exits non-zero if the colour is gone.
+
+**Files:** `scripts/build-icons.py` (new), `public/apple-touch-icon.png`,
+`public/android-chrome-192x192.png`, `public/android-chrome-512x512.png`,
+`public/icon-maskable-512.png` (new), `public/manifest.json`, plus the favicon ladder regenerated
+from the same source.
+
+**Verified, each with a negative control so the test is known to be capable of failing:**
+- Maskable safe zone: filling the 80% circle with cream leaves standard deviation **0**. The same
+  operation on `android-chrome-512x512.png` leaves **0.162**, proving the check detects overflow.
+- Vermilion present: histogram contains `D33A2C`. A greyscale render of the same file returns
+  False, proving the assertion detects loss.
+- Alpha: all four report `alpha=Undefined`, `opaque=True`.
+- `magick identify public/favicon.ico` reports 16, 32 and 48 frames.
+- `npx tsc --noEmit` exit 0. `pnpm test:unit` 485 pass, 0 fail.
+- Visual: rendered under Android's circle, squircle and teardrop masks and the iOS rounded tile.
+
+**Not done:** Lighthouse installability and the external card validators, both of which need a
+deployed preview rather than a local build.
+
+**Risk and rollback.** Six asset files plus one new script, all tracked. `git checkout -- public`
+restores the previous icons; deleting `scripts/build-icons.py` loses nothing else.
+
+---
+
+## Slice BRAND-C — Card engine repainted, and the share card that was never an image
+
+**Goal.** Make every social card look like the product, and stop `/shop` serving an HTML file to
+crawlers.
+
+**The route was worse than the gradient problem.** `src/app/og/route.tsx` built every card from
+`linear-gradient(135deg, #00C2B2 ...)` in four variants, over a radial-gradient wash, with
+`backdropFilter: blur(10px)` glassmorphism, four `textShadow` rules, centred type, and two emoji
+(a wheat sheaf and two seedlings). The spec forbids gradients outright and the project forbids
+emoji. Fully repainted: cream paper, Loam ink, one Vermilion stamp, Sea ink for the standfirst,
+flush-left editorial column, no shadows.
+
+**It now sets in the real display face.** `ClashDisplay-Semibold.ttf` is 45 KB, small enough to
+bundle beside the route and load with `fetch(new URL(..., import.meta.url))`, so the edge runtime
+is kept and the cards render in Clash Display rather than the satori default grotesk.
+
+**The registration offset is now a real brand constant**, `REGISTRATION_OFFSET = 7`. An ink
+half-disc sits 7px down-right behind the Vermilion one, so the sun carries the misregistration
+sliver a two-colour press leaves. This is the tell that reads as printed rather than digital at
+any size, and it is defined once for every surface to reuse.
+
+**Two faults found by rendering, not by reasoning.** The Vermilion `FARM SHOP` stamp stretched to
+the full column width, because a flex column defaults to `align-items: stretch`; fixed with
+`alignSelf: 'flex-start'`. And the first plate drew a full circle at radius 186, which is 14% of
+the canvas against the spec's 8% Vermilion cap; replaced with a half-disc at radius 150, about 5%,
+which is also the sunrise-over-field motif rather than a generic sun.
+
+**`/shop` had no share card at all.** `public/og-farm-shops.jpg` was a saved Next.js HTML page
+with a `.jpg` extension, declared as the twitter image at `shop/page.tsx:39`. Repointed to the
+dynamic route and the file deleted. `public/share.jpg`, a 6.3 MB 5824x3264 camera original with
+EXIF intact and no references anywhere, also deleted.
+
+**`og.jpg` regenerated rather than repointed.** Ten places across `privacy`, `terms`, the
+homepage, `seo-middleware.ts` and `seo-optimizer.ts` reference `/og.jpg`. Rewriting all ten was
+more churn and more risk than rendering the new card once and overwriting the file, which fixes
+every caller with no code change. 50 KB, 1200x630.
+
+**New permanent guard: `src/lib/og-image-assets.test.ts`.** Walks every `.ts`/`.tsx` under `src`,
+collects string literals resolving to a real file in `public/`, and asserts four things: every
+referenced image decodes via sharp, none exceeds the 5 MB crawler ceiling, the extension matches
+the encoded format, and no *new* social card deviates from 1.91:1.
+
+**The aspect check found five more defects**, and they are real, not false positives: `about.jpg`
+is 2.28:1, `counties.jpg` 1.50:1, `add.jpg` 1.78:1, `feedback.jpg` 1.78:1, `seasonal-header.jpg`
+2.96:1, each declared as the og:image for its page. Fixing them means repointing five more page
+files, so they are enumerated in `KNOWN_WRONG_ASPECT`, which the test asserts may shrink but never
+grow, and which fails if an entry is fixed and left in the list. Slice BRAND-C2 empties it.
+
+**Verified:**
+- `npx tsc --noEmit` exit 0; `npx eslint` exit 0 on all three changed source files.
+- `pnpm test:unit` **490 pass, 0 fail** (485 before; the five new ones are this guard).
+- Negative control on the guard: temporarily restoring the `og-farm-shops.jpg` reference turns it
+  red with `og-farm-shops.jpg: not decodable (starts "<!DOCTYPE html><!--Vpv_t")`, naming the
+  referencing file. Restored, green again.
+- Rendered against the running dev server at three variants: a claimed farm with county, a
+  generic titled card, and a 44-character farm name that wraps to three lines without clipping.
+- `magick identify public/og.jpg` reports JPEG 1200x630, 50 KB.
+- `route.tsx` 201 lines, test 161, build script 102, all inside the soft limit.
+
+**Not done:** the external validators (X Card Validator, LinkedIn Post Inspector, opengraph.xyz,
+Facebook Sharing Debugger) need a deployed preview, not localhost. They remain the real proof and
+should run against the first Vercel preview of this branch.
+
+**Known trade-off, recorded honestly.** The layout is flush left, which is correct for the brand
+but means a hard centre-square crop (some chat thumbnails) clips the start of long names. The
+1.91:1 presentation that Facebook, WhatsApp, X and Slack use for link previews is unaffected.
+
+**Risk and rollback.** `git checkout -- farm-frontend/src/app/og farm-frontend/src/app/shop/page.tsx
+farm-frontend/public/og.jpg` restores the previous engine; the two deleted files are recoverable
+from git history.
+
+---
+
+## Slice BRAND-C2 — The five wrong-shaped cards, cleared
+
+**Goal.** Empty `KNOWN_WRONG_ASPECT` by giving every remaining page a card the right shape.
+
+**What was wrong.** Five pages declared a static jpg as their `og:image`, none of them 1.91:1:
+`about.jpg` 5315x2331 (2.28:1), `counties.jpg` 1920x1277 (1.50:1), `add.jpg` 5460x3072 (1.78:1),
+`feedback.jpg` 1920x1076 (1.78:1), `seasonal-header.jpg` 1920x648 (2.96:1). A crawler letterboxes
+or centre-crops each one.
+
+**A second fault in the same blocks.** All five also declared `width: 1200, height: 630` in their
+openGraph metadata, which was simply untrue of every one of those files. The markup was telling
+crawlers a shape the asset did not have.
+
+**Fix.** Each now points at the dynamic `/og` route with its own title and standfirst, so the card
+is generated at exactly 1200x630 and in the house style. `seasonal/page.tsx` also had
+`type: 'image/jpeg'`, corrected to `image/png`, which is what the route actually returns.
+
+**Kept deliberately.** `counties.jpg` and `seasonal-header.jpg` remain in `public/` and remain in
+use as on-page hero images at `about/page.tsx:105`, `counties/page.tsx:90` and
+`SeasonalHero.tsx:38`. Only their social-card role was wrong, not the files.
+
+**Files:** `src/app/about/page.tsx`, `src/app/counties/page.tsx`, `src/app/add/layout.tsx`,
+`src/app/contact/layout.tsx`, `src/app/seasonal/page.tsx`, `src/lib/og-image-assets.test.ts`.
+
+**Verified:** `npx tsc --noEmit` exit 0; `npx eslint` exit 0 across all six files;
+`pnpm test:unit` **490 pass, 0 fail**. `KNOWN_WRONG_ASPECT` is now empty and the guard asserts it
+stays empty, failing both if a new bad card appears and if a fixed entry is left in the list. All
+five cards rendered against the dev server at 1200x630 PNG, 29 to 31 KB each.
+
+**Still not verified:** the external validators, which need a deployed preview. This branch is now
+pushed, so the first Vercel preview can be run through the X Card Validator, LinkedIn Post
+Inspector, opengraph.xyz and the Facebook Sharing Debugger.
+
+**Risk and rollback.** Six source files, metadata only, no runtime behaviour outside the card.
+`git revert` of this commit restores the static references.
+
+---
+
+## Slice BRAND-D — Map plates: the variable element, rendered from OSM
+
+**Goal.** Build and prove the renderer that gives every farm its own card background, without a
+bespoke illustration per farm and without a third-party static-map API.
+
+**Why a map fragment rather than a produce illustration.** A mid-century poster house printed one
+background plate and overprinted different type per city. Several hundred farms means several
+hundred coastlines, lanes and field patterns, so one template yields hundreds of compositions
+that are unmistakably one press. A produce illustration would have to be generated per farm and
+would look like a stock library.
+
+**Rendered from OpenStreetMap ourselves, not bought.** `src/lib/map-provider.ts` records a
+deliberate decision to use only free providers, and generating several hundred derived images for
+social distribution is a different use from rendering an interactive map, which the tile
+providers' terms treat differently. Rendering from OSM via Overpass sidesteps that, and suits
+two-ink output better than restyling someone else's raster.
+
+**ODbL is handled, not assumed.** OSM data is ODbL, so a rendered plate is a Produced Work and
+must carry attribution. `PLATE_ATTRIBUTION` is exported, written into every SVG's `<title>` and
+as a file comment. The site already attributes OSM at `/data-attributions`; **any surface that
+displays a plate must also show the attribution visibly**, which is a requirement on Slice D2 when
+plates reach the card.
+
+**The module is pure and the network is the caller's problem.** `buildOverpassQuery` makes the
+request text and `renderPlate` turns a response into SVG; neither does I/O, so the whole thing is
+testable without a network. Overpass is a shared free service under a fair-use policy, so this is
+explicitly a pre-generation tool, never a per-request call. That constraint is written into both
+the module and the script header.
+
+**The fault that would have shipped, found by measuring rather than reasoning.** The first version
+drew every road class. At 430x630 it looked excellent. At 108px wide, the width of a feed
+thumbnail, St Ives at 345 ways and Ely at 679 both collapsed into grey noise while only the
+vermilion marker survived. Added density-aware detail: above 240 drawable ways the minor lanes
+(`residential`, `unclassified`) are dropped, which is also truer to the idiom, since a poster
+house would not engrave every cul-de-sac. St Ives fell to 46 features, Ely to 172, Bourton was
+below the threshold and unchanged at 208. File sizes fell with it, Ely from 131 KB to 45 KB.
+`detail: 'full' | 'spare'` overrides the automatic choice.
+
+**Stroke weights now scale with the frame** against a 630-unit reference, so a 1000x1500 Pinterest
+plate is not drawn in hairlines.
+
+**Files:** `src/lib/map-plate.ts` (new, 220 lines), `src/lib/map-plate.test.ts` (new, 13 tests),
+`scripts/generate-map-plate.ts` (new, 73 lines).
+
+**Verified:**
+- `pnpm test:unit` **503 pass, 0 fail** (490 before; 13 new).
+- Tests cover the bbox widening with latitude (a UK plate must not stretch east to west), north
+  being up and east right, the centre projecting to the centre, water painted under roads, the
+  marker on its paper halo, attribution present, open country rendering a valid empty plate, the
+  density threshold in both directions, forced detail both ways, and weight scaling.
+- `npx tsc --noEmit` exit 0; `npx eslint` exit 0 on all three files.
+- Rendered against live Overpass for three contrasting places: St Ives (coastal estuary),
+  Bourton-on-the-Water (river and open fields), Ely (radial fen roads). Inspected at both 430x630
+  and 108px.
+
+**Demo output deliberately not committed.** The three plates were written to
+`public/images/plates/` and removed: they are non-farm coordinates, and shipping unused public
+assets is the same cruft Slice C cleaned out. The script regenerates them on demand.
+
+**Next (Slice D2):** pull real farm coordinates, pre-generate plates in polite batches, store them
+the way the Pitti images are stored, swap the OG route's fixed sunrise for the farm's plate, and
+render the ODbL attribution on the card.
+
+**Risk and rollback.** Three new files, nothing wired into a page yet, so the running site is
+unaffected. Deleting the three files is a complete rollback.
+
+---
+
+## Slice: colour tokens generated, and `dark:` made to follow the class
+
+**Goal.** Declare the colour tokens in `@theme` and delete the 74 hand-written colour rules, so
+every variant form of them exists.
+
+**Why it was blocked on the layer.** The hand-written rules were unlayered. Unlayered CSS beats
+every cascade layer regardless of specificity, so a generated `.text-brand` in `@layer utilities`
+would have lost to the hand-written one. Adding the tokens without deleting the rules would have
+changed nothing. They had to move in the same change.
+
+**What the deletion exposed.** `ThemeProvider` runs next-themes with `forcedTheme="light"` and
+`enableSystem={false}`: the site is light-only on purpose and `<html>` never carries `.dark`. But
+Tailwind v4's `dark:` variant defaults to the `prefers-color-scheme` media query, so all 1,387
+`dark:` occurrences across 72 files were firing for every visitor whose OS is in dark mode. The
+hand-written rules had been masking some of that. Measured on `/shop` against the committed
+stylesheet, before any change: `html.light`, body cream `rgb(242,235,218)`, and a
+`bg-gray-100 dark:bg-gray-700` pill computing to `oklch(0.373 0.034 259.733)`, a dark slate.
+`@custom-variant dark (&:where(.dark, .dark *))` is the `darkMode: 'class'` the dead v3 config
+always declared, in the form v4 reads.
+
+**Files:** `src/app/globals.css` (+120 / -134), `src/scripts/audit/class-rules.test.ts`,
+`src/scripts/audit/colour-probe.mjs` (new).
+
+**Verified:**
+- Dead classes **185 distinct / 490 uses -> 95 / 218**. 90 classes and 272 uses now generate CSS.
+  Everything left is a different family: the legacy numbered `primary-*` palette, `animate-in` and
+  friends from an animation plugin that is not installed, v3-only `bg-opacity-*`, and the
+  `text-captionall` typo.
+- 15 named classes moved from dead to `MUST_RESOLVE`; the test failed on all 15 before the fix.
+- `pnpm test:unit` **503 pass, 0 fail**. `npx tsc --noEmit` exit 0.
+- `colour-probe.mjs` over 7 routes, 240 elements: **10 property changes, all intended**. Eight are
+  `bg-border` painting `rgb(231,229,228)` instead of transparent; two are `border-ink/20` finally
+  honouring its opacity modifier instead of falling back to `currentColor`.
+- Static scan for a ported class sharing a property with a plain Tailwind colour utility on the
+  same element: **0 unprefixed collisions**, so `dark:` was the only one.
+- Type floor unmoved: root 16px on all 8 routes x 2 viewports, `smallestText` identical. The
+  homepage's counts rose only because the brand commits added content (textNodes 106 -> 133,
+  ratio 73.6% -> 73.7%).
+- `/shop` and `/shop/morfa-farm-shop` inspected at 375x812 under dark colour-scheme emulation,
+  which is the condition that produced white-on-cream. Both read correctly.
+
+**Next.** The remaining 95 dead classes are the legacy numbered palette (`text-primary-600` and
+kin, 17 + 15 + 7 + 7 uses at the top) plus three one-off misses worth a line each:
+`text-captionall` is a typo for `text-caption`, `duration-base` and `font-accent` name tokens
+nothing defines.
+
+**Risk and rollback.** The `dark:` change is the wide one: it stops 1,387 utilities from firing on
+OS preference, which is what the theme configuration always intended but has never done, so
+dark-OS visitors will see the light theme properly for the first time. Reverting the commit
+restores both the old behaviour and the hand-written rules together.
+
+---
+
+## Slice: finish the strip that left a 404 in the footer of every page
+
+**Goal.** `/claim` has never been a route. It sat in the footer of every page as "Update Your
+Details" and in the site map as "Claim or update your details", and returned 404 both times.
+
+**What it was.** `c1a6919 strip(phase-0): delete user farm-submission flow` removed the pages but
+not the things pointing at them. The tail it left: the two links above; `src/app/add/layout.tsx`,
+a route directory holding a layout and no page, so `/add` 404'd while still declaring a canonical
+URL and an OG card; `/submission-success`, which returned **500** because the page passes
+`onClick={handleDownloadPDF}` from a server component, and which was listed in the site map as a
+destination although it is a post-submission confirmation page for a flow that no longer exists;
+and `getClaimPageUrl()` in `bing-notifications.ts`, an exported helper with zero callers whose
+whole job was to build `/claim/<slug>` URLs.
+
+**Correction to an earlier reading.** `/claim` and `/submission-success` appear in
+`sitemap-generator.ts` and `enhanced-sitemap.ts` inside `EXCLUDED_PATHS`. They are excluded from
+the XML sitemap, not declared in it. The breakage was the rendered links, not the sitemap.
+
+**Where the intent goes.** `/contact` already opens with "Need to update your listing or claim
+ownership? Use the contact form below." The footer column is "For Farm Shops" and the header
+already carries Contact, so the column is now one link, "Update your details", to `/contact`,
+rather than two links to the same page.
+
+**Files:** `src/components/Footer.tsx`, `src/app/site-map/page.tsx`, `src/lib/bing-notifications.ts`,
+`src/scripts/audit/internal-links.test.ts` (new); deleted `src/app/add/layout.tsx`,
+`src/app/submission-success/layout.tsx`, `src/app/submission-success/page.tsx`.
+
+**Verified:**
+- The new test has two cases and both failed before the fix: the link check named `/claim` in
+  both files, the orphan check named `/add`. Both pass now.
+- `pnpm test:unit` **505 pass, 0 fail**. `npx tsc --noEmit` exit 0. `pnpm build` exit 0, with
+  `/add` and `/submission-success` gone from the route table.
+- Live on the dev server: `/submission-success` **500 -> 404**, which is the honest code for a
+  page that no longer exists; `/contact`, `/site-map` and `/` all 200; no `href="/claim"` renders
+  anywhere on the homepage.
+
+**Still orphaned, deliberately out of scope.** `src/app/api/add/selftest/route.ts` is a health
+check for the deleted add form, and `src/components/navigation/BottomNav.tsx:74` still hides
+itself on `/add` and `/claim`. Neither is reachable or harmful; both are cruft from the same
+commit.
+
+**Risk and rollback.** Three deletions and three small edits, none of them load-bearing: the
+deleted pages were a 404 and a 500. Reverting the commit restores them.
+
+---
+
+## Slice: the brand was in every title twice (part 1, the pages with traffic)
+
+**Goal.** The root layout declares `title.template: '%s · Farm Companion'`, so Next appends the
+brand to every child segment's `metadata.title` itself. Thirteen pages also wrote it into their
+own title and got it twice.
+
+**Measured on the dev server before the fix:**
+
+```
+/shop/morfa-farm-shop   Morfa Farm Shop · Farm Companion · Farm Companion
+/counties               Farm Shops by County | Farm Companion · Farm Companion
+/seasonal               British Seasonal Produce Calendar | Farm Companion · Farm Companion
+```
+
+The first is 3,504 pages and they carry 374 of the site's 431 clicks, so it is the title Google
+shows for almost all our traffic.
+
+**Two things the measuring changed.** `src/app/page.tsx` renders `Farm Companion — UK Farm Shops
+Directory`, correctly, because it shares the root layout's segment where `title.default` applies
+and the template does not. It is exempt, not broken. And `openGraph.title` / `twitter.title` are
+not templated, so they are expected to carry the brand and are left alone; only the top-level
+`metadata.title` changed in each file.
+
+**Files:** `src/app/shop/[slug]/page.tsx`, `counties/page.tsx`, `best/page.tsx`,
+`categories/page.tsx`, `compare/layout.tsx`, `seasonal/page.tsx`,
+`src/scripts/audit/page-titles.test.ts` (new).
+
+**Verified:**
+- The test failed on all six before the fix. Its scanner tracks brace depth and quoting rather
+  than reading to the first `openGraph:`, which matters: a first-match reading missed
+  `shop/[slug]/page.tsx` entirely, because that file opens generateMetadata with
+  `if (!shop) return { title: 'Farm shop not found' }` and the first title in the file is already
+  correct. That was the page with 87% of the clicks.
+- Rendered `<title>` re-read on all six: now `Morfa Farm Shop · Farm Companion`,
+  `Farm Shops by County · Farm Companion`, and so on.
+- `pnpm test:unit` **507 pass, 0 fail**. `npx tsc --noEmit` exit 0.
+
+**Next (part 2).** Seven files still double, held in `KNOWN_DOUBLED_NEXT_SLICE` so the test stays
+green and the list cannot rot: about, privacy, terms, contact, site-map and the two admin pages.
+
+**Risk and rollback.** Six one-line title changes. Reverting restores the doubled titles.
+
+---
+
+## Slice: title doubling, part 2 (the remaining public pages)
+
+**Files:** `about/page.tsx`, `privacy/layout.tsx`, `terms/page.tsx`, `contact/layout.tsx`,
+`site-map/page.tsx`, and `src/scripts/audit/page-titles.test.ts` (list shortened).
+
+**Verified.** Rendered `<title>` re-read on all five: `Privacy Policy · Farm Companion`,
+`Terms of Service · Farm Companion`, `Contact & Feedback · Farm Companion`,
+`Site map · Farm Companion`, `About · Farm Companion`. `pnpm test:unit` **507 pass, 0 fail**;
+`npx tsc --noEmit` exit 0.
+
+`about` was `About Farm Companion | UK Farm Shops Directory`, which carried the brand inside the
+phrase as well as after it. It is now `About`; the descriptive form survives on the openGraph and
+twitter titles, which are not templated.
+
+**Remaining.** `admin/page.tsx` and `admin/documentation/layout.tsx` still double and stay named
+in `KNOWN_DOUBLED_NEXT_SLICE`. Both sit behind `/admin`, so no search engine sees either title.
+They were left out only to keep this slice inside the 8-file rule.
 ### 2026-11-01 — Queue 1 Slice 1.1: Next.js RCE criticals cleared in farm-frontend (next 16.2.6 -> 16.4.1)
 
 **Audit first (the queue's premises were partly wrong).** Ran the real audits before touching anything:

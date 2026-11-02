@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-label="Farm Companion">
+  <title>Farm Companion</title>
+  <style>
+    .paper { fill: #F2EBDA }
+    .ink   { fill: #0F0E0C }
+    .stamp { fill: #D33A2C }
+    @media (prefers-color-scheme: dark) {
+      .paper { fill: #15120D }
+      .ink   { fill: #F4F1EA }
+      .stamp { fill: #FF6B5B }
+    }
+  </style>
+  <rect class="paper" width="1024" height="1024"/>
+  <circle class="stamp" cx="512" cy="672" r="144"/>
+  <path class="ink" fill-rule="evenodd" d="M128 896 L128 512 A384 384 0 0 1 896 512 L896 896 L704 896 L704 576 A192 192 0 0 0 320 576 L320 896 Z"/>
+</svg>

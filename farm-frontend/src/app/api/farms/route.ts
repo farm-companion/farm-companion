@@ -170,6 +170,8 @@ async function farmsHandler(request: NextRequest) {
       offerings: farm.categories.map(fc => fc.category.name),
       images: mapFarmImages(farm.images, farm.name),
       verified: farm.verified,
+      venueType: farm.venueType,
+      venueVerifiedAt: farm.venueVerifiedAt,
       rating: farm.googleRating ? Number(farm.googleRating) : null,
       user_ratings_total: farm.googleReviewsCount || 0,
       updatedAt: farm.updatedAt.toISOString()

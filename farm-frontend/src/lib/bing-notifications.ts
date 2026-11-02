@@ -157,10 +157,3 @@ export async function notifyBingOfSitemap(): Promise<{ success: boolean; error?:
 export function getFarmPageUrl(farm: { slug: string }): string {
   return `https://${HOST}/shop/${farm.slug}`
 }
-
-/**
- * Generate claim page URL from farm data
- */
-export function getClaimPageUrl(farm: { slug: string }): string {
-  return `https://${HOST}/claim/${farm.slug}`
-}

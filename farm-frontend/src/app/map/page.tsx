@@ -21,6 +21,7 @@ import { useHaptic } from '@/components/HapticFeedback'
 import MarkerPreview from '@/features/map/ui/MarkerPreview'
 import { announce, ANNOUNCEMENTS } from '@/features/map/lib/accessibility'
 import type { FarmShop } from '@/types/farm'
+import { matchesQuery } from '@/lib/farm-search'
 
 // Debouncing hook to prevent excessive re-filtering
 function useDebounced<T>(value: T, delay = 150) {
@@ -222,14 +223,7 @@ function MapPageContent() {
 
     // 2) search
     if (debouncedQuery) {
-      const q = debouncedQuery.toLowerCase()
-      result = result.filter(f =>
-        f.name.toLowerCase().includes(q) ||
-        f.location.address.toLowerCase().includes(q) ||
-        f.location.postcode.toLowerCase().includes(q) ||
-        f.location.county.toLowerCase().includes(q) ||
-        f.offerings?.some(o => o.toLowerCase().includes(q))
-      )
+      result = result.filter(f => matchesQuery(f, debouncedQuery))
     }
 
     // 3) filters (panel filters)
@@ -288,7 +282,10 @@ function MapPageContent() {
 
   // Get unique counties and categories for filters
   const counties = useMemo(() => {
-    const uniqueCounties = new Set(farms.map(farm => farm.location.county))
+    // A farm with no county does not contribute one to the filter list.
+    const uniqueCounties = new Set(
+      farms.map(farm => farm.location.county).filter((c): c is string => Boolean(c)),
+    )
     return Array.from(uniqueCounties).sort()
   }, [farms])
 
@@ -322,7 +319,7 @@ function MapPageContent() {
     // Announce the selection to screen readers (provider-agnostic: fires for
     // marker click, keyboard activation, and list selection alike). Routed
     // through the canonical map live region shared with cluster announcements.
-    announce(ANNOUNCEMENTS.markerSelected(farm.name, farm.location.county))
+    announce(ANNOUNCEMENTS.markerSelected(farm.name, farm.location.county ?? undefined))
     // Scrolling the selected card into view (mobile bottom sheet + desktop
     // panel) is handled inside FarmList via Virtuoso's scrollToIndex, which —
     // unlike a DOM scrollIntoView — also reaches cards not yet rendered by the

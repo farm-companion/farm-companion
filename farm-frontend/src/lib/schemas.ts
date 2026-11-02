@@ -37,7 +37,7 @@ export function dedupeFarmsBySlug(farms: FarmShop[]): FarmShop[] {
     const existingCounty = seen.get(farm.slug)
     if (!existingCounty) {
       // First farm with this slug
-      seen.set(farm.slug, farm.location.county)
+      seen.set(farm.slug, farm.location.county ?? '')
       deduped.push(farm)
     } else if (existingCounty !== farm.location.county) {
       // Same slug but different county - likely different farms

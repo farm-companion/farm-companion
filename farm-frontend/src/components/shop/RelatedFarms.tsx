@@ -119,7 +119,7 @@ export function RelatedFarms({
           </h3>
         </div>
         <Link
-          href={`/shop?county=${encodeURIComponent(currentFarm.location.county)}`}
+          href={`/shop?county=${encodeURIComponent(currentFarm.location.county ?? '')}`}
           className="text-small text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium dark:font-normal transition-colors"
         >
           View all

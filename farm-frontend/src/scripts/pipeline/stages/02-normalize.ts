@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import { PIPELINE_CONFIG } from '../config'
 import { calculateDistance } from '../../../shared/lib/geo'
 import { nameSimilarity } from '../lib/similarity'
+import { parseOsmHours } from '../lib/parse-osm-hours'
 import {
   SOURCE_PRECEDENCE,
   type FarmFieldName,
@@ -42,6 +43,10 @@ function toNormalized(raw: RawFarmCandidate): NormalizedCandidate {
   set('longitude', raw.longitude)
   set('phone', raw.phone)
   set('website', raw.website)
+  // Structured hours only when the OSM string parses cleanly. An unparseable
+  // value is dropped rather than guessed: a wrong "Open now" is worse than none.
+  // `set` already skips undefined via its tag() guard.
+  set('openingHours', parseOsmHours(raw.openingHoursRaw) ?? undefined)
   return {
     osmId: raw.source === 'osm' ? raw.sourceId : undefined,
     fsaId: raw.source === 'fsa' ? raw.sourceId : undefined,
@@ -50,6 +55,8 @@ function toNormalized(raw: RawFarmCandidate): NormalizedCandidate {
     latitude: raw.latitude,
     longitude: raw.longitude,
     fields,
+    fsaBusinessType: raw.fsaBusinessType,
+    fsaRatingDate: raw.fsaRatingDate,
     categories: [],
     images: [],
     aiFallbackEligible: false,

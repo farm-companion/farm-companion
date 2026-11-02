@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { slugifyCounty } from '@/lib/county-slug'
 import { Search, X } from 'lucide-react'
 
 interface CountiesSearchProps {
@@ -30,7 +31,7 @@ export default function CountiesSearch({ counties }: CountiesSearchProps) {
 
   // Handle county selection
   const handleCountySelect = (county: string) => {
-    const countySlug = county.toLowerCase().replace(/\s+/g, '-')
+    const countySlug = slugifyCounty(county)
     window.location.href = `/counties/${countySlug}`
   }
 

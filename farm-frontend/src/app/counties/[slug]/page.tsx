@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { SITE_URL } from '@/lib/site'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -58,7 +59,7 @@ export async function generateMetadata({ params }: CountyPageProps): Promise<Met
       title,
       description,
       type: 'website',
-      url: `https://farmcompanion.co.uk/counties/${slug}`,
+      url: `${SITE_URL}/counties/${slug}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -66,7 +67,7 @@ export async function generateMetadata({ params }: CountyPageProps): Promise<Met
       description,
     },
     alternates: {
-      canonical: `https://farmcompanion.co.uk/counties/${slug}`,
+      canonical: `${SITE_URL}/counties/${slug}`,
     },
   }
 }
@@ -114,11 +115,11 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
             '@type': 'CollectionPage',
             name: `Farm Shops & Local Producers in ${countyName}`,
             description: `Directory of ${total} farms and producers in ${countyName}, UK`,
-            url: `https://farmcompanion.co.uk/counties/${slug}`,
+            url: `${SITE_URL}/counties/${slug}`,
             about: {
               '@type': 'Place',
               name: countyName,
-              '@id': `https://farmcompanion.co.uk/counties/${slug}`,
+              '@id': `${SITE_URL}/counties/${slug}`,
             },
             numberOfItems: total,
           }),
@@ -137,19 +138,19 @@ export default async function CountyPage({ params, searchParams }: CountyPagePro
                 '@type': 'ListItem',
                 position: 1,
                 name: 'Home',
-                item: 'https://farmcompanion.co.uk',
+                item: SITE_URL,
               },
               {
                 '@type': 'ListItem',
                 position: 2,
                 name: 'Counties',
-                item: 'https://farmcompanion.co.uk/counties',
+                item: `${SITE_URL}/counties`,
               },
               {
                 '@type': 'ListItem',
                 position: 3,
                 name: countyName,
-                item: `https://farmcompanion.co.uk/counties/${slug}`,
+                item: `${SITE_URL}/counties/${slug}`,
               },
             ],
           }),

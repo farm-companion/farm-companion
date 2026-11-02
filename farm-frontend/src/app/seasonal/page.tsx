@@ -9,7 +9,7 @@ import { SeasonalPageClient } from '@/components/seasonal/SeasonalPageClient'
 export const revalidate = 43200
 
 export const metadata: Metadata = {
-  title: 'British Seasonal Produce Calendar | Farm Companion',
+  title: 'British Seasonal Produce Calendar',
   description: 'Explore all 12 months of British seasonal produce. Find the freshest local fruits and vegetables at farm shops near you, with detailed guides for every season.',
   alternates: {
     canonical: `${SITE_URL}/seasonal`,
@@ -21,11 +21,11 @@ export const metadata: Metadata = {
     siteName: 'Farm Companion',
     images: [
       {
-        url: `${SITE_URL}/seasonal-header.jpg`,
+        url: `${SITE_URL}/og?title=British%20Seasonal%20Produce&subtitle=What%20is%20fresh%20each%20month`,
         width: 1200,
         height: 630,
         alt: 'British seasonal produce calendar - UK farm shops',
-        type: 'image/jpeg',
+        type: 'image/png',
       },
     ],
     locale: 'en_GB',
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'British Seasonal Produce Calendar | Farm Companion',
     description: 'Complete year-round guide to seasonal British produce at UK farm shops.',
-    images: [`${SITE_URL}/seasonal-header.jpg`],
+    images: [`${SITE_URL}/og?title=British%20Seasonal%20Produce&subtitle=What%20is%20fresh%20each%20month`],
   },
   robots: {
     index: true,

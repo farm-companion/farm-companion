@@ -2,8 +2,10 @@
 // PuredgeOS 3.0 Compliant Sitemap Management
 
 import { SITE_URL } from './site'
+import { slugifyCounty } from '@/lib/county-slug'
 import { PRODUCE } from '@/data/produce'
 import { getFarmData } from '@/lib/farm-data'
+import { canClaimVisitable } from '@/lib/farm-claims'
 import { getImageUrl } from '@/types/farm'
 import { logger } from '@/lib/logger'
 
@@ -146,8 +148,10 @@ export async function generateFarmShopsSitemap(): Promise<SitemapEntry[]> {
         .filter((url): url is string => !!url)
         .map((url) => ({
           url,
-          caption: `${farm.name} - Farm Shop`,
-          title: `${farm.name} - Farm Shop in ${farm.location.county}`,
+          caption: canClaimVisitable(farm) ? `${farm.name} - Farm Shop` : farm.name,
+          title: canClaimVisitable(farm)
+            ? `${farm.name} - Farm Shop in ${farm.location.county}`
+            : `${farm.name} in ${farm.location.county}`,
           geoLocation: `${farm.location.lat}, ${farm.location.lng}`
         })) || []
     }))
@@ -181,7 +185,7 @@ export async function generateCountyPagesSitemap(): Promise<SitemapEntry[]> {
     const counties = [...new Set(farms.map((farm) => farm.location.county).filter(Boolean))] as string[]
 
     return counties.map((county: string) => ({
-      url: `/counties/${encodeURIComponent(county.toLowerCase().replace(/\s+/g, '-'))}`,
+      url: `/counties/${slugifyCounty(county)}`,
       changeFrequency: 'weekly' as const,
       priority: 0.6,
       lastModified: new Date()
