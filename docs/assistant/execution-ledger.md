@@ -5201,6 +5201,103 @@ product decision, not a security one, and is left open.
 
 ---
 
+### 2026-11-02 — Image estate: 86 farm pages were serving 404 heroes, and the fix was data
+
+Found by measuring the estate rather than reading the schema. Full findings and the two open
+operator decisions: `docs/assistant/image-estate-audit-2026-11-02.md`.
+
+**The bug:** `scripts/generate-farm-images-direct.ts` generated 86 farm images through the Runware
+API on 2026-02-01, labelled them `uploadedBy: 'admin'` and kept the generator's own CDN URL as the
+permanent `url`. The bytes were never downloaded. Two defects from one mistake: `'admin'` is a
+real-photograph label, so `selectFarmHeroImage` promoted all 86 to the `/shop/[slug]` hero as
+`style: 'photo'` (the imagery law exists to forbid exactly that claim about an AI illustration), and
+Runware later evicted the files, so every one of those heroes returned 404. Verified live on
+`/shop/cw-shenton-farm-shop` and `/shop/honeydale-farm-tea-rooms` before the fix.
+
+**No application code changed.** The ponytail ladder removed the code fix entirely: the imagery law
+already excludes AI labels, the typographic hero already exists, and `ai_generator` is already tested
+as ignored. The rows were simply mislabelled. `scripts/backfill-runware-uploaded-by.ts` relabels them
+`ai_generator` and rejects them, matching on the CDN host rather than on `uploadedBy` so a re-run
+cannot touch a genuine admin photograph.
+
+**Verification (ran, passed):** liveness sweep before, 1,104 approved, 1,018 ok, 86 dead, all 86 the
+only hot-linked approved rows in the table. After, 1,018 approved, 1,018 ok, zero hot-linked, exit 0.
+Both live pages now render the typographic hero with no image host referenced. `npx tsc --noEmit`
+clean, `npm run test:unit` **532 pass / 0 fail**, eslint clean on all four files.
+
+**Instrument added:** `scripts/audit-image-liveness.ts`, which probes every row and exits 1 when an
+approved row fails, so it can gate a deploy. Its host rule lives in `src/lib/image-host.ts` with 10
+unit tests, including lookalike domains. Scopes other than `approved` hit geograph.org.uk, a free
+community service, so they require `--i-mean-it` and are rate limited.
+
+**A gate that cried wolf, fixed:** the first clean run reported 2 dead rows on our own object store.
+Both were transient 504s and answered 200 on retry. The sweep now retries 5xx and socket errors three
+times before calling a row dead. A gate that fires on a blip gets ignored, which is how the 86 went
+unnoticed for nine months.
+
+**Open for the operator, not executed:** delete the 11,727 pending Geograph rows (a 40-row sample
+found 1 that depicts its business, and several that depict a *different named business*, for example
+"Torvaig House Hotel" attached to Cnoc Deer Larder), and delete the `farm-photos` Vercel project (no
+source anywhere, still publicly serving a 431-day-old build with the leaked credentials compiled in).
+
+**Follow-up noted, not actioned:** no public photo submission route exists and
+`sendPhotoSubmissionReceipt` has no callers, so the pending/approved/rejected workflow has no way in.
+
+**File size:** `scripts/audit-image-liveness.ts` is 340 lines, past the 300 soft limit. Advisory only
+under the file size rules; noted here rather than split, since the reporting block it would shed is
+only meaningful next to the sweep it describes.
+
+**Risk/rollback:** The only production change is 86 rows' `uploadedBy` and `status`. Reversal SQL with
+the exact ids and prior values was captured before the UPDATE. Rolling back restores 86 approved heroes
+pointing at URLs that 404, so there is no reason to.
+
+---
+
+### 2026-11-02 — Geograph rows: the source was fine, the ranking key was wrong
+
+Revisits the "delete all 11,727" recommendation from the image estate audit. Full measurement:
+`docs/assistant/geograph-match-2026-11-02.md`.
+
+**The bug:** `src/scripts/pipeline/sources/geograph.ts` ranks Geograph candidates by metres from the
+farm coordinate. The syndicator response carries a photographer-written `title` and a `tags`
+taxonomy with a literal "Farm shop" category; `SyndicatorItem` declares `title` and `parseGeograph`
+reads neither. Friday Street Farm Shop therefore stored "Retro emporium" while "Friday Street Farm
+Shop" sat in the same response, two metres further away.
+
+**Gold set, committed:** 200 farms sampled by `md5(id)` in two halves of 100, 4,000 candidates, at
+`src/scripts/pipeline/fixtures/geograph-gold.json`. Labelled by viewing full-size photographs on
+contact sheets, not by reading titles. 19 of 200 farms (9.5%) have a photo that genuinely depicts
+the business.
+
+**Measured, and the held-out half earned its keep.** Naive token overlap matched 40% of farms and
+was wrong about 60% of those, attaching a police station to a chip shop. Matcher v1 scored 100% on
+the half it was written from and **71% on the held-out half**. Those four failures all had one
+shape, the title naming the business while the subject was an appurtenance, and produced two fixes:
+whole-word retail matching (substring had let "shop" match inside "Shopping Village") and an
+appurtenance rule. One label was corrected after viewing the photograph: Allington Farm Shop was
+marked negative from the picnic-shelter candidate when a photo of the shop itself existed.
+
+**Both halves are now tuned against, so the resulting 100% is not unbiased.** A third sample of 100
+is the first step of any follow-up, stated as such in the document.
+
+**Verification (ran, passed):** `npm run test:unit` **540 pass / 0 fail**, including 18 in
+`geograph-match.test.ts` which print per-sample precision and recall; `npx tsc --noEmit` clean;
+eslint clean. Files 258 and 249 lines, both under the soft limit. The fixture is 584K, which is
+large for the repo but is the evidence the numbers rest on.
+
+**Recommendation, not executed:** delete the 11,727 and re-run with `bestMatch` deciding admission.
+2,367 farms hold these rows, so 9.5% is roughly 225 farms gaining a genuine photograph. For scale,
+all 1,018 currently approved images are AI illustrations and the site has no real photography. Each
+candidate carries its own reason string, so review is under an hour for the whole directory, which
+is why the existing 11,727 were never reviewed and these could be.
+
+**Licence:** Geograph's own page confirms CC BY-SA 2.0 Generic. Our cc rows already populate
+attribution, sourceUrl and license, which the approved AI rows do not. ShareAlike needs a human
+decision: resizing to webp plausibly creates an Adaptation, which must then be offered under the
+same licence.
+
+**Risk/rollback:** Nothing written to the database and nothing wired into the pipeline. The matcher
+is a pure function; deleting the three new files reverts it entirely.
 ### 2026-11-02 — Queue 2 Slice 2.1: farm-produce-images build unblocked by deleting dead code, not by adding a dependency
 
 **The blocker:** `pnpm build` compiled but then died on
