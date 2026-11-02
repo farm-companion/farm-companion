@@ -4144,3 +4144,65 @@ and it has no business riding along inside a security PR. **Expect it to reappea
 in that package will re-apply it, so it should be accepted deliberately in its own change rather than
 fought. Flagged for Queue 2 (deployment stability) alongside the missing `sharp` declaration in the
 same package.
+
+---
+
+### 2026-11-02 — Slice 1.11: maplibre-gl v6 upgrade ATTEMPTED AND REVERTED (v6 breaks the map under Next 16)
+
+Operator approved the 5 -> 6 major to clear the last critical (XSS sanitizer bypass in `DOM.sanitize()`,
+`<=6.4.0`, patched >=6.4.1). **Attempted, proven broken at runtime, reverted.** farm-frontend stays on
+`maplibre-gl ^5.16.0`. The critical remains open with the mitigation already recorded in Slice 1.6.
+
+**The code changes themselves were trivial — only two lines.** Catalogued the whole API surface across
+the 8 files that import maplibre-gl (Map, Marker, AttributionControl, LngLatBounds, GeoJSONSource,
+StyleSpecification, ExpressionSpecification; no react-map-gl wrapper in between):
+1. `MapLibreShell.tsx:8` — v6 is ESM-only with no default export, so
+   `import maplibregl from 'maplibre-gl'` had to become `import * as maplibregl from 'maplibre-gl'`.
+   That one namespace import covers all 11 `maplibregl.X` usages, as both types and values.
+2. `useMapLocation.ts:196` — referenced `maplibregl.GeoJSONSource` **without importing `maplibregl` at
+   all**. It resolved only because v5's `maplibre-gl.d.ts` ends with `export as namespace maplibregl`,
+   a UMD global declaration. v6 drops the UMD build and that line with it, so the type needed a real
+   import. Worth knowing: any other file leaning on that implicit global would break the same way.
+
+With those two edits, `tsc --noEmit` was clean (4 errors -> 0; the two extra implicit-`any` errors were
+downstream of the broken import and resolved themselves), `pnpm test:unit` 369 pass, `pnpm build`
+compiled, and **farm-frontend criticals went to 0**.
+
+**And none of that caught the real problem.** v6 fails at runtime:
+`Worker failed to load. Check that the worker URL is correct.` plus
+`Failed to load module script: ...non-JavaScript MIME type of "text/html"`. v6 spawns its worker as an
+**ES module** resolved from `import.meta.url`, which Next 16 / Turbopack does not rewrite or emit, so
+the worker URL 404s to an HTML page. Typecheck and build cannot see this; only loading the map does.
+
+**How it was proven, since the first two attempts were worthless:**
+- A probe page rendering the real `MapShellAuto` with three hard-coded farms, so no DATABASE_URL was
+  needed (the live `/map` page bails to an error state without a DB and never mounts the map).
+- First tried `next start`, which **silently served stale output** — `next.config.ts` sets
+  `output: 'standalone'`, and `next start` warns it does not work with that. Both v5 and v6 produced
+  identical chunk hashes and identical errors there. **Those results were artefacts; disregard them.**
+  A CSP error about `tiles.openfreemap.org` seen in that run was part of the same artefact.
+- Redone properly on the dev server, same page, same server, one variable changed:
+  **v5.24.0 renders the map correctly** (vector tiles, labels, attribution, controls, zero worker
+  errors). **v6.16.0 throws "Worker failed to load" and the map does not render.** That is the control.
+
+**Workaround investigated and rejected for now.** The known community fix is to copy
+`maplibre-gl-worker.mjs` out of node_modules into `public/` and call `setWorkerUrl()` before the first
+Map. Tried both in-effect and at module scope: inconsistent — one arrangement rendered the map but
+still threw worker errors, the other stopped rendering entirely. (A red herring on the way: several
+write-ups say to copy `maplibre-gl-shared.mjs` too; in 6.16.0 that file is **0 bytes** and the worker
+is self-contained, so it is not the missing piece.) Not landed, because it is not a dependency bump at
+all — it means shipping a 519 KB vendored copy of a library internal into `public/`, plus a
+predev/prebuild step to keep it byte-identical to the installed version, with nothing to catch drift.
+It also touches `farm-frontend/public`, which is reserved right now for the in-flight brand work on
+`spec/region-first-verified-listings`.
+
+**Recommendation:** keep v5 until MapLibre or Next ships a clean resolution. The risk trade is poor —
+the advisory needs untrusted strings to reach popup/marker HTML, and farm data is pipeline-controlled,
+whereas the workaround risks a silently broken map on the product's core page. Re-test v6 after the
+next Next.js minor, or when `maplibre-gl` documents a supported Next/Turbopack worker setup.
+
+**Verification of the revert (ran, passed):** working tree byte-identical to HEAD (`git status` empty);
+`pnpm install --frozen-lockfile` restores maplibre-gl 5.16.0; `pnpm build` `✓ Compiled successfully`;
+`npx tsc --noEmit` clean; `pnpm test:unit` **369 pass / 0 fail**. One trap hit during this check: the
+first post-revert `tsc` failed on `.next/types/validator.ts` still referencing the deleted probe page —
+stale generated output, cleared with `rm -rf .next`, not a real failure.
