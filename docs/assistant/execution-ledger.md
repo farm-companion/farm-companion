@@ -5367,6 +5367,7 @@ delete `eslint.config.js` and revert the two package.json edits.
 **Next:** Slice 2.3 — fix what the lint now reports, starting with the const reassignment that breaks
 the duplicate-post guard.
 
+**Risk/rollback:** Nothing written to the database, nothing wired into `parseGeograph`.
 ---
 
 ### 2026-11-02 — Queue 2 Slice 2.3: the two real bugs the broken lint had been hiding
@@ -5475,3 +5476,39 @@ like a missing config file; it was that, but fixing it surfaced **two genuine de
 invisible for as long as lint had been broken — a `const` reassignment that would throw the moment
 duplicate-post protection was switched on, and an unparseable emoji regex that broke a test script
 outright.
+
+---
+
+## 2026-11-02 — Slice 1.14: the 11,727 Geograph candidate rows are gone
+
+**Operator decision: drop the rows only.** No pipeline re-run. The matcher stays on this branch
+unwired, so the 85-photograph yield is not being collected.
+
+**What the delete touched.** `uploadedBy = 'cc'` turned out to be exactly this population and
+nothing else: 11,727 rows, every one a `geograph.org.uk` URL, every one `status = 'pending'` with
+`isHero = false`, spread over 2,367 farms. No geograph URL carried any other `uploadedBy`. Script:
+`farm-frontend/prisma/data-fixes/2026-11-02-geograph-candidates-drop.sql`.
+
+**Gate.** The script deletes inside a transaction and raises if the row count is not 11,727 or if
+any geograph URL survives. Proved both ways before running for real: a rehearsal with `ROLLBACK`
+passed and left all 11,727 in place, and the same script with the count changed to 11,728 aborted
+with `ERROR: expected to remove 11728 rows, removed 11727`, rows intact. A check that cannot fail
+is not a gate.
+
+**Nothing was reading them.** Every image read in app code filters `status: 'approved'`
+(`api/farms/route.ts`, `farms/weekend/route.ts`, `farm-data.ts`, `cache-strategy.ts`,
+`queries/farms.ts`, `queries/categories.ts`, `queries/counties.ts`). The one `prisma.image.findMany`
+also restricts `uploadedBy` to an allowlist that never held `'cc'`. The rows were doubly
+unreachable, which is why they rotted unnoticed for five months.
+
+**Verification (ran, passed):** `images` went from 12,831 rows to 1,104 — 1,018 approved
+photographs on our own object storage, 86 rejected AI rows. `geograph_left = 0`, `cc_left = 0`.
+
+**Follow-up, not actioned.** `src/app/data-attributions/page.tsx` still tells readers that "some
+place photographs are sourced from Geograph Britain and Ireland". With zero Geograph rows in the
+database that sentence is now false. It is a licensing page, so it should either come out or wait
+for the matcher to be wired; that is an operator call, not a silent edit.
+
+**Risk/rollback:** The rows are not backed up and do not need to be, being reconstructible by
+re-running stages 05 and 07 against the syndicator. Do not re-run before `geograph-match.ts` is
+wired into `sources/geograph.ts`, or the same distance-ranked rows come straight back.
