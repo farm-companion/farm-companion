@@ -4853,3 +4853,42 @@ leaving the checkout untouched.
 **Risk and rollback.** Nothing posts without `SOCIAL_PUBLISH=true`, and the daemon cannot reach a
 farm yet, so this cannot act on its own. Reverting the commit removes the package from the
 repository and leaves it untracked as before.
+
+---
+
+## Slice BRAND-F2 — The cron endpoint was open to anyone who found the URL
+
+**Found by** the automated security review on the Slice F push, flagged MEDIUM.
+
+**Real, and worth fixing before it could bite.** `/api/cron` is a public Vercel path and the
+handler did no authentication, so anyone who found the URL could invoke the pipeline. Today that
+is harmless: `getFarm` is a stub returning null and publishing is off unless `SOCIAL_PUBLISH` is
+`"true"`. But the whole point of this package is that both of those change, and at that moment an
+open endpoint would let a stranger post to live social accounts and spend Anthropic credits.
+Fixing it while it is still inert is far cheaper than remembering to later.
+
+**Gated on the shared secret Vercel sends with a scheduled invocation**, and it **fails closed**:
+with no `CRON_SECRET` configured, nothing runs. An unauthenticated endpoint that posts publicly
+is worse than a cron that does not fire.
+
+**A plain string comparison is deliberate**, matching Vercel's documented pattern. The secret is
+high entropy and each attempt is one HTTPS request, so a timing side channel is not a realistic
+route in, and reaching for `timingSafeEqual` here would be ceremony.
+
+**Error responses no longer echo `String(err)`.** The message can name environment variables and
+internal hosts. It is logged in full and the caller gets `Internal error`.
+
+**The same eager-config bug, one level up.** Fixing `config.ts` in Slice F was not enough:
+`claude.ts` still built its Anthropic client at module scope, reading `config.anthropicApiKey` the
+moment anything imported it, so the handler could not be loaded in a test at all. The client is
+now built on first use. Lazy config is worthless while its consumer is eager.
+
+**Files:** `src/index.ts`, `src/index.test.ts` (new, 5 tests), `src/services/claude.ts`.
+
+**Verified:** `npx tsc --noEmit` exit 0; `npm test` **15 pass, 0 fail** (10 before). The tests
+cover no header, a wrong secret, a bare token with no `Bearer` scheme, and the fail-closed case
+where `CRON_SECRET` is unset and even the otherwise-correct header is refused.
+
+**Risk and rollback.** The endpoint now requires `CRON_SECRET` to be set in the Vercel project
+before the cron can fire. That is an operator step, and until it is done the cron returns 401,
+which is the intended failure direction given the pipeline cannot do anything useful yet anyway.
