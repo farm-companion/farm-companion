@@ -1,0 +1,188 @@
+# How the directory was built, and what it would take to rebuild it
+
+**Date:** 2026-11-02. **Question asked:** "I think the way I made this directory may have been
+wrong." **Answer:** it was, and the fault is in the admission rule, not the data.
+
+Nothing in this document was run against a paid API. Every number below comes from the live
+database, from artefacts recovered out of git history, or from a published source.
+
+---
+
+## 1. Three front doors, none of which asked "is this a farm?"
+
+| source | live rows | the rule that admitted them |
+|---|---:|---|
+| Google Places | 1,322 raw | `keyword="farm shop"`, `type="food"`, `radius=50000`, around 57 hand-picked points |
+| FSA register | 1,537 | self-declared `BusinessTypeID 7838` ("Farmers/growers") |
+| OpenStreetMap | 860 | OSM tags |
+| unrecorded | 1,107 | no `dataSource` stored |
+
+3,504 active rows after overlap.
+
+The Google rule is in `farm-pipeline/src/google_places_fetch.py` at commit `71d40af7^`:
+
+```python
+params = {
+    "location": f"{lat},{lng}",
+    "radius": radius,          # 50000
+    "keyword": "farm shop",
+    "type": "food",
+}
+```
+
+`type="food"` is Google's category for restaurants, cafés, bakeries, grocers and convenience
+shops. `keyword` is a relevance hint, not a filter. London's 50 km circle reaches Acton.
+
+**APNA Local was not a data error. It was the specification.** The same file's
+`GOOGLE_TYPE_TO_OFFERINGS` map has entries for `bakery`, `cafe`, `restaurant`,
+`grocery_or_supermarket`, `florist`, `pet_store` and `liquor_store`, so non-farms were expected
+and given offerings rather than rejected.
+
+Coverage is lumpy for the same reason: 57 points with overlapping 50 km circles do not tile the
+UK, which is why mid-Wales and the Highlands are thin and 519 rows carry no county.
+
+### The FSA door is worse, because its evidence is wrong rather than weak
+
+APNA Local, `fsaId=1466696`, live from the FSA API today:
+
+```json
+{"BusinessName":"APNA Local","BusinessType":"Farmers/growers","BusinessTypeID":7838,
+ "AddressLine2":"177 Gunnersbury Lane","AddressLine3":"Acton","PostCode":"W3 8LJ"}
+```
+
+A convenience shop on a London high street is registered with the FSA under the exact category
+previously treated as the farm signal. **FSA business type cannot distinguish a farm from a
+corner shop.**
+
+### crawl4ai did not build the list
+
+It was vendored and pinned, and wired into `shops_pipeline.py` and `advanced_farm_crawl.py` (the
+latter with `LLMExtractionStrategy` against a farm-shop schema). But `seeds/uk.yml` was written
+once as `https://example.org/your-allowed-list` and **never changed** before deletion, and
+`shops_crawl.py`'s own docstring says "Minimal boot test ... Next step will implement real
+crawling". The crawl path was scaffolded and never pointed at a real source.
+
+crawl4ai's cousin did produce the descriptions: `scrape_farm_descriptions.py` (httpx +
+BeautifulSoup) wrote `farm_descriptions.csv`, 15,906 rows, with `scraped_content` holding real
+page text and `generated_description` holding prose like "**Barleylands Farm Shop: Where Fresh,
+Local Food Meets Everyday Luxury**". That is the origin of the LLM-marketing descriptions.
+
+---
+
+## 2. Nothing has ever been verified
+
+`venueType` is null on **all 3,504** rows. `venueVerifiedAt` is null on all 3,504. The claim gate
+therefore denies every page, which is why every farm page currently reads "We have not confirmed
+whether it is open to visitors".
+
+`docs/verification/cornwall.csv` has 63 rows with `venue_type` filled on 53, but `verified`,
+`verified_by`, `basis` and `notes` are **empty on all 63**. Those are machine proposals from the
+enrichment step. No human signed anything off, which is why the import that would set
+`venueVerifiedAt` was never run.
+
+---
+
+## 3. What is recoverable for free
+
+Out of git history at `71d40af7^`, now in `.analysis/` (gitignored):
+
+- `farms.uk.json`, 1,322 Google Places records, **every one carrying its `types` array**.
+- `farm_descriptions.csv`, 15,906 rows, scraped text kept separate from generated prose.
+- `google_places_fetch.py`, the rule itself.
+
+**1,307 of the 3,504 live rows match back** to those records (1,296 by `place_id`, 11 by
+normalised name). So types are recoverable for 37% of the directory at zero cost.
+**2,197 rows have no recoverable types.**
+
+Type counts across the 1,322 raw records: 316 `cafe`, 148 `restaurant`, 92
+`grocery_or_supermarket`, 40 `bakery`, 31 `pet_store`, 28 `lodging`, 26 `tourist_attraction`, 22
+`general_contractor`, 18 `convenience_store`, 15 `florist`.
+
+---
+
+## 4. Gate A: what we are permitted to use
+
+| source | robots.txt | verdict |
+|---|---|---|
+| `farmretail.co.uk` (FARMA / Farm Retail Association) | `User-agent: *` → `Allow: /`, but **`ClaudeBot`, `anthropic-ai` and `Claude-Web` → `Disallow: /`**; `Content-Signal: search=yes, ai-train=no, use=reference` | **Do not crawl.** The disallow names this agent class. Spoofing a browser fingerprint to get round it would be circumvention. Route is to ask them: `hello@farmretail.co.uk`. |
+| `farmsunday.org` (LEAF, Open Farm Sunday) | `User-agent: *`, only `/account/` and `/visit-a-farm/event/` disallowed | Listing pages permitted; individual event pages are not. |
+| `soilassociation.org` | no robots.txt (404) | No declared restriction, but silence is not permission. Terms govern; check before use. |
+
+The most authoritative source is the one we may not crawl. That is not a blocker, it is an
+operator action: FARMA has roughly **300 to 325 members** nationally and an enquiries address.
+
+---
+
+## 5. Duplicates are not the problem
+
+Clustering on normalised name plus postcode district across all 3,504 rows finds **2 clusters,
+4 rows** (`my-apple-juice-ltd`/`my-apple-juice`, `the-egg-hut`/`egg-hut`). Entity resolution was
+scoped as real work and is not. The "Argyll and Bute" versus "Argyll and Bute Council" problem is
+a **county-name** duplicate, which is a separate and much smaller fix.
+
+---
+
+## 6. How many would survive
+
+Each rule reported separately, because none of them is "is this a farm" and pretending otherwise
+is how we got here.
+
+| rule | survivors | what it actually measures |
+|---|---:|---|
+| A: name contains "farm" | 1,736 | naming convention. Misses dairies and orchards; keeps "Farm Shop" cafés |
+| B: Google types, no hospitality/retail | 796 of 1,307 typed (61%) | Google's categorisation, available for 37% of rows |
+| C: has postcode and county | 2,970 | data completeness, not identity |
+| **published FARMA membership** | **~300–325** | an authority that knows what a farm shop is |
+
+Rule B is **not safe to apply as-is**. It flags `P E Mead & Sons Farmshop` as
+`general_contractor`, `Luff's Farm Shop` and `Bradshaws Farm Shop` as `pet_store`, and
+`Cranbrook Farm Shop & Nursery` as `florist`. Those are real farm shops that also sell feed or
+run a nursery. As a rule it has a high false-positive rate; as a triage hint it is useful.
+
+**Honest range.** The truth sits between FARMA's ~300 members (an opt-in association, so a floor)
+and roughly 1,500 (rule B's 61% extrapolated across all 3,504, which over-counts because it only
+removes obvious hospitality). **The homepage's "3504+" is not supportable on any rule tested.**
+
+---
+
+## 7. The structural fix
+
+The reason APNA Local is public is that **ingestion and publication are the same act**. A row
+arrives from an import and is live, with a default "Farm Shops" category attached. 2,397 of 3,504
+carry that default.
+
+The fix is not a filter. It is a boundary:
+
+```prisma
+model Evidence {
+  id         String   @id @default(cuid())
+  farmId     String
+  kind       String   @db.VarChar(32)   // 'membership' | 'site-read' | 'phone' | 'osm-landuse' | 'fsa'
+  source     String   @db.VarChar(200)  // the body or URL that said so
+  observedAt DateTime
+  observedBy String   @db.VarChar(64)   // person or script
+  detail     Json?
+  farm       Farm     @relation(fields: [farmId], references: [id], onDelete: Cascade)
+  @@index([farmId, kind])
+}
+```
+
+Gate B is then one assertion: **a row may not be published without at least one Evidence row.**
+That test fails against today's data on all 3,504, which is the point of writing it.
+
+`Farm.status` already exists, so candidate and listing do not need separate tables. No migration
+has been applied; `prisma migrate dev` stays off the table on the live database.
+
+---
+
+## 8. What only the operator can decide
+
+1. **Email FARMA** (`hello@farmretail.co.uk`) and ask whether their ~300 members may be used as
+   an admission source. This single answer decides whether the rebuild is a weekend or a month.
+2. **Confirm the honest headline.** "3504+" has to go. The replacement is whatever survives
+   Gate B on the day it ships, and it will start small.
+3. **Decide what happens to unevidenced rows** while evidence is gathered: left published with
+   the current honest "not confirmed" sentence, or unpublished until they earn a listing.
+
+No rows have been changed, no API has been called that costs money, and nothing has been
+deleted.
