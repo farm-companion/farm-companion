@@ -218,3 +218,65 @@ export function renderPlate(ways: OverpassWay[], opts: PlateOptions): RenderedPl
 
   return { svg, featureCount: drawn.length }
 }
+
+/**
+ * A plate shape, ready to be rebuilt as an element by a renderer that cannot
+ * load an SVG file.
+ *
+ * Satori, which draws the OG cards, renders inline `<path>` and `<circle>`
+ * children but silently drops an `<img>` holding an SVG data URI: the card
+ * came back with a blank plate and no error. So the card reads the stored
+ * plate back into shapes and inlines them, which is the same mechanism the
+ * mark and the fallback sunrise already use in that route.
+ */
+export interface PlateShape {
+  kind: 'path' | 'circle'
+  d?: string
+  cx?: number
+  cy?: number
+  r?: number
+  fill?: string
+  stroke?: string
+  strokeWidth?: number
+}
+
+function attr(tag: string, name: string): string | undefined {
+  const match = tag.match(new RegExp(`(?:^|\\s)${name}="([^"]*)"`))
+  return match ? match[1] : undefined
+}
+
+const num = (value: string | undefined): number | undefined =>
+  value === undefined ? undefined : Number(value)
+
+/**
+ * Read a plate SVG back into shapes. The background rect is deliberately
+ * dropped: the card already paints its own paper, and a second opaque rect
+ * would cover the composition it sits on.
+ */
+export function parsePlate(svg: string): PlateShape[] {
+  const shapes: PlateShape[] = []
+
+  for (const [tag] of svg.matchAll(/<path\b[^>]*\/>/g)) {
+    const d = attr(tag, 'd')
+    if (!d) continue
+    shapes.push({
+      kind: 'path',
+      d,
+      fill: attr(tag, 'fill'),
+      stroke: attr(tag, 'stroke'),
+      strokeWidth: num(attr(tag, 'stroke-width')),
+    })
+  }
+
+  for (const [tag] of svg.matchAll(/<circle\b[^>]*\/>/g)) {
+    shapes.push({
+      kind: 'circle',
+      cx: num(attr(tag, 'cx')),
+      cy: num(attr(tag, 'cy')),
+      r: num(attr(tag, 'r')),
+      fill: attr(tag, 'fill'),
+    })
+  }
+
+  return shapes
+}

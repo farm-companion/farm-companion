@@ -4619,3 +4619,69 @@ twitter titles, which are not templated.
 **Remaining.** `admin/page.tsx` and `admin/documentation/layout.tsx` still double and stay named
 in `KNOWN_DOUBLED_NEXT_SLICE`. Both sit behind `/admin`, so no search engine sees either title.
 They were left out only to keep this slice inside the 8-file rule.
+
+---
+
+## Slice BRAND-D2 — Plates on real cards, Cornwall subset
+
+**Goal.** Put real map plates on real farm cards for one county, before any bulk run.
+
+**Subset on purpose.** Eight Cornwall farms, not the full set. Overpass is a free shared service
+and several hundred requests in a batch is exactly the behaviour that gets a client blocked, so
+the first run was sized to prove the pipeline and measure the real cost per farm.
+
+**Two faults found by running it, neither visible from reading the code.**
+
+*Overpass 502s mid-batch.* The second request of the first run returned 502, which Overpass does
+whenever its slots are full, and the script treated it as fatal. Added an exponential backoff over
+429, 502, 503 and 504 with four attempts, while a 400 still fails fast because that is our query
+being wrong. This is the single most important change for any larger run.
+
+*Satori silently drops an SVG data URI.* The card was wired to load the stored plate as
+`<img src="data:image/svg+xml;base64,...">`. It rendered a blank plate with the attribution strip
+correctly in place, proving the fetch and the encoding worked, and reported nothing at all in the
+log. Stripping the leading ODbL comment made no difference. Replaced with the mechanism already
+proven in this route: the plate is parsed back into shapes and inlined as `<path>` and `<circle>`
+children, which is how the mark and the fallback sunrise have always rendered.
+
+**`parsePlate` is tested, not regexed inline in the route.** It drops the background rect
+deliberately, since the card paints its own paper and a second opaque rect would cover the
+composition. Three tests cover the round trip, the dropped rect and tolerance of the ODbL comment
+at the head of a stored file.
+
+**Attribution is on the card, not just in the file.** ODbL makes a rendered plate a Produced Work.
+The card shows `© OpenStreetMap contributors` on its own paper strip rather than over the map,
+where road ink would swallow it, and only when a plate is actually shown: the sunrise fallback
+uses no OSM data and carries no attribution.
+
+**Graceful degradation.** A farm with no plate yet falls back to the sunrise. `loadPlate` returns
+null on a non-200, a parse failure or an exception, so the card can never fail because the plate
+library is incomplete. Verified against a deliberately missing slug.
+
+**Files:** `src/lib/map-plate.ts` (+`parsePlate`), `src/lib/map-plate.test.ts` (+3 tests),
+`src/app/og/route.tsx`, `src/app/shop/[slug]/page.tsx` (passes `&plate=<slug>`),
+`scripts/generate-map-plates-batch.ts` (new), and 8 generated plates in `public/images/plates/`.
+
+**Verified:** `npx tsc --noEmit` exit 0; `npx eslint` exit 0 on all five source files;
+`pnpm test:unit` **516 pass, 0 fail** (507 before). Four cards rendered against the dev server:
+three plated Cornwall farms showing three distinct landscapes, and one deliberately missing plate
+falling back cleanly. `route.tsx` 276 lines and `map-plate.ts` 282, both inside the 300 soft limit
+but close enough that the next addition to either should extract a sibling.
+
+**Decision owed before scale: where plates live.** Eight plates are 280 KB in `public/`. The full
+set is roughly 3,500 farms, so committing them to the repo is not viable. They should go to the
+Hetzner blob alongside `pitti-farm-images/`, and `loadPlate` should read from there. That is the
+first task of any bulk run, ahead of generating anything.
+
+**Also owed at scale:** a resumable batch, since a run of thousands will be interrupted. The
+existing skip-if-exists behaviour gets most of the way, but it checks the local filesystem and
+will need to check blob storage instead.
+
+**Note on the shared checkout.** Another session was mid-refactor of `DirectoryIndex` /
+`CountySummary` in this working tree during this slice, which briefly made `tsc` red in
+`src/app/shop/page.tsx` and `src/lib/county-summary.test.ts`. Those files were left untouched and
+uncommitted here; both were clean by the end of the slice.
+
+**Risk and rollback.** The card falls back to the sunrise whenever a plate is missing or
+unparseable, so reverting is safe: deleting `public/images/plates/` alone returns every card to
+the previous design without touching code.

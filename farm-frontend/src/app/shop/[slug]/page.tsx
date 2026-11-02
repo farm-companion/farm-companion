@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // canClaim=1 is the only thing that unlocks the "Farm Shop" label on the
   // shared /og card (see og/route.tsx); absent, the card names the farm and
   // county only.
-  const ogImageUrl = `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county ?? '')}&type=farm${canClaim ? '&canClaim=1' : ''}`
+  const ogImageUrl = `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county ?? '')}&type=farm&plate=${encodeURIComponent(shop.slug)}${canClaim ? '&canClaim=1' : ''}`
 
   return {
     // Just the name. The root layout's title.template appends

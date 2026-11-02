@@ -4,6 +4,7 @@ import {
   buildOverpassQuery,
   makeProjector,
   renderPlate,
+  parsePlate,
   PLATE_ATTRIBUTION,
   type OverpassWay,
 } from './map-plate'
@@ -157,4 +158,37 @@ test('stroke weights scale with the frame, so a Pinterest plate is not hairlines
     weightOf(pin.svg) > weightOf(card.svg) * 2,
     `pin weight ${weightOf(pin.svg)} should scale up from card weight ${weightOf(card.svg)}`
   )
+})
+
+test('a rendered plate parses back into the shapes it was drawn from', () => {
+  const { svg } = renderPlate(FIXTURE, PLATE)
+  const shapes = parsePlate(svg)
+
+  const paths = shapes.filter((s) => s.kind === 'path')
+  const circles = shapes.filter((s) => s.kind === 'circle')
+  // Two features from the fixture, and the marker is a halo plus a dot.
+  assert.equal(paths.length, 2, 'expected the water fill and the road stroke')
+  assert.equal(circles.length, 2, 'expected the paper halo and the vermilion dot')
+
+  const road = paths.find((s) => s.stroke === '#0F0E0C')
+  assert.ok(road, 'road not found')
+  assert.ok(road.d!.startsWith('M'), 'path data must survive the round trip')
+  assert.equal(typeof road.strokeWidth, 'number', 'stroke width must parse as a number')
+})
+
+test('the background rect is dropped, so a plate cannot paint over the card', () => {
+  const { svg } = renderPlate(FIXTURE, PLATE)
+  assert.ok(svg.includes('<rect'), 'the stored plate does have a background')
+  const shapes = parsePlate(svg)
+  assert.ok(
+    shapes.every((s) => s.kind !== 'path' || s.d !== undefined),
+    'no rect should survive as a shape'
+  )
+  assert.equal(shapes.filter((s) => s.fill === '#F2EBDA' && s.kind === 'path').length, 0)
+})
+
+test('parsing tolerates a file that opens with the ODbL comment', () => {
+  const { svg } = renderPlate(FIXTURE, PLATE)
+  const asStored = `<!-- ${PLATE_ATTRIBUTION} -->\n${svg}\n`
+  assert.equal(parsePlate(asStored).length, parsePlate(svg).length)
 })

@@ -1,5 +1,6 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
+import { parsePlate, type PlateShape } from '@/lib/map-plate'
 
 export const runtime = 'edge'
 
@@ -16,6 +17,32 @@ const REGISTRATION_OFFSET = 7
 const clashDisplay = fetch(
   new URL('./ClashDisplay-Semibold.ttf', import.meta.url)
 ).then((res) => res.arrayBuffer())
+
+/** OSM data is ODbL, so a card showing a plate must say so on the card. */
+const PLATE_ATTRIBUTION = '© OpenStreetMap contributors'
+
+/**
+ * A farm's pre-generated map plate as inline shapes, or null if it has none.
+ *
+ * Plates are generated offline by `scripts/generate-map-plates-batch.ts` and
+ * served as static files, so this is a same-origin CDN read, never a call to
+ * Overpass. A farm without a plate falls back to the fixed sunrise, so a card
+ * never fails because the plate library is incomplete.
+ *
+ * The shapes are inlined rather than loaded as an image because satori drops
+ * an `<img>` holding an SVG data URI without reporting anything: the card
+ * rendered with a blank plate and a clean log.
+ */
+async function loadPlate(origin: string, slug: string): Promise<PlateShape[] | null> {
+  try {
+    const response = await fetch(`${origin}/images/plates/${slug}.svg`)
+    if (!response.ok) return null
+    const shapes = parsePlate(await response.text())
+    return shapes.length > 0 ? shapes : null
+  } catch {
+    return null
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -36,6 +63,11 @@ export async function GET(request: NextRequest) {
     const standfirst = farmName ? county : subtitle
     // Long farm names need to come down a step or the descender clips the rule.
     const headlineSize = headline.length > 28 ? 60 : headline.length > 18 ? 72 : 84
+
+    const plateSlug = searchParams.get('plate')
+    const plate = plateSlug
+      ? await loadPlate(new URL(request.url).origin, plateSlug)
+      : null
 
     const font = await clashDisplay
 
@@ -64,9 +96,29 @@ export async function GET(request: NextRequest) {
               display: 'flex',
             }}
           >
-            {/* A half-disc sun on the horizon, then two field lines receding.
-                Vermilion stays near 5% of the canvas, under the spec's 8% cap,
-                because it is the only chromatic moment on the card. */}
+            {/* The farm's own landscape when we have drawn it, otherwise a
+                half-disc sun on the horizon. Vermilion stays near 5% of the
+                canvas, under the spec's 8% cap, because it is the only
+                chromatic moment on the card. */}
+            {plate ? (
+              <svg width="430" height="630" viewBox="0 0 430 630">
+                {plate.map((shape, index) =>
+                  shape.kind === 'circle' ? (
+                    <circle key={index} cx={shape.cx} cy={shape.cy} r={shape.r} fill={shape.fill} />
+                  ) : (
+                    <path
+                      key={index}
+                      d={shape.d}
+                      fill={shape.fill ?? 'none'}
+                      stroke={shape.stroke}
+                      strokeWidth={shape.strokeWidth}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  )
+                )}
+              </svg>
+            ) : (
             <svg width="430" height="630" viewBox="0 0 430 630">
               <path
                 d={`M${150 + REGISTRATION_OFFSET} ${300 + REGISTRATION_OFFSET} A150 150 0 0 1 ${450 + REGISTRATION_OFFSET} ${300 + REGISTRATION_OFFSET} Z`}
@@ -76,6 +128,29 @@ export async function GET(request: NextRequest) {
               <rect x="56" y="336" width="374" height="30" fill={INK} />
               <rect x="142" y="402" width="288" height="30" fill={INK} />
             </svg>
+            )}
+
+            {/* ODbL requires attribution on a Produced Work, so it sits on the
+                card itself, on its own paper strip rather than over the map
+                where road ink would swallow it. */}
+            {plate ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  display: 'flex',
+                  padding: '7px 14px',
+                  backgroundColor: PAPER,
+                  color: INK,
+                  opacity: 0.75,
+                  fontSize: '15px',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {PLATE_ATTRIBUTION}
+              </div>
+            ) : null}
           </div>
 
           {/* Editorial column, flush left */}
