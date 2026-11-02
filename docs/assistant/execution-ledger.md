@@ -5198,3 +5198,41 @@ listeners before trusting any result from that port.
 Rollback: drop the two `tiles.openfreemap.org` lines. If the operator would rather tighten than widen,
 the alternative is to require a Stadia key in production and drop the keyless fallback — that is a
 product decision, not a security one, and is left open.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.1: farm-produce-images build unblocked by deleting dead code, not by adding a dependency
+
+**The blocker:** `pnpm build` compiled but then died on
+`src/lib/image-processing.ts(1,19): error TS2307: Cannot find module 'sharp'`. `sharp` is imported
+there but has never been declared in that package's `package.json`. This app's build has been broken on
+master the whole time; it was flagged in Slices 1.2 and 1.8 and deliberately left for Queue 2.
+
+**The obvious fix was the wrong one.** Declaring `sharp` would make the error go away, but it would add
+a large native dependency, with its own advisory history, to satisfy code nothing calls. Checked before
+deciding:
+- **Nothing imports `image-processing.ts`.** The only reference anywhere in the package is a line in
+  `README.md`'s file-tree diagram.
+- It is the **only** file in the package importing `sharp`.
+- `git log --follow` shows it unchanged since the **initial commit** (e29cab62, 2025-08-23) — 14 months
+  untouched.
+- It was superseded: `src/app/api/upload/route.ts` does its work through `@/lib/storage`
+  (`uploadProduceImage`), not through this module.
+
+So it is abandoned scaffolding, not pending work. **Deleted it** (200 lines, 8 exported symbols) and
+removed its line from the README file-tree, fixing the tree's trailing connector so `database.ts` now
+ends the `lib/` branch.
+
+**If this judgement is wrong it is one command to undo:**
+`git checkout ba16021^ -- farm-produce-images/src/lib/image-processing.ts`, then
+`pnpm add sharp` in that package. Recorded here precisely so the decision is reversible.
+
+**Verification (ran, passed):** `pnpm build` now completes — `✓ Compiled successfully`, full route
+table emitted, and **no "Failed to type check"**, which is the line that used to end the build.
+`npx tsc --noEmit` exits clean.
+
+**Risk/rollback:** Removes code that nothing referenced and that never ran. Rollback is the command
+above.
+
+**Next:** Slice 2.2 — twitter-workflow has ESLint 9 and `@eslint/js` installed but no flat config, so
+`npm run lint` fails before linting anything.
