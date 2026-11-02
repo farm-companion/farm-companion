@@ -239,3 +239,18 @@ win, and it is the operator's to make.
 
 What is not marginal: the current 11,727 rows are worth nothing and the ranking
 bug that produced them is real either way.
+
+## Outcome
+
+The operator chose to drop the rows and not re-run. All 11,727 Geograph candidates were deleted on
+2026-11-02 by `farm-frontend/prisma/data-fixes/2026-11-02-geograph-candidates-drop.sql`; `images`
+now holds 1,104 rows, all of them real approved photographs or quarantined AI.
+
+The matcher is therefore measured but unused. It is not wired into `parseGeograph`, so a pipeline
+run today would insert the same distance-ranked rows the delete just removed. Wiring it is the
+prerequisite for any future run, whatever is decided about collecting the ~85 photographs.
+
+The honest summary of the measurement: the source is good, the ranking key was wrong, and every
+unbiased sample cut the yield estimate — 225, then 135, then 85. Precision on frozen, unseen data is
+80%. That is a real instrument; it is just pointed at a thinner seam than the first two samples
+suggested.
