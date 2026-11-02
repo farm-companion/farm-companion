@@ -13,5 +13,9 @@ export default [
       sourceType: 'module',
       globals: { ...globals.node },
     },
+    rules: {
+      // Params kept for signature/API symmetry are prefixed with _.
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }],
+    },
   },
 ]

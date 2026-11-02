@@ -5,7 +5,9 @@ if (process.env.NODE_ENV !== 'production') {
   try { 
     const dotenv = await import('dotenv');
     dotenv.default.config?.();
-  } catch {}
+  } catch {
+    // dotenv is optional: production supplies env vars directly.
+  }
 }
 
 /**

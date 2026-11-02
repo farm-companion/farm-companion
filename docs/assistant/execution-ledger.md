@@ -5320,3 +5320,33 @@ template, the other a deliberately generic fallback. They are renamed, not rewri
 this commit.
 
 **Next:** Slice 2.4 — the eight remaining cosmetic unused-variable findings.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.4: the lib/ half of the remaining lint findings
+
+Cosmetic findings only; the real bugs went in 2.3. Each was read in context first, because three of the
+five looked like defects and were not.
+
+- **`eslint.config.js`** — added
+  `'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }]`, the
+  standard escape hatch for arguments kept for signature symmetry.
+- **`content-generator.js:31`** — `generateFarmSpotlight(farm, options = {})`. Its own JSDoc says
+  *"Content generation options (legacy support)"*, so the parameter is kept deliberately. Renamed
+  `_options` rather than deleted, which would change the method's arity.
+- **`farm-selector.js:2`** — `zonedTimeToUtc` imported from `date-fns-tz` and never used. Removed from
+  the import; `utcToZonedTime` and `format` are still used.
+- **`monitoring.js:8`** — `} catch {}` around an optional `dotenv` import guarded by
+  `NODE_ENV !== 'production'`. The swallow is correct (production injects env vars directly), so the
+  block now carries a comment saying so instead of being silently empty. Behaviour unchanged.
+- **`ogilvy-prompts.js:88`** `getAltTextPrompt(farm)` and **`profile-generator.js:166`**
+  `generateFallbackAltText(farm)` — both take a farm and ignore it, which reads like a bug. It is not:
+  the first returns a **static prompt template** that deliberately does not interpolate farm data, and
+  the second returns a **deliberately generic fallback**. Renamed `_farm`; neither was rewritten.
+
+**Verification (ran, passed):** lint findings **8 -> 3** (only the three `src/scripts/` ones remain).
+`npm test` **8 pass / 0 fail**. `node --check` passes on all five touched lib files.
+
+**Risk/rollback:** Renames, one import removal and one comment; no behaviour changes. Rollback: revert.
+
+**Next:** Slice 2.5 — the last three findings, all in `src/scripts/`, which takes lint to zero.
