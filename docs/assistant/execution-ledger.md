@@ -5309,3 +5309,44 @@ same licence.
 
 **Risk/rollback:** Nothing written to the database and nothing wired into the pipeline. The matcher
 is a pure function; deleting the three new files reverts it entirely.
+
+---
+
+### 2026-11-02 — Geograph matcher v3: the tags only work backwards
+
+Fixes the two faults sample three exposed, and sample four measures the result.
+Detail: `docs/assistant/geograph-match-2026-11-02.md`.
+
+**The instructive failure.** Geograph's `tags` are a controlled vocabulary and 18 of 19 labelled
+positives carry `top:Business, Retail, Services` or a retail `subject:`. Using them as positive
+evidence looked obviously correct and **dropped precision from 100% to 82%**: a tag saying a shop is
+in frame does not say it is this farm's shop, so with a token that is really a village name it
+admitted the Royal Oak pub for Bishopstone Stores, a Frankie & Benny's for Trentham Farm Shop and a
+garage for Smallford. Reverted.
+
+**What replaced it.** The same tags used only to veto. `subject:` names the primary subject, so a
+field of saplings is not a shop whoever owns it, and a negative test cannot admit the wrong
+business. That separates `subject:garden centre` (Gates Nurseries, a real shop) from
+`subject:nursery (plants)` (Vine House Farm, a field), which no word list could. Retail list also
+gained kennels, cattery, bakery, butchery, closing the Usk recall gap.
+
+**Sample four (100 farms, offset 300, zero overlap, matcher frozen first):** 5 hits, 4 genuine,
+**precision 80%**, up from 75%. The miss is "Paved access to Broom Mill", an access road; "access
+to" belongs in the distancing list and is not there. Sample three re-run under v3 goes from 3 good
+of 4 to 4 of 5, now finding "Farm Shop - Vine House Farm" instead of the nursery field.
+
+**The estimate keeps falling and that is the real result.** Tuned samples gave 8% and 14% match
+rates; the two unseen samples give 4% and 5%. The tuned figures overstated by about three times,
+because the matcher was built from the cases they contained. Against 2,367 farms the yield is
+roughly **105 candidates and 85 genuine photographs**, down from 225 on two samples and 135 on
+three. Each unbiased sample has cut it.
+
+**Verification (ran, passed):** 20 tests in `geograph-match.test.ts`, 100% precision and recall on
+the two labelled samples, `npx tsc --noEmit` clean, eslint clean.
+
+**Recommendation is now marginal, not obvious.** 85 photographs over a 3,504-farm directory is 2.4%
+coverage for the cost of deleting 11,727 rows and re-running the pipeline. Review is cheap and these
+would be the site's first real photographs, but it is a judgement call for the operator. What is not
+marginal either way: the existing 11,727 rows are worthless and the ranking bug is real.
+
+**Risk/rollback:** Nothing written to the database, nothing wired into `parseGeograph`.

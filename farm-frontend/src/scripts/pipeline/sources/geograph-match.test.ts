@@ -111,6 +111,36 @@ test('the Farm shop tag supplies the premises signal when the wording does not',
   assert.equal(m.retailWord, 'tag:Farm shop')
 })
 
+test('top:Business is not evidence about this farm', () => {
+  // Tried and rejected: treating top:Business as a premises signal dropped
+  // precision from 100% to 82%, admitting a pub for Bishopstone Stores and a
+  // Frankie & Benny's for Trentham Farm Shop, both on a village name.
+  const m = matchPhoto('Smallford Farm Shop', {
+    title: 'TL1907 : Three Horseshoes and the Garage at Smallford',
+    tags: 'top:Business, Retail, Services',
+  })
+  assert.equal(m.depicts, false, m.reason)
+})
+
+test('the taxonomy separates a garden centre from a field of saplings', () => {
+  // Both titles say "nursery"; only one is a shop. No word list can tell
+  // them apart, which is what the negative subject veto is for.
+  assert.equal(
+    matchPhoto('Gates Farm Shop', {
+      title: 'SK8009 : Gates Nurseries',
+      tags: 'subject:garden centre',
+    }).depicts,
+    true
+  )
+  assert.equal(
+    matchPhoto('Vine House Farm', {
+      title: 'TF2015 : Nursery - Vine House Farm',
+      tags: 'subject:nursery (plants)',
+    }).depicts,
+    false
+  )
+})
+
 test('every result carries its reason, so a reviewer can judge it', () => {
   const m = matchPhoto('Teals', { title: 'ST6226 : Teals Farm shop South Cadbury' })
   assert.equal(m.depicts, true)

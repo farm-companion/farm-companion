@@ -182,3 +182,60 @@ share-alike question in particular deserves a human answer.
 
 No row was deleted, approved or written. The matcher is a pure function with
 tests and is not yet wired into `parseGeograph`.
+
+## v3 and sample four
+
+Two faults from sample three were fixed, and fixing them taught more than the
+fixes were worth.
+
+**The attempt that failed.** Geograph's `tags` carry a controlled vocabulary,
+and 18 of the 19 labelled positives are classified `top:Business, Retail,
+Services` or a retail `subject:`. Using those tags as positive evidence looked
+obviously right and **dropped precision from 100% to 82%**. A tag saying a shop
+is in the frame does not say it is *this farm's* shop, so combined with a token
+that is really a village name it admitted a pub called the Royal Oak for
+Bishopstone Stores, a Frankie & Benny's for Trentham Farm Shop, and a garage
+for Smallford Farm Shop.
+
+**What worked instead.** The same tags used only to rule a candidate *out*.
+`subject:` names what the photograph is primarily of, so if the photographer
+says it is a field of saplings then it is not a shop, whoever owns it. Used
+negatively the tag cannot admit the wrong business, only reject. That single
+asymmetry separates "Gates Nurseries" (`subject:garden centre`, a real shop)
+from "Nursery - Vine House Farm" (`subject:nursery (plants)`, a field), which
+no amount of word-list tuning could distinguish. The retail list also gained
+kennels, cattery, bakery and butchery, which closed the Usk recall gap.
+
+**Sample four**, 100 farms at offset 300, zero overlap, matcher frozen first:
+
+- **5 hits in 100. 4 genuine. Precision 80%**, up from 75%.
+- The miss is "Paved access to Broom Mill", an access road. "access to" is the
+  same distancing class already handled; the phrase is simply not in the list.
+- Re-running sample three under v3 improves it from 3 good of 4 to 4 of 5: it
+  now finds "Farm Shop - Vine House Farm" rather than the nursery field.
+
+### The estimate keeps falling, and that is the finding
+
+| | Match rate | Precision |
+|---|---|---|
+| Samples one and two, tuned against | 8%, 14% | 100% |
+| Sample three, unseen | 4% | 75% |
+| Sample four, unseen | 5% | 80% |
+
+The tuned samples overstated the match rate by roughly a factor of three,
+because the matcher was built from exactly the cases they contained. On fresh
+data it fires on about **4.5%** of farms.
+
+Against 2,367 farms that is roughly **105 candidates and about 85 genuine
+photographs**, not the 225 estimated from two samples, nor the 135 from three.
+Each unbiased sample has cut it.
+
+**So the honest recommendation is weaker than it was.** 85 real photographs
+across a 3,504-farm directory is 2.4% coverage, in exchange for deleting 11,727
+rows and re-running the pipeline. Review is cheap, well under half an hour for
+a hundred-odd candidates with reasons attached, and these would be the site's
+first real photographs. But this is now a marginal call rather than an obvious
+win, and it is the operator's to make.
+
+What is not marginal: the current 11,727 rows are worth nothing and the ranking
+bug that produced them is real either way.
