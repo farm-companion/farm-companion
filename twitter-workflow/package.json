@@ -21,7 +21,7 @@
     "test:variety": "node src/scripts/test-image-variety.js",
     "test:slack": "node src/scripts/test-slack-notifications.js",
     "test:complete": "node src/scripts/test-complete-workflow.js",
-    "lint": "eslint src/**/*.js",
+    "lint": "eslint src",
     "build": "echo 'No build step required for Node.js'"
   },
   "dependencies": {
@@ -36,7 +36,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
-    "eslint": "^9.39.2"
+    "eslint": "^9.39.2",
+    "globals": "^16.0.0"
   },
   "keywords": [
     "twitter",

@@ -5298,3 +5298,180 @@ same licence.
 
 **Risk/rollback:** Nothing written to the database and nothing wired into the pipeline. The matcher
 is a pure function; deleting the three new files reverts it entirely.
+### 2026-11-02 — Queue 2 Slice 2.1: farm-produce-images build unblocked by deleting dead code, not by adding a dependency
+
+**The blocker:** `pnpm build` compiled but then died on
+`src/lib/image-processing.ts(1,19): error TS2307: Cannot find module 'sharp'`. `sharp` is imported
+there but has never been declared in that package's `package.json`. This app's build has been broken on
+master the whole time; it was flagged in Slices 1.2 and 1.8 and deliberately left for Queue 2.
+
+**The obvious fix was the wrong one.** Declaring `sharp` would make the error go away, but it would add
+a large native dependency, with its own advisory history, to satisfy code nothing calls. Checked before
+deciding:
+- **Nothing imports `image-processing.ts`.** The only reference anywhere in the package is a line in
+  `README.md`'s file-tree diagram.
+- It is the **only** file in the package importing `sharp`.
+- `git log --follow` shows it unchanged since the **initial commit** (e29cab62, 2025-08-23) — 14 months
+  untouched.
+- It was superseded: `src/app/api/upload/route.ts` does its work through `@/lib/storage`
+  (`uploadProduceImage`), not through this module.
+
+So it is abandoned scaffolding, not pending work. **Deleted it** (200 lines, 8 exported symbols) and
+removed its line from the README file-tree, fixing the tree's trailing connector so `database.ts` now
+ends the `lib/` branch.
+
+**If this judgement is wrong it is one command to undo:**
+`git checkout ba16021^ -- farm-produce-images/src/lib/image-processing.ts`, then
+`pnpm add sharp` in that package. Recorded here precisely so the decision is reversible.
+
+**Verification (ran, passed):** `pnpm build` now completes — `✓ Compiled successfully`, full route
+table emitted, and **no "Failed to type check"**, which is the line that used to end the build.
+`npx tsc --noEmit` exits clean.
+
+**Risk/rollback:** Removes code that nothing referenced and that never ran. Rollback is the command
+above.
+
+**Next:** Slice 2.2 — twitter-workflow has ESLint 9 and `@eslint/js` installed but no flat config, so
+`npm run lint` fails before linting anything.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.2: twitter-workflow had ESLint 9 installed and no config, so lint never ran
+
+**The blocker:** `npm run lint` failed with
+`ESLint couldn't find an eslint.config.(js|mjs|cjs) file` — it never linted a single line. The package
+already had `eslint ^9.39.2` and `@eslint/js ^9.0.0` as devDependencies and is `"type": "module"`;
+somebody installed for flat config and never wrote the config. Flagged in Slice 1.3 and left for Queue 2.
+
+**Added `eslint.config.js`** (flat, ESM, `js.configs.recommended`, `ecmaVersion: 2024`,
+`sourceType: 'module'`, Node globals).
+
+**Declared `globals` as a devDependency rather than importing the phantom one.** `globals` was already
+resolvable from disk, but only as a transitive dependency of eslint — importing it in the config without
+declaring it would have worked today and broken silently whenever eslint's dependency tree shifted.
+This is the slice's one new dependency and it is the canonical companion to a flat config; the
+alternative was hand-maintaining ~82 Node global names inline, which drifts.
+
+**Also fixed the lint script**: `eslint src/**/*.js` -> `eslint src`. The old glob relies on shell
+globstar, which is off by default in bash, so it would have matched only one directory level even once
+a config existed. `eslint src` lets ESLint walk the tree and honour the config's own `files`.
+
+**Verification (ran):** `npm run lint` now **executes and reports 12 errors across 7 files**. That is
+the correct outcome for this slice, not a failure — the command went from "cannot run at all" to
+"runs and finds real defects". Two of the twelve are genuine bugs, not style noise; they are fixed in
+Slice 2.3 immediately following.
+
+**Risk/rollback:** Adds a config file and one devDependency; no source behaviour changes. Rollback:
+delete `eslint.config.js` and revert the two package.json edits.
+
+**Next:** Slice 2.3 — fix what the lint now reports, starting with the const reassignment that breaks
+the duplicate-post guard.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.3: the two real bugs the broken lint had been hiding
+
+Slice 2.2 made `npm run lint` run for the first time. Two of its twelve findings were genuine defects,
+not style noise. Both are fixed here; the remaining ten are cosmetic and go in Slice 2.4.
+
+**Bug 1 — the duplicate-post guard threw on every call.** `src/lib/workflow-orchestrator.js`:
+```js
+const namespaced = `fc:tweeted:${today}`;
+if (key) namespaced += `:${key}`;   // TypeError: Assignment to constant variable
+```
+Both call sites pass a truthy key (`setWithLimitToday('post-${postNumber}', 1)` at line ~172 and
+`setWithLimitToday('daily', 2)` at line ~283), so the reassignment was unconditional. Fixed
+`const` -> `let`.
+
+**Why nobody noticed, precisely.** The function opens with
+`if (!KV_URL || !KV_TOKEN) return { enforced: false };`, and `UPSTASH_REDIS_REST_URL` /
+`UPSTASH_REDIS_REST_TOKEN` are **not set** in twitter-workflow's Vercel env (checked). So it returns
+early and never reaches the bug. Both call sites are also wrapped in `if (!isDryRun)`, so dry runs skip
+it entirely. The bug was therefore **latent**: it would have fired the first time anyone configured KV
+— that is, the moment they switched on duplicate-post protection, the code implementing it would have
+thrown. **Worth noting separately: because `enforced` is false today, the duplicate-post guard is
+currently inactive altogether** (`if (lock.enforced && !lock.created)` can never be true).
+
+**Bug 2 — a module that could not be parsed.** `src/scripts/test-deepseek-ogilvy.js:66` had
+`/[😀-🙏🌀-🗿]/` with no `u` flag. Without it the emojis are surrogate pairs, so the class forms an
+out-of-order implicit range and the file is a **SyntaxError at load**, breaking `npm run test:deepseek`
+outright. Rewritten as `/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}]/u`.
+
+**Also in workflow-orchestrator.js:** removed an unused `import axios` (axios is genuinely used in
+farm-selector, content-generator and monitoring, just not here, so the dependency stays), and dropped
+the unused `const expireResp =` binding while keeping the `await fetch(...)` for its side effect.
+
+**Verification (ran, passed) — each defect proved real before and fixed after, not just lint-silenced:**
+- Old regex in `node`: `SyntaxError: Invalid regular expression ... Range out of order`. New one
+  compiles and behaves: matches `'nice 😀'` -> true, `'no emoji here'` -> false.
+- `node --check src/scripts/test-deepseek-ogilvy.js` passes (it could not parse before).
+- Old const pattern reproduced in isolation: `TypeError: Assignment to constant variable.`
+  Fixed version returns `fc:tweeted:2026-11-02:daily`.
+- `npm test` **8 pass / 0 fail**. Lint findings **12 -> 8**.
+
+**Two checks that prevented bad fixes.** `getAltTextPrompt(farm)` and `generateFallbackAltText(farm)`
+both looked like bugs (take a farm, ignore it) but are correct by design — one returns a static prompt
+template, the other a deliberately generic fallback. They are renamed, not rewritten, in Slice 2.4.
+
+**Risk/rollback:** Three small edits in one file plus one regex literal; tests pass. Rollback: revert
+this commit.
+
+**Next:** Slice 2.4 — the eight remaining cosmetic unused-variable findings.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.4: the lib/ half of the remaining lint findings
+
+Cosmetic findings only; the real bugs went in 2.3. Each was read in context first, because three of the
+five looked like defects and were not.
+
+- **`eslint.config.js`** — added
+  `'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }]`, the
+  standard escape hatch for arguments kept for signature symmetry.
+- **`content-generator.js:31`** — `generateFarmSpotlight(farm, options = {})`. Its own JSDoc says
+  *"Content generation options (legacy support)"*, so the parameter is kept deliberately. Renamed
+  `_options` rather than deleted, which would change the method's arity.
+- **`farm-selector.js:2`** — `zonedTimeToUtc` imported from `date-fns-tz` and never used. Removed from
+  the import; `utcToZonedTime` and `format` are still used.
+- **`monitoring.js:8`** — `} catch {}` around an optional `dotenv` import guarded by
+  `NODE_ENV !== 'production'`. The swallow is correct (production injects env vars directly), so the
+  block now carries a comment saying so instead of being silently empty. Behaviour unchanged.
+- **`ogilvy-prompts.js:88`** `getAltTextPrompt(farm)` and **`profile-generator.js:166`**
+  `generateFallbackAltText(farm)` — both take a farm and ignore it, which reads like a bug. It is not:
+  the first returns a **static prompt template** that deliberately does not interpolate farm data, and
+  the second returns a **deliberately generic fallback**. Renamed `_farm`; neither was rewritten.
+
+**Verification (ran, passed):** lint findings **8 -> 3** (only the three `src/scripts/` ones remain).
+`npm test` **8 pass / 0 fail**. `node --check` passes on all five touched lib files.
+
+**Risk/rollback:** Renames, one import removal and one comment; no behaviour changes. Rollback: revert.
+
+**Next:** Slice 2.5 — the last three findings, all in `src/scripts/`, which takes lint to zero.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.5: last three findings; twitter-workflow lint now exits 0
+
+- **`check-today.js:3`** — `import { workflowOrchestrator }` was the only occurrence of that name in
+  the file, so a genuinely dead import. Removed.
+- **`test-apple-ogilvy-content.js:179`** — unused second parameter of the `analyzeContent` diagnostic
+  helper. Renamed `_styleConfig` to keep its arity.
+- **`test-image-variety.js:99`** — `results.forEach((result, index) =>` never referenced `index`.
+  Dropped the parameter outright; unlike a named function's signature, a callback's trailing arg can go.
+
+**`npm run lint` now exits 0.** Both Queue 2 blockers are closed.
+
+**Verification (ran, passed) across everything touched:**
+- twitter-workflow: `npm run lint` **exit 0**; `npm test` **8 pass / 0 fail**; `node --check` on all
+  three scripts.
+- farm-produce-images: `pnpm build` `✓ Compiled successfully` with no "Failed to type check";
+  `npx tsc --noEmit` clean.
+- farm-frontend (not touched, checked for regressions): `pnpm test:unit` **513 pass / 0 fail**.
+
+**Queue 2 summary — what the two blockers actually were.** Neither needed the fix it appeared to need.
+The farm-produce-images build wanted a `sharp` dependency declared; the right answer was to delete 200
+lines of scaffolding that nothing had imported since the initial commit. twitter-workflow's lint looked
+like a missing config file; it was that, but fixing it surfaced **two genuine defects** that had been
+invisible for as long as lint had been broken — a `const` reassignment that would throw the moment
+duplicate-post protection was switched on, and an unparseable emoji regex that broke a test script
+outright.

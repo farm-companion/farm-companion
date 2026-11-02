@@ -6,7 +6,6 @@ import { farmSelector } from './farm-selector.js';
 import { monitoringSystem } from './monitoring.js';
 import pkg from 'twitter-text';
 const { parseTweet } = pkg;
-import axios from 'axios';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: '.env.local' });
@@ -21,7 +20,7 @@ const KV_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
 async function setWithLimitToday(key, limit = 2) {
   if (!KV_URL || !KV_TOKEN) return { enforced: false }; // soft skip if not configured
   const today = new Date().toISOString().slice(0,10);
-  const namespaced = `fc:tweeted:${today}`;
+  let namespaced = `fc:tweeted:${today}`;
   if (key) namespaced += `:${key}`;
 
   // Check current count
@@ -42,7 +41,7 @@ async function setWithLimitToday(key, limit = 2) {
   const incrData = await incrResp.json();
   
   // Set expiration to end of day (24 hours from now)
-  const expireResp = await fetch(`${KV_URL}/expire/${encodeURIComponent(namespaced)}/86400`, {
+  await fetch(`${KV_URL}/expire/${encodeURIComponent(namespaced)}/86400`, {
     headers: { Authorization: `Bearer ${KV_TOKEN}` }
   });
 

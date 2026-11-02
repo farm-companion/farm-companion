@@ -49,8 +49,7 @@ src/
 │       └── metadata/
 ├── lib/
 │   ├── storage.ts
-│   ├── database.ts
-│   └── image-processing.ts
+│   └── database.ts
 └── types/
     └── produce.ts
 ```

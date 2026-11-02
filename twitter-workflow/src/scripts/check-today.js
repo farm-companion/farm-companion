@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-import { workflowOrchestrator } from '../lib/workflow-orchestrator.js';
-
 console.log('🔍 Checking if Twitter workflow ran today...');
 console.log('');
 

@@ -85,7 +85,7 @@ Return BODY only (no URL).`;
 /**
  * Image Alt-Text - Descriptive, Neutral
  */
-export function getAltTextPrompt(farm) {
+export function getAltTextPrompt(_farm) {
   return `You are writing concise, factual alt text for a farm-shop photo.
 
 Rules:
