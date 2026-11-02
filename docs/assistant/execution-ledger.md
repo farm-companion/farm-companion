@@ -5475,3 +5475,37 @@ like a missing config file; it was that, but fixing it surfaced **two genuine de
 invisible for as long as lint had been broken — a `const` reassignment that would throw the moment
 duplicate-post protection was switched on, and an unparseable emoji regex that broke a test script
 outright.
+
+---
+
+### 2026-11-02 — Queue 3 audited: five of six items were already done; one real leftover fixed
+
+Audited each Track 0 item against the current code before planning any work, as with Queue 1. Queue 3
+has largely been overtaken by the Komoot S1-S4, M1-M3 and map-a11y 2.6-2.8 slices. Recording the
+evidence so nobody re-opens these.
+
+| Queue 3 item | Status | Evidence |
+|---|---|---|
+| Remove production console logs | **already done** | **Zero `console.log`** in `src/features/map` or `src/app/map`. The 14 remaining calls are all `console.warn` / `console.error` — legitimate diagnostics, not debug noise. |
+| Fix `MapShell.tsx` type safety | **stale + done** | `MapShell.tsx` does not exist; it is `MapLibreShell.tsx` (the `components/map` subgraph was deleted in f330f14). That file has **zero** `as any`, `: any`, `@ts-ignore` or `@ts-expect-error` — the lint-cleanup in dc6d9ee cleared them. |
+| Cluster event handling + state races | **already done** | The marker effect's deps include its handlers (`[clusters, isCluster, handleClusterClick, handleMarkerClick, onFarmHover, showFullIcons]`), so no stale closures. The init effect's `[]` deps *were* a genuine stale-closure trap for `onBoundsChange`; it was found and fixed in **S3b** with `searchAsIMoveRef`, and `page.tsx:337-342` documents exactly that. Listener cleanup is handled by `map.remove()` — the 12 `addEventListener` / 0 `removeEventListener` asymmetry is safe because those listeners sit on marker elements that are discarded with the markers. |
+| Desktop marker interactions via popovers | **already done** | `isDesktop` prop, `hoveredFarmId`, `mouseenter`/`mouseleave` handlers on both marker types, `MarkerPreview.tsx` / `FarmPreviewCard.tsx`, and the one-popover invariant from Komoot S4 (b8982d8). |
+| **Fix ClusterPreview data loss** | **already done** | Not reachable. `getClusterLeaves(clusterId, 100)` fetches up to 100 — and the preview only opens when `count <= CLUSTER_ZOOM_THRESHOLDS.PREVIEW_MAX_COUNT`, which is **8**. Truncation is impossible. Overflow beyond the 5 shown is deliberate, with a "View all {count} farms" affordance. Note the supercluster default limit is 10; passing 100 explicitly is what makes this safe, so **do not drop that argument**. |
+| Extract Haversine to `src/shared/lib` + unit test | **done, with one leftover — fixed here** | `src/shared/lib/geo.ts` + `geo.test.ts` already exist and every consumer imports from them — except one. |
+
+**The one real fix.** `src/lib/schemas.ts` still carried a **private duplicate** haversine (12 lines,
+its own `R = 6371`), used by `dedupeFarms`. Replaced with `import { calculateDistance } from
+'@/shared/lib/geo'`. The two implementations were mathematically identical — same radius, same formula,
+same `2*atan2(sqrt(a), sqrt(1-a))`; the shared one factors out a `toRadians` helper where schemas
+inlined `* Math.PI / 180`.
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean; `pnpm test:unit` **545 pass / 0 fail**; and
+the old inline implementation was run side by side with the shared one over four coordinate pairs —
+**max difference 0, bit-identical** — so `dedupeFarms`' proximity threshold behaviour cannot have
+shifted.
+
+**Risk/rollback:** One import swapped for an identical implementation, proven numerically equivalent.
+Rollback: revert the commit.
+
+**Queue 3 is therefore closed.** The remaining Track 0 value is not in this list; if more map work is
+wanted it needs a fresh survey rather than these six items.
