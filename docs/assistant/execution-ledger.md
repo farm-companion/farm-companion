@@ -5350,3 +5350,31 @@ five looked like defects and were not.
 **Risk/rollback:** Renames, one import removal and one comment; no behaviour changes. Rollback: revert.
 
 **Next:** Slice 2.5 — the last three findings, all in `src/scripts/`, which takes lint to zero.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.5: last three findings; twitter-workflow lint now exits 0
+
+- **`check-today.js:3`** — `import { workflowOrchestrator }` was the only occurrence of that name in
+  the file, so a genuinely dead import. Removed.
+- **`test-apple-ogilvy-content.js:179`** — unused second parameter of the `analyzeContent` diagnostic
+  helper. Renamed `_styleConfig` to keep its arity.
+- **`test-image-variety.js:99`** — `results.forEach((result, index) =>` never referenced `index`.
+  Dropped the parameter outright; unlike a named function's signature, a callback's trailing arg can go.
+
+**`npm run lint` now exits 0.** Both Queue 2 blockers are closed.
+
+**Verification (ran, passed) across everything touched:**
+- twitter-workflow: `npm run lint` **exit 0**; `npm test` **8 pass / 0 fail**; `node --check` on all
+  three scripts.
+- farm-produce-images: `pnpm build` `✓ Compiled successfully` with no "Failed to type check";
+  `npx tsc --noEmit` clean.
+- farm-frontend (not touched, checked for regressions): `pnpm test:unit` **513 pass / 0 fail**.
+
+**Queue 2 summary — what the two blockers actually were.** Neither needed the fix it appeared to need.
+The farm-produce-images build wanted a `sharp` dependency declared; the right answer was to delete 200
+lines of scaffolding that nothing had imported since the initial commit. twitter-workflow's lint looked
+like a missing config file; it was that, but fixing it surfaced **two genuine defects** that had been
+invisible for as long as lint had been broken — a `const` reassignment that would throw the moment
+duplicate-post protection was switched on, and an unparseable emoji regex that broke a test script
+outright.
