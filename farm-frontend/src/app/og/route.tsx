@@ -1,23 +1,15 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
 import { parsePlate, isPlateSlug, type PlateShape } from '@/lib/map-plate'
+import { PAPER, INK, VERMILION, SEA_INK, REGISTRATION_OFFSET, brandFont } from './brand'
 import { SITE_URL } from '@/lib/site'
 
 export const runtime = 'edge'
 
-// Rotocalco Press, four flat inks. Spec: docs/superpowers/specs/2026-05-19-pitti-press-design.md
-const PAPER = '#F2EBDA'
-const INK = '#0F0E0C'
-const VERMILION = '#D33A2C'
-const SEA_INK = '#1F3A5F'
-
-// The brand's misregistration tell: the second ink lands slightly off the first,
-// the way a two-colour press does. Fixed once here so every card shares it.
-const REGISTRATION_OFFSET = 7
-
-const clashDisplay = fetch(
-  new URL('./ClashDisplay-Semibold.ttf', import.meta.url)
-).then((res) => res.arrayBuffer())
+// Palette, registration offset and font all come from ./brand, which the
+// social renderer shares. They were duplicated here until that second
+// renderer existed, and duplicated brand constants are exactly how this
+// project came to ship three different palettes at once.
 
 /** OSM data is ODbL, so a card showing a plate must say so on the card. */
 const PLATE_ATTRIBUTION = '© OpenStreetMap contributors'
@@ -79,7 +71,6 @@ export async function GET(request: NextRequest) {
       process.env.NODE_ENV === 'production' ? SITE_URL : new URL(request.url).origin
     const plate = plateSlug ? await loadPlate(plateOrigin, plateSlug) : null
 
-    const font = await clashDisplay
 
     return new ImageResponse(
       (
@@ -274,7 +265,7 @@ export async function GET(request: NextRequest) {
       {
         width: 1200,
         height: 630,
-        fonts: [{ name: 'Clash Display', data: font, style: 'normal', weight: 600 }],
+        fonts: await brandFont(),
       }
     )
   } catch (e) {

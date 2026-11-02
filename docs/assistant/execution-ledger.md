@@ -4727,3 +4727,68 @@ normal 200 card. Graceful degradation and input validation are not substitutes f
 **Note:** `src/lib/map-plate.ts` is now 297 lines and `route.tsx` 286, both within a few lines of
 the 300 soft limit. The next addition to either should extract a sibling module rather than
 inline.
+
+---
+
+## Slice BRAND-E — Social profile kit, and the shared brand module
+
+**Goal.** Produce the profile assets a person uploads to the four platforms worth drawing for,
+rendered from the same engine as the cards so the two can never drift.
+
+**Shared furniture first.** `src/app/og/brand.tsx` holds the palette, `REGISTRATION_OFFSET`, the
+arch path, the font loader, and the `Mark`, `Sunrise` and `Masthead` components. It sits beside
+the OG route rather than in `src/lib` so `new URL('./ClashDisplay-Semibold.ttf', import.meta.url)`
+still resolves against the font in that directory. `route.tsx` was refactored onto it in the same
+slice, so the constants exist once: copying them into a second renderer is precisely how this
+project came to ship three palettes at once.
+
+**`src/app/og/social/route.tsx`** renders `avatar`, `x-header` and `fb-cover`, validating the
+format against a known set and returning 400 otherwise.
+`scripts/export-social-kit.sh` writes them to `brand/social/` as PNGs; it takes an optional base
+URL so the kit can be exported from a deployment rather than the dev server.
+
+**One avatar for all four platforms, deliberately.** X, Instagram, Facebook and Pinterest all
+circle-crop and all show it at roughly 32px in a feed, so per-platform variants would differ in
+nothing. Checked at 32px, which is the only size that decides recognition.
+
+**Two compositions reworked after looking at them.** The X header had its type right of centre to
+clear the profile picture, which left half the banner dead; moving it to x=180 while keeping it
+above y=380 clears the avatar and fills the frame. The Facebook cover had a mirrored pair of
+sunrises that read as decoration and were both sliced by the phone crop; the motif was dropped
+entirely and the type carries it, which also means the desktop and phone renders are identical
+because everything sits inside the central 640.
+
+**Files:** `src/app/og/brand.tsx`, `src/app/og/social/route.tsx`, `src/app/og/route.tsx`,
+`scripts/export-social-kit.sh`, `brand/social/README.md` and three exported PNGs.
+
+**Not in this kit, and why.** Post formats (Pinterest 2:3, Instagram 4:5 and 9:16) and Pinterest
+board covers are templates the posting daemon fills per post, not static files, so they belong
+with the daemon work. Instagram has no banner.
+
+**Verified:** `npx eslint` exit 0 on all three source files. `pnpm test:unit` **512 pass, 0 fail**.
+All five surfaces rendered against the dev server: the plated card at 58,984 bytes, the traversal
+probe still falling back at 18,458, and the three profile formats at their exact sizes. An unknown
+format returns 400.
+
+### Two things about the branch, recorded because they cost time
+
+**PR #223 merged only part of this work.** It merged at 07:09 carrying Slices A, A2, B, C2 and D.
+`5ebd2bc` (D2) and `cfcaaa9` (the SSRF fix) were pushed afterwards and missed it. **Master was
+never vulnerable**: the flaw was introduced in D2 and fixed in `cfcaaa9`, and neither reached
+master, whose OG route has no plate loading at all and whose only `fetch` is the font.
+
+**The shared checkout changed branch mid-slice.** Another session moved it to
+`perf/shop-county-index`, which is why a run briefly showed 512 tests and a card with no plate:
+that was master's older `route.tsx`, not this work. This slice is therefore on a new branch,
+`brand/social-kit`, cut from `cfcaaa9` so it carries D2, the security fix and Slice E without
+re-proposing that session's `perf(shop)` commit. The six-test difference between 518 and 512 is
+exactly their `county-summary.test.ts`, which this branch does not contain.
+
+**`tsc` reports four maplibre-gl errors that are not from this work.** `node_modules` holds
+maplibre 6.16.0 from the other session's upgrade while this branch pins `^5.16.0`, so the source
+and the installed package disagree. No error touches any file in this slice, and CI installs from
+this branch's own lockfile.
+
+**Risk and rollback.** The social route is additive and nothing links to it. Reverting the commit
+removes the kit; `route.tsx`'s refactor is a pure substitution of imported constants for local
+ones, with no behavioural change, proven by the card rendering identically.
