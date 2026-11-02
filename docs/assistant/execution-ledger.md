@@ -5471,3 +5471,57 @@ where `CRON_SECRET` is unset and even the otherwise-correct header is refused.
 **Risk and rollback.** The endpoint now requires `CRON_SECRET` to be set in the Vercel project
 before the cron can fire. That is an operator step, and until it is done the cron returns 401,
 which is the intended failure direction given the pipeline cannot do anything useful yet anyway.
+
+---
+
+## Slice BRAND-G — Asset audit: what is actually referenced
+
+**Goal.** Check every brand asset is used, and that nothing points at a file that is not there.
+Done in both directions: files with no reference, and references with no file.
+
+**Three files I orphaned myself, now removed.** `about.jpg` (4.4 MB), `add.jpg` (4.5 MB) and
+`feedback.jpg` (0.6 MB) existed only as the `og:image` for their pages. Slice C2 repointed those
+pages at the dynamic card route and left the files behind, which is exactly the kind of debris an
+audit is for. Verified unreferenced across the whole repository, not just `src`: the only
+remaining mentions are my own ledger entries describing them. `public/` drops from 54 MB to
+44.5 MB.
+
+**Deliberately kept:** `counties.jpg` and `seasonal-header.jpg`, which are still rendered as page
+heroes (`about/page.tsx:105`, `counties/page.tsx:90`, `SeasonalHero.tsx:38`) even though they are
+no longer social cards. Only their card role was wrong, which Slice C2 already fixed.
+
+**The brand set is fully wired.** Every icon the manifest and `layout.tsx` declare exists on disk:
+`favicon.svg`, `favicon.ico`, 16, 32, `apple-touch-icon`, both android-chrome sizes and
+`icon-maskable-512`. The eight Cornwall plates are resolved at runtime by farm slug rather than
+named in source, which is why a naive scan calls them unreferenced; `loadPlate` reads them and
+the Boscastle card was rendered from one. `brand/social/` sits outside `public/` on purpose: the
+avatar, X header and Facebook cover are uploads a person makes, not files the site serves.
+
+### Found, NOT fixed, because they are not this work's to delete
+
+CLAUDE.md is explicit that uncertain deletions get recorded rather than made. These are
+pre-existing and unreferenced anywhere in `src`:
+
+| File | Size |
+| --- | --- |
+| `oranges-background.jpg` | 7.4 MB |
+| `produce-secondary-image.jpg` | 3.4 MB |
+| `about-header.jpg` | 0.6 MB |
+| `overlay-banner.jpg` | 0.3 MB |
+| `images/pitti/hero-homepage-dev-seed50920962.webp` | 0.2 MB |
+| `images/pitti/hero-homepage-dev-seed50920962-v1.webp` | 0.5 MB |
+| `public/https:/www.farmcompanion.co.uk/9f14…e2f.txt` | 0.1 KB |
+
+That is **12.4 MB** more that could go. The two superseded Pitti heroes are older takes of the one
+`AnimatedHero.tsx` actually uses (`-v2`). The last entry is a `curl -o` accident that created a
+directory literally named `https:`, and is served at that path.
+
+**One broken reference, and it is dead code.** `getPlaceholderMapUrl` in `src/lib/static-map.ts`
+returns `/images/map-placeholder.svg`, which does not exist. Nothing calls the function:
+`LocationCard.tsx` is the only importer of that module and imports three other exports. So no
+user hits a 404 today, but the function is a trap for whoever wires it up next. Either delete it
+or generate the placeholder; the plate renderer could produce one on brand.
+
+**Verified:** `npx tsc --noEmit` exit 0, `pnpm test:unit` 518 pass 0 fail, and the
+`og-image-assets` guard still green, which matters because it is the test that would catch a
+deletion breaking a card.
