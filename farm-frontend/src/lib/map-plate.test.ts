@@ -5,6 +5,7 @@ import {
   makeProjector,
   renderPlate,
   parsePlate,
+  isPlateSlug,
   PLATE_ATTRIBUTION,
   type OverpassWay,
 } from './map-plate'
@@ -191,4 +192,38 @@ test('parsing tolerates a file that opens with the ODbL comment', () => {
   const { svg } = renderPlate(FIXTURE, PLATE)
   const asStored = `<!-- ${PLATE_ATTRIBUTION} -->\n${svg}\n`
   assert.equal(parsePlate(asStored).length, parsePlate(svg).length)
+})
+
+test('real farm slugs are accepted', () => {
+  for (const slug of [
+    'boscastle-farm-shop-cafe',
+    'argal-farm-shop',
+    'chypraze-farm-butchery-and-shop',
+    'a',
+    'farm123',
+  ]) {
+    assert.equal(isPlateSlug(slug), true, `${slug} should be accepted`)
+  }
+})
+
+test('anything that could escape the plates directory is refused', () => {
+  const attacks = [
+    '../../api/health#',          // normalises to /api/health, .svg becomes a fragment
+    '../../../robots.txt#',
+    '..%2F..%2Fapi',
+    '/etc/passwd',
+    'slug/../../other',
+    'slug#frag',
+    'slug?query=1',
+    'slug.svg',                    // a dot is never part of a slug
+    'https://evil.example.com/x',
+    'Slug-With-Caps',
+    '',
+    'a'.repeat(101),
+    'slug with spaces',
+    'slug%00',
+  ]
+  for (const attack of attacks) {
+    assert.equal(isPlateSlug(attack), false, `${JSON.stringify(attack)} should be refused`)
+  }
 })

@@ -280,3 +280,18 @@ export function parsePlate(svg: string): PlateShape[] {
 
   return shapes
 }
+
+/**
+ * Plate slugs are farm slugs: lowercase, digits and hyphens, nothing else.
+ *
+ * This is a security boundary, not tidiness. A plate slug is interpolated into
+ * a URL path, and URL normalisation collapses `..` segments while a `#` ends
+ * the path early, so `../../api/thing#` turns `/images/plates/<slug>.svg` into
+ * `/api/thing` with the `.svg` suffix discarded as a fragment. Anything that
+ * is not plainly a slug is refused.
+ */
+const PLATE_SLUG = /^[a-z0-9][a-z0-9-]{0,99}$/
+
+export function isPlateSlug(value: string): boolean {
+  return PLATE_SLUG.test(value)
+}

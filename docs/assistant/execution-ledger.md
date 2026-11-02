@@ -4685,3 +4685,45 @@ uncommitted here; both were clean by the end of the slice.
 **Risk and rollback.** The card falls back to the sunrise whenever a plate is missing or
 unparseable, so reverting is safe: deleting `public/images/plates/` alone returns every card to
 the previous design without touching code.
+
+---
+
+## Slice BRAND-D2a — Confirmed SSRF in the plate loader, fixed
+
+**Found by** the automated security review on the D2 push, flagged MEDIUM as an unvalidated URL
+component. It is real, and the mechanism is worse than a directory escape.
+
+**Confirmed, not assumed.** `loadPlate` interpolated the caller-supplied `plate` slug into
+`${origin}/images/plates/${slug}.svg`. URL normalisation collapses `..` segments, and a `#` ends
+the path, so a slug of `../../api/health#` resolves to `https://host/api/health` with the `.svg`
+suffix discarded as a fragment. Verified both in isolation and against the running app, where a
+slug of `../../../robots.txt#` produced a 200. That is an arbitrary same-origin server-side GET
+driven by a query parameter on a public endpoint.
+
+**Severity in practice.** The response is only mined for `<path>` and `<circle>` elements and
+drawn as a picture, so it is a poor exfiltration channel, but it is still an unauthenticated
+server-side request to any same-origin path, including internal API routes, from the app's own
+network position. The `origin` also came from `request.url`, which follows the incoming Host
+header, so a spoofed Host would have pointed the fetch off-origin entirely.
+
+**Fixed in two places, because the two risks are different.**
+- `isPlateSlug` in `src/lib/map-plate.ts` requires `^[a-z0-9][a-z0-9-]{0,99}$`. No dot, slash,
+  hash, percent or uppercase survives it, which closes the traversal completely. It is exported
+  and tested rather than inlined in the route, with 5 accepted slugs and 14 refused including
+  the exact payloads proven above.
+- The fetch origin is pinned to the configured `SITE_URL` in production, so a spoofed Host cannot
+  redirect it. Development keeps the request origin, because `SITE_URL` hardcodes port 3000 while
+  the dev server may be elsewhere; that is noted in the code rather than left as a surprise.
+
+**Verified:** the traversal payload now falls back to the sunrise (18,458 byte render) while a
+valid slug still loads its plate (51,014 bytes), so the guard engages without breaking the
+feature. `npx tsc --noEmit` exit 0, `npx eslint` exit 0, `pnpm test:unit` **518 pass, 0 fail**
+(516 before).
+
+**Lesson for the remaining slices.** The plate loader was written to degrade gracefully on any
+failure, and that same forgiving behaviour hid the problem: a malicious slug returned a perfectly
+normal 200 card. Graceful degradation and input validation are not substitutes for each other.
+
+**Note:** `src/lib/map-plate.ts` is now 297 lines and `route.tsx` 286, both within a few lines of
+the 300 soft limit. The next addition to either should extract a sibling module rather than
+inline.

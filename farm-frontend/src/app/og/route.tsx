@@ -1,6 +1,7 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
-import { parsePlate, type PlateShape } from '@/lib/map-plate'
+import { parsePlate, isPlateSlug, type PlateShape } from '@/lib/map-plate'
+import { SITE_URL } from '@/lib/site'
 
 export const runtime = 'edge'
 
@@ -34,6 +35,11 @@ const PLATE_ATTRIBUTION = '© OpenStreetMap contributors'
  * rendered with a blank plate and a clean log.
  */
 async function loadPlate(origin: string, slug: string): Promise<PlateShape[] | null> {
+  // The slug lands in a URL path, so it is validated before it is used. URL
+  // normalisation collapses `..` and a `#` ends the path, which together turn
+  // `../../api/thing#` into a request for `/api/thing` with the `.svg` suffix
+  // thrown away as a fragment. See `isPlateSlug`.
+  if (!isPlateSlug(slug)) return null
   try {
     const response = await fetch(`${origin}/images/plates/${slug}.svg`)
     if (!response.ok) return null
@@ -65,9 +71,13 @@ export async function GET(request: NextRequest) {
     const headlineSize = headline.length > 28 ? 60 : headline.length > 18 ? 72 : 84
 
     const plateSlug = searchParams.get('plate')
-    const plate = plateSlug
-      ? await loadPlate(new URL(request.url).origin, plateSlug)
-      : null
+    // Pinned to the configured site in production so a spoofed Host header
+    // cannot point this server-side fetch at somebody else's server. In
+    // development SITE_URL is hardcoded to port 3000 while the dev server may
+    // be on another port, so the request's own origin is used there.
+    const plateOrigin =
+      process.env.NODE_ENV === 'production' ? SITE_URL : new URL(request.url).origin
+    const plate = plateSlug ? await loadPlate(plateOrigin, plateSlug) : null
 
     const font = await clashDisplay
 
