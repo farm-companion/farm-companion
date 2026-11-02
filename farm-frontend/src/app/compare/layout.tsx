@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Compare Farm Shops | Farm Companion',
+  title: 'Compare Farm Shops',
   description: 'Compare farm shops side by side. View ratings, offerings, locations, and more to find the perfect farm shop for you.',
   alternates: {
     canonical: `${SITE_URL}/compare`,

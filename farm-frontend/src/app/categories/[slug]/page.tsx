@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import { SITE_URL } from '@/lib/site'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -58,7 +59,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       title,
       description,
       type: 'website',
-      url: `https://farmcompanion.co.uk/categories/${slug}`,
+      url: `${SITE_URL}/categories/${slug}`,
     },
     twitter: {
       card: 'summary_large_image',
@@ -66,7 +67,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
       description,
     },
     alternates: {
-      canonical: `https://farmcompanion.co.uk/categories/${slug}`,
+      canonical: `${SITE_URL}/categories/${slug}`,
     },
   }
 }
@@ -116,7 +117,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
             '@type': 'CollectionPage',
             name: category.name,
             description: category.description,
-            url: `https://farmcompanion.co.uk/categories/${slug}`,
+            url: `${SITE_URL}/categories/${slug}`,
             about: {
               '@type': 'Thing',
               name: category.name,
@@ -138,19 +139,19 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
                 '@type': 'ListItem',
                 position: 1,
                 name: 'Home',
-                item: 'https://farmcompanion.co.uk',
+                item: SITE_URL,
               },
               {
                 '@type': 'ListItem',
                 position: 2,
                 name: 'Categories',
-                item: 'https://farmcompanion.co.uk/categories',
+                item: `${SITE_URL}/categories`,
               },
               {
                 '@type': 'ListItem',
                 position: 3,
                 name: category.name,
-                item: `https://farmcompanion.co.uk/categories/${slug}`,
+                item: `${SITE_URL}/categories/${slug}`,
               },
             ],
           }),

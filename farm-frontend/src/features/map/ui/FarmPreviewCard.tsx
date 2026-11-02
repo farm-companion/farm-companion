@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { X, Phone, Navigation, Share2, Circle } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
 import { formatOpeningStatus } from '@/lib/opening-hours'
+import { canClaimVisitable, unverifiedDescription } from '@/lib/farm-claims'
 import { pittiFarmImageUrl } from '@/data/pitti-farms'
 import { farmMonogram, resolveFarmImagery, shortSource } from '@/lib/farm-imagery'
 import {
@@ -118,7 +119,12 @@ export default function FarmPreviewCard({
   const openingStatus = hasHours ? formatOpeningStatus(farm.hours!) : null
   const tone = getOpeningTone(openingStatus?.isOpen)
   const hasDistance = farm.distance !== undefined && formatDistance
-  const hook = truncateHook(farm.description)
+  // The spec names this card as a claim-gate consumer. Three things here
+  // assert public access: the quoted hook (which on an unverified row is the
+  // "X is a farm shop in Y" template), the share sentence, and Directions
+  // being the one loud control.
+  const canClaim = canClaimVisitable(farm)
+  const hook = canClaim ? truncateHook(farm.description) : null
 
   const directionsUrl = buildDirectionsUrl(farm.location.lat, farm.location.lng)
   const phoneUrl = farm.contact?.phone ? `tel:${farm.contact.phone}` : null
@@ -126,7 +132,9 @@ export default function FarmPreviewCard({
   const handleShare = useCallback(async () => {
     const shareData = {
       title: farm.name,
-      text: `Check out ${farm.name} — a local farm shop in ${farm.location.county}`,
+      text: canClaim
+        ? `Check out ${farm.name}, a local farm shop in ${farm.location.county}`
+        : `${farm.name}, a registered food producer in ${farm.location.county}`,
       url: buildShopUrl(window.location.origin, farm.slug),
     }
     if (navigator.share && navigator.canShare(shareData)) {
@@ -238,12 +246,18 @@ export default function FarmPreviewCard({
         {/* Hairline — separates identity from interaction (spec §5.1) */}
         <div className="border-t border-border-subtle my-3" aria-hidden />
 
-        {/* Hook */}
-        {hook && (
+        {/* Hook. Quotation marks attribute the words to the business, so an
+            unverified row gets our own plain sentence instead: it says why
+            there is nothing to quote rather than leaving a silent gap. */}
+        {hook ? (
           <p className="text-sm italic text-ink line-clamp-2 [text-wrap:pretty]">
             &ldquo;{hook}&rdquo;
           </p>
-        )}
+        ) : !canClaim ? (
+          <p className="text-sm text-ink-muted line-clamp-2 [text-wrap:pretty]">
+            {unverifiedDescription(farm.location.county ?? '')}
+          </p>
+        ) : null}
 
         {/* Status pill lives on the hero now; nextOpening rides the meta line. */}
 
@@ -271,9 +285,16 @@ export default function FarmPreviewCard({
           href={directionsUrl}
           target="_blank"
           rel="noreferrer"
-          className="w-full mt-4 h-11 bg-brand hover:bg-brand-hover active:scale-[0.98] text-brand-text
-            text-[15px] font-semibold rounded-lg transition-[transform,background-color] duration-150
-            [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] flex items-center justify-center gap-2"
+          className={[
+            'w-full mt-4 h-11 active:scale-[0.98] text-[15px] font-semibold rounded-lg',
+            'transition-[transform,background-color] duration-150',
+            '[transition-timing-function:cubic-bezier(0.23,1,0.32,1)] flex items-center justify-center gap-2',
+            // Verified: the one loud control. Unverified: still reachable, but
+            // it stops being the card's instruction to go there.
+            canClaim
+              ? 'bg-brand hover:bg-brand-hover text-brand-text'
+              : 'border border-border text-ink-muted hover:text-ink hover:bg-surface-2',
+          ].join(' ')}
         >
           <Navigation className="w-4 h-4" aria-hidden />
           Directions

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { slugifyCounty } from '@/lib/county-slug'
 import Image from 'next/image'
 import { MapPin, ArrowRight } from 'lucide-react'
 import type { FarmShop } from '@/types/farm'
@@ -18,7 +19,7 @@ export const dynamic = 'force-dynamic'
 
 // Metadata for SEO and clarity
 export const metadata: Metadata = {
-  title: 'Farm Shops by County | Farm Companion',
+  title: 'Farm Shops by County',
   description: 'Browse farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
   alternates: {
     canonical: `${SITE_URL}/counties`,
@@ -30,7 +31,7 @@ export const metadata: Metadata = {
     siteName: 'Farm Companion',
     images: [
       {
-        url: `${SITE_URL}/counties.jpg`,
+        url: `${SITE_URL}/og?title=Farm%20Shops%20by%20County&subtitle=Every%20county%20in%20the%20UK`,
         width: 1200,
         height: 630,
         alt: 'Farm shops by county - UK farm directory',
@@ -43,7 +44,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Farm Shops by County | Farm Companion',
     description: 'Browse farm shops organized by county across the UK. Find local farm shops, fresh produce, and authentic farm experiences in your area.',
-    images: [`${SITE_URL}/counties.jpg`],
+    images: [`${SITE_URL}/og?title=Farm%20Shops%20by%20County&subtitle=Every%20county%20in%20the%20UK`],
   },
   robots: {
     index: true,
@@ -54,7 +55,11 @@ export const metadata: Metadata = {
 // Group farms by county
 function groupFarmsByCounty(farms: FarmShop[]) {
   const grouped = farms.reduce((acc, farm) => {
-    const county = farm.location?.county || 'Unknown County'
+    // An absent county used to become 'Unknown County', whose link
+    // /counties/unknown-county 404s. Drop the farm from the grouping
+    // instead of inventing a destination for it.
+    const county = farm.location?.county
+    if (!county) return acc
     if (!acc[county]) {
       acc[county] = []
     }
@@ -151,7 +156,7 @@ export default async function CountiesPage() {
               <UKCountyMap
                 counties={Object.entries(farmsByCounty).map(([name, farms]) => ({
                   name,
-                  slug: name.toLowerCase().replace(/\s+/g, '-'),
+                  slug: slugifyCounty(name),
                   farmCount: farms.length,
                 }))}
               />
@@ -178,7 +183,7 @@ export default async function CountiesPage() {
               {Object.entries(farmsByCounty).map(([county, countyFarms]) => (
                 <Link
                   key={county}
-                  href={`/counties/${county.toLowerCase().replace(/\s+/g, '-')}`}
+                  href={`/counties/${slugifyCounty(county)}`}
                   className="group block bg-surface rounded-[2px] border border-border p-4 sm:p-5 hover:border-border-strong transition-colors duration-200"
                 >
                   {/* Mobile: Stacked | Desktop: Horizontal */}

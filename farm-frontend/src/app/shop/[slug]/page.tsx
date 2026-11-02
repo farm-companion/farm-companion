@@ -5,9 +5,23 @@ import { processFarmDescription } from '@/lib/seo-utils'
 import FarmAnalytics from '@/components/FarmAnalytics'
 import { FarmPageClient } from '@/components/FarmPageClient'
 import { getFarmBySlug } from '@/lib/farm-data'
+import { canClaimVisitable, isIndexable, unverifiedDescription, type ClaimInput } from '@/lib/farm-claims'
 
 // Revalidate every 6 hours for fresh farm data
 export const revalidate = 21600
+
+// Task 7 (region-first-verified-listings): gate input shared by
+// generateMetadata and the page body so both agree on whether this page may
+// claim visitability, and on whether it is a usable directory entry.
+function buildClaimInput(farm: FarmShop): ClaimInput {
+  return {
+    venueType: farm.venueType ?? null,
+    venueVerifiedAt: farm.venueVerifiedAt ?? null,
+    postcode: farm.location?.postcode ?? null,
+    address: farm.location?.address ?? null,
+    county: farm.location?.county ?? null,
+  }
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params
@@ -15,16 +29,34 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   if (!shop) return { title: 'Farm shop not found' }
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
   const url = `/shop/${encodeURIComponent(shop.slug)}`
+  const claimInput = buildClaimInput(shop)
+  const canClaim = canClaimVisitable(claimInput)
   // Process farm description to extract keywords and clean for SEO
   const { cleanDescription, seoDescription } = processFarmDescription(shop.description || '')
-  const description = cleanDescription 
-    ? `${seoDescription.substring(0, 160)}...` 
-    : `${shop.location.address}, ${shop.location.county} ${shop.location.postcode}`
+  const description = !canClaim
+    ? unverifiedDescription(shop.location.county ?? '')
+    : cleanDescription
+      ? `${seoDescription.substring(0, 160)}...`
+      : `${shop.location.address}, ${shop.location.county} ${shop.location.postcode}`
+  const imageAlt = canClaim
+    ? `${shop.name} - Farm shop in ${shop.location.county}`
+    : `${shop.name} in ${shop.location.county}`
+  // canClaim=1 is the only thing that unlocks the "Farm Shop" label on the
+  // shared /og card (see og/route.tsx); absent, the card names the farm and
+  // county only.
+  const ogImageUrl = `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county ?? '')}&type=farm${canClaim ? '&canClaim=1' : ''}`
 
   return {
-    title: `${shop.name} · Farm Companion`,
+    // Just the name. The root layout's title.template appends
+    // ' · Farm Companion', so writing it here rendered
+    // "Morfa Farm Shop · Farm Companion · Farm Companion" on all 3,504 farm
+    // pages, which carry 374 of the site's 431 clicks.
+    title: shop.name,
     description: description,
     alternates: { canonical: url },
+    robots: isIndexable(claimInput)
+      ? { index: true, follow: true }
+      : { index: false, follow: true },
     openGraph: {
       type: 'website',
       url: `${base}${url}`,
@@ -32,10 +64,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       description: description,
       images: [
         {
-          url: `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county)}&type=farm`,
+          url: ogImageUrl,
           width: 1200,
           height: 630,
-          alt: `${shop.name} - Farm shop in ${shop.location.county}`,
+          alt: imageAlt,
           type: 'image/png',
         },
       ],
@@ -44,7 +76,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       card: 'summary_large_image',
       title: shop.name,
       description: description,
-      images: [`${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county)}&type=farm`],
+      images: [ogImageUrl],
     },
   }
 }
@@ -54,9 +86,14 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   const shop = await getFarmBySlug(slug)
   if (!shop) notFound()
 
-  const { name, location, contact, offerings, verified, hours } = shop
-  const { cleanDescription, keywords } = processFarmDescription(shop.description || '')
-  const directionsUrl = `https://www.google.com/maps/dir/?api=1&destination=${location.lat},${location.lng}`
+  const { location, contact, offerings } = shop
+  const claimInput = buildClaimInput(shop)
+  const canClaim = canClaimVisitable(claimInput)
+  const { cleanDescription: rawDescription, keywords } = processFarmDescription(shop.description || '')
+  // Gate: an unverified page renders only the producer sentence, never the
+  // raw description or any "farm shop" claim derived from it (JSON-LD
+  // description and the on-page About section below both read this).
+  const cleanDescription = canClaim ? rawDescription : unverifiedDescription(location.county ?? '')
   const base = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3001'
   const ghOwner = process.env.NEXT_PUBLIC_GH_OWNER || 'farm-companion'
   const ghRepo  = process.env.NEXT_PUBLIC_GH_REPO  || 'farm-frontend'
@@ -73,7 +110,9 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
   const jsonLd = [
     {
       '@context': 'https://schema.org',
-      '@type': 'GroceryStore',
+      // A machine claim mirrors the prose claim: GroceryStore asserts public
+      // retail access, so it is only used once that access is verified.
+      '@type': canClaim ? 'GroceryStore' : 'Organization',
       '@id': `${base}/shop/${encodeURIComponent(shop.slug)}#store`,
       name: shop.name,
       url: `${base}/shop/${encodeURIComponent(shop.slug)}`,
@@ -107,9 +146,15 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
       telephone: contact?.phone || undefined,
       email: contact?.email || undefined,
       sameAs: contact?.website ? [contact.website] : undefined,
-      // Opening hours, if provided
+      // Opening hours, if provided. Gated on canClaim: shop.hours is a dead
+      // field today (getFarmBySlug never populates it), but this stays
+      // gated so the moment that mapping is wired up, unverified pages do
+      // not start rendering real hour ranges (Task 7 fix round 2). Follow-up:
+      // this reads the legacy `hours` field, not the newly-wired
+      // `openingHours`; switching which field it reads is a separate,
+      // out-of-scope change.
       openingHoursSpecification:
-        Array.isArray(shop.hours) && shop.hours.length
+        canClaim && Array.isArray(shop.hours) && shop.hours.length
           ? shop.hours
               .filter(h => h.open && h.close && h.day)
               .map(h => ({
@@ -119,26 +164,34 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
                 closes: h.close
               }))
           : undefined,
-      // What they offer (keywords help discovery)
-      keywords: Array.isArray(offerings) && offerings.length ? offerings.join(', ') : undefined,
-      // Additional keywords from description
-      ...(keywords.length > 0 && { additionalKeywords: keywords.join(', ') }),
-      // Business type and verification
-      ...(verified && { 
+      // What they offer (keywords help discovery). Gated: PYO/Butcher/etc
+      // are themselves assertions of public retail access.
+      keywords: canClaim && Array.isArray(offerings) && offerings.length ? offerings.join(', ') : undefined,
+      // Additional keywords from description. processFarmDescription always
+      // appends 13 hardcoded "farm shop near me" style phrases whenever the
+      // raw description is non-empty, so this is gated here rather than in
+      // the shared helper: an unverified page must not repeat that claim.
+      ...(canClaim && keywords.length > 0 && { additionalKeywords: keywords.join(', ') }),
+      // Business type and verification. Gated on the claim gate, not the
+      // legacy `verified` flag: `verified` is reserved for owner
+      // confirmation of listing accuracy and is deliberately not read by
+      // the claim gate (see venueVerifiedAt's schema comment).
+      ...(canClaim && {
         hasCredential: {
           '@type': 'EducationalOccupationalCredential',
           credentialCategory: 'Verification',
           name: 'Verified Farm Shop'
         }
       }),
-      // Serves cuisine type
-      servesCuisine: 'British',
-      // Price range
-      priceRange: '££',
-      // Payment accepted
-      paymentAccepted: 'Cash, Credit Card, Debit Card',
-      // Currencies accepted
-      currenciesAccepted: 'GBP'
+      // Commerce fields: only assert cuisine, price, payment and currency
+      // once the page can claim visitability. Absent, not empty, when it
+      // cannot.
+      ...(canClaim && {
+        servesCuisine: 'British',
+        priceRange: '££',
+        paymentAccepted: 'Cash, Credit Card, Debit Card',
+        currenciesAccepted: 'GBP'
+      })
     },
     {
       '@context': 'https://schema.org',
@@ -179,8 +232,8 @@ export default async function ShopPage({ params }: { params: Promise<{ slug: str
       <FarmPageClient
         shop={shop}
         cleanDescription={cleanDescription}
-        directionsUrl={directionsUrl}
         issueUrl={issueUrl}
+        canClaim={canClaim}
       />
     </main>
   )

@@ -152,12 +152,16 @@ test('explicit altText is preserved in the output', () => {
   assert.equal(result?.alt, 'Custom alt text')
 })
 
-test('falls back to "{farm} farm shop" alt for photo with no altText', () => {
+test('falls back to farm name alt for photo with no altText', () => {
+  // Alt text is a visitability claim: "this is what this farm looks like".
+  // The neutral fallback (bare name) is accurate for verified and unverified
+  // listings alike; "farm shop" would falsely assert shop-ness on ~65% of
+  // UK food producers that have no public access.
   const result = selectFarmHeroImage(
     [img({ uploadedBy: 'admin', altText: null })],
     'Cherry Hinton',
   )
-  assert.equal(result?.alt, 'Cherry Hinton farm shop')
+  assert.equal(result?.alt, 'Cherry Hinton')
 })
 
 test('apothecary returns null even with altText (AI never heroes a farm)', () => {

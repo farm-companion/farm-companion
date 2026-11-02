@@ -5,7 +5,7 @@ import { resolve } from 'node:path'
 import { PIPELINE_CONFIG } from '../config'
 import { log } from '../lib/log'
 import { fetchOverpass, UK_BBOXES } from '../sources/overpass'
-import { fetchFsaPage } from '../sources/fsa'
+import { fetchFsaPage, FSA_QUERIES } from '../sources/fsa'
 import type { RawFarmCandidate } from '../types'
 
 /** Collapse exact duplicate candidates by source + sourceId (first wins). */
@@ -38,17 +38,23 @@ export async function discover(opts: { limit?: number } = {}): Promise<RawFarmCa
     log('error', 'overpass discovery failed; continuing with other sources', { stage: '01', source: 'osm', error: e instanceof Error ? e.message : String(e) })
   }
 
-  try {
-    for (let page = 1; page <= FSA_MAX_PAGES; page++) {
-      const batch = await fetchFsaPage(page)
-      if (batch.length === 0) break
-      if (page === FSA_MAX_PAGES) log('warn', 'fsa page ceiling hit; results may be truncated', { stage: '01', source: 'fsa', page })
-      candidates.push(...batch)
-      log('info', 'fsa page done', { stage: '01', source: 'fsa', count: batch.length, page })
-      if (opts.limit && candidates.length >= opts.limit) break
+  // One query per (business type, name) pair. The catch is per query, not
+  // around the whole set: a 403 on one must not silently drop the others, and
+  // the producer category 7838 is only one of seven.
+  for (const query of FSA_QUERIES) {
+    try {
+      for (let page = 1; page <= FSA_MAX_PAGES; page++) {
+        const batch = await fetchFsaPage(page, { query })
+        if (batch.length === 0) break
+        if (page === FSA_MAX_PAGES) log('warn', 'fsa page ceiling hit; results may be truncated', { stage: '01', source: 'fsa', query: query.label, page })
+        candidates.push(...batch)
+        log('info', 'fsa page done', { stage: '01', source: 'fsa', query: query.label, count: batch.length, page })
+        if (opts.limit && candidates.length >= opts.limit) break
+      }
+    } catch (e) {
+      log('error', 'fsa query failed; continuing', { stage: '01', source: 'fsa', query: query.label, error: e instanceof Error ? e.message : String(e) })
     }
-  } catch (e) {
-    log('error', 'fsa discovery failed; continuing', { stage: '01', source: 'fsa', error: e instanceof Error ? e.message : String(e) })
+    if (opts.limit && candidates.length >= opts.limit) break
   }
 
   const unique = dedupeBySourceId(candidates)

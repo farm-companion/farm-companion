@@ -19,9 +19,13 @@ const aboutLinks = [
   { href: '/data-attributions', label: 'Data & attributions' },
 ]
 
+// `/claim` has never been a route. This link sat in the footer of every page
+// and 404'd; the submission flow it belonged to was deleted in c1a6919. The
+// contact page is where the intent actually lands: it opens with "Need to
+// update your listing or claim ownership? Use the contact form below." One
+// entry rather than two, because the header already carries Contact.
 const farmShopLinks = [
-  { href: '/claim', label: 'Update Your Details' },
-  { href: '/contact', label: 'Contact Us' },
+  { href: '/contact', label: 'Update your details' },
 ]
 
 
@@ -75,11 +79,11 @@ export default function Footer() {
                 }}
                 placeholder="your@email.com"
                 required
-                className="h-12 flex-1 border-0 bg-paper px-5 text-[15px] text-ink placeholder:text-ink-subtle outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                className="min-h-[48px] flex-1 border-0 bg-paper px-5 text-[15px] text-ink placeholder:text-ink-subtle outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               />
               <button
                 type="submit"
-                className="group inline-flex h-12 items-center justify-center gap-2 bg-brand px-6 text-[15px] font-semibold text-brand-text transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
+                className="group inline-flex min-h-[48px] items-center justify-center gap-2 bg-brand px-6 text-[15px] font-semibold text-brand-text transition-colors hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-ink"
               >
                 Get the note
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
@@ -113,7 +117,7 @@ export default function Footer() {
                 Updated weekly &middot; <span className="text-brand font-medium">{currentMonthName} edition</span>
               </p>
               <div className="w-12 border-t border-[#F2EBDA]/20" />
-              <div className="flex items-center gap-5">
+              <div className="flex items-center gap-3 -my-3">
                 {[
                   { label: 'X', href: 'https://x.com/farmcompanion' },
                   { label: 'Bluesky', href: 'https://bsky.app/profile/farmcompanion.bsky.social' },
@@ -125,7 +129,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Follow us on ${link.label}`}
-                    className="text-xs tracking-[0.12em] uppercase text-[#F2EBDA]/55 hover:text-paper transition-colors"
+                    className="inline-flex items-center min-h-[48px] min-w-[48px] justify-center -mx-2 px-2 text-xs tracking-[0.12em] uppercase text-[#F2EBDA]/55 hover:text-paper transition-colors"
                   >
                     {link.label}
                   </a>
@@ -196,7 +200,7 @@ export default function Footer() {
               <p className="text-[13px] text-[#F2EBDA]/55">
                 Updated weekly &middot; <span className="text-brand font-medium">{currentMonthName} edition</span>
               </p>
-              <div className="flex items-center gap-5 pt-2">
+              <div className="flex items-center gap-3 -my-3 pt-2">
                 {[
                   { label: 'X', href: 'https://x.com/farmcompanion' },
                   { label: 'Bluesky', href: 'https://bsky.app/profile/farmcompanion.bsky.social' },
@@ -208,7 +212,7 @@ export default function Footer() {
                     target="_blank"
                     rel="noopener noreferrer"
                     aria-label={`Follow us on ${link.label}`}
-                    className="text-xs tracking-[0.12em] uppercase text-[#F2EBDA]/55 hover:text-paper transition-colors"
+                    className="inline-flex items-center min-h-[48px] min-w-[48px] justify-center -mx-2 px-2 text-xs tracking-[0.12em] uppercase text-[#F2EBDA]/55 hover:text-paper transition-colors"
                   >
                     {link.label}
                   </a>
@@ -281,7 +285,7 @@ export default function Footer() {
           <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-6 py-5 text-[13px] text-[#F2EBDA]/50 md:flex-row md:px-12">
             <p>&copy; {currentYear} Farm Companion</p>
             <div className="flex items-center gap-4">
-              <Link href="/site-map" className="hover:text-paper transition-colors">Sitemap</Link>
+              <Link href="/site-map" className="inline-flex items-center min-h-[48px] hover:text-paper transition-colors">Sitemap</Link>
               <span>Made in UK</span>
             </div>
           </div>

@@ -23,6 +23,23 @@ export const CURATED_SOURCES: ReadonlySet<SourceName> = new Set([
 ])
 
 /**
+ * What a listing physically is, from the visitor's point of view.
+ * The inclusion rule admits 'shop' | 'pyo' | 'market_stall'.
+ * 'unknown' is the honest default and never makes a visitability claim.
+ */
+export type VenueType =
+  | 'shop'
+  | 'pyo'
+  | 'market_stall'
+  | 'producer_no_public_access'
+  | 'unknown'
+
+/** The venue types a listing may claim public access for. */
+export const ADMITTED_VENUE_TYPES: ReadonlySet<VenueType> = new Set<VenueType>([
+  'shop', 'pyo', 'market_stall',
+])
+
+/**
  * Field-level farm attributes the merge policy reasons about (each carries
  * its own provenance). Row-level markers (osmId, fsaId, dataSource) are NOT
  * here: they identify the row, not a mergeable field, so they are matched on
@@ -31,7 +48,7 @@ export const CURATED_SOURCES: ReadonlySet<SourceName> = new Set([
 export type FarmFieldName =
   | 'name' | 'description' | 'address' | 'city' | 'county' | 'postcode'
   | 'latitude' | 'longitude' | 'phone' | 'email' | 'website'
-  | 'openingHours' | 'status' | 'verified'
+  | 'openingHours' | 'status' | 'verified' | 'venueType' | 'venueVerifiedAt'
 
 export interface FieldProvenance {
   source: SourceName
@@ -62,6 +79,10 @@ export interface RawFarmCandidate {
   website?: string
   openingHoursRaw?: string // OSM opening_hours string
   tags?: Record<string, string>
+  /** FSA only: hygiene register business type, e.g. "Retailers - other". */
+  fsaBusinessType?: string
+  /** FSA only: ISO date of the last hygiene inspection. */
+  fsaRatingDate?: string
   raw: unknown // original payload, for debugging
 }
 
@@ -88,6 +109,10 @@ export interface NormalizedCandidate {
   images: ImageCandidate[]
   aiFallbackEligible: boolean
   tags?: Record<string, string> // OSM tags carried forward for enrich (stage 04)
+  /** FSA hygiene register business type, carried for evidence edge E8. */
+  fsaBusinessType?: string
+  /** FSA last inspection date, carried for evidence edge E8. */
+  fsaRatingDate?: string
   /** recorded reasons when duplicates were collapsed (stage 02). */
   mergedFrom?: string[]
 }

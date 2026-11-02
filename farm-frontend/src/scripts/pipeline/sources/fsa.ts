@@ -2,11 +2,16 @@ import type { RawFarmCandidate } from '../types'
 import { fetchWithRetry } from '../lib/http'
 import { PIPELINE_CONFIG } from '../config'
 import { isNonFarmChain } from './non-farm-chains'
+import { FSA_PUBLIC_RETAIL_TYPES } from '../lib/classify-venue'
 
 interface FsaEstablishment {
   FHRSID: number
   BusinessName?: string
+  /** e.g. "Retailers - other", "Restaurant/Cafe/Canteen", "Farmers/growers". */
   BusinessType?: string
+  /** ISO date of the last hygiene inspection: evidence of when it last traded. */
+  RatingDate?: string
+  RatingValue?: string
   AddressLine1?: string
   AddressLine2?: string
   AddressLine3?: string
@@ -16,14 +21,26 @@ interface FsaEstablishment {
 }
 interface FsaResponse { establishments: FsaEstablishment[] }
 
-// FSA business types that plausibly include farm shops. Coarse by design;
-// FSA corroborates OSM rather than standing alone.
-const FARM_RELEVANT_TYPES = new Set([
-  'Retailers - other',
-  'Retailers - supermarkets/hypermarkets',
+// Inherently farm-related: a record is a candidate on its type alone. Both are
+// small nationally (3,009 and 12,234), so the type is a real filter.
+const FARM_TYPES = new Set([
   'Farmers/growers',
   'Manufacturers/packers',
 ])
+
+// Public-facing food premises, and the reason this source is worth querying at
+// all: these categories hold the farm shops that 7838 does not. They also hold
+// the entire high street, 120,983 "Retailers - other" and 141,317 restaurants
+// nationally, so a record here is a candidate only when its NAME carries a farm
+// signal. The queries are name-filtered too; this is the second gate, so that
+// an accidentally broad query cannot flood the directory.
+//
+// The set itself is classification policy, so it lives in classify-venue and is
+// imported here rather than duplicated: evidence edge E8 must mean the same
+// thing in both places.
+const PUBLIC_TYPES = FSA_PUBLIC_RETAIL_TYPES
+
+const FARM_NAME_SIGNAL = /\bfarm/i
 
 function num(s: string | undefined): number | undefined {
   if (s == null) return undefined
@@ -55,9 +72,14 @@ export function isVesselName(name: string | undefined): boolean {
 export function parseFsa(res: FsaResponse): RawFarmCandidate[] {
   const out: RawFarmCandidate[] = []
   for (const e of res.establishments ?? []) {
-    // FSA is a corroborating source; require a known farm-relevant type so
-    // records with a missing/unknown type do not leak in as candidates.
-    if (!e.BusinessType || !FARM_RELEVANT_TYPES.has(e.BusinessType)) continue
+    // Require a known type so records with a missing or unknown type cannot
+    // leak in, then require a farm name signal for the broad public types.
+    const type = e.BusinessType
+    if (!type) continue
+    if (!FARM_TYPES.has(type)) {
+      if (!PUBLIC_TYPES.has(type)) continue
+      if (!FARM_NAME_SIGNAL.test(e.BusinessName ?? '')) continue
+    }
     // Drop fishing vessels mis-filed under a farm business type.
     if (isVesselName(e.BusinessName)) continue
     // Drop national retail chains mis-filed under a farm business type.
@@ -72,28 +94,67 @@ export function parseFsa(res: FsaResponse): RawFarmCandidate[] {
       county: e.LocalAuthorityName,
       latitude: num(e.geocode?.latitude),
       longitude: num(e.geocode?.longitude),
+      fsaBusinessType: type,
+      fsaRatingDate: e.RatingDate,
       raw: e,
     })
   }
   return out
 }
 
-// FSA "Farmers/growers" business type. An UNFILTERED /Establishments query is
-// rejected with HTTP 403 ("This is a CPU intensive query: please use one of the
-// documented filters"); a businessTypeId filter is required. 7838 is the clean
-// farm signal (Retailers-other 4613 is large/noisy and is left to a follow-up).
+// FSA "Farmers/growers". An UNFILTERED /Establishments query is rejected with
+// HTTP 403 ("This is a CPU intensive query: please use one of the documented
+// filters"), so every query below carries a businessTypeId.
 export const FARM_BUSINESS_TYPE_ID = 7838
+
+export interface FsaQuery {
+  /** Short label for logs. */
+  label: string
+  businessTypeId: number
+  /** Substring the FSA matches against BusinessName. */
+  name?: string
+}
+
+/**
+ * The queries that actually find farm shops.
+ *
+ * 7838 "Farmers/growers" is a PRODUCER category: it certifies that a business
+ * grows things and says nothing about public access, which is the root cause
+ * this whole area exists to fix. Measured 2026-10-31, it holds 16
+ * establishments named "farm shop" nationally. The public-facing categories
+ * hold 1,143 of them: 946 under "Retailers - other", 188 restaurants/cafes and
+ * 9 takeaways. Each record also carries a BusinessType and a RatingDate, which
+ * is direct evidence of a public-facing food premises and of when it was last
+ * inspected.
+ *
+ * 7838 is kept unfiltered so existing discovery is unchanged. A broader
+ * `name=farm` yields 3,523 across these types and is a deliberate follow-up:
+ * it needs the non-farm-chain filter widened first.
+ */
+export const FSA_QUERIES: readonly FsaQuery[] = [
+  { label: 'farmers-growers', businessTypeId: FARM_BUSINESS_TYPE_ID },
+  { label: 'retail/farm shop', businessTypeId: 4613, name: 'farm shop' },
+  { label: 'retail/farmshop', businessTypeId: 4613, name: 'farmshop' },
+  { label: 'cafe/farm shop', businessTypeId: 1, name: 'farm shop' },
+  { label: 'takeaway/farm shop', businessTypeId: 7844, name: 'farm shop' },
+  { label: 'catering/farm shop', businessTypeId: 7841, name: 'farm shop' },
+  { label: 'supermarket/farm shop', businessTypeId: 7840, name: 'farm shop' },
+]
 
 export async function fetchFsaPage(
   pageNumber: number,
-  opts: { fetcher?: typeof fetch; minDelayMs?: number } = {},
+  opts: { fetcher?: typeof fetch; minDelayMs?: number; query?: FsaQuery } = {},
 ): Promise<RawFarmCandidate[]> {
   const { endpoint, apiVersion, pageSize } = PIPELINE_CONFIG.fsa
-  const url = `${endpoint}/Establishments?businessTypeId=${FARM_BUSINESS_TYPE_ID}&pageNumber=${pageNumber}&pageSize=${pageSize}`
+  const query = opts.query ?? FSA_QUERIES[0]
+  const nameParam = query.name ? `&name=${encodeURIComponent(query.name)}` : ''
+  const url = `${endpoint}/Establishments?businessTypeId=${query.businessTypeId}${nameParam}&pageNumber=${pageNumber}&pageSize=${pageSize}`
   const res = await fetchWithRetry<FsaResponse>(
     url,
     { headers: { 'x-api-version': apiVersion, accept: 'application/json' } },
-    { fetcher: opts.fetcher, minDelayMs: opts.minDelayMs ?? 1000 },
+    // Several queries back to back trip the FSA rate limiter with a 403,
+    // which is indistinguishable from the CPU-intensive-query refusal.
+    { fetcher: opts.fetcher, minDelayMs: opts.minDelayMs ?? 1500 },
   )
   return parseFsa(res)
 }

@@ -12,7 +12,7 @@ import Link from 'next/link'
 import { SITE_URL } from '@/lib/site'
 
 export const metadata: Metadata = {
-  title: 'Terms of Service | Farm Companion',
+  title: 'Terms of Service',
   description: 'Terms of service for Farm Companion. Learn about the terms and conditions for using our UK farm shops directory and seasonal produce guide.',
   alternates: {
     canonical: `${SITE_URL}/terms`,

@@ -6,6 +6,7 @@
  */
 
 import { Metadata } from 'next'
+import { SITE_URL } from '@/lib/site'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { bestLists } from '@/data/best-lists'
@@ -52,7 +53,7 @@ export async function generateMetadata({ params }: BestPageProps): Promise<Metad
       title: list.metaTitle,
       description: list.metaDescription,
       type: 'article',
-      url: `https://farmcompanion.co.uk/best/${slug}`,
+      url: `${SITE_URL}/best/${slug}`,
       publishedTime: list.publishDate,
       modifiedTime: list.updateDate,
     },
@@ -62,7 +63,7 @@ export async function generateMetadata({ params }: BestPageProps): Promise<Metad
       description: list.metaDescription,
     },
     alternates: {
-      canonical: `https://farmcompanion.co.uk/best/${slug}`,
+      canonical: `${SITE_URL}/best/${slug}`,
     },
   }
 }
@@ -193,7 +194,7 @@ export default async function BestPage({ params }: BestPageProps) {
               name: 'Farm Companion',
               logo: {
                 '@type': 'ImageObject',
-                url: 'https://farmcompanion.co.uk/logo.png',
+                url: `${SITE_URL}/logo.png`,
               },
             },
           }),

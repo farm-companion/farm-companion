@@ -91,11 +91,19 @@ components:
 
 ## 1. Overview
 
-**Creative North Star: "Pitti Press, the 1962 Italian Railway Poster"**
+**Creative North Star: "Rotocalco Press, the 1962 Italian Railway Poster"**
 
-Farm Companion is a UK farm shop directory designed as if Massimo Vignelli set it for a 1962 Italian railway-poster series. Confident slab typography, four flat colours laid down like ink ribbons, no gradients, a printed-map cartography. The product reads as a designed object, something a person screenshots and pins to a moodboard, not "another directory." The reference canon is explicit: Cassandre's Nord Express posters, Vignelli's NYC Subway map and Knoll work, Italo Calvino's Einaudi covers, Pitti Uomo trade-fair signage, Otl Aicher's Munich 1972 pictograms, and Dieter Rams' principle of deleting more than you add.
+> **Naming.** *Rotocalco Press* is the public credit for the artwork, after *rotocalco*,
+> the rotogravure process that printed Italian magazines in this period. It is the only
+> name that appears on the site. The codebase, the Hetzner blob prefix
+> `pitti-farm-images/` and the database value `ai_pitti` keep their existing internal
+> names deliberately: they are not public, and renaming them would cost a storage and a
+> data migration for no benefit. Cleared against Companies House and the GB and EU
+> registers (2026-11-01): no collisions in any class.
 
-Vibrancy comes from one source, Vermilion, used like an editor's red pencil. Freshness comes from editorial restraint on warm Cream paper, not from clutter or novelty. Seasonality is real to this product, but it lives in the content and in the linocut imagery (the hero crop changes with the season), never in the chrome. The palette never shifts green or honey to signal "harvest." That move was tried in the prior Field Edition and rejected in review as artisanal-twee rather than aspirational. The `/best` top-picks pages are the canonical reference surface: when in doubt about how Pitti Press should feel on a new screen, match `/best`.
+Farm Companion is a UK farm shop directory designed as if Massimo Vignelli set it for a 1962 Italian railway-poster series. Confident slab typography, four flat colours laid down like ink ribbons, no gradients, a printed-map cartography. The product reads as a designed object, something a person screenshots and pins to a moodboard, not "another directory." The reference canon is explicit: Cassandre's Nord Express posters, Vignelli's NYC Subway map and Knoll work, Italo Calvino's Einaudi covers, the tall condensed capitals and generous letter-spacing of Italian trade-fair signage, Otl Aicher's Munich 1972 pictograms, and Dieter Rams' principle of deleting more than you add.
+
+Vibrancy comes from one source, Vermilion, used like an editor's red pencil. Freshness comes from editorial restraint on warm Cream paper, not from clutter or novelty. Seasonality is real to this product, but it lives in the content and in the linocut imagery (the hero crop changes with the season), never in the chrome. The palette never shifts green or honey to signal "harvest." That move was tried in the prior Field Edition and rejected in review as artisanal-twee rather than aspirational. The `/best` top-picks pages are the canonical reference surface: when in doubt about how Rotocalco Press should feel on a new screen, match `/best`.
 
 This system explicitly rejects four looks, carried verbatim from PRODUCT.md: the generic SaaS dashboard (cards everywhere, the big-number hero-metric template, corporate navy-and-teal); the cluttered Yelp or aggregator directory; the twee rustic-farm cliche (chalkboard scripts, kraft-paper and barnwood, a green-and-honey harvest re-theme); and cold sterile minimalism (gray-on-white, clinical, no personality).
 

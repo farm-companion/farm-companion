@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Site map | Farm Companion',
+  title: 'Site map',
   description:
     'Explore every corner of Farm Companion in one place. Quickly jump to farm shop maps, seasonal guides, counties, and help pages.',
 }
@@ -22,9 +22,10 @@ const sections = [
   {
     heading: 'For farm shops',
     links: [
-      { href: '/claim', label: 'Claim or update your details' },
-      { href: '/contact', label: 'Contact the Farm Companion team' },
-      { href: '/submission-success', label: 'Submission success page' },
+      // `/claim` never existed and `/submission-success` was the confirmation
+      // page for a submission flow deleted in c1a6919, so it was never a
+      // destination a reader could usefully arrive at. Contact absorbs both.
+      { href: '/contact', label: 'Claim or update your details' },
     ],
   },
   {

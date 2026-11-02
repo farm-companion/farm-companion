@@ -121,7 +121,7 @@ export async function generateSitemapChunks(): Promise<{
     farms = prismaFarms.map(f => ({
       slug: f.slug,
       name: f.name,
-      location: { county: f.location.county },
+      location: { county: f.location.county ?? '' },
       updatedAt: undefined
     }))
   } catch (error) {

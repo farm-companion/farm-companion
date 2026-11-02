@@ -89,11 +89,12 @@ export const metadata: Metadata = {
     canonical: '/',
   },
   other: {
-    'theme-color': '#00C2B2',
+    'theme-color': '#D33A2C',
     'color-scheme': 'light dark',
   },
   icons: {
     icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
       { url: '/favicon.ico', sizes: 'any' },
       { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
       { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
@@ -142,7 +143,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                position: absolute;
                top: -40px;
                left: 6px;
-               background: #00C2B2;
+               background: #D33A2C;
                color: white;
                padding: 8px;
                text-decoration: none;
@@ -200,9 +201,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="msvalidate.01" content="D5F792E19E823EAE982BA6AB25F2B588" />
         
         {/* Bing-specific meta tags for better indexing */}
-        <meta name="msapplication-TileColor" content="#00C2B2" />
+        <meta name="msapplication-TileColor" content="#D33A2C" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
-        <meta name="theme-color" content="#00C2B2" />
         
         {/* Theme detection handled by next-themes ThemeProvider */}
       </head>

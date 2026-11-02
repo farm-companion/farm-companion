@@ -71,7 +71,9 @@ export function selectFarmHeroImage(
   if (adminPhoto) {
     return {
       url: adminPhoto.url,
-      alt: adminPhoto.altText || `${farmName} farm shop`,
+      // Fallback must not assert shop-ness: the farm name alone is
+      // accurate for every caller of this helper, verified or not.
+      alt: adminPhoto.altText || farmName,
       style: 'photo',
     }
   }
