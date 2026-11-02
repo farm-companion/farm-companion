@@ -63,9 +63,13 @@ once as `https://example.org/your-allowed-list` and **never changed** before del
 crawling". The crawl path was scaffolded and never pointed at a real source.
 
 crawl4ai's cousin did produce the descriptions: `scrape_farm_descriptions.py` (httpx +
-BeautifulSoup) wrote `farm_descriptions.csv`, 15,906 rows, with `scraped_content` holding real
-page text and `generated_description` holding prose like "**Barleylands Farm Shop: Where Fresh,
-Local Food Meets Everyday Luxury**". That is the origin of the LLM-marketing descriptions.
+BeautifulSoup) wrote `farm_descriptions.csv`, with `scraped_content` holding real page text and
+`generated_description` holding prose like "**Barleylands Farm Shop: Where Fresh, Local Food
+Meets Everyday Luxury**". That is the origin of the LLM-marketing descriptions.
+
+**Correction.** An earlier draft of this document said that file holds 15,906 rows. That was its
+*line* count; `scraped_content` contains embedded newlines. It holds **1,994 records**, of which
+1,713 scraped successfully and **971 carry text usable for classification, 28% of the 3,504**.
 
 ---
 
@@ -144,6 +148,66 @@ and roughly 1,500 (rule B's 61% extrapolated across all 3,504, which over-counts
 removes obvious hospitality). **The homepage's "3504+" is not supportable on any rule tested.**
 
 ---
+
+## 6a. Measured: which signals actually separate a farm from a corner shop
+
+Three signals were tested against four known controls. `APNA Local` is the known-bad control (a
+convenience shop at 177 Gunnersbury Lane, Acton). `Luff's Farm Shop`, `Bradshaws Farm Shop`,
+`P E Mead & Sons Farmshop` and `Barleylands Farm Shop` are known-good: all real farm shops, the
+first two typed `pet_store` by Google and the third `general_contractor`.
+
+| control | truth | first-party prose | Companies House SIC | OSM farmland ≤250m |
+|---|---|---:|---|---:|
+| Luff's Farm Shop | farm | 1 (too weak) | no match | **10** |
+| Bradshaws Farm Shop | farm | 1 (too weak) | no match | **10** |
+| P E Mead & Sons | farm | 3 | **wrong company** | **8** |
+| Barleylands Farm Shop | farm | **−1 (wrong)** | no match | **3** |
+| APNA Local | **not a farm** | absent | no match | **0** |
+
+**Signal 1, first-party prose, fails.** Only 971 of the 1,994 recovered records carry usable text
+(28% of the directory). Worse, genuine farm shops with thin or delivery-led websites score at or
+below the threshold: Barleylands, a real Essex farm, scores −1 because its site reads like a
+grocery delivery service. Any cut-off that excludes a corner shop also excludes real farms.
+
+**Signal 2, Companies House, fails.** Of 3,144 rows with a postcode, only **204 (5.8%)** match a
+live company by exact name and postcode, because farms are overwhelmingly sole traders and
+partnerships rather than limited companies. Of those 204, only 57 carry agriculture SIC codes;
+the remaining 147 include `Forest Farm Shop` (47210;47760), `Thorncliffe Farm Shop`
+(47210;47220) and `Model Farm Shop Ltd.` (47220). Those are real farm shops whose companies
+correctly registered *retail* codes, because a shop is retail. **Agriculture SIC is a weak
+positive signal; non-agriculture SIC is not a negative signal at all.**
+
+A note on method, because it nearly produced false data: a first pass fell back to "the only
+company registered at this postcode" when no name matched. That attached `WILL'S BAKERY LTD` to
+`P E Mead & Sons Farmshop` and `SHORETECH GROUP UK LIMITED` to `Fluffetts Farm Ltd`. Those 536
+fallback matches were discarded. Only exact name matches are used above.
+
+**Signal 3, OSM farmland proximity, works.** It is correct on all five controls, including both
+rows the prose signal wrongly rejected and the one Google typed as a pet shop. Coverage is 100%,
+because every one of the 3,504 rows has coordinates, including the 519 with no county.
+
+Measured on a reproducible 150-row sample (0 query failures):
+
+| | sample | projected over 3,504 |
+|---|---:|---:|
+| on or beside farmland | 107/150 (71.3%) | **2,500** (95% CI 2,246–2,753) |
+| **no farmland within 250m** | 43/150 (28.7%) | **~1,004** |
+| stricter: 3+ farmland features | 68/150 (45.3%) | 1,588 (CI 1,309–1,868) |
+
+Tested for the obvious weakness, that zeros might be OSM mapping gaps rather than non-farms. The
+zero rate by region is South England 24%, Midlands and Wales 31%, North England 32%, northern
+Scotland 38%, southern Scotland 14%. A mild northward tilt but no cliff, and southern Scotland is
+the lowest of all, so the result is not simply a coverage artefact. Northern Ireland shows 50% on
+4 rows, too few to read.
+
+**What the number means.** This is a *removal* rule, not an admission rule. It confidently
+identifies roughly 1,000 rows that cannot plausibly be farms. It does not certify the remaining
+2,500: sitting beside a field is consistent with being a farm, not proof of one, and none of
+those 2,500 is verified as open to visitors.
+
+Total cost of all three signals: **£0**. Companies House bulk data (`BasicCompanyData`, 5.7m
+companies) and Overpass are both free, and `farmretail.co.uk`, the one source that required
+permission, turned out to be the one we did not need.
 
 ## 7. The structural fix
 
