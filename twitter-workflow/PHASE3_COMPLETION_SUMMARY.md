@@ -204,7 +204,7 @@ return NextResponse.json({
 }
 ```
 
-### **Environment Variables** (`env.production`)
+### **Environment Variables** (`env.example`)
 ```bash
 # Twitter API Configuration (Required for posting)
 TWITTER_API_KEY=your_twitter_api_key_here

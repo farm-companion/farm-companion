@@ -137,6 +137,13 @@ data.ms/
 *.env.*
 *.env.txt
 *.env.vercel
+# Bare `env.<stage>` config files: these slip past the `*.env*` rules above
+# (that is how twitter-workflow/env.production stayed tracked with live keys).
+# `env.example` is deliberately NOT matched and stays committed.
+env.production
+env.local
+env.development
+env.test
 # Opt-in template files (no secrets — safe to commit)
 !farm-frontend/.env.example
 
