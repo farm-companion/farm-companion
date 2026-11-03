@@ -49,7 +49,7 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
         videoSrc={videoSrc}
         videoPoster={videoPoster}
         imageSrc="/images/pitti/hero-homepage-dev-seed50920962-v2.webp"
-        imageAlt="Pitti Press illustration of the UK countryside in midsummer, rolling fields with dry-stone walls, a red tractor, cottages, and a low red sun"
+        imageAlt="Illustration of the UK countryside in midsummer, rolling fields with dry-stone walls, a red tractor, cottages, and a low red sun"
         className="absolute inset-0"
       />
 
@@ -57,7 +57,9 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
 
       {/* Contained bottom-left overlay (max 580px, translucent paper) */}
       <div className="relative h-full flex items-end">
-        <div className="w-full max-w-[580px] m-5 md:m-10 p-6 md:p-8 bg-[#F2EBDA]/92 backdrop-blur-sm border border-border shadow-sm">
+        {/* bg-paper, not a hardcoded cream: --paper flips to #15120D in dark
+            mode, where a fixed cream panel left text-ink cream-on-cream. */}
+        <div className="w-full max-w-[580px] m-5 md:m-10 p-6 md:p-8 bg-paper/92 backdrop-blur-sm border border-border shadow-sm">
           <p
             className="text-caption uppercase tracking-[0.18em] text-ink-muted mb-3"
             suppressHydrationWarning
@@ -95,7 +97,7 @@ export function AnimatedHero({ countyCount, videoSrc, videoPoster }: AnimatedHer
 
       {/* Illustration credit, bottom-right (brief §5.2) */}
       <p className="absolute bottom-3 right-4 text-[11px] tracking-wide text-[#F2EBDA]/70 drop-shadow-[0_1px_2px_rgba(0,0,0,0.4)] pointer-events-none">
-        Illustration · Pitti Press for Farm Companion
+        Illustration · Rotocalco Press for Farm Companion
       </p>
     </section>
   )
