@@ -37,8 +37,9 @@ export default function DataAttributionsPage() {
         no third-party licence.
       </p>
       <p>
-        Where a photograph is used instead, the photographer&apos;s name and its
-        licence are kept with the image and used for its credit.
+        A photograph here is either licensed stock or published under an open
+        licence. Credit is shown where the licence asks for it, and the
+        photographer&apos;s name is kept with the file either way.
       </p>
     </main>
   )

@@ -5567,9 +5567,10 @@ committing, by checking `public/` instead of trusting the database:
 - **`public/counties.jpg` carries an EXIF copyright field reading `Michel PERES`.** It is rendered
   full-bleed as the hero of `/about` and `/counties` (`about/page.tsx:105`, `counties/page.tsx:90`),
   1920x1277, Photoshop-processed at 300dpi. No licence record exists anywhere in the repository and
-  the photographer is credited nowhere on the site. Added in `8f6054b3 fix: resolve missing image
-  400 errors`, so it looks like a gap-filler nobody licensed. **This is the real finding of the
-  slice and it needs an operator decision: licence it, replace it, or remove it.**
+  the photographer is credited nowhere on the site. **Resolved the same day: the operator licensed
+  it through their Adobe subscription, so the EXIF name is the photographer's, retained by the
+  stock download, and no credit is owed.** See Slice 1.14d. What remains is the missing record, not
+  a missing licence.
 - Ten more unprovenanced rasters sit in `public/` (`main_header.jpg`, `about.jpg`,
   `overlay-banner.jpg`, `produce-secondary-image.jpg`, `seasonal-header.jpg`, `add.jpg`,
   `feedback.jpg`, `oranges-background.jpg`, `og.jpg`, `about-header.jpg`). Only `counties.jpg`
@@ -5585,3 +5586,40 @@ draft to OpenAI through the codex CLI, which needs the operator's say-so each ti
 
 **Risk/rollback:** One static page's copy. Revert the commit to restore the old section. No claim in
 the new copy depends on the unresolved `counties.jpg` question.
+
+---
+
+## 2026-11-03 — Slice 1.14d: counties.jpg is licensed, and the copy was wrong about credits
+
+**Correction.** Slice 1.14c called `public/counties.jpg` a gap-filler nobody licensed and asked for
+a decision on it. The operator licensed it through their Adobe subscription. The `Michel PERES`
+string in its EXIF is the photographer's copyright notice, retained by the stock download, which is
+normal. Nothing is owed to anyone and nothing needs replacing. The Slice 1.14c bullet is corrected
+in place; this entry is why.
+
+**But the copy it led me to write was over-promising.** The Imagery section said the photographer's
+name and licence "are kept with the image and used for its credit". For the one photograph actually
+on the site that is false: the name is in the EXIF, and no credit is shown anywhere, because a
+standard stock licence does not ask for one. Replaced with copy that covers both cases:
+
+> A photograph here is either licensed stock or published under an open licence. Credit is shown
+> where the licence asks for it, and the photographer's name is kept with the file either way.
+
+5/5 CLEAN on `deslop.py`. True of `counties.jpg` (stock, no credit required, name in EXIF) and of
+any future CC row (`farm-imagery.ts` marks a row carrying `attribution` as `kind: 'cc'` and
+`FarmListCard` renders the cue).
+
+**What is still open, and it is a records gap rather than a licensing one.** Nothing in the
+repository says `counties.jpg` is licensed. That absence is what sent me looking, and it will send
+the next reader looking too. The ten other rasters in `public/` are in the same position:
+`main_header.jpg`, `about.jpg`, `overlay-banner.jpg`, `produce-secondary-image.jpg`,
+`seasonal-header.jpg`, `add.jpg`, `feedback.jpg`, `oranges-background.jpg`, `og.jpg`,
+`about-header.jpg`. A sidecar per file, on the pattern already used for Vecteezy downloads
+(`<file>.json`), would close it, but the Adobe asset IDs and licence dates are only in the
+operator's Adobe licence history.
+
+**Still unactioned from 1.14c:** `layout.tsx:171` preloads `main_header.jpg` at
+`fetchPriority="high"` on every route and nothing renders it. A 4096x1376 JPEG fetched for nothing,
+site-wide.
+
+**Risk/rollback:** One sentence of static copy and two ledger paragraphs. Revert the commit.
