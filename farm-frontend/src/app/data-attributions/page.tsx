@@ -30,20 +30,17 @@ export default function DataAttributionsPage() {
           (ONS/OS OpenData, OGL).
         </li>
       </ul>
-      <h2>Photography</h2>
-      <ul>
-        <li>
-          Some place photographs are sourced from{' '}
-          <a href="https://www.geograph.org.uk/">Geograph Britain and Ireland</a>{' '}
-          under CC BY-SA 2.0; the photographer is credited on each image.
-        </li>
-        <li>
-          Some photographs are sourced from{' '}
-          <a href="https://commons.wikimedia.org/">Wikimedia Commons</a> under
-          their respective Creative Commons or public-domain licences, credited
-          per image.
-        </li>
-      </ul>
+      <h2>Imagery</h2>
+      <p>
+        Farm and county artwork is our own illustration, drawn to a house style
+        by a text-to-image model and served from our own storage, so it carries
+        no third-party licence.
+      </p>
+      <p>
+        A photograph here is either licensed stock or published under an open
+        licence. Credit is shown where the licence asks for it, and the
+        photographer&apos;s name is kept with the file either way.
+      </p>
     </main>
   )
 }

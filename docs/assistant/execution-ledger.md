@@ -5367,6 +5367,7 @@ delete `eslint.config.js` and revert the two package.json edits.
 **Next:** Slice 2.3 — fix what the lint now reports, starting with the const reassignment that breaks
 the duplicate-post guard.
 
+**Risk/rollback:** Nothing written to the database, nothing wired into `parseGeograph`.
 ---
 
 ### 2026-11-02 — Queue 2 Slice 2.3: the two real bugs the broken lint had been hiding
@@ -5592,3 +5593,234 @@ codebase:**
 Because of those four, the **live** scan will keep exiting 2. Only the static `detect src/` gate that
 CLAUDE.md actually names exits 0. Worth deciding later whether to encode these as project-level
 detector ignores so a live scan can be gated too.
+
+---
+
+## 2026-11-02 — Slice 1.14: the 11,727 Geograph candidate rows are gone
+
+**Operator decision: drop the rows only.** No pipeline re-run. The matcher stays on this branch
+unwired, so the 85-photograph yield is not being collected.
+
+**What the delete touched.** `uploadedBy = 'cc'` turned out to be exactly this population and
+nothing else: 11,727 rows, every one a `geograph.org.uk` URL, every one `status = 'pending'` with
+`isHero = false`, spread over 2,367 farms. No geograph URL carried any other `uploadedBy`. Script:
+`farm-frontend/prisma/data-fixes/2026-11-02-geograph-candidates-drop.sql`.
+
+**Gate.** The script deletes inside a transaction and raises if the row count is not 11,727 or if
+any geograph URL survives. Proved both ways before running for real: a rehearsal with `ROLLBACK`
+passed and left all 11,727 in place, and the same script with the count changed to 11,728 aborted
+with `ERROR: expected to remove 11728 rows, removed 11727`, rows intact. A check that cannot fail
+is not a gate.
+
+**Nothing was reading them.** Every image read in app code filters `status: 'approved'`
+(`api/farms/route.ts`, `farms/weekend/route.ts`, `farm-data.ts`, `cache-strategy.ts`,
+`queries/farms.ts`, `queries/categories.ts`, `queries/counties.ts`). The one `prisma.image.findMany`
+also restricts `uploadedBy` to an allowlist that never held `'cc'`. The rows were doubly
+unreachable, which is why they rotted unnoticed for five months.
+
+**Verification (ran, passed):** `images` went from 12,831 rows to 1,104 — 1,018 approved
+photographs on our own object storage, 86 rejected AI rows. `geograph_left = 0`, `cc_left = 0`.
+
+**Follow-up, not actioned.** `src/app/data-attributions/page.tsx` still tells readers that "some
+place photographs are sourced from Geograph Britain and Ireland". With zero Geograph rows in the
+database that sentence is now false. It is a licensing page, so it should either come out or wait
+for the matcher to be wired; that is an operator call, not a silent edit.
+
+**Risk/rollback:** The rows are not backed up and do not need to be, being reconstructible by
+re-running stages 05 and 07 against the syndicator. Do not re-run before `geograph-match.ts` is
+wired into `sources/geograph.ts`, or the same distance-ranked rows come straight back.
+
+---
+
+## 2026-11-02 — Slice 1.14b: the attributions page no longer credits Geograph
+
+**Operator decision: remove it.** The Geograph bullet under Photography is gone from
+`src/app/data-attributions/page.tsx`. With zero Geograph rows in the database the sentence had
+become false, and it sat on a licensing page.
+
+**What the check turned up next, which is worse than the sentence.** The surviving 1,104 image rows
+break down as 1,018 `ai_apothecary` approved and 86 `ai_generator` rejected, all `source = 'upload'`,
+and **not one row carries an attribution value**. So the directory currently holds no photographs at
+all. Two consequences:
+
+1. The remaining Photography bullet, crediting Wikimedia Commons, is unbacked for the same reason
+   the Geograph one was. `fetchWikimedia` is still wired into stage 05, so it is forward-looking
+   rather than wrong, but nothing it claims is on the site today. Left in place pending a decision.
+2. The page says "photographs" throughout while every approved image is an Apothecary illustration.
+   Whether an attributions page should disclose that is a policy question, not a typo, so it is
+   recorded here rather than silently rewritten.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0, zero `error TS`; `npx eslint` on the
+edited file exit 0. Grep confirms this page was the only reader-facing Geograph or Wikimedia credit
+in `src/app`, `src/components`, `src/lib` and `src/data` — the other `geograph` hits are the word
+"geography" in `best-lists.ts` curriculum prose and `geographic` in query code.
+
+**Risk/rollback:** One `<li>` deleted from a static page; revert the commit to restore it.
+
+---
+
+## 2026-11-02 — Slice 1.14c: the attributions page says what is actually on the site
+
+**Operator decision: rewrite it.** The Photography section is now Imagery, and it describes the
+illustrations rather than crediting two photo sources the database does not hold.
+
+New copy, scored 5/5 CLEAN on `deslop.py` before it went in:
+
+> Farm and county artwork is our own illustration, drawn to a house style by a text-to-image model
+> and served from our own storage, so it carries no third-party licence.
+>
+> Where a photograph is used instead, the photographer's name and its licence are kept with the
+> image and used for its credit.
+
+Both claims are checkable. `ai_apothecary` and Pitti artwork comes from Runware FLUX-dev
+(`src/lib/apothecary-style.ts`, `src/scripts/generate-apothecary-batch.ts`), lands on our own
+object storage, and the Apothecary negative prompt bans photorealism outright. The credit path is
+real but dormant: `farm-imagery.ts` classifies a row with an `attribution` value as `kind: 'cc'`
+and `FarmListCard` renders the cue.
+
+**The draft said "no third-party photographs are on the site" and that was false.** Caught it before
+committing, by checking `public/` instead of trusting the database:
+
+- **`public/counties.jpg` carries an EXIF copyright field reading `Michel PERES`.** It is rendered
+  full-bleed as the hero of `/about` and `/counties` (`about/page.tsx:105`, `counties/page.tsx:90`),
+  1920x1277, Photoshop-processed at 300dpi. No licence record exists anywhere in the repository and
+  the photographer is credited nowhere on the site. **Resolved the same day: the operator licensed
+  it through their Adobe subscription, so the EXIF name is the photographer's, retained by the
+  stock download, and no credit is owed.** See Slice 1.14d. What remains is the missing record, not
+  a missing licence.
+- Ten more unprovenanced rasters sit in `public/` (`main_header.jpg`, `about.jpg`,
+  `overlay-banner.jpg`, `produce-secondary-image.jpg`, `seasonal-header.jpg`, `add.jpg`,
+  `feedback.jpg`, `oranges-background.jpg`, `og.jpg`, `about-header.jpg`). Only `counties.jpg`
+  names a copyright holder in EXIF; the rest carry none, which is not the same as being ours.
+- Unrelated but found on the way: `layout.tsx:171` preloads `main_header.jpg` at
+  `fetchPriority="high"` on every page, and nothing renders it any more. The homepage hero is
+  `/images/pitti/hero-homepage-dev-seed50920962-v2.webp`. That is a 4096x1376 JPEG fetched at high
+  priority for nothing, on every route.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0, zero `error TS`; `npx eslint` on the page
+exit 0; `deslop.py --text` 5/5 CLEAN on the new copy. Cleanse and judge were not run: both ship the
+draft to OpenAI through the codex CLI, which needs the operator's say-so each time.
+
+**Risk/rollback:** One static page's copy. Revert the commit to restore the old section. No claim in
+the new copy depends on the unresolved `counties.jpg` question.
+
+---
+
+## 2026-11-03 — Slice 1.14d: counties.jpg is licensed, and the copy was wrong about credits
+
+**Correction.** Slice 1.14c called `public/counties.jpg` a gap-filler nobody licensed and asked for
+a decision on it. The operator licensed it through their Adobe subscription. The `Michel PERES`
+string in its EXIF is the photographer's copyright notice, retained by the stock download, which is
+normal. Nothing is owed to anyone and nothing needs replacing. The Slice 1.14c bullet is corrected
+in place; this entry is why.
+
+**But the copy it led me to write was over-promising.** The Imagery section said the photographer's
+name and licence "are kept with the image and used for its credit". For the one photograph actually
+on the site that is false: the name is in the EXIF, and no credit is shown anywhere, because a
+standard stock licence does not ask for one. Replaced with copy that covers both cases:
+
+> A photograph here is either licensed stock or published under an open licence. Credit is shown
+> where the licence asks for it, and the photographer's name is kept with the file either way.
+
+5/5 CLEAN on `deslop.py`. True of `counties.jpg` (stock, no credit required, name in EXIF) and of
+any future CC row (`farm-imagery.ts` marks a row carrying `attribution` as `kind: 'cc'` and
+`FarmListCard` renders the cue).
+
+**What is still open, and it is a records gap rather than a licensing one.** Nothing in the
+repository says `counties.jpg` is licensed. That absence is what sent me looking, and it will send
+the next reader looking too. The ten other rasters in `public/` are in the same position:
+`main_header.jpg`, `about.jpg`, `overlay-banner.jpg`, `produce-secondary-image.jpg`,
+`seasonal-header.jpg`, `add.jpg`, `feedback.jpg`, `oranges-background.jpg`, `og.jpg`,
+`about-header.jpg`. A sidecar per file, on the pattern already used for Vecteezy downloads
+(`<file>.json`), would close it, but the Adobe asset IDs and licence dates are only in the
+operator's Adobe licence history.
+
+**Still unactioned from 1.14c:** `layout.tsx:171` preloads `main_header.jpg` at
+`fetchPriority="high"` on every route and nothing renders it. A 4096x1376 JPEG fetched for nothing,
+site-wide.
+
+**Risk/rollback:** One sentence of static copy and two ledger paragraphs. Revert the commit.
+
+---
+
+## 2026-11-03 — Slice 1.14e: counties.jpg identified, and the record now exists
+
+**Identified from the operator's Adobe licence history**, read in their browser. `counties.jpg` is
+Adobe Stock [#432778337](https://stock.adobe.com/uk/images/paysage-des-monts-du-lyonnais-dans-le-departement-du-rhone-en-france-au-printemps/432778337),
+"Paysage des Monts du Lyonnais dans le departement du Rhone en France au printemps" by `michel`,
+Standard Licence, 25 August 2025.
+
+Three independent signals agree, which is why this is a match and not a guess: the EXIF copyright
+`Michel PERES` against the one contributor named `michel` in 105 licensed assets; the asset page
+marked Downloaded on this account; and the geometry, 6048x4024 downscaled by 3.15 giving 1920x1277,
+which is our file exactly.
+
+**The photograph is of France.** Its alt text says "UK counties" on `/counties` and "the British
+countryside" on `/about`. Licensing-clean, and lying about itself on a UK farm directory. Operator's
+call, not a silent edit.
+
+**New file: `docs/image-licences.md`.** One table, not eleven sidecars. The Vecteezy convention puts
+a `<file>.json` beside each image, but `public/` ships to the web, and a per-file record would serve
+eleven licence documents to the internet to solve a problem one table solves. The table also carries
+the unused-file list so a later deletion is not mistaken for a loss.
+
+**Two files remain unidentified**, `seasonal-header.jpg` and `main_header.jpg`. Pages 3 to 5 of the
+licence history were read and neither appears; the rainbow produce flat-lay that is
+`seasonal-header.jpg` is not among them, so it is on pages 6 to 11. Stopped there rather than
+screenshotting six more pages for two files, one of which is rendered nowhere.
+
+**Verification (ran, passed):** asset page read from `stock.adobe.com` in the signed-in browser
+showing File #432778337, dimensions 6048x4024 and the Downloaded state; `file` on the local copy
+giving 1920x1277 and `copyright=Michel PERES`.
+
+**Risk/rollback:** One new documentation file. Nothing in `src` changed.
+
+---
+
+## 2026-11-03 — Slice 1.14f: the French photograph is out, our own illustration is in
+
+**Operator's instruction: "use pitti".** The `/about` and `/counties` heroes now carry
+`public/images/pitti/hero-homepage-dev-seed50920962-v2.webp`, the illustration the homepage already
+uses. `counties.jpg` is referenced nowhere in `src` and the alt text claiming UK countryside is
+gone with it.
+
+**A straight file swap was measured first, and it failed.** Dropped into the existing treatment the
+poster collapsed to a flat grey-brown wash: four stacked black gradients over artwork built from
+flat colour leave no structure. With the gradients removed the artwork was excellent and the white
+and vermilion headings sat directly on it, "County" in vermilion over an orange field. One contrast
+failure traded for another.
+
+**So the treatment changed with the image.** Both heroes adopt the homepage pattern from brief
+section 5.2: full-bleed illustration, copy in a contained `bg-paper/92` panel with `backdrop-blur`,
+ink on cream. The copy never touches the artwork, so the headings keep their contrast whatever the
+image behind them does. Four gradient divs, a `backdrop-blur` badge and a `blurDataURL` went with
+the old treatment.
+
+**`bg-paper/92`, not `bg-[#F2EBDA]/92`.** The homepage hardcoded the cream. `--paper` flips to
+`#15120D` in dark mode while `--ink` flips to `#F4F1EA`, so the hardcoded panel rendered cream text
+on a cream card for any visitor on the dark theme. `AnimatedHero.tsx` now uses the token too. In
+light mode the rendering is identical, because `--paper` is that same hex.
+
+**`main_header.jpg`'s dead preload is gone** (carried from 1.14c and 1.14d). It was the only
+reference to the file anywhere in `src`: a `fetchPriority="high"` preload of a 4096x1376 JPEG, on
+every route, for an image no page renders.
+
+**Two copy claims were dropped because they are not true.** `/about` said "1,247 farms". The
+directory renders 3,504. The `/counties` kicker drafted as "Every county in Britain" became
+`{farms.length}` interpolated from the data already in scope, so it cannot go stale. Worth noting
+separately: the page groups into **280** distinct county strings, which is roughly three times the
+number of counties in Britain, so the `county` field is holding towns and regions as well.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0. `npx eslint` on the four changed
+files, exit 0. Both pages rendered on the dev server at 375x812 and at desktop width, with no
+console errors.
+At 375x812 the `/counties` hero is 528px, the primary CTA sits at y=443 with a 285x50 box, which is
+0.61 screens, and no tap target anywhere on the page is under 24x24. Panel text measures
+`rgb(15,14,12)` on `--paper`. Muted body copy is 6.4:1 on it, and 5.9:1 in the worst case where the
+8% that shows through the panel is black. Copy scored 5/5 on deslop for both heroes.
+
+**Risk/rollback:** Two hero compositions and one shared panel class. No data, routes or metadata
+is touched. Revert the commit and the old heroes come back with `counties.jpg`.
+
+**Next:** `seasonal-header.jpg` is still unidentified in the Adobe licence history (pages 6 to 11),
+and nine unused rasters in `public/` are still waiting on the operator's delete decision.
