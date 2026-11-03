@@ -5539,3 +5539,56 @@ anti-patterns** across 5 files. Fixed; it now exits **0**.
 only... Rules that need a parsed page (tiny-text, low-contrast and other element rules) did not run."*
 So a live scan was run against the dev server at **375x812**, the conversion-floor viewport. It found
 **9 more** on the homepage alone, recorded in the next slice.
+
+---
+
+### 2026-11-03 — Queue 4 Slice 4.2: five WCAG AA contrast failures fixed, found only by the live scan
+
+The static gate (Slice 4.1) passes but is an undercount by the tool's own admission — contrast rules
+need a parsed page. A live scan of the dev server at **375x812** (the conversion-floor viewport) found
+**9** findings on the homepage, **5 of them genuine WCAG AA contrast failures**. All five are fixed;
+**low-contrast is now 0** and the total is down to 4.
+
+**Failure 1 — `--ink-subtle` was below AA, and in *both* themes, in opposite directions.**
+Measured, not estimated:
+| token | on | ratio | verdict |
+|---|---|---|---|
+| `--ink-subtle` soil-500 `#78716C` | Cream `#F2EBDA` | **4.04:1** | fails (needs 4.5) |
+| `--ink-subtle` soil-500 `#78716C` | dark paper `#15120D` | **3.89:1** | fails |
+
+This is the trap: on cream the token must get **darker**, on dark paper it must get **lighter**. One
+ramp value cannot serve both, and the Soil ramp has no step between 500 and 600 — and 600 is already
+`--ink-muted`, so reusing it would have collapsed two tiers into one. Set explicit per-theme values
+instead, matching how the surrounding contrast-critical tokens in this file are written (literal hex
+plus a documented ratio):
+- light: `#6B655F` -> **4.84:1** on cream, still lighter than muted (6.42:1), so three tiers survive
+- dark (x2 blocks): `#908A85` -> **5.48:1** on dark paper, still dimmer than muted (7.41:1)
+
+This token drives **placeholder text** — "Postcode, town, or farm name" and "your@email.com" were the
+flagged instances.
+
+**Failure 2 — brand text on an ink ground.** `--brand` `#D33A2C` on `--ink` `#0F0E0C` is **4.05:1**.
+Traced to `Footer.tsx:117` and `:201`, the "{month} edition" spans inside
+`<footer className="bg-ink text-paper">`. The dark *theme* was never the problem — it already uses
+`#FF6B5B` as `--brand`. This is a light-theme component sitting on a dark surface.
+Added a semantic token **`--brand-on-dark`** (`#FF6B5B`, the dark-ground vermilion already documented
+in `.impeccable/design.json`, **6.9:1**), mapped `--color-brand-on-dark` in the `@theme` block so
+Tailwind generates `text-brand-on-dark`, and pointed the two footer spans at it. In the dark theme the
+token aliases `var(--brand)`, which is already light-on-dark.
+
+**Verification (ran, passed):** live re-scan at 375x812 — **low-contrast findings 5 -> 0**, total
+**9 -> 4**. `npx impeccable detect src/` still **exit 0**. `npx tsc --noEmit` clean. `pnpm test:unit`
+**545 pass / 0 fail**. Footer checked in the browser: "November edition" renders as the lighter salmon
+vermilion, legible on ink and still reading as the brand.
+
+**The 4 remaining live findings are deliberately NOT fixed, because the tool is wrong about this
+codebase:**
+- **`cream-palette`** flags `rgb(242,235,218)` as the default "tasteful AI" background. It is
+  **"Cream Paper", a named brand colour in `.impeccable/design.json`**. The detector has no way to know
+  that; overriding the brand to satisfy it would be backwards.
+- **3 x `kicker-above-heading`** ("In Season", "Peak Season", "Farm Companion Journal") are deliberate
+  editorial devices from the Pitti Press work, not generated filler.
+
+Because of those four, the **live** scan will keep exiting 2. Only the static `detect src/` gate that
+CLAUDE.md actually names exits 0. Worth deciding later whether to encode these as project-level
+detector ignores so a live scan can be gated too.
