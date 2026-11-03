@@ -22,7 +22,8 @@ export async function GET() {
         openingHours: { not: Prisma.DbNull },
       },
       select: {
-        id: true,
+        // Only the hours are read below; selecting id pulled ~3.5k UUIDs per
+        // cache miss for nothing.
         openingHours: true,
       },
     })
