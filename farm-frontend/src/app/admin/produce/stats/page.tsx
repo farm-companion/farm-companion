@@ -78,7 +78,7 @@ export default async function AdminProduceStatsPage() {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                   <h3 className="text-body font-semibold text-gray-900 dark:text-white">Total Images</h3>
-                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{stats.totalImages}</p>
+                  <p className="text-2xl font-bold text-brand">{stats.totalImages}</p>
                 </div>
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                   <h3 className="text-body font-semibold text-gray-900 dark:text-white">Storage Used</h3>

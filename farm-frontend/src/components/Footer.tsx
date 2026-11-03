@@ -114,7 +114,7 @@ export default function Footer() {
                 The UK&apos;s independent guide to farm shops worth the visit.
               </p>
               <p className="text-[13px] text-[#F2EBDA]/55">
-                Updated weekly &middot; <span className="text-brand font-medium">{currentMonthName} edition</span>
+                Updated weekly &middot; <span className="text-brand-on-dark font-medium">{currentMonthName} edition</span>
               </p>
               <div className="w-12 border-t border-[#F2EBDA]/20" />
               <div className="flex items-center gap-3 -my-3">
@@ -198,7 +198,7 @@ export default function Footer() {
                 The UK&apos;s independent guide to farm shops worth the visit.
               </p>
               <p className="text-[13px] text-[#F2EBDA]/55">
-                Updated weekly &middot; <span className="text-brand font-medium">{currentMonthName} edition</span>
+                Updated weekly &middot; <span className="text-brand-on-dark font-medium">{currentMonthName} edition</span>
               </p>
               <div className="flex items-center gap-3 -my-3 pt-2">
                 {[

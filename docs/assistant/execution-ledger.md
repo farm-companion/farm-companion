@@ -5479,6 +5479,123 @@ outright.
 
 ---
 
+### 2026-11-02 — Queue 3 audited: five of six items were already done; one real leftover fixed
+
+Audited each Track 0 item against the current code before planning any work, as with Queue 1. Queue 3
+has largely been overtaken by the Komoot S1-S4, M1-M3 and map-a11y 2.6-2.8 slices. Recording the
+evidence so nobody re-opens these.
+
+| Queue 3 item | Status | Evidence |
+|---|---|---|
+| Remove production console logs | **already done** | **Zero `console.log`** in `src/features/map` or `src/app/map`. The 14 remaining calls are all `console.warn` / `console.error` — legitimate diagnostics, not debug noise. |
+| Fix `MapShell.tsx` type safety | **stale + done** | `MapShell.tsx` does not exist; it is `MapLibreShell.tsx` (the `components/map` subgraph was deleted in f330f14). That file has **zero** `as any`, `: any`, `@ts-ignore` or `@ts-expect-error` — the lint-cleanup in dc6d9ee cleared them. |
+| Cluster event handling + state races | **already done** | The marker effect's deps include its handlers (`[clusters, isCluster, handleClusterClick, handleMarkerClick, onFarmHover, showFullIcons]`), so no stale closures. The init effect's `[]` deps *were* a genuine stale-closure trap for `onBoundsChange`; it was found and fixed in **S3b** with `searchAsIMoveRef`, and `page.tsx:337-342` documents exactly that. Listener cleanup is handled by `map.remove()` — the 12 `addEventListener` / 0 `removeEventListener` asymmetry is safe because those listeners sit on marker elements that are discarded with the markers. |
+| Desktop marker interactions via popovers | **already done** | `isDesktop` prop, `hoveredFarmId`, `mouseenter`/`mouseleave` handlers on both marker types, `MarkerPreview.tsx` / `FarmPreviewCard.tsx`, and the one-popover invariant from Komoot S4 (b8982d8). |
+| **Fix ClusterPreview data loss** | **already done** | Not reachable. `getClusterLeaves(clusterId, 100)` fetches up to 100 — and the preview only opens when `count <= CLUSTER_ZOOM_THRESHOLDS.PREVIEW_MAX_COUNT`, which is **8**. Truncation is impossible. Overflow beyond the 5 shown is deliberate, with a "View all {count} farms" affordance. Note the supercluster default limit is 10; passing 100 explicitly is what makes this safe, so **do not drop that argument**. |
+| Extract Haversine to `src/shared/lib` + unit test | **done, with one leftover — fixed here** | `src/shared/lib/geo.ts` + `geo.test.ts` already exist and every consumer imports from them — except one. |
+
+**The one real fix.** `src/lib/schemas.ts` still carried a **private duplicate** haversine (12 lines,
+its own `R = 6371`), used by `dedupeFarms`. Replaced with `import { calculateDistance } from
+'@/shared/lib/geo'`. The two implementations were mathematically identical — same radius, same formula,
+same `2*atan2(sqrt(a), sqrt(1-a))`; the shared one factors out a `toRadians` helper where schemas
+inlined `* Math.PI / 180`.
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean; `pnpm test:unit` **545 pass / 0 fail**; and
+the old inline implementation was run side by side with the shared one over four coordinate pairs —
+**max difference 0, bit-identical** — so `dedupeFarms`' proximity threshold behaviour cannot have
+shifted.
+
+**Risk/rollback:** One import swapped for an identical implementation, proven numerically equivalent.
+Rollback: revert the commit.
+
+**Queue 3 is therefore closed.** The remaining Track 0 value is not in this list; if more map work is
+wanted it needs a fresh survey rather than these six items.
+
+---
+
+### 2026-11-02 — Queue 4 Slice 4.1: the impeccable merge gate was failing; now exits 0
+
+CLAUDE.md gates merge on `npx impeccable detect src/` exiting 0. It was exiting **2** with **11
+anti-patterns** across 5 files. Fixed; it now exits **0**.
+
+**What the 11 were, and why each fix is what it is:**
+- **8 x `ai-color-palette`** — indigo/purple stat-tile numbers on three admin pages
+  (`admin/produce`, `admin/produce/stats`, `admin/documentation`). Replaced with `text-brand`, the
+  project's own documented primary. Also dropped the paired `dark:` variants: `globals.css` line 11
+  states *"this site is light-only on purpose"* and redefines the dark variant to a `.dark` class that
+  is never set, so those were dead classes.
+- **2 x `side-tab`** — `border-left: 4px solid #00C2B2` in `email.service.ts`. The rule's own advice is
+  a subtler accent or none, and the colour was off-brand anyway (Serum Teal, the *previous* brand), so
+  the bar is gone and the panel background stays.
+- **1 x `overused-font`** — `font-family: Arial` in one `email.ts` template. **Not** replaced with a
+  distinctive face: this is transactional email HTML, where webfonts do not render and web-safe stacks
+  are correct. Aligned it instead with the stack the other three templates already use
+  (`-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`), which satisfies the rule and
+  removes a one-off inconsistency. A suppression comment was the alternative; consistency was better.
+
+**Verification (ran, passed):** `npx impeccable detect src/` **exit 0** (was 2);
+`npx tsc --noEmit` clean; `pnpm test:unit` **545 pass / 0 fail**.
+
+**The static gate is an undercount — the tool says so itself:** *"459 files scanned with regex matching
+only... Rules that need a parsed page (tiny-text, low-contrast and other element rules) did not run."*
+So a live scan was run against the dev server at **375x812**, the conversion-floor viewport. It found
+**9 more** on the homepage alone, recorded in the next slice.
+
+---
+
+### 2026-11-03 — Queue 4 Slice 4.2: five WCAG AA contrast failures fixed, found only by the live scan
+
+The static gate (Slice 4.1) passes but is an undercount by the tool's own admission — contrast rules
+need a parsed page. A live scan of the dev server at **375x812** (the conversion-floor viewport) found
+**9** findings on the homepage, **5 of them genuine WCAG AA contrast failures**. All five are fixed;
+**low-contrast is now 0** and the total is down to 4.
+
+**Failure 1 — `--ink-subtle` was below AA, and in *both* themes, in opposite directions.**
+Measured, not estimated:
+| token | on | ratio | verdict |
+|---|---|---|---|
+| `--ink-subtle` soil-500 `#78716C` | Cream `#F2EBDA` | **4.04:1** | fails (needs 4.5) |
+| `--ink-subtle` soil-500 `#78716C` | dark paper `#15120D` | **3.89:1** | fails |
+
+This is the trap: on cream the token must get **darker**, on dark paper it must get **lighter**. One
+ramp value cannot serve both, and the Soil ramp has no step between 500 and 600 — and 600 is already
+`--ink-muted`, so reusing it would have collapsed two tiers into one. Set explicit per-theme values
+instead, matching how the surrounding contrast-critical tokens in this file are written (literal hex
+plus a documented ratio):
+- light: `#6B655F` -> **4.84:1** on cream, still lighter than muted (6.42:1), so three tiers survive
+- dark (x2 blocks): `#908A85` -> **5.48:1** on dark paper, still dimmer than muted (7.41:1)
+
+This token drives **placeholder text** — "Postcode, town, or farm name" and "your@email.com" were the
+flagged instances.
+
+**Failure 2 — brand text on an ink ground.** `--brand` `#D33A2C` on `--ink` `#0F0E0C` is **4.05:1**.
+Traced to `Footer.tsx:117` and `:201`, the "{month} edition" spans inside
+`<footer className="bg-ink text-paper">`. The dark *theme* was never the problem — it already uses
+`#FF6B5B` as `--brand`. This is a light-theme component sitting on a dark surface.
+Added a semantic token **`--brand-on-dark`** (`#FF6B5B`, the dark-ground vermilion already documented
+in `.impeccable/design.json`, **6.9:1**), mapped `--color-brand-on-dark` in the `@theme` block so
+Tailwind generates `text-brand-on-dark`, and pointed the two footer spans at it. In the dark theme the
+token aliases `var(--brand)`, which is already light-on-dark.
+
+**Verification (ran, passed):** live re-scan at 375x812 — **low-contrast findings 5 -> 0**, total
+**9 -> 4**. `npx impeccable detect src/` still **exit 0**. `npx tsc --noEmit` clean. `pnpm test:unit`
+**545 pass / 0 fail**. Footer checked in the browser: "November edition" renders as the lighter salmon
+vermilion, legible on ink and still reading as the brand.
+
+**The 4 remaining live findings are deliberately NOT fixed, because the tool is wrong about this
+codebase:**
+- **`cream-palette`** flags `rgb(242,235,218)` as the default "tasteful AI" background. It is
+  **"Cream Paper", a named brand colour in `.impeccable/design.json`**. The detector has no way to know
+  that; overriding the brand to satisfy it would be backwards.
+- **3 x `kicker-above-heading`** ("In Season", "Peak Season", "Farm Companion Journal") are deliberate
+  editorial devices from the Pitti Press work, not generated filler.
+
+Because of those four, the **live** scan will keep exiting 2. Only the static `detect src/` gate that
+CLAUDE.md actually names exits 0. Worth deciding later whether to encode these as project-level
+detector ignores so a live scan can be gated too.
+
+---
+
 ## 2026-11-02 — Slice 1.14: the 11,727 Geograph candidate rows are gone
 
 **Operator decision: drop the rows only.** No pipeline re-run. The matcher stays on this branch
