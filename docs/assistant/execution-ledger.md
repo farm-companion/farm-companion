@@ -5657,3 +5657,53 @@ showing File #432778337, dimensions 6048x4024 and the Downloaded state; `file` o
 giving 1920x1277 and `copyright=Michel PERES`.
 
 **Risk/rollback:** One new documentation file. Nothing in `src` changed.
+
+---
+
+## 2026-11-03 — Slice 1.14f: the French photograph is out, our own illustration is in
+
+**Operator's instruction: "use pitti".** The `/about` and `/counties` heroes now carry
+`public/images/pitti/hero-homepage-dev-seed50920962-v2.webp`, the illustration the homepage already
+uses. `counties.jpg` is referenced nowhere in `src` and the alt text claiming UK countryside is
+gone with it.
+
+**A straight file swap was measured first, and it failed.** Dropped into the existing treatment the
+poster collapsed to a flat grey-brown wash: four stacked black gradients over artwork built from
+flat colour leave no structure. With the gradients removed the artwork was excellent and the white
+and vermilion headings sat directly on it, "County" in vermilion over an orange field. One contrast
+failure traded for another.
+
+**So the treatment changed with the image.** Both heroes adopt the homepage pattern from brief
+section 5.2: full-bleed illustration, copy in a contained `bg-paper/92` panel with `backdrop-blur`,
+ink on cream. The copy never touches the artwork, so the headings keep their contrast whatever the
+image behind them does. Four gradient divs, a `backdrop-blur` badge and a `blurDataURL` went with
+the old treatment.
+
+**`bg-paper/92`, not `bg-[#F2EBDA]/92`.** The homepage hardcoded the cream. `--paper` flips to
+`#15120D` in dark mode while `--ink` flips to `#F4F1EA`, so the hardcoded panel rendered cream text
+on a cream card for any visitor on the dark theme. `AnimatedHero.tsx` now uses the token too. In
+light mode the rendering is identical, because `--paper` is that same hex.
+
+**`main_header.jpg`'s dead preload is gone** (carried from 1.14c and 1.14d). It was the only
+reference to the file anywhere in `src`: a `fetchPriority="high"` preload of a 4096x1376 JPEG, on
+every route, for an image no page renders.
+
+**Two copy claims were dropped because they are not true.** `/about` said "1,247 farms". The
+directory renders 3,504. The `/counties` kicker drafted as "Every county in Britain" became
+`{farms.length}` interpolated from the data already in scope, so it cannot go stale. Worth noting
+separately: the page groups into **280** distinct county strings, which is roughly three times the
+number of counties in Britain, so the `county` field is holding towns and regions as well.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0. `npx eslint` on the four changed
+files, exit 0. Both pages rendered on the dev server at 375x812 and at desktop width, with no
+console errors.
+At 375x812 the `/counties` hero is 528px, the primary CTA sits at y=443 with a 285x50 box, which is
+0.61 screens, and no tap target anywhere on the page is under 24x24. Panel text measures
+`rgb(15,14,12)` on `--paper`. Muted body copy is 6.4:1 on it, and 5.9:1 in the worst case where the
+8% that shows through the panel is black. Copy scored 5/5 on deslop for both heroes.
+
+**Risk/rollback:** Two hero compositions and one shared panel class. No data, routes or metadata
+is touched. Revert the commit and the old heroes come back with `counties.jpg`.
+
+**Next:** `seasonal-header.jpg` is still unidentified in the Adobe licence history (pages 6 to 11),
+and nine unused rasters in `public/` are still waiting on the operator's delete decision.
