@@ -5592,3 +5592,39 @@ codebase:**
 Because of those four, the **live** scan will keep exiting 2. Only the static `detect src/` gate that
 CLAUDE.md actually names exits 0. Worth deciding later whether to encode these as project-level
 detector ignores so a live scan can be gated too.
+
+---
+
+### 2026-11-03 — Queue 5 audited: all four items already implemented; one micro-waste removed
+
+Audited each Queue 5 item against the code before planning work. **All four are already done** — this
+queue has been overtaken like Queues 3 and 4. Evidence recorded so nobody re-opens it.
+No live database was reachable (the `postgresql` MCP server failed to connect, and `DATABASE_URL` is
+not set here), so this is a static audit: schema, call sites and config. Query *plans* were not measured.
+
+| Queue 5 item | Status | Evidence |
+|---|---|---|
+| Fix N+1 queries | **already done** | No N+1 in runtime code. No `for`/`forEach`/`while` loop in `src/app`, `src/lib`, `src/components` or `src/features` contains an awaited Prisma call. `counties.ts` — which a loose grep flags — actually shows the *fix* pattern: `groupBy` for counts, `Promise.all` for parallel reads, and collecting ids then a single `findMany({ id: { in: … } })`. The one `.map(async` in runtime code (`AddressAutocomplete.tsx:67`) is an external postcode lookup, `slice(0,5)`-capped and resolved with `Promise.all`, so parallel rather than serial. Remaining hits are batch scripts (pipeline, import, seed), where sequential queries are the right trade. |
+| Add indexes, incl. geospatial strategy | **already done** | **20** `@@index`/`@@unique` on `Farm` alone — including three composites for location: `[latitude, longitude]`, `[latitude, longitude, status]`, `[county, latitude, longitude]` — plus Image 8, Event 8, Review 4, BlogPost 4, Product 3. |
+| Stage PostGIS safely if needed | **already done, and genuinely "safely"** | `prisma/migrations/enable_postgis.sql` and `POSTGIS_SETUP.md` exist as *staging* artefacts, not an applied migration; `datasource` declares `extensions = [postgis]` and the generator has `previewFeatures = ["postgresqlExtensions"]`. The schema also carries the exact `geography(POINT, 4326)` / `ST_DWithin` migration recipe in comments. |
+| Add connection pooling | **already done** | `src/lib/prisma.ts` is a documented singleton: PgBouncer in **transaction mode**, `DATABASE_POOLER_URL` for app queries vs `DATABASE_URL` for migrations, plus `connection_limit`, `pool_timeout`, `connect_timeout`, and a `getDatasourceUrl()` that appends `connection_limit` to avoid pool exhaustion when Next prerenders pages concurrently. |
+
+**Unbounded `findMany` swept as a separate risk — 8 in runtime code, 7 of them correct.** The farms
+endpoint (`api/farms/route.ts`) *is* paginated (`take: limit, skip: offset`, plus `take: 3` on
+relations); the rest read small fixed sets (categories, facets) or are bounded upstream by an `in:`
+list.
+
+**The one real finding, fixed here:** `api/farms/open-now-count/route.ts` selected
+`{ id: true, openingHours: true }` but the loop never reads `farm.id` — **0 references**. On ~3,500
+active farms that pulled roughly 126 KB of UUIDs per cache miss for nothing. Dropped `id` from the
+select. The route is otherwise sound: it selects only the columns it needs, and is cached
+`s-maxage=300, stale-while-revalidate=60`. Loading rows to compute "open now" is unavoidable in SQL
+here because `openingHours` is JSON and the check is timezone-dependent.
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean; `pnpm test:unit` **545 pass / 0 fail**;
+`pnpm build` `✓ Compiled successfully`; `npx impeccable detect src/` still **exit 0**.
+
+**Pattern worth acting on.** Queue 3, Queue 4's token items and now all of Queue 5 were already
+implemented when audited. The CLAUDE.md queue is drifting from the codebase faster than it is being
+updated, and working it item-by-item now costs more in audit than it returns in fixes. It is worth
+rewriting the queue against the current code rather than continuing down the list.
