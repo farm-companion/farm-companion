@@ -83,12 +83,13 @@
     /* The four flat colours */
     --brand:         #D33A2C;                    /* Vermilion — Cassandre red, 4.7:1 on Cream (AA-large, fill only) */
     --brand-hover:   #B82E22;                    /* Darker Vermilion for :hover state */
+    --brand-on-dark: #FF6B5B;                    /* Salmon Vermilion — brand text on an ink ground, 6.9:1 AA (--brand is 4.05:1) */
     --brand-text:    #FFFFFF;                    /* FG on Vermilion fill — 4.5:1 AA */
     --accent:        #1F3A5F;                    /* Sea ink — Italian poster ocean, 9.4:1 on Cream, AAA */
     --accent-text:   #FFFFFF;                    /* FG on Sea ink fill — 11.7:1 AAA */
     --ink:           #0F0E0C;                    /* Loam ink — warm near-black, 16.8:1 on Cream, AAA */
     --ink-muted:     var(--harvest-soil-600);    /* Stone-600 #57534E — 6.8:1 AAA-large */
-    --ink-subtle:    var(--harvest-soil-500);    /* Stone-500 #78716C — placeholder/tertiary */
+    --ink-subtle:    #6B655F;                    /* Stone-550 — placeholder/tertiary, 4.84:1 on Cream AA (soil-500 was 4.04:1) */
     --paper:         #F2EBDA;                    /* Cream paper — aged printed stock */
     --surface:       #FFFFFF;                    /* Card surface — lifts above paper */
     --surface-2:     var(--harvest-soil-50);     /* Elevated surface (modals, popovers) */
@@ -204,12 +205,13 @@
        Paper is a warm dark brown, not pure black. */
     --brand:         #FF6B5B;                    /* Salmon Vermilion — saturated for low light, 5.9:1 on dark paper */
     --brand-hover:   #FF8978;                    /* Lighter Vermilion for :hover */
+    --brand-on-dark: var(--brand);               /* Already light-on-dark here */
     --brand-text:    #15120D;                    /* Dark paper on Vermilion fill */
     --accent:        #6FA0D9;                    /* Sky denim — Sea ink saturated up, 7.4:1 AAA */
     --accent-text:   #15120D;                    /* Dark paper on Sea ink fill */
     --ink:           #F4F1EA;                    /* Warm cream-white ink — 16.5:1 on dark paper */
     --ink-muted:     var(--harvest-soil-400);    /* Stone-400 #A8A29E */
-    --ink-subtle:    var(--harvest-soil-500);    /* Stone-500 #78716C */
+    --ink-subtle:    #908A85;                    /* Stone-450 — 5.48:1 on dark paper AA (soil-500 was 3.89:1) */
     --paper:         #15120D;                    /* Dark printed-page brown — not OLED black */
     --surface:       var(--harvest-soil-900);    /* Card surface lifts above paper */
     --surface-2:     var(--harvest-soil-800);    /* Elevated surface */
@@ -389,12 +391,13 @@
     /* Pitti Press canonical tokens (system-dark fallback) */
     --brand:         #FF6B5B;                    /* Salmon Vermilion */
     --brand-hover:   #FF8978;
+    --brand-on-dark: var(--brand);
     --brand-text:    #15120D;
     --accent:        #6FA0D9;                    /* Sky denim */
     --accent-text:   #15120D;
     --ink:           #F4F1EA;                    /* Warm cream-white */
     --ink-muted:     var(--harvest-soil-400);
-    --ink-subtle:    var(--harvest-soil-500);
+    --ink-subtle:    #908A85;                    /* Stone-450 — 5.48:1 on dark paper AA */
     --paper:         #15120D;                    /* Dark printed-page brown */
     --surface:       var(--harvest-soil-900);
     --surface-2:     var(--harvest-soil-800);
