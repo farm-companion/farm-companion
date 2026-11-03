@@ -5623,3 +5623,37 @@ operator's Adobe licence history.
 site-wide.
 
 **Risk/rollback:** One sentence of static copy and two ledger paragraphs. Revert the commit.
+
+---
+
+## 2026-11-03 — Slice 1.14e: counties.jpg identified, and the record now exists
+
+**Identified from the operator's Adobe licence history**, read in their browser. `counties.jpg` is
+Adobe Stock [#432778337](https://stock.adobe.com/uk/images/paysage-des-monts-du-lyonnais-dans-le-departement-du-rhone-en-france-au-printemps/432778337),
+"Paysage des Monts du Lyonnais dans le departement du Rhone en France au printemps" by `michel`,
+Standard Licence, 25 August 2025.
+
+Three independent signals agree, which is why this is a match and not a guess: the EXIF copyright
+`Michel PERES` against the one contributor named `michel` in 105 licensed assets; the asset page
+marked Downloaded on this account; and the geometry, 6048x4024 downscaled by 3.15 giving 1920x1277,
+which is our file exactly.
+
+**The photograph is of France.** Its alt text says "UK counties" on `/counties` and "the British
+countryside" on `/about`. Licensing-clean, and lying about itself on a UK farm directory. Operator's
+call, not a silent edit.
+
+**New file: `docs/image-licences.md`.** One table, not eleven sidecars. The Vecteezy convention puts
+a `<file>.json` beside each image, but `public/` ships to the web, and a per-file record would serve
+eleven licence documents to the internet to solve a problem one table solves. The table also carries
+the unused-file list so a later deletion is not mistaken for a loss.
+
+**Two files remain unidentified**, `seasonal-header.jpg` and `main_header.jpg`. Pages 3 to 5 of the
+licence history were read and neither appears; the rainbow produce flat-lay that is
+`seasonal-header.jpg` is not among them, so it is on pages 6 to 11. Stopped there rather than
+screenshotting six more pages for two files, one of which is rendered nowhere.
+
+**Verification (ran, passed):** asset page read from `stock.adobe.com` in the signed-in browser
+showing File #432778337, dimensions 6048x4024 and the Downloaded state; `file` on the local copy
+giving 1920x1277 and `copyright=Michel PERES`.
+
+**Risk/rollback:** One new documentation file. Nothing in `src` changed.
