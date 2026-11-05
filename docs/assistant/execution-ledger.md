@@ -5824,6 +5824,9 @@ is touched. Revert the commit and the old heroes come back with `counties.jpg`.
 
 **Next:** `seasonal-header.jpg` is still unidentified in the Adobe licence history (pages 6 to 11),
 and nine unused rasters in `public/` are still waiting on the operator's delete decision.
+
+---
+
 ### 2026-11-03 — Queue 5 audited: all four items already implemented; one micro-waste removed
 
 Audited each Queue 5 item against the code before planning work. **All four are already done** — this
@@ -5857,3 +5860,52 @@ here because `openingHours` is JSON and the check is timezone-dependent.
 implemented when audited. The CLAUDE.md queue is drifting from the codebase faster than it is being
 updated, and working it item-by-item now costs more in audit than it returns in fixes. It is worth
 rewriting the queue against the current code rather than continuing down the list.
+
+---
+
+## 2026-11-03 — Slice 1.14g: nine unused rasters out of public/, 54MB to 31MB
+
+**Operator decision: delete all nine.** `oranges-background.jpg` (7.2M), `add.jpg` (4.5M),
+`about.jpg` (4.4M), `produce-secondary-image.jpg` (3.3M), `main_header.jpg` (1.4M),
+`counties.jpg` (822K), `about-header.jpg` (586K), `feedback.jpg` (596K) and `overlay-banner.jpg`
+(340K). `public/` measured 54MB before and 31MB after.
+
+**The gate was a grep that could fail, and it did.** Searching the full filename across everything
+outside `public/`, `docs/` and `context/` found two live references, which is why this was not a
+blind delete. `HeroVideoBackground.tsx:160` named `main_header.jpg` in a JSDoc usage example, and
+`test-map-simple.js:63` fetched `/overlay-banner.jpg` as its static-asset check. Both now point at
+`/images/pitti/hero-homepage-dev-seed50920962-v2.webp`, the hero that actually ships. The first
+pass of that grep searched the basename without its extension and returned thousands of prose
+matches, which proved nothing. Matching the whole filename is what made it a gate.
+
+**`test-map-simple.js` is not wired to anything.** No npm script and no workflow runs it, and it
+logs status codes rather than asserting on them, so a 404 there would have been silent. That is the
+reason to fix the reference rather than rely on something noticing.
+
+**Seven of these were already queued for deletion in PR #226**, the brand/social-kit asset audit,
+which is open, unreviewed and conflicting. Deleting the same paths here is a clean auto-merge, so
+those seven simply become no-ops in #226 whenever it lands. `counties.jpg` and `main_header.jpg`
+were not in #226; they only became unused in Slice 1.14f earlier today.
+
+**Licence records for the deleted files stay** in `docs/image-licences.md`, marked deleted. The
+Adobe licence for `counties.jpg` still holds and Adobe offers a free re-download, so the row is
+worth more than the file was.
+
+**Not touched:** `farm-frontend/PERFORMANCE_OPTIMIZATION_SUMMARY.md` still names
+`overlay-banner.jpg`. It documents work done in the past, so rewriting it would be falsifying a
+record, not fixing a reference.
+
+**Verification (ran, passed):** filename grep over the whole repo outside `public/` and the
+documentation folders, zero remaining references. `npx tsc --noEmit` exit 0. `npx eslint` on both
+patched files produced nothing new. Each already carried its findings before I touched it, and I
+reproduced both against the same files on master to be sure: a `require()` error in the smoke
+script, and in `HeroVideoBackground.tsx` an effect that calls setState plus one unused prop. No local `next build` was
+run. The worktree borrows the main checkout's `node_modules` and has none of the build-time
+environment, so a failure there would have said nothing about this change. Vercel builds the PR in
+the right environment, and that is the build gate.
+
+**Risk/rollback:** Deletions and two one-line reference fixes. Revert the commit and all nine files
+return, since git holds them.
+
+**Next:** `seasonal-header.jpg` is the last unidentified stock file, on pages 6 to 11 of the Adobe
+licence history.
