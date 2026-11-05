@@ -96,42 +96,33 @@ export default function AboutPage() {
     <main className="min-h-screen">
       {/* ─── Section 1: Hero ─── */}
       <section
-        data-immersive-hero="dark"
-        className="relative min-h-[360px] md:min-h-[480px] flex items-center justify-center overflow-hidden"
+        data-immersive-hero="light"
+        className="relative min-h-[360px] md:min-h-[480px] flex items-end overflow-hidden bg-paper"
         aria-labelledby="hero-heading"
       >
-        {/* Background image */}
+        {/* Our own illustration, shown whole. The copy lives in a contained
+            paper panel (homepage pattern) rather than floating on the art. */}
         <Image
-          src="/counties.jpg"
-          alt="Rolling green farmland across the British countryside"
+          src="/images/pitti/hero-homepage-dev-seed50920962-v2.webp"
+          alt="Illustration of the British countryside: rolling fields divided by dry-stone walls, a red tractor, cottages, and a low red sun"
           fill
-          className="object-cover"
+          className="object-cover object-[center_70%]"
           priority
           sizes="100vw"
-          quality={85}
-        />
-
-        {/* Gradient overlay for text legibility */}
-        <div
-          className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-black/50"
-          aria-hidden="true"
+          quality={60}
         />
 
         {/* Text content */}
-        <div className="relative z-10 mx-auto max-w-3xl px-3 md:px-6 py-16 md:py-24 text-center">
+        <div className="relative z-10 w-full max-w-[620px] m-5 md:m-10 p-6 md:p-8 bg-paper/92 backdrop-blur-sm border border-border shadow-sm">
           <h1
             id="hero-heading"
-            className="text-[32px] md:text-[48px] font-medium leading-[1.2] tracking-tight text-white drop-shadow-sm"
+            className="font-clash text-[32px] md:text-[48px] font-semibold leading-[1.15] tracking-tight text-ink text-balance"
           >
-            We built the farm shop guide
-            <br className="hidden sm:block" />
-            {' '}we wished existed.
+            We built the farm shop guide we wished existed.
           </h1>
 
-          <p className="mt-4 md:mt-6 text-[17px] md:text-[20px] font-normal leading-[1.5] text-white/90 drop-shadow-sm">
-            1,247 farms. Every county. No sponsored rankings. No clutter.
-            <br className="hidden sm:block" />
-            {' '}Just the good ones.
+          <p className="mt-4 md:mt-6 text-[17px] md:text-[20px] font-normal leading-[1.5] text-ink-muted text-balance">
+            No sponsored rankings. No clutter. Just the good ones.
           </p>
         </div>
       </section>

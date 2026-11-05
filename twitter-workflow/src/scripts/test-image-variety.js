@@ -96,7 +96,7 @@ async function main() {
   });
   
   console.log('\n📈 Results:');
-  results.forEach((result, index) => {
+  results.forEach((result) => {
     const status = result.filename ? '✅' : '❌';
     console.log(`  ${status} ${result.farm}: ${result.category} (${result.size} bytes)`);
   });

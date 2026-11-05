@@ -82,57 +82,48 @@ export default async function CountiesPage() {
 
   return (
     <main className="bg-paper">
-      {/* Professional Hero Section with Counties Page Image */}
-      <section data-immersive-hero="dark" className="relative h-[70vh] min-h-[600px] max-h-[800px] overflow-hidden">
-        {/* Background Image with Professional Handling */}
-        <div className="absolute inset-0">
-          <Image
-            src="/counties.jpg"
-            alt="Panoramic view of rolling hills and valleys across UK counties"
-            fill
-            className="object-cover object-center"
-            priority
-            fetchPriority="high"
-            sizes="100vw"
-            quality={85}
-            placeholder="blur"
-            blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="
-          />
-          {/* Professional Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/30 to-black/50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/40" />
-          {/* Subtle texture overlay for depth */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(255,255,255,0.05),transparent_70%)]" />
-        </div>
+      {/* Hero — our own illustration behind a contained paper panel, the same
+          pattern as the homepage. The copy sits on cream rather than on the
+          artwork, so the headings keep their contrast and the poster is left
+          whole instead of flattened under dark overlays. */}
+      <section
+        data-immersive-hero="light"
+        className="relative overflow-hidden bg-paper h-[65vh] min-h-[460px] md:h-[78vh] md:max-h-[820px]"
+      >
+        <Image
+          src="/images/pitti/hero-homepage-dev-seed50920962-v2.webp"
+          alt="Illustration of the British countryside: rolling fields divided by dry-stone walls, a red tractor, cottages, and a low red sun"
+          fill
+          className="object-cover object-[center_70%]"
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          quality={60}
+        />
 
-        {/* Content Overlay */}
-        <div className="relative h-full flex items-center justify-center">
-          <div className="text-center max-w-4xl mx-auto px-6">
-            <div className="inline-flex items-center justify-center w-20 h-20 bg-white/10 backdrop-blur-sm rounded-full mb-6 border border-white/20">
-              <MapPin className="w-10 h-10 text-white" />
-            </div>
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight text-white drop-shadow-lg">
-              Farm Shops by
-              <span className="block text-brand drop-shadow-lg">County</span>
+        {/* Contained bottom-left overlay (max 580px, translucent paper) */}
+        <div className="relative h-full flex items-end">
+          <div className="w-full max-w-[580px] m-5 md:m-10 p-6 md:p-8 bg-paper/92 backdrop-blur-sm border border-border shadow-sm">
+            <p className="text-caption uppercase tracking-[0.18em] text-ink-muted mb-3">
+              {farms.length.toLocaleString('en-GB')} farm shops
+            </p>
+            <h1 className="font-clash text-4xl md:text-5xl lg:text-6xl font-semibold text-ink tracking-tight leading-[1.05] mb-4">
+              Farm Shops by County
             </h1>
-            <p className="text-xl md:text-2xl text-white/90 mb-4 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Discover authentic farm shops organized by county across the UK.
+            <p className="text-body md:text-lg text-ink-muted leading-relaxed mb-6">
+              Pick a county and see every farm shop we have in it.
             </p>
-            <p className="text-body text-white/80 mb-8 leading-relaxed drop-shadow-md max-w-3xl mx-auto">
-              Find local producers and fresh food in your area.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-3">
               <Link
                 href="#counties-content"
-                className="bg-brand text-brand-text px-8 py-4 rounded-[2px] font-semibold hover:bg-brand-hover transition-colors duration-200 inline-flex items-center justify-center gap-2"
+                className="inline-flex items-center justify-center gap-2 min-h-[44px] px-6 py-3 rounded-[2px] bg-brand text-brand-text font-semibold transition-colors duration-200 hover:bg-brand-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
               >
                 <MapPin className="w-5 h-5" />
                 Browse Counties
               </Link>
               <Link
                 href="/map"
-                className="bg-white/10 backdrop-blur-sm border border-white/20 text-white px-8 py-4 rounded-[2px] font-semibold hover:bg-white/20 transition-colors duration-200 inline-flex items-center justify-center gap-2"
+                className="inline-flex items-center justify-center gap-2 min-h-[44px] px-6 py-3 rounded-[2px] bg-surface text-ink border border-ink font-semibold transition-colors duration-200 hover:bg-ink hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand focus-visible:ring-offset-2 focus-visible:ring-offset-paper"
               >
                 View Map
                 <ArrowRight className="w-5 h-5" />

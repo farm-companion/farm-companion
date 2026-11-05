@@ -163,7 +163,7 @@ export class ProfileGenerator {
   /**
    * Generate fallback alt text
    */
-  generateFallbackAltText(farm) {
+  generateFallbackAltText(_farm) {
     const altText = `Farm shop exterior with local produce on display`;
     console.log('🔄 Using fallback alt text');
     return {

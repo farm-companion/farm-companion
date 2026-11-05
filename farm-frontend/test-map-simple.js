@@ -59,7 +59,8 @@ async function testMapEndpoints() {
   console.log('\n4️⃣ Testing static assets...');
   
   const assets = [
-    '/favicon.ico'
+    '/favicon.ico',
+    '/images/pitti/hero-homepage-dev-seed50920962-v2.webp'
   ];
   
   for (const asset of assets) {

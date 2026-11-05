@@ -179,3 +179,7 @@ farm-frontend/security-test-report.json
 
 # Per-subdir Claude tooling state (impeccable skill install lives here locally).
 farm-frontend/.claude/
+
+# Local dev-server config for the Claude Code browser preview. Machine-specific
+# (ports, package manager paths) and not part of the project.
+.claude/launch.json

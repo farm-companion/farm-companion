@@ -258,7 +258,7 @@ export async function sendSubmissionAckEmail(opts: {
 
   try {
     const html = `
-      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2>Thank you for your farm shop submission!</h2>
         <p>We've received your submission for <strong>${opts.farmName}</strong> and will review it within 2-3 business days.</p>
         <p>You'll receive another email once your farm shop has been approved and added to our directory.</p>

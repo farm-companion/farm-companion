@@ -5609,3 +5609,714 @@ hard limit, but the next addition should extract a sibling module rather than gr
 **Verified:** `npx tsc --noEmit` exit 0, `pnpm test:unit` 520 pass 0 fail (518 before; the two
 new ones are the attribution choice and the placeholder guard), and the placeholder rendered at
 400x200 and 800x400.
+
+---
+
+### 2026-11-02 — Image estate: 86 farm pages were serving 404 heroes, and the fix was data
+
+Found by measuring the estate rather than reading the schema. Full findings and the two open
+operator decisions: `docs/assistant/image-estate-audit-2026-11-02.md`.
+
+**The bug:** `scripts/generate-farm-images-direct.ts` generated 86 farm images through the Runware
+API on 2026-02-01, labelled them `uploadedBy: 'admin'` and kept the generator's own CDN URL as the
+permanent `url`. The bytes were never downloaded. Two defects from one mistake: `'admin'` is a
+real-photograph label, so `selectFarmHeroImage` promoted all 86 to the `/shop/[slug]` hero as
+`style: 'photo'` (the imagery law exists to forbid exactly that claim about an AI illustration), and
+Runware later evicted the files, so every one of those heroes returned 404. Verified live on
+`/shop/cw-shenton-farm-shop` and `/shop/honeydale-farm-tea-rooms` before the fix.
+
+**No application code changed.** The ponytail ladder removed the code fix entirely: the imagery law
+already excludes AI labels, the typographic hero already exists, and `ai_generator` is already tested
+as ignored. The rows were simply mislabelled. `scripts/backfill-runware-uploaded-by.ts` relabels them
+`ai_generator` and rejects them, matching on the CDN host rather than on `uploadedBy` so a re-run
+cannot touch a genuine admin photograph.
+
+**Verification (ran, passed):** liveness sweep before, 1,104 approved, 1,018 ok, 86 dead, all 86 the
+only hot-linked approved rows in the table. After, 1,018 approved, 1,018 ok, zero hot-linked, exit 0.
+Both live pages now render the typographic hero with no image host referenced. `npx tsc --noEmit`
+clean, `npm run test:unit` **532 pass / 0 fail**, eslint clean on all four files.
+
+**Instrument added:** `scripts/audit-image-liveness.ts`, which probes every row and exits 1 when an
+approved row fails, so it can gate a deploy. Its host rule lives in `src/lib/image-host.ts` with 10
+unit tests, including lookalike domains. Scopes other than `approved` hit geograph.org.uk, a free
+community service, so they require `--i-mean-it` and are rate limited.
+
+**A gate that cried wolf, fixed:** the first clean run reported 2 dead rows on our own object store.
+Both were transient 504s and answered 200 on retry. The sweep now retries 5xx and socket errors three
+times before calling a row dead. A gate that fires on a blip gets ignored, which is how the 86 went
+unnoticed for nine months.
+
+**Open for the operator, not executed:** delete the 11,727 pending Geograph rows (a 40-row sample
+found 1 that depicts its business, and several that depict a *different named business*, for example
+"Torvaig House Hotel" attached to Cnoc Deer Larder), and delete the `farm-photos` Vercel project (no
+source anywhere, still publicly serving a 431-day-old build with the leaked credentials compiled in).
+
+**Follow-up noted, not actioned:** no public photo submission route exists and
+`sendPhotoSubmissionReceipt` has no callers, so the pending/approved/rejected workflow has no way in.
+
+**File size:** `scripts/audit-image-liveness.ts` is 340 lines, past the 300 soft limit. Advisory only
+under the file size rules; noted here rather than split, since the reporting block it would shed is
+only meaningful next to the sweep it describes.
+
+**Risk/rollback:** The only production change is 86 rows' `uploadedBy` and `status`. Reversal SQL with
+the exact ids and prior values was captured before the UPDATE. Rolling back restores 86 approved heroes
+pointing at URLs that 404, so there is no reason to.
+
+---
+
+### 2026-11-02 — Geograph rows: the source was fine, the ranking key was wrong
+
+Revisits the "delete all 11,727" recommendation from the image estate audit. Full measurement:
+`docs/assistant/geograph-match-2026-11-02.md`.
+
+**The bug:** `src/scripts/pipeline/sources/geograph.ts` ranks Geograph candidates by metres from the
+farm coordinate. The syndicator response carries a photographer-written `title` and a `tags`
+taxonomy with a literal "Farm shop" category; `SyndicatorItem` declares `title` and `parseGeograph`
+reads neither. Friday Street Farm Shop therefore stored "Retro emporium" while "Friday Street Farm
+Shop" sat in the same response, two metres further away.
+
+**Gold set, committed:** 200 farms sampled by `md5(id)` in two halves of 100, 4,000 candidates, at
+`src/scripts/pipeline/fixtures/geograph-gold.json`. Labelled by viewing full-size photographs on
+contact sheets, not by reading titles. 19 of 200 farms (9.5%) have a photo that genuinely depicts
+the business.
+
+**Measured, and the held-out half earned its keep.** Naive token overlap matched 40% of farms and
+was wrong about 60% of those, attaching a police station to a chip shop. Matcher v1 scored 100% on
+the half it was written from and **71% on the held-out half**. Those four failures all had one
+shape, the title naming the business while the subject was an appurtenance, and produced two fixes:
+whole-word retail matching (substring had let "shop" match inside "Shopping Village") and an
+appurtenance rule. One label was corrected after viewing the photograph: Allington Farm Shop was
+marked negative from the picnic-shelter candidate when a photo of the shop itself existed.
+
+**Both halves are now tuned against, so the resulting 100% is not unbiased.** A third sample of 100
+is the first step of any follow-up, stated as such in the document.
+
+**Verification (ran, passed):** `npm run test:unit` **540 pass / 0 fail**, including 18 in
+`geograph-match.test.ts` which print per-sample precision and recall; `npx tsc --noEmit` clean;
+eslint clean. Files 258 and 249 lines, both under the soft limit. The fixture is 584K, which is
+large for the repo but is the evidence the numbers rest on.
+
+**Recommendation, not executed:** delete the 11,727 and re-run with `bestMatch` deciding admission.
+2,367 farms hold these rows, so 9.5% is roughly 225 farms gaining a genuine photograph. For scale,
+all 1,018 currently approved images are AI illustrations and the site has no real photography. Each
+candidate carries its own reason string, so review is under an hour for the whole directory, which
+is why the existing 11,727 were never reviewed and these could be.
+
+**Licence:** Geograph's own page confirms CC BY-SA 2.0 Generic. Our cc rows already populate
+attribution, sourceUrl and license, which the approved AI rows do not. ShareAlike needs a human
+decision: resizing to webp plausibly creates an Adaptation, which must then be offered under the
+same licence.
+
+**Risk/rollback:** Nothing written to the database and nothing wired into the pipeline. The matcher
+is a pure function; deleting the three new files reverts it entirely.
+### 2026-11-02 — Queue 2 Slice 2.1: farm-produce-images build unblocked by deleting dead code, not by adding a dependency
+
+**The blocker:** `pnpm build` compiled but then died on
+`src/lib/image-processing.ts(1,19): error TS2307: Cannot find module 'sharp'`. `sharp` is imported
+there but has never been declared in that package's `package.json`. This app's build has been broken on
+master the whole time; it was flagged in Slices 1.2 and 1.8 and deliberately left for Queue 2.
+
+**The obvious fix was the wrong one.** Declaring `sharp` would make the error go away, but it would add
+a large native dependency, with its own advisory history, to satisfy code nothing calls. Checked before
+deciding:
+- **Nothing imports `image-processing.ts`.** The only reference anywhere in the package is a line in
+  `README.md`'s file-tree diagram.
+- It is the **only** file in the package importing `sharp`.
+- `git log --follow` shows it unchanged since the **initial commit** (e29cab62, 2025-08-23) — 14 months
+  untouched.
+- It was superseded: `src/app/api/upload/route.ts` does its work through `@/lib/storage`
+  (`uploadProduceImage`), not through this module.
+
+So it is abandoned scaffolding, not pending work. **Deleted it** (200 lines, 8 exported symbols) and
+removed its line from the README file-tree, fixing the tree's trailing connector so `database.ts` now
+ends the `lib/` branch.
+
+**If this judgement is wrong it is one command to undo:**
+`git checkout ba16021^ -- farm-produce-images/src/lib/image-processing.ts`, then
+`pnpm add sharp` in that package. Recorded here precisely so the decision is reversible.
+
+**Verification (ran, passed):** `pnpm build` now completes — `✓ Compiled successfully`, full route
+table emitted, and **no "Failed to type check"**, which is the line that used to end the build.
+`npx tsc --noEmit` exits clean.
+
+**Risk/rollback:** Removes code that nothing referenced and that never ran. Rollback is the command
+above.
+
+**Next:** Slice 2.2 — twitter-workflow has ESLint 9 and `@eslint/js` installed but no flat config, so
+`npm run lint` fails before linting anything.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.2: twitter-workflow had ESLint 9 installed and no config, so lint never ran
+
+**The blocker:** `npm run lint` failed with
+`ESLint couldn't find an eslint.config.(js|mjs|cjs) file` — it never linted a single line. The package
+already had `eslint ^9.39.2` and `@eslint/js ^9.0.0` as devDependencies and is `"type": "module"`;
+somebody installed for flat config and never wrote the config. Flagged in Slice 1.3 and left for Queue 2.
+
+**Added `eslint.config.js`** (flat, ESM, `js.configs.recommended`, `ecmaVersion: 2024`,
+`sourceType: 'module'`, Node globals).
+
+**Declared `globals` as a devDependency rather than importing the phantom one.** `globals` was already
+resolvable from disk, but only as a transitive dependency of eslint — importing it in the config without
+declaring it would have worked today and broken silently whenever eslint's dependency tree shifted.
+This is the slice's one new dependency and it is the canonical companion to a flat config; the
+alternative was hand-maintaining ~82 Node global names inline, which drifts.
+
+**Also fixed the lint script**: `eslint src/**/*.js` -> `eslint src`. The old glob relies on shell
+globstar, which is off by default in bash, so it would have matched only one directory level even once
+a config existed. `eslint src` lets ESLint walk the tree and honour the config's own `files`.
+
+**Verification (ran):** `npm run lint` now **executes and reports 12 errors across 7 files**. That is
+the correct outcome for this slice, not a failure — the command went from "cannot run at all" to
+"runs and finds real defects". Two of the twelve are genuine bugs, not style noise; they are fixed in
+Slice 2.3 immediately following.
+
+**Risk/rollback:** Adds a config file and one devDependency; no source behaviour changes. Rollback:
+delete `eslint.config.js` and revert the two package.json edits.
+
+**Next:** Slice 2.3 — fix what the lint now reports, starting with the const reassignment that breaks
+the duplicate-post guard.
+
+**Risk/rollback:** Nothing written to the database, nothing wired into `parseGeograph`.
+---
+
+### 2026-11-02 — Queue 2 Slice 2.3: the two real bugs the broken lint had been hiding
+
+Slice 2.2 made `npm run lint` run for the first time. Two of its twelve findings were genuine defects,
+not style noise. Both are fixed here; the remaining ten are cosmetic and go in Slice 2.4.
+
+**Bug 1 — the duplicate-post guard threw on every call.** `src/lib/workflow-orchestrator.js`:
+```js
+const namespaced = `fc:tweeted:${today}`;
+if (key) namespaced += `:${key}`;   // TypeError: Assignment to constant variable
+```
+Both call sites pass a truthy key (`setWithLimitToday('post-${postNumber}', 1)` at line ~172 and
+`setWithLimitToday('daily', 2)` at line ~283), so the reassignment was unconditional. Fixed
+`const` -> `let`.
+
+**Why nobody noticed, precisely.** The function opens with
+`if (!KV_URL || !KV_TOKEN) return { enforced: false };`, and `UPSTASH_REDIS_REST_URL` /
+`UPSTASH_REDIS_REST_TOKEN` are **not set** in twitter-workflow's Vercel env (checked). So it returns
+early and never reaches the bug. Both call sites are also wrapped in `if (!isDryRun)`, so dry runs skip
+it entirely. The bug was therefore **latent**: it would have fired the first time anyone configured KV
+— that is, the moment they switched on duplicate-post protection, the code implementing it would have
+thrown. **Worth noting separately: because `enforced` is false today, the duplicate-post guard is
+currently inactive altogether** (`if (lock.enforced && !lock.created)` can never be true).
+
+**Bug 2 — a module that could not be parsed.** `src/scripts/test-deepseek-ogilvy.js:66` had
+`/[😀-🙏🌀-🗿]/` with no `u` flag. Without it the emojis are surrogate pairs, so the class forms an
+out-of-order implicit range and the file is a **SyntaxError at load**, breaking `npm run test:deepseek`
+outright. Rewritten as `/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}]/u`.
+
+**Also in workflow-orchestrator.js:** removed an unused `import axios` (axios is genuinely used in
+farm-selector, content-generator and monitoring, just not here, so the dependency stays), and dropped
+the unused `const expireResp =` binding while keeping the `await fetch(...)` for its side effect.
+
+**Verification (ran, passed) — each defect proved real before and fixed after, not just lint-silenced:**
+- Old regex in `node`: `SyntaxError: Invalid regular expression ... Range out of order`. New one
+  compiles and behaves: matches `'nice 😀'` -> true, `'no emoji here'` -> false.
+- `node --check src/scripts/test-deepseek-ogilvy.js` passes (it could not parse before).
+- Old const pattern reproduced in isolation: `TypeError: Assignment to constant variable.`
+  Fixed version returns `fc:tweeted:2026-11-02:daily`.
+- `npm test` **8 pass / 0 fail**. Lint findings **12 -> 8**.
+
+**Two checks that prevented bad fixes.** `getAltTextPrompt(farm)` and `generateFallbackAltText(farm)`
+both looked like bugs (take a farm, ignore it) but are correct by design — one returns a static prompt
+template, the other a deliberately generic fallback. They are renamed, not rewritten, in Slice 2.4.
+
+**Risk/rollback:** Three small edits in one file plus one regex literal; tests pass. Rollback: revert
+this commit.
+
+**Next:** Slice 2.4 — the eight remaining cosmetic unused-variable findings.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.4: the lib/ half of the remaining lint findings
+
+Cosmetic findings only; the real bugs went in 2.3. Each was read in context first, because three of the
+five looked like defects and were not.
+
+- **`eslint.config.js`** — added
+  `'no-unused-vars': ['error', { argsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' }]`, the
+  standard escape hatch for arguments kept for signature symmetry.
+- **`content-generator.js:31`** — `generateFarmSpotlight(farm, options = {})`. Its own JSDoc says
+  *"Content generation options (legacy support)"*, so the parameter is kept deliberately. Renamed
+  `_options` rather than deleted, which would change the method's arity.
+- **`farm-selector.js:2`** — `zonedTimeToUtc` imported from `date-fns-tz` and never used. Removed from
+  the import; `utcToZonedTime` and `format` are still used.
+- **`monitoring.js:8`** — `} catch {}` around an optional `dotenv` import guarded by
+  `NODE_ENV !== 'production'`. The swallow is correct (production injects env vars directly), so the
+  block now carries a comment saying so instead of being silently empty. Behaviour unchanged.
+- **`ogilvy-prompts.js:88`** `getAltTextPrompt(farm)` and **`profile-generator.js:166`**
+  `generateFallbackAltText(farm)` — both take a farm and ignore it, which reads like a bug. It is not:
+  the first returns a **static prompt template** that deliberately does not interpolate farm data, and
+  the second returns a **deliberately generic fallback**. Renamed `_farm`; neither was rewritten.
+
+**Verification (ran, passed):** lint findings **8 -> 3** (only the three `src/scripts/` ones remain).
+`npm test` **8 pass / 0 fail**. `node --check` passes on all five touched lib files.
+
+**Risk/rollback:** Renames, one import removal and one comment; no behaviour changes. Rollback: revert.
+
+**Next:** Slice 2.5 — the last three findings, all in `src/scripts/`, which takes lint to zero.
+
+---
+
+### 2026-11-02 — Queue 2 Slice 2.5: last three findings; twitter-workflow lint now exits 0
+
+- **`check-today.js:3`** — `import { workflowOrchestrator }` was the only occurrence of that name in
+  the file, so a genuinely dead import. Removed.
+- **`test-apple-ogilvy-content.js:179`** — unused second parameter of the `analyzeContent` diagnostic
+  helper. Renamed `_styleConfig` to keep its arity.
+- **`test-image-variety.js:99`** — `results.forEach((result, index) =>` never referenced `index`.
+  Dropped the parameter outright; unlike a named function's signature, a callback's trailing arg can go.
+
+**`npm run lint` now exits 0.** Both Queue 2 blockers are closed.
+
+**Verification (ran, passed) across everything touched:**
+- twitter-workflow: `npm run lint` **exit 0**; `npm test` **8 pass / 0 fail**; `node --check` on all
+  three scripts.
+- farm-produce-images: `pnpm build` `✓ Compiled successfully` with no "Failed to type check";
+  `npx tsc --noEmit` clean.
+- farm-frontend (not touched, checked for regressions): `pnpm test:unit` **513 pass / 0 fail**.
+
+**Queue 2 summary — what the two blockers actually were.** Neither needed the fix it appeared to need.
+The farm-produce-images build wanted a `sharp` dependency declared; the right answer was to delete 200
+lines of scaffolding that nothing had imported since the initial commit. twitter-workflow's lint looked
+like a missing config file; it was that, but fixing it surfaced **two genuine defects** that had been
+invisible for as long as lint had been broken — a `const` reassignment that would throw the moment
+duplicate-post protection was switched on, and an unparseable emoji regex that broke a test script
+outright.
+
+---
+
+### 2026-11-02 — Queue 3 audited: five of six items were already done; one real leftover fixed
+
+Audited each Track 0 item against the current code before planning any work, as with Queue 1. Queue 3
+has largely been overtaken by the Komoot S1-S4, M1-M3 and map-a11y 2.6-2.8 slices. Recording the
+evidence so nobody re-opens these.
+
+| Queue 3 item | Status | Evidence |
+|---|---|---|
+| Remove production console logs | **already done** | **Zero `console.log`** in `src/features/map` or `src/app/map`. The 14 remaining calls are all `console.warn` / `console.error` — legitimate diagnostics, not debug noise. |
+| Fix `MapShell.tsx` type safety | **stale + done** | `MapShell.tsx` does not exist; it is `MapLibreShell.tsx` (the `components/map` subgraph was deleted in f330f14). That file has **zero** `as any`, `: any`, `@ts-ignore` or `@ts-expect-error` — the lint-cleanup in dc6d9ee cleared them. |
+| Cluster event handling + state races | **already done** | The marker effect's deps include its handlers (`[clusters, isCluster, handleClusterClick, handleMarkerClick, onFarmHover, showFullIcons]`), so no stale closures. The init effect's `[]` deps *were* a genuine stale-closure trap for `onBoundsChange`; it was found and fixed in **S3b** with `searchAsIMoveRef`, and `page.tsx:337-342` documents exactly that. Listener cleanup is handled by `map.remove()` — the 12 `addEventListener` / 0 `removeEventListener` asymmetry is safe because those listeners sit on marker elements that are discarded with the markers. |
+| Desktop marker interactions via popovers | **already done** | `isDesktop` prop, `hoveredFarmId`, `mouseenter`/`mouseleave` handlers on both marker types, `MarkerPreview.tsx` / `FarmPreviewCard.tsx`, and the one-popover invariant from Komoot S4 (b8982d8). |
+| **Fix ClusterPreview data loss** | **already done** | Not reachable. `getClusterLeaves(clusterId, 100)` fetches up to 100 — and the preview only opens when `count <= CLUSTER_ZOOM_THRESHOLDS.PREVIEW_MAX_COUNT`, which is **8**. Truncation is impossible. Overflow beyond the 5 shown is deliberate, with a "View all {count} farms" affordance. Note the supercluster default limit is 10; passing 100 explicitly is what makes this safe, so **do not drop that argument**. |
+| Extract Haversine to `src/shared/lib` + unit test | **done, with one leftover — fixed here** | `src/shared/lib/geo.ts` + `geo.test.ts` already exist and every consumer imports from them — except one. |
+
+**The one real fix.** `src/lib/schemas.ts` still carried a **private duplicate** haversine (12 lines,
+its own `R = 6371`), used by `dedupeFarms`. Replaced with `import { calculateDistance } from
+'@/shared/lib/geo'`. The two implementations were mathematically identical — same radius, same formula,
+same `2*atan2(sqrt(a), sqrt(1-a))`; the shared one factors out a `toRadians` helper where schemas
+inlined `* Math.PI / 180`.
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean; `pnpm test:unit` **545 pass / 0 fail**; and
+the old inline implementation was run side by side with the shared one over four coordinate pairs —
+**max difference 0, bit-identical** — so `dedupeFarms`' proximity threshold behaviour cannot have
+shifted.
+
+**Risk/rollback:** One import swapped for an identical implementation, proven numerically equivalent.
+Rollback: revert the commit.
+
+**Queue 3 is therefore closed.** The remaining Track 0 value is not in this list; if more map work is
+wanted it needs a fresh survey rather than these six items.
+
+---
+
+### 2026-11-02 — Queue 4 Slice 4.1: the impeccable merge gate was failing; now exits 0
+
+CLAUDE.md gates merge on `npx impeccable detect src/` exiting 0. It was exiting **2** with **11
+anti-patterns** across 5 files. Fixed; it now exits **0**.
+
+**What the 11 were, and why each fix is what it is:**
+- **8 x `ai-color-palette`** — indigo/purple stat-tile numbers on three admin pages
+  (`admin/produce`, `admin/produce/stats`, `admin/documentation`). Replaced with `text-brand`, the
+  project's own documented primary. Also dropped the paired `dark:` variants: `globals.css` line 11
+  states *"this site is light-only on purpose"* and redefines the dark variant to a `.dark` class that
+  is never set, so those were dead classes.
+- **2 x `side-tab`** — `border-left: 4px solid #00C2B2` in `email.service.ts`. The rule's own advice is
+  a subtler accent or none, and the colour was off-brand anyway (Serum Teal, the *previous* brand), so
+  the bar is gone and the panel background stays.
+- **1 x `overused-font`** — `font-family: Arial` in one `email.ts` template. **Not** replaced with a
+  distinctive face: this is transactional email HTML, where webfonts do not render and web-safe stacks
+  are correct. Aligned it instead with the stack the other three templates already use
+  (`-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`), which satisfies the rule and
+  removes a one-off inconsistency. A suppression comment was the alternative; consistency was better.
+
+**Verification (ran, passed):** `npx impeccable detect src/` **exit 0** (was 2);
+`npx tsc --noEmit` clean; `pnpm test:unit` **545 pass / 0 fail**.
+
+**The static gate is an undercount — the tool says so itself:** *"459 files scanned with regex matching
+only... Rules that need a parsed page (tiny-text, low-contrast and other element rules) did not run."*
+So a live scan was run against the dev server at **375x812**, the conversion-floor viewport. It found
+**9 more** on the homepage alone, recorded in the next slice.
+
+---
+
+### 2026-11-03 — Queue 4 Slice 4.2: five WCAG AA contrast failures fixed, found only by the live scan
+
+The static gate (Slice 4.1) passes but is an undercount by the tool's own admission — contrast rules
+need a parsed page. A live scan of the dev server at **375x812** (the conversion-floor viewport) found
+**9** findings on the homepage, **5 of them genuine WCAG AA contrast failures**. All five are fixed;
+**low-contrast is now 0** and the total is down to 4.
+
+**Failure 1 — `--ink-subtle` was below AA, and in *both* themes, in opposite directions.**
+Measured, not estimated:
+| token | on | ratio | verdict |
+|---|---|---|---|
+| `--ink-subtle` soil-500 `#78716C` | Cream `#F2EBDA` | **4.04:1** | fails (needs 4.5) |
+| `--ink-subtle` soil-500 `#78716C` | dark paper `#15120D` | **3.89:1** | fails |
+
+This is the trap: on cream the token must get **darker**, on dark paper it must get **lighter**. One
+ramp value cannot serve both, and the Soil ramp has no step between 500 and 600 — and 600 is already
+`--ink-muted`, so reusing it would have collapsed two tiers into one. Set explicit per-theme values
+instead, matching how the surrounding contrast-critical tokens in this file are written (literal hex
+plus a documented ratio):
+- light: `#6B655F` -> **4.84:1** on cream, still lighter than muted (6.42:1), so three tiers survive
+- dark (x2 blocks): `#908A85` -> **5.48:1** on dark paper, still dimmer than muted (7.41:1)
+
+This token drives **placeholder text** — "Postcode, town, or farm name" and "your@email.com" were the
+flagged instances.
+
+**Failure 2 — brand text on an ink ground.** `--brand` `#D33A2C` on `--ink` `#0F0E0C` is **4.05:1**.
+Traced to `Footer.tsx:117` and `:201`, the "{month} edition" spans inside
+`<footer className="bg-ink text-paper">`. The dark *theme* was never the problem — it already uses
+`#FF6B5B` as `--brand`. This is a light-theme component sitting on a dark surface.
+Added a semantic token **`--brand-on-dark`** (`#FF6B5B`, the dark-ground vermilion already documented
+in `.impeccable/design.json`, **6.9:1**), mapped `--color-brand-on-dark` in the `@theme` block so
+Tailwind generates `text-brand-on-dark`, and pointed the two footer spans at it. In the dark theme the
+token aliases `var(--brand)`, which is already light-on-dark.
+
+**Verification (ran, passed):** live re-scan at 375x812 — **low-contrast findings 5 -> 0**, total
+**9 -> 4**. `npx impeccable detect src/` still **exit 0**. `npx tsc --noEmit` clean. `pnpm test:unit`
+**545 pass / 0 fail**. Footer checked in the browser: "November edition" renders as the lighter salmon
+vermilion, legible on ink and still reading as the brand.
+
+**The 4 remaining live findings are deliberately NOT fixed, because the tool is wrong about this
+codebase:**
+- **`cream-palette`** flags `rgb(242,235,218)` as the default "tasteful AI" background. It is
+  **"Cream Paper", a named brand colour in `.impeccable/design.json`**. The detector has no way to know
+  that; overriding the brand to satisfy it would be backwards.
+- **3 x `kicker-above-heading`** ("In Season", "Peak Season", "Farm Companion Journal") are deliberate
+  editorial devices from the Pitti Press work, not generated filler.
+
+Because of those four, the **live** scan will keep exiting 2. Only the static `detect src/` gate that
+CLAUDE.md actually names exits 0. Worth deciding later whether to encode these as project-level
+detector ignores so a live scan can be gated too.
+
+---
+
+## 2026-11-02 — Slice 1.14: the 11,727 Geograph candidate rows are gone
+
+**Operator decision: drop the rows only.** No pipeline re-run. The matcher stays on this branch
+unwired, so the 85-photograph yield is not being collected.
+
+**What the delete touched.** `uploadedBy = 'cc'` turned out to be exactly this population and
+nothing else: 11,727 rows, every one a `geograph.org.uk` URL, every one `status = 'pending'` with
+`isHero = false`, spread over 2,367 farms. No geograph URL carried any other `uploadedBy`. Script:
+`farm-frontend/prisma/data-fixes/2026-11-02-geograph-candidates-drop.sql`.
+
+**Gate.** The script deletes inside a transaction and raises if the row count is not 11,727 or if
+any geograph URL survives. Proved both ways before running for real: a rehearsal with `ROLLBACK`
+passed and left all 11,727 in place, and the same script with the count changed to 11,728 aborted
+with `ERROR: expected to remove 11728 rows, removed 11727`, rows intact. A check that cannot fail
+is not a gate.
+
+**Nothing was reading them.** Every image read in app code filters `status: 'approved'`
+(`api/farms/route.ts`, `farms/weekend/route.ts`, `farm-data.ts`, `cache-strategy.ts`,
+`queries/farms.ts`, `queries/categories.ts`, `queries/counties.ts`). The one `prisma.image.findMany`
+also restricts `uploadedBy` to an allowlist that never held `'cc'`. The rows were doubly
+unreachable, which is why they rotted unnoticed for five months.
+
+**Verification (ran, passed):** `images` went from 12,831 rows to 1,104 — 1,018 approved
+photographs on our own object storage, 86 rejected AI rows. `geograph_left = 0`, `cc_left = 0`.
+
+**Follow-up, not actioned.** `src/app/data-attributions/page.tsx` still tells readers that "some
+place photographs are sourced from Geograph Britain and Ireland". With zero Geograph rows in the
+database that sentence is now false. It is a licensing page, so it should either come out or wait
+for the matcher to be wired; that is an operator call, not a silent edit.
+
+**Risk/rollback:** The rows are not backed up and do not need to be, being reconstructible by
+re-running stages 05 and 07 against the syndicator. Do not re-run before `geograph-match.ts` is
+wired into `sources/geograph.ts`, or the same distance-ranked rows come straight back.
+
+---
+
+## 2026-11-02 — Slice 1.14b: the attributions page no longer credits Geograph
+
+**Operator decision: remove it.** The Geograph bullet under Photography is gone from
+`src/app/data-attributions/page.tsx`. With zero Geograph rows in the database the sentence had
+become false, and it sat on a licensing page.
+
+**What the check turned up next, which is worse than the sentence.** The surviving 1,104 image rows
+break down as 1,018 `ai_apothecary` approved and 86 `ai_generator` rejected, all `source = 'upload'`,
+and **not one row carries an attribution value**. So the directory currently holds no photographs at
+all. Two consequences:
+
+1. The remaining Photography bullet, crediting Wikimedia Commons, is unbacked for the same reason
+   the Geograph one was. `fetchWikimedia` is still wired into stage 05, so it is forward-looking
+   rather than wrong, but nothing it claims is on the site today. Left in place pending a decision.
+2. The page says "photographs" throughout while every approved image is an Apothecary illustration.
+   Whether an attributions page should disclose that is a policy question, not a typo, so it is
+   recorded here rather than silently rewritten.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0, zero `error TS`; `npx eslint` on the
+edited file exit 0. Grep confirms this page was the only reader-facing Geograph or Wikimedia credit
+in `src/app`, `src/components`, `src/lib` and `src/data` — the other `geograph` hits are the word
+"geography" in `best-lists.ts` curriculum prose and `geographic` in query code.
+
+**Risk/rollback:** One `<li>` deleted from a static page; revert the commit to restore it.
+
+---
+
+## 2026-11-02 — Slice 1.14c: the attributions page says what is actually on the site
+
+**Operator decision: rewrite it.** The Photography section is now Imagery, and it describes the
+illustrations rather than crediting two photo sources the database does not hold.
+
+New copy, scored 5/5 CLEAN on `deslop.py` before it went in:
+
+> Farm and county artwork is our own illustration, drawn to a house style by a text-to-image model
+> and served from our own storage, so it carries no third-party licence.
+>
+> Where a photograph is used instead, the photographer's name and its licence are kept with the
+> image and used for its credit.
+
+Both claims are checkable. `ai_apothecary` and Pitti artwork comes from Runware FLUX-dev
+(`src/lib/apothecary-style.ts`, `src/scripts/generate-apothecary-batch.ts`), lands on our own
+object storage, and the Apothecary negative prompt bans photorealism outright. The credit path is
+real but dormant: `farm-imagery.ts` classifies a row with an `attribution` value as `kind: 'cc'`
+and `FarmListCard` renders the cue.
+
+**The draft said "no third-party photographs are on the site" and that was false.** Caught it before
+committing, by checking `public/` instead of trusting the database:
+
+- **`public/counties.jpg` carries an EXIF copyright field reading `Michel PERES`.** It is rendered
+  full-bleed as the hero of `/about` and `/counties` (`about/page.tsx:105`, `counties/page.tsx:90`),
+  1920x1277, Photoshop-processed at 300dpi. No licence record exists anywhere in the repository and
+  the photographer is credited nowhere on the site. **Resolved the same day: the operator licensed
+  it through their Adobe subscription, so the EXIF name is the photographer's, retained by the
+  stock download, and no credit is owed.** See Slice 1.14d. What remains is the missing record, not
+  a missing licence.
+- Ten more unprovenanced rasters sit in `public/` (`main_header.jpg`, `about.jpg`,
+  `overlay-banner.jpg`, `produce-secondary-image.jpg`, `seasonal-header.jpg`, `add.jpg`,
+  `feedback.jpg`, `oranges-background.jpg`, `og.jpg`, `about-header.jpg`). Only `counties.jpg`
+  names a copyright holder in EXIF; the rest carry none, which is not the same as being ours.
+- Unrelated but found on the way: `layout.tsx:171` preloads `main_header.jpg` at
+  `fetchPriority="high"` on every page, and nothing renders it any more. The homepage hero is
+  `/images/pitti/hero-homepage-dev-seed50920962-v2.webp`. That is a 4096x1376 JPEG fetched at high
+  priority for nothing, on every route.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0, zero `error TS`; `npx eslint` on the page
+exit 0; `deslop.py --text` 5/5 CLEAN on the new copy. Cleanse and judge were not run: both ship the
+draft to OpenAI through the codex CLI, which needs the operator's say-so each time.
+
+**Risk/rollback:** One static page's copy. Revert the commit to restore the old section. No claim in
+the new copy depends on the unresolved `counties.jpg` question.
+
+---
+
+## 2026-11-03 — Slice 1.14d: counties.jpg is licensed, and the copy was wrong about credits
+
+**Correction.** Slice 1.14c called `public/counties.jpg` a gap-filler nobody licensed and asked for
+a decision on it. The operator licensed it through their Adobe subscription. The `Michel PERES`
+string in its EXIF is the photographer's copyright notice, retained by the stock download, which is
+normal. Nothing is owed to anyone and nothing needs replacing. The Slice 1.14c bullet is corrected
+in place; this entry is why.
+
+**But the copy it led me to write was over-promising.** The Imagery section said the photographer's
+name and licence "are kept with the image and used for its credit". For the one photograph actually
+on the site that is false: the name is in the EXIF, and no credit is shown anywhere, because a
+standard stock licence does not ask for one. Replaced with copy that covers both cases:
+
+> A photograph here is either licensed stock or published under an open licence. Credit is shown
+> where the licence asks for it, and the photographer's name is kept with the file either way.
+
+5/5 CLEAN on `deslop.py`. True of `counties.jpg` (stock, no credit required, name in EXIF) and of
+any future CC row (`farm-imagery.ts` marks a row carrying `attribution` as `kind: 'cc'` and
+`FarmListCard` renders the cue).
+
+**What is still open, and it is a records gap rather than a licensing one.** Nothing in the
+repository says `counties.jpg` is licensed. That absence is what sent me looking, and it will send
+the next reader looking too. The ten other rasters in `public/` are in the same position:
+`main_header.jpg`, `about.jpg`, `overlay-banner.jpg`, `produce-secondary-image.jpg`,
+`seasonal-header.jpg`, `add.jpg`, `feedback.jpg`, `oranges-background.jpg`, `og.jpg`,
+`about-header.jpg`. A sidecar per file, on the pattern already used for Vecteezy downloads
+(`<file>.json`), would close it, but the Adobe asset IDs and licence dates are only in the
+operator's Adobe licence history.
+
+**Still unactioned from 1.14c:** `layout.tsx:171` preloads `main_header.jpg` at
+`fetchPriority="high"` on every route and nothing renders it. A 4096x1376 JPEG fetched for nothing,
+site-wide.
+
+**Risk/rollback:** One sentence of static copy and two ledger paragraphs. Revert the commit.
+
+---
+
+## 2026-11-03 — Slice 1.14e: counties.jpg identified, and the record now exists
+
+**Identified from the operator's Adobe licence history**, read in their browser. `counties.jpg` is
+Adobe Stock [#432778337](https://stock.adobe.com/uk/images/paysage-des-monts-du-lyonnais-dans-le-departement-du-rhone-en-france-au-printemps/432778337),
+"Paysage des Monts du Lyonnais dans le departement du Rhone en France au printemps" by `michel`,
+Standard Licence, 25 August 2025.
+
+Three independent signals agree, which is why this is a match and not a guess: the EXIF copyright
+`Michel PERES` against the one contributor named `michel` in 105 licensed assets; the asset page
+marked Downloaded on this account; and the geometry, 6048x4024 downscaled by 3.15 giving 1920x1277,
+which is our file exactly.
+
+**The photograph is of France.** Its alt text says "UK counties" on `/counties` and "the British
+countryside" on `/about`. Licensing-clean, and lying about itself on a UK farm directory. Operator's
+call, not a silent edit.
+
+**New file: `docs/image-licences.md`.** One table, not eleven sidecars. The Vecteezy convention puts
+a `<file>.json` beside each image, but `public/` ships to the web, and a per-file record would serve
+eleven licence documents to the internet to solve a problem one table solves. The table also carries
+the unused-file list so a later deletion is not mistaken for a loss.
+
+**Two files remain unidentified**, `seasonal-header.jpg` and `main_header.jpg`. Pages 3 to 5 of the
+licence history were read and neither appears; the rainbow produce flat-lay that is
+`seasonal-header.jpg` is not among them, so it is on pages 6 to 11. Stopped there rather than
+screenshotting six more pages for two files, one of which is rendered nowhere.
+
+**Verification (ran, passed):** asset page read from `stock.adobe.com` in the signed-in browser
+showing File #432778337, dimensions 6048x4024 and the Downloaded state; `file` on the local copy
+giving 1920x1277 and `copyright=Michel PERES`.
+
+**Risk/rollback:** One new documentation file. Nothing in `src` changed.
+
+---
+
+## 2026-11-03 — Slice 1.14f: the French photograph is out, our own illustration is in
+
+**Operator's instruction: "use pitti".** The `/about` and `/counties` heroes now carry
+`public/images/pitti/hero-homepage-dev-seed50920962-v2.webp`, the illustration the homepage already
+uses. `counties.jpg` is referenced nowhere in `src` and the alt text claiming UK countryside is
+gone with it.
+
+**A straight file swap was measured first, and it failed.** Dropped into the existing treatment the
+poster collapsed to a flat grey-brown wash: four stacked black gradients over artwork built from
+flat colour leave no structure. With the gradients removed the artwork was excellent and the white
+and vermilion headings sat directly on it, "County" in vermilion over an orange field. One contrast
+failure traded for another.
+
+**So the treatment changed with the image.** Both heroes adopt the homepage pattern from brief
+section 5.2: full-bleed illustration, copy in a contained `bg-paper/92` panel with `backdrop-blur`,
+ink on cream. The copy never touches the artwork, so the headings keep their contrast whatever the
+image behind them does. Four gradient divs, a `backdrop-blur` badge and a `blurDataURL` went with
+the old treatment.
+
+**`bg-paper/92`, not `bg-[#F2EBDA]/92`.** The homepage hardcoded the cream. `--paper` flips to
+`#15120D` in dark mode while `--ink` flips to `#F4F1EA`, so the hardcoded panel rendered cream text
+on a cream card for any visitor on the dark theme. `AnimatedHero.tsx` now uses the token too. In
+light mode the rendering is identical, because `--paper` is that same hex.
+
+**`main_header.jpg`'s dead preload is gone** (carried from 1.14c and 1.14d). It was the only
+reference to the file anywhere in `src`: a `fetchPriority="high"` preload of a 4096x1376 JPEG, on
+every route, for an image no page renders.
+
+**Two copy claims were dropped because they are not true.** `/about` said "1,247 farms". The
+directory renders 3,504. The `/counties` kicker drafted as "Every county in Britain" became
+`{farms.length}` interpolated from the data already in scope, so it cannot go stale. Worth noting
+separately: the page groups into **280** distinct county strings, which is roughly three times the
+number of counties in Britain, so the `county` field is holding towns and regions as well.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0. `npx eslint` on the four changed
+files, exit 0. Both pages rendered on the dev server at 375x812 and at desktop width, with no
+console errors.
+At 375x812 the `/counties` hero is 528px, the primary CTA sits at y=443 with a 285x50 box, which is
+0.61 screens, and no tap target anywhere on the page is under 24x24. Panel text measures
+`rgb(15,14,12)` on `--paper`. Muted body copy is 6.4:1 on it, and 5.9:1 in the worst case where the
+8% that shows through the panel is black. Copy scored 5/5 on deslop for both heroes.
+
+**Risk/rollback:** Two hero compositions and one shared panel class. No data, routes or metadata
+is touched. Revert the commit and the old heroes come back with `counties.jpg`.
+
+**Next:** `seasonal-header.jpg` is still unidentified in the Adobe licence history (pages 6 to 11),
+and nine unused rasters in `public/` are still waiting on the operator's delete decision.
+
+---
+
+### 2026-11-03 — Queue 5 audited: all four items already implemented; one micro-waste removed
+
+Audited each Queue 5 item against the code before planning work. **All four are already done** — this
+queue has been overtaken like Queues 3 and 4. Evidence recorded so nobody re-opens it.
+No live database was reachable (the `postgresql` MCP server failed to connect, and `DATABASE_URL` is
+not set here), so this is a static audit: schema, call sites and config. Query *plans* were not measured.
+
+| Queue 5 item | Status | Evidence |
+|---|---|---|
+| Fix N+1 queries | **already done** | No N+1 in runtime code. No `for`/`forEach`/`while` loop in `src/app`, `src/lib`, `src/components` or `src/features` contains an awaited Prisma call. `counties.ts` — which a loose grep flags — actually shows the *fix* pattern: `groupBy` for counts, `Promise.all` for parallel reads, and collecting ids then a single `findMany({ id: { in: … } })`. The one `.map(async` in runtime code (`AddressAutocomplete.tsx:67`) is an external postcode lookup, `slice(0,5)`-capped and resolved with `Promise.all`, so parallel rather than serial. Remaining hits are batch scripts (pipeline, import, seed), where sequential queries are the right trade. |
+| Add indexes, incl. geospatial strategy | **already done** | **20** `@@index`/`@@unique` on `Farm` alone — including three composites for location: `[latitude, longitude]`, `[latitude, longitude, status]`, `[county, latitude, longitude]` — plus Image 8, Event 8, Review 4, BlogPost 4, Product 3. |
+| Stage PostGIS safely if needed | **already done, and genuinely "safely"** | `prisma/migrations/enable_postgis.sql` and `POSTGIS_SETUP.md` exist as *staging* artefacts, not an applied migration; `datasource` declares `extensions = [postgis]` and the generator has `previewFeatures = ["postgresqlExtensions"]`. The schema also carries the exact `geography(POINT, 4326)` / `ST_DWithin` migration recipe in comments. |
+| Add connection pooling | **already done** | `src/lib/prisma.ts` is a documented singleton: PgBouncer in **transaction mode**, `DATABASE_POOLER_URL` for app queries vs `DATABASE_URL` for migrations, plus `connection_limit`, `pool_timeout`, `connect_timeout`, and a `getDatasourceUrl()` that appends `connection_limit` to avoid pool exhaustion when Next prerenders pages concurrently. |
+
+**Unbounded `findMany` swept as a separate risk — 8 in runtime code, 7 of them correct.** The farms
+endpoint (`api/farms/route.ts`) *is* paginated (`take: limit, skip: offset`, plus `take: 3` on
+relations); the rest read small fixed sets (categories, facets) or are bounded upstream by an `in:`
+list.
+
+**The one real finding, fixed here:** `api/farms/open-now-count/route.ts` selected
+`{ id: true, openingHours: true }` but the loop never reads `farm.id` — **0 references**. On ~3,500
+active farms that pulled roughly 126 KB of UUIDs per cache miss for nothing. Dropped `id` from the
+select. The route is otherwise sound: it selects only the columns it needs, and is cached
+`s-maxage=300, stale-while-revalidate=60`. Loading rows to compute "open now" is unavoidable in SQL
+here because `openingHours` is JSON and the check is timezone-dependent.
+
+**Verification (ran, passed):** `npx tsc --noEmit` clean; `pnpm test:unit` **545 pass / 0 fail**;
+`pnpm build` `✓ Compiled successfully`; `npx impeccable detect src/` still **exit 0**.
+
+**Pattern worth acting on.** Queue 3, Queue 4's token items and now all of Queue 5 were already
+implemented when audited. The CLAUDE.md queue is drifting from the codebase faster than it is being
+updated, and working it item-by-item now costs more in audit than it returns in fixes. It is worth
+rewriting the queue against the current code rather than continuing down the list.
+
+---
+
+## 2026-11-03 — Slice 1.14g: nine unused rasters out of public/, 54MB to 31MB
+
+**Operator decision: delete all nine.** `oranges-background.jpg` (7.2M), `add.jpg` (4.5M),
+`about.jpg` (4.4M), `produce-secondary-image.jpg` (3.3M), `main_header.jpg` (1.4M),
+`counties.jpg` (822K), `about-header.jpg` (586K), `feedback.jpg` (596K) and `overlay-banner.jpg`
+(340K). `public/` measured 54MB before and 31MB after.
+
+**The gate was a grep that could fail, and it did.** Searching the full filename across everything
+outside `public/`, `docs/` and `context/` found two live references, which is why this was not a
+blind delete. `HeroVideoBackground.tsx:160` named `main_header.jpg` in a JSDoc usage example, and
+`test-map-simple.js:63` fetched `/overlay-banner.jpg` as its static-asset check. Both now point at
+`/images/pitti/hero-homepage-dev-seed50920962-v2.webp`, the hero that actually ships. The first
+pass of that grep searched the basename without its extension and returned thousands of prose
+matches, which proved nothing. Matching the whole filename is what made it a gate.
+
+**`test-map-simple.js` is not wired to anything.** No npm script and no workflow runs it, and it
+logs status codes rather than asserting on them, so a 404 there would have been silent. That is the
+reason to fix the reference rather than rely on something noticing.
+
+**Seven of these were already queued for deletion in PR #226**, the brand/social-kit asset audit,
+which is open, unreviewed and conflicting. Deleting the same paths here is a clean auto-merge, so
+those seven simply become no-ops in #226 whenever it lands. `counties.jpg` and `main_header.jpg`
+were not in #226; they only became unused in Slice 1.14f earlier today.
+
+**Licence records for the deleted files stay** in `docs/image-licences.md`, marked deleted. The
+Adobe licence for `counties.jpg` still holds and Adobe offers a free re-download, so the row is
+worth more than the file was.
+
+**Not touched:** `farm-frontend/PERFORMANCE_OPTIMIZATION_SUMMARY.md` still names
+`overlay-banner.jpg`. It documents work done in the past, so rewriting it would be falsifying a
+record, not fixing a reference.
+
+**Verification (ran, passed):** filename grep over the whole repo outside `public/` and the
+documentation folders, zero remaining references. `npx tsc --noEmit` exit 0. `npx eslint` on both
+patched files produced nothing new. Each already carried its findings before I touched it, and I
+reproduced both against the same files on master to be sure: a `require()` error in the smoke
+script, and in `HeroVideoBackground.tsx` an effect that calls setState plus one unused prop. No local `next build` was
+run. The worktree borrows the main checkout's `node_modules` and has none of the build-time
+environment, so a failure there would have said nothing about this change. Vercel builds the PR in
+the right environment, and that is the build gate.
+
+**Risk/rollback:** Deletions and two one-line reference fixes. Revert the commit and all nine files
+return, since git holds them.
+
+**Next:** `seasonal-header.jpg` is the last unidentified stock file, on pages 6 to 11 of the Adobe
+licence history.
