@@ -1,21 +1,46 @@
 import { ImageResponse } from 'next/og'
 import { NextRequest } from 'next/server'
+import { parsePlate, isPlateSlug, type PlateShape } from '@/lib/map-plate'
+import { PAPER, INK, VERMILION, SEA_INK, REGISTRATION_OFFSET, brandFont } from './brand'
+import { SITE_URL } from '@/lib/site'
 
 export const runtime = 'edge'
 
-// Rotocalco Press, four flat inks. Spec: docs/superpowers/specs/2026-05-19-pitti-press-design.md
-const PAPER = '#F2EBDA'
-const INK = '#0F0E0C'
-const VERMILION = '#D33A2C'
-const SEA_INK = '#1F3A5F'
+// Palette, registration offset and font all come from ./brand, which the
+// social renderer shares. They were duplicated here until that second
+// renderer existed, and duplicated brand constants are exactly how this
+// project came to ship three different palettes at once.
 
-// The brand's misregistration tell: the second ink lands slightly off the first,
-// the way a two-colour press does. Fixed once here so every card shares it.
-const REGISTRATION_OFFSET = 7
+/** OSM data is ODbL, so a card showing a plate must say so on the card. */
+const PLATE_ATTRIBUTION = '© OpenStreetMap contributors'
 
-const clashDisplay = fetch(
-  new URL('./ClashDisplay-Semibold.ttf', import.meta.url)
-).then((res) => res.arrayBuffer())
+/**
+ * A farm's pre-generated map plate as inline shapes, or null if it has none.
+ *
+ * Plates are generated offline by `scripts/generate-map-plates-batch.ts` and
+ * served as static files, so this is a same-origin CDN read, never a call to
+ * Overpass. A farm without a plate falls back to the fixed sunrise, so a card
+ * never fails because the plate library is incomplete.
+ *
+ * The shapes are inlined rather than loaded as an image because satori drops
+ * an `<img>` holding an SVG data URI without reporting anything: the card
+ * rendered with a blank plate and a clean log.
+ */
+async function loadPlate(origin: string, slug: string): Promise<PlateShape[] | null> {
+  // The slug lands in a URL path, so it is validated before it is used. URL
+  // normalisation collapses `..` and a `#` ends the path, which together turn
+  // `../../api/thing#` into a request for `/api/thing` with the `.svg` suffix
+  // thrown away as a fragment. See `isPlateSlug`.
+  if (!isPlateSlug(slug)) return null
+  try {
+    const response = await fetch(`${origin}/images/plates/${slug}.svg`)
+    if (!response.ok) return null
+    const shapes = parsePlate(await response.text())
+    return shapes.length > 0 ? shapes : null
+  } catch {
+    return null
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -37,7 +62,15 @@ export async function GET(request: NextRequest) {
     // Long farm names need to come down a step or the descender clips the rule.
     const headlineSize = headline.length > 28 ? 60 : headline.length > 18 ? 72 : 84
 
-    const font = await clashDisplay
+    const plateSlug = searchParams.get('plate')
+    // Pinned to the configured site in production so a spoofed Host header
+    // cannot point this server-side fetch at somebody else's server. In
+    // development SITE_URL is hardcoded to port 3000 while the dev server may
+    // be on another port, so the request's own origin is used there.
+    const plateOrigin =
+      process.env.NODE_ENV === 'production' ? SITE_URL : new URL(request.url).origin
+    const plate = plateSlug ? await loadPlate(plateOrigin, plateSlug) : null
+
 
     return new ImageResponse(
       (
@@ -64,9 +97,29 @@ export async function GET(request: NextRequest) {
               display: 'flex',
             }}
           >
-            {/* A half-disc sun on the horizon, then two field lines receding.
-                Vermilion stays near 5% of the canvas, under the spec's 8% cap,
-                because it is the only chromatic moment on the card. */}
+            {/* The farm's own landscape when we have drawn it, otherwise a
+                half-disc sun on the horizon. Vermilion stays near 5% of the
+                canvas, under the spec's 8% cap, because it is the only
+                chromatic moment on the card. */}
+            {plate ? (
+              <svg width="430" height="630" viewBox="0 0 430 630">
+                {plate.map((shape, index) =>
+                  shape.kind === 'circle' ? (
+                    <circle key={index} cx={shape.cx} cy={shape.cy} r={shape.r} fill={shape.fill} />
+                  ) : (
+                    <path
+                      key={index}
+                      d={shape.d}
+                      fill={shape.fill ?? 'none'}
+                      stroke={shape.stroke}
+                      strokeWidth={shape.strokeWidth}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  )
+                )}
+              </svg>
+            ) : (
             <svg width="430" height="630" viewBox="0 0 430 630">
               <path
                 d={`M${150 + REGISTRATION_OFFSET} ${300 + REGISTRATION_OFFSET} A150 150 0 0 1 ${450 + REGISTRATION_OFFSET} ${300 + REGISTRATION_OFFSET} Z`}
@@ -76,6 +129,29 @@ export async function GET(request: NextRequest) {
               <rect x="56" y="336" width="374" height="30" fill={INK} />
               <rect x="142" y="402" width="288" height="30" fill={INK} />
             </svg>
+            )}
+
+            {/* ODbL requires attribution on a Produced Work, so it sits on the
+                card itself, on its own paper strip rather than over the map
+                where road ink would swallow it. */}
+            {plate ? (
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  right: 0,
+                  display: 'flex',
+                  padding: '7px 14px',
+                  backgroundColor: PAPER,
+                  color: INK,
+                  opacity: 0.75,
+                  fontSize: '15px',
+                  letterSpacing: '0.04em',
+                }}
+              >
+                {PLATE_ATTRIBUTION}
+              </div>
+            ) : null}
           </div>
 
           {/* Editorial column, flush left */}
@@ -189,7 +265,7 @@ export async function GET(request: NextRequest) {
       {
         width: 1200,
         height: 630,
-        fonts: [{ name: 'Clash Display', data: font, style: 'normal', weight: 600 }],
+        fonts: await brandFont(),
       }
     )
   } catch (e) {
