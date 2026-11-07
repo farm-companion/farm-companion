@@ -5435,3 +5435,140 @@ file must test against a standalone build.
 
 **Risk/rollback:** blast radius is `/shop/:slug` for 216 exact slugs; everything else falls through
 untouched. Rollback is `git revert` of this slice, which returns those URLs to 404.
+
+---
+
+## Slice 1.16 — Queue 1: dependency security across the workspace
+
+**Status: DONE for the three packages git tracks. Measured before and after with the package
+manager's own auditor, not asserted.**
+
+### What the 61 GitHub alerts actually are
+
+GitHub reported 61 open Dependabot alerts on `master` (6 critical, 26 high, 27 moderate, 2 low) on
+push. **Every one of them is stale.** All 61 cite `farm-produce-images`, 44 against
+`farm-produce-images/package-lock.json` and 17 against `farm-produce-images/package.json`:
+
+- that `package-lock.json` was deleted from `master` in `a42eab41` (17 May 2026) and no
+  `package-lock.json` exists anywhere in the repo now except `twitter-workflow/package-lock.json`;
+- the alerts claim `next@15.5.0`, but `master` has held `next` ≥ 16.1.3 in that package since
+  `220a2428` (17 January 2026) and holds `16.4.1` today;
+- they claim `sharp@^0.34.3`, and `farm-produce-images` has no `sharp` dependency at all;
+- alerts were still being *created* against those ghost versions on 1, 2 and 3 November 2026
+  (#137, #139, #141), so the dependency-graph snapshot for that path is frozen, roughly ten months
+  behind the branch it claims to describe.
+
+Confirmed the default branch really is `master` (`gh api /repos/.../ --jq .default_branch`) and read
+the manifest through the API, not from the checkout. So the Dependabot count was never a measure of
+this repo's exposure. The real exposure is what the local auditors report.
+
+### Measured, per package
+
+| package | lockfile | before | after |
+| --- | --- | --- | --- |
+| `farm-frontend` | pnpm | 47 (24 high, 21 moderate, 2 low) | **1 low** |
+| `farm-produce-images` | pnpm | 17 (10 high, 6 moderate, 1 low) | **0** |
+| `twitter-workflow` | npm | 7 (5 high, 2 moderate) | **5 high** (no fix exists, see below) |
+| `farm-schema` | npm, untracked | 2 (1 high, 1 moderate) | **0**, but see the gitlink note |
+
+### How, and the trap in `pnpm audit --fix`
+
+`pnpm audit --fix` wrote 40 override keys into `farm-frontend/package.json`, took the audit from 47
+to 11, and **broke `pnpm lint`**: its values are open-ended (`ajv@<6.14.0` → `>=6.14.0`), so ajv
+resolved to **8.20.0** for `@eslint/eslintrc`, which wants the v6 API. ESLint died with
+`NOT SUPPORTED: option missingRefs` and `Cannot set properties of undefined (setting 'defaultMeta')`.
+The same open-ended form had quietly installed `@babel/core@8.1.0` for a `^7.24.4` dependant,
+`postcss-selector-parser@7.1.7` for a dependant pinning `6.0.10`, `@opentelemetry/core@3.1.0` for
+`^1.x` dependants (with an unmet `@opentelemetry/api` peer) and `basic-ftp@6` for a `^5.0.2`
+dependant. A clean audit over a semver-violating tree is not a fix.
+
+So the generated block was replaced with a hand-written one: **in-major pins, keyed by the range the
+dependant actually declares**, so nothing is dragged across a major it was never tested against.
+`ajv@^6.12.4` → `^6.15.0` (6.15.0 exists; the advisory's "patched >= 6.14.0" is reachable inside
+v6), `minimatch@^3.1.2` → `^3.1.5`, `brace-expansion@^1.1.7` → `^1.1.21` and `@^2.0.1` → `^2.1.7`,
+`picomatch@^2.3.1` → `^2.3.2` and `@^4.0.3` → `^4.0.7`, `ws` per declared major, and so on. Two
+deliberate cross-major pins, both verified below: `minimatch@^9.0.5` → `^11.0.5` for
+`@typescript-eslint`, needed because the globparts advisory is only patched in 11.
+
+Where upstream had already fixed things, the dependency was upgraded instead of overridden:
+
+- `puppeteer` `^24.35.0` → `^25.16.0` and `lighthouse` `^13.0.1` → `^13.6.0`. This is what cleared
+  the two **extract-zip** highs (no patch exists; `@puppeteer/browsers` 3.2.6 dropped the dependency
+  in favour of `modern-tar`), the **zod 3** high (newer `chromium-bidi` is on zod 4), the
+  `basic-ftp` high and all seven `@opentelemetry/*` moderates — properly, rather than by forcing
+  majors on `@sentry/node`.
+- `resend` moved 6.7.0 → 6.37.0 **inside its existing major** in both `farm-frontend` and
+  `farm-produce-images`. Latest `resend` dropped `svix`, which was the only thing pulling
+  `uuid@^10`, so that moderate cleared without an override. `farm-produce-images` got the same
+  in-major treatment as `farm-frontend`: its generated `@babel/core@<=7.29.0` → `>=7.29.6` key had
+  installed `@babel/core@8.1.0` for a `^7.24.4` dependant, and `@humanfs/node@<0.16.8` had
+  installed 0.17.0 for a `^0.16.6` dependant.
+- `farm-produce-images`: the pre-existing override `brace-expansion@^2.0.0` → `^2.0.3` was *capping*
+  the package below the patched line. Raised to `^2.1.7`, and `minimatch@^9.0.0 || ^10.0.0` raised
+  from `^9.0.7` to `^11.0.5`. That package is now clean.
+- `farm-schema`: `ajv` devDependency `^8.17.1` → `^8.20.0`, plus `fast-uri` → `^3.1.9`.
+
+### Accepted, with reasons
+
+- **`deepmerge` 4.3.1, low, `farm-frontend`.** Prototype poisoning in `mergeObject()`. Reached via
+  `@react-email/components` → `@react-email/render` → `html-to-text`. The advisory lists
+  `patched: <0.0.0`: no fixed version is published, the package is unmaintained. The options object
+  merged there is ours, not user input.
+- **`zod` 3.25.76, five highs, `twitter-workflow`.** `@atproto/api` 0.16.7 requires `zod ^3.23.8`;
+  so does the current 0.30.3, and the zod 3 line ends at 3.25.76. There is no patched 3.x and
+  forcing zod 4 breaks the API @atproto is written against. The four `@atproto/*` highs are only
+  "depends on a vulnerable zod", so all five are the same finding. `@atproto` is live code
+  (`src/lib/bluesky-client.js`, the dual-posting workflow), so it cannot simply be dropped. The
+  advisory needs a hostile oversized string from the Bluesky API to matter. Upstream blocker.
+- The two fixable `twitter-workflow` moderates were taken: `ajv` → `^6.14.0`, `@humanfs/node` → `^0.16.8`.
+
+### Verification (ran, passed)
+
+| check | result |
+| --- | --- |
+| `farm-frontend` `pnpm audit` | 1 low, 0 moderate, 0 high, 0 critical |
+| `farm-frontend` `pnpm build` | **exit 0**, route table intact, `ƒ Proxy (Middleware)` still emitted |
+| `farm-frontend` `pnpm lint` | runs; **1363 problems (117 errors, 1246 warnings)** |
+| same lint on HEAD deps, via `git stash` | **1363 problems (117 errors, 1246 warnings)** — byte-identical, so no lint regression and those 117 errors are pre-existing |
+| `@puppeteer/browsers` 3.2.6 under `puppeteer-core` | `getInstalledBrowsers`, `computeExecutablePath`, `launch` and a CDP round trip all verified against the cached headless shell 148.0.7778.97 |
+| `farm-produce-images` `pnpm audit` | **no known vulnerabilities** |
+| `farm-produce-images` `pnpm build` | **exit 0** |
+| `farm-schema` `npm audit` | **found 0 vulnerabilities**; `node tools/validate.js` still passes (5 + 12 items) |
+| `twitter-workflow` `npm audit` | 5 high, all the zod chain above |
+| `twitter-workflow` module load | `src/lib/bluesky-client.js` imports and exports `BlueskyClient` with zod 3 in place |
+
+**Not verified:** the archive download-and-extract path in `@puppeteer/browsers` 3.2.6, because no
+browser download was triggered (Chrome 148 was already cached and puppeteer wants 143). CI exercises
+it. Nothing was run against `next dev`.
+
+### Pre-existing problems found while verifying, not fixed here
+
+1. **`farm-produce-images` `pnpm lint` is broken on `master`**, independent of this slice: ESLint
+   dies with `TypeError: Converting circular structure to JSON` in `@eslint/eslintrc`'s
+   config-validator. Confirmed identical with HEAD dependencies via `git stash`. Likely the
+   `eslint-config-next@16.2.6` against `next@16.4.1` mismatch in that package.
+2. **`twitter-workflow/src/scripts/test-deepseek-ogilvy.js` does not parse**: `node --check` reports
+   `Invalid regular expression: /[😀-🙏🌀-🗿]/: Range out of order in character class`. The other
+   28 source files parse.
+3. **`@tiptap/pm` unmet peer in `farm-frontend`**: the pre-existing `@tiptap/core` → `^3.30.5`
+   override lifts core to 3.32.2 while `@tiptap/pm` stays at 3.15.3.
+4. **`farm-schema` and `produce-data-generator` sit in the index as gitlinks** (mode 160000) with no
+   `.gitmodules` and no inner `.git`, so git ignores their contents entirely. The `farm-schema`
+   ajv/fast-uri fix is applied on disk and **cannot be committed** until that is resolved. Neither
+   directory is scanned by Dependabot for this repo either. `farmcompanion-social` is simply
+   untracked.
+
+### Risk and rollback
+
+The risk is a dependency override changing behaviour somewhere the build and lint do not reach;
+every pin is in-major except the two minimatch 11 ones, which lint exercises directly. Rollback is
+`git revert` of this slice, which restores the previous manifests and lockfiles exactly.
+
+### Follow-ups
+
+- The 61 stale alerts will not clear themselves. Merging this slice touches
+  `farm-produce-images/package.json` on `master`, which should force a dependency-graph rescan; any
+  that survive have to be dismissed as inaccurate (`PATCH /repos/.../dependabot/alerts/:n` with
+  `state=dismissed`, `dismissed_reason=inaccurate`), one per alert.
+- Fix the `farm-produce-images` ESLint config, the unparseable twitter-workflow script, the
+  `@tiptap/pm` peer, and the two gitlinks.
