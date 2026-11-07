@@ -157,7 +157,7 @@ export function VideoPreloadLink({ videoSrc }: { videoSrc: string }) {
  * <HeroVideoBackground
  *   videoSrc="/videos/farm-hero.mp4"
  *   videoPoster="/images/farm-hero-poster.jpg"
- *   imageSrc="/main_header.jpg"
+ *   imageSrc="/images/pitti/hero-homepage-dev-seed50920962-v2.webp"
  *   imageAlt="Fresh produce at a UK farm shop"
  *   className="h-screen"
  * >

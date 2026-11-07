@@ -50,7 +50,8 @@ a{display:inline-block;min-height:48px;line-height:48px;padding:0 24px;backgroun
   })
 }
 
-function cspFor(req: NextRequest) {
+/** Exported for testing: the policy is security-critical and silently fatal. */
+export function cspFor(req: NextRequest) {
   // Read consent cookie
   const consent = req.cookies.get('fc_consent')?.value ?? '{}'
   const c = JSON.parse(consent || '{}') as { ads?: boolean; analytics?: boolean }
@@ -95,8 +96,14 @@ function cspFor(req: NextRequest) {
     // deploy that has no Stadia key, because the style fetch itself is blocked.
     'https://tiles.openfreemap.org',
   ]
-  const frame = ["'self'", 'https://vercel.live']
-  const script = ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://vercel.live']
+  // Cloudflare Turnstile. Both directives are required and documented at
+  // https://developers.cloudflare.com/turnstile/reference/content-security-policy/
+  // Without them the widget's api.js is blocked, the CAPTCHA never renders, and
+  // the contact form cannot be submitted at all. connect-src needs only 'self',
+  // which is already present.
+  const TURNSTILE = 'https://challenges.cloudflare.com'
+  const frame = ["'self'", 'https://vercel.live', TURNSTILE]
+  const script = ["'self'", "'unsafe-inline'", "'unsafe-eval'", 'https://vercel.live', TURNSTILE]
   const style = ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'] // Tailwind JIT needs none; inline may be needed for Next font fallback
   const font = ["'self'", 'data:', 'https://fonts.gstatic.com']
   const frameAncestors = ["'none'"]

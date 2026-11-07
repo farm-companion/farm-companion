@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { zonedTimeToUtc, utcToZonedTime, format } from 'date-fns-tz';
+import { utcToZonedTime, format } from 'date-fns-tz';
 import { addDays, startOfYear, differenceInDays } from 'date-fns';
 import dotenv from 'dotenv';
 

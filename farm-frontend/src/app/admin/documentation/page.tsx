@@ -294,7 +294,7 @@ export default function AdminDocumentationPage() {
                     <div className="text-caption text-green-700 dark:text-green-300">Ownership requests</div>
                   </div>
                   <div className="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg text-center">
-                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">Activity</div>
+                    <div className="text-2xl font-bold text-brand">Activity</div>
                     <div className="text-body font-semibold text-purple-900 dark:text-purple-100">Recent Activity</div>
                     <div className="text-caption text-purple-700 dark:text-purple-300">Latest actions</div>
                   </div>

@@ -28,7 +28,7 @@ class ContentGenerator {
    * @param {Object} farm - Farm data object
    * @param {Object} options - Content generation options (legacy support)
    */
-  async generateFarmSpotlight(farm, options = {}) {
+  async generateFarmSpotlight(farm, _options = {}) {
     try {
       console.log(`✍️  Generating Ogilvy-style content for: ${farm.name}`);
       

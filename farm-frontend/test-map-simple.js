@@ -60,7 +60,7 @@ async function testMapEndpoints() {
   
   const assets = [
     '/favicon.ico',
-    '/overlay-banner.jpg'
+    '/images/pitti/hero-homepage-dev-seed50920962-v2.webp'
   ];
   
   for (const asset of assets) {

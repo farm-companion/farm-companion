@@ -176,7 +176,7 @@ async function main() {
 /**
  * Analyze content for Apple/Ogilvy characteristics
  */
-function analyzeContent(content, styleConfig) {
+function analyzeContent(content, _styleConfig) {
   const analysis = {
     hasHook: false,
     hasSensoryLanguage: false,

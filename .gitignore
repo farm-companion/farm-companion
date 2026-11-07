@@ -182,3 +182,7 @@ farm-frontend/.claude/
 
 # Recovered ingestion artefacts for the directory rebuild (local only)
 .analysis/
+
+# Local dev-server config for the Claude Code browser preview. Machine-specific
+# (ports, package manager paths) and not part of the project.
+.claude/launch.json

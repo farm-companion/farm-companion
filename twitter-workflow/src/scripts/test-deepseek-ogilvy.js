@@ -63,7 +63,7 @@ async function testDeepSeekOgilvy() {
       const hasLocation = result.content.includes('Towcester') || result.content.includes('Northamptonshire');
       const hasBenefit = result.content.includes('beef') || result.content.includes('dairy') || result.content.includes('produce');
       const hasRequiredHashtags = result.content.includes('#FarmShop') && result.content.includes('#FarmCompanion');
-      const noEmojis = !/[😀-🙏🌀-🗿]/.test(result.content);
+      const noEmojis = !/[\u{1F300}-\u{1F5FF}\u{1F600}-\u{1F64F}]/u.test(result.content);
       const noExclamations = !result.content.includes('!');
       
       console.log(`  ✅ Location mentioned: ${hasLocation ? 'Yes' : 'No'}`);
