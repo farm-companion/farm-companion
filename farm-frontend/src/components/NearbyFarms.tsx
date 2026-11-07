@@ -74,9 +74,10 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
           setShowLocationHelp(false)
         },
         () => {
+          // No position. Leave userLocation null so the section shows farms
+          // without distances rather than ranking them around a made-up point.
           setLocationDenied(true)
-          // Fallback to London coordinates
-          setUserLocation({ lat: 51.5074, lng: -0.1278 })
+          setUserLocation(null)
         },
         {
           enableHighAccuracy: false,
@@ -86,8 +87,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
       )
     } else {
       setLocationDenied(true)
-      // Fallback to London coordinates
-      setUserLocation({ lat: 51.5074, lng: -0.1278 })
+      setUserLocation(null)
     }
   }
 
@@ -104,9 +104,8 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             // Permission already granted - request silently (no prompt)
             requestLocation()
           } else {
-            // 'prompt' or 'denied' - use fallback, don't trigger prompt on load
+            // 'prompt' or 'denied' - show the unlocated state, don't prompt on load
             setLocationDenied(true)
-            setUserLocation({ lat: 51.5074, lng: -0.1278 })
           }
 
           // Listen for permission changes
@@ -121,12 +120,10 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
         } catch {
           setPermissionState('unknown')
           setLocationDenied(true)
-          setUserLocation({ lat: 51.5074, lng: -0.1278 })
         }
       } else {
-        // No Permissions API - use fallback
+        // No Permissions API - stay unlocated rather than guessing
         setLocationDenied(true)
-        setUserLocation({ lat: 51.5074, lng: -0.1278 })
       }
     }
     checkPermission()
@@ -134,7 +131,10 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
 
   // Fetch and sort farms by distance
   useEffect(() => {
-    if (!userLocation) return
+    // Wait until we either have a position or know we are not getting one.
+    // Without this the section would sit in its skeleton forever when the
+    // user declines location.
+    if (!userLocation && !locationDenied) return
 
     // Capture userLocation as const for TypeScript narrowing
     const location = userLocation
@@ -147,21 +147,25 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
         const data = await response.json()
         const allFarms: FarmShop[] = data.farms || []
 
-        // Calculate distances and sort by nearest
-        const farmsWithDistance = allFarms
-          .map((farm) => ({
-            ...farm,
-            distance: calculateDistance(
-              location.lat,
-              location.lng,
-              farm.location.lat,
-              farm.location.lng
-            )
-          }))
-          .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
-          .slice(0, limit)
+        // With a real position, rank by distance. Without one, show farms in
+        // the order the API returned and attach no distance at all, rather
+        // than measuring from a coordinate the user never gave us.
+        const selected = location
+          ? allFarms
+              .map((farm) => ({
+                ...farm,
+                distance: calculateDistance(
+                  location.lat,
+                  location.lng,
+                  farm.location.lat,
+                  farm.location.lng
+                )
+              }))
+              .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity))
+              .slice(0, limit)
+          : allFarms.slice(0, limit)
 
-        setFarms(farmsWithDistance)
+        setFarms(selected)
       } catch {
         setError('Unable to load nearby farms')
       } finally {
@@ -170,7 +174,7 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
     }
 
     loadNearbyFarms()
-  }, [userLocation, limit])
+  }, [userLocation, locationDenied, limit])
 
   const handleExploreAll = () => {
     if (userLocation) {
@@ -245,11 +249,11 @@ export function NearbyFarms({ className = '', limit = 4 }: NearbyFarmsProps) {
             {seasonal.headline} &middot; what&apos;s worth the trip
           </p>
           <h2 className="font-clash text-3xl md:text-4xl lg:text-5xl font-semibold text-ink tracking-tight leading-tight mb-5">
-            {locationDenied ? 'Farm shops near London.' : 'Farm shops near you.'}
+            {locationDenied ? 'Farm shops across the UK.' : 'Farm shops near you.'}
           </h2>
           <p className="text-body md:text-lg text-ink-muted leading-relaxed">
             {locationDenied
-              ? 'The best local farm shops selling fresh seasonal produce. Enable location to find the ones nearest to you.'
+              ? 'We do not know where you are, so these are not sorted by distance. Share your location and we will show the closest ones.'
               : 'Fresh seasonal produce from the farm shops closest to your location.'}
           </p>
 
