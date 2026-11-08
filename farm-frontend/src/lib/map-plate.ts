@@ -77,6 +77,15 @@ export interface PlateOptions {
    * everything, 'spare' always drops them. Default 'auto'.
    */
   detail?: 'auto' | 'full' | 'spare'
+  /**
+   * Credit written into the SVG's `<title>`. Defaults to the ODbL attribution,
+   * because a plate is normally rendered from OpenStreetMap and must carry it.
+   *
+   * Pass `null` ONLY for invented geometry holding no OSM data, such as the
+   * map placeholder: claiming the attribution there would be a false
+   * provenance claim, and false credit devalues the real one everywhere else.
+   */
+  attribution?: string | null
 }
 
 export function buildOverpassQuery(lat: number, lon: number, radiusM = 1200): string {
@@ -208,13 +217,92 @@ export function renderPlate(ways: OverpassWay[], opts: PlateOptions): RenderedPl
     `<circle cx="${opts.width / 2}" cy="${opts.height / 2}" r="${markerR + 4}" fill="${PAPER}"/>` +
     `<circle cx="${opts.width / 2}" cy="${opts.height / 2}" r="${markerR}" fill="${VERMILION}"/>`
 
+  const credit = opts.attribution === undefined ? PLATE_ATTRIBUTION : opts.attribution
+
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${opts.width} ${opts.height}" width="${opts.width}" height="${opts.height}">` +
-    `<title>${escapeXml(PLATE_ATTRIBUTION)}</title>` +
+    `<title>${escapeXml(credit ?? 'Illustrative map, not a real location')}</title>` +
     `<rect width="${opts.width}" height="${opts.height}" fill="${PAPER}"/>` +
     body +
     marker +
     `</svg>`
 
   return { svg, featureCount: drawn.length }
+}
+
+/**
+ * A plate shape, ready to be rebuilt as an element by a renderer that cannot
+ * load an SVG file.
+ *
+ * Satori, which draws the OG cards, renders inline `<path>` and `<circle>`
+ * children but silently drops an `<img>` holding an SVG data URI: the card
+ * came back with a blank plate and no error. So the card reads the stored
+ * plate back into shapes and inlines them, which is the same mechanism the
+ * mark and the fallback sunrise already use in that route.
+ */
+export interface PlateShape {
+  kind: 'path' | 'circle'
+  d?: string
+  cx?: number
+  cy?: number
+  r?: number
+  fill?: string
+  stroke?: string
+  strokeWidth?: number
+}
+
+function attr(tag: string, name: string): string | undefined {
+  const match = tag.match(new RegExp(`(?:^|\\s)${name}="([^"]*)"`))
+  return match ? match[1] : undefined
+}
+
+const num = (value: string | undefined): number | undefined =>
+  value === undefined ? undefined : Number(value)
+
+/**
+ * Read a plate SVG back into shapes. The background rect is deliberately
+ * dropped: the card already paints its own paper, and a second opaque rect
+ * would cover the composition it sits on.
+ */
+export function parsePlate(svg: string): PlateShape[] {
+  const shapes: PlateShape[] = []
+
+  for (const [tag] of svg.matchAll(/<path\b[^>]*\/>/g)) {
+    const d = attr(tag, 'd')
+    if (!d) continue
+    shapes.push({
+      kind: 'path',
+      d,
+      fill: attr(tag, 'fill'),
+      stroke: attr(tag, 'stroke'),
+      strokeWidth: num(attr(tag, 'stroke-width')),
+    })
+  }
+
+  for (const [tag] of svg.matchAll(/<circle\b[^>]*\/>/g)) {
+    shapes.push({
+      kind: 'circle',
+      cx: num(attr(tag, 'cx')),
+      cy: num(attr(tag, 'cy')),
+      r: num(attr(tag, 'r')),
+      fill: attr(tag, 'fill'),
+    })
+  }
+
+  return shapes
+}
+
+/**
+ * Plate slugs are farm slugs: lowercase, digits and hyphens, nothing else.
+ *
+ * This is a security boundary, not tidiness. A plate slug is interpolated into
+ * a URL path, and URL normalisation collapses `..` segments while a `#` ends
+ * the path early, so `../../api/thing#` turns `/images/plates/<slug>.svg` into
+ * `/api/thing` with the `.svg` suffix discarded as a fragment. Anything that
+ * is not plainly a slug is refused.
+ */
+const PLATE_SLUG = /^[a-z0-9][a-z0-9-]{0,99}$/
+
+export function isPlateSlug(value: string): boolean {
+  return PLATE_SLUG.test(value)
 }

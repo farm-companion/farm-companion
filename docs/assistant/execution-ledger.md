@@ -5201,6 +5201,417 @@ product decision, not a security one, and is left open.
 
 ---
 
+## Slice BRAND-D2 — Plates on real cards, Cornwall subset
+
+**Goal.** Put real map plates on real farm cards for one county, before any bulk run.
+
+**Subset on purpose.** Eight Cornwall farms, not the full set. Overpass is a free shared service
+and several hundred requests in a batch is exactly the behaviour that gets a client blocked, so
+the first run was sized to prove the pipeline and measure the real cost per farm.
+
+**Two faults found by running it, neither visible from reading the code.**
+
+*Overpass 502s mid-batch.* The second request of the first run returned 502, which Overpass does
+whenever its slots are full, and the script treated it as fatal. Added an exponential backoff over
+429, 502, 503 and 504 with four attempts, while a 400 still fails fast because that is our query
+being wrong. This is the single most important change for any larger run.
+
+*Satori silently drops an SVG data URI.* The card was wired to load the stored plate as
+`<img src="data:image/svg+xml;base64,...">`. It rendered a blank plate with the attribution strip
+correctly in place, proving the fetch and the encoding worked, and reported nothing at all in the
+log. Stripping the leading ODbL comment made no difference. Replaced with the mechanism already
+proven in this route: the plate is parsed back into shapes and inlined as `<path>` and `<circle>`
+children, which is how the mark and the fallback sunrise have always rendered.
+
+**`parsePlate` is tested, not regexed inline in the route.** It drops the background rect
+deliberately, since the card paints its own paper and a second opaque rect would cover the
+composition. Three tests cover the round trip, the dropped rect and tolerance of the ODbL comment
+at the head of a stored file.
+
+**Attribution is on the card, not just in the file.** ODbL makes a rendered plate a Produced Work.
+The card shows `© OpenStreetMap contributors` on its own paper strip rather than over the map,
+where road ink would swallow it, and only when a plate is actually shown: the sunrise fallback
+uses no OSM data and carries no attribution.
+
+**Graceful degradation.** A farm with no plate yet falls back to the sunrise. `loadPlate` returns
+null on a non-200, a parse failure or an exception, so the card can never fail because the plate
+library is incomplete. Verified against a deliberately missing slug.
+
+**Files:** `src/lib/map-plate.ts` (+`parsePlate`), `src/lib/map-plate.test.ts` (+3 tests),
+`src/app/og/route.tsx`, `src/app/shop/[slug]/page.tsx` (passes `&plate=<slug>`),
+`scripts/generate-map-plates-batch.ts` (new), and 8 generated plates in `public/images/plates/`.
+
+**Verified:** `npx tsc --noEmit` exit 0; `npx eslint` exit 0 on all five source files;
+`pnpm test:unit` **516 pass, 0 fail** (507 before). Four cards rendered against the dev server:
+three plated Cornwall farms showing three distinct landscapes, and one deliberately missing plate
+falling back cleanly. `route.tsx` 276 lines and `map-plate.ts` 282, both inside the 300 soft limit
+but close enough that the next addition to either should extract a sibling.
+
+**Decision owed before scale: where plates live.** Eight plates are 280 KB in `public/`. The full
+set is roughly 3,500 farms, so committing them to the repo is not viable. They should go to the
+Hetzner blob alongside `pitti-farm-images/`, and `loadPlate` should read from there. That is the
+first task of any bulk run, ahead of generating anything.
+
+**Also owed at scale:** a resumable batch, since a run of thousands will be interrupted. The
+existing skip-if-exists behaviour gets most of the way, but it checks the local filesystem and
+will need to check blob storage instead.
+
+**Note on the shared checkout.** Another session was mid-refactor of `DirectoryIndex` /
+`CountySummary` in this working tree during this slice, which briefly made `tsc` red in
+`src/app/shop/page.tsx` and `src/lib/county-summary.test.ts`. Those files were left untouched and
+uncommitted here; both were clean by the end of the slice.
+
+**Risk and rollback.** The card falls back to the sunrise whenever a plate is missing or
+unparseable, so reverting is safe: deleting `public/images/plates/` alone returns every card to
+the previous design without touching code.
+
+---
+
+## Slice BRAND-D2a — Confirmed SSRF in the plate loader, fixed
+
+**Found by** the automated security review on the D2 push, flagged MEDIUM as an unvalidated URL
+component. It is real, and the mechanism is worse than a directory escape.
+
+**Confirmed, not assumed.** `loadPlate` interpolated the caller-supplied `plate` slug into
+`${origin}/images/plates/${slug}.svg`. URL normalisation collapses `..` segments, and a `#` ends
+the path, so a slug of `../../api/health#` resolves to `https://host/api/health` with the `.svg`
+suffix discarded as a fragment. Verified both in isolation and against the running app, where a
+slug of `../../../robots.txt#` produced a 200. That is an arbitrary same-origin server-side GET
+driven by a query parameter on a public endpoint.
+
+**Severity in practice.** The response is only mined for `<path>` and `<circle>` elements and
+drawn as a picture, so it is a poor exfiltration channel, but it is still an unauthenticated
+server-side request to any same-origin path, including internal API routes, from the app's own
+network position. The `origin` also came from `request.url`, which follows the incoming Host
+header, so a spoofed Host would have pointed the fetch off-origin entirely.
+
+**Fixed in two places, because the two risks are different.**
+- `isPlateSlug` in `src/lib/map-plate.ts` requires `^[a-z0-9][a-z0-9-]{0,99}$`. No dot, slash,
+  hash, percent or uppercase survives it, which closes the traversal completely. It is exported
+  and tested rather than inlined in the route, with 5 accepted slugs and 14 refused including
+  the exact payloads proven above.
+- The fetch origin is pinned to the configured `SITE_URL` in production, so a spoofed Host cannot
+  redirect it. Development keeps the request origin, because `SITE_URL` hardcodes port 3000 while
+  the dev server may be elsewhere; that is noted in the code rather than left as a surprise.
+
+**Verified:** the traversal payload now falls back to the sunrise (18,458 byte render) while a
+valid slug still loads its plate (51,014 bytes), so the guard engages without breaking the
+feature. `npx tsc --noEmit` exit 0, `npx eslint` exit 0, `pnpm test:unit` **518 pass, 0 fail**
+(516 before).
+
+**Lesson for the remaining slices.** The plate loader was written to degrade gracefully on any
+failure, and that same forgiving behaviour hid the problem: a malicious slug returned a perfectly
+normal 200 card. Graceful degradation and input validation are not substitutes for each other.
+
+**Note:** `src/lib/map-plate.ts` is now 297 lines and `route.tsx` 286, both within a few lines of
+the 300 soft limit. The next addition to either should extract a sibling module rather than
+inline.
+
+---
+
+## Slice BRAND-E — Social profile kit, and the shared brand module
+
+**Goal.** Produce the profile assets a person uploads to the four platforms worth drawing for,
+rendered from the same engine as the cards so the two can never drift.
+
+**Shared furniture first.** `src/app/og/brand.tsx` holds the palette, `REGISTRATION_OFFSET`, the
+arch path, the font loader, and the `Mark`, `Sunrise` and `Masthead` components. It sits beside
+the OG route rather than in `src/lib` so `new URL('./ClashDisplay-Semibold.ttf', import.meta.url)`
+still resolves against the font in that directory. `route.tsx` was refactored onto it in the same
+slice, so the constants exist once: copying them into a second renderer is precisely how this
+project came to ship three palettes at once.
+
+**`src/app/og/social/route.tsx`** renders `avatar`, `x-header` and `fb-cover`, validating the
+format against a known set and returning 400 otherwise.
+`scripts/export-social-kit.sh` writes them to `brand/social/` as PNGs; it takes an optional base
+URL so the kit can be exported from a deployment rather than the dev server.
+
+**One avatar for all four platforms, deliberately.** X, Instagram, Facebook and Pinterest all
+circle-crop and all show it at roughly 32px in a feed, so per-platform variants would differ in
+nothing. Checked at 32px, which is the only size that decides recognition.
+
+**Two compositions reworked after looking at them.** The X header had its type right of centre to
+clear the profile picture, which left half the banner dead; moving it to x=180 while keeping it
+above y=380 clears the avatar and fills the frame. The Facebook cover had a mirrored pair of
+sunrises that read as decoration and were both sliced by the phone crop; the motif was dropped
+entirely and the type carries it, which also means the desktop and phone renders are identical
+because everything sits inside the central 640.
+
+**Files:** `src/app/og/brand.tsx`, `src/app/og/social/route.tsx`, `src/app/og/route.tsx`,
+`scripts/export-social-kit.sh`, `brand/social/README.md` and three exported PNGs.
+
+**Not in this kit, and why.** Post formats (Pinterest 2:3, Instagram 4:5 and 9:16) and Pinterest
+board covers are templates the posting daemon fills per post, not static files, so they belong
+with the daemon work. Instagram has no banner.
+
+**Verified:** `npx eslint` exit 0 on all three source files. `pnpm test:unit` **512 pass, 0 fail**.
+All five surfaces rendered against the dev server: the plated card at 58,984 bytes, the traversal
+probe still falling back at 18,458, and the three profile formats at their exact sizes. An unknown
+format returns 400.
+
+### Two things about the branch, recorded because they cost time
+
+**PR #223 merged only part of this work.** It merged at 07:09 carrying Slices A, A2, B, C2 and D.
+`5ebd2bc` (D2) and `cfcaaa9` (the SSRF fix) were pushed afterwards and missed it. **Master was
+never vulnerable**: the flaw was introduced in D2 and fixed in `cfcaaa9`, and neither reached
+master, whose OG route has no plate loading at all and whose only `fetch` is the font.
+
+**The shared checkout changed branch mid-slice.** Another session moved it to
+`perf/shop-county-index`, which is why a run briefly showed 512 tests and a card with no plate:
+that was master's older `route.tsx`, not this work. This slice is therefore on a new branch,
+`brand/social-kit`, cut from `cfcaaa9` so it carries D2, the security fix and Slice E without
+re-proposing that session's `perf(shop)` commit. The six-test difference between 518 and 512 is
+exactly their `county-summary.test.ts`, which this branch does not contain.
+
+**`tsc` reports four maplibre-gl errors that are not from this work.** `node_modules` holds
+maplibre 6.16.0 from the other session's upgrade while this branch pins `^5.16.0`, so the source
+and the installed package disagree. No error touches any file in this slice, and CI installs from
+this branch's own lockfile.
+
+**Risk and rollback.** The social route is additive and nothing links to it. Reverting the commit
+removes the kit; `route.tsx`'s refactor is a pure substitution of imported constants for local
+ones, with no behavioural change, proven by the card rendering identically.
+
+---
+
+## Slice BRAND-F — The posting daemon, wired to the card instead of an image model
+
+**Goal.** Make `farmcompanion-social` produce a real post, using the card the site already draws.
+
+**The Runware step was deleted, not implemented.** The skeleton planned to generate a fresh
+illustration per post. The site already renders exactly the right picture at `/og`: the farm's own
+map plate behind its name, in the house palette and display face. Generating an image per post
+would cost money per post, vary in quality, and make the feed look like a stock library rather
+than one press. `services/runware.ts` is gone, `RUNWARE_API_KEY` is no longer required, and
+`services/card.ts` just builds the URL.
+
+**`card.ts` validates the slug before it reaches a URL**, with the same
+`^[a-z0-9][a-z0-9-]{0,99}$` the card route enforces. A malformed slug is dropped rather than
+sent, so the daemon can never be the thing that feeds a traversal attempt to the route. Belt and
+braces: the route refuses it too.
+
+**Publishing is off by default and says so loudly.** `SOCIAL_PUBLISH` must be exactly `"true"`.
+This runs on a cron against live accounts, and the failure mode of a default-on misconfiguration
+is a public post that cannot be unsent. A dry run prints the exact payload instead, and
+`publishPost` returns it either way so it can be asserted.
+
+**An empty caption is refused** with `EmptyPostError` rather than posting a bare image. An empty
+caption means the copy step failed, not that there was nothing to say.
+
+**Platforms are `twitter` and `facebook` only, deliberately.** The 1.91:1 link card suits both.
+Pinterest wants 2:3 and Instagram 4:5, and posting a landscape card to either gets it letterboxed
+or cropped, so they stay off the list until the card route grows those formats. Overridable with
+`SOCIAL_PLATFORMS`.
+
+**A design fault found by the first test run.** `config.ts` called `env()` at module scope, so
+importing anything that touched config threw `Missing env: ANTHROPIC_API_KEY` before a line ran:
+the package was untestable without live secrets, and one missing variable crashed on import
+rather than erroring at the point of use. Converted to getters, which left every call site
+unchanged. The test count went from 7 to 10 purely because `ayrshare.test.ts` could finally be
+imported.
+
+**Files:** `src/services/card.ts` and `card.test.ts` (new), `src/services/ayrshare.ts` rewritten
+with `ayrshare.test.ts` (new), `src/config.ts`, `src/types.ts`, `src/index.ts`,
+`src/services/runware.ts` deleted, and a `test` script added. The package is committed to the
+repository for the first time; `node_modules`, `dist` and `.env*` are already ignored.
+
+**Verified:** `npx tsc --noEmit` exit 0. `npm test` **10 pass, 0 fail**. A dry run with dummy keys
+printed the full payload and posted nothing, and the empty-caption guard refused as expected. The
+exact URL the daemon builds was fetched and returned a 1200x630 card.
+
+**Deliberately still a stub: `getFarm`.** It returns null, so the pipeline exits early and the
+daemon cannot yet run end to end. Implementing it means giving this package database access,
+which is its own decision, and this slice was about the image and publish path. Said plainly
+rather than half-done.
+
+**Note on where this was committed from.** The shared checkout was on another session's branch
+with six files mid-edit, and switching it once already pulled that session's commit onto a brand
+branch. This slice was therefore committed from a throwaway `git worktree` on `brand/social-kit`,
+leaving the checkout untouched.
+
+**Risk and rollback.** Nothing posts without `SOCIAL_PUBLISH=true`, and the daemon cannot reach a
+farm yet, so this cannot act on its own. Reverting the commit removes the package from the
+repository and leaves it untracked as before.
+
+---
+
+## Slice BRAND-F2 — The cron endpoint was open to anyone who found the URL
+
+**Found by** the automated security review on the Slice F push, flagged MEDIUM.
+
+**Real, and worth fixing before it could bite.** `/api/cron` is a public Vercel path and the
+handler did no authentication, so anyone who found the URL could invoke the pipeline. Today that
+is harmless: `getFarm` is a stub returning null and publishing is off unless `SOCIAL_PUBLISH` is
+`"true"`. But the whole point of this package is that both of those change, and at that moment an
+open endpoint would let a stranger post to live social accounts and spend Anthropic credits.
+Fixing it while it is still inert is far cheaper than remembering to later.
+
+**Gated on the shared secret Vercel sends with a scheduled invocation**, and it **fails closed**:
+with no `CRON_SECRET` configured, nothing runs. An unauthenticated endpoint that posts publicly
+is worse than a cron that does not fire.
+
+**A plain string comparison is deliberate**, matching Vercel's documented pattern. The secret is
+high entropy and each attempt is one HTTPS request, so a timing side channel is not a realistic
+route in, and reaching for `timingSafeEqual` here would be ceremony.
+
+**Error responses no longer echo `String(err)`.** The message can name environment variables and
+internal hosts. It is logged in full and the caller gets `Internal error`.
+
+**The same eager-config bug, one level up.** Fixing `config.ts` in Slice F was not enough:
+`claude.ts` still built its Anthropic client at module scope, reading `config.anthropicApiKey` the
+moment anything imported it, so the handler could not be loaded in a test at all. The client is
+now built on first use. Lazy config is worthless while its consumer is eager.
+
+**Files:** `src/index.ts`, `src/index.test.ts` (new, 5 tests), `src/services/claude.ts`.
+
+**Verified:** `npx tsc --noEmit` exit 0; `npm test` **15 pass, 0 fail** (10 before). The tests
+cover no header, a wrong secret, a bare token with no `Bearer` scheme, and the fail-closed case
+where `CRON_SECRET` is unset and even the otherwise-correct header is refused.
+
+**Risk and rollback.** The endpoint now requires `CRON_SECRET` to be set in the Vercel project
+before the cron can fire. That is an operator step, and until it is done the cron returns 401,
+which is the intended failure direction given the pipeline cannot do anything useful yet anyway.
+
+---
+
+## Slice BRAND-G — Asset audit: what is actually referenced
+
+**Goal.** Check every brand asset is used, and that nothing points at a file that is not there.
+Done in both directions: files with no reference, and references with no file.
+
+**Three files I orphaned myself, now removed.** `about.jpg` (4.4 MB), `add.jpg` (4.5 MB) and
+`feedback.jpg` (0.6 MB) existed only as the `og:image` for their pages. Slice C2 repointed those
+pages at the dynamic card route and left the files behind, which is exactly the kind of debris an
+audit is for. Verified unreferenced across the whole repository, not just `src`: the only
+remaining mentions are my own ledger entries describing them. `public/` drops from 54 MB to
+44.5 MB.
+
+**Deliberately kept:** `counties.jpg` and `seasonal-header.jpg`, which are still rendered as page
+heroes (`about/page.tsx:105`, `counties/page.tsx:90`, `SeasonalHero.tsx:38`) even though they are
+no longer social cards. Only their card role was wrong, which Slice C2 already fixed.
+
+**The brand set is fully wired.** Every icon the manifest and `layout.tsx` declare exists on disk:
+`favicon.svg`, `favicon.ico`, 16, 32, `apple-touch-icon`, both android-chrome sizes and
+`icon-maskable-512`. The eight Cornwall plates are resolved at runtime by farm slug rather than
+named in source, which is why a naive scan calls them unreferenced; `loadPlate` reads them and
+the Boscastle card was rendered from one. `brand/social/` sits outside `public/` on purpose: the
+avatar, X header and Facebook cover are uploads a person makes, not files the site serves.
+
+### Found, NOT fixed, because they are not this work's to delete
+
+CLAUDE.md is explicit that uncertain deletions get recorded rather than made. These are
+pre-existing and unreferenced anywhere in `src`:
+
+| File | Size |
+| --- | --- |
+| `oranges-background.jpg` | 7.4 MB |
+| `produce-secondary-image.jpg` | 3.4 MB |
+| `about-header.jpg` | 0.6 MB |
+| `overlay-banner.jpg` | 0.3 MB |
+| `images/pitti/hero-homepage-dev-seed50920962.webp` | 0.2 MB |
+| `images/pitti/hero-homepage-dev-seed50920962-v1.webp` | 0.5 MB |
+| `public/https:/www.farmcompanion.co.uk/9f14…e2f.txt` | 0.1 KB |
+
+That is **12.4 MB** more that could go. The two superseded Pitti heroes are older takes of the one
+`AnimatedHero.tsx` actually uses (`-v2`). The last entry is a `curl -o` accident that created a
+directory literally named `https:`, and is served at that path.
+
+**One broken reference, and it is dead code.** `getPlaceholderMapUrl` in `src/lib/static-map.ts`
+returns `/images/map-placeholder.svg`, which does not exist. Nothing calls the function:
+`LocationCard.tsx` is the only importer of that module and imports three other exports. So no
+user hits a 404 today, but the function is a trap for whoever wires it up next. Either delete it
+or generate the placeholder; the plate renderer could produce one on brand.
+
+**Verified:** `npx tsc --noEmit` exit 0, `pnpm test:unit` 518 pass 0 fail, and the
+`og-image-assets` guard still green, which matters because it is the test that would catch a
+deletion breaking a card.
+
+---
+
+## Slice BRAND-G2 — The remaining orphans cleared
+
+**Goal.** Remove the 12.4 MB of pre-existing unreferenced assets that BRAND-G recorded but left.
+
+**Checked three ways before deleting, because none of these were this work's files.**
+1. Repo-wide grep, not just `src`, excluding the ledger's own descriptions of them.
+2. `FC1/` hits were discounted: it is a tracked submodule, a separate repository whose source
+   references its own `public/`, not ours.
+3. **The database.** `backfill-pitti-uploaded-by.ts` treats `/images/pitti/` as a stored image
+   URL fragment, so an `Image` row could have pointed at one of the two superseded hero takes.
+   Queried directly: zero rows for any of the seven names, and **zero rows anywhere under
+   `/images/pitti/`**. Without that check, deleting the heroes would have been a guess.
+
+**One real reference found and handled.** `farm-frontend/test-map-simple.js` is tracked and smoke
+tests that `/overlay-banner.jpg` returns a status code. Deleting the image would have left a
+tracked script asserting against a 404, so the asset was removed from its list; `/favicon.ico`
+remains. The script still parses.
+
+**Removed:** `oranges-background.jpg` (7.4 MB), `produce-secondary-image.jpg` (3.4 MB),
+`about-header.jpg` (0.6 MB), `overlay-banner.jpg` (0.3 MB), both superseded Pitti hero takes
+(the unsuffixed one and `-v1`; `AnimatedHero.tsx` uses `-v2`), and the `curl -o` accident that
+created a directory literally named `https:` under `public/`.
+
+**Left alone deliberately:** `farm-frontend/PERFORMANCE_OPTIMIZATION_SUMMARY.md` quotes
+`overlay-banner.jpg` in a code sample. It is a historical record of an optimisation that was done
+at the time, and rewriting history docs to match today's tree makes them worth less, not more.
+
+**`public/` is now 33 MB, down from 54 MB** at the start of the audit: 9.5 MB in BRAND-G and
+12 MB here. Everything that remains is referenced: the icon set, `og.jpg`, the eight plates
+resolved at runtime by slug, and the three heroes actually rendered (`main_header.jpg`,
+`counties.jpg`, `seasonal-header.jpg`, plus the `-v2` Pitti hero).
+
+**Verified:** `npx tsc --noEmit` exit 0, `pnpm test:unit` 518 pass 0 fail, `node --check` on the
+edited script, and a final grep confirming nothing in `src` or `public` names any deleted file.
+
+**Still open from BRAND-G:** `getPlaceholderMapUrl` in `lib/static-map.ts` returns
+`/images/map-placeholder.svg`, which does not exist. Nothing calls it, so it is dead code rather
+than a live 404, and it was left for a decision: delete the function, or generate the placeholder
+from the plate renderer.
+
+---
+
+## Slice BRAND-G3 — The missing map placeholder, generated from the press
+
+**Goal.** Make `getPlaceholderMapUrl`'s promise true: it returned
+`/images/map-placeholder.svg` for a file that had never existed.
+
+**Generated, not drawn, and from invented geography.** `scripts/build-map-placeholder.ts` calls
+the same `renderPlate` as every real plate, so the inks, stroke weights and the vermilion marker
+match. The geometry is hand-written rather than fetched: a placeholder must not quietly show a
+real place's coastline, and a build step should not depend on Overpass. 2:1 to match the
+function's 400x200 default, and the viewBox scales, so one file serves every call site.
+
+**A false attribution, caught before it shipped.** `renderPlate` wrote the ODbL credit into every
+plate's `<title>`, so the first placeholder claimed "© OpenStreetMap contributors" while
+containing no OpenStreetMap data at all. That is a false provenance claim, and false credit
+devalues the real one everywhere else. `PlateOptions` now takes `attribution`, defaulting to the
+ODbL line so a genuine plate cannot lose it by accident, and accepting `null` for invented
+geometry, which titles the file "Illustrative map, not a real location" instead. Verified both
+ways: the Boscastle plate still credits OSM, the placeholder does not.
+
+**A guard so it cannot rot again**, asserting the file exists, parses into at least five shapes,
+carries the vermilion marker, and does *not* claim OSM.
+
+**Why not a blanket "every /images/ path resolves" test.** It would fail on two honest cases:
+`pitti-counties.ts:35` builds `/images/pitti/county-<slug>.webp` for per-county art not yet
+generated, and `HeroVideoBackground.tsx:159` names `/images/farm-hero-poster.jpg` inside a JSDoc
+example. A test that cries wolf on both gets disabled, so the guard is scoped to the one contract
+that was actually broken.
+
+**Note on the dead function.** `getPlaceholderMapUrl` is still uncalled: `LocationCard.tsx` is
+the only importer of `static-map.ts` and imports three other exports. The asset now exists so
+whoever wires it up gets a real map rather than a 404; the function was left in place rather than
+deleted, on the user's instruction to generate the placeholder.
+
+**`src/lib/map-plate.ts` is now 308 lines**, past the 300 soft limit. Still well inside the 500
+hard limit, but the next addition should extract a sibling module rather than grow it further.
+
+**Verified:** `npx tsc --noEmit` exit 0, `pnpm test:unit` 520 pass 0 fail (518 before; the two
+new ones are the attribution choice and the placeholder guard), and the placeholder rendered at
+400x200 and 800x400.
+
+---
+
 ### 2026-11-02 — Image estate: 86 farm pages were serving 404 heroes, and the fix was data
 
 Found by measuring the estate rather than reading the schema. Full findings and the two open
@@ -6320,3 +6731,71 @@ auto-dismissed). Dismissal is reversible: `PATCH` the alert with `state=open`.
 `farm-frontend/pnpm-lock.yaml` and `farm-produce-images/pnpm-lock.yaml`. Until then a future stale
 alert looks exactly like a real one, and the only honest answer is the local auditor.
 
+---
+
+## 2026-11-08 — Slice BRAND-H: the review findings on PR #226, fixed
+
+Seven of the thirteen findings from the code review of this branch. Nine files, one over the
+eight-file rule: the ninth is the test that proves the length bound, and shipping a guard with no
+test to make it fail seemed the worse trade.
+
+**The format guard accepted inherited keys.** `og/social/route.tsx` validated with
+`value in SIZES`, and `in` walks the prototype chain, so `?format=constructor` passed, along with
+`toString`, `valueOf`, `hasOwnProperty`, `isPrototypeOf` and `__proto__`. `RENDERERS[format]` then
+returned an inherited function instead of a component and `{...SIZES[format]}` spread nothing, so
+`ImageResponse` ran with no width or height. `Object.hasOwn` now. Proved by running both guards
+side by side: the same six inputs that passed before are refused now, and the three real formats
+still pass. That route also had no `try/catch` while the card route has had one since it shipped,
+so a font failure returned a stack trace; it returns a message now.
+
+**The plate write path had none of the validation the read path got.** The batch generator put
+`farm.slug` straight from the database into `join(OUT_DIR, slug + '.svg')`, so a row carrying `..`
+would have written outside `public/images/plates`. It now calls `isPlateSlug`, which this branch
+added and which the same module exports, and skips anything that is not a slug. The script runs
+against production, so "it comes from our own database" is not the same as "it is safe to put in a
+path".
+
+**Previews could not show the plates they were adding.** The origin was pinned to `SITE_URL`
+whenever `NODE_ENV` is production, and Vercel sets that on preview builds too, while `SITE_URL`
+falls back to the live domain. Every preview therefore asked production for plates production did
+not have, and every card fell back to the sunrise, which is exactly the surface a reviewer would
+have been looking at. A preview now reads its own `VERCEL_URL`. That keeps the Host header out of
+it, since the platform sets `VERCEL_URL`, not the caller.
+
+**The plate read had no timeout.** The `catch` covered a rejection, never latency, so a slow origin
+held the card render until the platform killed it. `AbortSignal.timeout(2500)` turns that back into
+the sunrise fallback the code already had.
+
+**Farm text went into the prompt undelimited.** A farm name and description are owner-editable, and
+the model's output is published to live accounts under our name. Both now sit inside a marked block
+the instructions treat as data, angle brackets and control characters are stripped so the block
+cannot be closed early, and both are capped so a long description cannot bury the instructions.
+
+**Nothing bounded the post length.** `publishPost` refused an empty caption and accepted anything
+else, while `max_tokens` is 1024 and X takes 280. There is a per-platform table now and the
+strictest platform in the list wins, checked before the request rather than discovered as an opaque
+400 after the Claude call was paid for.
+
+**The model was a pinned dated snapshot**, `claude-sonnet-4-20250514`. Now the current Sonnet, with
+`ANTHROPIC_MODEL` as an override, so a retirement is a configuration change rather than a deploy.
+
+**`export-social-kit.sh` wrote the error body as the PNG.** `curl -o` writes whatever comes back, so
+a 500 left its error page at `brand/social/<format>.png`, ready to upload to a profile. It
+downloads to a temporary file and moves it into place only on a 200, printing the first 300 bytes
+of the failure instead of saving them.
+
+**Left, deliberately, with reasons.** `map-plate.ts` still calls `classify` twice per way, which is
+wasted projection work and nothing more. `brand.tsx` still memoises a rejected font promise for the
+life of the isolate, which predates this branch and wants its own fix with a retry. `shop/[slug]`
+still sends `plate=` for every farm when eight plates exist, which needs a generated-plate manifest
+rather than a patch. `getFarm` is still a stub, which is the daemon's next piece of work, not a bug
+to fix in a review pass.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0 in both packages. `npx eslint` exit 0 on
+the three changed frontend files. `npm run test:unit` 554 pass 0 fail in the frontend. `npm test` 18
+pass 0 fail in the daemon, up from 15, the three new ones covering the platform limit table, a
+caption one character over the limit and one exactly on it. The guard comparison above was run in
+node.
+
+**Risk/rollback:** One validation change, one path guard, one origin rule, one timeout, one prompt
+shape and one length check. Revert the commit and the branch returns to its reviewed state.
