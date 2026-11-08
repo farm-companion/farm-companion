@@ -6366,3 +6366,28 @@ is explicitly forbidden from doing.
 Section headings and ordering in CLAUDE.md are unchanged apart from the queue block and that one
 Default behavior bullet; the file's own "no emojis, no em dashes" rule is respected in the new text
 (checked programmatically: 0 and 0).
+
+---
+
+### 2026-11-08 — Queue 7 added to the rewritten queue: repository structure defects
+
+Merging master into the queue-rewrite branch surfaced findings from Slice 1.16 that the rewritten queue
+did not yet carry. Adding them rather than shipping a list already known to be incomplete, which is the
+failure the rewrite exists to correct.
+
+**Independently verified before adding, and the picture is worse than reported.** Slice 1.16 named two
+gitlinks; `git ls-files -s` shows **four**: `FC1/farm-companion`, `farm-photos`, `farm-schema` and
+`produce-data-generator`, all mode 160000, with **no `.gitmodules`** and no inner `.git` in the two
+checked. `git ls-files farm-schema/` returns a single entry, confirming the contents are invisible to
+git. The practical consequences are that Dependabot cannot scan them and that a security fix already
+applied on disk to `farm-schema` **cannot be committed at all**.
+
+Also carried in from Slice 1.16, credited there rather than re-measured here: `farm-produce-images`
+`pnpm lint` is broken on master (`Converting circular structure to JSON` in `@eslint/eslintrc`, likely
+the `eslint-config-next@16.2.6` against `next@16.4.1` mismatch), the unmet `@tiptap/pm` peer in
+farm-frontend, and `farmcompanion-social` being untracked.
+
+**Worth noting for coordination:** Slice 1.16 is labelled "Queue 1: dependency security across the
+workspace", i.e. a sibling session was working from the *old* numbering while this rewrite was in
+flight. Once this merges, that numbering no longer resolves. Nothing is broken by it, but anyone
+holding the old map should re-read the queue rather than trust remembered numbers.

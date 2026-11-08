@@ -161,6 +161,22 @@ Queue 6: Decide the impeccable live-scan policy
   gated too, or state that only the static scan gates and live scans are advisory.
 - Done when: a live scan either exits 0 or is explicitly out of scope here.
 
+Queue 7: Repository structure defects that hide code from tooling
+- Four directories sit in the index as gitlinks (mode 160000) with no
+  .gitmodules and no inner .git: FC1/farm-companion, farm-photos, farm-schema
+  and produce-data-generator. Git ignores their contents entirely, Dependabot
+  does not scan them, and a security fix already applied on disk to farm-schema
+  cannot be committed. Verified 2026-11-08 with git ls-files -s.
+- farmcompanion-social is simply untracked.
+- farm-produce-images pnpm lint is broken on master, independent of any slice:
+  ESLint dies with "Converting circular structure to JSON" in @eslint/eslintrc,
+  most likely the eslint-config-next@16.2.6 against next@16.4.1 mismatch in that
+  package. Recorded in the ledger under Slice 1.16.
+- farm-frontend has an unmet @tiptap/pm peer: the @tiptap/core override lifts
+  core to 3.32.2 while @tiptap/pm stays at 3.15.3.
+- Done when: every package's source is tracked and scannable, and lint runs in
+  farm-produce-images.
+
 ## Mandatory output format for each response
 1) Slice title and goal (one sentence)
 2) Ledger update (what moved to DONE, what remains next)
