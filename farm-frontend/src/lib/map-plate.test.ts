@@ -1,9 +1,13 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
+import { existsSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
 import {
   buildOverpassQuery,
   makeProjector,
   renderPlate,
+  parsePlate,
+  isPlateSlug,
   PLATE_ATTRIBUTION,
   type OverpassWay,
 } from './map-plate'
@@ -94,9 +98,16 @@ test('the farm is marked in vermilion at the centre, on a paper halo', () => {
   assert.ok(halo < marker, 'the paper halo must sit under the marker')
 })
 
-test('every plate carries its ODbL attribution', () => {
+test('every plate carries its ODbL attribution by default', () => {
   const { svg } = renderPlate(FIXTURE, PLATE)
   assert.ok(svg.includes(PLATE_ATTRIBUTION), 'OSM attribution is required on a Produced Work')
+})
+
+test('invented geometry can refuse the attribution rather than claim it falsely', () => {
+  const { svg } = renderPlate(FIXTURE, { ...PLATE, attribution: null })
+  assert.ok(!svg.includes(PLATE_ATTRIBUTION), 'a synthetic plate must not credit OSM')
+  assert.ok(svg.includes('<title>'), 'it still needs an accessible title')
+  assert.ok(svg.includes('not a real location'))
 })
 
 test('open country renders a valid, empty plate rather than throwing', () => {
@@ -156,5 +167,92 @@ test('stroke weights scale with the frame, so a Pinterest plate is not hairlines
   assert.ok(
     weightOf(pin.svg) > weightOf(card.svg) * 2,
     `pin weight ${weightOf(pin.svg)} should scale up from card weight ${weightOf(card.svg)}`
+  )
+})
+
+test('a rendered plate parses back into the shapes it was drawn from', () => {
+  const { svg } = renderPlate(FIXTURE, PLATE)
+  const shapes = parsePlate(svg)
+
+  const paths = shapes.filter((s) => s.kind === 'path')
+  const circles = shapes.filter((s) => s.kind === 'circle')
+  // Two features from the fixture, and the marker is a halo plus a dot.
+  assert.equal(paths.length, 2, 'expected the water fill and the road stroke')
+  assert.equal(circles.length, 2, 'expected the paper halo and the vermilion dot')
+
+  const road = paths.find((s) => s.stroke === '#0F0E0C')
+  assert.ok(road, 'road not found')
+  assert.ok(road.d!.startsWith('M'), 'path data must survive the round trip')
+  assert.equal(typeof road.strokeWidth, 'number', 'stroke width must parse as a number')
+})
+
+test('the background rect is dropped, so a plate cannot paint over the card', () => {
+  const { svg } = renderPlate(FIXTURE, PLATE)
+  assert.ok(svg.includes('<rect'), 'the stored plate does have a background')
+  const shapes = parsePlate(svg)
+  assert.ok(
+    shapes.every((s) => s.kind !== 'path' || s.d !== undefined),
+    'no rect should survive as a shape'
+  )
+  assert.equal(shapes.filter((s) => s.fill === '#F2EBDA' && s.kind === 'path').length, 0)
+})
+
+test('parsing tolerates a file that opens with the ODbL comment', () => {
+  const { svg } = renderPlate(FIXTURE, PLATE)
+  const asStored = `<!-- ${PLATE_ATTRIBUTION} -->\n${svg}\n`
+  assert.equal(parsePlate(asStored).length, parsePlate(svg).length)
+})
+
+test('real farm slugs are accepted', () => {
+  for (const slug of [
+    'boscastle-farm-shop-cafe',
+    'argal-farm-shop',
+    'chypraze-farm-butchery-and-shop',
+    'a',
+    'farm123',
+  ]) {
+    assert.equal(isPlateSlug(slug), true, `${slug} should be accepted`)
+  }
+})
+
+test('anything that could escape the plates directory is refused', () => {
+  const attacks = [
+    '../../api/health#',          // normalises to /api/health, .svg becomes a fragment
+    '../../../robots.txt#',
+    '..%2F..%2Fapi',
+    '/etc/passwd',
+    'slug/../../other',
+    'slug#frag',
+    'slug?query=1',
+    'slug.svg',                    // a dot is never part of a slug
+    'https://evil.example.com/x',
+    'Slug-With-Caps',
+    '',
+    'a'.repeat(101),
+    'slug with spaces',
+    'slug%00',
+  ]
+  for (const attack of attacks) {
+    assert.equal(isPlateSlug(attack), false, `${JSON.stringify(attack)} should be refused`)
+  }
+})
+
+test('the placeholder getPlaceholderMapUrl promises is actually there', () => {
+  // lib/static-map.ts returns '/images/map-placeholder.svg'. It returned that
+  // for a file that had never existed; nothing called the function, so nothing
+  // caught it. Built now by scripts/build-map-placeholder.ts.
+  const path = join(process.cwd(), 'public', 'images', 'map-placeholder.svg')
+  assert.ok(existsSync(path), `missing: ${path}`)
+
+  const svg = readFileSync(path, 'utf8')
+  const shapes = parsePlate(svg)
+  assert.ok(shapes.length >= 5, `expected a drawn map, got ${shapes.length} shapes`)
+  assert.ok(
+    shapes.some((s) => s.kind === 'circle' && s.fill === '#D33A2C'),
+    'the vermilion marker should be present, so it reads as a map',
+  )
+  assert.ok(
+    !svg.includes(PLATE_ATTRIBUTION),
+    'invented geometry must not claim OpenStreetMap as its source',
   )
 })
