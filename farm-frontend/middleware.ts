@@ -1,7 +1,54 @@
 import { NextResponse, NextRequest } from 'next/server'
 import { SITE_URL, IS_PROD } from '@/lib/site'
+import { GONE_FARM_SLUGS } from '@/data/gone-farm-slugs'
 
+// Next 16 renamed this convention to `proxy.ts` and warns that `middleware.ts`
+// is deprecated, but still builds it: `next build` lists it as "Proxy
+// (Middleware)" and emits it to .next/server/middleware-manifest.json.
+//
+// Do NOT add a `proxy.ts` beside this file. next/dist/build/index.js throws
+// "Both middleware file and proxy file are detected" and the build fails.
+// Migrate with `npx @next/codemod middleware-to-proxy .` when ready.
+//
+// Note for anyone testing a change here: this does NOT execute under `next
+// dev` in this project. Verified 6 November 2026 by probing a sentinel status
+// from all four accepted locations (middleware.ts, src/middleware.ts,
+// proxy.ts, src/proxy.ts), every one answering 404 in dev while the
+// production build serves the CSP below correctly. Verify changes to this
+// file against a standalone build, not the dev server.
 export const config = { matcher: ['/((?!_next/|api/og|favicon.ico).*)'] }
+
+/**
+ * 410 Gone for farm listings that were deliberately withdrawn.
+ *
+ * The page already 404s, because getFarmBySlug filters on status 'active'.
+ * These URLs were indexed before removal, so 404 ("might come back") is the
+ * wrong signal and 410 ("withdrawn, stop asking") is the right one. It lives
+ * here because the App Router gives a page no way to set a status other than
+ * 404 via notFound().
+ */
+function goneResponse(): NextResponse {
+  const html = `<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>No longer listed &middot; Farm Companion</title>
+<style>body{margin:0;background:#fff;color:#141E27;font:16px/1.6 system-ui,sans-serif;display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px}
+main{max-width:34rem}h1{font-size:2rem;line-height:1.1;margin:0 0 .75rem}p{color:#4A5560;margin:0 0 1.5rem}
+a{display:inline-block;min-height:48px;line-height:48px;padding:0 24px;background:#DB330E;color:#fff;text-decoration:none;font-weight:600}</style>
+</head><body><main>
+<h1>This listing has been withdrawn</h1>
+<p>It was a record with no contact details and no sign the place was open to visitors, so we removed it rather than leave it on the map.</p>
+<a href="/map">Find farm shops near you</a>
+</main></body></html>`
+  return new NextResponse(html, {
+    status: 410,
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'X-Robots-Tag': 'noindex',
+      'Cache-Control': 'public, max-age=3600',
+    },
+  })
+}
 
 /** Exported for testing: the policy is security-critical and silently fatal. */
 export function cspFor(req: NextRequest) {
@@ -101,6 +148,19 @@ export function cspFor(req: NextRequest) {
 }
 
 export function middleware(req: NextRequest) {
+  // Withdrawn listings answer 410 everywhere, so this sits ahead of the
+  // production-only CSP branch below.
+  const shop = /^\/shop\/([^/]+)\/?$/.exec(req.nextUrl.pathname)
+  if (shop) {
+    let slug: string
+    try {
+      slug = decodeURIComponent(shop[1])
+    } catch {
+      slug = shop[1]
+    }
+    if (GONE_FARM_SLUGS.has(slug)) return goneResponse()
+  }
+
   // Only enforce CSP in production (redirect handled by next.config.ts)
   if (!IS_PROD) return NextResponse.next()
 

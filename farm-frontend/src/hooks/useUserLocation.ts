@@ -21,22 +21,26 @@ export interface UseUserLocationOptions {
   timeout?: number
   /** Maximum age of cached position in ms */
   maximumAge?: number
-  /** Fallback location if permission denied (defaults to London) */
-  fallback?: { latitude: number; longitude: number }
 }
 
 export interface UseUserLocationResult {
+  /** The user's real position, or null. Never a substituted coordinate. */
   location: UserLocation | null
   isLoading: boolean
   error: GeolocationPositionError | null
   isPermissionDenied: boolean
+  /** Geolocation is not available at all (SSR, or unsupported browser) */
+  isUnavailable: boolean
   refresh: () => void
 }
 
-const DEFAULT_FALLBACK = { latitude: 51.5074, longitude: -0.1278 } // London
-
 /**
- * Hook for accessing user geolocation
+ * Hook for accessing user geolocation.
+ *
+ * `location` is null unless the browser returned a real position. This hook
+ * never substitutes a default coordinate: a caller that cannot tell a real
+ * position from an invented one will present, say, London farms to a user in
+ * Cornwall. Branch on `location === null` and say so in the interface.
  *
  * @example
  * const { location, isLoading, isPermissionDenied, refresh } = useUserLocation()
@@ -51,25 +55,24 @@ export function useUserLocation(
   const {
     enableHighAccuracy = false,
     timeout = 10000,
-    maximumAge = 300000, // 5 minutes cache
-    fallback = DEFAULT_FALLBACK
+    maximumAge = 300000 // 5 minutes cache
   } = options
 
   const [location, setLocation] = useState<UserLocation | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<GeolocationPositionError | null>(null)
   const [isPermissionDenied, setIsPermissionDenied] = useState(false)
+  const [isUnavailable, setIsUnavailable] = useState(false)
 
   const fetchLocation = useCallback(() => {
     if (typeof window === 'undefined' || !navigator.geolocation) {
-      // SSR or no geolocation support - use fallback
-      setLocation({
-        ...fallback,
-        timestamp: Date.now()
-      })
+      // SSR or no geolocation support. Report it; do not invent a position.
+      setIsUnavailable(true)
       setIsLoading(false)
       return
     }
+
+    setIsUnavailable(false)
 
     setIsLoading(true)
     setError(null)
@@ -89,13 +92,10 @@ export function useUserLocation(
         setError(err)
         setIsLoading(false)
 
-        // Permission denied - use fallback
+        // Denied, unavailable or timed out. Leave location null so callers
+        // branch on "we do not know" rather than on a coordinate we made up.
         if (err.code === err.PERMISSION_DENIED) {
           setIsPermissionDenied(true)
-          setLocation({
-            ...fallback,
-            timestamp: Date.now()
-          })
         }
       },
       {
@@ -104,7 +104,7 @@ export function useUserLocation(
         maximumAge
       }
     )
-  }, [enableHighAccuracy, timeout, maximumAge, fallback])
+  }, [enableHighAccuracy, timeout, maximumAge])
 
   useEffect(() => {
     fetchLocation()
@@ -115,6 +115,7 @@ export function useUserLocation(
     isLoading,
     error,
     isPermissionDenied,
+    isUnavailable,
     refresh: fetchLocation
   }
 }
