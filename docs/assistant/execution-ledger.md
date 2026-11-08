@@ -6799,3 +6799,74 @@ node.
 
 **Risk/rollback:** One validation change, one path guard, one origin rule, one timeout, one prompt
 shape and one length check. Revert the commit and the branch returns to its reviewed state.
+### 2026-11-07 — The CLAUDE.md queue rewritten against the code it was supposed to describe
+
+The queue had drifted far enough to cost more than it returned. Across Queues 3, 4 and 5 the audit
+consistently took a full session and yielded a line or two of real change; Queue 5 yielded exactly one.
+Rewritten from evidence, with every claim checked against the current tree.
+
+**What the old queue got wrong, recorded so the failure mode is recognisable:**
+- **Queue 1** sent work to the wrong package for three of its four items. twitter-workflow has no `next`
+  dependency, `undici` was absent from both packages it was attributed to, and farm-pipeline held no
+  hardcoded key. The real exposure was credential values committed elsewhere.
+- **Queue 3** named `MapShell.tsx`, deleted in f330f14. Five of its six items were already done.
+- **Queue 5** was complete on all four counts before it was opened.
+- **Queue 6** was entirely fictional: `sendFailureNotification` **never existed in git history**
+  (`git log --all -S` returns nothing; the real functions are `errorNotification` /
+  `successNotification`), and the "filesystem locks" it asks to replace do not exist either. Locking
+  is already the Redis/KV abstraction the item asks for, via `setWithLimitToday`.
+- **Queue 7** was the only one with surviving work, and only two of its three items.
+
+**The replacement, ordered by evidence rather than by the old numbering:**
+1. **Rotate the credentials still live in a public repo.** Measured from Vercel "Updated" ages:
+   `BLOB_READ_WRITE_TOKEN` was rotated 2026-11-02 (5d) and is done; `REDIS_URL` is moot because the
+   database was deleted. `RESEND_API_KEY` (445d), `DEEPSEEK_API_KEY` / `DEEPSEEK_IMAGE_API_KEY` (427d)
+   and the three Twitter credential groups (427d) are untouched. Marked OPERATOR ONLY.
+2. **Decide farm-produce-images' fate.** Still HTTP 200 with six API routes on a database deleted
+   2026-06-10.
+3. **Harden the pipeline sidecar.** Retries/backoff absent (only a fixed `asyncio.sleep`), logging is
+   bare `print()`. Pinning already done.
+4. **Switch on duplicate-post protection.** The guard is correct but inert: `UPSTASH_REDIS_REST_URL` /
+   `_TOKEN` unset, so `lock.enforced` is never true. Safe to enable now the const-reassignment crash
+   is fixed.
+5. **Thin directory pages.** Points at the content audit's measured figures in this ledger rather than
+   restating numbers, deliberately: writing unverified numbers into the instructions is the exact
+   failure being corrected.
+6. **Decide the impeccable live-scan policy.** The static gate exits 0; a live scan will not, because
+   four of its findings are brand decisions (Cream Paper, three editorial kickers).
+
+**Two structural changes beyond the list.** A working rule at the top: audit an item before
+implementing it, and strike it in the same change when it turns out done, so the list cannot rot the
+same way again. And `## Default behavior` was reconciled: it said *"implement Slice 1 from Queue 1
+immediately"*, which under the new ordering would have sent Claude to perform a credential rotation it
+is explicitly forbidden from doing.
+
+**Verification:** every claim above was checked against the tree or against Vercel in this session.
+Section headings and ordering in CLAUDE.md are unchanged apart from the queue block and that one
+Default behavior bullet; the file's own "no emojis, no em dashes" rule is respected in the new text
+(checked programmatically: 0 and 0).
+
+---
+
+### 2026-11-08 — Queue 7 added to the rewritten queue: repository structure defects
+
+Merging master into the queue-rewrite branch surfaced findings from Slice 1.16 that the rewritten queue
+did not yet carry. Adding them rather than shipping a list already known to be incomplete, which is the
+failure the rewrite exists to correct.
+
+**Independently verified before adding, and the picture is worse than reported.** Slice 1.16 named two
+gitlinks; `git ls-files -s` shows **four**: `FC1/farm-companion`, `farm-photos`, `farm-schema` and
+`produce-data-generator`, all mode 160000, with **no `.gitmodules`** and no inner `.git` in the two
+checked. `git ls-files farm-schema/` returns a single entry, confirming the contents are invisible to
+git. The practical consequences are that Dependabot cannot scan them and that a security fix already
+applied on disk to `farm-schema` **cannot be committed at all**.
+
+Also carried in from Slice 1.16, credited there rather than re-measured here: `farm-produce-images`
+`pnpm lint` is broken on master (`Converting circular structure to JSON` in `@eslint/eslintrc`, likely
+the `eslint-config-next@16.2.6` against `next@16.4.1` mismatch), the unmet `@tiptap/pm` peer in
+farm-frontend, and `farmcompanion-social` being untracked.
+
+**Worth noting for coordination:** Slice 1.16 is labelled "Queue 1: dependency security across the
+workspace", i.e. a sibling session was working from the *old* numbering while this rewrite was in
+flight. Once this merges, that numbering no longer resolves. Nothing is broken by it, but anyone
+holding the old map should re-read the queue rather than trust remembered numbers.

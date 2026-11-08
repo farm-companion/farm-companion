@@ -84,44 +84,98 @@ Update it every slice:
 ## Strict queue order
 Do not reorder unless blocked.
 
-Queue 1: Security closure and secret removal
-- Fix twitter-workflow critical Next.js vulnerabilities
-- Fix js-yaml vulnerability
-- Confirm undici vulnerability status and fix if present
-- Remove hardcoded API key in farm-pipeline and switch to env var with docs
+Rewritten 2026-11-07 against the actual codebase. The previous queue had drifted
+badly: it sent work to the wrong package for three of four Queue 1 items, named
+files that no longer exist (MapShell.tsx), and listed as outstanding a large
+amount of work that had already shipped. Queues 1 to 6 of that list, and one of
+three Queue 7 items, were verified complete and have been removed. See the
+execution ledger entries for 2026-11-01 through 2026-11-03 for the evidence.
 
-Queue 2: Deployment stability
-- Run the exact Vercel build command locally for each deployed app
-- Fix remaining build blockers until it passes reliably
+**Working rule: audit before you implement.** Confirm an item is still true
+against the code before planning work on it. If it is already done, strike it
+from this list in the same change rather than leaving it to be re-audited.
 
-Queue 3: Track 0 Map fixes
-- Remove production console logs
-- Fix MapShell.tsx type safety issues
-- Fix cluster event handling and state race conditions
-- Add desktop marker interactions using popovers
-- Extract Haversine to src/shared/lib and unit test it
-- Fix ClusterPreview data loss
+Queue 1: Rotate the credentials that are still live in a public repository
+- The repo is public and has been since 2025-08-23. Values committed in
+  twitter-workflow/env.production, docs/archive/INTEGRATION_STATUS.md and
+  twitter-workflow/TEST_DEEPSEEK.md are out of the working tree but remain in
+  git history, so they are still readable. Treat them as compromised.
+- Done: BLOB_READ_WRITE_TOKEN (rotated 2026-11-02). Moot: REDIS_URL, because the
+  Redis Cloud database was deleted on 2026-06-10 and the credential authenticates
+  against nothing.
+- Still outstanding, by their Vercel "Updated" age: RESEND_API_KEY (445 days),
+  DEEPSEEK_API_KEY and DEEPSEEK_IMAGE_API_KEY (427 days), the Twitter consumer
+  pair, the Twitter access-token pair, and Twitter_Client_Secret (427 days).
+- Note farm-frontend stores the Twitter credentials in Title_Case under different
+  names than twitter-workflow's UPPER_CASE (Twitter_API_Key_Secret vs
+  TWITTER_API_SECRET), and farm-frontend alone holds Twitter_Bearer_Token.
+  Grepping for TWITTER_ misses every farm-frontend copy.
+- OPERATOR ONLY. Claude must not rotate credentials.
+- Done when: every item above shows a recent Updated timestamp in Vercel, and
+  each provider's usage history has been checked for activity nobody recognises.
 
-Queue 4: Design system and UI polish
-- Fill missing components
-- Tokens: color, spacing, typography, motion
-- Micro interactions and accessibility states
-- WCAG AA compliance
+Queue 2: Decide what happens to farm-produce-images
+- The app answers HTTP 200 but its data layer is gone. Six API routes (cleanup,
+  images, metadata, stats, sync, upload) plus lib/integration.ts read REDIS_URL
+  through src/lib/database.ts, and that database was deleted on 2026-06-10.
+  Connection failure is swallowed by redis.connect().catch(console.error), so it
+  fails per query rather than at boot, which is why it went unnoticed.
+- Either give it a datastore, or delete the project and its environment
+  variables, mirroring what PR #230 does for farm-photos.
+- Done when: the routes work against a real datastore, or the project is gone
+  along with its copies of BLOB_READ_WRITE_TOKEN and REDIS_URL.
 
-Queue 5: Backend optimization
-- Fix N plus 1 queries
-- Add indexes including geospatial strategy
-- Stage PostGIS safely if needed
-- Add connection pooling
+Queue 3: Harden the farm-pipeline scrape sidecar
+- Retries and backoff are absent. src/scrape_sidecar.py has only a fixed
+  asyncio.sleep(args.min_delay) politeness delay. Transient fetch failures are
+  recorded and abandoned; the ledger notes 59 fetch_errors never retried.
+- Logging is unstructured. The sidecar prints with bare print() calls, so a batch
+  run cannot be parsed or alerted on.
+- requirements pinning is DONE (crawl4ai==0.9.5, exact).
+- Done when: a transient failure is retried with backoff and a run emits
+  machine-parseable records.
 
-Queue 6: Twitter workflow refinement
-- Fix sendFailureNotification bug
-- Replace filesystem locks with a lock abstraction that can use Redis later
+Queue 4: Switch on duplicate-post protection in twitter-workflow
+- The guard exists and is correct, but is inert. setWithLimitToday returns early
+  because UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are unset, so
+  lock.enforced is never true and nothing prevents a double post.
+- The crash that would have fired once KV was configured (a const reassignment)
+  was fixed on 2026-11-02, so configuring it is now safe.
+- OPERATOR step to provide the KV credentials.
+- Done when: a second posting run on the same day is actually skipped.
 
-Queue 7: Farm pipeline hardening
-- requirements pinned
-- retries and backoff
-- structured logging
+Queue 5: Thin directory pages
+- A content audit measured large numbers of county and county-plus-category
+  pages carrying too few farms to be worth publishing, and a significant share
+  of records with placeholder names. The measured figures live in the execution
+  ledger; do not restate them from memory, read them.
+- Done when: there is a stated minimum for publishing a county or category page,
+  and pages below it are noindexed, merged or removed.
+
+Queue 6: Decide the impeccable live-scan policy
+- npx impeccable detect src/ exits 0 and is the gate this file names. A live scan
+  of the running app does not, and will not: it reports four findings that are
+  deliberate brand decisions, namely the cream page background (Cream Paper is a
+  named colour in .impeccable/design.json) and three editorial kickers.
+- Either encode those as project-level detector ignores so a live scan can be
+  gated too, or state that only the static scan gates and live scans are advisory.
+- Done when: a live scan either exits 0 or is explicitly out of scope here.
+
+Queue 7: Repository structure defects that hide code from tooling
+- Four directories sit in the index as gitlinks (mode 160000) with no
+  .gitmodules and no inner .git: FC1/farm-companion, farm-photos, farm-schema
+  and produce-data-generator. Git ignores their contents entirely, Dependabot
+  does not scan them, and a security fix already applied on disk to farm-schema
+  cannot be committed. Verified 2026-11-08 with git ls-files -s.
+- farmcompanion-social is simply untracked.
+- farm-produce-images pnpm lint is broken on master, independent of any slice:
+  ESLint dies with "Converting circular structure to JSON" in @eslint/eslintrc,
+  most likely the eslint-config-next@16.2.6 against next@16.4.1 mismatch in that
+  package. Recorded in the ledger under Slice 1.16.
+- farm-frontend has an unmet @tiptap/pm peer: the @tiptap/core override lifts
+  core to 3.32.2 while @tiptap/pm stays at 3.15.3.
+- Done when: every package's source is tracked and scannable, and lint runs in
+  farm-produce-images.
 
 ## Mandatory output format for each response
 1) Slice title and goal (one sentence)
@@ -134,7 +188,10 @@ Queue 7: Farm pipeline hardening
 
 ## Default behavior
 - Start by ensuring docs/assistant/execution-ledger.md exists.
-- Then implement Slice 1 from Queue 1 immediately.
+- Then take the first queue item that is not marked OPERATOR ONLY, audit it
+  against the code to confirm it is still true, and implement the first slice.
+  Queue 1 is operator work: Claude must not rotate credentials, so do not
+  "start at the top" by default.
 
 ## Skill orchestration (added 2026-05-16)
 
