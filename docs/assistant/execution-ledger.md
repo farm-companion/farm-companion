@@ -6278,10 +6278,45 @@ every pin is in-major except the two minimatch 11 ones, which lint exercises dir
 
 ### Follow-ups
 
-- The 61 stale alerts will not clear themselves. Merging this slice touches
-  `farm-produce-images/package.json` on `master`, which should force a dependency-graph rescan; any
-  that survive have to be dismissed as inaccurate (`PATCH /repos/.../dependabot/alerts/:n` with
-  `state=dismissed`, `dismissed_reason=inaccurate`), one per alert.
-- Fix the `farm-produce-images` ESLint config, the unparseable twitter-workflow script, the
-  `@tiptap/pm` peer, and the two gitlinks.
+- Fix the `farm-produce-images` ESLint config, the `@tiptap/pm` peer, and the two gitlinks. The
+  unparseable twitter-workflow script was already fixed on `master` and came in with the merge.
+
+### Postscript, 8 November — the rescan never came, and the dashboard was never a signal
+
+The expectation recorded above was wrong, so it is worth writing down why rather than quietly
+deleting it. Merging Slice 1.16 did change `farm-produce-images/package.json` on `master`
+(`b251b799`, PR #239), which should have forced a dependency-graph rescan. Five hours later nothing
+had moved: still 61 open, and alert #141 still carried `created` and `updated` timestamps that were
+byte-identical to each other and five days old, so it had never been re-evaluated at all.
+
+**The number that settled it: of the 133 Dependabot alerts this repository has ever raised, zero
+have ever reached state `fixed`.** Every one of the 133 is against `farm-produce-images`; the states
+were 61 open, 20 `auto_dismissed` (GitHub's own non-applicability rule, spread across February to
+October) and 52 dismissed by hand — the fingerprints of this same problem being cleared manually
+before, on `chore/security-slice-b-dismiss-stale-alerts`. If the graph were re-reading that path,
+alerts would close as `fixed` when the manifest passed the patched version, and that manifest went
+15.5 to 16.1 to 16.2 to 16.4 across ten months without a single one doing so. There was no rescan to
+wait for.
+
+**Two things fall out of that, and the second matters more than the alerts did.**
+
+1. `/repos/.../dependency-graph/sbom` returns **404** on this public, unarchived repository, where it
+   should return a document. Consistent with the graph being broken rather than slow. Cause not
+   established from outside. Dependabot *alerts* are enabled (`/vulnerability-alerts` answers 204);
+   Dependabot *security updates* are disabled, which is a separate feature and not the cause.
+2. **`farm-frontend` has never produced a single alert** — not one in 133 — and that is the
+   production app, which was carrying 24 highs when Slice 1.16 started. GitHub is not reading
+   `pnpm-lock.yaml` on this repository at all, only the one deleted npm lockfile. So the alert count
+   over-reported a package that had been fixed for ten months while saying nothing about the package
+   that was actually vulnerable. **Treat `pnpm audit` and `npm audit` per package as the measure
+   here, not the GitHub dashboard.**
+
+**Done:** all 61 dismissed with `dismissed_reason=inaccurate` and a comment naming the deleted
+lockfile, the January `next` replacement, the absent `sharp` dependency and the measured zero.
+61 succeeded, 0 failed; the repository now reports **0 open alerts** (113 dismissed, 20
+auto-dismissed). Dismissal is reversible: `PATCH` the alert with `state=open`.
+
+**Still worth doing, if GitHub's view is to mean anything again:** get the dependency graph reading
+`farm-frontend/pnpm-lock.yaml` and `farm-produce-images/pnpm-lock.yaml`. Until then a future stale
+alert looks exactly like a real one, and the only honest answer is the local auditor.
 
