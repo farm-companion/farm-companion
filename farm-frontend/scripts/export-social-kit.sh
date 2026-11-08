@@ -12,13 +12,22 @@ BASE="${1:-http://localhost:3001}"
 OUT="$(cd "$(dirname "$0")/../.." && pwd)/brand/social"
 mkdir -p "$OUT"
 
+# curl writes the body whatever the status, so a 500 used to leave its error
+# page sitting at brand/social/<format>.png, ready to be uploaded to a profile.
+# Download to a temporary file and only move it into place on a 200.
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
 for format in avatar x-header fb-cover; do
-  code=$(curl -sS -o "$OUT/$format.png" -w '%{http_code}' --max-time 120 \
+  code=$(curl -sS -o "$tmp/$format.png" -w '%{http_code}' --max-time 120 \
     "$BASE/og/social?format=$format")
   if [ "$code" != "200" ]; then
     echo "$format: HTTP $code from $BASE" >&2
+    head -c 300 "$tmp/$format.png" >&2 || true
+    echo >&2
     exit 1
   fi
+  mv "$tmp/$format.png" "$OUT/$format.png"
   echo "$format -> brand/social/$format.png"
 done
 

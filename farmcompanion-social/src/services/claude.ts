@@ -15,6 +15,13 @@ import { getSocialCopyPrompt } from "../prompts/social-copy.js";
  * loaded in a test without a live key. Making the config lazy was not enough
  * while its consumer was still eager.
  */
+/**
+ * Overridable, because a pinned dated snapshot is one retirement away from
+ * failing every cron run with model_not_found until somebody ships a
+ * one-character change.
+ */
+const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5-5";
+
 let client: Anthropic | null = null;
 
 function getClient(): Anthropic {
@@ -25,7 +32,7 @@ function getClient(): Anthropic {
 export async function generateCopy(farm: Farm): Promise<SocialCopy> {
   const prompt = getSocialCopyPrompt(farm);
   const response = await getClient().messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: MODEL,
     max_tokens: 1024,
     messages: [{ role: "user", content: prompt }],
   });

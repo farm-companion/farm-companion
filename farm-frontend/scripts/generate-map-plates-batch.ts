@@ -14,7 +14,12 @@
  */
 import { writeFile, mkdir, access } from 'fs/promises'
 import { join } from 'path'
-import { buildOverpassQuery, renderPlate, PLATE_ATTRIBUTION } from '../src/lib/map-plate'
+import {
+  buildOverpassQuery,
+  renderPlate,
+  isPlateSlug,
+  PLATE_ATTRIBUTION,
+} from '../src/lib/map-plate'
 import type { OverpassWay } from '../src/lib/map-plate'
 
 const ENDPOINT = 'https://overpass-api.de/api/interpreter'
@@ -26,6 +31,17 @@ function flag(name: string, fallback: string): string {
   return found ? found.split('=')[1] : fallback
 }
 const has = (name: string) => process.argv.includes(`--${name}`)
+
+/** A flag that is meant to be a number has to be one. `--limit=all` reached
+ *  Prisma as `take: NaN`, and `--size=large` wrote a plate of NaN coordinates
+ *  that looked like a real file on disk. */
+function numericFlag(name: string, fallback: string): number {
+  const value = Number(flag(name, fallback))
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`--${name} must be a positive number, got ${flag(name, fallback)}`)
+  }
+  return value
+}
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -77,10 +93,14 @@ async function fetchWays(lat: number, lon: number, radiusM: number): Promise<Ove
 
 async function main(): Promise<void> {
   const county = flag('county', 'Cornwall')
-  const limit = Number(flag('limit', '12'))
-  const delayMs = Number(flag('delay', '1500'))
-  const radiusM = Number(flag('radius', '1200'))
-  const [width, height] = flag('size', '430x630').split('x').map(Number)
+  const limit = numericFlag('limit', '12')
+  const delayMs = numericFlag('delay', '1500')
+  const radiusM = numericFlag('radius', '1200')
+  const size = flag('size', '430x630').split('x').map(Number)
+  if (size.length !== 2 || !size.every((n) => Number.isFinite(n) && n > 0)) {
+    throw new Error(`--size must look like 430x630, got ${flag('size', '430x630')}`)
+  }
+  const [width, height] = size
   const dryRun = has('dry-run')
   const force = has('force')
 
@@ -108,6 +128,15 @@ async function main(): Promise<void> {
   let skipped = 0
 
   for (const [index, farm] of farms.entries()) {
+    // The same boundary the card route enforces when it reads these files.
+    // A slug reaches a filesystem path here, so a row carrying `..` would
+    // write outside the plates directory. Validated, not trusted, even
+    // though it comes from our own database.
+    if (!isPlateSlug(farm.slug)) {
+      console.warn(`  ${JSON.stringify(farm.slug)}: not a plate slug, skipped`)
+      skipped += 1
+      continue
+    }
     const path = join(OUT_DIR, `${farm.slug}.svg`)
     if (!force && (await exists(path))) {
       skipped += 1

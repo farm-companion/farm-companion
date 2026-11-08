@@ -6320,3 +6320,72 @@ return, since git holds them.
 
 **Next:** `seasonal-header.jpg` is the last unidentified stock file, on pages 6 to 11 of the Adobe
 licence history.
+
+---
+
+## 2026-11-08 — Slice BRAND-H: the review findings on PR #226, fixed
+
+Seven of the thirteen findings from the code review of this branch. Nine files, one over the
+eight-file rule: the ninth is the test that proves the length bound, and shipping a guard with no
+test to make it fail seemed the worse trade.
+
+**The format guard accepted inherited keys.** `og/social/route.tsx` validated with
+`value in SIZES`, and `in` walks the prototype chain, so `?format=constructor` passed, along with
+`toString`, `valueOf`, `hasOwnProperty`, `isPrototypeOf` and `__proto__`. `RENDERERS[format]` then
+returned an inherited function instead of a component and `{...SIZES[format]}` spread nothing, so
+`ImageResponse` ran with no width or height. `Object.hasOwn` now. Proved by running both guards
+side by side: the same six inputs that passed before are refused now, and the three real formats
+still pass. That route also had no `try/catch` while the card route has had one since it shipped,
+so a font failure returned a stack trace; it returns a message now.
+
+**The plate write path had none of the validation the read path got.** The batch generator put
+`farm.slug` straight from the database into `join(OUT_DIR, slug + '.svg')`, so a row carrying `..`
+would have written outside `public/images/plates`. It now calls `isPlateSlug`, which this branch
+added and which the same module exports, and skips anything that is not a slug. The script runs
+against production, so "it comes from our own database" is not the same as "it is safe to put in a
+path".
+
+**Previews could not show the plates they were adding.** The origin was pinned to `SITE_URL`
+whenever `NODE_ENV` is production, and Vercel sets that on preview builds too, while `SITE_URL`
+falls back to the live domain. Every preview therefore asked production for plates production did
+not have, and every card fell back to the sunrise, which is exactly the surface a reviewer would
+have been looking at. A preview now reads its own `VERCEL_URL`. That keeps the Host header out of
+it, since the platform sets `VERCEL_URL`, not the caller.
+
+**The plate read had no timeout.** The `catch` covered a rejection, never latency, so a slow origin
+held the card render until the platform killed it. `AbortSignal.timeout(2500)` turns that back into
+the sunrise fallback the code already had.
+
+**Farm text went into the prompt undelimited.** A farm name and description are owner-editable, and
+the model's output is published to live accounts under our name. Both now sit inside a marked block
+the instructions treat as data, angle brackets and control characters are stripped so the block
+cannot be closed early, and both are capped so a long description cannot bury the instructions.
+
+**Nothing bounded the post length.** `publishPost` refused an empty caption and accepted anything
+else, while `max_tokens` is 1024 and X takes 280. There is a per-platform table now and the
+strictest platform in the list wins, checked before the request rather than discovered as an opaque
+400 after the Claude call was paid for.
+
+**The model was a pinned dated snapshot**, `claude-sonnet-4-20250514`. Now the current Sonnet, with
+`ANTHROPIC_MODEL` as an override, so a retirement is a configuration change rather than a deploy.
+
+**`export-social-kit.sh` wrote the error body as the PNG.** `curl -o` writes whatever comes back, so
+a 500 left its error page at `brand/social/<format>.png`, ready to upload to a profile. It
+downloads to a temporary file and moves it into place only on a 200, printing the first 300 bytes
+of the failure instead of saving them.
+
+**Left, deliberately, with reasons.** `map-plate.ts` still calls `classify` twice per way, which is
+wasted projection work and nothing more. `brand.tsx` still memoises a rejected font promise for the
+life of the isolate, which predates this branch and wants its own fix with a retry. `shop/[slug]`
+still sends `plate=` for every farm when eight plates exist, which needs a generated-plate manifest
+rather than a patch. `getFarm` is still a stub, which is the daemon's next piece of work, not a bug
+to fix in a review pass.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0 in both packages. `npx eslint` exit 0 on
+the three changed frontend files. `npm run test:unit` 554 pass 0 fail in the frontend. `npm test` 18
+pass 0 fail in the daemon, up from 15, the three new ones covering the platform limit table, a
+caption one character over the limit and one exactly on it. The guard comparison above was run in
+node.
+
+**Risk/rollback:** One validation change, one path guard, one origin rule, one timeout, one prompt
+shape and one length check. Revert the commit and the branch returns to its reviewed state.

@@ -33,13 +33,44 @@ async function loadPlate(origin: string, slug: string): Promise<PlateShape[] | n
   // thrown away as a fragment. See `isPlateSlug`.
   if (!isPlateSlug(slug)) return null
   try {
-    const response = await fetch(`${origin}/images/plates/${slug}.svg`)
+    // A timeout, because the catch below only covers a rejection. A slow
+    // origin would otherwise hold the whole card render until the platform
+    // killed it, turning a card that should have drawn the sunrise into a
+    // failed social preview.
+    const response = await fetch(`${origin}/images/plates/${slug}.svg`, {
+      signal: AbortSignal.timeout(2500),
+    })
     if (!response.ok) return null
     const shapes = parsePlate(await response.text())
     return shapes.length > 0 ? shapes : null
   } catch {
     return null
   }
+}
+
+/**
+ * Where plate files are read from.
+ *
+ * Never the request's own origin in a deployed environment: `request.url`
+ * follows the Host header, and this is a server-side fetch, so a spoofed host
+ * would aim it at somebody else's server.
+ *
+ * A preview deployment reads its OWN plates. Pinning every non-development
+ * build to SITE_URL sent previews to production, which does not have the
+ * plates a branch is adding, so every card on a preview fell back to the
+ * sunrise and the feature could not be reviewed before it merged. VERCEL_URL
+ * is set by the platform, not by the caller, so it is as safe as SITE_URL.
+ *
+ * Locally SITE_URL is hardcoded to port 3000 while the dev server moves
+ * around, so there the request's origin is the only thing that resolves.
+ */
+function platesOrigin(request: NextRequest): string {
+  const { VERCEL_ENV, VERCEL_URL } = process.env
+  if (VERCEL_ENV && VERCEL_ENV !== 'production' && VERCEL_URL) {
+    return `https://${VERCEL_URL}`
+  }
+  if (process.env.NODE_ENV === 'production') return SITE_URL
+  return new URL(request.url).origin
 }
 
 export async function GET(request: NextRequest) {
@@ -63,13 +94,7 @@ export async function GET(request: NextRequest) {
     const headlineSize = headline.length > 28 ? 60 : headline.length > 18 ? 72 : 84
 
     const plateSlug = searchParams.get('plate')
-    // Pinned to the configured site in production so a spoofed Host header
-    // cannot point this server-side fetch at somebody else's server. In
-    // development SITE_URL is hardcoded to port 3000 while the dev server may
-    // be on another port, so the request's own origin is used there.
-    const plateOrigin =
-      process.env.NODE_ENV === 'production' ? SITE_URL : new URL(request.url).origin
-    const plate = plateSlug ? await loadPlate(plateOrigin, plateSlug) : null
+    const plate = plateSlug ? await loadPlate(platesOrigin(request), plateSlug) : null
 
 
     return new ImageResponse(
