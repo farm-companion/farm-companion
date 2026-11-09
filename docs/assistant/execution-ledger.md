@@ -6870,3 +6870,61 @@ farm-frontend, and `farmcompanion-social` being untracked.
 workspace", i.e. a sibling session was working from the *old* numbering while this rewrite was in
 flight. Once this merges, that numbering no longer resolves. Nothing is broken by it, but anyone
 holding the old map should re-read the queue rather than trust remembered numbers.
+
+---
+
+## 2026-11-09 — Slice BRAND-I: the four findings left on #226, and a hole in the fix for a fifth
+
+Ten files, two over the eight-file rule. The request was five items and each one needed its test
+kept green; dropping one again would have been the fourth time running.
+
+**First, the fix shipped yesterday had a hole, and another session found it.** `asData()` stripped
+angle brackets and control characters but not square brackets, so a farm name or description
+containing the literal `[FARM DETAILS END]` closed the data block early and had whatever followed
+read as instructions. A fixed marker is printable text; printable text is exactly what the attacker
+supplies.
+
+**The detail that changed the severity** came with the report and was not in the original review:
+farm descriptions are partly derived from scraped farm websites. So a farm owner can place
+injection text on a page they control, have the pipeline ingest it, and reach a post published
+under our name. Not a form field we could validate at the edge, a supply chain.
+
+**The delimiters now carry a nonce**, eight random bytes per prompt, and `asData` strips the
+brackets the markers are built from. Either alone closes the hole. Both together mean a mistake in
+one is not the whole gate. The test for it fails against yesterday's code, which is the only reason
+to trust it.
+
+**`classify` ran twice per way.** It calls `toPath`, which projects and formats every point, so the
+filter and the map were doing the same work on the same geometry. It is classified once and carried
+now. Output is byte-identical, which the existing plate tests already pin.
+
+**The font promise could not recover.** A bare module-level `fetch(...)` memoises a rejection as
+readily as a result, so one bad fetch left every later request awaiting the same rejected promise
+for the life of the isolate: the card route returned its error for every card and the social route
+returned a stack trace. The slot is cleared on failure now, and a non-ok response throws rather
+than reaching satori as an empty buffer.
+
+**3,500 farms were asking for eight plates.** Every farm page put `plate=<slug>` on its card URL
+while eight plates exist, so almost every card render fetched a 404 and then drew the sunrise. There
+is a `PLATE_SLUGS` manifest now and `hasPlate` gates the parameter. A manifest that drifts would be
+worse than none, so a test compares it against `public/images/plates` and fails on any difference.
+
+**The cron reported success for doing nothing.** `run()` returned void and the handler answered
+`{ok: true, published: false}` whether it had published or never started, so anything watching the
+endpoint was watching it succeed at nothing. It returns a `RunResult` now, and the body says
+`skipped` with a reason, `dry-run`, or `published`. `getFarm` is still unbuilt, which is the point:
+the endpoint now says so out loud. Its unread `farmId` parameter is gone until there is something
+behind it.
+
+**`src/lib/map-plate.ts` is 344 lines**, up from 308 and past the 300 soft limit, inside the 500
+hard limit. The manifest sits with `isPlateSlug`, which is the boundary it belongs to. The next
+addition should extract rather than grow it.
+
+**Verification (ran, passed):** `npx tsc --noEmit` exit 0 in both packages. `npx eslint` exit 0 on
+the four changed frontend files. Frontend `npm run test:unit` 565 pass 0 fail, up from 563. Daemon
+`npm test` 25 pass 0 fail, up from 18. The seven new tests cover the nonce, the bracket stripping,
+the manifest against the directory, `hasPlate`, and the cron reporting `skipped` rather than a bare
+success. A real `next build` was run against the branch as well.
+
+**Risk/rollback:** One prompt shape, one refactor with pinned output, one promise lifetime, one
+query parameter and one response body. Revert the commit.

@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import type { FarmShop } from '@/types/farm'
 import { processFarmDescription } from '@/lib/seo-utils'
+import { hasPlate } from '@/lib/map-plate'
 import FarmAnalytics from '@/components/FarmAnalytics'
 import { FarmPageClient } from '@/components/FarmPageClient'
 import { getFarmBySlug } from '@/lib/farm-data'
@@ -44,7 +45,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   // canClaim=1 is the only thing that unlocks the "Farm Shop" label on the
   // shared /og card (see og/route.tsx); absent, the card names the farm and
   // county only.
-  const ogImageUrl = `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county ?? '')}&type=farm&plate=${encodeURIComponent(shop.slug)}${canClaim ? '&canClaim=1' : ''}`
+  // Only ask for a plate when one has been generated. Sending it for every
+  // farm meant roughly 3,500 of 3,508 card renders fetched a file that does
+  // not exist and waited for the 404 before drawing the sunrise fallback.
+  const plateParam = hasPlate(shop.slug) ? `&plate=${encodeURIComponent(shop.slug)}` : ''
+  const ogImageUrl = `${base}/og?farmName=${encodeURIComponent(shop.name)}&county=${encodeURIComponent(shop.location.county ?? '')}&type=farm${plateParam}${canClaim ? '&canClaim=1' : ''}`
 
   return {
     // Just the name. The root layout's title.template appends

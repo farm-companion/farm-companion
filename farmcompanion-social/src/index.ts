@@ -8,11 +8,23 @@ import { generateCopy } from "./services/claude.js";
 import { buildCardUrl, buildFarmUrl } from "./services/card.js";
 import { publishPost } from "./services/ayrshare.js";
 
-export async function run(): Promise<void> {
+/**
+ * What a run did, so the caller can tell the three apart.
+ *
+ * The first version returned void and the handler answered `{ok: true}`
+ * whichever happened, so a cron that posted nothing at all looked exactly
+ * like a cron that published. Anything watching this endpoint was watching
+ * it succeed at doing nothing.
+ */
+export type RunResult =
+  | { status: "published" | "dry-run"; farm: string }
+  | { status: "skipped"; reason: string };
+
+export async function run(): Promise<RunResult> {
   const farm = await getFarm();
   if (!farm) {
-    console.warn("No farm found, skipping.");
-    return;
+    console.warn("No farm source configured, skipping.");
+    return { status: "skipped", reason: "no farm source configured" };
   }
 
   const copy = await generateCopy(farm);
@@ -20,6 +32,7 @@ export async function run(): Promise<void> {
   const imageUrl = buildCardUrl(farm, config.siteUrl);
   console.log(`${farm.name}: ${buildFarmUrl(farm, config.siteUrl)}`);
   await publishPost(copy, imageUrl);
+  return { status: config.publish ? "published" : "dry-run", farm: farm.name };
 }
 
 function json(body: unknown, status: number): Response {
@@ -50,8 +63,8 @@ export default async function handler(req: Request): Promise<Response> {
   }
 
   try {
-    await run();
-    return json({ ok: true, published: config.publish }, 200);
+    const result = await run();
+    return json({ ok: true, ...result }, 200);
   } catch (err) {
     // Logged in full for us, generic for the caller: the message can name
     // environment variables and internal hosts.

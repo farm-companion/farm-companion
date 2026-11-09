@@ -184,14 +184,21 @@ export function renderPlate(ways: OverpassWay[], opts: PlateOptions): RenderedPl
   const weightScale = Math.max(opts.width, opts.height) / REFERENCE_EDGE
 
   const detail = opts.detail ?? 'auto'
-  const candidates = ways.filter((way) => classify(way, project) !== null)
+
+  // Classify once per way and carry the result. `classify` calls `toPath`,
+  // which projects and formats every point, so running it in the filter and
+  // again in the map doubled that work for the whole plate: on the dense
+  // cases measured above, 345 and 679 ways, that is thousands of wasted
+  // coordinate transforms. Output is unchanged.
+  const candidates = ways
+    .map((way) => ({ way, item: classify(way, project) }))
+    .filter((entry): entry is { way: OverpassWay; item: Drawn } => entry.item !== null)
+
   const dropMinor =
     detail === 'spare' || (detail === 'auto' && candidates.length > DENSITY_LIMIT)
 
-  const drawn = (dropMinor ? candidates.filter((way) => !isMinorRoad(way)) : candidates)
-    .map((way) => classify(way, project))
-    .filter((item): item is Drawn => item !== null)
-    .map((item) => ({
+  const drawn = (dropMinor ? candidates.filter((entry) => !isMinorRoad(entry.way)) : candidates)
+    .map(({ item }) => ({
       ...item,
       strokeWidth: item.strokeWidth ? item.strokeWidth * weightScale : undefined,
     }))
@@ -305,4 +312,33 @@ const PLATE_SLUG = /^[a-z0-9][a-z0-9-]{0,99}$/
 
 export function isPlateSlug(value: string): boolean {
   return PLATE_SLUG.test(value)
+}
+
+/**
+ * The farms that actually have a generated plate in `public/images/plates`.
+ *
+ * Without this every farm page put `plate=<slug>` on its card URL, so roughly
+ * 3,500 of 3,508 card renders fetched a file that does not exist, waited for
+ * the 404 and then drew the sunrise. The card still falls back, so this is not
+ * correctness; it is 3,500 pointless round trips on a path social crawlers hit.
+ *
+ * Kept in step with the directory by a test, because a list that silently goes
+ * stale is worse than no list: a farm whose plate exists would stop asking for
+ * it. `scripts/generate-map-plates-batch.ts` writes the files; add the slug
+ * here in the same commit.
+ */
+export const PLATE_SLUGS: ReadonlySet<string> = new Set([
+  'argal-farm-shop',
+  'baileys-country-store-and-farm-shop',
+  'bosavern-community-farm',
+  'boscastle-farm-shop-cafe',
+  'celtic-produce',
+  'chypraze-farm-butchery-and-shop',
+  'colwith-farm-shop',
+  'coombeshead-farm',
+])
+
+/** True when asking the card for this farm's plate is worth the request. */
+export function hasPlate(slug: string | null | undefined): boolean {
+  return typeof slug === 'string' && PLATE_SLUGS.has(slug)
 }
