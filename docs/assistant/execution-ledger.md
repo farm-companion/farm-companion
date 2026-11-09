@@ -6928,3 +6928,49 @@ success. A real `next build` was run against the branch as well.
 
 **Risk/rollback:** One prompt shape, one refactor with pinned output, one promise lifetime, one
 query parameter and one response body. Revert the commit.
+
+---
+
+### 2026-11-09 — Queue 2 audit: farm-produce-images is dead, and farm-frontend still calls it
+
+Queue 2 asks for a decision, not an implementation, so this slice is the evidence to decide on. The
+audit changed the picture twice, so the intermediate conclusions are recorded too.
+
+**The app is up but non-functional.** `https://farm-produce-images.vercel.app/` returns **HTTP 200**,
+but `/api/stats` **times out after 30 seconds** (curl exit 28). That is the signature of the deleted
+Redis: `redis.connect().catch(console.error)` swallows the failure, so each query waits rather than
+failing fast. All six API routes (cleanup, images, metadata, stats, sync, upload) go through
+`src/lib/database.ts` and behave the same way.
+
+**farm-frontend still calls it, at a URL that no longer exists.**
+`farm-frontend/src/lib/produce-integration.ts:54` hardcodes
+`https://farm-produce-images-mm7s8jmyf-...vercel.app`, a **per-deployment** URL rather than the stable
+project one. It does not resolve at all. `scripts/check-image-status.js` and
+`scripts/upload-september-images.md` hardcode a different dead deployment (`e26nfxge7`).
+**`produce-integration.ts` sets no timeout on any of its five fetches** (0 AbortSignal/AbortController).
+
+**First read was wrong, corrected here.** The consumers are not only admin pages. Tracing the imports:
+- admin: `admin/produce/page.tsx`, `admin/produce/stats/page.tsx`, `admin/produce/upload/page.tsx`
+- components: `ApiProduceImage.tsx`, `ClientProduceImages.tsx`, `ProduceCard.tsx`
+- and `ClientProduceImages` is rendered by **`src/app/seasonal/[slug]/page.tsx`, a public page**.
+
+**Severity, measured rather than assumed.** `ApiProduceImage` is `'use client'` and has a `catch`, an
+`error` state and a `fallbackImage` path ("If error or no images, show fallback"). So public pages
+**render correctly and degrade to fallback images**. The cost is a doomed client-side fetch per produce
+item, with no timeout, on every seasonal page view. Moderate, not critical.
+
+**The real produce image system is elsewhere, and it works.** farm-frontend serves produce images from
+Vercel Blob via `src/lib/produce-blob.ts` (`produce-images/{slug}/{variation}/main.webp`), with
+`produce-image-generator.ts` and `scripts/generate-produce-images.ts` alongside. Nothing on the public
+path depends on the external app for the images themselves.
+
+**Recommendation: delete the project**, mirroring PR #230 for farm-photos (still open, so there is no
+merged precedent yet). It has no working function, its datastore has been gone since 2026-06-10, its
+only in-code consumers either already fail or already fall back, and the images it was built to serve
+now come from Blob. Keeping it means standing up a new datastore for an app nothing needs, and leaving
+four credential copies (BLOB_READ_WRITE_TOKEN, REDIS_URL, RESEND_API_KEY, DEEPSEEK_API_KEY) live on a
+project that does nothing.
+
+**Not acted on.** Deleting a Vercel project is operator work and destructive, and the code-side removal
+(produce-integration.ts, three admin pages, three components) is a product decision about whether the
+admin produce tooling is wanted at all. Awaiting the call.
