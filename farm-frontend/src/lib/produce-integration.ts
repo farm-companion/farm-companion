@@ -50,8 +50,19 @@ export interface ProduceStats {
   lastUpload: string
 }
 
-// API Configuration
-const PRODUCE_IMAGES_API_URL = 'https://farm-produce-images-mm7s8jmyf-abdur-rahman-morris-projects.vercel.app'
+// API Configuration.
+// This was pinned to a per-deployment URL (farm-produce-images-mm7s8jmyf-...),
+// which is immutable per deploy and stopped resolving once that deployment aged
+// out. Use the stable project URL, overridable per environment.
+const PRODUCE_IMAGES_API_URL =
+  process.env.NEXT_PUBLIC_PRODUCE_IMAGES_API_URL?.replace(/\/+$/, '') ||
+  'https://farm-produce-images.vercel.app'
+
+// Every call below is cross-service. Without a deadline a backend that hangs
+// rather than refuses (which is exactly what this one did while its datastore
+// was missing) leaves the caller waiting indefinitely; on the seasonal pages
+// that meant a doomed request per produce item on every view.
+const REQUEST_TIMEOUT_MS = 8000
 
 // Upload images to produce-images system
 export async function uploadProduceImages(upload: ProduceImageUpload): Promise<ProduceUploadResult> {
@@ -81,6 +92,7 @@ export async function uploadProduceImages(upload: ProduceImageUpload): Promise<P
     const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/upload`, {
       method: 'POST',
       body: formData,
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
     })
 
     produceLogger.debug('Upload response received', { status: response.status, statusText: response.statusText })
@@ -126,7 +138,9 @@ export async function getProduceImages(
     if (produceSlug) params.append('produceSlug', produceSlug)
     if (month) params.append('month', month.toString())
 
-    const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/images?${params.toString()}`)
+    const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/images?${params.toString()}`, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
     
     if (!response.ok) {
       throw new Error(`Failed to fetch images: ${response.status}`)
@@ -143,7 +157,9 @@ export async function getProduceImages(
 // Get system statistics
 export async function getProduceStats(): Promise<ProduceStats | null> {
   try {
-    const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/stats`)
+    const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/stats`, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
     
     if (!response.ok) {
       throw new Error(`Failed to fetch stats: ${response.status}`)
@@ -163,7 +179,9 @@ export async function getProduceMetadata(produceSlug: string, month?: number) {
     const params = new URLSearchParams({ produceSlug })
     if (month) params.append('month', month.toString())
 
-    const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/metadata?${params.toString()}`)
+    const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/metadata?${params.toString()}`, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
     
     if (!response.ok) {
       throw new Error(`Failed to fetch metadata: ${response.status}`)
@@ -183,7 +201,9 @@ export async function validateProduceIntegration(): Promise<{ valid: boolean; er
 
   try {
     // Test API connection
-    const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/stats`)
+    const response = await fetch(`${PRODUCE_IMAGES_API_URL}/api/stats`, {
+      signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    })
     if (!response.ok) {
       errors.push(`API connection failed: ${response.status}`)
     }

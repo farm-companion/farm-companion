@@ -6974,3 +6974,48 @@ project that does nothing.
 **Not acted on.** Deleting a Vercel project is operator work and destructive, and the code-side removal
 (produce-integration.ts, three admin pages, three components) is a product decision about whether the
 admin produce tooling is wanted at all. Awaiting the call.
+
+---
+
+### 2026-11-09 — Queue 2 Slice 2.1: make the produce-images integration survivable before the datastore returns
+
+Operator chose to give farm-produce-images a datastore rather than retire it. This slice fixes the
+code-side defects that would otherwise have made the new datastore look broken on arrival. None of it
+depends on which datastore is chosen.
+
+**The data model needs no migration.** `database.ts` is plain key-value JSON: `image:{id}` and
+`produce:{slug}:{month}` set as JSON strings, plus a `stats` key with `setEx(3600)`. No sets, no sorted
+sets, no pub/sub. So re-provisioning Redis is a configuration change, not a rewrite, and `database.ts`
+keeps its query code unchanged.
+
+**Three defects fixed, each of which would have wasted operator time:**
+
+1. **A trap that would have struck immediately on provisioning.** The URL guard read
+   `envRedisUrl.startsWith('redis://')`, which **rejects `rediss://`**, the TLS scheme every managed
+   provider hands out. A correct TLS url would have been silently discarded and the client would have
+   fallen back to `redis://localhost:6379`, which cannot connect in production. The new test is
+   `/^rediss?:\/\//`, and a non-matching url now logs loudly when `NODE_ENV === 'production'` instead
+   of failing quietly.
+2. **Requests hung instead of failing.** node-redis queues commands while disconnected and retries
+   forever, which is why `/api/stats` waited rather than erroring. Added `disableOfflineQueue: true`,
+   `connectTimeout: 5000` and a `reconnectStrategy` that gives up after three attempts.
+3. **farm-frontend called a URL that no longer exists, with no deadline.**
+   `produce-integration.ts` pinned `farm-produce-images-mm7s8jmyf-...`, a **per-deployment** url that
+   stopped resolving when that deployment aged out. Now `NEXT_PUBLIC_PRODUCE_IMAGES_API_URL` with the
+   stable project url as the default. All **five** fetches gained
+   `AbortSignal.timeout(REQUEST_TIMEOUT_MS)` at 8s; previously none had one, which is what let a
+   hanging backend stall a doomed request per produce item on every public seasonal page view.
+
+**Verification (ran, passed):** farm-produce-images `pnpm build` `✓ Compiled successfully`,
+`tsc --noEmit` clean. farm-frontend `tsc --noEmit` clean, `pnpm test:unit` **565 pass / 0 fail**,
+`pnpm build` compiled, `npx impeccable detect src/` **exit 0**.
+
+**Behavioural proof of the timeout, not just compilation.** Against the live endpoint:
+`/` returns **200 in 355 ms** while `/api/stats` raises **TimeoutError at 20,003 ms** on a 20s signal,
+confirming both that the network path is healthy and that the endpoint genuinely hangs. Under the
+committed 8s limit those calls now abort at 8s. Worth recording that the first run of this probe
+returned a `TypeError` at 15 ms, a transient blip that would have read as "the endpoint fails fast";
+it was re-run before drawing any conclusion.
+
+**Still outstanding, and operator-owned:** provisioning the datastore itself and setting `REDIS_URL`
+on farm-produce-images. Until then the API routes will now fail in about 5s rather than hanging.
