@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { existsSync, readFileSync } from 'node:fs'
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import {
   buildOverpassQuery,
@@ -8,6 +8,8 @@ import {
   renderPlate,
   parsePlate,
   isPlateSlug,
+  PLATE_SLUGS,
+  hasPlate,
   PLATE_ATTRIBUTION,
   type OverpassWay,
 } from './map-plate'
@@ -255,4 +257,28 @@ test('the placeholder getPlaceholderMapUrl promises is actually there', () => {
     !svg.includes(PLATE_ATTRIBUTION),
     'invented geometry must not claim OpenStreetMap as its source',
   )
+})
+
+test('PLATE_SLUGS matches the plates actually on disk', () => {
+  // A manifest that drifts is worse than none: a farm whose plate exists
+  // would stop asking for it, and one whose plate was deleted would go back
+  // to fetching a 404. Generated files and the list ship in the same commit,
+  // so this test is what makes that true rather than hoped for.
+  const dir = join(process.cwd(), 'public', 'images', 'plates')
+  const onDisk = readdirSync(dir)
+    .filter((name) => name.endsWith('.svg'))
+    .map((name) => name.replace(/\.svg$/, ''))
+    .sort()
+
+  assert.deepEqual([...PLATE_SLUGS].sort(), onDisk, 'PLATE_SLUGS has drifted from public/images/plates')
+  assert.ok(onDisk.length > 0, 'expected at least one generated plate')
+  assert.ok(onDisk.every(isPlateSlug), 'every generated plate must be named as a valid slug')
+})
+
+test('hasPlate decides whether asking the card for a plate is worth a request', () => {
+  assert.equal(hasPlate('argal-farm-shop'), true)
+  assert.equal(hasPlate('a-farm-with-no-plate-yet'), false)
+  assert.equal(hasPlate(undefined), false)
+  assert.equal(hasPlate(null), false)
+  assert.equal(hasPlate(''), false)
 })

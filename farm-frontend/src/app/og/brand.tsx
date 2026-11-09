@@ -28,14 +28,42 @@ export const REGISTRATION_OFFSET = 7
 export const ARCH_PATH =
   'M128 896 L128 512 A384 384 0 0 1 896 512 L896 896 L704 896 L704 576 A192 192 0 0 0 320 576 L320 896 Z'
 
-export const clashDisplay = fetch(
-  new URL('./ClashDisplay-Semibold.ttf', import.meta.url)
-).then((res) => res.arrayBuffer())
+/**
+ * The display face, fetched once and kept.
+ *
+ * It used to be a bare module-level promise. That memoises a rejection as
+ * happily as a result, so one failed fetch at module evaluation left every
+ * later request awaiting the same rejected promise for the life of the
+ * isolate: the card route returned its error for every card and the social
+ * route returned a stack trace, and neither recovered until the isolate was
+ * recycled. Sharing the module between both renderers doubled that reach.
+ *
+ * The slot is cleared on failure, so the next request tries again instead of
+ * inheriting the last one's bad luck. A non-ok response throws rather than
+ * being handed to satori as an empty buffer, which fails later and less
+ * legibly.
+ */
+let fontPromise: Promise<ArrayBuffer> | null = null
+
+function loadBrandFont(): Promise<ArrayBuffer> {
+  if (!fontPromise) {
+    fontPromise = fetch(new URL('./ClashDisplay-Semibold.ttf', import.meta.url))
+      .then((res) => {
+        if (!res.ok) throw new Error(`Clash Display fetch failed: ${res.status}`)
+        return res.arrayBuffer()
+      })
+      .catch((error) => {
+        fontPromise = null
+        throw error
+      })
+  }
+  return fontPromise
+}
 
 export async function brandFont(): Promise<
   { name: string; data: ArrayBuffer; style: 'normal'; weight: 600 }[]
 > {
-  return [{ name: 'Clash Display', data: await clashDisplay, style: 'normal', weight: 600 }]
+  return [{ name: 'Clash Display', data: await loadBrandFont(), style: 'normal', weight: 600 }]
 }
 
 /** The mark: a Loam arch with the single Vermilion stamp inside it. */

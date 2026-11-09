@@ -32,8 +32,19 @@ test("it fails closed when no CRON_SECRET is configured", async () => {
 test("the correct secret is let through", async () => {
   const res = await call({ authorization: `Bearer ${SECRET}` });
   assert.equal(res.status, 200);
-  // getFarm is still a stub, so the run exits early and reports success.
-  assert.deepEqual(await res.json(), { ok: true, published: false });
+  assert.equal((await res.json()).ok, true);
+});
+
+test("a run that posted nothing does not look like a run that published", async () => {
+  // getFarm is unbuilt, so nothing can be posted. The body has to say so:
+  // `{ok: true, published: false}` read as success to anything watching.
+  const body = await (await call({ authorization: `Bearer ${SECRET}` })).json();
+  assert.deepEqual(body, {
+    ok: true,
+    status: "skipped",
+    reason: "no farm source configured",
+  });
+  assert.notEqual(body.status, "published");
 });
 
 test("errors are generic to the caller, never String(err)", async () => {
