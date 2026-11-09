@@ -6928,3 +6928,94 @@ success. A real `next build` was run against the branch as well.
 
 **Risk/rollback:** One prompt shape, one refactor with pinned output, one promise lifetime, one
 query parameter and one response body. Revert the commit.
+
+---
+
+### 2026-11-09 — Queue 2 audit: farm-produce-images is dead, and farm-frontend still calls it
+
+Queue 2 asks for a decision, not an implementation, so this slice is the evidence to decide on. The
+audit changed the picture twice, so the intermediate conclusions are recorded too.
+
+**The app is up but non-functional.** `https://farm-produce-images.vercel.app/` returns **HTTP 200**,
+but `/api/stats` **times out after 30 seconds** (curl exit 28). That is the signature of the deleted
+Redis: `redis.connect().catch(console.error)` swallows the failure, so each query waits rather than
+failing fast. All six API routes (cleanup, images, metadata, stats, sync, upload) go through
+`src/lib/database.ts` and behave the same way.
+
+**farm-frontend still calls it, at a URL that no longer exists.**
+`farm-frontend/src/lib/produce-integration.ts:54` hardcodes
+`https://farm-produce-images-mm7s8jmyf-...vercel.app`, a **per-deployment** URL rather than the stable
+project one. It does not resolve at all. `scripts/check-image-status.js` and
+`scripts/upload-september-images.md` hardcode a different dead deployment (`e26nfxge7`).
+**`produce-integration.ts` sets no timeout on any of its five fetches** (0 AbortSignal/AbortController).
+
+**First read was wrong, corrected here.** The consumers are not only admin pages. Tracing the imports:
+- admin: `admin/produce/page.tsx`, `admin/produce/stats/page.tsx`, `admin/produce/upload/page.tsx`
+- components: `ApiProduceImage.tsx`, `ClientProduceImages.tsx`, `ProduceCard.tsx`
+- and `ClientProduceImages` is rendered by **`src/app/seasonal/[slug]/page.tsx`, a public page**.
+
+**Severity, measured rather than assumed.** `ApiProduceImage` is `'use client'` and has a `catch`, an
+`error` state and a `fallbackImage` path ("If error or no images, show fallback"). So public pages
+**render correctly and degrade to fallback images**. The cost is a doomed client-side fetch per produce
+item, with no timeout, on every seasonal page view. Moderate, not critical.
+
+**The real produce image system is elsewhere, and it works.** farm-frontend serves produce images from
+Vercel Blob via `src/lib/produce-blob.ts` (`produce-images/{slug}/{variation}/main.webp`), with
+`produce-image-generator.ts` and `scripts/generate-produce-images.ts` alongside. Nothing on the public
+path depends on the external app for the images themselves.
+
+**Recommendation: delete the project**, mirroring PR #230 for farm-photos (still open, so there is no
+merged precedent yet). It has no working function, its datastore has been gone since 2026-06-10, its
+only in-code consumers either already fail or already fall back, and the images it was built to serve
+now come from Blob. Keeping it means standing up a new datastore for an app nothing needs, and leaving
+four credential copies (BLOB_READ_WRITE_TOKEN, REDIS_URL, RESEND_API_KEY, DEEPSEEK_API_KEY) live on a
+project that does nothing.
+
+**Not acted on.** Deleting a Vercel project is operator work and destructive, and the code-side removal
+(produce-integration.ts, three admin pages, three components) is a product decision about whether the
+admin produce tooling is wanted at all. Awaiting the call.
+
+---
+
+### 2026-11-09 — Queue 2 Slice 2.1: make the produce-images integration survivable before the datastore returns
+
+Operator chose to give farm-produce-images a datastore rather than retire it. This slice fixes the
+code-side defects that would otherwise have made the new datastore look broken on arrival. None of it
+depends on which datastore is chosen.
+
+**The data model needs no migration.** `database.ts` is plain key-value JSON: `image:{id}` and
+`produce:{slug}:{month}` set as JSON strings, plus a `stats` key with `setEx(3600)`. No sets, no sorted
+sets, no pub/sub. So re-provisioning Redis is a configuration change, not a rewrite, and `database.ts`
+keeps its query code unchanged.
+
+**Three defects fixed, each of which would have wasted operator time:**
+
+1. **A trap that would have struck immediately on provisioning.** The URL guard read
+   `envRedisUrl.startsWith('redis://')`, which **rejects `rediss://`**, the TLS scheme every managed
+   provider hands out. A correct TLS url would have been silently discarded and the client would have
+   fallen back to `redis://localhost:6379`, which cannot connect in production. The new test is
+   `/^rediss?:\/\//`, and a non-matching url now logs loudly when `NODE_ENV === 'production'` instead
+   of failing quietly.
+2. **Requests hung instead of failing.** node-redis queues commands while disconnected and retries
+   forever, which is why `/api/stats` waited rather than erroring. Added `disableOfflineQueue: true`,
+   `connectTimeout: 5000` and a `reconnectStrategy` that gives up after three attempts.
+3. **farm-frontend called a URL that no longer exists, with no deadline.**
+   `produce-integration.ts` pinned `farm-produce-images-mm7s8jmyf-...`, a **per-deployment** url that
+   stopped resolving when that deployment aged out. Now `NEXT_PUBLIC_PRODUCE_IMAGES_API_URL` with the
+   stable project url as the default. All **five** fetches gained
+   `AbortSignal.timeout(REQUEST_TIMEOUT_MS)` at 8s; previously none had one, which is what let a
+   hanging backend stall a doomed request per produce item on every public seasonal page view.
+
+**Verification (ran, passed):** farm-produce-images `pnpm build` `✓ Compiled successfully`,
+`tsc --noEmit` clean. farm-frontend `tsc --noEmit` clean, `pnpm test:unit` **565 pass / 0 fail**,
+`pnpm build` compiled, `npx impeccable detect src/` **exit 0**.
+
+**Behavioural proof of the timeout, not just compilation.** Against the live endpoint:
+`/` returns **200 in 355 ms** while `/api/stats` raises **TimeoutError at 20,003 ms** on a 20s signal,
+confirming both that the network path is healthy and that the endpoint genuinely hangs. Under the
+committed 8s limit those calls now abort at 8s. Worth recording that the first run of this probe
+returned a `TypeError` at 15 ms, a transient blip that would have read as "the endpoint fails fast";
+it was re-run before drawing any conclusion.
+
+**Still outstanding, and operator-owned:** provisioning the datastore itself and setting `REDIS_URL`
+on farm-produce-images. Until then the API routes will now fail in about 5s rather than hanging.

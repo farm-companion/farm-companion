@@ -5,26 +5,38 @@ import { ProduceImage, ProduceMetadata, ProduceStats } from '@/types/produce'
 // Redis client
 let redisUrl = 'redis://localhost:6379'
 
-try {
-  const envRedisUrl = process.env.REDIS_URL?.replace(/^["']|["']$/g, '')
-  if (envRedisUrl && envRedisUrl.startsWith('redis://')) {
-    redisUrl = envRedisUrl
-  }
-} catch (error) {
-  console.warn('Invalid Redis URL, using localhost fallback:', error)
+const envRedisUrl = process.env.REDIS_URL?.replace(/^["']|["']$/g, '').trim()
+// Managed providers hand out rediss:// for TLS. The previous check accepted
+// redis:// only, so a TLS url was silently discarded and this fell back to
+// localhost, which in production can never connect.
+if (envRedisUrl && /^rediss?:\/\//.test(envRedisUrl)) {
+  redisUrl = envRedisUrl
+} else if (process.env.NODE_ENV === 'production') {
+  console.error(
+    'REDIS_URL is missing or not a redis:// or rediss:// url. Falling back to localhost, which will not connect in production.'
+  )
 }
 
 export const redis = createClient({
-  url: redisUrl
+  url: redisUrl,
+  socket: {
+    connectTimeout: 5000,
+    // Give up rather than retrying forever. Unbounded retries are why a missing
+    // datastore surfaced as requests hanging for 30s instead of failing.
+    reconnectStrategy: (retries) => (retries > 3 ? false : Math.min(retries * 200, 1000)),
+  },
+  // Without this, commands issued while disconnected queue indefinitely and the
+  // caller waits. Fail fast instead so a dead datastore is obvious.
+  disableOfflineQueue: true,
 })
 
 // Connect to Redis
 redis.on('error', (err) => console.error('Redis Client Error', err))
-redis.on('connect', () => console.log('✅ Connected to Redis'))
+redis.on('connect', () => console.log('Connected to Redis'))
 
 // Ensure connection
 if (!redis.isOpen) {
-  redis.connect().catch(console.error)
+  redis.connect().catch((err) => console.error('Redis initial connection failed', err))
 }
 
 export const ImageMetadataSchema = z.object({
