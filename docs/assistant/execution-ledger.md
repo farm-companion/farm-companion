@@ -6928,3 +6928,114 @@ success. A real `next build` was run against the branch as well.
 
 **Risk/rollback:** One prompt shape, one refactor with pinned output, one promise lifetime, one
 query parameter and one response body. Revert the commit.
+
+## Slice 1.17 — Queue 1: DeepSeek removed, content generation moved to the Claude subscription
+
+**Goal.** Retire DeepSeek from the live posting path and generate copy through the Claude Code CLI
+authenticated by a subscription OAuth token, so the worst-exposed credential in the repo can be
+deleted rather than rotated.
+
+### Why removal beats rotation
+
+`DEEPSEEK_API_KEY` was the most exposed secret measured in this workspace: 17 commits in public
+history and 8 copies on disk, more than every other credential combined. Rotating it produces a new
+key that still has to be managed in eight places. Deleting it ends the problem and drops the
+rotation list from nine credentials to eight.
+
+### What was already true
+
+- **farm-frontend was already migrated.** `src/scripts/pipeline/enrich/08-enrich-content.ts:10`
+  imports `extractFacts` and `phraseDescription` from `../lib/anthropic`. `lib/deepseek.ts` survives
+  only as the model-agnostic prompt and parser module that the Anthropic client imports from.
+- **farm-pipeline never called DeepSeek.** Every hit there is inside `.venv` (crawl4ai, litellm) or
+  old `description_workflow.log` files. Its `DEEPSEEK_API_KEY` was vestigial.
+- **Only `twitter-workflow` still called it**, from two files with an identical private method.
+
+### Authentication, and the limit worth stating plainly
+
+A Claude subscription cannot authenticate a raw HTTPS call from Vercel or GitHub Actions. What it can
+authenticate is the Claude Code CLI, via a one-year OAuth token from `claude setup-token` passed as
+`CLAUDE_CODE_OAUTH_TOKEN` (Pro, Max, Ultra, Team or Enterprise). Per the Claude Code docs: "If you
+authenticate with an OAuth token, runs use your Claude subscription instead of API billing." So the
+transport had to become the CLI binary rather than an HTTP client. No API key is involved and no
+per-token billing applies.
+
+### Files changed
+
+- **Created** `twitter-workflow/src/lib/claude-cli.js` (105 lines) — one shared transport returning
+  the same `{ success, content }` / `{ success, error }` shape the DeepSeek method returned, so both
+  callers keep their existing fallback paths untouched.
+- **Modified** `twitter-workflow/src/lib/content-generator.js` (227 to 158 lines) — `axios` import,
+  DeepSeek constructor and the private `callDeepSeekAPI` method deleted; one call site re-pointed.
+- **Modified** `twitter-workflow/src/lib/profile-generator.js` (236 to 169 lines) — same, three call
+  sites.
+- **Modified** `twitter-workflow/.github/workflows/dual-posting.yml` — CLI install step added,
+  `DEEPSEEK_API_KEY` replaced by `CLAUDE_CODE_OAUTH_TOKEN`, Node 18 to 22.
+- **Modified** `twitter-workflow/env.example` — DeepSeek block replaced; the dead
+  `DEEPSEEK_IMAGE_*` pair removed.
+- **Modified** `twitter-workflow/src/scripts/dry-run.js` — readiness line reports the subscription.
+
+Net 136 lines of transport deleted against 105 added.
+
+### Three gates, each closing a value that could cross silently
+
+1. **Metered billing.** In print mode an API key always outranks `CLAUDE_CODE_OAUTH_TOKEN`
+   (precedence rank 3 against rank 5). A stray `ANTHROPIC_API_KEY` in the environment would have
+   moved these runs onto per-token API billing with no visible change. `childEnv()` deletes
+   `ANTHROPIC_API_KEY` and `ANTHROPIC_AUTH_TOKEN` from the child process, leaving the subscription
+   token as the only credential the CLI can find.
+2. **An error message posted as copy.** The CLI prints auth and quota failures to **stdout**, not
+   stderr: an unauthenticated run emits `Not logged in · Please run /login`, 34 characters, which is
+   under the 160-character profile-bio validator and would have been published as the bio. Exit code
+   is the primary check (verified as 1); `FAILURE_TEXT` is the backstop for a failure that reaches
+   stdout with the exit code lost.
+3. **Workspace instructions leaking into a copy prompt.** A bare `claude -p` loads project and user
+   `CLAUDE.md`, settings, hooks and MCP servers. The transport runs with a throwaway
+   `CLAUDE_CONFIG_DIR`, uses that empty directory as its cwd, and passes `--allowedTools ''` plus
+   `--strict-mcp-config`. The prompt goes over **stdin**, so farm data never appears in the process
+   table.
+
+### Verification run
+
+- `claude --version` 2.1.318; `npm view @anthropic-ai/claude-code@2.1.318` confirms the pinned
+  version is published, and its `engines` field is `node >=22.0.0` — which is why the workflow's
+  `node-version: '18'` had to move to 22. It would have failed in CI otherwise.
+- Headless round trip in an empty directory: 5.2s, clean stdout. Prompt over stdin verified.
+- Unauthenticated run: exit code 1, message on stdout, 34 chars. Both gate 2 checks justified by
+  observation rather than assumption.
+- **No-token path**: `generateFarmSpotlight` returns `method: 'fallback'`, 116 chars, no error text
+  in the copy.
+- **Parser compatibility**, the real risk, since the Ogilvy prompts were written against DeepSeek:
+  the existing `parseOgilvyResponse` accepts Claude's output unchanged. Body 138 chars against the
+  280 limit, 2 hashtags, valid JSON, no preamble or code fence. No prompt rewrite needed.
+- `npm run lint` exit 0. `npm test` 8 passed, 0 failed.
+
+### Behaviour changes to know about
+
+- `temperature: 0.3` and `max_tokens` (500 and 200) are not expressible through the CLI. Length is
+  already enforced downstream by the callers' own validators (160 bio, 240 pinned tweet, 120 alt
+  text, and `parseOgilvyResponse` for the spotlight body), so the guard rails did not move; output
+  variance between runs may be slightly higher.
+- Each generation now spawns a process rather than making an HTTP request. Measured at about 5s per
+  call against a 30s HTTP timeout before; the new timeout is 120s. Two posts a day.
+
+### Risk and rollback
+
+The risk is the runner: content generation now depends on a global npm binary and Node 22 in CI, so
+an install failure degrades every post to deterministic fallback copy rather than failing loudly,
+which is the same behaviour the DeepSeek path had when its key was absent. Rollback is `git revert`
+of this slice, which restores the axios transport and the DeepSeek environment variables exactly.
+
+### Follow-ups
+
+- Operator: generate the token, add the `CLAUDE_CODE_OAUTH_TOKEN` repository secret, remove the
+  `DEEPSEEK_API_KEY` secret, then delete the key at DeepSeek. Taken one step at a time.
+- Seven markdown files and four test scripts in `twitter-workflow` still describe DeepSeek
+  (`TEST_DEEPSEEK.md`, `ENVIRONMENT_SETUP.md`, `DEPLOYMENT_GUIDE.md`, `README.md`,
+  `PROJECT_OVERVIEW.md`, two phase summaries; `test-deepseek-ogilvy.js`,
+  `test-content-generation.js`, `test-apple-ogilvy-content.js`, `test-complete-workflow.js`, plus
+  the `test:deepseek` script in `package.json`). Documentation and dead test paths only, no live
+  call site. Next slice.
+- `farm-frontend/src/scripts/pipeline/lib/anthropic.ts:18` defaults to `'claude-sonnet-4-6'`, which
+  is not a current model id.
+- `farm-pipeline`'s vestigial `DEEPSEEK_API_KEY` entry can be dropped with its env cleanup.
