@@ -6285,3 +6285,67 @@ every pin is in-major except the two minimatch 11 ones, which lint exercises dir
 - Fix the `farm-produce-images` ESLint config, the unparseable twitter-workflow script, the
   `@tiptap/pm` peer, and the two gitlinks.
 
+
+---
+
+## Slice 1.17 — County taxonomy: canonical list, mapping and redirect plan (analysis only)
+
+Goal: give the site one coherent county taxonomy without breaking indexed URLs. **Proposal slice.
+No farm data changed, no route, slug or sitemap touched.** The migration is Slice 1.18, after
+approval.
+
+### DONE
+
+- Ground truth established from the production database, not inferred: **280 distinct `county`
+  values, all with at least one active farm, so all 280 `/counties/<slug>` pages are live today**.
+  3265 active farms carry a county; **23 carry none**. 63 values hold exactly one farm.
+- Checked the Highland outlier (387 active, 12% of the directory) against its rows' postcodes
+  (IV/PH, Inverness, Portree, Carrbridge). Genuine addresses, not a geocoding fallback. Left alone.
+- Canonical taxonomy chosen and written to the repo as data, which did not exist before:
+  `farm-frontend/src/data/uk-counties.ts`, 114 counties, each nation's statutory source cited in
+  the header. England ceremonial counties (Lieutenancies Act 1997) + Isles of Scilly, Scottish
+  council areas, Welsh principal areas, Northern Ireland districts.
+- Mapping built for all 280: `farm-frontend/src/data/county-aliases.ts`, 179 fold entries; the other
+  101 values are already canonical. The four non-place values (Cymru, Perthshire, Torfaen Principal
+  Area, Wrexham Principal Area) were resolved from their own rows' postcodes, not guessed.
+- URL consequences measured: **101 of 280 URLs survive, 179 need a permanent redirect, 0 redirects
+  point at a slug that will not exist.** 740 of 3265 farms change label. Redirect plan, mechanism,
+  deploy ordering and rollback written up.
+- Found a latent repeat of the bug that cost this site five county pages:
+  `src/lib/sitemap-generator.ts:132` still defines a local `slugify` that handles `&` differently
+  from `slugifyCounty`. Nothing broken today (no county name contains `&`); to be closed in 1.18.
+- Proposal for approval: `docs/assistant/county-taxonomy-proposal.md`, including all 179 redirects
+  and nine decisions listed for Abu Aaliyah with a recommendation each.
+
+### NEXT (Slice 1.18, blocked on approval)
+
+Migration, in this order so nothing 404s: ship redirects generated from `COUNTY_ALIASES` in
+`next.config.ts` first with the data untouched; then add `county_original`, backfill it, rewrite
+`county`; then regenerate and resubmit the sitemap. Then restore "counties" and the real number on
+`shop/page.tsx`, `ShopPageClient.tsx` and `counties/page.tsx`, and fix the `sitemap-generator.ts`
+local `slugify`.
+
+### Verification commands run
+
+| command | result |
+|---|---|
+| `npx tsx --test src/data/uk-counties.test.ts` | 8 pass, 0 fail |
+| `pnpm lint` (farm-frontend) | see below |
+| data files vs production DB, via `tsx` and Prisma | 280 values, 0 unresolved, 0 stale alias keys, 108 canonical in use, 179 redirects, 0 dangling |
+
+### Blockers and follow-ups
+
+- **Blocked on Abu Aaliyah**: the nine decisions in section 5 of the proposal, and whether 308 (what
+  Next's `permanent: true` emits, and what Google treats as equivalent to 301) is acceptable or a
+  literal 301 via `middleware.ts` is required.
+- **23 active farms have no county**, so they are unreachable by county browse. Own slice; needs a
+  postcode-to-county backfill, which this slice deliberately did not guess at.
+- **Dumfries and Galloway holds 275 rows but only 59 active**, a ratio unlike anywhere else in the
+  table. Possible bad import, worth a look independently of the taxonomy.
+- `src/components/ShopPageClient.tsx` has a stat tile hardcoded to **"100%" labelled "Verified
+  Farms"**, an unverifiable claim beside the numbers being corrected. Raised, not touched.
+
+### Risk and rollback
+
+Risk is nil for this slice: it adds two data files, a test and two documents, and nothing imports
+them yet. Rollback is `git revert`.
