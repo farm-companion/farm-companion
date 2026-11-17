@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { callClaude } from './claude-cli.js';
 import dotenv from 'dotenv';
 import { 
   getProfileBioPrompt, 
@@ -14,13 +14,6 @@ dotenv.config();
  * Generates Ogilvy-style profile bio, pinned tweet, and alt text
  */
 export class ProfileGenerator {
-  constructor() {
-    this.apiKey = process.env.DEEPSEEK_API_KEY;
-    this.baseUrl = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
-    this.maxRetries = 3;
-    this.retryDelay = 1000;
-  }
-
   /**
    * Generate profile bio using Ogilvy principles
    */
@@ -29,7 +22,7 @@ export class ProfileGenerator {
       console.log('✍️  Generating Ogilvy-style profile bio...');
       
       const prompt = getProfileBioPrompt();
-      const response = await this.callDeepSeekAPI(prompt);
+      const response = await callClaude(prompt);
       
       if (response.success) {
         const bio = response.content.trim();
@@ -66,7 +59,7 @@ export class ProfileGenerator {
       console.log('✍️  Generating Ogilvy-style pinned tweet...');
       
       const prompt = getPinnedTweetPrompt();
-      const response = await this.callDeepSeekAPI(prompt);
+      const response = await callClaude(prompt);
       
       if (response.success) {
         const tweet = response.content.trim();
@@ -103,7 +96,7 @@ export class ProfileGenerator {
       console.log(`✍️  Generating alt text for: ${farm.name}`);
       
       const prompt = getAltTextPrompt(farm);
-      const response = await this.callDeepSeekAPI(prompt);
+      const response = await callClaude(prompt);
       
       if (response.success) {
         const altText = response.content.trim();
@@ -172,65 +165,5 @@ export class ProfileGenerator {
       length: altText.length,
       method: 'fallback'
     };
-  }
-
-  /**
-   * Call DeepSeek API with retry logic
-   */
-  async callDeepSeekAPI(prompt) {
-    if (!this.apiKey) {
-      return {
-        success: false,
-        error: 'DeepSeek API key not configured'
-      };
-    }
-
-    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-      try {
-        const response = await axios.post(
-          `${this.baseUrl}/v1/chat/completions`,
-          {
-            model: 'deepseek-chat',
-            messages: [
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
-            temperature: 0.3,
-            max_tokens: 200,
-            stream: false
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${this.apiKey}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 30000
-          }
-        );
-
-        if (response.data && response.data.choices && response.data.choices[0]) {
-          return {
-            success: true,
-            content: response.data.choices[0].message.content.trim()
-          };
-        } else {
-          throw new Error('Invalid response format from DeepSeek API');
-        }
-
-      } catch (error) {
-        console.error(`❌ DeepSeek API attempt ${attempt} failed:`, error.message);
-        
-        if (attempt === this.maxRetries) {
-          return {
-            success: false,
-            error: `DeepSeek API failed after ${this.maxRetries} attempts: ${error.message}`
-          };
-        }
-        
-        await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempt));
-      }
-    }
   }
 }

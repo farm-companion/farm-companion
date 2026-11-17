@@ -27,7 +27,7 @@ async function main() {
     console.log(`  Posting Enabled: ${process.env.POSTING_ENABLED}`);
     console.log(`  Content Generation: ${process.env.CONTENT_GENERATION_ENABLED}`);
     console.log(`  Farm Data URL: ${process.env.FARM_DATA_URL}`);
-    console.log(`  DeepSeek API: ${process.env.DEEPSEEK_API_KEY ? '✅ Configured' : '❌ Not configured'}`);
+    console.log(`  Claude subscription: ${process.env.CLAUDE_CODE_OAUTH_TOKEN ? '✅ Configured' : '❌ Not configured'}`);
     console.log(`  Twitter API: ${process.env.TWITTER_API_KEY ? '✅ Configured' : '❌ Not configured'}\n`);
     
     // Execute the workflow in dry run mode

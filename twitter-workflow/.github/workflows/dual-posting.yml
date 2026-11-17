@@ -18,11 +18,15 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '22'
           cache: 'npm'
           
       - name: Install dependencies
         run: npm ci
+
+      - name: Install Claude Code CLI
+        # Pinned: content generation runs through this binary.
+        run: npm install -g @anthropic-ai/claude-code@2.1.318
         
       - name: Run dual posting workflow
         env:
@@ -41,7 +45,9 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           
           # AI Services
-          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          # Claude subscription auth, from `claude setup-token`. Not an
+          # API key: these runs bill to the subscription, not per token.
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           FAL_KEY: ${{ secrets.FAL_KEY }}
           
           # Workflow settings

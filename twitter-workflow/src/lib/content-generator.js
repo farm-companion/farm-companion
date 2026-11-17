@@ -1,4 +1,4 @@
-import axios from 'axios';
+import { callClaude } from './claude-cli.js';
 import dotenv from 'dotenv';
 import { 
   getDailySpotlightPrompt, 
@@ -16,13 +16,6 @@ dotenv.config({ path: '.env.local' });
  * Following David Ogilvy's principles: one clear idea, concrete benefits, no hype
  */
 class ContentGenerator {
-  constructor() {
-    this.apiKey = process.env.DEEPSEEK_API_KEY;
-    this.baseUrl = process.env.DEEPSEEK_BASE_URL || 'https://api.deepseek.com';
-    this.maxRetries = 3;
-    this.retryDelay = 1000;
-  }
-
   /**
    * Generate Ogilvy-style tweet content for a farm spotlight
    * @param {Object} farm - Farm data object
@@ -34,7 +27,7 @@ class ContentGenerator {
       
       // Use Ogilvy prompt for consistent, professional copy
       const prompt = getDailySpotlightPrompt(farm);
-      const response = await this.callDeepSeekAPI(prompt);
+      const response = await callClaude(prompt);
       
       if (response.success) {
         const parsed = parseOgilvyResponse(response.content);
@@ -117,68 +110,6 @@ class ContentGenerator {
       method: 'fallback',
       length: fallback.body.length
     };
-  }
-
-  /**
-   * Call DeepSeek API with retry logic
-   * @param {string} prompt - The prompt to send
-   */
-  async callDeepSeekAPI(prompt) {
-    if (!this.apiKey) {
-      return {
-        success: false,
-        error: 'DeepSeek API key not configured'
-      };
-    }
-
-    for (let attempt = 1; attempt <= this.maxRetries; attempt++) {
-      try {
-        const response = await axios.post(
-          `${this.baseUrl}/v1/chat/completions`,
-          {
-            model: 'deepseek-chat',
-            messages: [
-              {
-                role: 'user',
-                content: prompt
-              }
-            ],
-            temperature: 0.3, // Lower temperature for more consistent, professional output
-            max_tokens: 500,
-            stream: false
-          },
-          {
-            headers: {
-              'Authorization': `Bearer ${this.apiKey}`,
-              'Content-Type': 'application/json'
-            },
-            timeout: 30000
-          }
-        );
-
-        if (response.data && response.data.choices && response.data.choices[0]) {
-          return {
-            success: true,
-            content: response.data.choices[0].message.content.trim()
-          };
-        } else {
-          throw new Error('Invalid response format from DeepSeek API');
-        }
-
-      } catch (error) {
-        console.error(`❌ DeepSeek API attempt ${attempt} failed:`, error.message);
-        
-        if (attempt === this.maxRetries) {
-          return {
-            success: false,
-            error: `DeepSeek API failed after ${this.maxRetries} attempts: ${error.message}`
-          };
-        }
-        
-        // Wait before retry
-        await new Promise(resolve => setTimeout(resolve, this.retryDelay * attempt));
-      }
-    }
   }
 
   /**
