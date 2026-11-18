@@ -287,6 +287,7 @@ export default function Footer() {
             <div className="flex items-center gap-4">
               <Link href="/site-map" className="inline-flex items-center min-h-[48px] hover:text-paper transition-colors">Sitemap</Link>
               <span>Made in UK</span>
+              <span>Site by <a href="https://eazyaccess.org" className="inline-flex items-center min-h-[48px] hover:text-paper transition-colors">eazy/access</a></span>
             </div>
           </div>
         </div>
