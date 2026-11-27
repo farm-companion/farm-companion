@@ -152,6 +152,17 @@ export default function AboutPage() {
             <p>
               We got tired of it. So we started mapping them ourselves.
             </p>
+
+            <p>
+              Farm Companion is built and run by{' '}
+              <a
+                href="https://eazyaccess.org/work/farmcompanion"
+                className="underline underline-offset-4 hover:text-ink"
+              >
+                eazy/access
+              </a>
+              , a small UK studio.
+            </p>
           </div>
         </div>
       </section>
