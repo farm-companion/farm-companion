@@ -1,0 +1,43 @@
+name: CI
+
+# Checks farm-frontend on every pull request and every push to master.
+# Type-check and unit tests block a merge. Lint reports but doesn't block yet: master had
+# 117 lint errors when this was added (21 Nov 2026). Make it blocking once they're fixed.
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: farm-frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.12.4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: farm-frontend/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Type-check
+        run: pnpm exec tsc --noEmit
+      - name: Unit tests
+        run: pnpm test:unit
+      - name: Lint (not blocking yet)
+        run: pnpm lint
+        continue-on-error: true
